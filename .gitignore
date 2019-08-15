@@ -1,6 +1,12 @@
 # Prerequisites
 *.d
 
+# admin
+build
+Build
+*.opendb
+.vs
+
 # Compiled Object files
 *.slo
 *.lo

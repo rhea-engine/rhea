@@ -1,0 +1,1 @@
+add_library(Psio STATIC Psio.cpp Win32Window.cpp Window.cpp)

@@ -1,0 +1,48 @@
+#include <d3d11.h>
+#include <d3d11shader.h>
+#include <d3dcompiler.h>
+#include <dxgi1_2.h>
+#include <wrl/client.h>
+#include <stdio.h>
+
+#include "D3D11IndexBuffer.h"
+
+namespace Hippios
+{
+	D3D11IndexBuffer::D3D11IndexBuffer(ID3D11Device* d3dDevice, ID3D11DeviceContext* device_context, size_t vertex_size, size_t num_faces) :
+		is_dirty(true)
+	{
+		m_device = d3dDevice;
+		m_device_context = device_context;
+		// compute size
+		m_size_in_bytes = vertex_size * num_faces * 3;
+		m_vertex_size = vertex_size;
+		m_num_faces = num_faces;
+
+		m_buffer = new D3D11GraphicsBuffer(m_device, m_device_context, D3D11_BIND_INDEX_BUFFER, m_size_in_bytes);
+	}
+
+	void* D3D11IndexBuffer::Lock(size_t offset, size_t length)
+	{
+		return m_buffer->Lock(offset, length);
+	};
+	void D3D11IndexBuffer::Unlock()
+	{
+		m_buffer->Unlock();
+	};
+	void D3D11IndexBuffer::ReadData(size_t offset, size_t length, void* dest)
+	{
+		m_buffer->ReadData(offset, length, dest);
+	}
+
+	void D3D11IndexBuffer::WriteData(size_t offset, size_t length, const void* source, bool discardBuffer, bool mapped)
+	{
+		m_buffer->WriteData(offset, length, source, discardBuffer, mapped);
+		is_dirty = true;
+	}
+
+	ID3D11Buffer* D3D11IndexBuffer::get_buffer()
+	{
+		return m_buffer->get_buffer();
+	}
+}

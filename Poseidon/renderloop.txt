@@ -1,0 +1,43 @@
+core::loop
+	// check input
+	Psio::Tick
+
+	// call node tree to update
+	node::update() (propagates to children)
+
+	viewport nodes:
+	  clear pass on render_target
+	  draw all mesh children on render_target
+	  present pass on render_target
+
+	-- v0.1
+	// call render system to update
+	renderer::update
+		
+		clear window bufer
+
+		// update render targets (rt)
+		win::update // currently only one window (and one target)
+			
+			// update viewports of win
+			(viewport(rt=win))
+			viewport::update // currently only one viewport 
+
+				// render the listener (=scene_manager) with the camera of the viewport
+				m_render_listener->render(m_camera); // always 1-1 cam per viewport
+
+		swap buffer
+
+---
+Scenes Nodes and SceneManager and Core
+
+Core: Main Loop, owns has a node tree
+Nodes: Elements that can be Scenes, objects, etc... They may receive and propagate signals
+Scene: a special node that holds other nodes
+viewportnode: a node that renders graphics?
+
+---
+Hippios vs Poseidon
+
+Hippios is the rendering subsystem - it has no logic
+Poseidon is the engine that organises scenes, resources and the main loop

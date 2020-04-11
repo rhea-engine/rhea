@@ -19,8 +19,13 @@ namespace Orion
 
 	size_t BufferResource::Write(void* data, size_t length)
 	{
+		void* temp;
 		if (m_data && m_buf_length < length) {
-			m_data = realloc(m_data, length);
+			temp = realloc(m_data, length);
+			if (temp == NULL) {
+				printf("realloc failed in BufferResource::Write");
+			}
+			m_data = temp;
 			m_buf_length = length;
 		}
 		else if (!m_data) {

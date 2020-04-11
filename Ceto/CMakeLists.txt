@@ -14,4 +14,4 @@ target_link_libraries(Ceto Rhea)
 add_custom_command(TARGET Ceto POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
                 ${CMAKE_CURRENT_SOURCE_DIR}/Data
-                ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Ceto/1.0)
+                ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Data)

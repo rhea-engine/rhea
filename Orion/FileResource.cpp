@@ -1,43 +1,42 @@
 #include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 
+#include "os/Fs.h"
 #include "FileResource.h"
+#include "FileStream.h"
 
 namespace Orion
 {
-	FileResource::FileResource()
-	{
-		m_data = 0;
-		m_length = 0;
-		m_buf_length = 0;
+	FileResource::FileResource(string path)
+	{	
+		struct _stat buf;
+		m_path = path;
+
+		int result = _stat(path.c_str(), &buf);
+		if (result !=0) {
+			accessible = false;
+			m_length = 0;
+		}
+		else {
+			accessible = true;
+			m_length = buf.st_size;
+			m_lastmod = buf.st_mtime;
+		}
 	}
 
 	FileResource::~FileResource()
 	{
-		if (m_data)
-			free(m_data);
 	}
 
-	size_t FileResource::Write(void* data, size_t length)
+	ResourceStream* FileResource::Open(int mode)
 	{
-		if (m_data && m_buf_length < length) {
-			m_data = realloc(m_data, length);
-			m_buf_length = length;
-		}
-		else if (!m_data) {
-			m_data = malloc(length);
-			m_buf_length = length;
-		}
-		memcpy(m_data, data, length);
-		m_length = length;
+		FileResourceStream* s;
 
-		return length;
-	}
+		if (!accessible)
+			return NULL;
 
-	size_t FileResource::Read(void* dest, size_t* length)
-	{
-		if (!length || length > m_length)
-			length = m_length;
-		memcpy(dest, length);
-		return length;
+		s = new FileResourceStream(m_path, mode);
+		return (ResourceStream*)s;
 	}
 }

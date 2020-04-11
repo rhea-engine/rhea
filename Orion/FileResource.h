@@ -2,6 +2,7 @@
 #define ORION_FILERESOURCE_H
 
 #include <string>
+#include <stdio.h>
 
 #include "Resource.h"
 
@@ -11,17 +12,18 @@ namespace Orion
 {
 	class FileResource : public Resource
 	{
-	protected:
-		void* m_data;
-		size_t m_length;
-		size_t m_buf_length;
+	protected:		
+		size_t m_length;		
+		string m_path;
+		time_t m_lastmod;
+		bool accessible;
 	public:
-		FileResource();
+		FileResource(string path);
 		~FileResource();
-		size_t Write(void* data, size_t length);
-		size_t Read(void* dest, size_t* length = 0);
 		size_t get_length() { return m_length; }
+		time_t getLastmod() { return m_lastmod; }
 
+		virtual ResourceStream* Open(int mode);
 	};
 }
 #endif // !ORION_FILERESOURCE_H

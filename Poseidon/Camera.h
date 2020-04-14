@@ -7,6 +7,8 @@
 #include "Hippios/GraphicsBuffer.h"
 
 #include "Animatable.h"
+
+#include "Node.h"
 #include "Math/Vector3.h"
 #include "Math/Quaternion.h"
 #include "Math/Matrix3x4.h"
@@ -89,6 +91,8 @@ namespace Poseidon
 		void updateView(void) const;
 
 		void setAspectRatio(float ratio) { aspectRatio_ = ratio; }
+
+		bool render(Viewport*, Camera*) { return true; }
 	};
 }
 

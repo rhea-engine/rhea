@@ -3,7 +3,7 @@
 
 namespace Hippios
 {
-	class D3D11IndexBuffer : IndexBuffer
+	class D3D11IndexBuffer : public IndexBuffer
 	{
 	protected:
 		D3D11GraphicsBuffer* m_buffer;

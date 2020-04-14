@@ -46,7 +46,6 @@ namespace Hippios {
 		HRESULT hr = createDevice(mDriverType, mMinRequestedFeatureLevel, mMaxRequestedFeatureLevel, 0);
 		if (FAILED(hr))
 			return;
-
 	}
 		
 	HRESULT D3D11Renderer::createDevice(D3D_DRIVER_TYPE driverType, D3D_FEATURE_LEVEL minFL, D3D_FEATURE_LEVEL maxFL, D3D_FEATURE_LEVEL* pFeatureLevel)
@@ -226,6 +225,8 @@ namespace Hippios {
 
 		//Create the Sample State
 		HRESULT HR = m_device->CreateSamplerState(&sampDesc, &m_sampler_state);
+		// set as default sampler
+		m_device_context->PSSetSamplers(0, 1, &m_sampler_state);
 	}
 
 	HippiosWindow* D3D11Renderer::createWindow()
@@ -273,7 +274,6 @@ namespace Hippios {
 			ID3D11ShaderResourceView* srv = ((D3D11Texture*)texture)->get();
 			m_device_context->PSSetShaderResources(0, 1, &srv);
 		}
-		m_device_context->PSSetSamplers(0, 1, &m_sampler_state);
 
 		// draw the vertex buffer to the back buffer
 		if (!i_buffer)
@@ -294,6 +294,30 @@ namespace Hippios {
 			m_device_context->IASetVertexBuffers(0, 1, &buffer, &stride, &offset);
 			m_vb->is_dirty = false;
 		}
+
+		// set index buffer
+		if (m_ib && m_ib->is_dirty) {
+			ID3D11Buffer* buffer = m_ib->get_buffer();
+			m_device_context->IASetIndexBuffer(buffer, DXGI_FORMAT_R32_UINT, 0);
+			m_ib->is_dirty = false;
+		}
+	}
+
+	void D3D11Renderer::bindBuffers(VertexBuffer* vb, IndexBuffer* ib)
+	{
+		if (m_vb != vb)
+			m_vb = static_cast<D3D11VertexBuffer*>(vb);
+
+		if (m_vb && m_vb->is_dirty) {
+			UINT stride = (UINT)m_vb->get_vertex_size();
+			UINT offset = 0;
+			ID3D11Buffer* buffer = m_vb->get_buffer();
+			m_device_context->IASetVertexBuffers(0, 1, &buffer, &stride, &offset);
+			m_vb->is_dirty = false;
+		}
+
+		if (m_ib != ib)
+			m_ib = static_cast<D3D11IndexBuffer*>(ib);
 
 		// set index buffer
 		if (m_ib && m_ib->is_dirty) {
@@ -415,5 +439,43 @@ namespace Hippios {
 		}
 		return false;
 
+	}
+
+	void D3D11Renderer::setMaterial(Texture* texture)
+	{
+		if (m_current_texture != texture)
+		{
+			m_current_texture = texture;
+			ID3D11ShaderResourceView* tex_view = ((Hippios::D3D11Texture*)texture)->get();
+			m_device_context->PSSetShaderResources(0, 1, &tex_view);
+		}
+	}
+
+	void D3D11Renderer::drawIndexed(int size, int start_idx, int start_vtx)
+	{
+		m_device_context->DrawIndexed(size, start_idx, start_vtx);
+	}
+
+	void D3D11Renderer::setGPUParameter(void* param)
+	{
+		m_device_context->UpdateSubresource(m_cb_per_object_buffer, 0, NULL, param, 0, 0);
+		m_device_context->VSSetConstantBuffers(0, 1, &m_cb_per_object_buffer);
+	}
+
+	void D3D11Renderer::initGPUBuffer(size_t size)
+	{
+		// setup buffer for gpu params
+		//Create the buffer to send to the cbuffer in effect file
+		D3D11_BUFFER_DESC cbbd;
+		ZeroMemory(&cbbd, sizeof(D3D11_BUFFER_DESC));
+
+
+		cbbd.Usage = D3D11_USAGE_DEFAULT;
+		cbbd.ByteWidth = size;
+		cbbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		cbbd.CPUAccessFlags = 0;
+		cbbd.MiscFlags = 0;
+
+		HRESULT hr = m_device->CreateBuffer(&cbbd, NULL, &m_cb_per_object_buffer);
 	}
 }

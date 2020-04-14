@@ -8,13 +8,12 @@
 #include "Hippios/VertexBuffer.h"
 #include "Hippios/IndexBuffer.h"
 #include "Texture.h"
-#include <DirectXMath.h>
-using DirectX::XMMATRIX;
-using DirectX::XMVECTOR;
+
+#include <d3d11.h>
 
 namespace Poseidon
 {
-	class Mesh : public Node
+	class Mesh
 	{
 	protected:
 		Hippios::Renderer* m_renderer = 0;
@@ -23,18 +22,14 @@ namespace Poseidon
 		Viewport* m_viewport = 0;
 		int m_vertex_size = 0;	
 		Texture* m_texture = 0;
-		XMMATRIX cube1World;
-		XMMATRIX Rotation;
-		XMMATRIX Scale;
-		XMMATRIX Translation;
-		float rot = 0.01f;
+
 	public:		
 		void setVertices(size_t vertex_size, size_t num_vertices, const void* source);
 		void setIndices(size_t vertex_size, size_t num_faces, const void* source);
 		void setViewport(Viewport* viewport);
 		void addVertexBuffer(Hippios::VertexBuffer* vertex_buffer);		
-		bool render(Camera* camera);
 		void addTexture(Texture* texture);
+		Texture* getTexture() { return m_texture; }
 
 		Hippios::VertexBuffer* get_vbuffer() { return m_vbuffer; };
 		Hippios::IndexBuffer* get_ibuffer() { return m_ibuffer; };

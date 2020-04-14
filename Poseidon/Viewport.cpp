@@ -1,12 +1,25 @@
 #include "Viewport.h"
 #include "Mesh.h"
+#include "Animatable.h"
+
+#include "Entity.h"
+#include "Hippios/D3D11Renderer/D3D11Renderer.h"
 
 namespace Poseidon
 {	
-	bool Viewport::onUpdate()
+	Viewport::Viewport()
+	{
+		
+
+	}
+	
+	bool Viewport::render()
 	{
 		// clear pass
 		m_renderer->clearPass();
+
+		// TODO is this the model pass?
+		((Hippios::D3D11Renderer*)m_renderer)->update();
 
 		// need a camera to do anything
 		if (!m_camera)
@@ -14,10 +27,10 @@ namespace Poseidon
 
 		// render pass
 		// my children
-		for (std::vector<Mesh*>::iterator it = m_render_children.begin(); it != m_render_children.end(); ++it)
+		for (std::vector<Animatable*>::iterator it = m_render_children.begin(); it != m_render_children.end(); ++it)
 		{
-			Mesh* mesh = (Mesh*)*it;
-			if (mesh->render(m_camera))
+			Animatable* robj = (Animatable*)*it;
+			if (robj->render(this, m_camera))
 				return true;
 		}
 
@@ -31,8 +44,7 @@ namespace Poseidon
 	void Viewport::initRenderTarget(Hippios::Engine* engine)
 	{
 		m_engine = engine;
-		m_win = m_engine->createWindow();
-		m_renderer = m_engine->getRenderer();		
+		m_renderer = m_engine->getRenderer();
 	}
 
 	void Viewport::setCamera(Camera* camera)
@@ -40,8 +52,9 @@ namespace Poseidon
 		m_camera = camera;
 	}
 
-	void Viewport::addRenderChild(Mesh* mesh)
+	void Viewport::addRenderChild(Animatable* child)
 	{
-		m_render_children.push_back(mesh);
+		Node::addChild(child);
+		m_render_children.push_back(child);
 	}
 }

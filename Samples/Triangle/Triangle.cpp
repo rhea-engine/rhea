@@ -14,7 +14,7 @@ void TriangleApp::setup()
 {
 	Rhea::Application::setup();
 
-	m_scene = core->get_scene();	
+	m_scene = core->get_scene_manager();	
 	Poseidon::Material* material = core->createMaterial();
 	material->loadFromFile("Samples\\assets\\shaders\\shader.hlsl", "vs", "VShader");
 	material->loadFromFile("Samples\\assets\\shaders\\shader.hlsl", "ps", "PShader");
@@ -30,7 +30,7 @@ void TriangleApp::initialize()
 {
 	Poseidon::Mesh* mesh;
 	unsigned long* indices;
-	Viewport* viewport = core->get_viewport();
+	Viewport* viewport = m_scene->getViewport();
 
 	//vertices.resize(10);
 	float colorA[4] = { 1.0f, 0.0f, 0.0f, 1.0f };

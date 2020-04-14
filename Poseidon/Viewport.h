@@ -6,25 +6,31 @@
 #include "Hippios/Window.h"
 
 #include "Camera.h"
+#include "Node.h"
 
 namespace Poseidon
 {
-	class Mesh;
+	class Animatable;
+	class Entity;
 
-	class Viewport
+	class Viewport : public Node
 	{
+	public: 		
+		Viewport();
+
+		bool render();
+		virtual void initRenderTarget(Hippios::Engine* engine);
+		Hippios::Engine* get_renderer() { return m_engine; };
+		void addRenderChild(Animatable* child);
+		Camera* get_camera() { return m_camera; };
+		void setCamera(Camera* camera);
+
+	protected:
 		Camera* m_camera = 0; // the active camera
 		Hippios::Engine* m_engine = 0; // reference to the render system
 		Hippios::Renderer* m_renderer = 0;
-		std::vector<Mesh*> m_render_children;
+		std::vector<Animatable*> m_render_children;
 		Hippios::HippiosWindow* m_win = 0;
-	public: 		
-		bool onUpdate();
-		void initRenderTarget(Hippios::Engine* engine);
-		Hippios::Engine* get_renderer() { return m_engine; };
-		void addRenderChild(Mesh* mesh);
-		Camera* get_camera() { return m_camera; };
-		void setCamera(Camera* camera);
 	};
 
 }

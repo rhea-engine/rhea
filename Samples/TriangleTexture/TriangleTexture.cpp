@@ -2,6 +2,7 @@
 #include "Poseidon/Mesh.h"
 #include "Poseidon/Texture.h"
 #include "Poseidon/Material.h"
+#include "Poseidon/SceneManager.h"
 
 #include "TriangleTexture.h"
 
@@ -12,7 +13,7 @@ void TriangleTextureApp::setup()
 {
 	Rhea::Application::setup();
 
-	m_scene = core->get_scene();
+	m_scene = core->get_scene_manager();
 	Poseidon::Material* material = core->createMaterial();
 	material->setType(1);
 	if (material->loadFromFile("Samples\\assets\\shaders\\uvshader.hlsl", "vs", "VShader"))
@@ -29,7 +30,7 @@ void TriangleTextureApp::initialize()
 
 	const int num_faces = 12;
 	const int num_vertices = 24;
-	Viewport* viewport = core->get_viewport();
+	Viewport* viewport = core->get_scene_manager()->getViewport();
 
 	Hippios::vertex_uv OurVertices[num_vertices] = {
 		// Front Face

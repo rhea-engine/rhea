@@ -15,8 +15,8 @@ namespace Poseidon
 	class Texture;
 	class Entity;
 	class Mesh;
-	class Viewport;
-	class Scene;
+	class Window;
+	class SceneManager;
 	class Camera;
 
 	/** The holder of the scenen tree
@@ -28,15 +28,15 @@ namespace Poseidon
 		Hippios::Engine* m_renderer = 0;
 		int quit = 0;	
 		Hippios::HippiosWindow* m_win = 0;
-		Viewport* m_viewport = 0;
-		Scene* m_scene = 0;
+		Window* m_window = 0;
+		SceneManager* m_scene_manager = 0;
 	public:
 		Core();
 		void createWindow();
 		void init();
-		Scene* get_scene() { return m_scene; }
-		Viewport* get_viewport() { return m_viewport; }
+		SceneManager* get_scene_manager() { return m_scene_manager; }
 		int loop();
+		int iterate();
 		Hippios::Renderer* get_renderer() { return m_renderer->getRenderer(); };
 
 		Texture* createTexture(const std::string& file_name);		

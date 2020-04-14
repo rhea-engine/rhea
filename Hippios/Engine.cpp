@@ -24,6 +24,11 @@ namespace Hippios
 		return false;
 	}
 
+	void Engine::update(VertexBuffer* vb, IndexBuffer* ib)
+	{
+		m_renderer->bindBuffers(vb, ib);
+	}
+
 	void Engine::setRenderer(Renderer* renderer)
 	{
 		m_renderer = renderer;

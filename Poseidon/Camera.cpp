@@ -1,6 +1,7 @@
 #include "Math/Math.h"
 #include "Camera.h"
 #include "Node.h"
+#include "Position.h"
 
 using namespace DirectX;
 
@@ -14,6 +15,7 @@ namespace Poseidon
 		m_projection_offset(Vector3::ZERO)
 	{
 		m_buffer = m_renderer->createGraphicsBuffer(sizeof(cbPerObject));
+		createPosition(1);
 	}
 
 	void Camera::render(XMMATRIX mesh)
@@ -121,8 +123,8 @@ namespace Poseidon
 		//if (!mCustom_view_matrix)
 		{
 			Matrix3 rot;
-			const Quaternion& orientation = m_node->get_position()->get_rotation();  //getOrientationForViewUpdate();
-			const Vector3& position = m_node->get_position()->get_worldspace();  //getPositionForViewUpdate();
+			const Quaternion& orientation = m_position->get_rotation();  //getOrientationForViewUpdate();
+			const Vector3& position = m_position->get_worldspace();  //getPositionForViewUpdate();
 
 			m_view_matrix = makeViewMatrix(position, orientation, m_reflect ? &m_reflect_matrix : 0);
 		}

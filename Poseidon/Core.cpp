@@ -3,10 +3,10 @@
 #include "Hippios/Viewport.h"
 
 #include "Texture.h"
-#include "Viewport.h"
 #include "Material.h"
 #include "Entity.h"
-#include "Scene.h"
+#include "SceneManager.h"
+#include "Window.h"
 
 #include "Core.h"
 
@@ -23,12 +23,13 @@ namespace Poseidon
 		m_renderer = new Hippios::Engine();
 		m_renderer->startup();		
 
-		// add a root viewport
-		m_viewport = new Viewport();		
-		m_viewport->initRenderTarget(m_renderer);
+		// add a root window which is also the root viewport
+		m_window = new Window();		
+		m_window->initRenderTarget(m_renderer);
 
-		// add a root scene
-		m_scene = new Scene();
+		// add a scene manager 
+		m_scene_manager = new SceneManager();
+		m_scene_manager->setRoot(m_window);
 	}
 
 	int Core::loop()
@@ -41,15 +42,35 @@ namespace Poseidon
 
 			// update passes
 
-			if (m_scene->update())
+			if (m_scene_manager->update())
 				quit = true;
 
 			// main pass: render frame
-			//if (m_renderer->render())
-			// quit = true;
-			
+			if (m_renderer->render())
+				quit = true;
 		}
 		return 0;
+	}
+
+	int Core::iterate()
+	{
+		// check for window events
+		if (Psio::Engine::tick())
+			quit = true;
+
+		// update passes
+
+		if (m_scene_manager->update())
+			quit = true;
+
+		// main pass: render frame
+		if (m_scene_manager->render())
+			quit = true;
+
+		if (quit)
+			return 1;
+		else
+			return 0;
 	}
 
 	Texture* Core::createTexture(const std::string& file_name)
@@ -74,6 +95,7 @@ namespace Poseidon
 		Entity* entity;
 		entity = new Entity();
 		entity->set_mesh(mesh);
+		entity->createPosition(0);
 		return entity;
 	}
 

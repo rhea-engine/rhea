@@ -13,6 +13,7 @@ namespace Poseidon
 	public:
 		Material::Material(Hippios::Renderer* renderer);
 		bool loadFromFile(std::string filename, char* shader_type, char* entry_point);
+		void initBuffer(size_t size);
 		void setType(int type);
 	};
 }

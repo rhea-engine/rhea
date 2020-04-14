@@ -5,6 +5,8 @@ namespace Hippios
 {
 	class Renderer;
 	class HippiosWindow;
+	class VertexBuffer;
+	class IndexBuffer;
 
 	class Engine
 	{
@@ -20,6 +22,9 @@ namespace Hippios
 		HippiosWindow* get_window() {
 			return m_window;
 		}
+		
+		// bind to vertex and index buffer
+		void update(VertexBuffer* vb, IndexBuffer* ib);
 	};
 }
 #endif // !HIPPIOS_ENGINE_H

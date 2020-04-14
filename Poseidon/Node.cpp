@@ -2,16 +2,6 @@
 
 namespace Poseidon
 {
-	Node::Node(int position_type) : m_obj(nullptr)
-	{
-		m_position_type = position_type;
-		switch (m_position_type) {
-		case 1: // 3D
-			m_position = new Position();
-			break;
-		}
-	}
-
 	Node::~Node()
 	{
 		if (m_position)
@@ -32,7 +22,7 @@ namespace Poseidon
 
 	Node* Node::createChild()
 	{
-		Node* node = new Node(m_position_type);
+		Node* node = new Node();
 		addChild(node);
 		return node;
 	}
@@ -45,15 +35,28 @@ namespace Poseidon
 			Node* node = (Node*)*it;
 			if (node->update())
 				return true;
-		}	
-		if (m_obj)
-			m_obj->onUpdate();
+		}
 		return false;
 	}
 
-	void Node::attach(Animatable* obj)
+	Position* Node::get_position()
 	{
-		m_obj = obj;
-		obj->set_node(this);
-	}	
+		if (m_position)
+			return m_position;
+		// check for pos in parent
+		Node* p = this;
+		while (p->m_parent_node) {
+			p = p->m_parent_node;
+			if (p->m_position)
+				return p->m_position;
+		}
+		return NULL;
+	}
+
+	void Node::createPosition(int position_type)
+	{
+		if (m_position)
+			delete m_position;
+		m_position = new Position();
+	}
 }

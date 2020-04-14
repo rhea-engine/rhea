@@ -24,10 +24,12 @@ int main(int argc, char* argv[])
 	Ceto* app = new Ceto();
 	app->setAppname("Ceto");
 
+	app->init();
+
 	if (argc > 1)
 		app->setHomeScene(argv[1]);
 
-	app->init();
+	app->setup();
 
 	app->loop();	
 

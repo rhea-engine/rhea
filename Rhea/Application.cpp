@@ -4,6 +4,9 @@
 #include "Poseidon/Core.h"
 #include "Orion/Orion.h"
 #include "Orion/ResourceStream.h"
+#include "Poseidon/SceneManager.h"
+
+#include "ResourceLoader.h"
 
 #include "Application.h"
 
@@ -11,11 +14,8 @@ namespace Rhea
 {
 	void Application::init()
 	{
-		core = new Core();
+		core = new Poseidon::Core();
 		m_fs = new Orion::Orion(m_appname);
-
-		// setup the apps core objects
-		setup();
 	}
 
 	void Application::setup()
@@ -57,9 +57,15 @@ namespace Rhea
 		}
 		// now do something with the file
 
+		// show splash screen (manually)
+
+		ResourceLoader loader;
+		loader.load(core);
+
 		// cleanup
 		free(buf);
 	}
+
 
 	void Application::onResourceFailed(Orion::ResourceRequest::Error reason)
 	{
@@ -69,11 +75,17 @@ namespace Rhea
 	int Application::loop()
 	{
 		// start the loop
-		int ret = core->loop();
+		//int ret = core->loop();
+		int ret = 0;
+
+		while (!ret) {
+			ret = core->iterate();
+		}
 
 		return ret;
 	}
 
+	
 	void Application::close()
 	{
 

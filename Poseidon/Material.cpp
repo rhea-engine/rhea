@@ -8,7 +8,11 @@ namespace Poseidon
 	bool Material::loadFromFile(std::string filename, char* shader_type, char* entry_point)
 	{
 		return m_renderer->addMaterial(filename, shader_type, entry_point, m_type);
-			
+	}
+
+	void Material::initBuffer(size_t size)
+	{
+		m_renderer->initGPUBuffer(size);
 	}
 
 	// set the vertex type

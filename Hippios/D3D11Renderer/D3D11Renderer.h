@@ -87,11 +87,27 @@ namespace Hippios
 		Texture* createTexture();
 		bool addMaterial(std::string filename, char* shader_type, char* entry_point, int vertex_type);
 
+		void setMaterial(Texture* texture);
+
+		void drawIndexed(int size, int start_idx, int start_vtx);
+
+		void setGPUParameter(void* param);
+
+		void initGPUBuffer(size_t size);
+
+		ID3D11Buffer* getObjBuffer() {
+			return m_cb_per_object_buffer;
+		}
+
 		// render passes
 		void update();
+		void bindBuffers(VertexBuffer* vb, IndexBuffer* ib);
 		void clearPass();
 		int presentPass();
 		int render();
+
+	protected:
+		Texture* m_current_texture;
 	};
 }
 #endif // !HIPPIOS_D3D11RENDERER_H

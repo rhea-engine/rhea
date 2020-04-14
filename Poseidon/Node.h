@@ -3,13 +3,11 @@
 
 #include <vector>
 
-#include "Animatable.h"
 #include "Position.h"
 
 namespace Poseidon
 {
-	/** A node is an item in the scene tree
-		this has a position that contains the 3d functions		 
+	/** A node is an item in the scene tree	 
 	*/
 	class Node
 	{
@@ -18,21 +16,27 @@ namespace Poseidon
 		Node* m_parent_node = 0;
 		int depth = 0;
 		std::vector<Node*> children;
-		Animatable* m_obj;
-		Position* m_position = 0;
-		int m_position_type = 1;
+		Position* m_position = NULL;
 	public:
-		Node(int position_type = 0);
+		Node() :
+			m_parent_node(NULL)
+		{}
 		~Node();
 
 		void setName(char* name);
 		void addChild(Node* child_node);
+		// get parent - returns NULL for top
+		Node* getParent() { return m_parent_node; }
 		Node* createChild();
 		virtual bool update();
-		void attach(Animatable* obj);
-		Animatable* get_obj() { return m_obj; }
 
-		Position* get_position() { return m_position; }
+		// position related
+
+		// get position or if empty the nearest parents
+		Position* get_position();
+
+		// create a position of the given type
+		void createPosition(int position_type);
 	};
 }
 

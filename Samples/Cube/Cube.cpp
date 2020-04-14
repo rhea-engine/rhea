@@ -10,14 +10,8 @@
 #include <d3dcompiler.h>
 #include <stdint.h>
 
-#include "Hippios/D3D11Renderer/D3D11HLSL.h"
-#include "Hippios/D3D11Renderer/D3D11Renderer.h"
-#include "Hippios/D3D11Renderer/D3D11Texture.h"
 #include "Components/Psio/Psio.h"
 #include "Components/Psio/Win32Window.h"
-#include "Hippios/Engine.h"
-#include "Hippios/D3D11Renderer/D3D11IndexBuffer.h"
-#include "Hippios/D3D11Renderer/D3D11VertexBuffer.h"
 #include "Poseidon/Viewport.h"
 #include "Poseidon/Math/Matrix3x4.h"
 #include "Poseidon/Math/Matrix4.h"
@@ -36,57 +30,6 @@ using namespace DirectX::PackedVector;
 using Hippios::vertex_uv;
 
 using Poseidon::Viewport;
-
-//Global Declarations - Interfaces//
-Poseidon::Mesh* mesh;
-//Poseidon::Viewport* viewport;
-Hippios::Engine* engine;
-Hippios::D3D11Renderer* renderer;
-Poseidon::Camera* m_camera;
-
-//IDXGISwapChain* SwapChain;
-ID3D11Device* d3d11Device;
-ID3D11DeviceContext* d3d11DevCon;
-//ID3D11RenderTargetView* renderTargetView;
-//ID3D11Buffer* squareIndexBuffer;
-//ID3D11DepthStencilView* depthStencilView;
-//ID3D11Texture2D* depthStencilBuffer;
-//ID3D11Buffer* squareVertBuffer;
-//ID3D11VertexShader* VS;
-//ID3D11PixelShader* PS;
-//ID3D10Blob* VS_Buffer;
-//ID3D10Blob* PS_Buffer;
-ID3D11InputLayout* vertLayout;
-ID3D11Buffer* cbPerObjectBuffer;
-///////////////**************new**************////////////////////
-ID3D11ShaderResourceView* CubesTexture;
-ID3D11SamplerState* CubesTexSamplerState;
-///////////////**************new**************////////////////////
-
-//Global Declarations - Others//
-LPCTSTR WndClassName = "firstwindow";
-HWND hwnd = NULL;
-HRESULT hr;
-
-const int Width = 1152;
-const int Height = 864;
-
-XMMATRIX WVP;
-XMMATRIX VP;
-XMMATRIX cube1World;
-XMMATRIX cube2World;
-XMMATRIX camView;
-XMMATRIX camProjection;
-
-XMVECTOR camPosition;
-XMVECTOR camTarget;
-XMVECTOR camUp;
-
-XMMATRIX Rotation;
-XMMATRIX Scale;
-XMMATRIX Translation;
-float rot = 0.01f;
-Poseidon::Matrix4 pv;
 
 //Function Prototypes//
 void CleanUp();
@@ -113,19 +56,6 @@ struct cbPerObjectVP
 
 cbPerObjectVP cbPerObjVP;
 
-struct cbPerObjectMVP
-{
-	Poseidon::Matrix3x4  model;
-#ifdef USE_P_VP
-	Poseidon::Matrix4 vp;
-#else
-	XMMATRIX  VP;
-#endif // USE_P_VP
-
-};
-
-cbPerObjectMVP cbPerObjMVP;
-
 ///////////////**************new**************////////////////////
 //Vertex Structure and Vertex Layout (Input Layout)//
 struct Vertex	//Overloaded Vertex Structure
@@ -150,7 +80,7 @@ void CubeApp::setup()
 {
 	Rhea::Application::setup();
 
-	m_scene = core->get_scene();
+	m_scene = core->get_scene_manager();
 	Poseidon::Material* material = core->createMaterial();
 	material->setType(1);
 #ifdef USE_WVP
@@ -163,6 +93,7 @@ void CubeApp::setup()
 		exit(-1);
 	if (material->loadFromFile("Samples\\assets\\shaders\\uvshader_vp.hlsl", "ps", "PShader"))
 		exit(-1);
+	material->initBuffer(sizeof(cbPerObjectMVP));
 #endif
 
 	initialize();
@@ -170,7 +101,7 @@ void CubeApp::setup()
 
 void CubeApp::initialize()
 {
-	Viewport* viewport = core->get_viewport();
+	Viewport* viewport = core->get_scene_manager()->getViewport();
 	engine = viewport->get_renderer();
 
 	const int num_faces = 12;
@@ -252,74 +183,52 @@ void CubeApp::initialize()
 
 	mesh->setIndices(sizeof(unsigned long), num_faces, indices);
 
-
 	// load texture
 	Poseidon::Texture* tex;
 	tex = core->createTexture("Samples\\assets\\images\\kies.png");
-	//tex = core->createTexture("braynzar.jpg");
 	if (!tex) {
 		printf("Loading of texture failed\n");
 		exit(-1);
 	}
 	mesh->addTexture(tex);
 
-	Hippios::Texture* texture = tex->get_texture();
-	CubesTexture = ((Hippios::D3D11Texture*)texture)->get();
-
-	renderer = (Hippios::D3D11Renderer*)engine->getRenderer();
-	d3d11Device = renderer->get_device();
-	d3d11DevCon = renderer->get_device_context();
+	renderer = engine->getRenderer();
 	//SwapChain = renderer->get_swapchain();
 
 	//renderTargetView = renderer->get_backbuffer();
 	//depthStencilView = renderer->get_depth_buffer()->get_view();
-		
-	//Set Primitive Topology
-	d3d11DevCon->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-	//Create the buffer to send to the cbuffer in effect file
-	D3D11_BUFFER_DESC cbbd;
-	ZeroMemory(&cbbd, sizeof(D3D11_BUFFER_DESC));
-
-
-	cbbd.Usage = D3D11_USAGE_DEFAULT;
-#ifdef USE_WVP
-	cbbd.ByteWidth = sizeof(cbPerObject);
-#else
-	cbbd.ByteWidth = sizeof(cbPerObjectMVP);
-#endif // USE_WVP
-	cbbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	cbbd.CPUAccessFlags = 0;
-	cbbd.MiscFlags = 0;
-
-	hr = d3d11Device->CreateBuffer(&cbbd, NULL, &cbPerObjectBuffer);
 
 	// add entities
 	cube1 = core->createEntity(mesh);
-	Poseidon::Node* entity_node = m_scene->get_root()->createChild();
-	entity_node->attach(cube1);
-	Poseidon::Position* pos = cube1->get_node()->get_position();
+	m_scene->getViewport()->addRenderChild(cube1);
+	
+	//Poseidon::Node* entity_node = m_scene->get_root()->createChild();
+	//entity_node->attach(cube1);
+	Poseidon::Position* pos = cube1->get_position();
 	pos->setPosition(0.0f, 0.0f, 4.0f);
 
 	cube2 = core->createEntity(mesh);
-	entity_node = m_scene->get_root()->createChild();
-	entity_node->attach(cube2);
-	pos = cube2->get_node()->get_position();
+	m_scene->getViewport()->addRenderChild(cube2);
+//	entity_node = m_scene->get_root()->createChild();
+//	entity_node->attach(cube2);
+	pos = cube2->get_position();
 	pos->setPosition(0.0f, 1.0f, 0.0f);
 
 	// add a camera
 	m_camera = core->createCamera();
-	Poseidon::Node* cam_node = m_scene->get_root()->createChild();
-	cam_node->attach(m_camera);
+	m_scene->getViewport()->addChild(m_camera);
+	m_scene->getViewport()->setCamera(m_camera);
+	//Poseidon::Node* cam_node = m_scene->get_root()->createChild();
+	//cam_node->attach(m_camera);
 
 	m_position = Poseidon::Vector3(0.0f, 3.0f, -100.0f);
 
 	// set a default position
-	cam_node->get_position()->setPosition(m_position);
-	cam_node->get_position()->lookAt(Poseidon::Vector3(0.0f, 0.0f, 0.0f), Poseidon::Vector3::UNIT_Z);
+	m_camera->get_position()->setPosition(m_position);
+	m_camera->get_position()->lookAt(Poseidon::Vector3(0.0f, 0.0f, 0.0f), Poseidon::Vector3::UNIT_Z);
 //	Poseidon::Matrix3x4 transform = cam_node->get_position()->getWorldTransform();
 
-	m_camera->setAspectRatio(Width / Height);
+	m_camera->setAspectRatio((float)Width / (float)Height);
 	Poseidon::Matrix4 proj = m_camera->getProjectionMatrixRS();
 	Poseidon::Matrix4 view = m_camera->getViewMatrix();
 
@@ -334,11 +243,7 @@ void CubeApp::initialize()
 	camView = XMMatrixLookAtLH(camPosition, camTarget, camUp);
 
 	//Set the Projection matrix
-	camProjection = XMMatrixPerspectiveFovLH(0.4f * 3.14f, Width / Height, 1.0f, 1000.0f);
-
-	// get texture sampler state
-	CubesTexSamplerState = renderer->get_default_samplerstate();
-
+	camProjection = XMMatrixPerspectiveFovLH(0.4f * 3.14f, (float)Width / (float)Height, 1.0f, 1000.0f);
 }
 
 int main0()
@@ -360,22 +265,21 @@ int main()
 	CubeApp* app = new CubeApp();
 
 	app->init();
+	app->setup();
 
 	app->messageloop();
 
-	CleanUp();
+	app->CleanUp();
 
 	app->close();
 
 	return 0;
 }
 
-void CleanUp()
+void CubeApp::CleanUp()
 {
 	//Release the COM Objects we created
 //	SwapChain->Release();
-	d3d11Device->Release();
-	d3d11DevCon->Release();
 //	renderTargetView->Release();
 //	squareVertBuffer->Release();
 //	squareIndexBuffer->Release();
@@ -390,7 +294,6 @@ void CleanUp()
 #if 0
 	depthStencilBuffer->Release();
 #endif
-	cbPerObjectBuffer->Release();
 }
 
 void CubeApp::UpdateScene()
@@ -400,7 +303,7 @@ void CubeApp::UpdateScene()
 	if (rot > 6.26f)
 		rot = 0.0f;
 
-	Poseidon::Position* pos = cube1->get_node()->get_position();
+	Poseidon::Position* pos = cube1->get_position();
 	pos->setPosition(0, 0, 0);
 	pos->setOrientation(Poseidon::Quaternion(rot, Poseidon::Vector3(0.0f, 1.0f, 0.0f)));
 	pos->moveRelative(Poseidon::Vector3(4.0f,0.0f,0.0f));
@@ -418,7 +321,7 @@ void CubeApp::UpdateScene()
 	cube1World = Translation * Rotation;
 #endif
 
-	pos = cube2->get_node()->get_position();
+	pos = cube2->get_position();
 	pos->setPosition(0, 0, 0);
 	pos->setOrientation(Poseidon::Quaternion(-rot, Poseidon::Vector3(0.0f, 1.0f, 0.0f)));
 
@@ -433,72 +336,6 @@ void CubeApp::UpdateScene()
 	//Set cube2's world space matrix
 	cube2World = Rotation * Scale;
 #endif
-}
-
-Poseidon::Matrix4 _wvp;
-
-void CubeApp::DrawScene()
-{
-	//Clear our backbuffer
-	renderer->clearPass();
-
-	// prepare rendering including  updating dirty buffers
-	renderer->update();
-
-#ifdef USE_WVP
-	//Set the WVP matrix and send it to the constant buffer in effect file
-	WVP = cube1World * camView * camProjection;
-	cbPerObj.WVP = XMMatrixTranspose(WVP);
-#endif
-#ifndef USE_P_VP
-	VP = camView * camProjection;
-#endif
-	Poseidon::Matrix3x4 model_wtm = cube1->get_node()->get_position()->getWorldTransform();
-	Poseidon::Matrix4 viewproj = m_camera->getProjectionMatrixRS() * m_camera->getViewMatrix();
-
-#ifdef USE_P_VP
-	cbPerObjMVP.vp = viewproj;
-#else
-	cbPerObjMVP.VP = XMMatrixTranspose(VP);
-#endif
-	cbPerObjMVP.model = model_wtm; //XMMatrixTranspose(cube1World);
-
-#ifdef USE_WVP
-	d3d11DevCon->UpdateSubresource(cbPerObjectBuffer, 0, NULL, &cbPerObj, 0, 0);
-#else
-	d3d11DevCon->UpdateSubresource(cbPerObjectBuffer, 0, NULL, &cbPerObjMVP, 0, 0);
-#endif
-	d3d11DevCon->VSSetConstantBuffers(0, 1, &cbPerObjectBuffer);
-	///////////////**************new**************////////////////////
-	d3d11DevCon->PSSetShaderResources(0, 1, &CubesTexture);
-	d3d11DevCon->PSSetSamplers(0, 1, &CubesTexSamplerState);
-	///////////////**************new**************////////////////////
-
-	//Draw the first cube
-	d3d11DevCon->DrawIndexed(36, 0, 0);
-
-	WVP = cube2World * camView * camProjection;
-	//VP = camView * camProjection;
-	cbPerObj.WVP = XMMatrixTranspose(WVP);
-	//cbPerObjVP.VP = XMMatrixTranspose(VP);
-	model_wtm = cube2->get_node()->get_position()->getWorldTransform();
-	cbPerObjMVP.model = model_wtm;
-	
-#ifdef USE_WVP
-	d3d11DevCon->UpdateSubresource(cbPerObjectBuffer, 0, NULL, &cbPerObj, 0, 0);
-#else
-	d3d11DevCon->UpdateSubresource(cbPerObjectBuffer, 0, NULL, &cbPerObjMVP, 0, 0);
-#endif	d3d11DevCon->VSSetConstantBuffers(0, 1, &cbPerObjectBuffer);
-	///////////////**************new**************////////////////////
-	d3d11DevCon->PSSetShaderResources(0, 1, &CubesTexture);
-	d3d11DevCon->PSSetSamplers(0, 1, &CubesTexSamplerState);
-	///////////////**************new**************////////////////////
-
-	//Draw the second cube
-	d3d11DevCon->DrawIndexed(36, 0, 0);
-
-	//Present the backbuffer to the screen
-	renderer->presentPass();
 }
 
 int CubeApp::messageloop() {
@@ -526,33 +363,33 @@ int CubeApp::messageloop() {
 				{
 				case VK_LEFT:
 					m_position.x -= 0.1f;
-					m_camera->get_node()->get_position()->setPosition(m_position);
-					m_camera->get_node()->get_position()->lookAt(Poseidon::Vector3(0.0f, 0.0f, 0.0f), Poseidon::Vector3::UNIT_Z);
+					m_camera->get_position()->setPosition(m_position);
+					m_camera->get_position()->lookAt(Poseidon::Vector3(0.0f, 0.0f, 0.0f), Poseidon::Vector3::UNIT_Z);
 					break;
 				case VK_RIGHT:
 					m_position.x += 0.1f;
-					m_camera->get_node()->get_position()->setPosition(m_position);
-					m_camera->get_node()->get_position()->lookAt(Poseidon::Vector3(0.0f, 0.0f, 0.0f), Poseidon::Vector3::UNIT_Z);
+					m_camera->get_position()->setPosition(m_position);
+					m_camera->get_position()->lookAt(Poseidon::Vector3(0.0f, 0.0f, 0.0f), Poseidon::Vector3::UNIT_Z);
 					break;
 				case VK_UP:
 					m_position.z += 0.5f;
-					m_camera->get_node()->get_position()->setPosition(m_position);
-					m_camera->get_node()->get_position()->lookAt(Poseidon::Vector3(0.0f, 0.0f, 0.0f), Poseidon::Vector3::UNIT_Z);
+					m_camera->get_position()->setPosition(m_position);
+					m_camera->get_position()->lookAt(Poseidon::Vector3(0.0f, 0.0f, 0.0f), Poseidon::Vector3::UNIT_Z);
 					break;
 				case VK_DOWN:
 					m_position.z -= 0.5f;
-					m_camera->get_node()->get_position()->setPosition(m_position);
-					m_camera->get_node()->get_position()->lookAt(Poseidon::Vector3(0.0f, 0.0f, 0.0f), Poseidon::Vector3::UNIT_Z);
+					m_camera->get_position()->setPosition(m_position);
+					m_camera->get_position()->lookAt(Poseidon::Vector3(0.0f, 0.0f, 0.0f), Poseidon::Vector3::UNIT_Z);
 					break;
 				case VK_HOME:
 					m_position.y += 0.5f;
-					m_camera->get_node()->get_position()->setPosition(m_position);
-					m_camera->get_node()->get_position()->lookAt(Poseidon::Vector3(0.0f, 0.0f, 0.0f), Poseidon::Vector3::UNIT_Z);
+					m_camera->get_position()->setPosition(m_position);
+					m_camera->get_position()->lookAt(Poseidon::Vector3(0.0f, 0.0f, 0.0f), Poseidon::Vector3::UNIT_Z);
 					break;
 				case VK_END:
 					m_position.y -= 0.5f;
-					m_camera->get_node()->get_position()->setPosition(m_position);
-					m_camera->get_node()->get_position()->lookAt(Poseidon::Vector3(0.0f, 0.0f, 0.0f), Poseidon::Vector3::UNIT_Z);
+					m_camera->get_position()->setPosition(m_position);
+					m_camera->get_position()->lookAt(Poseidon::Vector3(0.0f, 0.0f, 0.0f), Poseidon::Vector3::UNIT_Z);
 					break;
 
 				}
@@ -563,7 +400,8 @@ int CubeApp::messageloop() {
 		
 			// run game code            
 			UpdateScene();
-			DrawScene();
+			core->iterate();
+			//DrawScene();
 		}
 	}
 	return msg.wParam;

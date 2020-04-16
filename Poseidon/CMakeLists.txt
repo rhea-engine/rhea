@@ -7,7 +7,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ ${CMAKE_SOURCE_DIR}/ ${CMAKE_SO
 
 # define the main library
 add_library (Poseidon "Core.cpp" "Node.cpp" "Mesh.cpp" "Viewport.cpp" "Image.cpp" 
-"Texture.cpp" "Material.cpp" "Camera.cpp" "Entity.cpp" "Position.cpp" "SceneManager.cpp"
+"Texture.cpp" "Material.cpp" "Camera.cpp" "Entity.cpp" "Position.cpp" "RenderQueue.cpp" "SceneManager.cpp"
 "Math/Quaternion.cpp" "Math/Vector3.cpp" "Math/Matrix3.cpp" "Math/Matrix4.cpp" "Math/Matrix3x4.cpp"
  "SceneManager.cpp" "Window.cpp")
 

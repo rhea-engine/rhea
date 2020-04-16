@@ -2,6 +2,8 @@
 #define POSEIDON_NODE_H
 
 #include <vector>
+#include <unordered_map>
+#include <string>
 
 #include "Position.h"
 
@@ -11,12 +13,6 @@ namespace Poseidon
 	*/
 	class Node
 	{
-	protected:
-		char* m_node_name = "(unknwon)";
-		Node* m_parent_node = 0;
-		int depth = 0;
-		std::vector<Node*> children;
-		Position* m_position = NULL;
 	public:
 		Node() :
 			m_parent_node(NULL)
@@ -24,7 +20,9 @@ namespace Poseidon
 		~Node();
 
 		void setName(char* name);
+		
 		void addChild(Node* child_node);
+		
 		// get parent - returns NULL for top
 		Node* getParent() { return m_parent_node; }
 		Node* createChild();
@@ -37,6 +35,24 @@ namespace Poseidon
 
 		// create a position of the given type
 		void createPosition(int position_type);
+
+	protected:
+		char* m_node_name = "(unknwon)";
+		Node* m_parent_node = 0;
+		int depth = 0;
+		std::vector<Node*> children;
+		Position* m_position = NULL;
+
+		// groups of nodes
+
+		// register this node to the groups of the parents it wants to
+		virtual void registerNode() {}
+
+		// register child node to group
+		virtual void registerGroup(std::string group_name, Node* node);
+
+		// parent nodes store nodes they are interessted in
+		std::unordered_map<std::string, std::vector<Node*>> m_groups;
 	};
 }
 

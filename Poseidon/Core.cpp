@@ -29,7 +29,9 @@ namespace Poseidon
 
 		// add a scene manager 
 		m_scene_manager = new SceneManager();
+		m_scene_manager->setRenderer(m_renderer->getRenderer());
 		m_scene_manager->setRoot(m_window);
+		m_scene_manager->registerViewport(m_window);
 	}
 
 	int Core::loop()
@@ -46,7 +48,7 @@ namespace Poseidon
 				quit = true;
 
 			// main pass: render frame
-			if (m_renderer->render())
+			if (m_scene_manager->render())
 				quit = true;
 		}
 		return 0;

@@ -1,9 +1,18 @@
 #include "SceneManager.h"
 #include "Node.h"
 #include "Viewport.h"
+#include "Renderable.h"
+#include "RenderQueue.h"
+#include "Texture.h"
 
 namespace Poseidon
 {
+	SceneManager::SceneManager() :
+		m_renderer(NULL)
+	{
+		m_rend_queue = new RenderQueue();
+	}
+
 	Node* SceneManager::get_root()
 	{
 		if (!m_tree) {
@@ -28,8 +37,60 @@ namespace Poseidon
 
 	bool SceneManager::render()
 	{
-		// TODO for now only the root may be a viewport
-		return static_cast<Viewport*>(m_tree)->render();
+		// iterate over all viewports an execute the phases per viewport
+		for (std::vector<Viewport*>::iterator it = m_viewports.begin(); it != m_viewports.end(); ++it) {
+			Viewport* viewport = *it;
+
+			// clear pass
+			m_renderer->clearPass();
+			m_rend_queue->clear();
+
+			// cull pass	
+			viewport->cullObjects(m_rend_queue);
+
+			// render pass
+			Camera* camera = viewport->get_camera();
+			if (!camera)
+				return true;
+			Poseidon::Matrix4 viewproj = camera->getProjectionMatrixRS() * camera->getViewMatrix();
+
+			Renderable* renderable = m_rend_queue->first();
+			for (Renderable* renderable = m_rend_queue->first(); renderable != NULL; renderable = m_rend_queue->next()) {
+
+				Poseidon::Matrix3x4 model_wtm = renderable->get_position()->getWorldTransform();
+
+				// set up GPU input
+				cbPerObjMVP.vp = viewproj;
+				cbPerObjMVP.model = model_wtm;
+				viewport->get_renderer()->getRenderer()->setGPUParameter((void*)&cbPerObjMVP);
+
+				// set material
+				m_renderer->setMaterial(renderable->getMaterial()->get_texture());
+
+				// draw the entity
+
+				// bind the vertex and index buffer
+				Hippios::VertexBuffer* vb;
+				Hippios::IndexBuffer* ib;
+				renderable->getRenderInput(&vb, &ib);
+				m_renderer->bindBuffers(vb, ib);
+				m_renderer->drawIndexed(36, 0, 0);
+			}
+
+			// present pass
+			if (m_renderer->presentPass())
+				return true;
+		}
+	}
+
+	void SceneManager::registerViewport(Viewport* viewport)
+	{
+		m_viewports.push_back(viewport);
+	}
+
+	void SceneManager::deregisterViewport(Viewport* viewport)
+	{
+		m_viewports.erase(std::remove(m_viewports.begin(), m_viewports.end(), viewport), m_viewports.end());
 	}
 
 	Viewport* SceneManager::getViewport()
@@ -37,4 +98,5 @@ namespace Poseidon
 		// return root as viewprot
 		return static_cast<Viewport*>(m_tree);
 	}
+
 }

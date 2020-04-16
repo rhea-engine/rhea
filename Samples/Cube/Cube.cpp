@@ -6,8 +6,6 @@
 #include "Poseidon/Entity.h"
 
 #include <windows.h>
-#include <d3d11.h>
-#include <d3dcompiler.h>
 #include <stdint.h>
 
 #include "Components/Psio/Psio.h"
@@ -17,13 +15,7 @@
 #include "Poseidon/Math/Matrix4.h"
 #include "Poseidon/Texture.h"
 
-// replacement for xnamath
-#include <DirectXMath.h>
-#include <DirectXPackedVector.h>
-using namespace DirectX;
-using namespace DirectX::PackedVector;
 #define USE_WVP0
-#define USE_P_VP
 
 #include "Cube.h"
 
@@ -31,43 +23,10 @@ using Hippios::vertex_uv;
 
 using Poseidon::Viewport;
 
-//Function Prototypes//
-void CleanUp();
-void UpdateScene();
-
 LRESULT CALLBACK WndProc(HWND hWnd,
 	UINT msg,
 	WPARAM wParam,
 	LPARAM lParam);
-
-//Create effects constant buffer's structure//
-struct cbPerObject
-{
-	XMMATRIX  WVP;
-};
-
-cbPerObject cbPerObj;
-
-struct cbPerObjectVP
-{
-	XMMATRIX  model;
-	XMMATRIX  VP;
-};
-
-cbPerObjectVP cbPerObjVP;
-
-///////////////**************new**************////////////////////
-//Vertex Structure and Vertex Layout (Input Layout)//
-struct Vertex	//Overloaded Vertex Structure
-{
-	Vertex() {}
-	Vertex(float x, float y, float z,
-		float u, float v)
-		: pos(x, y, z), texCoord(u, v) {}
-
-	XMFLOAT3 pos;
-	XMFLOAT2 texCoord;
-};
 
 D3D11_INPUT_ELEMENT_DESC layout[] =
 {
@@ -102,7 +61,7 @@ void CubeApp::setup()
 void CubeApp::initialize()
 {
 	Viewport* viewport = core->get_scene_manager()->getViewport();
-	engine = viewport->get_renderer();
+	//engine = viewport->get_renderer();
 
 	const int num_faces = 12;
 	const int num_vertices = 24;
@@ -192,7 +151,7 @@ void CubeApp::initialize()
 	}
 	mesh->addTexture(tex);
 
-	renderer = engine->getRenderer();
+	//renderer = engine->getRenderer();
 	//SwapChain = renderer->get_swapchain();
 
 	//renderTargetView = renderer->get_backbuffer();
@@ -202,15 +161,11 @@ void CubeApp::initialize()
 	cube1 = core->createEntity(mesh);
 	m_scene->getViewport()->addRenderChild(cube1);
 	
-	//Poseidon::Node* entity_node = m_scene->get_root()->createChild();
-	//entity_node->attach(cube1);
 	Poseidon::Position* pos = cube1->get_position();
 	pos->setPosition(0.0f, 0.0f, 4.0f);
 
 	cube2 = core->createEntity(mesh);
 	m_scene->getViewport()->addRenderChild(cube2);
-//	entity_node = m_scene->get_root()->createChild();
-//	entity_node->attach(cube2);
 	pos = cube2->get_position();
 	pos->setPosition(0.0f, 1.0f, 0.0f);
 
@@ -218,32 +173,14 @@ void CubeApp::initialize()
 	m_camera = core->createCamera();
 	m_scene->getViewport()->addChild(m_camera);
 	m_scene->getViewport()->setCamera(m_camera);
-	//Poseidon::Node* cam_node = m_scene->get_root()->createChild();
-	//cam_node->attach(m_camera);
 
 	m_position = Poseidon::Vector3(0.0f, 3.0f, -100.0f);
 
 	// set a default position
 	m_camera->get_position()->setPosition(m_position);
 	m_camera->get_position()->lookAt(Poseidon::Vector3(0.0f, 0.0f, 0.0f), Poseidon::Vector3::UNIT_Z);
-//	Poseidon::Matrix3x4 transform = cam_node->get_position()->getWorldTransform();
 
 	m_camera->setAspectRatio((float)Width / (float)Height);
-	Poseidon::Matrix4 proj = m_camera->getProjectionMatrixRS();
-	Poseidon::Matrix4 view = m_camera->getViewMatrix();
-
-	pv = proj * view;
-
-	//Camera information
-	camPosition = XMVectorSet(0.0f, 3.0f, -8.0f, 0.0f);
-	camTarget = XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
-	camUp = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-
-	//Set the View matrix
-	camView = XMMatrixLookAtLH(camPosition, camTarget, camUp);
-
-	//Set the Projection matrix
-	camProjection = XMMatrixPerspectiveFovLH(0.4f * 3.14f, (float)Width / (float)Height, 1.0f, 1000.0f);
 }
 
 int main0()
@@ -251,6 +188,7 @@ int main0()
 	CubeApp* app = new CubeApp();
 
 	app->init();
+	app->setup();
 
 	// start the loop
 	int ret = app->loop();
@@ -278,22 +216,6 @@ int main()
 
 void CubeApp::CleanUp()
 {
-	//Release the COM Objects we created
-//	SwapChain->Release();
-//	renderTargetView->Release();
-//	squareVertBuffer->Release();
-//	squareIndexBuffer->Release();
-#if 0
-	VS->Release();
-	PS->Release();
-#endif
-//	VS_Buffer->Release();
-//	PS_Buffer->Release();
-//	vertLayout->Release();
-//	depthStencilView->Release();
-#if 0
-	depthStencilBuffer->Release();
-#endif
 }
 
 void CubeApp::UpdateScene()
@@ -308,34 +230,9 @@ void CubeApp::UpdateScene()
 	pos->setOrientation(Poseidon::Quaternion(rot, Poseidon::Vector3(0.0f, 1.0f, 0.0f)));
 	pos->moveRelative(Poseidon::Vector3(4.0f,0.0f,0.0f));
 
-#ifdef USE_WVP
-	//Reset cube1World
-	cube1World = XMMatrixIdentity();
-
-	//Define cube1's world space matrix
-	XMVECTOR rotaxis = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
-	Rotation = XMMatrixRotationAxis(rotaxis, rot);
-	Translation = XMMatrixTranslation(0.0f, 0.0f, 4.0f);
-
-	//Set cube1's world space using the transformations
-	cube1World = Translation * Rotation;
-#endif
-
 	pos = cube2->get_position();
 	pos->setPosition(0, 0, 0);
 	pos->setOrientation(Poseidon::Quaternion(-rot, Poseidon::Vector3(0.0f, 1.0f, 0.0f)));
-
-#ifdef USE_WVP
-	//Reset cube2World
-	cube2World = XMMatrixIdentity();
-
-	//Define cube2's world space matrix
-	Rotation = XMMatrixRotationAxis(rotaxis, -rot);
-	Scale = XMMatrixScaling(1.3f, 1.3f, 1.3f);
-
-	//Set cube2's world space matrix
-	cube2World = Rotation * Scale;
-#endif
 }
 
 int CubeApp::messageloop() {
@@ -401,7 +298,6 @@ int CubeApp::messageloop() {
 			// run game code            
 			UpdateScene();
 			core->iterate();
-			//DrawScene();
 		}
 	}
 	return msg.wParam;

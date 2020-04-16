@@ -18,6 +18,7 @@ namespace Poseidon
 		child_node->m_parent_node = this;
 		child_node->depth = depth + 1;
 		children.push_back(child_node);
+		child_node->registerNode();
 	}
 
 	Node* Node::createChild()
@@ -58,5 +59,14 @@ namespace Poseidon
 		if (m_position)
 			delete m_position;
 		m_position = new Position();
+	}
+
+	void Node::registerGroup(std::string group_name, Node* node)
+	{
+		// we store nothing - this has to be done in children
+
+		// call parents
+		if (m_parent_node)
+			m_parent_node->registerGroup(group_name, node);
 	}
 }

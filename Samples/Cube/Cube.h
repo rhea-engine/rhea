@@ -22,7 +22,7 @@ protected:
 
 	//Global Declarations - Interfaces//
 	Poseidon::Mesh* mesh;
-	//Poseidon::Viewport* viewport;
+
 	Hippios::Engine* engine;
 	Hippios::Renderer* renderer;
 	Poseidon::Camera* m_camera;
@@ -36,32 +36,13 @@ protected:
 	const int Width = 1152;
 	const int Height = 864;
 
-	XMMATRIX WVP;
-	XMMATRIX VP;
-	XMMATRIX cube1World;
-	XMMATRIX cube2World;
-	XMMATRIX camView;
-	XMMATRIX camProjection;
-
-	XMVECTOR camPosition;
-	XMVECTOR camTarget;
-	XMVECTOR camUp;
-
-	XMMATRIX Rotation;
-	XMMATRIX Scale;
-	XMMATRIX Translation;
 	float rot = 0.01f;
 	Poseidon::Matrix4 pv;
 
 	struct cbPerObjectMVP
 	{
 		Poseidon::Matrix3x4  model;
-#ifdef USE_P_VP
 		Poseidon::Matrix4 vp;
-#else
-		XMMATRIX  VP;
-#endif // USE_P_VP
-
 	};
 
 	cbPerObjectMVP cbPerObjMVP;

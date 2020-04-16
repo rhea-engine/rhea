@@ -1,7 +1,7 @@
 #ifndef POSEIDON_ANIMATABLE_H
 #define POSEIDON_ANIMATABLE_H
 
-#include "Node.h"
+#include "Renderable.h"
 
 namespace Poseidon
 {
@@ -10,11 +10,10 @@ namespace Poseidon
 
 	/** An object that can be animated ie can be updated per frame or per timeslot and can be attached to a node
 	*/
-	class Animatable : public Node
+	class Animatable : public Renderable
 	{
 	public:
 		virtual bool onUpdate() = 0;
-		virtual bool render(Viewport*, Camera*) = 0;
 	};
 }
 #endif // !POSEIDON_ANIMATABLE_H

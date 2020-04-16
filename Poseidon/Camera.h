@@ -6,7 +6,7 @@
 #include "Hippios/Renderer.h"
 #include "Hippios/GraphicsBuffer.h"
 
-#include "Animatable.h"
+#include "Node.h"
 
 #include "Node.h"
 #include "Math/Vector3.h"
@@ -29,7 +29,9 @@ namespace Poseidon
 	static const float DEFAULT_FARCLIP = 1000.0f;
 	static const float DEFAULT_CAMERA_FOV = 45.0f;
 
-	class Camera : public Animatable
+	class Viewport;
+
+	class Camera : public Node
 	{
 	protected:
 		Hippios::Renderer* m_renderer;

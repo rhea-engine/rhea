@@ -1,6 +1,8 @@
 #include "Viewport.h"
 #include "Mesh.h"
 #include "Animatable.h"
+#include "RenderQueue.h"
+#include "Camera.h"
 
 #include "Entity.h"
 #include "Hippios/D3D11Renderer/D3D11Renderer.h"
@@ -9,36 +11,18 @@ namespace Poseidon
 {	
 	Viewport::Viewport()
 	{
-		
-
+		m_groups.emplace("renderable", std::vector<Node*>());
 	}
 	
-	bool Viewport::render()
+	void Viewport::cullObjects(RenderQueue* queue)
 	{
-		// clear pass
-		m_renderer->clearPass();
-
-		// TODO is this the model pass?
-		((Hippios::D3D11Renderer*)m_renderer)->update();
-
-		// need a camera to do anything
-		if (!m_camera)
-			return false;
-
-		// render pass
+		// cull pass
 		// my children
-		for (std::vector<Animatable*>::iterator it = m_render_children.begin(); it != m_render_children.end(); ++it)
+		for (std::vector<Renderable*>::iterator it = m_render_children.begin(); it != m_render_children.end(); ++it)
 		{
-			Animatable* robj = (Animatable*)*it;
-			if (robj->render(this, m_camera))
-				return true;
+			Renderable* robj = (Renderable*)*it;
+			robj->cullPhase(queue, m_camera);
 		}
-
-		// present pass
-		if (m_renderer->presentPass())
-			return true;
-		else
-			return false;
 	}
 
 	void Viewport::initRenderTarget(Hippios::Engine* engine)
@@ -52,7 +36,22 @@ namespace Poseidon
 		m_camera = camera;
 	}
 
-	void Viewport::addRenderChild(Animatable* child)
+	void Viewport::registerNode()
+	{
+		registerGroup("viewport", this);
+	}
+
+	void Viewport::registerGroup(std::string group_name, Node* node)
+	{
+		if (group_name == "renderable") {
+			m_groups[group_name].push_back(node);
+			return; // dont register above this viewport
+		}
+
+		Node::registerGroup(group_name, node);
+	}
+
+	void Viewport::addRenderChild(Renderable* child)
 	{
 		Node::addChild(child);
 		m_render_children.push_back(child);

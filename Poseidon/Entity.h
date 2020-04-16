@@ -6,6 +6,8 @@
 
 namespace Poseidon
 {
+	class Material;
+
 	class Entity : public Animatable
 	{
 	protected:
@@ -15,19 +17,17 @@ namespace Poseidon
 		void set_mesh(Mesh* mesh);
 		Mesh* get_mesh() { return m_mesh; }		
 		bool onUpdate();
-		bool render(Viewport* viewport, Camera* camera);
 
+		void cullPhase(RenderQueue* queue, Camera* camera);
+
+		// get render input
+		void getRenderInput(Hippios::VertexBuffer** pvb, Hippios::IndexBuffer** pib);
+
+		// get the Material
+		Texture* getMaterial();
 	protected:
 		int m_vertex_size = 0;
 		Texture* m_texture = 0;
-
-		struct cbPerObjectMVP
-		{
-			Poseidon::Matrix3x4  model;
-			Poseidon::Matrix4 vp;
-		};
-
-		cbPerObjectMVP cbPerObjMVP;
 	};
 }
 

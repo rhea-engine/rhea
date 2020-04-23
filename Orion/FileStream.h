@@ -25,8 +25,10 @@ namespace Orion
 
 		size_t Write(void* data, size_t length);
 		size_t Read(void* dest, size_t length);
+		size_t ReadBuffer(char** dest);
 		string getLine();
 		bool eof();
+		int ferror();
 	};
 }
 

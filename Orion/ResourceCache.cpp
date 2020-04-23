@@ -1,5 +1,4 @@
 #include "ResourceCache.h"
-#include "ResourceReadyInterface.h"
 
 namespace Orion
 {
@@ -8,7 +7,7 @@ namespace Orion
 
 	}
 
-	int ResourceCache::GetResource(string url, ResourceReadyInterface* callback)
+	int ResourceCache::GetResource(string url)
 	{		
 		return -1;
 	}

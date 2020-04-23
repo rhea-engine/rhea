@@ -20,4 +20,18 @@ namespace Poseidon
 		else
 			return false;
 	}
+	
+	bool Texture::load(unsigned char* buf, size_t buflen)
+	{
+		if (Image::load(buf, buflen)) {
+			m_hw_texture = m_renderer->createTexture();
+
+			Image* rgba = ConvertToRGBA();
+
+			m_hw_texture->loadImpl(m_width, m_height, rgba->get_data());
+			return true;
+		}
+		else
+			return false;
+	}
 }

@@ -52,7 +52,7 @@ if(WIN32)
 #  set(CMAKE_EXE_LINKER_FLAGS -static)
 endif()
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ ${CMAKE_SOURCE_DIR}/Components/)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ ${CMAKE_SOURCE_DIR}/Components/ ${CMAKE_SOURCE_DIR}/ThirdParty/)
 
 # Targets
 foreach (TARGET Poseidon Components Hippios Orion Rhea Ceto Hermes Iris)

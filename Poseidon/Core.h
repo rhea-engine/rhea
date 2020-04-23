@@ -39,7 +39,8 @@ namespace Poseidon
 		int iterate();
 		Hippios::Renderer* get_renderer() { return m_renderer->getRenderer(); };
 
-		Texture* createTexture(const std::string& file_name);		
+		Texture* createTexture(const std::string& file_name);
+		Texture* createTexture(unsigned char* buf, size_t buflen);
 		Material* createMaterial();
 		Entity* createEntity(Mesh* mesh);
 		Camera* createCamera();

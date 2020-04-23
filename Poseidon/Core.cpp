@@ -87,6 +87,18 @@ namespace Poseidon
 		}
 	}
 
+	Texture* Core::createTexture(unsigned char* buf, size_t buflen)
+	{
+		Poseidon::Texture* texture = new Poseidon::Texture();
+		texture->bind(m_renderer);
+		if (texture->load(buf, buflen))
+			return texture;
+		else {
+			delete texture;
+			return NULL;
+		}
+	}
+
 	Material* Core::createMaterial()
 	{
 		return new Material(this->m_renderer->getRenderer());
@@ -96,7 +108,8 @@ namespace Poseidon
 	{
 		Entity* entity;
 		entity = new Entity();
-		entity->set_mesh(mesh);
+		if (mesh)
+			entity->set_mesh(mesh);
 		entity->createPosition(0);
 		return entity;
 	}

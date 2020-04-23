@@ -1,30 +1,46 @@
 #include "Orion.h"
 #include "ResourceRequest.h"
-#include "ResourceReadyInterface.h"
 #include "FileResource.h"
 
 #include <iostream>
 
 namespace Orion
-{
-	ResourceRequest::ResourceRequest(string realm, string path)
-	{
-		m_realm_name = realm;
-		m_path = path;
-	}
-
-	ResourceRequest::ResourceRequest(string rid)
+{	
+	ResourceRequest::ResourceRequest(string rid, Orion *orion)
 	{
 		m_realm_name = "";
 		m_path = "";
+		m_orion = orion;
 		parseRid(rid);
+	}
+
+	ResourceRequest::ResourceRequest(string rid, Orion* orion, std::string type)
+	{
+		m_type = type;
+		m_realm_name = "";
+		m_path = "";
+		m_orion = orion;
+		parseRid(rid);
+	}
+
+	std::string ResourceRequest::getErrorMessage(Error err)
+	{
+		switch (err) {
+		case Error::OK:
+			return "OK";
+		case Error::IO_PENDING:
+			return "Data is pending";
+		case Error::REALM_NOT_FOUND:
+			return "Realm not found";
+		case Error::RESOURCE_NOT_FOUND:
+			return "Resource not found";
+		}
 	}
 	
 	ResourceRequest::Error ResourceRequest::parseRid(const string rid)
 	{
 		size_t pathpos;
 		size_t realmpos = 2;
-		ResourceRequest* resId;
 
 		// make sure the rid is in the correct form
 		if (rid.compare(0, 2, "//") && rid.compare(0, 2, "\\\\"))
@@ -34,14 +50,15 @@ namespace Orion
 		}
 
 		// split the realm part
-		if (pathpos = rid.find("/", realmpos))
+		pathpos = rid.find("/", realmpos);
+		if (pathpos != std::string::npos)
 		{
 			m_realm_name = rid.substr(realmpos, pathpos-realmpos);
-			m_path = rid.substr(pathpos, string::npos);
+			m_path = rid.substr(pathpos);
 		}
 		else {
 			// no path, only realm
-			m_realm_name = rid.substr(realmpos, string::npos);
+			m_realm_name = rid.substr(realmpos);
 			m_path = "";
 		}
 
@@ -155,10 +172,10 @@ namespace Orion
 		return Error::OK;
 	}
 
-	ResourceRequest::Error ResourceRequest::resolve(Orion* orion)
+	ResourceRequest::Error ResourceRequest::resolve(RequestHandler handler)
 	{
-		m_next_state = State::REALM_RESOLVE;
-		m_orion = orion;
+		m_next_state = State::REALM_RESOLVE;		
+		m_handler = handler;
 		return doResolve();
 	}
 
@@ -183,7 +200,7 @@ namespace Orion
 			string path;
 			path = m_orion->getFs()->getAppDataDir();
 
-			path += string("/") + m_realm_name + m_path;		
+			path += string("/") + m_path;		
 
 			if (Fs::fileExists(path))
 			{
@@ -227,7 +244,7 @@ namespace Orion
 
 		// not implemented
 		// call callback with error method
-		m_ready_callback->onResourceFailed(Error::NOT_IMPLEMENTED);
+		m_handler(NULL, Error::NOT_IMPLEMENTED);
 		
 		m_next_state = State::UNSET;
 		return Error::NOT_IMPLEMENTED;
@@ -235,18 +252,22 @@ namespace Orion
 
 	ResourceRequest::Error ResourceRequest::doResolveResourceCompleted()
 	{
-		// TODO call callbacks if any
+		// call callbacks if any
 		m_next_state = State::UNSET;
 
-		m_ready_callback->onResourceReady(m_resource);
-
+		if (m_handler) {
+			m_handler(this, Error::OK);
+		}
+		
 		return Error::OK;
 	}
 
 	ResourceRequest::Error ResourceRequest::doResolveResourceFailed()
 	{
-		m_ready_callback->onResourceFailed(m_error);
-
+		if (m_handler) {
+			m_handler(NULL, m_error);
+		}
+		
 		// TODO call callbacks if any
 		m_next_state = State::UNSET;
 

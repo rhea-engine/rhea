@@ -2,7 +2,7 @@
 
 namespace Orion
 {
-	Fs::Fs(string appname)
+	Fs::Fs(std::string appname)
 	{
 		m_appname = appname;
 	}

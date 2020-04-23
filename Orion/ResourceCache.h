@@ -15,7 +15,7 @@ namespace Orion
 	{
 	public:
 		ResourceCache();
-		int GetResource(string url, ResourceReadyInterface* callback);
+		int GetResource(string url);
 	};
 }
 

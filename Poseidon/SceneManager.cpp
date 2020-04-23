@@ -51,7 +51,7 @@ namespace Poseidon
 			// render pass
 			Camera* camera = viewport->get_camera();
 			if (!camera)
-				return true;
+				return false;
 			Poseidon::Matrix4 viewproj = camera->getProjectionMatrixRS() * camera->getViewMatrix();
 
 			Renderable* renderable = m_rend_queue->first();
@@ -65,7 +65,9 @@ namespace Poseidon
 				viewport->get_renderer()->getRenderer()->setGPUParameter((void*)&cbPerObjMVP);
 
 				// set material
-				m_renderer->setMaterial(renderable->getMaterial()->get_texture());
+				Poseidon::Texture* mat = renderable->getMaterial();
+				if (mat)
+					m_renderer->setMaterial(mat->get_texture());
 
 				// draw the entity
 
@@ -81,6 +83,7 @@ namespace Poseidon
 			if (m_renderer->presentPass())
 				return true;
 		}
+		return false;
 	}
 
 	void SceneManager::registerViewport(Viewport* viewport)

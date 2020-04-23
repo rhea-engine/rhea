@@ -19,7 +19,7 @@ namespace SimpleParser
 		return "";
 	}
 
-	Error SimpleParser::nextToken(char* buf, size_t& reader, size_t buflen, int& line, Token& token)
+	SimpleParser::Error SimpleParser::nextToken(char* buf, size_t& reader, size_t buflen, int& line, Token& token)
 	{
 		char* s_start;
 

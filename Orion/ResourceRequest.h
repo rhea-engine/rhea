@@ -22,26 +22,31 @@ namespace Orion
 	class ResourceRequest : public IOCompleteHandler
 	{
 	public:
-		ResourceRequest(string realm, string path);
-		ResourceRequest(string rid);
-
-		string getRealmName() { return m_realm_name; };
-		string getPath() { return m_path; };
-		bool isResolved() { return m_resolved; };
-
 		enum class Error {
 			OK,
 			IO_PENDING,
 			REALM_NOT_FOUND,
 			RESOURCE_NOT_FOUND,
-			NOT_IMPLEMENTED
+			NOT_IMPLEMENTED,
+			PATH_NOT_FOUND,
+			NO_AUTH,
+			NO_ACCESS,
+			CONFIG_ERR,
+			DATA_INVALID
 		};
 
-		// set the onresource ready callback
-		void setOnResourceReady(ResourceReadyInterface* callback)
-		{
-			m_ready_callback = callback;
-		}
+		typedef std::function<void(ResourceRequest*, ResourceRequest::Error err)> RequestHandler;
+
+		ResourceRequest(string rid, Orion *orion);
+		ResourceRequest(string rid, Orion* orion, std::string type);
+
+		string getRealmName() { return m_realm_name; }
+		Realm* getRealm() { return m_realm; }
+		string getPath() { return m_path; }
+		bool isResolved() { return m_resolved; }
+		Resource* getResource() { return m_resource; }
+		void setType(std::string type) { m_type = type; }
+		std::string getType() { return m_type; }
 
 		// parse a resource identifier
 		// rid is //realm/container/node/subnode/...
@@ -60,12 +65,16 @@ namespace Orion
 		// precondition: realm is resolved
 		// on ready call the onReady callback
 		// return 0 if resolver started, negative on error
-		Error resolve(Orion* orion);
+		Error resolve(RequestHandler handler);
 
 		void onEvent(Event* e) {};
 		void onIOComplete(Event* e);
 
-		
+		// set a different handler
+		void setHandler(RequestHandler handler) { m_handler = handler; };
+
+		// get an english error message for the error
+		static std::string getErrorMessage(Error err);
 
 	protected:
 
@@ -100,13 +109,16 @@ namespace Orion
 
 		Orion* m_orion = NULL;
 
+		// full type (not mime)
+		std::string m_type;
+
 		// wheter realm is a local realm
 		bool m_local = false;
 
 		// wheter the realm is an addon (installed with program)
-		bool m_addon = false;
-		ResourceReadyInterface* m_ready_callback = 0;		
-	
+		bool m_addon = false;	
+		RequestHandler m_handler;
+
 	};
 
 }

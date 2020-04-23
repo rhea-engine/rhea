@@ -2,7 +2,6 @@
 
 #include "ResourceCache.h"
 #include "ResourceRequest.h"
-#include "ResourceReadyInterface.h"
 #include "ResourceStream.h"
 #include "FileResource.h"
 #include "Realm.h"
@@ -11,12 +10,13 @@ namespace Orion
 {	
 	Orion::Orion(string appname)
 	{
-		m_cache = 0;
+		m_cache = NULL;
+		m_realms = NULL;
 		m_appname = appname;
 		m_fs = new Fs(appname);
 	}
 
-	int Orion::getResourceByUrl(const string url, ResourceReadyInterface* callback)
+	ResourceRequest* Orion::getResourceByUrl(const string url)
 	{
 		// get the file via resource cache
 		if (!m_cache) {
@@ -28,31 +28,26 @@ namespace Orion
 		return NULL;
 	}
 
-	void Orion::onRealmResolved(ResourceRequest* res_id)
-	{
-		res_id->resolve(this);
-	}
-
-
-	int Orion::getResourceByRid(const string rid, ResourceReadyInterface* callback)
+	ResourceRequest* Orion::getResourceByRid(const string rid)
 	{
 		ResourceRequest* res_id;
 		
 		// parse the rid and try to resolve it
-		res_id = new ResourceRequest(rid);
-		res_id->setOnResourceReady(callback);
-		if (res_id->resolve(this) == ResourceRequest::Error::OK)
-			return 0;
-		else
-			return -1;
+		res_id = new ResourceRequest(rid, this);
+		return res_id;		
 	}
-	
+
 	Realms* Orion::getRealms()
 	{
 		if (!m_realms)
 			m_realms = new Realms(this);
 
 		return m_realms;
+	}
+
+	void Orion::setAppDir(std::string dirname)
+	{
+		m_fs->setAppDataDir(dirname);
 	}
 
 	Orion::~Orion()

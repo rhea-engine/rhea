@@ -15,9 +15,21 @@ namespace Poseidon
 		{
 			extension_s = file_name.substr(pos + 1);
 		}
-		unsigned char *src;
+		
+		unsigned char* src = stbi_load(file_name.c_str(), &m_width, &m_height, &m_channels, 0);
+
+		return _load(src);
+	}
+
+	bool Image::load(unsigned char* buf, size_t buflen)
+	{
+		unsigned char* src = stbi_load_from_memory(buf, buflen, &m_width, &m_height, &m_channels, 0);
+		return _load(src);
+	}
+
+	bool Image::_load(unsigned char* src)
+	{
 		int depth = 1;
-		src = stbi_load(file_name.c_str(), &m_width, &m_height, &m_channels, 0);
 
 		if (src) {
 
@@ -31,7 +43,7 @@ namespace Poseidon
 			m_buffer = new unsigned char[(size_t)m_width * m_height * depth * m_channels];
 			auto size = (size_t)m_width * m_height * depth * m_channels;
 			memcpy(m_buffer, src, size);
-			
+
 		}
 		else {
 			printf("%s\n", stbi_failure_reason());
@@ -67,6 +79,8 @@ namespace Poseidon
 		//SetMemoryUse(width * height * depth * channels);
 		return true;
 	}
+
+	
 
 	Image* Image::ConvertToRGBA()
 	{

@@ -15,7 +15,8 @@ namespace Poseidon
 	Renderable* RenderQueue::first()
 	{
 		it = m_render_items.begin();
-		return *it;
+		if (it != m_render_items.end())
+			return *it;
 	}
 
 	Renderable* RenderQueue::next()

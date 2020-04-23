@@ -17,6 +17,7 @@ namespace Poseidon
 	public:
 		void bind(Hippios::Engine *engine);
 		bool load(const std::string& file_name);
+		bool load(unsigned char* buf, size_t buflen);
 		Hippios::Texture* get_texture() { return m_hw_texture; };
 	};
 }

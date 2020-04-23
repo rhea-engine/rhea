@@ -16,8 +16,12 @@ namespace Orion
 		virtual size_t Write(void* data, size_t length) = 0;
 
 		// read from resource up to length bytes
+
 		// returns actual bytes read
 		virtual size_t Read(void* dest, size_t length) = 0;
+
+		// read content in Buffer
+		virtual size_t ReadBuffer(char** dest) = 0;
 
 		// get the next line as string
 		virtual string getLine() = 0;

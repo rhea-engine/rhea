@@ -18,11 +18,9 @@ namespace SimpleParser
 
 	struct Token
 	{
-		TokenType type;
+		TokenType type = TokenType::TOKEN_STRING;
 		std::string value;
 	};
-
-	
 
 	class State
 	{
@@ -32,17 +30,17 @@ namespace SimpleParser
 		std::string error_message;
 	};
 
-	enum class Error {
-		PARSE_OK,
-		PARSE_EOF,
-		PARSE_ERR,
-		PARSE_UNTERMINATED_STRING,
-		PARSE_INVALID_ID_CHAR
-	};
-
 	class SimpleParser
 	{
 	public:
+		enum class Error {
+			PARSE_OK,
+			PARSE_EOF,
+			PARSE_ERR,
+			PARSE_UNTERMINATED_STRING,
+			PARSE_INVALID_ID_CHAR
+		};
+		
 		SimpleParser() :
 			m_ignore_newline(true)
 		{}

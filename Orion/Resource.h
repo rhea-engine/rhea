@@ -11,9 +11,6 @@ namespace Orion
 
 	class Resource
 	{
-	protected:
-		string m_mime;
-		string m_name;
 	public:		
 		virtual bool IsDir() { return false; }
 		string get_mime() { return m_mime; }
@@ -22,6 +19,12 @@ namespace Orion
 
 		// open a stream to this resource		
 		virtual ResourceStream* Open(int mode) = 0;
+
+		// get as buffer
+
+	protected:
+		string m_mime;
+		string m_name;
 	};
 }
 

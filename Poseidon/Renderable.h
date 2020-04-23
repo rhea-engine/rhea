@@ -19,7 +19,7 @@ namespace Poseidon
 	{
 	public:
 		virtual void cullPhase(RenderQueue* queue, Camera* camera) = 0;
-		virtual void getRenderInput(Hippios::VertexBuffer** pvb, Hippios::IndexBuffer** pib) {}
+		virtual void getRenderInput(Hippios::VertexBuffer** pvb, Hippios::IndexBuffer** pib) = 0;
 		virtual Texture* getMaterial() = 0;
 	};
 }

@@ -8,6 +8,8 @@
 #include <io.h>
 #include <direct.h>
 
+using std::string;
+
 namespace Orion
 {
     static bool widePathToString(string& dest, const WCHAR* wpath)
@@ -31,6 +33,9 @@ namespace Orion
     {
         PWSTR path = NULL;
 
+        if (!m_app_dir.empty())
+            return m_app_dir;
+
         HRESULT hr = SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, NULL, &path);
 
         string res;
@@ -40,8 +45,15 @@ namespace Orion
         
         res += string("/") + m_appname;
 
+        m_app_dir = res;
+
         return res;
     }
+
+	void Fs::setAppDataDir(std::string app_dir)
+	{
+        m_app_dir = app_dir;
+	}
 
     string Fs::getInstallDataDir()
     {
@@ -78,10 +90,19 @@ namespace Orion
 
         if (mode == Fs::READ)
             accessMode = "r";
-        if (mode == Fs::WRITE)
+        else if (mode == Fs::WRITE)
             accessMode = "w";
-        if (mode == (Fs::READ | Fs::WRITE))
+        else if (mode == (Fs::READ | Fs::WRITE))
             accessMode = "r+";
+        else if (mode == (Fs::READ | Fs::BINARY))
+            accessMode = "rb";
+        else if (mode == (Fs::WRITE | Fs::BINARY))
+            accessMode = "wb";
+        else if (mode == (Fs::READ | Fs::WRITE | Fs::BINARY))
+            accessMode = "rb+";
+        else {
+            printf("Fs::fileOpen: Unknown mode\n");
+        }
 
         errno_t errcode = fopen_s(f, filename.c_str(), accessMode);
         if (f == NULL) {

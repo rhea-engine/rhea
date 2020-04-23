@@ -33,8 +33,14 @@ namespace Poseidon
 
 	void Entity::getRenderInput(Hippios::VertexBuffer** pvb, Hippios::IndexBuffer** pib)
 	{
-		*pvb = m_mesh->get_vbuffer();
-		*pib = m_mesh->get_ibuffer();
+		if (m_mesh) {
+			*pvb = m_mesh->get_vbuffer();
+			*pib = m_mesh->get_ibuffer();
+		}
+		else {
+			*pvb = NULL;
+			*pib = NULL;
+		}
 	}
 
 	Texture* Entity::getMaterial()

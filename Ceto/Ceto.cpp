@@ -23,12 +23,20 @@ int main(int argc, char* argv[])
 {
 	Ceto* app = new Ceto();
 	app->setAppname("Ceto");
+	int argi = 1;
 
 	app->init();
 
-	if (argc > 1)
-		app->setHomeScene(argv[1]);
-
+	while (argi < argc) {
+		if (!strcmp(argv[argi], "-d")) {
+			argi++;
+			app->setAppDir(argv[argi]);
+		}
+		else
+			app->setHomeScene(argv[argi]);
+		argi++;
+	}
+		
 	app->setup();
 
 	app->loop();	

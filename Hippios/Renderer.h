@@ -5,6 +5,10 @@
 
 #include "RenderListener.h"
 
+namespace Psio {
+	class Engine;
+}
+
 namespace Hippios
 {
 	class HippiosWindow;
@@ -16,7 +20,7 @@ namespace Hippios
 	class Renderer
 	{
 	public:
-		virtual HippiosWindow* createWindow() = 0;
+		virtual HippiosWindow* createWindow(Psio::Engine *psio) = 0;
 		virtual int render() = 0;
 		virtual bool drawBuffer(VertexBuffer* v_buffer, IndexBuffer* i_buffer, Texture* texture) = 0;
 		virtual VertexBuffer* createVertexBuffer(size_t vertexSize, size_t numVertices) = 0;

@@ -2,6 +2,7 @@
 #include "Poseidon/Entity.h"
 #include "Hippios/VertexBuffer.h"
 #include "Poseidon/SceneManager.h"
+#include "Rhea/InputMap.h"
 
 namespace Poseidon
 {
@@ -47,11 +48,24 @@ protected:
 
 	cbPerObjectMVP cbPerObjMVP;
 
+	bool onFrameBegin();
+	bool onInput(std::shared_ptr<Psio::InputEvent> evt);
+
+	Psio::KeyInputEvent *e_left;
+	Psio::KeyInputEvent *e_right;
+	Psio::KeyInputEvent *e_up;
+	Psio::KeyInputEvent *e_down;
+	Psio::KeyInputEvent* e_home;
+	Psio::KeyInputEvent* e_end;
+
+	Rhea::InputMap m_input_map;
+
+	//std::unordered_map<Psio::InputEvent, std::vector<std::string>, decltype(Psio::ievt_hashing), decltype(Psio::ievt_equal_fn)> m_input_map;
+
 public:
 	void setup();
 	void initialize();
 
 	void UpdateScene();
-	int messageloop();
-	void CleanUp();
+
 };

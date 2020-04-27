@@ -78,7 +78,7 @@ namespace Hippios
 
 		// create and use objects
 
-		HippiosWindow* createWindow();
+		HippiosWindow* createWindow(Psio::Engine *psio);
 		void set_window(HippiosWindow* win);
 		VertexBuffer* createVertexBuffer(size_t vertexSize, size_t numVertices);
 		IndexBuffer* createIndexBuffer(size_t vertex_size, size_t num_faces);

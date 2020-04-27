@@ -1,5 +1,4 @@
 #include <exception>
-#include <memory>
 
 #include "Hippios/Engine.h"
 #include "Poseidon/Core.h"
@@ -7,6 +6,9 @@
 #include "Orion/ResourceStream.h"
 #include "Orion/ResourceRequest.h"
 #include "Poseidon/SceneManager.h"
+#include "Psio/Psio.h"
+#include "Psio/InputEvent.h"
+#include "Psio/Keyboard.h"
 #include "Importer.h"
 #include "SceneLoader.h"
 #include "Unit.h"
@@ -17,13 +19,15 @@
 #include "Mesh.h"
 #include "TextResource.h"
 #include "ImageResource.h"
+#include "InputMap.h"
+#include "Dispatcher.h"
 
 #include "Application.h"
 
 namespace Rhea
 {
 	void Application::init()
-	{
+	{		
 		core = new Poseidon::Core();
 		m_fs = new Orion::Orion(m_appname);
 		m_unit_tree = new UnitTree(this);
@@ -34,7 +38,12 @@ namespace Rhea
 		m_unit_tree->registerUnitType("//meworla/mesh", Mesh::createType);
 		m_unit_tree->registerUnitType("//meworla/wavefront-object", TextResource::createType);
 		m_unit_tree->registerUnitType("//meworla/wavefront-material", TextResource::createType);
-		m_unit_tree->registerUnitType("//meworla/texture", ImageResource::createType);
+		m_unit_tree->registerUnitType("//meworla/texture", ImageResource::createType);		
+
+		// add a default input map
+		m_input_map = new InputMap();
+		m_input_map->loadDefaultMap();
+		m_dispatcher = new Dispatcher();
 	}
 
 	void Application::setup()
@@ -96,14 +105,55 @@ namespace Rhea
 		printf("Resource loading failed\n");
 	}
 
+	bool Application::onInput(std::shared_ptr<Psio::InputEvent> evt)
+	{
+		// close on esc
+		Psio::KeyInputEvent esc(Psio::InputEventId::KEY_PRESSED);
+		esc.set(Psio::Key::CODE_ESC, 0, 0);
+
+		if (evt->isEvent(&esc)) {
+			return true;
+		}
+		return false;
+	}
+
 	int Application::loop()
 	{
 		// start the loop
 		//int ret = core->loop();
-		int ret = 0;
+		int ret = 0;	
+		Psio::Engine* psio = core->getPsio();
+		std::shared_ptr<Psio::InputEvent> evt;
+		ievt_actions iea;
 
 		while (!ret) {
-			ret = core->iterate();
+
+			if (onFrameBegin())
+				ret = true;
+
+			// check for window and input events
+			while (evt = psio->pollInput()) {
+				// always handle quit
+				if (evt->getId() == Psio::InputEventId::WMGR_QUIT) {
+					ret = true;
+				}
+				// input map ?
+				iea = m_input_map->getActions(evt);
+				if (iea.actions.size())
+				{
+					for (auto& act : iea.actions)
+						m_dispatcher->dispatch(act, evt);
+				}
+				// handle input directly
+				if (onInput(evt))
+					ret = true;
+			}
+
+			if (core->iterate())
+				ret = true;
+
+			if (onFrameEnd())
+				ret = true;
 		}
 
 		return ret;

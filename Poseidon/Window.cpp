@@ -3,10 +3,8 @@
 namespace Poseidon
 {
 	void Window::initRenderTarget(Hippios::Engine* engine)
-	{
-
+	{		
 		m_win = engine->createWindow();
 		Viewport::initRenderTarget(engine);
-		//m_win = m_engine->createWindow();
 	}
 }

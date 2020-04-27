@@ -1,5 +1,5 @@
 #include <Windows.h>
-#include "Window.h"
+#include "../Window.h"
 
 namespace Psio
 {

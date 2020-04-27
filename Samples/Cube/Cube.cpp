@@ -4,12 +4,12 @@
 #include "Poseidon/Material.h"
 #include "Poseidon/Node.h"
 #include "Poseidon/Entity.h"
+#include "Rhea/Dispatcher.h"
 
 #include <windows.h>
 #include <stdint.h>
 
-#include "Components/Psio/Psio.h"
-#include "Components/Psio/Win32Window.h"
+#include "Components/Psio/Keyboard.h"
 #include "Poseidon/Viewport.h"
 #include "Poseidon/Math/Matrix3x4.h"
 #include "Poseidon/Math/Matrix4.h"
@@ -22,11 +22,6 @@
 using Hippios::vertex_uv;
 
 using Poseidon::Viewport;
-
-LRESULT CALLBACK WndProc(HWND hWnd,
-	UINT msg,
-	WPARAM wParam,
-	LPARAM lParam);
 
 D3D11_INPUT_ELEMENT_DESC layout[] =
 {
@@ -181,9 +176,33 @@ void CubeApp::initialize()
 	m_camera->get_position()->lookAt(Poseidon::Vector3(0.0f, 0.0f, 0.0f), Poseidon::Vector3::UNIT_Z);
 
 	m_camera->setAspectRatio((float)Width / (float)Height);
+
+	// setup event handlers
+	e_left = new Psio::KeyInputEvent(Psio::InputEventId::KEY_PRESSED);
+	e_left->set(Psio::Key::CODE_LEFT, 0, 0);
+	e_right = new Psio::KeyInputEvent(Psio::InputEventId::KEY_PRESSED);
+	e_right->set(Psio::Key::CODE_RIGHT, 0, 0);
+	e_up = new Psio::KeyInputEvent(Psio::InputEventId::KEY_PRESSED);
+	e_up->set(Psio::Key::CODE_UP, 0, 0);
+	e_down = new Psio::KeyInputEvent(Psio::InputEventId::KEY_PRESSED);
+	e_down->set(Psio::Key::CODE_DOWN, 0, 0);
+	e_home = new Psio::KeyInputEvent(Psio::InputEventId::KEY_PRESSED);
+	e_home->set(Psio::Key::CODE_HOME, 0, 0);
+	e_end = new Psio::KeyInputEvent(Psio::InputEventId::KEY_PRESSED);
+	e_end->set(Psio::Key::CODE_END, 0, 0);
+
+	std::shared_ptr<Psio::InputEvent> evt = std::make_shared<Psio::MouseInputEvent>(Psio::InputEventId::MOUSE_BTN_PRESSED);
+	std::static_pointer_cast<Psio::MouseInputEvent>(evt)->setBtn(true, false, false);
+	m_input_map.setAction(evt, "left_mouse");
+	m_input_map.setAction(evt, "left mouse - really");
+
+	getDispatcher()->subscribeEvent("move_right", [&](std::string act, std::shared_ptr<Psio::InputEvent> evt) -> bool {
+		log("move right");
+		return false;
+		});
 }
 
-int main0()
+int main()
 {
 	CubeApp* app = new CubeApp();
 
@@ -198,24 +217,55 @@ int main0()
 	return ret;
 }
 
-int main()
+bool CubeApp::onFrameBegin()
 {
-	CubeApp* app = new CubeApp();
+	// run game code            
+	UpdateScene();
+	core->iterate();
 
-	app->init();
-	app->setup();
-
-	app->messageloop();
-
-	app->CleanUp();
-
-	app->close();
-
-	return 0;
+	return false;
 }
 
-void CubeApp::CleanUp()
+bool CubeApp::onInput(std::shared_ptr<Psio::InputEvent> evt)
 {
+	if (evt->isEvent(e_left)) {
+		m_position.x -= 0.1f;
+		m_camera->get_position()->setPosition(m_position);
+		m_camera->get_position()->lookAt(Poseidon::Vector3(0.0f, 0.0f, 0.0f), Poseidon::Vector3::UNIT_Z);
+	}
+	else if (evt->isEvent(e_right)) {
+		m_position.x += 0.1f;
+		m_camera->get_position()->setPosition(m_position);
+		m_camera->get_position()->lookAt(Poseidon::Vector3(0.0f, 0.0f, 0.0f), Poseidon::Vector3::UNIT_Z);
+	}
+	else if (evt->isEvent(e_up)) {
+		m_position.z += 0.5f;
+		m_camera->get_position()->setPosition(m_position);
+		m_camera->get_position()->lookAt(Poseidon::Vector3(0.0f, 0.0f, 0.0f), Poseidon::Vector3::UNIT_Z);
+	}
+	else if (evt->isEvent(e_down)) {
+		m_position.z -= 0.5f;
+		m_camera->get_position()->setPosition(m_position);
+		m_camera->get_position()->lookAt(Poseidon::Vector3(0.0f, 0.0f, 0.0f), Poseidon::Vector3::UNIT_Z);
+	}
+	else if (evt->isEvent(e_home)) {
+		m_position.y += 0.5f;
+		m_camera->get_position()->setPosition(m_position);
+		m_camera->get_position()->lookAt(Poseidon::Vector3(0.0f, 0.0f, 0.0f), Poseidon::Vector3::UNIT_Z);
+	}
+	else if (evt->isEvent(e_end)) {
+		m_position.y -= 0.5f;
+		m_camera->get_position()->setPosition(m_position);
+		m_camera->get_position()->lookAt(Poseidon::Vector3(0.0f, 0.0f, 0.0f), Poseidon::Vector3::UNIT_Z);
+	}
+	else {
+		Rhea::ievt_actions iea = m_input_map.getActions(evt);
+		for (auto it = iea.actions.begin(); it < iea.actions.end(); ++it)
+			log(*it);
+		
+		return Application::onInput(evt);		
+	}
+	return false;
 }
 
 void CubeApp::UpdateScene()
@@ -233,95 +283,4 @@ void CubeApp::UpdateScene()
 	pos = cube2->get_position();
 	pos->setPosition(0, 0, 0);
 	pos->setOrientation(Poseidon::Quaternion(-rot, Poseidon::Vector3(0.0f, 1.0f, 0.0f)));
-}
-
-int CubeApp::messageloop() {
-	MSG msg;
-	ZeroMemory(&msg, sizeof(MSG));
-	while (true)
-	{
-		BOOL PeekMessageL(
-			LPMSG lpMsg,
-			HWND hWnd,
-			UINT wMsgFilterMin,
-			UINT wMsgFilterMax,
-			UINT wRemoveMsg
-		);
-
-		if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
-		{
-			if (msg.message == WM_QUIT)
-				break;
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-			if (msg.message == WM_KEYDOWN)
-			{
-				switch (msg.wParam)
-				{
-				case VK_LEFT:
-					m_position.x -= 0.1f;
-					m_camera->get_position()->setPosition(m_position);
-					m_camera->get_position()->lookAt(Poseidon::Vector3(0.0f, 0.0f, 0.0f), Poseidon::Vector3::UNIT_Z);
-					break;
-				case VK_RIGHT:
-					m_position.x += 0.1f;
-					m_camera->get_position()->setPosition(m_position);
-					m_camera->get_position()->lookAt(Poseidon::Vector3(0.0f, 0.0f, 0.0f), Poseidon::Vector3::UNIT_Z);
-					break;
-				case VK_UP:
-					m_position.z += 0.5f;
-					m_camera->get_position()->setPosition(m_position);
-					m_camera->get_position()->lookAt(Poseidon::Vector3(0.0f, 0.0f, 0.0f), Poseidon::Vector3::UNIT_Z);
-					break;
-				case VK_DOWN:
-					m_position.z -= 0.5f;
-					m_camera->get_position()->setPosition(m_position);
-					m_camera->get_position()->lookAt(Poseidon::Vector3(0.0f, 0.0f, 0.0f), Poseidon::Vector3::UNIT_Z);
-					break;
-				case VK_HOME:
-					m_position.y += 0.5f;
-					m_camera->get_position()->setPosition(m_position);
-					m_camera->get_position()->lookAt(Poseidon::Vector3(0.0f, 0.0f, 0.0f), Poseidon::Vector3::UNIT_Z);
-					break;
-				case VK_END:
-					m_position.y -= 0.5f;
-					m_camera->get_position()->setPosition(m_position);
-					m_camera->get_position()->lookAt(Poseidon::Vector3(0.0f, 0.0f, 0.0f), Poseidon::Vector3::UNIT_Z);
-					break;
-
-				}
-
-			}
-		}
-		else {
-		
-			// run game code            
-			UpdateScene();
-			core->iterate();
-		}
-	}
-	return msg.wParam;
-}
-
-LRESULT CALLBACK WndProc(HWND hwnd,
-	UINT msg,
-	WPARAM wParam,
-	LPARAM lParam)
-{
-	switch (msg)
-	{
-	case WM_KEYDOWN:
-		if (wParam == VK_ESCAPE) {
-			DestroyWindow(hwnd);
-		}
-		return 0;
-
-	case WM_DESTROY:
-		PostQuitMessage(0);
-		return 0;
-	}
-	return DefWindowProc(hwnd,
-		msg,
-		wParam,
-		lParam);
 }

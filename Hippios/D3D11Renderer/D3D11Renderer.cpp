@@ -229,11 +229,11 @@ namespace Hippios {
 		m_device_context->PSSetSamplers(0, 1, &m_sampler_state);
 	}
 
-	HippiosWindow* D3D11Renderer::createWindow()
+	HippiosWindow* D3D11Renderer::createWindow(Psio::Engine *psio)
 	{
 		// TODO: this "attaches" the window as render target - could be a list
 		m_win = new D3D11Window();
-		m_win->create();
+		m_win->create(psio);
 		init();
 
 		// set render target

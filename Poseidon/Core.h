@@ -2,12 +2,19 @@
 #define POSEIDON_CORE_H
 
 #include <string>
+#include <functional>
+#include <memory>
 
 #include "Hippios/Engine.h"
 #include "Hippios/Window.h"
 #include "Hippios/Renderer.h"
 
 #include "Node.h"
+
+namespace Psio
+{
+	class Engine;
+}
 
 namespace Poseidon
 {
@@ -30,15 +37,23 @@ namespace Poseidon
 		Hippios::HippiosWindow* m_win = 0;
 		Window* m_window = 0;
 		SceneManager* m_scene_manager = 0;
+
+		std::unique_ptr<Psio::Engine> m_psio;
 	public:
 		Core();
-		void createWindow();
 		void init();
 		SceneManager* get_scene_manager() { return m_scene_manager; }
-		int loop();
+		// handle one frame
 		int iterate();
+		// loop with onFrameCallback
+		int loop(std::function<void()> onFrame);
+
+		// get psio engine
+		Psio::Engine* getPsio() { return m_psio.get(); }
+
 		Hippios::Renderer* get_renderer() { return m_renderer->getRenderer(); };
 
+		// create various items
 		Texture* createTexture(const std::string& file_name);
 		Texture* createTexture(unsigned char* buf, size_t buflen);
 		Material* createMaterial();

@@ -30,7 +30,7 @@ namespace Hippios
 		D3D11Window();
 		/*HRESULT CreateSwapchain(HWND hWnd);
 		HRESULT ConfigureBackBuffer();*/
-		void create();
+		void create(Psio::Engine* psio);
 		void addViewport(Viewport* viewport);
 		void update();
 		void destroy();	

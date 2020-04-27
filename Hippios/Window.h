@@ -4,12 +4,17 @@
 #include "RenderListener.h"
 #include "Viewport.h"
 
+namespace Psio
+{
+	class Engine;
+}
+
 namespace Hippios
 {
 	class HippiosWindow
 	{
 	public:
-		virtual void create() = 0;
+		virtual void create(Psio::Engine* psio) = 0;
 		virtual void addViewport(Viewport *viewport) = 0;
 		virtual void update() = 0;
 		virtual void destroy() = 0;		

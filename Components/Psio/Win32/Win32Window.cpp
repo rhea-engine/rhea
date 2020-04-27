@@ -1,10 +1,19 @@
 #include <windows.h>
 #include "Win32Window.h"
+#include <stdio.h>
+#include "../Keyboard.h"
+#include "../InputEvent.h"
+#include <D2d1.h>
+#include <comutil.h>
+#include <Windowsx.h>
 
 #define PSIO_WIN_CLASS_NAME "PoseidonSIOWnd"
 
 namespace Psio
 {
+	float scaleX = 1.0f;
+	float scaleY = 1.0f;
+
 	LRESULT CALLBACK StaticWindowProc(
 		HWND hWnd,
 		UINT uMsg,
@@ -15,6 +24,20 @@ namespace Psio
 		if (uMsg == WM_CREATE)
 		{   // Store pointer to Win32Window in user data area
 			SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)(((LPCREATESTRUCT)lParam)->lpCreateParams));
+
+			// initialize dpi scaling
+	/*		ID2D1Factory* pFactory;
+			if (FAILED(D2D1CreateFactory(
+				D2D1_FACTORY_TYPE_SINGLE_THREADED, &pFactory)))
+			{
+				return -1;  // Fail CreateWindowEx.
+			}
+			FLOAT dpiX, dpiY;
+			pFactory->GetDesktopDpi(&dpiX, &dpiY);
+			scaleX = dpiX / 96.0f;
+			scaleY = dpiY / 96.0f;
+			*/
+
 			return 0;
 		}
 
@@ -24,6 +47,15 @@ namespace Psio
 		if (!win)
 			return DefWindowProc(hWnd, uMsg, wParam, lParam);
 		
+		bool shift;
+		bool alt;
+		bool ctrl;
+		std::shared_ptr<InputEvent> evt;
+		uint32_t scancode;
+		bool mleft;
+		bool mright;
+		bool mmiddle;
+
 		switch (uMsg)
 		{
 		case WM_CLOSE:
@@ -36,74 +68,51 @@ namespace Psio
 			PostQuitMessage(0);
 			break;
 
-		case WM_KEYDOWN:
-			unsigned int code = 0;
-			switch (wParam)
-			{
-			case VK_LEFT:
+		case WM_KEYDOWN:			
+			shift = GetKeyState(VK_SHIFT) & 0x0800;
+			alt = GetKeyState(VK_MENU) & 0x0800;
+			ctrl = GetKeyState(VK_CONTROL) & 0x0800;
+			//printf("WM_KEYDOWN: %u shift:%d\n", wParam, (shift) ? 1 : 0);
 
-				// Process the LEFT ARROW key. 
-				code = KeyCode::KEY_LEFT;
-				break;
+			// get scancode (see https://docs.microsoft.com/de-ch/windows/win32/inputdev/wm-keydown)
+			scancode = lParam >> 16 & 0xFF;
 
-			case VK_RIGHT:
-				code = KeyCode::KEY_RIGHT;
-				// Process the RIGHT ARROW key. 
-				
-				break;
+			evt = std::make_shared<KeyInputEvent>(Psio::InputEventId::KEY_PRESSED);
+			evt->setModifiers(shift, alt, ctrl);
+			std::static_pointer_cast<KeyInputEvent>(evt)->set(hwKey(wParam), scancode, 0);
+			win->addInputEvent(evt);
 
-			case VK_UP:
+			break;
 
-				// Process the UP ARROW key. 
-				code = KeyCode::KEY_UP;
+		case WM_CHAR:
+			shift = GetKeyState(VK_SHIFT) & 0x0800;
+			alt = GetKeyState(VK_MENU) & 0x0800;
+			ctrl = GetKeyState(VK_CONTROL) & 0x0800; 
+			
+			evt = std::make_shared<KeyInputEvent>(Psio::InputEventId::TEXT);
+			evt->setModifiers(shift, alt, ctrl);
+			std::static_pointer_cast<KeyInputEvent>(evt)->set(0, 0, (unsigned char)wParam);
+			win->addInputEvent(evt);
 
-				break;
+			break;
 
-			case VK_DOWN:
+		case WM_LBUTTONDOWN:
+		case WM_RBUTTONDOWN:
+		case WM_MBUTTONDOWN:
+			shift = GetKeyState(VK_SHIFT) & 0x0800;
+			alt = GetKeyState(VK_MENU) & 0x0800;
+			ctrl = GetKeyState(VK_CONTROL) & 0x0800;
+			evt = std::make_shared<MouseInputEvent>(Psio::InputEventId::MOUSE_BTN_PRESSED);
+			evt->setModifiers(shift, alt, ctrl);
 
-				// Process the DOWN ARROW key. 
-				code = KeyCode::KEY_DOWN;
+			mleft = (wParam & MK_LBUTTON);
+			mright = (wParam & MK_RBUTTON);
+			mmiddle = (wParam & MK_MBUTTON);
 
-				break;
+			std::static_pointer_cast<MouseInputEvent>(evt)->setBtn(mleft, mright, mmiddle);
+			std::static_pointer_cast<MouseInputEvent>(evt)->setPos(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+			win->addInputEvent(evt);
 
-			case VK_HOME:
-
-				// Process the HOME key. 
-
-				break;
-
-			case VK_END:
-
-				// Process the END key. 
-
-				break;
-
-			case VK_INSERT:
-
-				// Process the INS key. 
-
-				break;
-
-			case VK_DELETE:
-
-				// Process the DEL key. 
-
-				break;
-
-			case VK_F2:
-
-				// Process the F2 key. 
-
-				break;
-
-
-				// Process other non-character keystrokes. 
-
-			default:
-				break;
-			} 
-			if (0 && code)
-				win->onKeyDown(code);
 			break;
 		}
 

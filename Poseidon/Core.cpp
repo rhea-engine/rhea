@@ -14,13 +14,17 @@
 namespace Poseidon
 {
 	Core::Core()
-	{		
+	{
+		
 	}
 
 	void Core::init()
 	{
+		// initialize the psio subsystem
+		m_psio = std::make_unique<Psio::Engine>();
+
 		// initialize render sub system
-		m_renderer = new Hippios::Engine();
+		m_renderer = new Hippios::Engine(m_psio.get());
 		m_renderer->startup();		
 
 		// add a root window which is also the root viewport
@@ -34,13 +38,12 @@ namespace Poseidon
 		m_scene_manager->registerViewport(m_window);
 	}
 
-	int Core::loop()
+	int Core::loop(std::function<void()> onFrame)
 	{
 		while (!quit)
 		{
-			// check for window events
-			if (Psio::Engine::tick())
-				quit = true;
+			//  callback for onFrame event
+			onFrame();
 
 			// update passes
 
@@ -56,10 +59,6 @@ namespace Poseidon
 
 	int Core::iterate()
 	{
-		// check for window events
-		if (Psio::Engine::tick())
-			quit = true;
-
 		// update passes
 
 		if (m_scene_manager->update())

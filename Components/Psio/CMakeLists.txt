@@ -1,1 +1,1 @@
-add_library(Psio STATIC Psio.cpp Win32Window.cpp Window.cpp)
+add_library(Psio STATIC Psio.cpp "Win32/Win32Window.cpp" Window.cpp "InputEvent.cpp" "Win32/InputImpl.cpp" "Win32/KeyboardImpl.cpp")

@@ -34,6 +34,7 @@ namespace Rhea
 		}
 		else
 			scene = new Scene(resource->get_name());
+		scene->setup(app);
 		parent->addChild(scene);
 
 		// get all resources packed in this file to prevent reloading them

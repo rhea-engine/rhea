@@ -4,6 +4,7 @@
 #include <dxgi1_3.h>
 
 #include "D3D11Window.h"
+#include "Psio/Psio.h"
 #include "Psio/Window.h"
 #include "Hippios/Viewport.h"
 
@@ -31,9 +32,9 @@ namespace Hippios
 	*/
 
 
-	void D3D11Window::create()
+	void D3D11Window::create(Psio::Engine* psio)
 	{
-		mWin = Psio::Window::createWindow();
+		mWin = psio->createWindow();
 		mWin->create();
 	}
 

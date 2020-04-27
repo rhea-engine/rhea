@@ -14,7 +14,7 @@ namespace Hippios
 	HippiosWindow* Engine::createWindow()
 	{
 		// creates OS and render window
-		m_window = m_renderer->createWindow();
+		m_window = m_renderer->createWindow(m_psio);
 		return m_window;
 	}
 

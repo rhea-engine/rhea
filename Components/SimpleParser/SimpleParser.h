@@ -1,6 +1,7 @@
 #ifndef SIMPLEPARSER_H
 
 #include <string>
+#include "Variant.h"
 
 namespace SimpleParser
 {
@@ -13,13 +14,14 @@ namespace SimpleParser
 		TOKEN_RIGHT_PARENTHESIS,
 		TOKEN_LEFT_BRACKET,
 		TOKEN_RIGHT_BRACKET,
-		TOKEN_NEWLINE
+		TOKEN_NEWLINE,
+		TOKEN_COMMA
 	};
 
 	struct Token
 	{
 		TokenType type = TokenType::TOKEN_STRING;
-		std::string value;
+		Variant value;
 	};
 
 	class State
@@ -38,6 +40,7 @@ namespace SimpleParser
 			PARSE_EOF,
 			PARSE_ERR,
 			PARSE_UNTERMINATED_STRING,
+			PARSE_UNTERMINATED_ARRAY,
 			PARSE_INVALID_ID_CHAR
 		};
 		

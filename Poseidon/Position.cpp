@@ -1,10 +1,12 @@
 #include "Position.h"
+#include "Node.h"
 
 namespace Poseidon
 {
-	Position::Position() :
+	Position::Position(Node* owner) :
 		m_position(Vector3(0, 0, 0)),
-		m_yaw_fixed_axis(Vector3::UNIT_Y)
+		m_yaw_fixed_axis(Vector3::UNIT_Y),
+		m_owner(owner)
 	{}
 
 	void Position::setPosition(float x, float y, float z)
@@ -12,16 +14,29 @@ namespace Poseidon
 		m_position.x = x;
 		m_position.y = y;
 		m_position.z = z;
+		if (m_owner)
+			m_owner->needUpdate();
 	}
 
 	void Position::setPosition(const Vector3& vec)
 	{
 		m_position = vec;
+		if (m_owner)
+			m_owner->needUpdate();
+	}
+
+	void Position::setPosition(const Position& position)
+	{
+		m_position = position.m_position;
+		m_rotation = position.m_rotation;
+		m_yaw_fixed_axis = position.m_yaw_fixed_axis;
+		if (m_owner)
+			m_owner->needUpdate();
 	}
 
 	void Position::setDirection(float x, float y, float z, const Vector3& localDirectionVector)
 	{
-		setDirection(Vector3(x, y, z), localDirectionVector);
+		setDirection(Vector3(x, y, z), localDirectionVector);		
 	}
 
 	void Position::setDirection(const Vector3& direction, const Vector3& localDirectionVector)
@@ -69,7 +84,8 @@ namespace Poseidon
 	void Position::setOrientation(const Quaternion& q)
 	{
 		m_rotation = q;
-		//m_rotation.normalise();		
+		if (m_owner)
+			m_owner->needUpdate();
 	}
 
 	void Position::lookAt(const Vector3& targetPoint, const Vector3& localDirectionVector)
@@ -103,8 +119,9 @@ namespace Poseidon
 		Vector3 trans = m_rotation * vec;
 
 		m_position = m_position + trans;
+		if (m_owner)
+			m_owner->needUpdate();
 	}
-
 
 	Matrix3x4 Position::getWorldTransform()
 	{

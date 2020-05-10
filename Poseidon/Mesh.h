@@ -22,6 +22,7 @@ namespace Poseidon
 		Viewport* m_viewport = 0;
 		int m_vertex_size = 0;	
 		Texture* m_texture = 0;
+		int m_num_indices = 0;
 
 	public:		
 		void setVertices(size_t vertex_size, size_t num_vertices, const void* source);
@@ -33,6 +34,7 @@ namespace Poseidon
 
 		Hippios::VertexBuffer* get_vbuffer() { return m_vbuffer; };
 		Hippios::IndexBuffer* get_ibuffer() { return m_ibuffer; };
+		int getNumIndices() { return m_num_indices; }
 	};
 }
 #endif // !POSEIDON_MESH_H

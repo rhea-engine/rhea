@@ -23,7 +23,7 @@ namespace Rhea
 		{}
 
 		// setup from strings
-		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, std::string> values);
+		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
 
 		// load mesh
 		void load(ReadyHandler handler);

@@ -37,19 +37,6 @@ namespace Rhea
 			Item* item = *it;
 			item->show(core);
 		}
-
-		// add a camera
-		m_camera = core->createCamera();
-		m_scene_mgr->getViewport()->addChild(m_camera);
-		m_scene_mgr->getViewport()->setCamera(m_camera);
-
-		Poseidon::Vector3 m_position = Poseidon::Vector3(0.0f, 3.0f, -10.0f);
-
-		// set a default position
-		m_camera->get_position()->setPosition(m_position);
-		m_camera->get_position()->lookAt(Poseidon::Vector3(0.0f, 0.0f, 0.0f), Poseidon::Vector3::UNIT_Z);
-
-		m_camera->setAspectRatio((float)Width / (float)Height);
 	}
 
 	void Scene::addItem(Item* item)
@@ -62,7 +49,7 @@ namespace Rhea
 		if (m_status >= Status::LOADED)
 			handler(ReqError::OK);
 
-		int to_load = m_items.size();
+		int to_load = (int)m_items.size();
 		if (!to_load) {
 			m_status = Status::LOADED;
 			handler(ReqError::OK);
@@ -72,8 +59,10 @@ namespace Rhea
 		// call ready handler when all children where loaded	
 		// this ignores errors in loading children 
 		// TODO check if this should fail fast instead of ignore?
-		for (auto it = m_items.begin(); it != m_items.end(); ++it) {
-			Item* item = *it;
+		// Note: handlers and loaders may add items to the list
+		int item_size = m_items.size();
+		for (int i = 0; i < item_size; i++) {
+			Item* item = m_items[i];
 			item->load([&](ReqError err) {
 				to_load--;
 				if (to_load <= 0) {

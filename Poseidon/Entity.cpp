@@ -31,15 +31,17 @@ namespace Poseidon
 		queue->addRenderable(this);
 	}
 
-	void Entity::getRenderInput(Hippios::VertexBuffer** pvb, Hippios::IndexBuffer** pib)
+	void Entity::getRenderInput(Hippios::VertexBuffer** pvb, Hippios::IndexBuffer** pib, int& num_indices)
 	{
 		if (m_mesh) {
 			*pvb = m_mesh->get_vbuffer();
 			*pib = m_mesh->get_ibuffer();
+			num_indices = m_mesh->getNumIndices();
 		}
 		else {
 			*pvb = NULL;
 			*pib = NULL;
+			num_indices = 0;
 		}
 	}
 

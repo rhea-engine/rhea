@@ -7,7 +7,7 @@
 
 namespace Rhea
 {
-	void Item::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, std::string> values)
+	void Item::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{
 		m_attributes = attributes;
 		m_values = values;
@@ -36,10 +36,19 @@ namespace Rhea
 
 		Poseidon::Mesh* engine_mesh = m_mesh->getMesh();
 		m_entity = core->createEntity(engine_mesh);
-		scene_mgr->getViewport()->addRenderChild(m_entity);
+		scene_mgr->getViewport()->addRenderChild(static_cast<Poseidon::Entity*>(m_entity));
 
 		Poseidon::Position* pos = m_entity->get_position();
-		pos->setPosition(0.0f, 0.0f, 4.0f);
+
+		auto pos_sit = m_values.find("position");
+		if (pos_sit != m_values.end()) {
+			float x = pos_sit->second[0];
+			float y = pos_sit->second[1];
+			float z = pos_sit->second[2];
+			pos->setPosition(x, y, z);
+		}
+		else
+			pos->setPosition(0.0f, 0.0f, 0.0f);
 	}
 
 	Unit* Item::createType(std::string name, std::string type)
@@ -54,12 +63,13 @@ namespace Rhea
 		auto m = m_values.find("mesh");
 		if (m != m_values.end()) {
 			std::string path;
-			if (m->second.substr(0, 1) == "/")
+			std::string val = m->second;
+			if (val.substr(0, 1) == "/")
 				path = m->second;
 			else if (m_parent)
-				path = m_parent->getPath() + "/" + m->second;
+				path = m_parent->getPath() + "/" + val;
 			else
-				path = "//" + m->second;
+				path = "//" + val;
 
 			// check if resource already loaded
 			Unit* unit = m_app->getUnitTree()->find(path, false);
@@ -98,5 +108,28 @@ namespace Rhea
 			m_status = Status::LOADED;
 			handler(ReqError::OK);
 		}
+	}
+
+	void Item::setPosition(Poseidon::Position& position)
+	{
+		m_entity->get_position()->setPosition(position);
+	}
+	
+	void Item::setLookAt(Poseidon::Vector3 look_at)
+	{
+		m_entity->get_position()->lookAt(look_at);
+	}
+	
+	void Item::addFollower(Item* item)
+	{
+		// simply add as child to entity
+		Poseidon::Node* child = item->getNode();
+		child->setCoordSpace(1);
+		m_entity->addChild(child);
+	}
+	
+	Poseidon::Node* Item::getNode()
+	{
+		return m_entity;
 	}
 }

@@ -24,7 +24,7 @@ namespace Rhea
 		{}
 
 		// create a reource
-		Unit* createUnit(std::string basename, std::string type_name, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, std::string> values);
+		Unit* createUnit(std::string basename, std::string type_name, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
 		// create a resource with res id and no values
 		Unit* createUnitById(std::string resource_id, std::string type_name);
 

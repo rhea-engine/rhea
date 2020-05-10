@@ -370,7 +370,7 @@ namespace Hippios {
 	{
 		D3D11VertexBuffer* buf;
 
-		assert(!m_vb && "TODO: only one vertex buffer allowed");
+		//assert(!m_vb && "TODO: only one vertex buffer allowed");
 		buf = new D3D11VertexBuffer(m_device, m_device_context, vertexSize, numVertices);
 		m_vb = buf;
 		return (VertexBuffer*)buf;
@@ -380,7 +380,7 @@ namespace Hippios {
 	{
 		D3D11IndexBuffer* buf;
 
-		assert(!m_ib && "TODO: only one index buffer allowed");
+		//assert(!m_ib && "TODO: only one index buffer allowed");
 		buf = new D3D11IndexBuffer(m_device, m_device_context, vertex_size, num_faces);
 		m_ib = buf;
 		return (IndexBuffer*)buf;

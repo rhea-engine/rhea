@@ -46,6 +46,10 @@ namespace SimpleParser
 				token.type = TokenType::TOKEN_RIGHT_BRACKET;
 				reader++; 
 				return Error::PARSE_OK;
+			case ',':
+				token.type = TokenType::TOKEN_COMMA;
+				reader++;
+				return Error::PARSE_OK;
 			case '\n':
 				reader++;
 				line++;
@@ -87,11 +91,37 @@ namespace SimpleParser
 				return Error::PARSE_OK;
 			default:
 				// number value
-				if (buf[reader] >= 0 && buf[reader] <= 9) {
-					s_start = &buf[reader];
-					while (reader < buflen && (buf[reader] >= 0 && buf[reader] <= 9))
+				int neg = 1;
+				bool is_float = false;
+				if ((buf[reader] >= '0' && buf[reader] <= '9') || buf[reader]=='-') {
+					s_start = &buf[reader];					
+					if (buf[reader] == '-') {
+						neg = -1;					
 						reader++;
-					token.value = std::string(s_start, &buf[reader] - s_start);
+						s_start++;
+						if (!(reader < buflen))
+							return Error::PARSE_ERR;
+					}
+					while (reader < buflen && ((buf[reader] >= '0' && buf[reader] <= '9') || buf[reader] == '.')) {
+						if (buf[reader] == '.')
+							if (!is_float)
+								is_float = true;
+							else
+								return Error::PARSE_ERR; // no multiple dots
+						reader++;
+					}
+					// dont allow empty numbers
+					if (&buf[reader] == s_start)
+						return Error::PARSE_ERR;
+					if (is_float) {
+						token.value = neg * std::stod(std::string(s_start, &buf[reader] - s_start));
+						// ignore trailing float
+						if (reader < buflen && buf[reader] == 'f')
+							reader++;
+					}
+					else
+						token.value = neg * std::stoi(std::string(s_start, &buf[reader] - s_start));
+					//token.value = std::string(s_start, &buf[reader] - s_start);
 					token.type = TokenType::TOKEN_NUMBER;
 					return Error::PARSE_OK;
 				}

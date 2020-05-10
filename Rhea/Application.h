@@ -18,6 +18,9 @@ namespace Rhea
 	class UnitTree;	
 	class InputMap;
 	class Dispatcher;
+	class Controller;
+	class Scene;
+	class SceneView;
 
 	class Application
 	{
@@ -39,9 +42,9 @@ namespace Rhea
 		// close the app
 		virtual void close();
 		// load a scene
-		void loadScene(const std::string resourceId);
+		void loadScene(const std::string resourceId, std::function<void(Scene*, ReqError error)> handler);
 		// scene was loaded callback
-		void onSceneReady(Unit *parent, Orion::Resource*);
+		void onSceneReady(Unit *parent, Orion::Resource*, std::function<void(Scene*, ReqError error)> handler);
 		virtual void onResourceFailed(Orion::ResourceRequest::Error reason);
         // get a resource
 		void loadResource(const std::string resource_id, Orion::ResourceRequest::RequestHandler handler);
@@ -60,9 +63,10 @@ namespace Rhea
 		Poseidon::Core* core = 0;
 		Orion::Orion* m_fs = 0;
 		std::string m_appname = "";
-		UnitTree* m_unit_tree;
+		UnitTree* m_unit_tree = 0;
 		InputMap* m_input_map = 0;
 		Dispatcher* m_dispatcher = 0;
+		Controller* m_focused_controller = 0;
 	};
 }
 #endif // !RHEA_H

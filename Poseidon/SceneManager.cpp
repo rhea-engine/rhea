@@ -57,7 +57,7 @@ namespace Poseidon
 			Renderable* renderable = m_rend_queue->first();
 			for (Renderable* renderable = m_rend_queue->first(); renderable != NULL; renderable = m_rend_queue->next()) {
 
-				Poseidon::Matrix3x4 model_wtm = renderable->get_position()->getWorldTransform();
+				Poseidon::Matrix3x4 model_wtm = renderable->get_derived_position()->getWorldTransform();
 
 				// set up GPU input
 				cbPerObjMVP.vp = viewproj;
@@ -74,9 +74,12 @@ namespace Poseidon
 				// bind the vertex and index buffer
 				Hippios::VertexBuffer* vb;
 				Hippios::IndexBuffer* ib;
-				renderable->getRenderInput(&vb, &ib);
-				m_renderer->bindBuffers(vb, ib);
-				m_renderer->drawIndexed(36, 0, 0);
+				int num_indices;
+				renderable->getRenderInput(&vb, &ib, num_indices);
+				if (vb && num_indices) {
+					m_renderer->bindBuffers(vb, ib);
+					m_renderer->drawIndexed(num_indices, 0, 0);
+				}
 			}
 
 			// present pass

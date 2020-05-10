@@ -20,7 +20,8 @@ namespace Poseidon
 	void Mesh::setIndices(size_t vertex_size, size_t num_faces, const void* source)
 	{
 		m_ibuffer = m_renderer->createIndexBuffer(vertex_size, num_faces);
-		m_ibuffer->WriteData(0, vertex_size * num_faces * 3, source, false);		
+		m_ibuffer->WriteData(0, vertex_size * num_faces * 3, source, false);	
+		m_num_indices = num_faces * 3;
 	}
 
 	void Mesh::addVertexBuffer(Hippios::VertexBuffer* vbuffer)

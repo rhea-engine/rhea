@@ -29,19 +29,37 @@ namespace Rhea
 		const char* action;
 	};
 
-	actdef default_key_map[] = {
-		{ Psio::CODE_LEFT, "move_left" },
-		{ Psio::CODE_RIGHT, "move_right" },
-		{ Psio::CODE_UP, "move_up" },
-		{ Psio::CODE_DOWN, "move_down" },
-		{ Psio::CODE_Q, "turn_left" },
-		{ Psio::CODE_E, "turn_right" },
-		{ Psio::CODE_A, "move_left" },
-		{ Psio::CODE_D, "move_right" },
-		{ Psio::CODE_W, "move_up" },
-		{ Psio::CODE_S, "move_down" },
+	actdef default_keypress_map[] = {
+		{ Psio::CODE_LEFT, "turn_left" },
+		{ Psio::CODE_RIGHT, "turn_right" },
+		{ Psio::CODE_UP, "move_forward" },
+		{ Psio::CODE_DOWN, "move_back" },
+		{ Psio::CODE_Q, "move_left" },
+		{ Psio::CODE_E, "move_right" },
+		{ Psio::CODE_A, "turn_left" },
+		{ Psio::CODE_D, "turn_right" },
+		{ Psio::CODE_W, "move_forward" },
+		{ Psio::CODE_S, "move_back" },
+		{ Psio::CODE_HOME, "move_up" },
+		{ Psio::CODE_END, "move_down" },
 		{ Psio::CODE_ESC, "cancel" },
 	};
+
+	actdef default_keyup_map[] = {
+		{ Psio::CODE_LEFT, "turn_left_stop" },
+		{ Psio::CODE_RIGHT, "turn_right_stop" },
+		{ Psio::CODE_UP, "move_forward_stop" },
+		{ Psio::CODE_DOWN, "move_back_stop" },
+		{ Psio::CODE_Q, "move_left_stop" },
+		{ Psio::CODE_E, "move_right_stop" },
+		{ Psio::CODE_A, "turn_left_stop" },
+		{ Psio::CODE_D, "turn_right_stop" },
+		{ Psio::CODE_W, "move_forward_stop" },
+		{ Psio::CODE_S, "move_back_stop" },
+		{ Psio::CODE_HOME, "move_up_stop" },
+		{ Psio::CODE_END, "move_down_stop" },
+	};
+
 
 	void InputMap::loadDefaultMap()
 	{
@@ -50,9 +68,14 @@ namespace Rhea
 			return;
 
 		InputEventSP evt = std::make_shared<Psio::KeyInputEvent>(Psio::InputEventId::KEY_PRESSED);
-		for (int i = 0; i < sizeof(default_key_map) / sizeof(actdef); i++) {
-			std::dynamic_pointer_cast<Psio::KeyInputEvent>(evt)->set(default_key_map[i].code, 0, 0);
-			setAction(evt, default_key_map[i].action);
+		for (int i = 0; i < sizeof(default_keypress_map) / sizeof(actdef); i++) {
+			std::dynamic_pointer_cast<Psio::KeyInputEvent>(evt)->set(default_keypress_map[i].code, 0, 0);
+			setAction(evt, default_keypress_map[i].action);
+		}
+		evt = std::make_shared<Psio::KeyInputEvent>(Psio::InputEventId::KEY_RELEASED);
+		for (int i = 0; i < sizeof(default_keyup_map) / sizeof(actdef); i++) {
+			std::dynamic_pointer_cast<Psio::KeyInputEvent>(evt)->set(default_keyup_map[i].code, 0, 0);
+			setAction(evt, default_keyup_map[i].action);
 		}
 	}
 }

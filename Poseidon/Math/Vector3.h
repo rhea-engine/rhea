@@ -9,7 +9,11 @@ namespace Poseidon
 	class Vector3 {	
 	public:
 		float x,y,z;	
-		Vector3() {};
+		Vector3() :
+		x(0),
+		y(0),
+		z(0)
+		{};
 		Vector3(float v1, float v2, float v3) {
 			x = v1;
 			y = v2;

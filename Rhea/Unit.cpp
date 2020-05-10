@@ -2,8 +2,9 @@
 
 namespace Rhea
 {
-	void Unit::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, std::string> values)
+	void Unit::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{
+		m_app = app;
 		m_attributes = attributes;
 		m_values = values;
 	}
@@ -55,12 +56,34 @@ namespace Rhea
 		}
 	}
 
-	void Unit::logMe()
+	Unit* Unit::findByType(std::string type_name)
 	{
-		printf("Name: %s\nPath: %s\nType: %s\n--\n", m_pathname.c_str(), m_path.c_str(), m_type_name.c_str());
+		// myself?
+		if (m_type_name == type_name)
+			return this;
+
+		for (auto it = m_children.begin(); it != m_children.end(); ++it) {
+			Unit* ret = it->second->findByType(type_name);
+			if (ret)
+				return ret;
+		}
+
+		// not found
+		return nullptr;
+	}
+
+	void Unit::broadcast(std::string method_name)
+	{
+		// do i have this method?
+		message(method_name);
 		for (auto it = m_children.begin(); it != m_children.end(); ++it) {
 			Unit* c = it->second;
-			c->logMe();
+			c->broadcast(method_name);
 		}
+	}
+
+	void Unit::logMe()
+	{
+		printf("--------\nName: %s\nPath: %s\nType: %s\n", m_pathname.c_str(), m_path.c_str(), m_type_name.c_str());
 	}
 }

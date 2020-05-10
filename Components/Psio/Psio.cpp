@@ -4,6 +4,7 @@
 #include "Input.h"
 #include "Window.h"
 #include "Keyboard.h"
+#include "Timer.h"
 
 namespace Psio
 {
@@ -16,6 +17,11 @@ namespace Psio
 	std::shared_ptr<InputEvent> Engine::pollInput()
 	{
 		return m_input->poll();
+	}
+
+	uint64_t Engine::getTicks()
+	{
+		return Timer::getTicks();
 	}
 
 	Window* Engine::createWindow()

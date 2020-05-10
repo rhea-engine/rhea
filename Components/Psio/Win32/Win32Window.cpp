@@ -68,7 +68,8 @@ namespace Psio
 			PostQuitMessage(0);
 			break;
 
-		case WM_KEYDOWN:			
+		case WM_KEYDOWN:	
+		case WM_KEYUP:
 			shift = GetKeyState(VK_SHIFT) & 0x0800;
 			alt = GetKeyState(VK_MENU) & 0x0800;
 			ctrl = GetKeyState(VK_CONTROL) & 0x0800;
@@ -77,7 +78,10 @@ namespace Psio
 			// get scancode (see https://docs.microsoft.com/de-ch/windows/win32/inputdev/wm-keydown)
 			scancode = lParam >> 16 & 0xFF;
 
-			evt = std::make_shared<KeyInputEvent>(Psio::InputEventId::KEY_PRESSED);
+			if (uMsg == WM_KEYDOWN)
+				evt = std::make_shared<KeyInputEvent>(Psio::InputEventId::KEY_PRESSED);
+			else
+				evt = std::make_shared<KeyInputEvent>(Psio::InputEventId::KEY_RELEASED);
 			evt->setModifiers(shift, alt, ctrl);
 			std::static_pointer_cast<KeyInputEvent>(evt)->set(hwKey(wParam), scancode, 0);
 			win->addInputEvent(evt);

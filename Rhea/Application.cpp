@@ -21,6 +21,10 @@
 #include "ImageResource.h"
 #include "InputMap.h"
 #include "Dispatcher.h"
+#include "Controller/Controller.h"
+#include "Controller/BasicController.h"
+#include "Controller/SpectatorController.h"
+#include "SceneView.h"
 
 #include "Application.h"
 
@@ -38,7 +42,10 @@ namespace Rhea
 		m_unit_tree->registerUnitType("//meworla/mesh", Mesh::createType);
 		m_unit_tree->registerUnitType("//meworla/wavefront-object", TextResource::createType);
 		m_unit_tree->registerUnitType("//meworla/wavefront-material", TextResource::createType);
-		m_unit_tree->registerUnitType("//meworla/texture", ImageResource::createType);		
+		m_unit_tree->registerUnitType("//meworla/texture", ImageResource::createType);
+		m_unit_tree->registerUnitType("//meworla/controller", BasicController::createType);
+		m_unit_tree->registerUnitType("//meworla/spectator", SpectatorController::createType);
+		m_unit_tree->registerUnitType("//meworla/camera", SceneView::createType);
 
 		// add a default input map
 		m_input_map = new InputMap();
@@ -60,7 +67,7 @@ namespace Rhea
 		m_fs->setAppDir(path);
 	}
 
-	void Application::loadScene(const std::string resourceId)
+	void Application::loadScene(const std::string resourceId, std::function<void(Scene*, ReqError error)> handler)
 	{
 		Orion::ResourceRequest* req = m_fs->getResourceByRid(resourceId);
 		req->resolve([&](Orion::ResourceRequest* req, Orion::ResourceRequest::Error err) {
@@ -73,8 +80,7 @@ namespace Rhea
 					realm_unit = (Unit*)new Realm(req->getRealm(), realm_name);
 					m_unit_tree->addChild(realm_unit);
 				}
-				onSceneReady(realm_unit, req->getResource());
-				m_unit_tree->logMe();
+				onSceneReady(realm_unit, req->getResource(), handler);
 			}
 			else {
 				log(Orion::ResourceRequest::getErrorMessage(err) + ": " + resourceId);
@@ -82,7 +88,7 @@ namespace Rhea
 			});	
 	}
 
-	void Application::onSceneReady(Unit* parent, Orion::Resource* res)
+	void Application::onSceneReady(Unit* parent, Orion::Resource* res, std::function<void(Scene*, ReqError error)> handler)
 	{
 		// for now we assume a scene file
 		std::unique_ptr<SceneLoader> parser = std::make_unique<SceneLoader>();
@@ -91,11 +97,10 @@ namespace Rhea
 		Scene *scene = parser->load(parent, res, this);
 		scene->load([&](ReqError err) {
 			if (err == ReqError::OK) {
-				log("scene ready");
-				scene->show(core);
+				handler(scene, err);
 			}
 			else {
-				log("Could not open scene");
+				handler(NULL, err);
 			}
 			});
 	}
@@ -117,6 +122,7 @@ namespace Rhea
 		return false;
 	}
 
+	
 	int Application::loop()
 	{
 		// start the loop
@@ -126,7 +132,48 @@ namespace Rhea
 		std::shared_ptr<Psio::InputEvent> evt;
 		ievt_actions iea;
 
+		int iterations_per_second = 60;
+		float frame_slice = 1.0 / iterations_per_second;
+		uint64_t last_ticks = psio->getTicks();
+
+		uint64_t frame = 0;
+		int physics_steps = 0;
+		float accumulated_time = 0; // time accumulated time since last physical steps
+		float idle_step;
+
+		float fps = 0;
+		uint64_t frames = 0;
+
+		uint64_t fps_start = psio->getTicks();
+		uint64_t fps_count = 0;
+		float elapsed_fs = 0.0f;
+
 		while (!ret) {
+
+			// timings
+			uint64_t current_ticks = psio->getTicks();
+			uint64_t elapsed_ticks = current_ticks - last_ticks;
+			float elapsed_s = (float)elapsed_ticks / 1000000L;
+			last_ticks = current_ticks;
+
+			// compute fps					
+			fps = 1 / elapsed_s; // fps for current frame
+			elapsed_fs += elapsed_s;
+			//  show all 
+			if (elapsed_fs > 1.0f) {
+				fps = (frames - fps_count) / elapsed_fs;
+				elapsed_fs = 0.0f;
+				fps_count = frames;
+			//	printf("fps: %6.1f\r", fps);
+			}
+
+			// 1 physics step handles [frame_slice] time
+			// we need to compute how many steps have to be taken to "catch up"
+			accumulated_time += elapsed_s;
+			physics_steps = std::floor(accumulated_time * iterations_per_second);
+			accumulated_time -= physics_steps * frame_slice;
+			//if (physics_steps > 5)
+			//	printf("phys steps: %d ; acc: %f        \r\n", physics_steps, accumulated_time);
 
 			if (onFrameBegin())
 				ret = true;
@@ -141,16 +188,39 @@ namespace Rhea
 				iea = m_input_map->getActions(evt);
 				if (iea.actions.size())
 				{
-					for (auto& act : iea.actions)
+					for (auto& act : iea.actions) {
+						if (m_focused_controller)
+							m_focused_controller->onInput(act, evt);
 						m_dispatcher->dispatch(act, evt);
+					}
 				}
 				// handle input directly
 				if (onInput(evt))
 					ret = true;
 			}
 
+			// physics
+
+			uint64_t physics_begin = psio->getTicks();
+			static int max_physics_steps = 10;
+			physics_steps = min(physics_steps, max_physics_steps);
+
+			for (int i=0; i < physics_steps; i++)
+			{
+				if (m_focused_controller)
+					m_focused_controller->onPhysics(frame_slice);
+			}
+
+			// idle
+			uint64_t idle_begin = psio->getTicks();
+			
+			// idle(elapsed_s)
+
+			// render
 			if (core->iterate())
 				ret = true;
+
+			frames++;
 
 			if (onFrameEnd())
 				ret = true;

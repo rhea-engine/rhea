@@ -14,7 +14,7 @@ using Poseidon::Viewport;
 
 namespace Rhea
 {
-	void Mesh::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, std::string> values)
+	void Mesh::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{
 		m_app = app;
 		m_values = values;

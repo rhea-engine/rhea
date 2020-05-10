@@ -2,6 +2,7 @@
 #define PSIO_H
 
 #include <memory>
+#include <cstdint>
 
 namespace Psio
 {
@@ -22,6 +23,9 @@ namespace Psio
 
 		// get the next input event
 		std::shared_ptr<InputEvent> pollInput();
+
+		// Returns the system time, in microseconds
+		uint64_t getTicks();
 
 	protected:
 		Input* m_input;

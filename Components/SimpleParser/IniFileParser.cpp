@@ -68,7 +68,7 @@ namespace SimpleParser
 						state = 2;
 					}
 					break;
-				case 2:
+				case 2: // end of section
 					if (err == SimpleParser::Error::PARSE_EOF ||
 						token.type != TokenType::TOKEN_RIGHT_BRACKET) {
 						return Error::PARSE_EXPECT_HEADER_END;
@@ -82,11 +82,11 @@ namespace SimpleParser
 		return Error::PARSE_OK;
 	}
 
-	IniFileParser::Error IniFileParser::parseContent(char* buf, size_t& reader, size_t buflen, int& line, std::unordered_map<std::string, std::string>& values)
+	IniFileParser::Error IniFileParser::parseContent(char* buf, size_t& reader, size_t buflen, int& line, values_map& values)
 	{
 		Error err;
 		std::string key;
-		std::string value;
+		Variant value;
 
 		while (reader < buflen) {
 			err = parseContentEntry(buf, reader, buflen, line, key, value);
@@ -100,10 +100,11 @@ namespace SimpleParser
 		return Error::PARSE_OK;
 	}
 
-	IniFileParser::Error IniFileParser::parseContentEntry(char* buf, size_t& reader, size_t buflen, int& line, std::string& key, std::string& value)
+	IniFileParser::Error IniFileParser::parseContentEntry(char* buf, size_t& reader, size_t buflen, int& line, std::string& key, Variant& value)
 	{
 		Token token;
 		SimpleParser::Error err;
+		std::vector<Variant> arr;
 
 		int state = 0;
 		while (reader < buflen) {
@@ -125,7 +126,7 @@ namespace SimpleParser
 							token.type == TokenType::TOKEN_STRING) {
 							key = token.value;
 							state = 1;
-						}
+						}						
 						else {
 							return Error::PARSE_EXPECT_IDENTIFIER;
 						}
@@ -145,8 +146,32 @@ namespace SimpleParser
 						value = "";
 						return Error::PARSE_EOF;
 					}
+					else if (token.type == TokenType::TOKEN_LEFT_PARENTHESIS) {
+						// start of array
+						state = 3;
+					}
 					else {
 						value = token.value;
+						return Error::PARSE_OK;
+					}
+					break;
+				case 3: // in array
+					if (token.type == TokenType::TOKEN_NUMBER ||
+						token.type == TokenType::TOKEN_STRING ||
+						token.type == TokenType::TOKEN_IDENTIFIER)
+					{
+						arr.push_back(token.value);
+					}
+					else if (token.type == TokenType::TOKEN_COMMA) {
+						// simply ignore
+						continue;
+					}
+					else if (err == SimpleParser::Error::PARSE_EOF ||
+						token.type != TokenType::TOKEN_RIGHT_PARENTHESIS) {
+						return Error::PARSE_UNERMINATED_ARRAY;
+					}
+					else {
+						value = arr;
 						return Error::PARSE_OK;
 					}
 				}
@@ -166,6 +191,8 @@ namespace SimpleParser
 		}
 
 		// parse section content
+		section.attributes.clear();
+		section.values.clear();
 		err = parseContent(buf, reader, buflen, line, section.values);
 
 		// continue on eof: empty sections are allowd

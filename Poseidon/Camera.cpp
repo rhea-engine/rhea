@@ -14,16 +14,7 @@ namespace Poseidon
 		aspectRatio_(1.0f),
 		m_projection_offset(Vector3::ZERO)
 	{
-		m_buffer = m_renderer->createGraphicsBuffer(sizeof(cbPerObject));
 		createPosition(1);
-	}
-
-	void Camera::render(XMMATRIX mesh)
-	{
-		WVP = cube1World * camView * camProjection;
-		cbPerObj.WVP = XMMatrixTranspose(WVP);
-		m_buffer->WriteData(0, sizeof(cbPerObject), &cbPerObj, false, false);
-		//		d3d11DevCon->UpdateSubresource(cbPerObjectBuffer, 0, NULL, &cbPerObj, 0, 0);
 	}
 
 	const Matrix4& Camera::getProjectionMatrixRS(void) const
@@ -89,7 +80,7 @@ namespace Poseidon
 	{
 		// This is most efficiently done using 3x3 Matrices
 		Matrix3 rot;
-		orientation.ToRotationMatrix(rot);
+		orientation.toRotationMatrix(rot);
 
 		// Make the translation relative to new axes
 		Matrix3 rotT = rot.Transpose();
@@ -123,8 +114,8 @@ namespace Poseidon
 		//if (!mCustom_view_matrix)
 		{
 			Matrix3 rot;
-			const Quaternion& orientation = m_position->get_rotation();  //getOrientationForViewUpdate();
-			const Vector3& position = m_position->get_worldspace();  //getPositionForViewUpdate();
+			const Quaternion& orientation = m_derived_position->get_rotation();  //getOrientationForViewUpdate();
+			const Vector3& position = m_derived_position->get_worldspace();  //getPositionForViewUpdate();
 
 			m_view_matrix = makeViewMatrix(position, orientation, m_reflect ? &m_reflect_matrix : 0);
 		}

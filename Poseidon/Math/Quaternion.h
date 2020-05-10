@@ -6,6 +6,8 @@ namespace Poseidon
 	class Vector3;
 	class Matrix3;
 
+	// this class is based on Ogre3d's OgreQuaternion
+
 	class Quaternion {
 	public:
 		float w, x, y, z;
@@ -14,11 +16,12 @@ namespace Poseidon
 
 		Quaternion() : w(1), x(0), y(0), z(0) {};
 		
-		/// Copy constructor
+		// Copy constructor
 		inline Quaternion(const Quaternion& rhs)
 			: w(rhs.w), x(rhs.x), y(rhs.y), z(rhs.z)
 		{}
 
+		// Constructor from explizit values
 		Quaternion(float iw, float ix, float iy, float iz) {
 			x = ix;
 			y = iy;
@@ -26,32 +29,49 @@ namespace Poseidon
 			w = iw;
 		}
 
-		Quaternion operator* (const Quaternion& rkQ) const;
+		// Constructor for a quaternion from 3 orthonormal local axes
+		inline Quaternion(const Vector3& x_axis, const Vector3& y_axis, const Vector3& z_axis)
+		{
+			this->fromAxes(x_axis, y_axis, z_axis);
+		}
 
-		/// Construct a quaternion from 3 orthonormal local axes
-		inline Quaternion(const Vector3& xaxis, const Vector3& yaxis, const Vector3& zaxis)
+		// Constructor for a quaternion from an angle/axis
+		inline Quaternion(const float& r_angle, const Vector3& r_axis)
 		{
-			this->FromAxes(xaxis, yaxis, zaxis);
+			this->fromAngleAxis(r_angle, r_axis);
 		}
-		/** Setups the quaternion using the supplied vector, and "roll" around
-		   that vector by the specified radians.
-	   */
-		void FromAngleAxis(const float& rfAngle, const Vector3& rkAxis);
-		/// Construct a quaternion from an angle/axis
-		inline Quaternion(const float& rfAngle, const Vector3& rkAxis)
-		{
-			this->FromAngleAxis(rfAngle, rkAxis);
-		}
-		/// Normalises this quaternion, and returns the previous length
+
+		// setter functions 
+				
+		// setup by the supplied vector, and "roll" around that vector by the specified radians.
+		void fromAngleAxis(const float& r_angle, const Vector3& r_axis);
+
+		// Setup from rotation matrix
+		void fromRotationMatrix(const Matrix3& rot);
+		
+		// setup from axes in a vector
+		void fromAxes(const Vector3* a_axis);
+		
+		// setup from axes in thre vectors
+		void fromAxes(const Vector3& x_axis, const Vector3& y_axis, const Vector3& z_axis);
+
+		// Normalises this quaternion, and returns the previous length
 		float normalise(void);
-		void FromRotationMatrix(const Matrix3& kRot);
-		void FromAxes(const Vector3* akAxis);
-		void FromAxes(const Vector3& xAxis, const Vector3& yAxis, const Vector3& zAxis);
+		
+		// operations
 
+		// mulitply with other quaternion
+		Quaternion operator* (const Quaternion& r_q) const;
+
+		// Rotation of a vector by a quaternion
+		Vector3 operator* (const Vector3& r_vector) const;
+
+		void toRotationMatrix(Matrix3& rot) const;
+
+		// getter functions
+
+		// get as rotation matrix
 		Matrix3 RotationMatrix() const;
-		/// Rotation of a vector by a quaternion
-		Vector3 operator* (const Vector3& rkVector) const;
-		void ToRotationMatrix(Matrix3& rot) const;
 	};
 }
 #endif // !POSEIDON_QUATERNION_H

@@ -21,7 +21,7 @@ namespace Poseidon
 		void cullPhase(RenderQueue* queue, Camera* camera);
 
 		// get render input
-		void getRenderInput(Hippios::VertexBuffer** pvb, Hippios::IndexBuffer** pib);
+		void getRenderInput(Hippios::VertexBuffer** pvb, Hippios::IndexBuffer** pib, int& num_indices);
 
 		// get the Material
 		Texture* getMaterial();

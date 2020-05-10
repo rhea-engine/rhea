@@ -9,7 +9,7 @@
 #include "Scene.h"
 
 namespace Rhea
-{
+{	
 	Scene* SceneLoader::load(Unit* parent, Orion::Resource* resource, Application* app)
 	{
 		std::unique_ptr<SimpleParser::IniFileParser> parser = std::make_unique<SimpleParser::IniFileParser>();
@@ -75,8 +75,8 @@ namespace Rhea
 				// find parent relative to top parent			
 				child_parent = scene;
 			}
-			child_parent->addChild(unit);
-			if (type_name == "//meworla/item") {
+			child_parent->addChild(unit);			
+			if ((type_name == "//meworla/item") || (type_name == "//meworla/camera")) {
 				scene->addItem((Item*)unit);
 			}
 		}

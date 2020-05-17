@@ -15,16 +15,16 @@ namespace Poseidon
 {
 	Core::Core()
 	{
-		
+		m_psio = nullptr;
 	}
 
-	void Core::init()
+	void Core::init(Psio::Engine* psio)
 	{
 		// initialize the psio subsystem
-		m_psio = std::make_unique<Psio::Engine>();
+		m_psio = psio;
 
 		// initialize render sub system
-		m_renderer = new Hippios::Engine(m_psio.get());
+		m_renderer = new Hippios::Engine(m_psio);
 		m_renderer->startup();		
 
 		// add a root window which is also the root viewport

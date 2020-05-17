@@ -5,13 +5,6 @@
 
 #include "Resource.h"
 
-namespace Poseidon
-{
-	class Core;
-	class Camera;
-	class SceneManager;
-}
-
 namespace Rhea
 {
 	class Item;
@@ -21,22 +14,18 @@ namespace Rhea
 	{
 	public:
 		Scene(std::string name) :
-			m_scene_mgr(NULL),
-			m_camera(NULL),
 			Resource(name, "//meworla/scene")
 		{}
-
-		// show the scene in the viewport
-		void show(Poseidon::Core* core);
 
 		// add an item to the scene
 		void addItem(Item* item);
 
+		// get the items
+		std::vector<Item*> getItems() { return m_items; }
+
 		void load(ReadyHandler handler);
 	protected:
-		std::vector<Item*> m_items;
-		Poseidon::SceneManager* m_scene_mgr;
-		Poseidon::Camera* m_camera;
+		std::vector<Item*> m_items;		
 	};
 }
 

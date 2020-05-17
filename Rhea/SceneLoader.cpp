@@ -75,7 +75,7 @@ namespace Rhea
 				// find parent relative to top parent			
 				child_parent = scene;
 			}
-			child_parent->addChild(unit);			
+			child_parent->addChild(unit);				
 			if ((type_name == "//meworla/item") || (type_name == "//meworla/camera")) {
 				scene->addItem((Item*)unit);
 			}

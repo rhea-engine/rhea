@@ -2,7 +2,7 @@
 #define RHEA_IMPORTER_H
 
 #include <string>
-#include "Poseidon/Mesh.h"
+#include "Mesh.h"
 
 namespace Rhea
 {
@@ -11,7 +11,7 @@ namespace Rhea
 	class Importer
 	{
 	public:		
-		bool load(Application* app, std::string objbuf, std::string mtlbuf, std::vector<Hippios::vertex_uv>& vertices, std::vector<unsigned long>& indices);
+		bool load(Application* app, std::string objbuf, std::string mtlbuf, std::vector<Mesh::vertex>& vertices, std::vector<unsigned long>& indices);
 	};
 }
 

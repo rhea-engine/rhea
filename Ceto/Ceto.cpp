@@ -1,10 +1,12 @@
 #include "Ceto.h"
 #include "Rhea/Scene.h"
-#include "Rhea/SceneView.h"
 #include "Rhea/Unit.h"
 #include "Rhea/UnitTree.h"
 #include "Rhea/Controller/BasicController.h"
 #include "Rhea/Controller/SpectatorController.h"
+#include "Rhea/Graphics/GraphicsService.h"
+#include "Rhea/Graphics/Camera.h"
+#include "Rhea/Camera.h"
 
 void Ceto::setup()
 {
@@ -20,7 +22,9 @@ void Ceto::setup()
 	loadScene(m_home_scene, [&](Rhea::Scene* scene, ReqError err) {
 		if (err == ReqError::OK) {
 			log("scene ready");
-			scene->show(core);
+			static_cast<Rhea::GraphicsService*>(m_services["graphics"])->setScene(scene);
+			std::unique_ptr<Rhea::Event> ev = std::make_unique<Rhea::Event>("display");
+			scene->sendEvent(std::string("display"), ev.get());			
 			scene->broadcast("show");
 
 			// search for a controller
@@ -28,11 +32,11 @@ void Ceto::setup()
 			if (!m_focused_controller) {
 				// no controller found - search for camera and add default controller for it
 				// note: spectator does not work, because we have no controlled element
-				m_view = static_cast<Rhea::SceneView*>(m_unit_tree->findByType("//meworla/camera"));
+				m_view = static_cast<Rhea::Camera*>(m_unit_tree->findByType("//meworla/camera"));
 				if (!m_view) {
 					// no camera found - create a default cam
-					m_view = static_cast<Rhea::SceneView*>(m_unit_tree->createUnitById(scene->getPath() + "/camera", "//meworla/camera"));
-					m_view->show(core);
+					m_view = static_cast<Rhea::Camera*>(m_unit_tree->createUnitById(scene->getPath() + "/camera", "//meworla/camera"));
+					Rhea::GraphicsCamera::createElement(core, m_view);
 					m_view->setPosition(Poseidon::Vector3(0, 1.7f, 0.0f));
 				}
 				m_focused_controller = new Rhea::BasicController("camera_controller", "//meworla/controller");

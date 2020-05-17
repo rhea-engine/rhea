@@ -1,4 +1,5 @@
 #include <exception>
+#include <algorithm>
 
 #include "Hippios/Engine.h"
 #include "Poseidon/Core.h"
@@ -17,6 +18,7 @@
 #include "Item.h"
 #include "Scene.h"
 #include "Mesh.h"
+#include "Camera.h"
 #include "TextResource.h"
 #include "ImageResource.h"
 #include "InputMap.h"
@@ -24,7 +26,9 @@
 #include "Controller/Controller.h"
 #include "Controller/BasicController.h"
 #include "Controller/SpectatorController.h"
-#include "SceneView.h"
+
+#include "Graphics/GraphicsService.h"
+#include "Platform/PlatformService.h"
 
 #include "Application.h"
 
@@ -32,7 +36,15 @@ namespace Rhea
 {
 	void Application::init()
 	{		
-		core = new Poseidon::Core();
+		// initialize graphics system
+		GraphicsService* g_service = new GraphicsService(this);
+		m_services["graphics"] = g_service;
+		Service* psio = new PlatformService(this);
+		g_service->setPlatform(psio);
+		m_services["platform"] = psio;
+		core = g_service->getEngine();
+
+//		core = new Poseidon::Core();
 		m_fs = new Orion::Orion(m_appname);
 		m_unit_tree = new UnitTree(this);
 
@@ -45,7 +57,7 @@ namespace Rhea
 		m_unit_tree->registerUnitType("//meworla/texture", ImageResource::createType);
 		m_unit_tree->registerUnitType("//meworla/controller", BasicController::createType);
 		m_unit_tree->registerUnitType("//meworla/spectator", SpectatorController::createType);
-		m_unit_tree->registerUnitType("//meworla/camera", SceneView::createType);
+		m_unit_tree->registerUnitType("//meworla/camera", Camera::createType);
 
 		// add a default input map
 		m_input_map = new InputMap();
@@ -54,8 +66,13 @@ namespace Rhea
 	}
 
 	void Application::setup()
-	{
-		core->init();
+	{		
+		for (auto it = m_services.begin(); it != m_services.end(); ++it)
+		{
+			Service* s = it->second;
+			s->onInit();			
+		}
+		//core->init();
 	}
 
 	void Application::setAppDir(char* path)
@@ -128,7 +145,7 @@ namespace Rhea
 		// start the loop
 		//int ret = core->loop();
 		int ret = 0;	
-		Psio::Engine* psio = core->getPsio();
+		Psio::Engine* psio = static_cast<PlatformService*>(m_services["platform"])->getEngine();
 		std::shared_ptr<Psio::InputEvent> evt;
 		ievt_actions iea;
 
@@ -203,7 +220,7 @@ namespace Rhea
 
 			uint64_t physics_begin = psio->getTicks();
 			static int max_physics_steps = 10;
-			physics_steps = min(physics_steps, max_physics_steps);
+			physics_steps = std::min(physics_steps, max_physics_steps);
 
 			for (int i=0; i < physics_steps; i++)
 			{
@@ -217,8 +234,10 @@ namespace Rhea
 			// idle(elapsed_s)
 
 			// render
-			if (core->iterate())
-				ret = true;
+			for (auto it = m_services.begin(); it != m_services.end(); ++it) {
+				if (it->second->onFrame())
+					ret = true;
+			}			
 
 			frames++;
 

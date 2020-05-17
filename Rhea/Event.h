@@ -1,17 +1,26 @@
 #ifndef RHEA_EVENT_H
 #define RHEA_EVENT_H
 
-#include "Object.h"
+#include <string>
+#include <functional>
 
 namespace Rhea
 {
-	class Event : public Object
+	class Unit;
+
+	class Event
 	{
-	protected:
-		char* m_name;
-		char* m_classname;
 	public:
-		Event(char* name) : m_name(name), m_classname("Event") {}
+		typedef std::function<bool(Event*, Unit*)> EventHandler;
+
+		Event(std::string name) : 
+			m_name(name)
+		{}
+
+		bool isEvent(std::string ev_name) { return ev_name == m_name; }
+
+	protected:
+		std::string m_name;
 	};
 }
 

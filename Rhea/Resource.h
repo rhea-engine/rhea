@@ -29,6 +29,8 @@ namespace Rhea
 		typedef std::function<void(ReqError)> ReadyHandler;
 
 		Resource(std::string basename, std::string type_name) :
+			m_buf(nullptr),
+			m_buflen(0),
 			m_status(Status::NONE),
 			Unit(basename, type_name)
 		{}
@@ -39,10 +41,15 @@ namespace Rhea
 		// get the status of the Unit
 		Status getStatus() { return m_status; }
 
+		// get raw data
+		size_t getRaw(char** buf, size_t* buflen) { *buf = m_buf; *buflen = m_buflen; return m_buflen; }
+
 		// check if resource finished loading
 		bool isLoaded() { return m_status == Status::LOADED; }
 	protected:
 		Status m_status;
+		char* m_buf;
+		size_t m_buflen;
 	};
 }
 

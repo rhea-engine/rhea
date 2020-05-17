@@ -6,6 +6,8 @@ namespace Poseidon
 	{
 		if (m_position)
 			delete m_position;
+		if (m_parent_node)
+			m_parent_node->removeChild(this);
 	}
 
 	void Node::setName(char *name)
@@ -19,6 +21,12 @@ namespace Poseidon
 		child_node->depth = depth + 1;
 		children.push_back(child_node);
 		child_node->registerNode();
+	}
+
+	void Node::removeChild(Node* child_node)
+	{
+		auto it = std::find(children.begin(), children.end(), child_node);
+		children.erase(it);
 	}
 
 	Node* Node::createChild()

@@ -4,6 +4,7 @@
 #include <string>
 
 #include "Rhea/Application.h"
+#include "Rhea/Camera.h"
 
 using std::string;
 
@@ -11,7 +12,7 @@ class Ceto : public Rhea::Application
 {
 protected:
 	string m_home_scene;
-	Rhea::SceneView* m_view = 0;
+	Rhea::Camera* m_view = 0;
 public:
 	void setup();
 	void setHomeScene(string scene);

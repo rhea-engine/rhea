@@ -21,6 +21,7 @@ namespace Rhea
 	class Controller;
 	class Scene;
 	class SceneView;
+	class Service;
 
 	class Application
 	{
@@ -67,6 +68,7 @@ namespace Rhea
 		InputMap* m_input_map = 0;
 		Dispatcher* m_dispatcher = 0;
 		Controller* m_focused_controller = 0;
+		std::unordered_map<std::string, Service*> m_services;
 	};
 }
 #endif // !RHEA_H

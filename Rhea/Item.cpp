@@ -4,6 +4,7 @@
 #include "Poseidon/SceneManager.h"
 #include "UnitTree.h"
 #include "Mesh.h"
+#include "Graphics/Item.h"
 
 namespace Rhea
 {
@@ -27,30 +28,8 @@ namespace Rhea
 			// TODO load myself and then call dependencies
 			printf("Item::load without setup not implemented\n");
 		}
-
 	}
-
-	void Item::show(Poseidon::Core* core)
-	{
-		Poseidon::SceneManager* scene_mgr = core->get_scene_manager();
-
-		Poseidon::Mesh* engine_mesh = m_mesh->getMesh();
-		m_entity = core->createEntity(engine_mesh);
-		scene_mgr->getViewport()->addRenderChild(static_cast<Poseidon::Entity*>(m_entity));
-
-		Poseidon::Position* pos = m_entity->get_position();
-
-		auto pos_sit = m_values.find("position");
-		if (pos_sit != m_values.end()) {
-			float x = pos_sit->second[0];
-			float y = pos_sit->second[1];
-			float z = pos_sit->second[2];
-			pos->setPosition(x, y, z);
-		}
-		else
-			pos->setPosition(0.0f, 0.0f, 0.0f);
-	}
-
+	
 	Unit* Item::createType(std::string name, std::string type)
 	{
 		Unit* ret = (Unit*)new Item(name);
@@ -110,14 +89,30 @@ namespace Rhea
 		}
 	}
 
+	bool Item::getGraphicsItem()
+	{
+		auto it = m_elements.find("graphics");
+		if (it != m_elements.end()) {
+			m_graphics_item = static_cast<GraphicsItem*>(it->second);
+			return true;
+		}
+		return false;
+	}
+
 	void Item::setPosition(Poseidon::Position& position)
 	{
-		m_entity->get_position()->setPosition(position);
+		if (!m_graphics_item)
+			if (!getGraphicsItem())
+				return;
+		m_graphics_item->setPosition(position);
 	}
 	
 	void Item::setLookAt(Poseidon::Vector3 look_at)
 	{
-		m_entity->get_position()->lookAt(look_at);
+		if (!m_graphics_item)
+			if (!getGraphicsItem())
+				return;
+		m_graphics_item->lookAt(look_at);
 	}
 	
 	void Item::addFollower(Item* item)
@@ -125,11 +120,17 @@ namespace Rhea
 		// simply add as child to entity
 		Poseidon::Node* child = item->getNode();
 		child->setCoordSpace(1);
-		m_entity->addChild(child);
+		if (!m_graphics_item)
+			if (!getGraphicsItem())
+				return;
+		m_graphics_item->getEntity()->addChild(child);
 	}
 	
 	Poseidon::Node* Item::getNode()
 	{
-		return m_entity;
+		if (!m_graphics_item)
+			if (!getGraphicsItem())
+				return nullptr;
+		return m_graphics_item->getEntity();
 	}
 }

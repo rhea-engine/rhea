@@ -72,6 +72,16 @@ namespace Rhea
 		return nullptr;
 	}
 
+	Variant Unit::getValue(std::string name)
+	{
+
+		auto val = m_values.find(name);
+		if (val != m_values.end()) {
+			return val->second;
+		}
+		return Variant();
+	}
+
 	void Unit::broadcast(std::string method_name)
 	{
 		// do i have this method?
@@ -80,6 +90,62 @@ namespace Rhea
 			Unit* c = it->second;
 			c->broadcast(method_name);
 		}
+	}
+
+	void Unit::message(std::string method_name)
+	{
+		if (method_name == "logme") logMe(); 		
+	}
+
+	void Unit::registerEventHandler(std::string event_name, Event::EventHandler handler)
+	{
+		m_eventhandlers[event_name].push_back(handler);
+	}
+
+	void Unit::registerEventHandlerChildren(std::string event_name, Event::EventHandler handler)
+	{
+		registerEventHandler(event_name, handler);
+		for (auto it = m_children.begin(); it != m_children.end(); ++it) {
+			Unit* c = it->second;
+			c->registerEventHandlerChildren(event_name, handler);
+		}
+	}
+
+	void Unit::sendEvent(std::string event_name, Event* event)
+	{
+		auto it = m_eventhandlers.find(event_name);
+		if (it != m_eventhandlers.end()) {
+			for (auto eh_it = it->second.begin(); eh_it != it->second.end(); ++eh_it) {
+				Event::EventHandler eh = *eh_it;
+				eh(event, this);
+			}
+		}
+	}
+
+	void Unit::sendEventChildren(std::string event_name, Event* event)
+	{
+		sendEvent(event_name, event);
+		for (auto it = m_children.begin(); it != m_children.end(); ++it) {
+			Unit* c = it->second;
+			c->sendEventChildren(event_name, event);
+		}
+	}
+
+	void Unit::addElement(std::string name, Element* element)
+	{
+		Element* previous = getElement(name);
+		if (previous)
+			delete previous;
+		m_elements[name] = element;
+	}
+
+	Element* Unit::getElement(std::string name)
+	{
+		auto it = m_elements.find(name);
+		if (it != m_elements.end())
+			return it->second;
+		else
+			return nullptr;
 	}
 
 	void Unit::logMe()

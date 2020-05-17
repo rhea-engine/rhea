@@ -21,8 +21,12 @@ namespace Poseidon
 
 		void setName(char* name);
 		
+		// adding a child
 		void addChild(Node* child_node);
-		
+
+		// remove a child
+		void removeChild(Node* child_node);
+
 		// get parent - returns NULL for top
 		Node* getParent() { return m_parent_node; }
 		Node* createChild();
@@ -44,7 +48,7 @@ namespace Poseidon
 		// we need an update
 		void needUpdate();
 
-	protected:
+	protected:	
 		char* m_node_name = "(unknwon)";
 		Node* m_parent_node = 0;
 		int depth = 0;

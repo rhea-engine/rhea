@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "Viewport.h"
 #include "Mesh.h"
 #include "Animatable.h"
@@ -55,5 +57,11 @@ namespace Poseidon
 	{
 		Node::addChild(child);
 		m_render_children.push_back(child);
+	}
+
+	void Viewport::removeRenderChild(Renderable* child)
+	{
+		auto it = std::find(m_render_children.begin(), m_render_children.end(), child);
+		m_render_children.erase(it);
 	}
 }

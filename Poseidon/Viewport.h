@@ -26,6 +26,10 @@ namespace Poseidon
 		virtual void initRenderTarget(Hippios::Engine* engine);
 		Hippios::Engine* get_renderer() { return m_engine; };
 		void addRenderChild(Renderable* child);
+		
+		// remove render element
+		void removeRenderChild(Renderable* child);
+
 		Camera* get_camera() { return m_camera; };
 		void setCamera(Camera* camera);
 

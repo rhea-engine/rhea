@@ -1,7 +1,4 @@
-#include "Poseidon/Mesh.h"
 #include "Mesh.h"
-#include <Poseidon\Core.h>
-#include <Poseidon/SceneManager.h>
 #include "Application.h"
 #include "Importer.h"
 #include "Orion/ResourceStream.h"
@@ -9,8 +6,8 @@
 #include "TextResource.h"
 #include "ImageResource.h"
 
-using Hippios::vertex_uv;
-using Poseidon::Viewport;
+#include "Graphics/Texture.h"
+#include "Graphics/Mesh.h"
 
 namespace Rhea
 {
@@ -43,14 +40,14 @@ namespace Rhea
 				if (unit) {
 					m_status = Status::LOADED;
 					objbuf = ((TextResource*)unit)->getAsString();
-					createMesh(objbuf, mtlbuf);
+					Importer importer;
+					importer.load(m_app, objbuf, mtlbuf, m_vertices, m_v_indices);
 					// load and add textures
 					if (m_values["texture"] != "")
 					{
 						m_app->loadResource(m_values["texture"], "//meworla/texture", [&](Unit* unit, ReqError err) {
 							if (unit) {
-								Poseidon::Image* tex = ((ImageResource*)unit)->get();
-								m_mesh->addTexture((Poseidon::Texture*)tex);
+								m_textures.push_back(static_cast<ImageResource*>(unit));
 								handler(ReqError::OK);
 							}
 							else
@@ -68,29 +65,10 @@ namespace Rhea
 			});
 	}
 
-	Poseidon::Mesh* Mesh::getMesh()
+	void Mesh::getBuffers(std::vector<vertex>& vertices, std::vector<unsigned long>& indices)
 	{
-		if (m_mesh)
-			return m_mesh;
-		else
-			return NULL;
-	}
-
-	void Mesh::createMesh(std::string objbuf, std::string mtlbuf)
-	{
-		Poseidon::Core* core = m_app->get_core();
-		Viewport* viewport = m_app->get_core()->get_scene_manager()->getViewport();
-
-		m_mesh = new Poseidon::Mesh();
-		m_mesh->setViewport(viewport);
-
-		std::vector<Hippios::vertex_uv> vertices;
-		std::vector<unsigned long> v_indices;
-		Importer importer;
-
-		importer.load(m_app, objbuf, mtlbuf, vertices, v_indices);
-		m_mesh->setVertices(sizeof(Hippios::vertex_uv), vertices.size(), vertices.data());
-		m_mesh->setIndices(sizeof(unsigned long), v_indices.size() / 3, v_indices.data());
+		vertices = m_vertices;
+		indices = Rhea::Mesh::m_v_indices;
 	}
 
 	Unit* Mesh::createType(std::string name, std::string type)

@@ -2,13 +2,14 @@
 #define RHEA_SPECTATORCONTROLLER_H
 
 #include "BasicController.h"
-#include "../SceneView.h"
 #include <Poseidon\Math\Vector3.h>
 #include <Poseidon\Math\Quaternion.h>
 #include <Poseidon\Position.h>
 
 namespace Rhea
 {
+	class Camera;
+
 	class SpectatorController : public BasicController
 	{
 	public:
@@ -38,7 +39,7 @@ namespace Rhea
 		//Poseidon::Position m_position;
 		//Poseidon::Quaternion m_orientation;
 
-		SceneView* m_view;
+		Camera* m_view;
 
 		/*Poseidon::Vector3 m_move;
 		float m_turn = 0;	*/

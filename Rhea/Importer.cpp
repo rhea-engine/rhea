@@ -1,17 +1,14 @@
 #define TINYOBJLOADER_IMPLEMENTATION 
 #include <tiny_obj_loader/tiny_obj_loader.h>
-#include "Poseidon/Mesh.h"
 
 #include "Importer.h"
 
 namespace Rhea
 {
-	bool Importer::load(Application* app, std::string objbuf, std::string mtlbuf, std::vector<Hippios::vertex_uv>& vertices, std::vector<unsigned long>& indices)
+	bool Importer::load(Application* app, std::string objbuf, std::string mtlbuf, std::vector<Mesh::vertex>& vertices, std::vector<unsigned long>& indices)
 	{
 		tinyobj::ObjReader reader;
-		tinyobj::ObjReaderConfig config; 
-
-        //std::vector<Hippios::vertex_uv> vertices;
+		tinyobj::ObjReaderConfig config;     
 		
 		bool ret = reader.ParseFromString(objbuf, mtlbuf, config);
 
@@ -28,7 +25,7 @@ namespace Rhea
                 int num_vertices = shape.mesh.num_face_vertices[f];
                 for (size_t v = 0; v < num_vertices; v++) {
 
-                    Hippios::vertex_uv vertex;
+                    Mesh::vertex vertex;
 
                     // access to vertex
                     tinyobj::index_t idx = shape.mesh.indices[index_offset + v];

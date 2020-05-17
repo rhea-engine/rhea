@@ -92,7 +92,13 @@ namespace Rhea
 	void BasicController::connect(Unit* target)
 	{
 		m_target = target;
-		m_position = *((Item*)m_target)->getNode()->get_derived_position();
+		Poseidon::Node* node = ((Item*)m_target)->getNode();
+		if (!node) {
+			m_app->log("Basic Controller: target has no node");
+			m_target = nullptr;
+			return;
+		}
+		m_position = *node->get_derived_position();
 		m_orientation = m_position.get_rotation();
 	}
 

@@ -47,6 +47,9 @@ namespace Poseidon
 
 	Texture* Entity::getMaterial()
 	{
-		return m_mesh->getTexture();
+		if (m_mesh)
+			return m_mesh->getTexture();
+		else
+			return nullptr;
 	}
 }

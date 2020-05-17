@@ -8,25 +8,25 @@
 namespace Poseidon
 {
 	class Node;
-	class Core;
 }
 
 namespace Rhea
 {
 	class Application;
 	class Mesh;
+	class GraphicsItem;
 
 	class Item : public Resource
 	{
 	public:
 		Item(std::string name) :
-			m_entity(NULL),
-			m_mesh(NULL),
+			m_mesh(nullptr),
+			m_graphics_item(nullptr),
 			Resource(name, "//meworla/item")
 		{}
 		Item(std::string name, std::string type_name) :
-			m_entity(NULL),
-			m_mesh(NULL),
+			m_mesh(nullptr),
+			m_graphics_item(nullptr),
 			Resource(name, type_name)
 		{}
 
@@ -36,8 +36,8 @@ namespace Rhea
 		// load item
 		void load(ReadyHandler handler);
 
-		// show in scene
-		virtual void show(Poseidon::Core* core);
+		// get dependent data
+		Mesh* getMesh() { return m_mesh; }
 
 		// factory function
 		static Unit* createType(std::string name, std::string type);
@@ -55,9 +55,11 @@ namespace Rhea
 		virtual Poseidon::Node* getNode();
 
 	protected:
-		void loadDependencies(ReadyHandler handler);
-		Poseidon::Node* m_entity;
 		Mesh* m_mesh;
+		GraphicsItem* m_graphics_item;
+
+		void loadDependencies(ReadyHandler handler);
+		bool getGraphicsItem();
 	};
 }
 #endif // !REHA_ITEM_H

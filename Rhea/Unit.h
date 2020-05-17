@@ -4,13 +4,17 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+
 #include "SimpleParser/Variant.h"
+#include "Event.h"
+#include "Element.h"
 
 using SimpleParser::Variant;
 
 namespace Rhea
 {
 	class Application;
+	class Visitor;
 
 	class Unit
 	{
@@ -43,9 +47,35 @@ namespace Rhea
 		// find nearest by type
 		Unit* findByType(std::string type_name);
 
-		// messaging
+		// get value
+		Variant getValue(std::string name);
+
+		// Elements
+
+		// add an element with the given name
+		void addElement(std::string name, Element* element);
+
+		// get the element with the given name
+		Element* getElement(std::string name);
+
+		// messaging and events
+
+		// broadcast message
 		void broadcast(std::string method_name);
-		virtual void message(std::string method_name) { if (method_name == "logme") logMe(); }
+		// message implementation
+		virtual void message(std::string method_name);
+
+		// register the event handlre for event event_name
+		void registerEventHandler(std::string event_name, Event::EventHandler handler);
+		
+		// register event handler in all children of the unit
+		void registerEventHandlerChildren(std::string event_name, Event::EventHandler handler);
+
+		// send Event
+		void sendEvent(std::string event_name, Event* event);
+
+		// send Event from all children
+		void sendEventChildren(std::string event_name, Event* event);
 
 		// print my info
 		virtual void logMe();
@@ -58,6 +88,8 @@ namespace Rhea
 		std::unordered_map<std::string, std::string> m_attributes;
 		std::unordered_map<std::string, Variant> m_values;
 		std::unordered_map<std::string, Unit*> m_children;
+		std::unordered_map < std::string, std::vector<Event::EventHandler>> m_eventhandlers;		
+		std::unordered_map<std::string, Element*> m_elements;
 	};
 }
 

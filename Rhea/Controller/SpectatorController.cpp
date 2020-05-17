@@ -2,6 +2,8 @@
 #include "../Item.h"
 #include "../Application.h"
 #include "../UnitTree.h"
+#include "../Camera.h"
+#include "../Graphics/Camera.h"
 
 namespace Rhea
 {
@@ -40,8 +42,8 @@ namespace Rhea
 		std::unordered_map<std::string, Variant> values;
 
 		// create the view
-		m_view = static_cast<SceneView*>(m_app->getUnitTree()->createUnit("scene_view", "//meworla/camera", attr, values));
-		m_view->show(core);
+		m_view = static_cast<Camera*>(m_app->getUnitTree()->createUnit("scene_view", "//meworla/camera", attr, values));
+		GraphicsCamera::createElement(core, m_view);
 
 		// get target
 		

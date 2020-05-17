@@ -38,10 +38,10 @@ namespace Poseidon
 		Window* m_window = 0;
 		SceneManager* m_scene_manager = 0;
 
-		std::unique_ptr<Psio::Engine> m_psio;
+		Psio::Engine* m_psio;
 	public:
 		Core();
-		void init();
+		void init(Psio::Engine* psio);
 		SceneManager* get_scene_manager() { return m_scene_manager; }
 		// handle one frame
 		int iterate();
@@ -49,7 +49,7 @@ namespace Poseidon
 		int loop(std::function<void()> onFrame);
 
 		// get psio engine
-		Psio::Engine* getPsio() { return m_psio.get(); }
+		Psio::Engine* getPsio() { return m_psio; }
 
 		Hippios::Renderer* get_renderer() { return m_renderer->getRenderer(); };
 

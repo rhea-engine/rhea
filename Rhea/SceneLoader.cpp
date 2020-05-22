@@ -22,6 +22,7 @@ namespace Rhea
 		buflen = rs->ReadBuffer(&buf);
 		if (buflen <= 0)
 			return NULL;
+		delete rs;
 
 		int entries = parser->parse(buf, buflen, sections);
 		// create the scene

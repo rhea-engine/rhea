@@ -24,6 +24,11 @@ namespace Rhea {
 		
 		mesh->getBuffers(vertices, v_indices);
 
+		if (!vertices.size() || !v_indices.size()) {
+			printf("Vertex is empty\n");
+			return;
+		}
+
 		std::vector<Hippios::vertex_uv> hippios_vertices;
 		for (auto it = vertices.begin(); it != vertices.end(); ++it) {
 			Mesh::vertex v = *it;			

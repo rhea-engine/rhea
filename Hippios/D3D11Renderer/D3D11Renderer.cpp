@@ -305,8 +305,10 @@ namespace Hippios {
 
 	void D3D11Renderer::bindBuffers(VertexBuffer* vb, IndexBuffer* ib)
 	{
-		if (m_vb != vb)
+		if (m_vb != vb) {
 			m_vb = static_cast<D3D11VertexBuffer*>(vb);
+			m_vb->is_dirty = true;
+		}
 
 		if (m_vb && m_vb->is_dirty) {
 			UINT stride = (UINT)m_vb->get_vertex_size();
@@ -316,8 +318,10 @@ namespace Hippios {
 			m_vb->is_dirty = false;
 		}
 
-		if (m_ib != ib)
+		if (m_ib != ib) {
 			m_ib = static_cast<D3D11IndexBuffer*>(ib);
+			m_ib->is_dirty = true;
+		}
 
 		// set index buffer
 		if (m_ib && m_ib->is_dirty) {

@@ -21,6 +21,7 @@ namespace Rhea
 				char* buf;
 				size_t buflen;
 				buflen = rs->ReadBuffer(&buf);
+				delete rs;
 				if (buflen > 0) {
 					m_buf = buf;
 					m_buflen = buflen;

@@ -15,15 +15,20 @@ namespace Orion
 			write = false;
 
 		status = Fs::fileOpen(&f, path, mode);
+		m_isOpen = true;
 	}
 
 	FileResourceStream::~FileResourceStream()
 	{
+		Close();
 	}
 
 	void FileResourceStream::Close()
 	{
-		fclose(f);
+		if (m_isOpen) {
+			fclose(f);
+			m_isOpen = false;
+		}
 	}
 
 	size_t FileResourceStream::Write(void* data, size_t length)

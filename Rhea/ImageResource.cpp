@@ -19,6 +19,7 @@ namespace Rhea
 			if (req) {
 				Orion::ResourceStream* rs = req->getResource()->Open(Orion::Fs::READ | Orion::Fs::BINARY);
 				m_buflen = rs->ReadBuffer(&m_buf);
+				delete rs;
 				if (m_buflen > 0) {
 					m_status = Status::LOADED;
 					handler(ReqError::OK);

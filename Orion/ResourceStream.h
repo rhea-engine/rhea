@@ -11,6 +11,8 @@ namespace Orion
 		Resource* m_resource;
 		bool m_isOpen;		
 	public:		
+		virtual ~ResourceStream() {}
+
 		// write length bytes to resource
 		// returns actual bytes written
 		virtual size_t Write(void* data, size_t length) = 0;

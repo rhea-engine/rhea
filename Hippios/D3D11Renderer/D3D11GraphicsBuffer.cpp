@@ -26,7 +26,12 @@ namespace Hippios
 		bd.BindFlags = buffer_type;					   // set buffer type
 		bd.CPUAccessFlags = access_flag;    // allow CPU to write in buffer?
 
-		m_device->CreateBuffer(&bd, NULL, &m_buffer);       // create the buffer		
+		HRESULT hr = m_device->CreateBuffer(&bd, NULL, &m_buffer);       // create the buffer		
+		if (FAILED(hr))
+		{
+			m_buffer = nullptr;
+			printf("Could not create graphics buffer - expect failure\n");
+		}
 	}
 
 	void* D3D11GraphicsBuffer::Lock(size_t offset, size_t length)
@@ -52,7 +57,7 @@ namespace Hippios
 
 	void D3D11GraphicsBuffer::Unlock()
 	{
-		if (!m_is_locked) printf("Buffer is not locked!");
+		if (!m_is_locked) printf("Buffer is not locked!\n");
 		m_is_locked = false;
 		m_device_context->Unmap(m_buffer, NULL);
 	};
@@ -72,7 +77,7 @@ namespace Hippios
 			memcpy(dest, source, length);
 			this->Unlock();
 		}
-		else {
+		else if (m_buffer) {
 			m_device_context->UpdateSubresource(m_buffer, 0, NULL, &source, 0, 0);
 			m_device_context->VSSetConstantBuffers(0, 1, &m_buffer);
 		}

@@ -20,6 +20,16 @@ namespace Rhea
 
 		struct vertex {
 			float x, y, z, u, v;
+
+			bool operator==(const vertex& other) const
+			{
+				return (x == other.x
+					&& y == other.y
+					&& z == other.z
+					&& u == other.u
+					&& v == other.v
+					);
+			}
 		};
 
 		// setup from strings

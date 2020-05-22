@@ -6,6 +6,7 @@
 #include <Poseidon/Math/Matrix4.h>
 
 #include "Item.h"
+#include "Camera.h"
 #include "../Unit.h"
 #include "../Item.h"
 
@@ -34,8 +35,12 @@ namespace Rhea
 
 		// add my items
 		std::vector<Item*> items = scene->getItems();
-		for (auto it = items.begin(); it != items.end(); ++it) {			
-			GraphicsItem::createElement(m_core, *it);
+		for (auto it = items.begin(); it != items.end(); ++it) {
+			Item* item = *it;
+			if (item->getType() == "//meworla/camera")
+				GraphicsCamera::createElement(m_core, item);
+			else
+				GraphicsItem::createElement(m_core, item);
 		}
 		scene->addElement("graphics", this);
 	}

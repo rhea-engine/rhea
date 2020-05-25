@@ -37,7 +37,7 @@ namespace Rhea
 
 	protected:
 		Poseidon::Core* m_core;
-		Poseidon::Node* m_entity;
+		Poseidon::Node* m_entity;		
 	};
 }
 

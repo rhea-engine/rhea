@@ -19,6 +19,7 @@
 #include "Scene.h"
 #include "Mesh.h"
 #include "Camera.h"
+#include "Terrain.h"
 #include "TextResource.h"
 #include "ImageResource.h"
 #include "InputMap.h"
@@ -29,6 +30,7 @@
 
 #include "Graphics/GraphicsService.h"
 #include "Platform/PlatformService.h"
+#include "Physics/PhysicsManager.h"
 
 #include "Application.h"
 
@@ -43,6 +45,8 @@ namespace Rhea
 		g_service->setPlatform(psio);
 		m_services["platform"] = psio;
 		core = g_service->getEngine();
+		Service* phy_mgr = new PhysicsManagerService(this);
+		m_services["physics_mgr"] = phy_mgr;
 
 //		core = new Poseidon::Core();
 		m_fs = new Orion::Orion(m_appname);
@@ -58,6 +62,8 @@ namespace Rhea
 		m_unit_tree->registerUnitType("//meworla/controller", BasicController::createType);
 		m_unit_tree->registerUnitType("//meworla/spectator", SpectatorController::createType);
 		m_unit_tree->registerUnitType("//meworla/camera", Camera::createType);
+		m_unit_tree->registerUnitType("//meworla/heightmap", ImageResource::createType);
+		m_unit_tree->registerUnitType("//meworla/terrain", Terrain::createType);
 
 		// add a default input map
 		m_input_map = new InputMap();
@@ -148,6 +154,12 @@ namespace Rhea
 		Psio::Engine* psio = static_cast<PlatformService*>(m_services["platform"])->getEngine();
 		std::shared_ptr<Psio::InputEvent> evt;
 		ievt_actions iea;
+		PhysicsService* physics = static_cast<PhysicsService*>(m_services["physics"]);
+		if (!physics) {
+			physics = static_cast<PhysicsManagerService*>(m_services["physics_mgr"])->getPhysicsService(PhysicsManagerService::Types::WORLD);
+			physics->onInit();
+			m_services["physics"] = physics;
+		}
 
 		int iterations_per_second = 60;
 		float frame_slice = 1.0 / iterations_per_second;
@@ -224,8 +236,12 @@ namespace Rhea
 
 			for (int i=0; i < physics_steps; i++)
 			{
-				if (m_focused_controller)
-					m_focused_controller->onPhysics(frame_slice);
+				physics->step(frame_slice);
+			}
+			if (m_focused_controller) {
+				Poseidon::Position *pos = m_focused_controller->getTarget()->getNode()->get_position();
+				Poseidon::Vector3 p = pos->get_worldspace();
+				printf("\rPosition: \t%f\t%f\t%f", p.x, p.y, p.z);
 			}
 
 			// idle
@@ -282,6 +298,7 @@ namespace Rhea
 				unit->setup(this);
 
 				// call load of unit
+				// TODO: check if really is a resource
 				((Resource*)unit)->load([&](ReqError err) {
 					handler(unit, err);
 					});

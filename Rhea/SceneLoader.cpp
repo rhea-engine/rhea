@@ -32,10 +32,12 @@ namespace Rhea
 				scene = new Scene(sections[0].values["name"]);
 			else
 				scene = new Scene(resource->get_name());
+			scene->setup(app, sections[0].attributes, sections[0].values);
 		}
-		else
+		else {
 			scene = new Scene(resource->get_name());
-		scene->setup(app);
+			scene->setup(app);
+		}
 		parent->addChild(scene);
 
 		// get all resources packed in this file to prevent reloading them
@@ -77,7 +79,7 @@ namespace Rhea
 				child_parent = scene;
 			}
 			child_parent->addChild(unit);				
-			if ((type_name == "//meworla/item") || (type_name == "//meworla/camera")) {
+			if ((type_name == "//meworla/item") || (type_name == "//meworla/camera") || (type_name == "//meworla/terrain")) {
 				scene->addItem((Item*)unit);
 			}
 		}

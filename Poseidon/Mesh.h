@@ -24,7 +24,8 @@ namespace Poseidon
 		Texture* m_texture = 0;
 		int m_num_indices = 0;
 
-	public:		
+	public:
+		~Mesh();
 		void setVertices(size_t vertex_size, size_t num_vertices, const void* source);
 		void setIndices(size_t vertex_size, size_t num_faces, const void* source);
 		void setViewport(Viewport* viewport);

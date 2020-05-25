@@ -30,11 +30,6 @@ namespace Rhea
 		BasicController::onInput(action, evt);
 	}
 
-	void SpectatorController::onPhysics(float delta)
-	{		
-		BasicController::onPhysics(delta);
-	}
-
 	void SpectatorController::show(Poseidon::Core* core)
 	{
 
@@ -53,7 +48,7 @@ namespace Rhea
 			return;
 		}
 		// connect
-		m_target = m_app->getUnitTree()->find(target_name_it->second);
+		m_target = static_cast<Item*>(m_app->getUnitTree()->find(target_name_it->second));
 		if (!m_target) {
 			std::string name = target_name_it->second;
 			m_app->log("Spectator " + m_pathname + ": target " + name + " not found");

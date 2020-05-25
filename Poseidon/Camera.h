@@ -29,6 +29,7 @@ namespace Poseidon
 		float rot = 0.01f;
 
 		mutable Matrix4 m_projection;
+		mutable Matrix4 m_projection_rs;
 		/// Pre-calced view matrix
 		mutable Matrix4 m_view_matrix;
 		/// orthographic mode

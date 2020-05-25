@@ -19,10 +19,27 @@ namespace Poseidon
 
 	const Matrix4& Camera::getProjectionMatrixRS(void) const
 	{
-
 		updateProjection();
 
-		return m_projection;
+		// if we use direct3d we have to convert to left-hand coord pj matrix
+		m_projection_rs = m_projection;
+
+		
+		// Convert depth range from [-1,+1] to [0,1]
+	/*	m_projection_rs[2][0] = (m_projection_rs[2][0] + m_projection_rs[3][0]) / 2;
+		m_projection_rs[2][1] = (m_projection_rs[2][1] + m_projection_rs[3][1]) / 2;
+		m_projection_rs[2][2] = (m_projection_rs[2][2] + m_projection_rs[3][2]) / 2;
+		m_projection_rs[2][3] = (m_projection_rs[2][3] + m_projection_rs[3][3]) / 2;
+		*/
+		/*
+		// Convert right-handed to left-handed
+		m_projection_rs[0][2] = -m_projection_rs[0][2];
+		m_projection_rs[1][2] = -m_projection_rs[1][2];
+		m_projection_rs[2][2] = -m_projection_rs[2][2];
+		m_projection_rs[3][2] = -m_projection_rs[3][2];
+		*/
+
+		return m_projection_rs;
 	}
 	//-----------------------------------------------------------------------
 	const Matrix4& Camera::getViewMatrix(void) const

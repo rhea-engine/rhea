@@ -1,7 +1,7 @@
 #ifndef RHEA_CONTROLLER_H
 #define RHEA_CONTROLLER_H
 
-#include "../Unit.h"
+#include "../Item.h"
 #include <Psio/InputEvent.h>
 #include <memory>
 
@@ -19,14 +19,14 @@ namespace Rhea
 		// handle input (after Input Map was applied)
 		virtual void onInput(std::string action, std::shared_ptr<Psio::InputEvent>& evt) = 0;
 
-		// process physics with delta seconds (usually 1/60)
-		virtual void onPhysics(float delta) = 0;
-
 		// set the controlled unit
-		virtual void connect(Unit* target) { m_target = target; }
+		virtual void connect(Item* target) { m_target = target; }
+
+		// get the target
+		Item* getTarget() { return m_target; }
 
 	protected:
-		Unit* m_target;
+		Item* m_target;
 	};
 }
 #endif // !RHEA_CONTROLLER_H

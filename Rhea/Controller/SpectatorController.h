@@ -14,8 +14,6 @@ namespace Rhea
 	{
 	public:
 		SpectatorController(std::string path_name, std::string type_name) :
-			/*m_position(NULL),
-			m_orientation(),*/
 			m_view(NULL),
 			BasicController(path_name, type_name)
 		{}
@@ -30,19 +28,12 @@ namespace Rhea
 		// Controller functions
 
 		void onInput(std::string action, std::shared_ptr<Psio::InputEvent>& evt);
-		void onPhysics(float delta);
-
+		
 		// factory function
 		static Unit* createType(std::string name, std::string type);
 
 	protected:
-		//Poseidon::Position m_position;
-		//Poseidon::Quaternion m_orientation;
-
 		Camera* m_view;
-
-		/*Poseidon::Vector3 m_move;
-		float m_turn = 0;	*/
 	};
 }
 

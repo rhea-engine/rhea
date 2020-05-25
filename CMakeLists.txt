@@ -47,6 +47,9 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
 set(JSON_BuildTests OFF CACHE INTERNAL "")
 add_subdirectory(ThirdParty/json)
 
+# bullet 
+add_subdirectory (ThirdParty/bullet)
+
 # Static Library Link to make .exe copyable under Windows
 if(WIN32)
 #  set(CMAKE_EXE_LINKER_FLAGS -static)

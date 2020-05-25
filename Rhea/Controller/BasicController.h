@@ -27,15 +27,14 @@ namespace Rhea
 
 		// Controller functions
 
-		void onInput(std::string action, std::shared_ptr<Psio::InputEvent>& evt);
-		void onPhysics(float delta);
+		void onInput(std::string action, std::shared_ptr<Psio::InputEvent>& evt);		
 
-		void connect(Unit* target);
+		void connect(Item* target);
 
 		// factory function
 		static Unit* createType(std::string name, std::string type);
 
-		void logMe();
+		void logMe();		
 
 	protected:
 		Poseidon::Position m_position;

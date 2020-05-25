@@ -64,35 +64,15 @@ namespace Rhea
 			m_turn = 0;
 		else if (action == "turn_right_stop")
 			m_turn = 0;
-	}
 
-	void BasicController::onPhysics(float delta)
-	{
-		bool  dirty = false;
-		Poseidon::Vector3 move(m_move);
-		if (move != Poseidon::Vector3::ZERO) {
-			// currently moving			
-			move *= delta;
-			m_position.moveRelative(move);
-			dirty = true;
-		}
-		if (m_turn != 0) {
-			float turn_step = m_turn * delta;
-			Poseidon::Quaternion q;
-			q.fromAngleAxis(turn_step, Poseidon::Vector3(0, 1, 0));
-			m_orientation = q * m_orientation;
-			m_orientation.normalise();
-			m_position.setOrientation(m_orientation);
-			dirty = true;
-		}
-		if (dirty && m_target)
-			((Item*)m_target)->setPosition(m_position);
+		m_target->setMovement(m_move);
+		m_target->setTurn(m_turn);
 	}
-
-	void BasicController::connect(Unit* target)
+	
+	void BasicController::connect(Item* target)
 	{
 		m_target = target;
-		Poseidon::Node* node = ((Item*)m_target)->getNode();
+		Poseidon::Node* node = m_target->getNode();
 		if (!node) {
 			m_app->log("Basic Controller: target has no node");
 			m_target = nullptr;
@@ -109,7 +89,8 @@ namespace Rhea
 		if (target_it != m_values.end()) {
 			target = m_app->getUnitTree()->find(target_it->second);
 			if (target)
-				connect(target);
+				// TODO: safety check
+				connect(static_cast<Item*>(target));
 		}
 	}
 

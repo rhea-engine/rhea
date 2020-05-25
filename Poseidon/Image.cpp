@@ -27,6 +27,25 @@ namespace Poseidon
 		return _load(src);
 	}
 
+	Image::Color Image::operator[](size_t idx)
+	{
+		Color c;
+		c.r = m_buffer[idx * m_channels];
+		c.g = m_buffer[idx * m_channels + 1];
+		c.b = m_buffer[idx * m_channels + 2];
+		return c;
+	}
+
+	Image::Color Image::getPixel(size_t x, size_t y)
+	{
+		Color c;
+		size_t idx = y * m_width + x;
+		c.r = m_buffer[idx * m_channels];
+		c.g = m_buffer[idx * m_channels + 1];
+		c.b = m_buffer[idx * m_channels + 2];
+		return c;
+	}
+
 	bool Image::_load(unsigned char* src)
 	{
 		int depth = 1;

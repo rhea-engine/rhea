@@ -125,6 +125,22 @@ namespace SimpleParser
 		}
 	}
 
+	Variant::operator bool() const
+	{
+		switch (m_type) {
+		case Type::BOOL:
+			return m_data._bool;
+		case Type::FLOAT:
+			return (m_data._float) ? true : false;
+		case Type::INT:
+			return (m_data._int) ? true : false;
+		case Type::STRING:
+			return (m_data._str->compare("true") ) ? false : true;
+		default:
+			return false;
+		}
+	}
+
 	Variant& Variant::operator[](int i)
 	{
 		if (m_type != Type::ARRAY || i >= m_data._array->size())

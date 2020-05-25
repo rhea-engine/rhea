@@ -5,6 +5,7 @@
 #include "UnitTree.h"
 #include "Mesh.h"
 #include "Graphics/Item.h"
+#include "Physics/Body.h"
 
 namespace Rhea
 {
@@ -107,6 +108,14 @@ namespace Rhea
 		m_graphics_item->setPosition(position);
 	}
 	
+	void Item::setPosition(Poseidon::Vector3 position)
+	{
+		if (!m_graphics_item)
+			if (!getGraphicsItem())
+				return;
+		m_graphics_item->setPosition(position);
+	}
+
 	void Item::setLookAt(Poseidon::Vector3 look_at)
 	{
 		if (!m_graphics_item)
@@ -115,6 +124,38 @@ namespace Rhea
 		m_graphics_item->lookAt(look_at);
 	}
 	
+	PhysicsBody* Item::getPhysicsBody()
+	{
+		if (m_physics_body)
+			return m_physics_body;
+
+		auto it = m_elements.find("physics");
+		if (it != m_elements.end()) {
+			m_physics_body = static_cast<PhysicsBody*>(it->second);
+			return m_physics_body;
+		}
+		//m_app->log(m_pathname + ": getPhysicsBody: not found");
+		return nullptr;
+	}
+
+	void Item::setMovement(Poseidon::Vector3 move)
+	{
+		m_movement = move;
+		if (!m_physics_body)
+			if (!getPhysicsBody())
+				return;
+		m_physics_body->move(move);
+	}
+
+	void Item::setTurn(float turn)
+	{
+		m_turn = turn;
+		if (!m_physics_body)
+			if (!getPhysicsBody())
+				return;
+		m_physics_body->turn(turn);
+	}
+
 	void Item::addFollower(Item* item)
 	{
 		// simply add as child to entity

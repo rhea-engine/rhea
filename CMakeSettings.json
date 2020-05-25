@@ -15,6 +15,11 @@
           "name": "CMAKE_PREFIX_PATH",
           "value": "${projectDir}",
           "type": "PATH"
+        },
+        {
+          "name": "USE_MSVC_RUNTIME_LIBRARY_DLL",
+          "value": "True",
+          "type": "BOOL"
         }
       ]
     }

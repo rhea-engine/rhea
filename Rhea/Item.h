@@ -4,6 +4,7 @@
 #include "Resource.h"
 
 #include "Poseidon/Position.h"
+#include "Poseidon/Math/Vector3.h"
 
 namespace Poseidon
 {
@@ -15,6 +16,7 @@ namespace Rhea
 	class Application;
 	class Mesh;
 	class GraphicsItem;
+	class PhysicsBody;
 
 	class Item : public Resource
 	{
@@ -22,11 +24,15 @@ namespace Rhea
 		Item(std::string name) :
 			m_mesh(nullptr),
 			m_graphics_item(nullptr),
+			m_physics_body(nullptr),
+			m_turn(0.0f),
 			Resource(name, "//meworla/item")
 		{}
 		Item(std::string name, std::string type_name) :
 			m_mesh(nullptr),
 			m_graphics_item(nullptr),
+			m_physics_body(nullptr),
+			m_turn(0.0f),
 			Resource(name, type_name)
 		{}
 
@@ -44,9 +50,16 @@ namespace Rhea
 
 		// positionig
 		virtual void setPosition(Poseidon::Position& position);
+		virtual void setPosition(Poseidon::Vector3 position);
 
 		// set direction
 		virtual void setLookAt(Poseidon::Vector3 look_at);
+
+		// movement
+		void setMovement(Poseidon::Vector3 move);
+		void setTurn(float turn);
+		Poseidon::Vector3 getMovement() { return m_movement; }
+		float getTurn() { return m_turn; }
 
 		// an item that follows this item
 		void addFollower(Item* item);
@@ -54,9 +67,14 @@ namespace Rhea
 		// get the unerlying entity
 		virtual Poseidon::Node* getNode();
 
+		PhysicsBody* getPhysicsBody();
+
 	protected:
 		Mesh* m_mesh;
 		GraphicsItem* m_graphics_item;
+		PhysicsBody* m_physics_body;
+		Poseidon::Vector3 m_movement;
+		float m_turn;
 
 		void loadDependencies(ReadyHandler handler);
 		bool getGraphicsItem();

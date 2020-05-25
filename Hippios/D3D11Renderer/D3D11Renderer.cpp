@@ -1,3 +1,7 @@
+#include "D3D11Renderer.h"
+#include "D3D11Renderer.h"
+#include "D3D11Renderer.h"
+#include "D3D11Renderer.h"
 #include <d3d11shader.h>
 #include <d3dcompiler.h>
 #include <wrl/client.h>
@@ -14,6 +18,7 @@ using namespace std;
 #include "D3D11HLSL.h"
 #include "D3D11VertexBuffer.h"
 #include "D3D11IndexBuffer.h"
+#include "D3D11GraphicsBuffer.h"
 #include "Texture.h"
 #include "D3D11Texture.h"
 #include "Components/Psio/Window.h"
@@ -318,7 +323,7 @@ namespace Hippios {
 			m_vb->is_dirty = false;
 		}
 
-		if (m_ib != ib) {
+		if (m_ib != ib && ib) {
 			m_ib = static_cast<D3D11IndexBuffer*>(ib);
 			m_ib->is_dirty = true;
 		}
@@ -415,7 +420,7 @@ namespace Hippios {
 		return texture;
 	}
 
-	bool D3D11Renderer::addMaterial(std::string filename, char* shader_type, char* entry_point, int vertex_type)
+	GPUProgram* D3D11Renderer::addMaterial(std::string filename, char* shader_type, char* entry_point, int vertex_type)
 	{
 		if (!strcmp(shader_type, "vs")) {
 			mVShader = new D3D11HLSL(m_device, m_device_context);
@@ -424,12 +429,13 @@ namespace Hippios {
 			if (FAILED(hr))
 			{
 				printf("Failed compiling vertex shader %08X\n", hr);
-				return true;
+				return nullptr;
 			}
 			// set the input layout
 			mVShader->setVertexType(vertex_type);
 			m_device_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 			m_device_context->IASetInputLayout(mVShader->GetInputLayout());
+			return mVShader;
 		}
 		else {
 			mPShader = new D3D11HLSL(m_device, m_device_context);
@@ -438,14 +444,31 @@ namespace Hippios {
 			if (FAILED(hr))
 			{
 				printf("Failed compiling particle shader %08X\n", hr);
-				return true;
+				return nullptr;
 			}
-		}
-		return false;
-
+			return mPShader;
+		}		
 	}
 
-	void D3D11Renderer::setMaterial(Texture* texture)
+	void D3D11Renderer::setVertexShader(GPUProgram* material, int topology)
+	{
+		mVShader = static_cast<D3D11HLSL*>(material);
+		if (topology==4)
+			m_device_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		else
+			m_device_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+		m_device_context->IASetInputLayout(mVShader->GetInputLayout());
+		m_device_context->VSSetShader(mVShader->getVertexShader(), 0, 0);
+	}
+
+	void D3D11Renderer::setPixelShader(GPUProgram* material)
+	{
+		mPShader = static_cast<D3D11HLSL*>(material);
+		m_device_context->PSSetShader(mPShader->getPixelShader(), 0, 0);
+		
+	}
+
+	void D3D11Renderer::setTexture(Texture* texture)
 	{
 		if (m_current_texture != texture)
 		{
@@ -453,6 +476,11 @@ namespace Hippios {
 			ID3D11ShaderResourceView* tex_view = ((Hippios::D3D11Texture*)texture)->get();
 			m_device_context->PSSetShaderResources(0, 1, &tex_view);
 		}
+	}
+
+	void D3D11Renderer::draw(int size, int start_vtx)
+	{
+		m_device_context->Draw(size, start_vtx);
 	}
 
 	void D3D11Renderer::drawIndexed(int size, int start_idx, int start_vtx)
@@ -466,20 +494,32 @@ namespace Hippios {
 		m_device_context->VSSetConstantBuffers(0, 1, &m_cb_per_object_buffer);
 	}
 
-	void D3D11Renderer::initGPUBuffer(size_t size)
+	GraphicsBuffer* D3D11Renderer::initGPUBuffer(size_t size)
 	{
 		// setup buffer for gpu params
 		//Create the buffer to send to the cbuffer in effect file
 		D3D11_BUFFER_DESC cbbd;
 		ZeroMemory(&cbbd, sizeof(D3D11_BUFFER_DESC));
 
-
 		cbbd.Usage = D3D11_USAGE_DEFAULT;
+		// make sure size is a multiple of 16
+		if (size % 16) {
+			size_t base = size % 16;
+			size = (base + 1) * 16;
+		}
 		cbbd.ByteWidth = size;
 		cbbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 		cbbd.CPUAccessFlags = 0;
 		cbbd.MiscFlags = 0;
 
-		HRESULT hr = m_device->CreateBuffer(&cbbd, NULL, &m_cb_per_object_buffer);
+		ID3D11Buffer* cb_per_object_buffer;
+		HRESULT hr = m_device->CreateBuffer(&cbbd, NULL, &cb_per_object_buffer);
+		D3D11GraphicsBuffer* buf = new D3D11GraphicsBuffer(m_device, m_device_context, cb_per_object_buffer);
+		return buf;
+	}
+	
+	void D3D11Renderer::setGPUBuffer(GraphicsBuffer* buffer)
+	{
+		m_cb_per_object_buffer = static_cast<D3D11GraphicsBuffer*>(buffer)->get_buffer();
 	}
 }

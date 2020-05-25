@@ -14,7 +14,7 @@ namespace Rhea
 {
 	struct cbPerObjectMVP
 	{
-		Poseidon::Matrix3x4  model;
+		Poseidon::Matrix3x4 model;
 		Poseidon::Matrix4 vp;
 	};
 
@@ -27,11 +27,10 @@ namespace Rhea
 		// prepare shaders		
 		Poseidon::Material* material = m_core->createMaterial();
 		material->setType(1);
-		if (material->loadFromFile("Samples\\assets\\shaders\\uvshader_vp.hlsl", "vs", "VShader"))
-			exit(-1);
-		if (material->loadFromFile("Samples\\assets\\shaders\\uvshader_vp.hlsl", "ps", "PShader"))
+		if (material->loadFromFile("Samples\\assets\\shaders\\uvshader_vp.hlsl", "VShader", "PShader"))
 			exit(-1);
 		material->initBuffer(sizeof(cbPerObjectMVP));
+		m_core->registerMaterial("default", material);
 
 		// add my items
 		std::vector<Item*> items = scene->getItems();

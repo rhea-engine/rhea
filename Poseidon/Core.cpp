@@ -103,6 +103,22 @@ namespace Poseidon
 		return new Material(this->m_renderer->getRenderer());
 	}
 
+	void Core::registerMaterial(std::string name, Material* material)
+	{
+		m_materials[name] = material;
+		// the first material becomes the default 
+		if (!m_default_material)
+			m_default_material = material;
+	}
+
+	Material* Core::getMaterial(std::string name)
+	{
+		auto it = m_materials.find(name);
+		if (it == m_materials.end())
+			return nullptr;
+		return it->second;
+	}
+
 	Entity* Core::createEntity(Mesh* mesh)
 	{
 		Entity* entity;
@@ -110,6 +126,7 @@ namespace Poseidon
 		if (mesh)
 			entity->set_mesh(mesh);
 		entity->createPosition(0);
+		entity->setMaterial(m_default_material);
 		return entity;
 	}
 

@@ -24,10 +24,15 @@ namespace Poseidon
 		void getRenderInput(Hippios::VertexBuffer** pvb, Hippios::IndexBuffer** pib, int& num_indices);
 
 		// get the Material
-		Texture* getMaterial();
+		Material *getMaterial();
+		void setMaterial(Material* material);
+
+		// get the texture
+		Texture* getTexture();
 	protected:
 		int m_vertex_size = 0;
 		Texture* m_texture = 0;
+		Material* m_material = 0;
 	};
 }
 

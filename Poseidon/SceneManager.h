@@ -15,6 +15,7 @@ namespace Poseidon
 	class Node;
 	class Viewport;
 	class RenderQueue;
+	class Material;
 
 	/** The scene that holds and organises the objects in the world
 	*/
@@ -49,6 +50,7 @@ namespace Poseidon
 		Hippios::Renderer* m_renderer;
 		std::vector<Viewport*> m_viewports;
 		RenderQueue* m_rend_queue = NULL;
+		Material* m_current_material;
 
 		// per object input buffer
 		struct cbPerObjectMVP
@@ -58,6 +60,14 @@ namespace Poseidon
 		};
 
 		cbPerObjectMVP cbPerObjMVP;
+
+		struct cbPerObject
+		{
+			Poseidon::Matrix4 vp;
+		};
+
+		cbPerObject cbPerObj;
+
 	};
 }
 #endif // !POSEIDON_SCENEMANAGER_H

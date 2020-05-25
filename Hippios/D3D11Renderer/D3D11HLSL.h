@@ -2,9 +2,11 @@
 #include <d3d11shader.h>
 #include <d3dcompiler.h>
 
+#include "../GPUProgram.h"
+
 namespace Hippios
 {
-	class D3D11HLSL 
+	class D3D11HLSL : public GPUProgram
 	{
 	protected:
 		ID3D11Device* m_d3dDevice;
@@ -27,5 +29,7 @@ namespace Hippios
 		ID3D11InputLayout* GetInputLayout();
 		void setVertexType(int type);
 		ID3DBlob* get_code() { return shaderBlob; };
+		ID3D11VertexShader* getVertexShader() { return pVS; }
+		ID3D11PixelShader* getPixelShader() { return pPS; }
 	};
 }

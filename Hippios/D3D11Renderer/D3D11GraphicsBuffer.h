@@ -7,7 +7,7 @@
 
 namespace Hippios
 {
-	class D3D11GraphicsBuffer : GraphicsBuffer
+	class D3D11GraphicsBuffer : public GraphicsBuffer
 	{
 	protected:
 		ID3D11Buffer* m_buffer;
@@ -16,6 +16,11 @@ namespace Hippios
 
 	public:
 		D3D11GraphicsBuffer(ID3D11Device* d3dDevice, ID3D11DeviceContext* deviceContext, UINT buffer_type, size_t size_in_bytes, bool dynamic = true, UINT access_flag = D3D11_CPU_ACCESS_WRITE);
+		D3D11GraphicsBuffer(ID3D11Device* d3dDevice, ID3D11DeviceContext* deviceContext, ID3D11Buffer* buffer) : 
+			m_device(d3dDevice),
+			m_device_context(deviceContext),
+			m_buffer(buffer)
+		{}
 		void* Lock(size_t offset, size_t length);
 		void Unlock();
 		void ReadData(size_t offset, size_t length, void* dest);

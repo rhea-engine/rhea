@@ -93,7 +93,6 @@ namespace Hippios
 			if (FAILED(hr)) {
 				printf("could not load vertex shader");
 			}
-			m_d3dDeviceContext->VSSetShader(pVS, 0, 0);
 		}
 		else {
 			try {
@@ -105,7 +104,6 @@ namespace Hippios
 			catch (_com_error & e) {
 				printf("could not load pixel shader\n");
 			}
-			m_d3dDeviceContext->PSSetShader(pPS, 0, 0);
 		}
 		return hr;
 	}

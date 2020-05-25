@@ -21,7 +21,7 @@ namespace Hippios
 	class VertexBuffer;
 	class D3D11VertexBuffer;
 	class D3D11IndexBuffer;
-	class Texture;
+	class Texture;	
 
 	class D3D11Renderer : public Renderer
 	{
@@ -85,16 +85,23 @@ namespace Hippios
 		GraphicsBuffer* createGraphicsBuffer(size_t size_in_bytes);
 		bool drawBuffer(VertexBuffer* v_buffer, IndexBuffer* i_buffer = 0, Texture* texture = 0);
 		Texture* createTexture();
-		bool addMaterial(std::string filename, char* shader_type, char* entry_point, int vertex_type);
+		GPUProgram* addMaterial(std::string filename, char* shader_type, char* entry_point, int vertex_type);
 
-		void setMaterial(Texture* texture);
+		// set current material
+		void setVertexShader(GPUProgram* material, int topology);
+		void setPixelShader(GPUProgram* material);
 
+		// current texture 
+		void setTexture(Texture* texture);
+
+		void draw(int size, int start_vtx);
 		void drawIndexed(int size, int start_idx, int start_vtx);
 
 		void setGPUParameter(void* param);
 
-		void initGPUBuffer(size_t size);
-
+		// graphics param buffer
+		GraphicsBuffer* initGPUBuffer(size_t size);
+		void setGPUBuffer(GraphicsBuffer* buffer);
 		ID3D11Buffer* getObjBuffer() {
 			return m_cb_per_object_buffer;
 		}

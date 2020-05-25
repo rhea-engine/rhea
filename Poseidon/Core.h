@@ -4,6 +4,7 @@
 #include <string>
 #include <functional>
 #include <memory>
+#include <unordered_map>
 
 #include "Hippios/Engine.h"
 #include "Hippios/Window.h"
@@ -39,6 +40,9 @@ namespace Poseidon
 		SceneManager* m_scene_manager = 0;
 
 		Psio::Engine* m_psio;
+		std::unordered_map<std::string, Material*> m_materials;
+
+		Material* m_default_material = 0;
 	public:
 		Core();
 		void init(Psio::Engine* psio);
@@ -57,6 +61,9 @@ namespace Poseidon
 		Texture* createTexture(const std::string& file_name);
 		Texture* createTexture(unsigned char* buf, size_t buflen);
 		Material* createMaterial();
+		void registerMaterial(std::string name, Material* material);
+		Material* getMaterial(std::string name);
+		Material* getDefaultMaterial() { return m_default_material; }
 		Entity* createEntity(Mesh* mesh);
 		Camera* createCamera();
 	};

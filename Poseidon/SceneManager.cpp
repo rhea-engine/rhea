@@ -4,11 +4,13 @@
 #include "Renderable.h"
 #include "RenderQueue.h"
 #include "Texture.h"
+#include "Material.h"
 
 namespace Poseidon
 {
 	SceneManager::SceneManager() :
-		m_renderer(NULL)
+		m_renderer(nullptr),
+		m_current_material(nullptr)
 	{
 		m_rend_queue = new RenderQueue();
 	}
@@ -57,17 +59,35 @@ namespace Poseidon
 			Renderable* renderable = m_rend_queue->first();
 			for (Renderable* renderable = m_rend_queue->first(); renderable != NULL; renderable = m_rend_queue->next()) {
 
-				Poseidon::Matrix3x4 model_wtm = renderable->get_derived_position()->getWorldTransform();
+				// material
+				Material* mat = renderable->getMaterial();
+				if (mat != m_current_material && mat) {
+					m_current_material = mat;
+					mat->activate();
+				}
+				if (!m_current_material) {
+					printf("No shader found\n");
+					return true;
+				}
 
-				// set up GPU input
-				cbPerObjMVP.vp = viewproj;
-				cbPerObjMVP.model = model_wtm;
-				viewport->get_renderer()->getRenderer()->setGPUParameter((void*)&cbPerObjMVP);
+				if (m_current_material->getType() == 1) {
+					Poseidon::Matrix3x4 model_wtm = renderable->get_derived_position()->getWorldTransform();
 
-				// set material
-				Poseidon::Texture* mat = renderable->getMaterial();
-				if (mat)
-					m_renderer->setMaterial(mat->get_texture());
+					// set up GPU input
+					cbPerObjMVP.vp = viewproj;
+					cbPerObjMVP.model = model_wtm;
+					viewport->get_renderer()->getRenderer()->setGPUParameter((void*)&cbPerObjMVP);
+				}
+				else {
+					// set up GPU input
+					cbPerObj.vp = viewproj;
+					viewport->get_renderer()->getRenderer()->setGPUParameter((void*)&cbPerObj);
+				}
+
+				// set texture
+				Poseidon::Texture* tex = renderable->getTexture();
+				if (tex)
+					m_renderer->setTexture(tex->get_texture());
 
 				// draw the entity
 
@@ -76,9 +96,18 @@ namespace Poseidon
 				Hippios::IndexBuffer* ib;
 				int num_indices;
 				renderable->getRenderInput(&vb, &ib, num_indices);
-				if (vb && num_indices) {
-					m_renderer->bindBuffers(vb, ib);
-					m_renderer->drawIndexed(num_indices, 0, 0);
+
+				if (m_current_material->getType() == 0) {
+					if (vb) {
+						m_renderer->bindBuffers(vb, ib);
+						m_renderer->draw(num_indices, 0);
+					}
+				}
+				else {
+					if (vb && num_indices) {
+						m_renderer->bindBuffers(vb, ib);
+						m_renderer->drawIndexed(num_indices, 0, 0);
+					}
 				}
 			}
 

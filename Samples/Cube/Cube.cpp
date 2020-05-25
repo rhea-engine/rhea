@@ -38,17 +38,14 @@ void CubeApp::setup()
 	Poseidon::Material* material = core->createMaterial();
 	material->setType(1);
 #ifdef USE_WVP
-	if (material->loadFromFile("Samples\\assets\\shaders\\uvshader.hlsl", "vs", "VShader"))
-		exit(-1);
-	if (material->loadFromFile("Samples\\assets\\shaders\\uvshader.hlsl", "ps", "PShader"))
+	if (material->loadFromFile("Samples\\assets\\shaders\\uvshader.hlsl", "VShader", "PShader"))
 		exit(-1);
 #else
-	if (material->loadFromFile("Samples\\assets\\shaders\\uvshader_vp.hlsl", "vs", "VShader"))
+	if (material->loadFromFile("Samples\\assets\\shaders\\uvshader_vp.hlsl", "VShader", "PShader"))
 		exit(-1);
-	if (material->loadFromFile("Samples\\assets\\shaders\\uvshader_vp.hlsl", "ps", "PShader"))
-		exit(-1);
-	material->initBuffer(sizeof(cbPerObjectMVP));
+	material->initBuffer(sizeof(cbPerObjectMVP));	
 #endif
+	core->registerMaterial("default", material);
 
 	initialize();
 }

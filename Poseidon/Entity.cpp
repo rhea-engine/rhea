@@ -45,7 +45,17 @@ namespace Poseidon
 		}
 	}
 
-	Texture* Entity::getMaterial()
+	Material* Entity::getMaterial()
+	{
+		return m_material;
+	}
+
+	void Entity::setMaterial(Material* material)
+	{
+		m_material = material;
+	}
+
+	Texture* Entity::getTexture()
 	{
 		if (m_mesh)
 			return m_mesh->getTexture();

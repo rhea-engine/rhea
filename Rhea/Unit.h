@@ -49,6 +49,10 @@ namespace Rhea
 
 		// get value
 		Variant getValue(std::string name);
+		// get value with default
+		Variant getValue(std::string name, Variant default_val);
+		// set a value
+		void setValue(std::string name, Variant val);
 
 		// Elements
 

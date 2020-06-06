@@ -9,6 +9,7 @@ namespace Rhea
 {
 	class Controller;
 	class Scene;
+	class BulletDebugDraw;
 
 	class BulletPhysicsService : public PhysicsService
 	{
@@ -27,10 +28,13 @@ namespace Rhea
 		// Service functions
 		void onInit();
 
+		void toggleDebug();
+
 	protected:
 		btDynamicsWorld* m_world;
 		Scene* m_scene;
 		bool m_debug;
+		BulletDebugDraw* m_debug_draw;
 	};
 }
 

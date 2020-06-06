@@ -64,6 +64,8 @@ namespace Rhea
 			m_turn = 0;
 		else if (action == "turn_right_stop")
 			m_turn = 0;
+		else if (action == "jump")
+			m_target->jump();
 
 		m_target->setMovement(m_move);
 		m_target->setTurn(m_turn);

@@ -92,7 +92,7 @@ namespace Hippios
 		void setPixelShader(GPUProgram* material);
 
 		// current texture 
-		void setTexture(Texture* texture);
+		void setTexture(Texture* texture, int slot = 0);
 
 		void draw(int size, int start_vtx);
 		void drawIndexed(int size, int start_idx, int start_vtx);

@@ -468,13 +468,19 @@ namespace Hippios {
 		
 	}
 
-	void D3D11Renderer::setTexture(Texture* texture)
+	void D3D11Renderer::setTexture(Texture* texture, int slot)
 	{
-		if (m_current_texture != texture)
-		{
-			m_current_texture = texture;
+		if (!slot) {
+			if (m_current_texture != texture)
+			{
+				m_current_texture = texture;
+				ID3D11ShaderResourceView* tex_view = ((Hippios::D3D11Texture*)texture)->get();
+				m_device_context->PSSetShaderResources(0, 1, &tex_view);
+			}
+		}
+		else {
 			ID3D11ShaderResourceView* tex_view = ((Hippios::D3D11Texture*)texture)->get();
-			m_device_context->PSSetShaderResources(0, 1, &tex_view);
+			m_device_context->PSSetShaderResources(slot, 1, &tex_view);
 		}
 	}
 

@@ -19,7 +19,7 @@
 #include "Scene.h"
 #include "Mesh.h"
 #include "Camera.h"
-#include "Terrain.h"
+#include "Fabrics/Terrain/Terrain.h"
 #include "TextResource.h"
 #include "ImageResource.h"
 #include "InputMap.h"
@@ -27,6 +27,8 @@
 #include "Controller/Controller.h"
 #include "Controller/BasicController.h"
 #include "Controller/SpectatorController.h"
+#include "Fabrics/Character/Character.h"
+#include "Fabrics/Character/KinematicCharacter.h"
 
 #include "Graphics/GraphicsService.h"
 #include "Platform/PlatformService.h"
@@ -64,11 +66,20 @@ namespace Rhea
 		m_unit_tree->registerUnitType("//meworla/camera", Camera::createType);
 		m_unit_tree->registerUnitType("//meworla/heightmap", ImageResource::createType);
 		m_unit_tree->registerUnitType("//meworla/terrain", Terrain::createType);
+		m_unit_tree->registerUnitType("//meworla/character", KinematicCharacter::createType);
 
 		// add a default input map
 		m_input_map = new InputMap();
 		m_input_map->loadDefaultMap();
 		m_dispatcher = new Dispatcher();
+	}
+
+	Service* Application::getService(std::string name)
+	{
+		auto srv = m_services.find(name);
+		if (srv == m_services.end())
+			return nullptr;
+		return srv->second;
 	}
 
 	void Application::setup()
@@ -142,6 +153,11 @@ namespace Rhea
 		if (evt->isEvent(&esc)) {
 			return true;
 		}
+		esc.set(Psio::Key::CODE_F9, 0, 0);
+		if (evt->isEvent(&esc)) {
+			PhysicsService* physics = static_cast<PhysicsService*>(m_services["physics"]);
+			physics->toggleDebug();
+		}
 		return false;
 	}
 
@@ -162,13 +178,13 @@ namespace Rhea
 		}
 
 		int iterations_per_second = 60;
-		float frame_slice = 1.0 / iterations_per_second;
+		float frame_slice = 1.0f / iterations_per_second;
 		uint64_t last_ticks = psio->getTicks();
 
 		uint64_t frame = 0;
 		int physics_steps = 0;
 		float accumulated_time = 0; // time accumulated time since last physical steps
-		float idle_step;
+		//float idle_step;
 
 		float fps = 0;
 		uint64_t frames = 0;
@@ -199,7 +215,7 @@ namespace Rhea
 			// 1 physics step handles [frame_slice] time
 			// we need to compute how many steps have to be taken to "catch up"
 			accumulated_time += elapsed_s;
-			physics_steps = std::floor(accumulated_time * iterations_per_second);
+			physics_steps = (int)std::floor(accumulated_time * iterations_per_second);
 			accumulated_time -= physics_steps * frame_slice;
 			//if (physics_steps > 5)
 			//	printf("phys steps: %d ; acc: %f        \r\n", physics_steps, accumulated_time);

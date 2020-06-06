@@ -113,7 +113,7 @@ namespace Poseidon
 		setDirection(targetPoint - origin, localDirectionVector);
 	}
 
-	void Position::moveRelative(const Vector3& vec)
+	Vector3 Position::moveRelative(const Vector3& vec)
 	{
 		// Transform the axes of the relative vector by camera's local axes
 		Vector3 trans = m_rotation * vec;
@@ -121,6 +121,8 @@ namespace Poseidon
 		m_position = m_position + trans;
 		if (m_owner)
 			m_owner->needUpdate();
+
+		return m_position;
 	}
 
 	Matrix3x4 Position::getWorldTransform()

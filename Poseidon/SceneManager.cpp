@@ -70,24 +70,38 @@ namespace Poseidon
 					return true;
 				}
 
-				if (m_current_material->getType() == 1) {
+				// set up GPU input
+				switch (m_current_material->getType()) {
+				case 0:
+					cbPerObj.vp = viewproj;
+					viewport->get_renderer()->getRenderer()->setGPUParameter((void*)&cbPerObj);
+					break;
+				case 1:
+				case 2:
+
 					Poseidon::Matrix3x4 model_wtm = renderable->get_derived_position()->getWorldTransform();
 
 					// set up GPU input
 					cbPerObjMVP.vp = viewproj;
 					cbPerObjMVP.model = model_wtm;
 					viewport->get_renderer()->getRenderer()->setGPUParameter((void*)&cbPerObjMVP);
-				}
-				else {
-					// set up GPU input
-					cbPerObj.vp = viewproj;
-					viewport->get_renderer()->getRenderer()->setGPUParameter((void*)&cbPerObj);
+					break;
 				}
 
 				// set texture
-				Poseidon::Texture* tex = renderable->getTexture();
-				if (tex)
-					m_renderer->setTexture(tex->get_texture());
+				if (m_current_material->getType() != 2) {
+					Poseidon::Texture* tex = renderable->getTexture();
+					if (tex)
+						m_renderer->setTexture(tex->get_texture());
+				}
+				else {
+					std::vector<Poseidon::Texture*> texs = renderable->getTextures();
+					if (texs.size()) {
+						for (int i = 0; i < texs.size(); i++) {
+							m_renderer->setTexture(texs[i]->get_texture(), i);
+						}
+					}
+				}
 
 				// draw the entity
 

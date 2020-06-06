@@ -71,6 +71,12 @@ namespace Rhea
 		indices = Rhea::Mesh::m_v_indices;
 	}
 
+	void Mesh::setBuffers(std::vector<vertex>& vertices, std::vector<unsigned long>& indices)
+	{
+		m_vertices = vertices;
+		m_v_indices = indices;
+	}
+
 	Unit* Mesh::createType(std::string name, std::string type)
 	{
 		Unit* ret = (Unit*)new Mesh(name);

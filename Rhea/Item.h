@@ -5,6 +5,7 @@
 
 #include "Poseidon/Position.h"
 #include "Poseidon/Math/Vector3.h"
+#include "Poseidon/Material.h"
 
 namespace Poseidon
 {
@@ -26,6 +27,7 @@ namespace Rhea
 			m_graphics_item(nullptr),
 			m_physics_body(nullptr),
 			m_turn(0.0f),
+			m_shader(nullptr),
 			Resource(name, "//meworla/item")
 		{}
 		Item(std::string name, std::string type_name) :
@@ -33,6 +35,7 @@ namespace Rhea
 			m_graphics_item(nullptr),
 			m_physics_body(nullptr),
 			m_turn(0.0f),
+			m_shader(nullptr),
 			Resource(name, type_name)
 		{}
 
@@ -44,6 +47,9 @@ namespace Rhea
 
 		// get dependent data
 		Mesh* getMesh() { return m_mesh; }
+
+		// material
+		Poseidon::Material* getMaterial() { return m_shader; }
 
 		// factory function
 		static Unit* createType(std::string name, std::string type);
@@ -60,6 +66,7 @@ namespace Rhea
 		void setTurn(float turn);
 		Poseidon::Vector3 getMovement() { return m_movement; }
 		float getTurn() { return m_turn; }
+		virtual void jump() {}
 
 		// an item that follows this item
 		void addFollower(Item* item);
@@ -75,6 +82,7 @@ namespace Rhea
 		PhysicsBody* m_physics_body;
 		Poseidon::Vector3 m_movement;
 		float m_turn;
+		Poseidon::Material* m_shader;
 
 		void loadDependencies(ReadyHandler handler);
 		bool getGraphicsItem();

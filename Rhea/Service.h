@@ -3,17 +3,20 @@
 
 #include <string>
 
+#include "Unit.h"
+
 namespace Rhea
 {
 	class Application;
 
-	class Service
+	class Service : public Unit
 	{
 	public:
 		Service(Application* app, std::string service_name) :
-			m_app(app),
-			m_name(service_name)
-		{}
+			Unit(service_name, "//meworla/service")
+		{
+			m_app = app;
+		}
 
 		//  events
 		
@@ -24,8 +27,7 @@ namespace Rhea
 		virtual bool onFrame() { return false; };
 
 	protected:
-		std::string m_name;
-		Application* m_app;
+		
 	};
 }
 

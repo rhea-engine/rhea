@@ -31,7 +31,7 @@ namespace Poseidon
 		void setPosition(const Position& position);
 		void setDirection(float x, float y, float z, const Vector3& localDirectionVector = Vector3::NEGATIVE_UNIT_Z);
 		void setDirection(const Vector3& vec, const Vector3& localDirectionVector = Vector3::NEGATIVE_UNIT_Z);
-		void moveRelative(const Vector3& vec);
+		Vector3 moveRelative(const Vector3& vec);
 		void setOrientation(const Quaternion& q);
 		void lookAt(const Vector3& targetPoint, const Vector3& localDirectionVector = Vector3::NEGATIVE_UNIT_Z);
 		Matrix3x4 getWorldTransform();

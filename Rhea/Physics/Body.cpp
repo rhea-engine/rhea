@@ -1,9 +1,12 @@
 #include "Body.h"
+#include "Body.h"
 
 namespace Rhea
 {
 	PhysicsBody::PhysicsBody(Item* item) :
-		m_turn(0.0f)
+		m_turn(0.0f),		
+		m_isKinematic(false),
+		m_isStatic(false)
 	{
 		m_item = item;
 	}
@@ -24,6 +27,11 @@ namespace Rhea
 	void PhysicsBody::turn(float turn)
 	{
 		m_turn = turn;
+	}
+
+	void PhysicsBody::setPosition(Poseidon::Vector3& position)
+	{
+
 	}
 
 

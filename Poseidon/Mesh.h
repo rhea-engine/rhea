@@ -9,6 +9,7 @@
 #include "Hippios/IndexBuffer.h"
 #include "Texture.h"
 
+#include <vector>
 #include <d3d11.h>
 
 namespace Poseidon
@@ -21,7 +22,7 @@ namespace Poseidon
 		Hippios::IndexBuffer* m_ibuffer = 0;
 		Viewport* m_viewport = 0;
 		int m_vertex_size = 0;	
-		Texture* m_texture = 0;
+		std::vector<Texture*> m_textures;
 		int m_num_indices = 0;
 
 	public:
@@ -31,7 +32,8 @@ namespace Poseidon
 		void setViewport(Viewport* viewport);
 		void addVertexBuffer(Hippios::VertexBuffer* vertex_buffer);		
 		void addTexture(Texture* texture);
-		Texture* getTexture() { return m_texture; }
+		Texture* getTexture() { return m_textures[0]; }
+		std::vector<Texture*>& getTextures() { return m_textures; }
 
 		Hippios::VertexBuffer* get_vbuffer() { return m_vbuffer; };
 		Hippios::IndexBuffer* get_ibuffer() { return m_ibuffer; };

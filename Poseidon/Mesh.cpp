@@ -64,6 +64,6 @@ namespace Poseidon
 
 	void Mesh::addTexture(Texture* texture)
 	{
-		m_texture = texture;
+		m_textures.push_back(texture);
 	}
 }

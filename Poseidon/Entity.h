@@ -29,6 +29,7 @@ namespace Poseidon
 
 		// get the texture
 		Texture* getTexture();
+		std::vector<Texture*>& getTextures();
 	protected:
 		int m_vertex_size = 0;
 		Texture* m_texture = 0;

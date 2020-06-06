@@ -5,6 +5,10 @@
 #include "BtBody.h"
 #include "BtHeightMap.h"
 #include "BtDebugDraw.h"
+#include "BtGhost.h"
+#include "BtCharacter.h"
+#include "Fabrics/Terrain/Terrain.h"
+#include "Application.h"
 
 #include "btBulletDynamicsCommon.h"
 
@@ -14,6 +18,7 @@ namespace Rhea
 		m_world(nullptr),
 		m_scene(nullptr),
 		m_debug(false),
+		m_debug_draw(nullptr),
 		PhysicsService(app, "BulletPhysicsService")
 	{
 	}
@@ -28,31 +33,35 @@ namespace Rhea
 
 		std::vector<Item*> items = m_scene->getItems();
 
+		/*
 		for (auto it = items.begin(); it != items.end(); ++it) {
 			Item* item = *it;
 			BulletPhysicsBody* body = static_cast<BulletPhysicsBody*>(item->getPhysicsBody());
 			if (body)
-				body->doPhysics(delta);
+				body->doPhysics(delta, m_terrain);
 		}
+		*/
 
 		m_world->stepSimulation(delta, 1);
 
 		for (int j = m_world->getNumCollisionObjects() - 1; j >= 0; j--)
 		{
 			btCollisionObject* obj = m_world->getCollisionObjectArray()[j];
-			btRigidBody* body = btRigidBody::upcast(obj);
-			btTransform trans;
-			if (body && body->getMotionState())
-			{
-				body->getMotionState()->getWorldTransform(trans);
-			}
-			else
-			{
-				trans = obj->getWorldTransform();
-			}
 			Item* item = static_cast<Item*>(obj->getUserPointer());
-			// update position
-			if (item) {
+
+			// update position for dynamic objects from physics engine
+			if (item && static_cast<PhysicsBody*>(item->getPhysicsBody())->isDynamic()) {
+
+				btRigidBody* body = btRigidBody::upcast(obj);
+				btTransform trans;
+				if (body && body->getMotionState())
+				{
+					body->getMotionState()->getWorldTransform(trans);
+				}
+				else
+				{
+					trans = obj->getWorldTransform();
+				}
 				Poseidon::Position* position = item->getNode()->get_position();
 
 				position->setPosition(Poseidon::Vector3(float(trans.getOrigin().getX()), float(trans.getOrigin().getY()), float(trans.getOrigin().getZ())));
@@ -71,7 +80,7 @@ namespace Rhea
 		m_debug = scene->getValue("debug_physics");
 
 		if (m_debug) {
-			BulletDebugDraw* debug = new BulletDebugDraw(m_app, m_world);
+			m_debug_draw = new BulletDebugDraw(m_app, m_world);
 		}
 
 		if (defaultGround) {
@@ -115,14 +124,21 @@ namespace Rhea
 				BulletHeightMap* hmap = new BulletHeightMap(item);
 				item->addElement("physics", hmap);
 				m_world->addRigidBody(hmap->getBody());
-				
+				// TODO currently simply set the last terrain to active
+				m_terrain = static_cast<Terrain*>(item);
 			}
 			else if (item->getType() == "//meworla/camera") {
 				// make camera without physics	
 				m_item = item;
+			}			
+			else if (item->getType() == "//meworla/character") {
+				BulletPhysicsCharacter* body = new BulletPhysicsCharacter(m_world, item);
+				body->init();
+				item->addElement("physics", body);
 			}
 			else {
-				BulletPhysicsBody* body = new BulletPhysicsBody(item);
+				BulletPhysicsBody* body = new BulletPhysicsBody(m_world, item);
+				body->init();
 				item->addElement("physics", body);
 				m_world->addRigidBody(body->getBody());
 			}
@@ -146,5 +162,13 @@ namespace Rhea
 		m_world = new btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
 
 		m_world->setGravity(btVector3(0.0f, -0.8f, 0.0f));
+	}
+	
+	void BulletPhysicsService::toggleDebug()
+	{
+		if (m_debug_draw)
+			m_debug_draw->toggle();
+		if (!m_debug)
+			m_app->log("physics debug drawer was not enabled at startup");
 	}
 }

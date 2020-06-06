@@ -40,7 +40,7 @@ namespace Hippios
 		virtual void setPixelShader(GPUProgram* material) = 0;
 
 		// set current Texture
-		virtual void setTexture(Texture* texture) = 0;
+		virtual void setTexture(Texture* texture, int slot = 0) = 0;
 
 		// draw without index
 		virtual void draw(int size, int start_vtx) = 0;

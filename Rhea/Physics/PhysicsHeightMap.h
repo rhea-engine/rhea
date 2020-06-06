@@ -10,9 +10,11 @@ namespace Rhea
 	class PhysicsHeightMap : public PhysicsBody
 	{
 	public:
-		PhysicsHeightMap(Item* item) : 
+		PhysicsHeightMap(Item* item) :
 			PhysicsBody(item)
-		{}
+		{
+			m_isStatic = true;
+		}
 	};
 }
 

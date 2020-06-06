@@ -106,9 +106,10 @@ namespace Poseidon
 	void Core::registerMaterial(std::string name, Material* material)
 	{
 		m_materials[name] = material;
-		// the first material becomes the default 
-		if (!m_default_material)
-			m_default_material = material;
+
+		// the first material or the one with the name default becomes the default 
+		if (!m_default_material || (name == "default"))
+			m_default_material = material;		
 	}
 
 	Material* Core::getMaterial(std::string name)

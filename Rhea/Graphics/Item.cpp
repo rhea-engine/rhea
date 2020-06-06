@@ -45,6 +45,11 @@ namespace Rhea
 		else
 			pos->setPosition(0.0f, 0.0f, 0.0f);
 
+		// material
+		Poseidon::Material* material = item->getMaterial();
+		if (material)
+			static_cast<Poseidon::Entity*>(m_entity)->setMaterial(material);
+
 		item->addElement("graphics", this);
 	}
 

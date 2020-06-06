@@ -22,7 +22,7 @@ void Ceto::setup()
 	}
 	loadScene(m_home_scene, [&](Rhea::Scene* scene, ReqError err) {
 		if (err == ReqError::OK) {
-			log("scene ready");
+			log("scene loaded");
 			static_cast<Rhea::GraphicsService*>(m_services["graphics"])->setScene(scene);
 			std::unique_ptr<Rhea::Event> ev = std::make_unique<Rhea::Event>("display");
 			scene->sendEvent(std::string("display"), ev.get());			
@@ -57,6 +57,12 @@ void Ceto::setup()
 				scene->addChild(m_focused_controller);
 			}
 			static_cast<Rhea::PhysicsService*>(m_services["physics"])->setScene(scene);
+
+			// now we are ready
+			log("scene ready");
+			std::unique_ptr<Rhea::Event> ev_r = std::make_unique<Rhea::Event>("ready");
+			scene->sendEvent(std::string("ready"), ev_r.get());
+
 			//m_unit_tree->broadcast("logme");
 		}
 		else {

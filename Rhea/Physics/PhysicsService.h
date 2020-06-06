@@ -8,6 +8,7 @@ namespace Rhea
 {
 	class Controller;
 	class Item;
+	class Terrain;
 
 	class PhysicsService : public Service
 	{
@@ -24,8 +25,12 @@ namespace Rhea
 		// Service functions
 		void onInit();	
 
+		// toggle debug draw
+		virtual void toggleDebug() {}
+
 	protected:
 		Item* m_item;
+		Terrain* m_terrain;
 	};
 }
 

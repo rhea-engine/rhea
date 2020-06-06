@@ -17,7 +17,8 @@ namespace Rhea
 		m_mesh = new Poseidon::Mesh();
 		m_mesh->setViewport(app->get_core()->get_scene_manager()->getViewport());
 		m_world = world;
-		m_num_faces = 0;		
+		m_num_faces = 0;	
+		m_enabled = true;
 
 		// prepare shaders		
 		material = app->get_core()->createMaterial();
@@ -33,13 +34,17 @@ namespace Rhea
 			DebugDraw::DBG_DrawContactPoints;
 		mode |= btIDebugDraw::DBG_DrawWireframe /* + btIDebugDraw::DBG_DrawConstraints + btIDebugDraw::DBG_DrawConstraintLimits*/;
 		mode |= DebugDraw::DBG_DrawAabb;
+		mode |= DebugDraw::DBG_DrawNormals;
 		m_drawer.setDebugMode(mode);
 		world->setDebugDrawer(&m_drawer);
 	}
 
 	void BulletDebugDraw::cullPhase(Poseidon::RenderQueue* queue, Poseidon::Camera* camera)
 	{
-		queue->addRenderable(this);
+		if (m_enabled)
+			queue->addRenderable(this);
+		else
+			return;
 
 		// Collect debug geometry data
 		m_drawer.m_lines.clear();
@@ -49,8 +54,8 @@ namespace Rhea
 
 		m_world->debugDrawWorld();
 
-		if (nums == m_drawer.m_lines.size())
-			return;
+		//if (nums == m_drawer.m_lines.size())
+		//	return;
 
 		nums = m_drawer.m_lines.size();
 
@@ -112,6 +117,11 @@ namespace Rhea
 	Poseidon::Texture* BulletDebugDraw::getTexture()
 	{
 		return nullptr;
+	}
+
+	void BulletDebugDraw::toggle()
+	{
+		m_enabled = !m_enabled;
 	}
 
 	void BulletDebugDraw::DebugDraw::setDebugMode(int mode)

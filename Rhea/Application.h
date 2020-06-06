@@ -31,6 +31,8 @@ namespace Rhea
 		// set the applications name to appname
 		void setAppname(std::string appname) { m_appname = appname; };
 		Poseidon::Core* get_core() { return core; };
+		// get a specific service
+		Service* getService(std::string name);
 		// load and set up the resources of the application
 		virtual void setup();
 		// the app main loop

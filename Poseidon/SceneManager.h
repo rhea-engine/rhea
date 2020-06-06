@@ -67,6 +67,14 @@ namespace Poseidon
 		};
 
 		cbPerObject cbPerObj;
+	public:
+		struct cbPerObjectTerrain
+		{
+			Poseidon::Matrix3x4  model;
+			Poseidon::Matrix4 vp;
+		};
+
+		cbPerObjectTerrain cbPerObjTerrain;
 
 	};
 }

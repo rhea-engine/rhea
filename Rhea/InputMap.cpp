@@ -43,6 +43,7 @@ namespace Rhea
 		{ Psio::CODE_HOME, "move_up" },
 		{ Psio::CODE_END, "move_down" },
 		{ Psio::CODE_ESC, "cancel" },
+		{ Psio::CODE_SPACE, "jump"},
 	};
 
 	actdef default_keyup_map[] = {

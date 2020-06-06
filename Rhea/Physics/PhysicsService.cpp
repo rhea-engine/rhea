@@ -3,11 +3,13 @@
 #include "../Controller/BasicController.h"
 #include "../Item.h"
 #include "../Application.h"
+#include "PhysicsEvent.h"
 
 namespace Rhea
 {
 	PhysicsService::PhysicsService(Application* app) :
 		m_item(nullptr),
+		m_terrain(nullptr),
 		Service(app, "PhysicsService")
 	{
 
@@ -15,16 +17,19 @@ namespace Rhea
 
 	PhysicsService::PhysicsService(Application* app, std::string service_name) : 
 		m_item(nullptr),
+		m_terrain(nullptr),
 		Service(app, service_name)
 	{
 	}
 
 	void PhysicsService::step(float delta)
 	{
+		// send pre event
+		std::unique_ptr<Rhea::PhysicsEvent> ev = std::make_unique<Rhea::PhysicsEvent>("physics_pre", delta, m_terrain);
+		sendEvent(std::string("pre_physics"), ev.get());
+
 		if (!m_item)
 			return;
-
-		
 
 		bool  dirty = false;
 		Poseidon::Vector3 move(m_item->getMovement());

@@ -40,9 +40,11 @@ namespace Rhea
 				
 		// return the buffers
 		void getBuffers(std::vector<vertex>& vertices, std::vector<unsigned long>& indices);
+		void setBuffers(std::vector<vertex>& vertices, std::vector<unsigned long>& indices);
 
 		// get textures
 		std::vector<ImageResource*>& getTextures() { return m_textures; }
+		void addTexture(ImageResource* res) { m_textures.push_back(res); }
 
 		// factory function
 		static Unit* createType(std::string name, std::string type);

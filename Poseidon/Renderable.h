@@ -1,6 +1,8 @@
 #ifndef POSEIDON_RENDERABLE_H
 #define POSEIDON_RENDERABLE_H
 
+#include <vector>
+
 #include "Node.h"
 
 namespace Hippios
@@ -23,6 +25,7 @@ namespace Poseidon
 		virtual void getRenderInput(Hippios::VertexBuffer** pvb, Hippios::IndexBuffer** pib, int& num_indices) = 0;
 		virtual Material* getMaterial() = 0;
 		virtual Texture* getTexture() = 0;
+		virtual std::vector<Texture*>& getTextures() = 0;
 	};
 }
 

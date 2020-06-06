@@ -62,4 +62,9 @@ namespace Poseidon
 		else
 			return nullptr;
 	}
+	
+	std::vector<Texture*>& Entity::getTextures()
+	{		
+		return m_mesh->getTextures();
+	}
 }

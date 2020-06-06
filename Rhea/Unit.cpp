@@ -82,6 +82,20 @@ namespace Rhea
 		return Variant();
 	}
 
+	Variant Unit::getValue(std::string name, Variant default_val)
+	{
+		auto val = m_values.find(name);
+		if (val != m_values.end()) {
+			return val->second;
+		}
+		return default_val;
+	}
+
+	void Unit::setValue(std::string name, Variant val)
+	{
+		m_values[name] = val;
+	}
+
 	void Unit::broadcast(std::string method_name)
 	{
 		// do i have this method?

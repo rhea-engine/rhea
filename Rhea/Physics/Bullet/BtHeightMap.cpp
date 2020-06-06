@@ -1,7 +1,7 @@
 #include "BtHeightMap.h"
 #include "../Item.h"
 #include "ImageResource.h"
-#include "Terrain.h"
+#include "Fabrics/Terrain/Terrain.h"
 #include <Poseidon/Node.h>
 
 #include "Graphics/Texture.h"
@@ -9,6 +9,7 @@
 
 #include "btBulletDynamicsCommon.h"
 #include "BulletCollision/CollisionShapes/btHeightfieldTerrainShape.h"
+#include <algorithm>
 
 namespace Rhea
 {
@@ -25,6 +26,9 @@ namespace Rhea
 			unsigned char* buf;
 			size_t buflen;
 
+			float min_height = 0.0f;
+			float max_height = 0.0f;
+
 			m_image = std::make_unique<Poseidon::Image>();
 			if (static_cast<Resource*>(heightmap)->getRaw((char**)&buf, &buflen)) {
 				m_image->load(buf, buflen);
@@ -35,18 +39,24 @@ namespace Rhea
 						for (size_t w = 0; w < (size_t)m_width; w++) {
 							Poseidon::Image::Color c = m_image->getPixel(w, h);
 							unsigned char grey = (unsigned char)(0.299 * c.r + 0.587 * c.g + 0.114 * c.b);
+							min_height = std::min((float)grey, min_height);
+							max_height = std::max((float)grey, max_height);
 							m_map.push_back(grey);
 						}
 					}
+					//printf("minH: %f\tmaxH: %f\n", min_height, max_height);
 				}
 				else {
 					for (int h = m_height - 1; h >= 0; h--) {
 						for (size_t w = 0; w < (size_t)m_width; w++) {
 							Poseidon::Image::Color c = m_image->getPixel(w, h);
 							unsigned char grey = (unsigned char)(0.299 * c.r + 0.587 * c.g + 0.114 * c.b);
+							min_height = std::min((float)grey, min_height);
+							max_height = std::max((float)grey, max_height);
 							m_map.push_back(grey);
 						}
 					}
+					//printf("minH: %f\tmaxH: %f\n", min_height, max_height);
 				}
 			}
 			else {
@@ -64,10 +74,13 @@ namespace Rhea
 		float maxH = item->getValue("height");
 		if (!maxH)
 			maxH = 255;
-		m_shape = new btHeightfieldTerrainShape(m_width, m_height, m_map.data(), 0.5, 0, maxH, 1, PHY_UCHAR, false);
+		float scale = maxH / 256;
+		m_shape = new btHeightfieldTerrainShape(m_width, m_height, m_map.data(), scale, 0, maxH, 1, PHY_UCHAR, false);
 		btTransform startTrans = btTransform::getIdentity();
-		float offset = (minH + maxH) * 0.5f;
-		startTrans.setOrigin(btVector3(0, offset, 0));
+		float offset_y = (minH + maxH) * 0.5f;
+		float offset_x = (float)m_width / 2;
+		float offset_z = (float)m_height / 2;
+		startTrans.setOrigin(btVector3(offset_x, offset_y, offset_z));
 		btMotionState* ms = new btDefaultMotionState(startTrans);
 		btRigidBody::btRigidBodyConstructionInfo rbInfo(0, ms, m_shape, btVector3(0, 0, 0));
 		m_body = new btRigidBody(rbInfo);

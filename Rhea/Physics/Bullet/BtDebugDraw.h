@@ -1,6 +1,8 @@
 #ifndef RHEA_PHYSICS_BULLET_DEBUGDRAW_H
 #define RHEA_PHYSICS_BULLET_DEBUGDRAW_H
 
+#include <vector>
+
 #include "btBulletDynamicsCommon.h"
 #include <Poseidon/Math/Vector3.h>
 #include <Poseidon/Renderable.h>
@@ -37,6 +39,9 @@ namespace Rhea
         void getRenderInput(Hippios::VertexBuffer** pvb, Hippios::IndexBuffer** pib, int& num_indices);
         Poseidon::Material* getMaterial();
         Poseidon::Texture* getTexture();
+        std::vector<Poseidon::Texture*>& getTextures() { return m_textures; }
+
+        void toggle();
 
         class DebugDraw : public btIDebugDraw {
 
@@ -78,6 +83,8 @@ namespace Rhea
         btDynamicsWorld* m_world;
         int m_num_faces;
         Poseidon::Material* material;
+        std::vector<Poseidon::Texture*> m_textures;
+        bool m_enabled;
 	};
 }
 

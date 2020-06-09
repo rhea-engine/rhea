@@ -40,9 +40,19 @@ namespace Orion
 		ResourceRequest(string rid, Orion *orion);
 		ResourceRequest(string rid, Orion* orion, std::string type);
 
+		// get realm name
 		string getRealmName() { return m_realm_name; }
 		Realm* getRealm() { return m_realm; }
+
+		// get full path without realm
 		string getPath() { return m_path; }
+
+		// get parent path without realm
+		string getParentPath();
+
+		// get base name of request
+		string getBasename();
+
 		bool isResolved() { return m_resolved; }
 		Resource* getResource() { return m_resource; }
 		void setType(std::string type) { m_type = type; }
@@ -99,6 +109,8 @@ namespace Orion
 
 		string m_realm_name;
 		string m_path;
+		string m_container_path;
+		string m_basename;
 		Realm* m_realm = NULL;
 		bool m_resolved = false;
 		bool m_realm_resolved = false;

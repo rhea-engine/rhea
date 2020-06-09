@@ -25,10 +25,19 @@ namespace Rhea
 			// no further subpath 
 			subpath = path;
 			auto unit_it = m_children.find(path);
-			if (unit_it == m_children.end())
-				// TODO if create
-				return NULL;
-			return unit_it->second;
+			if (unit_it == m_children.end()) {
+				if (create) {
+					// not found - create a unit as container
+					Unit* u = new Unit(path, "//core/unit");
+					addChild(u);
+					return u;
+				} 
+				else {
+					return nullptr;
+				}
+			}
+			else
+				return unit_it->second;
 		}
 		else {
 			if (!pos && !m_parent) {
@@ -41,8 +50,17 @@ namespace Rhea
 						subpath = path;
 						auto unit_it = m_children.find(path);
 						if (unit_it == m_children.end())
-							// TODO if create
-							return NULL;
+						{
+							if (create) {
+								// not found - create a unit as container
+								Unit* u = new Unit(path, "//core/unit");
+								addChild(u);
+								return u;
+							}
+							else {
+								return nullptr;
+							}
+						}
 						return unit_it->second;
 					}
 				}

@@ -1,12 +1,19 @@
 #include <Poseidon/Entity.h>
 #include <Poseidon/SceneManager.h>
+#include <Poseidon/Material.h>
+#include <Poseidon/Shader.h>
 
 #include "../Unit.h"
 #include "../Item.h"
 #include "../Mesh.h"
+#include "../Material.h"
+#include "../TextResource.h"
+#include "../Application.h"
+#include "../UnitTree.h"
 
 #include "Item.h"
 #include "Mesh.h"
+#include "Texture.h"
 
 namespace Rhea
 {
@@ -46,9 +53,45 @@ namespace Rhea
 			pos->setPosition(0.0f, 0.0f, 0.0f);
 
 		// material
-		Poseidon::Material* material = item->getMaterial();
-		if (material)
-			static_cast<Poseidon::Entity*>(m_entity)->setMaterial(material);
+		string mat_name = item->getMesh()->getMaterial()->getPathName();
+		Poseidon::Material* material = m_core->getMaterial(mat_name);
+		if (!material) {
+			material = m_core->createMaterial();
+			m_core->registerMaterial(mat_name, material);
+
+			// add the shader
+			std::string shader_name = item->getMesh()->getMaterial()->getValue("shader");
+			Poseidon::Shader* shader = m_core->getShader(shader_name);
+			if (!shader) {
+			
+				// shader not yet defined in core - search from resources
+				TextResource* shader_res = item->getMesh()->getMaterial()->getShader();
+				if (shader_res) {
+					char* buf;
+					size_t buflen;
+					shader_res->getRaw(&buf, &buflen);
+					shader = m_core->createShader("terrain");
+					if (shader->loadFromBuffer((unsigned char*)buf, buflen, "VShader", "PShader"))
+						exit(-1);
+					material->setShader(shader);
+				}
+				else {
+					item->getApplication()->log("Shader " + shader_name + "not found");
+				}
+			}
+			else {
+				material->setShader(shader);
+			}
+
+			// now add the textures
+			std::vector<ImageResource*> textures = item->getMesh()->getMaterial()->getTextures();
+			for (auto it = textures.begin(); it != textures.end(); ++it) {
+				Element* comp = GraphicsTexture::createElement(m_core, (Unit*)*it);
+				Poseidon::Image* tex = ((GraphicsTexture*)comp)->get();
+				material->addTexture((Poseidon::Texture*)tex);
+			}
+		}
+		static_cast<Poseidon::Entity*>(m_entity)->setMaterial(material);
 
 		item->addElement("graphics", this);
 	}

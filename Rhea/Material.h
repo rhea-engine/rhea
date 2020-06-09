@@ -1,0 +1,43 @@
+#ifndef RHEA_MATERIAL
+#define RHEA_MATERIAL
+
+#include "Resource.h"
+
+namespace Rhea
+{
+	class Application;
+	class ImageResource;
+	class TextResource;
+
+	class Material : public Resource
+	{
+	public:
+		Material(std::string name) :
+			m_app(nullptr),
+			m_shader(nullptr),
+			Resource(name, "//meworla/mesh")
+		{}
+
+		// load mesh
+		void load(ReadyHandler handler);
+
+		// get textures
+		std::vector<ImageResource*>& getTextures() { return m_textures; }
+
+		// add a texture
+		void addTexture(ImageResource* res) { m_textures.push_back(res); }
+
+		// set shader resource
+		void setShader(TextResource* shader) { m_shader = shader; }
+
+		// get shader resource
+		TextResource* getShader() { return m_shader; }
+
+	protected:
+		Application* m_app;
+		TextResource* m_shader;
+		std::vector<ImageResource*> m_textures;
+	};
+}
+		
+#endif // !RHEA_MATERIAL

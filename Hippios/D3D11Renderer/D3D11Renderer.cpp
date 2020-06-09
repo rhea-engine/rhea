@@ -2,6 +2,8 @@
 #include "D3D11Renderer.h"
 #include "D3D11Renderer.h"
 #include "D3D11Renderer.h"
+#include "D3D11Renderer.h"
+#include "D3D11Renderer.h"
 #include <d3d11shader.h>
 #include <d3dcompiler.h>
 #include <wrl/client.h>
@@ -450,6 +452,36 @@ namespace Hippios {
 		}		
 	}
 
+	GPUProgram* D3D11Renderer::addMaterial(unsigned char* buf, int buflen, char* shader_type, char* entry_point, int vertex_type)
+	{
+		if (!strcmp(shader_type, "vs")) {
+			mVShader = new D3D11HLSL(m_device, m_device_context);
+			HRESULT hr = mVShader->LoadFromBuffer(buf, buflen, entry_point, "vs", "vs_5_0");
+			//HRESULT hr = mVShader->defaultShader("VShader", "vs", "vs_5_0");
+			if (FAILED(hr))
+			{
+				printf("Failed compiling vertex shader %08X\n", hr);
+				return nullptr;
+			}
+			// set the input layout
+			mVShader->setVertexType(vertex_type);
+			m_device_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+			m_device_context->IASetInputLayout(mVShader->GetInputLayout());
+			return mVShader;
+		}
+		else {
+			mPShader = new D3D11HLSL(m_device, m_device_context);
+			HRESULT hr = mPShader->LoadFromBuffer(buf, buflen, entry_point, "ps", "ps_5_0");
+			//hr = mPShader->defaultShader("PShader", "ps", "ps_5_0");
+			if (FAILED(hr))
+			{
+				printf("Failed compiling particle shader %08X\n", hr);
+				return nullptr;
+			}
+			return mPShader;
+		}
+	}
+
 	void D3D11Renderer::setVertexShader(GPUProgram* material, int topology)
 	{
 		mVShader = static_cast<D3D11HLSL*>(material);
@@ -494,16 +526,10 @@ namespace Hippios {
 		m_device_context->DrawIndexed(size, start_idx, start_vtx);
 	}
 
-	void D3D11Renderer::setGPUParameter(void* param)
-	{
-		m_device_context->UpdateSubresource(m_cb_per_object_buffer, 0, NULL, param, 0, 0);
-		m_device_context->VSSetConstantBuffers(0, 1, &m_cb_per_object_buffer);
-	}
-
 	GraphicsBuffer* D3D11Renderer::initGPUBuffer(size_t size)
 	{
-		// setup buffer for gpu params
-		//Create the buffer to send to the cbuffer in effect file
+		// setup and create a buffer for gpu params
+		
 		D3D11_BUFFER_DESC cbbd;
 		ZeroMemory(&cbbd, sizeof(D3D11_BUFFER_DESC));
 
@@ -518,14 +544,18 @@ namespace Hippios {
 		cbbd.CPUAccessFlags = 0;
 		cbbd.MiscFlags = 0;
 
-		ID3D11Buffer* cb_per_object_buffer;
-		HRESULT hr = m_device->CreateBuffer(&cbbd, NULL, &cb_per_object_buffer);
-		D3D11GraphicsBuffer* buf = new D3D11GraphicsBuffer(m_device, m_device_context, cb_per_object_buffer);
+		ID3D11Buffer* cb_buffer;
+		HRESULT hr = m_device->CreateBuffer(&cbbd, NULL, &cb_buffer);
+		D3D11GraphicsBuffer* buf = new D3D11GraphicsBuffer(m_device, m_device_context, cb_buffer);
 		return buf;
 	}
 	
-	void D3D11Renderer::setGPUBuffer(GraphicsBuffer* buffer)
+	void D3D11Renderer::bindGPUBuffer(GraphicsBuffer* buffer, int slot, char* stage)
 	{
-		m_cb_per_object_buffer = static_cast<D3D11GraphicsBuffer*>(buffer)->get_buffer();
+		ID3D11Buffer* cb_buffer = static_cast<D3D11GraphicsBuffer*>(buffer)->get_buffer();
+		if (!strcmp(stage, "VS"))
+			m_device_context->VSSetConstantBuffers(slot, 1, &cb_buffer);
+		else if (!strcmp(stage, "PS"))
+			m_device_context->PSSetConstantBuffers(slot, 1, &cb_buffer);
 	}
 }

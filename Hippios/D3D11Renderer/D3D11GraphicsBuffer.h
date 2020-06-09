@@ -25,6 +25,7 @@ namespace Hippios
 		void Unlock();
 		void ReadData(size_t offset, size_t length, void* dest);
 		void WriteData(size_t offset, size_t length, const void* source, bool discardBuffer = false, bool mapped = true);
+		void update(const void* source);
 		ID3D11Buffer* get_buffer() { return m_buffer; };
 	};
 }

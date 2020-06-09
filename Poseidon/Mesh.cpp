@@ -60,10 +60,5 @@ namespace Poseidon
 	{
 		m_viewport = viewport;		
 		m_renderer = m_viewport->get_renderer()->getRenderer();
-	}
-
-	void Mesh::addTexture(Texture* texture)
-	{
-		m_textures.push_back(texture);
-	}
+	}	
 }

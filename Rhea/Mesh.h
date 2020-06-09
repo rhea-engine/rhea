@@ -9,12 +9,14 @@ namespace Rhea
 {
 	class Application;
 	class ImageResource;
+	class Material;
 
 	class Mesh : public Resource
 	{
 	public:
 		Mesh(std::string name) :
 			m_app(nullptr),		
+			m_material(nullptr),
 			Resource(name, "//meworla/mesh")
 		{}
 
@@ -38,22 +40,22 @@ namespace Rhea
 		// load mesh
 		void load(ReadyHandler handler);
 				
+		// get material
+		Material* getMaterial() { return m_material; }
+		void setMaterial(Material* material) { m_material = material; }
+
 		// return the buffers
 		void getBuffers(std::vector<vertex>& vertices, std::vector<unsigned long>& indices);
 		void setBuffers(std::vector<vertex>& vertices, std::vector<unsigned long>& indices);
-
-		// get textures
-		std::vector<ImageResource*>& getTextures() { return m_textures; }
-		void addTexture(ImageResource* res) { m_textures.push_back(res); }
 
 		// factory function
 		static Unit* createType(std::string name, std::string type);
 
 	protected:
-		Application* m_app;		
+		Application* m_app;
+		Material* m_material;
 		std::vector<vertex> m_vertices;
 		std::vector<unsigned long> m_v_indices;
-		std::vector<ImageResource*> m_textures;
 	};
 }
 

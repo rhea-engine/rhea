@@ -82,4 +82,9 @@ namespace Hippios
 			m_device_context->VSSetConstantBuffers(0, 1, &m_buffer);
 		}
 	}
+	
+	void D3D11GraphicsBuffer::update(const void* source)
+	{
+		m_device_context->UpdateSubresource(m_buffer, 0, NULL, source, 0, 0);
+	}
 }

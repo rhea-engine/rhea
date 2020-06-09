@@ -1,7 +1,13 @@
+cbuffer cbPerFrame
+{
+    float4x4 V;
+    float4x4 P;
+    float4x4 VP;
+};
+
 cbuffer cbPerObject
 {
-	float4x3 model;
-	float4x4 VP;	
+    float4x3 model;
 };
 
 Texture2D Texture[5];

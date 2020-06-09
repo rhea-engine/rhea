@@ -6,6 +6,9 @@
 #include "UnitTree.h"
 #include <Poseidon/Image.h>
 #include <Poseidon/SceneManager.h>
+#include <Poseidon/Shader.h>
+#include "Material.h"
+#include "TextResource.h"
 
 namespace Rhea
 {
@@ -160,13 +163,25 @@ namespace Rhea
 							m_mesh->setBuffers(vertices, indices);
 						}
 
-						// prepare shaders		
-						m_shader = m_app->get_core()->createMaterial();
-						m_shader->setType(2);
-						if (m_shader->loadFromFile("Samples\\assets\\shaders\\terrain.hlsl", "VShader", "PShader"))
-							exit(-1);
-						m_shader->initBuffer(sizeof(Poseidon::SceneManager::cbPerObjectTerrain));
-						m_app->get_core()->registerMaterial("terrain", m_shader);
+						// prepare shaders	
+						Material* material = new Material("terrain");
+						material->setup(m_app);
+						material->setValue("shader", std::string("terrain"));
+
+						m_mesh->setMaterial(material);
+
+						/*
+						m_material = m_app->get_core()->getMaterial("terrain");
+						if (!m_material) {
+							m_material = m_app->get_core()->createMaterial();
+							Poseidon::Shader* m_shader = m_app->get_core()->getShader("terrain");
+							m_material->setTopology(2);
+							if (m_shader->loadFromFile("Data\\Rhea\\shaders\\terrain.hlsl", "VShader", "PShader"))
+								exit(-1);
+							m_material->setShader(m_shader);
+							m_app->get_core()->registerMaterial("terrain", m_material);
+						}
+						*/
 					}
 					std::vector<std::string> resnames;
 					if (m_values["blendmap"]!=Variant())
@@ -187,16 +202,24 @@ namespace Rhea
 						m_app->log("Terrain: missing textures");
 						return handler(ReqError::CONFIG_ERR);
 					}
-					for (int t_idx = 0; t_idx < t_size; t_idx++) {
-						m_app->loadResource(resnames[t_idx], "//meworla/texture", [&](Unit* unit, ReqError err) {
-							to_load--;
-							if (err == ReqError::OK)
-								m_mesh->addTexture(static_cast<ImageResource*>(unit));
-							if (to_load <= 0) {
-								handler(err);
-							}
-							});
-					}
+
+					// load shader
+					m_app->loadResource("//rhea/shaders/terrain.hlsl", "//meworla/shader", [&](Unit* unit, ReqError err) {
+						if (unit) {
+							m_mesh->getMaterial()->setShader(static_cast<TextResource*>(unit));
+						}
+
+						for (int t_idx = 0; t_idx < t_size; t_idx++) {
+							m_app->loadResource(resnames[t_idx], "//meworla/texture", [&](Unit* unit, ReqError err) {
+								to_load--;
+								if (err == ReqError::OK)
+									m_mesh->getMaterial()->addTexture(static_cast<ImageResource*>(unit));
+								if (to_load <= 0) {
+									handler(err);
+								}
+								});
+						}
+						});
 				}
 				else
 					handler(err);				

@@ -1,7 +1,14 @@
+cbuffer cbPerFrame
+{
+    float4x4 V;
+    float4x4 P;
+    float4x4 VP;
+};
+
 cbuffer cbPerObject
 {
-	float4x4 WVP;
-}; 
+	float4x3 model;
+};
 
 Texture2D ObjTexture;
 SamplerState ObjSamplerState;
@@ -16,7 +23,8 @@ VS_OUTPUT VShader(float4 position : POSITION, float2 tex : TEXCOORD)
 {
 	VS_OUTPUT output;
 
-	output.position = mul(position, WVP);
+	float3 worldPos = mul(position, model);
+	output.position = mul(float4(worldPos, 1.0), VP);
 	output.tex = tex;
 
 	return output;

@@ -1,6 +1,8 @@
-cbuffer cbPerObject
+cbuffer cbPerFrame
 {
-	float4x4 VP;
+    float4x4 V;
+    float4x4 P;
+	float4x4 VP;	
 };
 
 struct VS_OUTPUT

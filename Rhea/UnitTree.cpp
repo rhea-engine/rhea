@@ -2,7 +2,7 @@
 
 namespace Rhea
 {
-	Unit* UnitTree::createUnit(std::string basename, std::string type_name, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
+	Unit* UnitTree::createUnit(std::string basename, std::string type_name)
 	{
 		//  find factory 
 		std::unordered_map<std::string, UnitCreatorFunc>::const_iterator f = m_factory.find(type_name);
@@ -15,6 +15,14 @@ namespace Rhea
 			UnitCreatorFunc func = f->second;
 			unit = func(basename, type_name);
 		}
+		unit->setup(m_app);
+		
+		return unit;
+	}
+
+	Unit* UnitTree::createUnit(std::string basename, std::string type_name, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
+	{
+		Unit* unit = createUnit(basename, type_name);
 		unit->setup(m_app, attributes, values);
 		return unit;
 	}

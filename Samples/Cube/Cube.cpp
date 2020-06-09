@@ -2,9 +2,14 @@
 #include "Poseidon/Mesh.h"
 #include "Poseidon/Texture.h"
 #include "Poseidon/Material.h"
+#include "Poseidon/Shader.h"
 #include "Poseidon/Node.h"
 #include "Poseidon/Entity.h"
 #include "Rhea/Dispatcher.h"
+#include "Rhea/Scene.h"
+#include "Rhea/Graphics/GraphicsService.h"
+#include "Rhea/Physics/PhysicsService.h"
+#include "Rhea/Physics/PhysicsManager.h"
 
 #include <windows.h>
 #include <stdint.h>
@@ -31,21 +36,23 @@ D3D11_INPUT_ELEMENT_DESC layout[] =
 UINT numElements = ARRAYSIZE(layout);
 
 void CubeApp::setup()
-{
+{		
+	m_services["physics"] = new Rhea::PhysicsService(this);
+
 	Rhea::Application::setup();
 
 	m_scene = core->get_scene_manager();
-	Poseidon::Material* material = core->createMaterial();
-	material->setType(1);
+	m_material = core->createMaterial();
+	Poseidon::Shader* shader = core->createShader("uvshader_vp");
 #ifdef USE_WVP
-	if (material->loadFromFile("Samples\\assets\\shaders\\uvshader.hlsl", "VShader", "PShader"))
+	if (shader->loadFromFile("rhea\\shaders\\uvshader.hlsl", "VShader", "PShader"))
 		exit(-1);
 #else
-	if (material->loadFromFile("Samples\\assets\\shaders\\uvshader_vp.hlsl", "VShader", "PShader"))
+	if (shader->loadFromFile("rhea\\shaders\\uvshader_vp.hlsl", "VShader", "PShader"))
 		exit(-1);
-	material->initBuffer(sizeof(cbPerObjectMVP));	
 #endif
-	core->registerMaterial("default", material);
+	m_material->setShader(shader);
+	core->registerMaterial("default", m_material);
 
 	initialize();
 }
@@ -53,7 +60,10 @@ void CubeApp::setup()
 void CubeApp::initialize()
 {
 	Viewport* viewport = core->get_scene_manager()->getViewport();
-	//engine = viewport->get_renderer();
+	
+	Rhea::Scene* scene = new Rhea::Scene("cubescene");
+	static_cast<Rhea::GraphicsService*>(m_services["graphics"])->setScene(scene);
+	static_cast<Rhea::PhysicsService*>(m_services["physics"])->setScene(scene);
 
 	const int num_faces = 12;
 	const int num_vertices = 24;
@@ -141,7 +151,7 @@ void CubeApp::initialize()
 		printf("Loading of texture failed\n");
 		exit(-1);
 	}
-	mesh->addTexture(tex);
+	m_material->addTexture(tex);
 
 	//renderer = engine->getRenderer();
 	//SwapChain = renderer->get_swapchain();
@@ -156,10 +166,13 @@ void CubeApp::initialize()
 	Poseidon::Position* pos = cube1->get_position();
 	pos->setPosition(0.0f, 0.0f, 4.0f);
 
+	cube1->setMaterial(m_material);
+
 	cube2 = core->createEntity(mesh);
 	m_scene->getViewport()->addRenderChild(cube2);
 	pos = cube2->get_position();
 	pos->setPosition(0.0f, 1.0f, 0.0f);
+	cube2->setMaterial(m_material);
 
 	// add a camera
 	m_camera = core->createCamera();

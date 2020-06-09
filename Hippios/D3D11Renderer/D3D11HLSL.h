@@ -25,6 +25,7 @@ namespace Hippios
 	public:
 		D3D11HLSL::D3D11HLSL(ID3D11Device* d3dDevice, ID3D11DeviceContext* d3dDeviceContext);
 		HRESULT LoadFromFile(std::string filename, LPCSTR entrypoint, LPCSTR shaderType, LPCSTR shaderTypeId);
+		HRESULT LoadFromBuffer(unsigned char* buf, size_t buflen, LPCSTR entrypoint, LPCSTR shaderType, LPCSTR shaderTypeId);
 		HRESULT D3D11HLSL::defaultShader(LPCSTR entryPoint, LPCSTR shaderType, LPCSTR shaderTypeId);
 		ID3D11InputLayout* GetInputLayout();
 		void setVertexType(int type);

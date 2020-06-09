@@ -13,6 +13,7 @@ namespace Hippios
 		size_t m_num_faces;
 	public:
 		size_t get_index_count() { return m_num_faces*3; };
+		void update(const void* source) {}
 	};
 }
 #endif // !HIPPIOS_IndexBUFFER_H

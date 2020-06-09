@@ -4,9 +4,11 @@
 
 #include "Poseidon/Viewport.h"
 #include "Poseidon/SceneManager.h"
+#include "Poseidon/Material.h"
 
 #include "Mesh.h"
 #include "Texture.h"
+#include "Material.h"
 
 namespace Rhea {
 
@@ -37,15 +39,7 @@ namespace Rhea {
 
 		m_mesh->setVertices(sizeof(Hippios::vertex_uv), hippios_vertices.size(), hippios_vertices.data());
 		m_mesh->setIndices(sizeof(unsigned long), v_indices.size() / 3, v_indices.data());
-
-		// now add the textures
-		std::vector<ImageResource*> textures = mesh->getTextures();
-		for (auto it = textures.begin(); it != textures.end(); ++it) {
-			Element* comp = GraphicsTexture::createElement(m_core, *it);
-			Poseidon::Image* tex = ((GraphicsTexture*)comp)->get();
-			m_mesh->addTexture((Poseidon::Texture*)tex);
-		}
-
+		
 		mesh->addElement("graphics", this);
 	}
 

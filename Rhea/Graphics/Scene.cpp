@@ -2,6 +2,7 @@
 
 #include <Poseidon/SceneManager.h>
 #include <Poseidon/Material.h>
+#include <Poseidon/Shader.h>
 #include <Poseidon/Math/Matrix3x4.h>
 #include <Poseidon/Math/Matrix4.h>
 
@@ -23,14 +24,6 @@ namespace Rhea
 		Poseidon::SceneManager* scene_mgr = m_core->get_scene_manager();
 		float Width = 800;
 		float Height = 600;
-
-		// prepare shaders		
-		Poseidon::Material* material = m_core->createMaterial();
-		material->setType(1);
-		if (material->loadFromFile("Samples\\assets\\shaders\\uvshader_vp.hlsl", "VShader", "PShader"))
-			exit(-1);
-		material->initBuffer(sizeof(cbPerObjectMVP));
-		m_core->registerMaterial("default", material);
 
 		// add my items
 		std::vector<Item*> items = scene->getItems();

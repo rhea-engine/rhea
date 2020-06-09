@@ -4,6 +4,7 @@
 
 #include "Texture.h"
 #include "Material.h"
+#include "Shader.h"
 #include "Entity.h"
 #include "SceneManager.h"
 #include "Window.h"
@@ -118,6 +119,22 @@ namespace Poseidon
 		if (it == m_materials.end())
 			return nullptr;
 		return it->second;
+	}
+
+	Shader* Core::getShader(std::string name)
+	{	
+		auto it = m_shaders.find(name);
+		if (it != m_shaders.end())
+			return it->second;
+		else
+			return nullptr;
+	}
+
+	Shader* Core::createShader(std::string name)
+	{
+		Shader* shader = new Shader(this->m_renderer->getRenderer());
+		m_shaders[name] = shader;
+		return shader;
 	}
 
 	Entity* Core::createEntity(Mesh* mesh)

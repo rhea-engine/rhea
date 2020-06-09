@@ -62,7 +62,7 @@ namespace Rhea
 			m_item->addElement("physics", body);
 		}
 		else {
-			m_app->log("No controller found for setting scene");
+			m_app->log("No controller found in setting scene");
 		}
 	}
 	

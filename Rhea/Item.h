@@ -5,7 +5,6 @@
 
 #include "Poseidon/Position.h"
 #include "Poseidon/Math/Vector3.h"
-#include "Poseidon/Material.h"
 
 namespace Poseidon
 {
@@ -18,6 +17,7 @@ namespace Rhea
 	class Mesh;
 	class GraphicsItem;
 	class PhysicsBody;
+	class Material;
 
 	class Item : public Resource
 	{
@@ -27,7 +27,7 @@ namespace Rhea
 			m_graphics_item(nullptr),
 			m_physics_body(nullptr),
 			m_turn(0.0f),
-			m_shader(nullptr),
+			m_material(nullptr),
 			Resource(name, "//meworla/item")
 		{}
 		Item(std::string name, std::string type_name) :
@@ -35,7 +35,7 @@ namespace Rhea
 			m_graphics_item(nullptr),
 			m_physics_body(nullptr),
 			m_turn(0.0f),
-			m_shader(nullptr),
+			m_material(nullptr),
 			Resource(name, type_name)
 		{}
 
@@ -49,7 +49,7 @@ namespace Rhea
 		Mesh* getMesh() { return m_mesh; }
 
 		// material
-		Poseidon::Material* getMaterial() { return m_shader; }
+		Material* getMaterial() { return m_material; }
 
 		// factory function
 		static Unit* createType(std::string name, std::string type);
@@ -82,7 +82,7 @@ namespace Rhea
 		PhysicsBody* m_physics_body;
 		Poseidon::Vector3 m_movement;
 		float m_turn;
-		Poseidon::Material* m_shader;
+		Material* m_material;
 
 		void loadDependencies(ReadyHandler handler);
 		bool getGraphicsItem();

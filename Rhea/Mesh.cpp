@@ -5,6 +5,7 @@
 #include "UnitTree.h"
 #include "TextResource.h"
 #include "ImageResource.h"
+#include "Material.h"
 
 #include "Graphics/Texture.h"
 #include "Graphics/Mesh.h"
@@ -15,7 +16,7 @@ namespace Rhea
 	{
 		m_app = app;
 		m_values = values;
-		m_attributes = attributes;
+		m_attributes = attributes;		
 	}
 
 	void Mesh::load(ReadyHandler handler)
@@ -47,8 +48,31 @@ namespace Rhea
 					{
 						m_app->loadResource(m_values["texture"], "//meworla/texture", [&](Unit* unit, ReqError err) {
 							if (unit) {
-								m_textures.push_back(static_cast<ImageResource*>(unit));
-								handler(ReqError::OK);
+								// create dummy material
+								m_material = new Material(m_path + "_material");
+								m_material->setup(m_app);
+								m_material->addTexture(static_cast<ImageResource*>(unit));
+								m_material->setValue("shader", "uvshader_vp");
+
+								// get the shader
+								Unit* shader_res = m_app->getUnitTree()->find("//rhea/shaders/uvshader_vp.hlsl");
+								if (shader_res) {
+									// already loaded
+									m_material->setShader(static_cast<TextResource*>(shader_res));
+									handler(ReqError::OK);
+								}
+								else {
+									// load the shader
+									m_app->loadResource("//rhea/shaders/uvshader_vp.hlsl", "//meworla/shader", [&](Unit* unit, ReqError err) {
+										if (unit) {
+											m_material->setShader(static_cast<TextResource*>(unit));
+											handler(ReqError::OK);
+										}
+										else {
+											handler(ReqError::RESOURCE_NOT_FOUND);
+										}
+										});
+								}
 							}
 							else
 								handler(err);

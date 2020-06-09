@@ -31,6 +31,7 @@ namespace Hippios
 		virtual void clearPass() = 0;
 		virtual int presentPass() = 0;
 		virtual GPUProgram* addMaterial(std::string filename, char* shader_type, char* entry_point, int vertex_type) = 0;
+		virtual GPUProgram* addMaterial(unsigned char* buf, int buflen, char* shader_type, char* entry_point, int vertex_type) = 0;
 		
 		// bind the current vertex and index buffer
 		virtual void bindBuffers(VertexBuffer* vb, IndexBuffer* ib) = 0;
@@ -49,10 +50,11 @@ namespace Hippios
 		virtual void drawIndexed(int size, int start_idx, int start_vtx) = 0;
 
 		// set gpu parameters
-		virtual void setGPUParameter(void* param) = 0;
+
+		// bind a buffer to a slot and shader phase
+		virtual void bindGPUBuffer(GraphicsBuffer* buffer, int slot = 0, char* stage = "VS") = 0;
 
 		// set up a buffer for the gpu input
-		virtual void setGPUBuffer(GraphicsBuffer* buffer) = 0;
 		virtual GraphicsBuffer* initGPUBuffer(size_t size) = 0;
 	};
 }

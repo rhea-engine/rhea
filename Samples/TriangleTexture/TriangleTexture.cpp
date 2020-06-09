@@ -16,9 +16,9 @@ void TriangleTextureApp::setup()
 	m_scene = core->get_scene_manager();
 	Poseidon::Material* material = core->createMaterial();
 	material->setType(1);
-	if (material->loadFromFile("Samples\\assets\\shaders\\uvshader.hlsl", "vs", "VShader"))
+	if (material->loadFromFile("Data\\Rhea\\shaders\\uvshader.hlsl", "vs", "VShader"))
 		exit(-1);
-	if (material->loadFromFile("Samples\\assets\\shaders\\uvshader.hlsl", "ps", "PShader"))
+	if (material->loadFromFile("Data\\Rhea\\shaders\\uvshader.hlsl", "ps", "PShader"))
 		exit(-1);
 
 	initialize();

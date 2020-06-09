@@ -108,6 +108,62 @@ namespace Hippios
 		return hr;
 	}
 
+	HRESULT D3D11HLSL::LoadFromBuffer(unsigned char* buf, size_t buflen, LPCSTR entry_point, LPCSTR shader_type, LPCSTR shader_type_id)
+	{
+		UINT compileFlags = D3DCOMPILE_ENABLE_STRICTNESS;
+#if defined( DEBUG ) || defined( _DEBUG )
+		compileFlags |= D3DCOMPILE_DEBUG;
+#endif
+		// Prefer higher CS shader profile when possible as CS 5.0 provides better performance on 11-class hardware.
+		//LPCSTR profile = (m_d3dDevice->GetFeatureLevel() >= D3D_FEATURE_LEVEL_11_0) ? "cs_5_0" : "cs_4_0";
+		const D3D_SHADER_MACRO defines[] =
+		{
+			"EXAMPLE_DEFINE", "1",
+			NULL, NULL
+		};
+
+		HRESULT hr = D3DCompile(buf,
+			buflen,
+			nullptr,
+			0, 0, entry_point, shader_type_id, 0, 0, &shaderBlob, &errorBlob);
+
+		if (FAILED(hr))
+		{
+			if (errorBlob)
+			{
+				OutputDebugStringA((char*)errorBlob->GetBufferPointer());
+				errorBlob->Release();
+			}
+
+			if (shaderBlob)
+				shaderBlob->Release();
+
+			return hr;
+		}
+		// encapsulate shaders into shader objects
+		// and set the shader objects
+		// encapsulate shaders into shader objects
+		// and set the shader objects
+		if (!strcmp(shader_type, "vs")) {
+			hr = m_d3dDevice->CreateVertexShader(shaderBlob->GetBufferPointer(), shaderBlob->GetBufferSize(), NULL, &pVS);
+			if (FAILED(hr)) {
+				printf("could not load vertex shader");
+			}
+		}
+		else {
+			try {
+				m_d3dDevice->CreatePixelShader(shaderBlob->GetBufferPointer(), shaderBlob->GetBufferSize(), NULL, &pPS);
+				if (FAILED(hr)) {
+					printf("could not load pixel shader");
+				}
+			}
+			catch (_com_error& e) {
+				printf("could not load pixel shader\n");
+			}
+		}
+		return hr;
+	}
+
 	/** default shader:
 	*     a very simple color shader used for testing
 	*/

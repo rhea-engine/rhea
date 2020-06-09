@@ -9,8 +9,6 @@ namespace Rhea
 	{
 	public:
 		TextResource(std::string basename, std::string type_name) :
-			m_buf(NULL),
-			m_buflen(0),
 			Resource(basename, type_name)
 		{}
 		~TextResource();
@@ -21,9 +19,6 @@ namespace Rhea
 		// factory function
 		static Unit* createType(std::string name, std::string type);
 
-	protected:
-		char* m_buf;
-		size_t m_buflen;
 	};
 }
 

@@ -14,4 +14,10 @@ target_link_libraries(Ceto Rhea)
 add_custom_command(TARGET Ceto POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
                 ${CMAKE_CURRENT_SOURCE_DIR}/Data
-                ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Data)
+                $<TARGET_FILE_DIR:Ceto>/Data)
+
+## add render engine assets
+add_custom_command(TARGET Ceto POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        ${CMAKE_SOURCE_DIR}/Rhea/Assets
+        $<TARGET_FILE_DIR:Ceto>/Data/rhea)

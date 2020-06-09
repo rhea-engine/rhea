@@ -80,6 +80,12 @@ namespace SimpleParser
 		}
 	}
 
+	Variant::Variant(const char* s)
+	{
+		m_data._str = new std::string(s);
+		m_type = Type::STRING;
+	}
+
 	Variant::~Variant()
 	{
 		switch (m_type) {

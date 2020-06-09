@@ -5,14 +5,28 @@
 #include "RenderQueue.h"
 #include "Texture.h"
 #include "Material.h"
+#include "Shader.h"
+
+#include <Hippios/Renderer.h>
+#include <Hippios/GraphicsBuffer.h>
 
 namespace Poseidon
 {
 	SceneManager::SceneManager() :
 		m_renderer(nullptr),
-		m_current_material(nullptr)
+		m_current_material(nullptr),
+		m_frame_buffer(nullptr),
+		m_object_buffer(nullptr)
 	{
 		m_rend_queue = new RenderQueue();
+	}
+
+	SceneManager::~SceneManager()
+	{
+		if (m_frame_buffer)
+			delete m_frame_buffer;
+		if (m_object_buffer)
+			delete m_object_buffer;
 	}
 
 	Node* SceneManager::get_root()
@@ -21,6 +35,17 @@ namespace Poseidon
 			m_tree = createNode();
 		}
 		return m_tree;
+	}
+
+	void SceneManager::setRenderer(Hippios::Renderer* renderer)
+	{
+		m_renderer = renderer;
+
+		//initialize graphic buffers
+		m_frame_buffer = m_renderer->createGraphicsBuffer(sizeof(cbPerFrame));
+		m_renderer->bindGPUBuffer(m_frame_buffer, 0, "VS");
+		m_object_buffer = m_renderer->createGraphicsBuffer(sizeof(cbPerObject));
+		m_renderer->bindGPUBuffer(m_object_buffer, 1, "VS");
 	}
 
 	Node* SceneManager::createNode()
@@ -54,7 +79,13 @@ namespace Poseidon
 			Camera* camera = viewport->get_camera();
 			if (!camera)
 				return false;
-			Poseidon::Matrix4 viewproj = camera->getProjectionMatrixRS() * camera->getViewMatrix();
+			
+			// fill per frame buffer
+			per_frame_buf.v = camera->getViewMatrix();
+			per_frame_buf.p = camera->getProjectionMatrixRS();
+			per_frame_buf.vp = per_frame_buf.p * per_frame_buf.v;
+
+			m_frame_buffer->update((void*)&per_frame_buf);
 
 			Renderable* renderable = m_rend_queue->first();
 			for (Renderable* renderable = m_rend_queue->first(); renderable != NULL; renderable = m_rend_queue->next()) {
@@ -70,36 +101,23 @@ namespace Poseidon
 					return true;
 				}
 
-				// set up GPU input
-				switch (m_current_material->getType()) {
-				case 0:
-					cbPerObj.vp = viewproj;
-					viewport->get_renderer()->getRenderer()->setGPUParameter((void*)&cbPerObj);
-					break;
-				case 1:
-				case 2:
+				// fill per object buffer
 
-					Poseidon::Matrix3x4 model_wtm = renderable->get_derived_position()->getWorldTransform();
+				Position* position = renderable->get_derived_position();
 
-					// set up GPU input
-					cbPerObjMVP.vp = viewproj;
-					cbPerObjMVP.model = model_wtm;
-					viewport->get_renderer()->getRenderer()->setGPUParameter((void*)&cbPerObjMVP);
-					break;
+				// check if renderable has a position
+				if (position) {
+					Poseidon::Matrix3x4 model_wtm = position->getWorldTransform();
+					per_obj_buf.model = model_wtm;
+					m_object_buffer->update((void*)&per_obj_buf);
 				}
 
-				// set texture
-				if (m_current_material->getType() != 2) {
-					Poseidon::Texture* tex = renderable->getTexture();
-					if (tex)
-						m_renderer->setTexture(tex->get_texture());
-				}
-				else {
-					std::vector<Poseidon::Texture*> texs = renderable->getTextures();
-					if (texs.size()) {
-						for (int i = 0; i < texs.size(); i++) {
-							m_renderer->setTexture(texs[i]->get_texture(), i);
-						}
+				// set texture(s)
+				
+				std::vector<Poseidon::Texture*> texs = mat->getTextures();
+				if (texs.size()) {
+					for (int i = 0; i < texs.size(); i++) {
+						m_renderer->setTexture(texs[i]->get_texture(), i);
 					}
 				}
 
@@ -111,7 +129,7 @@ namespace Poseidon
 				int num_indices;
 				renderable->getRenderInput(&vb, &ib, num_indices);
 
-				if (m_current_material->getType() == 0) {
+				if (m_current_material->getShader()->getVertexType() == 0) {
 					if (vb) {
 						m_renderer->bindBuffers(vb, ib);
 						m_renderer->draw(num_indices, 0);

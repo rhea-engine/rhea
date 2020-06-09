@@ -86,6 +86,7 @@ namespace Hippios
 		bool drawBuffer(VertexBuffer* v_buffer, IndexBuffer* i_buffer = 0, Texture* texture = 0);
 		Texture* createTexture();
 		GPUProgram* addMaterial(std::string filename, char* shader_type, char* entry_point, int vertex_type);
+		GPUProgram* addMaterial(unsigned char* buf, int buflen, char* shader_type, char* entry_point, int vertex_type);
 
 		// set current material
 		void setVertexShader(GPUProgram* material, int topology);
@@ -97,11 +98,15 @@ namespace Hippios
 		void draw(int size, int start_vtx);
 		void drawIndexed(int size, int start_idx, int start_vtx);
 
-		void setGPUParameter(void* param);
-
 		// graphics param buffer
+
+		// setup and create a buffer for shaders
 		GraphicsBuffer* initGPUBuffer(size_t size);
-		void setGPUBuffer(GraphicsBuffer* buffer);
+
+		// bind a buffer to a slot and shader phase
+		void bindGPUBuffer(GraphicsBuffer* buffer, int slot = 0, char* stage = "VS");
+
+		// return current graphics buffer
 		ID3D11Buffer* getObjBuffer() {
 			return m_cb_per_object_buffer;
 		}

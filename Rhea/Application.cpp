@@ -67,6 +67,7 @@ namespace Rhea
 		m_unit_tree->registerUnitType("//meworla/heightmap", ImageResource::createType);
 		m_unit_tree->registerUnitType("//meworla/terrain", Terrain::createType);
 		m_unit_tree->registerUnitType("//meworla/character", KinematicCharacter::createType);
+		m_unit_tree->registerUnitType("//meworla/shader", TextResource::createType);
 
 		// add a default input map
 		m_input_map = new InputMap();
@@ -302,16 +303,23 @@ namespace Rhea
 	{
 		loadResource(resource_id, [&](Orion::ResourceRequest* req, ReqError err) {
 			if (req) {
-				// we have a resource
+				// we have found the resource
 
-				// create unit with the given type
-				Unit* unit = m_unit_tree->createUnitById(resource_id, type_name);
-
-				if (!unit)
+				// find the parent and create the folders if necessary
+				std::string parentpath = req->getRealmName() + req->getParentPath();
+				Unit* parent_unit = m_unit_tree->find(parentpath, true);
+				if (!parent_unit)
+					// should not happen
 					return handler(NULL, ReqError::PATH_NOT_FOUND);
 
-				// set the app
-				unit->setup(this);
+				// create unit with the given type
+				Unit* unit = m_unit_tree->createUnit(req->getBasename(), type_name);
+				if (!unit)
+					// should not happen
+					return handler(NULL, ReqError::PATH_NOT_FOUND);
+
+				// add it to tree
+				parent_unit->addChild(unit);
 
 				// call load of unit
 				// TODO: check if really is a resource

@@ -26,13 +26,9 @@ namespace Poseidon
 		// get the Material
 		Material *getMaterial();
 		void setMaterial(Material* material);
-
-		// get the texture
-		Texture* getTexture();
-		std::vector<Texture*>& getTextures();
+	
 	protected:
 		int m_vertex_size = 0;
-		Texture* m_texture = 0;
 		Material* m_material = 0;
 	};
 }

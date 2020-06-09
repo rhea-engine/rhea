@@ -81,6 +81,9 @@ namespace Rhea
 		// send Event from all children
 		void sendEventChildren(std::string event_name, Event* event);
 
+		// get Application
+		Application* getApplication() { return m_app; }
+
 		// print my info
 		virtual void logMe();
 	protected:

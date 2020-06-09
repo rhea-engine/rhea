@@ -16,8 +16,8 @@ void TriangleApp::setup()
 
 	m_scene = core->get_scene_manager();	
 	Poseidon::Material* material = core->createMaterial();
-	material->loadFromFile("Samples\\assets\\shaders\\shader.hlsl", "vs", "VShader");
-	material->loadFromFile("Samples\\assets\\shaders\\shader.hlsl", "ps", "PShader");
+	material->loadFromFile("Data\\Rhea\\shaders\\shader.hlsl", "vs", "VShader");
+	material->loadFromFile("Data\\Rhea\\shaders\\shader.hlsl", "ps", "PShader");
 	
 	initialize();
 }

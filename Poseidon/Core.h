@@ -20,6 +20,7 @@ namespace Psio
 namespace Poseidon
 {
 	class Material;
+	class Shader;
 	class Texture;
 	class Entity;
 	class Mesh;
@@ -41,6 +42,7 @@ namespace Poseidon
 
 		Psio::Engine* m_psio;
 		std::unordered_map<std::string, Material*> m_materials;
+		std::unordered_map<std::string, Shader*> m_shaders;
 
 		Material* m_default_material = 0;
 	public:
@@ -60,10 +62,17 @@ namespace Poseidon
 		// create various items
 		Texture* createTexture(const std::string& file_name);
 		Texture* createTexture(unsigned char* buf, size_t buflen);
+		// materials
 		Material* createMaterial();
 		void registerMaterial(std::string name, Material* material);
 		Material* getMaterial(std::string name);
 		Material* getDefaultMaterial() { return m_default_material; }
+		// shaders
+		// get the shader with this name 
+		Shader* getShader(std::string name);
+		// create a new shader and add it with name
+		Shader* createShader(std::string name);
+
 		Entity* createEntity(Mesh* mesh);
 		Camera* createCamera();
 	};

@@ -40,6 +40,8 @@ protected:
 	float rot = 0.01f;
 	Poseidon::Matrix4 pv;
 
+	Poseidon::Material* m_material;
+
 	struct cbPerObjectMVP
 	{
 		Poseidon::Matrix3x4  model;

@@ -15,7 +15,6 @@ namespace Poseidon
 {
 	class RenderQueue;
 	class Camera;
-	class Texture;
 	class Material;
 
 	class Renderable : public Node
@@ -24,8 +23,6 @@ namespace Poseidon
 		virtual void cullPhase(RenderQueue* queue, Camera* camera) = 0;
 		virtual void getRenderInput(Hippios::VertexBuffer** pvb, Hippios::IndexBuffer** pib, int& num_indices) = 0;
 		virtual Material* getMaterial() = 0;
-		virtual Texture* getTexture() = 0;
-		virtual std::vector<Texture*>& getTextures() = 0;
 	};
 }
 

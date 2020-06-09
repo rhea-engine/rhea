@@ -23,6 +23,16 @@ namespace Orion
 		parseRid(rid);
 	}
 
+	string ResourceRequest::getParentPath()
+	{
+		return m_container_path;
+	}
+
+	string ResourceRequest::getBasename()
+	{
+		return m_basename;
+	}
+
 	std::string ResourceRequest::getErrorMessage(Error err)
 	{
 		switch (err) {
@@ -50,11 +60,17 @@ namespace Orion
 		}
 
 		// split the realm part
-		pathpos = rid.find("/", realmpos);
+		pathpos = rid.find_first_of("\\/", realmpos);
 		if (pathpos != std::string::npos)
 		{
 			m_realm_name = rid.substr(realmpos, pathpos-realmpos);
 			m_path = rid.substr(pathpos);
+			// find basename
+			size_t basepos = m_path.find_last_of("\\/");
+			if (basepos != std::string::npos) {
+				m_basename = m_path.substr(basepos + 1);
+				m_container_path = m_path.substr(0, basepos);
+			}
 		}
 		else {
 			// no path, only realm

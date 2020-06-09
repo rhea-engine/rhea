@@ -53,18 +53,5 @@ namespace Poseidon
 	void Entity::setMaterial(Material* material)
 	{
 		m_material = material;
-	}
-
-	Texture* Entity::getTexture()
-	{
-		if (m_mesh)
-			return m_mesh->getTexture();
-		else
-			return nullptr;
-	}
-	
-	std::vector<Texture*>& Entity::getTextures()
-	{		
-		return m_mesh->getTextures();
-	}
+	}	
 }

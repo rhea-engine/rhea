@@ -3,14 +3,10 @@
 #include <Poseidon/RenderQueue.h>
 #include <Poseidon/SceneManager.h>
 #include <Hippios/VertexBuffer.h>
+#include <Poseidon/Shader.h>
 
 namespace Rhea
 {
-	struct cbPerObject
-	{
-		Poseidon::Matrix4 vp;
-	};
-
 	BulletDebugDraw::BulletDebugDraw(Application* app, btDynamicsWorld* world)
 	{
 		m_app = app;
@@ -21,12 +17,20 @@ namespace Rhea
 		m_enabled = true;
 
 		// prepare shaders		
-		material = app->get_core()->createMaterial();
-		material->setType(0);
-		if (material->loadFromFile("Samples\\assets\\shaders\\shader_vp.hlsl", "VShader", "PShader"))
-			exit(-1);
-		material->initBuffer(sizeof(cbPerObject));
-		app->get_core()->registerMaterial("color", material);
+		material = app->get_core()->getMaterial("color");
+		if (!material) {
+			material = app->get_core()->createMaterial();
+			material->setTopology(2);
+			Poseidon::Shader* shader = app->get_core()->getShader("shader_vp");
+			if (!shader) {
+				shader = app->get_core()->createShader("shader_vp");
+				shader->setVertexType(0);
+				if (shader->loadFromFile("Data\\Rhea\\shaders\\shader_vp.hlsl", "VShader", "PShader"))
+					exit(-1);
+			}
+			material->setShader(shader);
+			app->get_core()->registerMaterial("color", material);
+		}
 
 		app->get_core()->get_scene_manager()->getViewport()->addRenderChild(this);
 		int mode = DebugDraw::DBG_DrawText |

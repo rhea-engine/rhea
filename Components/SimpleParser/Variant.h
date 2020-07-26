@@ -40,6 +40,7 @@ namespace SimpleParser
 		operator std::vector<Variant>() const;
 		operator float() const;
 		operator bool() const;
+		operator int() const;
 		Variant& operator[](int);
 		void operator=(const Variant& variant);
 

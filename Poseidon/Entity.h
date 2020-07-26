@@ -26,10 +26,17 @@ namespace Poseidon
 		// get the Material
 		Material *getMaterial();
 		void setMaterial(Material* material);
+
+		// hide entity
+		void hide() { m_hidden = true; }
+		
+		// show entity
+		void show() { m_hidden = false; }
 	
 	protected:
-		int m_vertex_size = 0;
-		Material* m_material = 0;
+		int m_vertex_size;
+		Material* m_material;
+		bool m_hidden;
 	};
 }
 

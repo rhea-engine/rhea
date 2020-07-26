@@ -3,6 +3,7 @@
 #include "Viewport.h"
 #include "Renderable.h"
 #include "RenderQueue.h"
+#include "RenderContext.h"
 #include "Texture.h"
 #include "Material.h"
 #include "Shader.h"
@@ -64,81 +65,87 @@ namespace Poseidon
 
 	bool SceneManager::render()
 	{
-		// iterate over all viewports an execute the phases per viewport
+		// iterate over all viewports and execute the phases per viewport
 		for (std::vector<Viewport*>::iterator it = m_viewports.begin(); it != m_viewports.end(); ++it) {
 			Viewport* viewport = *it;
 
 			// clear pass
 			m_renderer->clearPass();
-			m_rend_queue->clear();
 
-			// cull pass	
-			viewport->cullObjects(m_rend_queue);
+			// iterate over render contexts of this viewport
+			std::vector<RenderContext*> r_contexts = viewport->getRenderContextList();
+			for (std::vector<RenderContext*>::iterator rc_it = r_contexts.begin(); rc_it != r_contexts.end(); ++rc_it) {
+				RenderContext* context = *rc_it;
 
-			// render pass
-			Camera* camera = viewport->get_camera();
-			if (!camera)
-				return false;
-			
-			// fill per frame buffer
-			per_frame_buf.v = camera->getViewMatrix();
-			per_frame_buf.p = camera->getProjectionMatrixRS();
-			per_frame_buf.vp = per_frame_buf.p * per_frame_buf.v;
+				// cull pass	
+				m_rend_queue->clear();
+				context->cullObjects(m_rend_queue);
 
-			m_frame_buffer->update((void*)&per_frame_buf);
+				// render pass
+				Camera* camera = context->get_camera();
+				if (!camera)
+					return false;
 
-			Renderable* renderable = m_rend_queue->first();
-			for (Renderable* renderable = m_rend_queue->first(); renderable != NULL; renderable = m_rend_queue->next()) {
+				// fill per frame buffer
+				per_frame_buf.v = camera->getViewMatrix();
+				per_frame_buf.p = camera->getProjectionMatrixRS();
+				per_frame_buf.vp = per_frame_buf.p * per_frame_buf.v;
 
-				// material
-				Material* mat = renderable->getMaterial();
-				if (mat != m_current_material && mat) {
-					m_current_material = mat;
-					mat->activate();
-				}
-				if (!m_current_material) {
-					printf("No shader found\n");
-					return true;
-				}
+				m_frame_buffer->update((void*)&per_frame_buf);
 
-				// fill per object buffer
+				Renderable* renderable = m_rend_queue->first();
+				for (Renderable* renderable = m_rend_queue->first(); renderable != NULL; renderable = m_rend_queue->next()) {
 
-				Position* position = renderable->get_derived_position();
-
-				// check if renderable has a position
-				if (position) {
-					Poseidon::Matrix3x4 model_wtm = position->getWorldTransform();
-					per_obj_buf.model = model_wtm;
-					m_object_buffer->update((void*)&per_obj_buf);
-				}
-
-				// set texture(s)
-				
-				std::vector<Poseidon::Texture*> texs = mat->getTextures();
-				if (texs.size()) {
-					for (int i = 0; i < texs.size(); i++) {
-						m_renderer->setTexture(texs[i]->get_texture(), i);
+					// material
+					Material* mat = renderable->getMaterial();
+					if (mat != m_current_material && mat) {
+						m_current_material = mat;
+						mat->activate();
 					}
-				}
-
-				// draw the entity
-
-				// bind the vertex and index buffer
-				Hippios::VertexBuffer* vb;
-				Hippios::IndexBuffer* ib;
-				int num_indices;
-				renderable->getRenderInput(&vb, &ib, num_indices);
-
-				if (m_current_material->getShader()->getVertexType() == 0) {
-					if (vb) {
-						m_renderer->bindBuffers(vb, ib);
-						m_renderer->draw(num_indices, 0);
+					if (!m_current_material) {
+						printf("No shader found\n");
+						return true;
 					}
-				}
-				else {
-					if (vb && num_indices) {
-						m_renderer->bindBuffers(vb, ib);
-						m_renderer->drawIndexed(num_indices, 0, 0);
+
+					// fill per object buffer
+
+					Position* position = renderable->get_derived_position();
+
+					// check if renderable has a position
+					if (position) {
+						Poseidon::Matrix3x4 model_wtm = position->getWorldTransform();
+						per_obj_buf.model = model_wtm;
+						m_object_buffer->update((void*)&per_obj_buf);
+					}
+
+					// set texture(s)
+
+					std::vector<Poseidon::Texture*> texs = mat->getTextures();
+					if (texs.size()) {
+						for (int i = 0; i < texs.size(); i++) {
+							m_renderer->setTexture(texs[i]->get_texture(), i);
+						}
+					}
+
+					// draw the entity
+
+					// bind the vertex and index buffer
+					Hippios::VertexBuffer* vb;
+					Hippios::IndexBuffer* ib;
+					int num_indices;
+					renderable->getRenderInput(&vb, &ib, num_indices);
+
+					if (m_current_material->getShader()->getVertexType() == 0) {
+						if (vb) {
+							m_renderer->bindBuffers(vb, ib);
+							m_renderer->draw(num_indices, 0);
+						}
+					}
+					else {
+						if (vb && num_indices) {
+							m_renderer->bindBuffers(vb, ib);
+							m_renderer->drawIndexed(num_indices, 0, 0);
+						}
 					}
 				}
 			}
@@ -160,10 +167,15 @@ namespace Poseidon
 		m_viewports.erase(std::remove(m_viewports.begin(), m_viewports.end(), viewport), m_viewports.end());
 	}
 
-	Viewport* SceneManager::getViewport()
+	Viewport* SceneManager::getViewport(std::string name)
 	{
-		// return root as viewprot
-		return static_cast<Viewport*>(m_tree);
+		// search viewport with that name
+		for (std::vector<Viewport*>::iterator it = m_viewports.begin(); it != m_viewports.end(); ++it) {
+			Viewport* viewport = *it;
+			if (viewport->isName(name))
+				return viewport;
+		}
+		return nullptr;
 	}
 
 }

@@ -8,12 +8,17 @@
 #include "../Scene.h"
 
 #include "Poseidon/Core.h"
+#include "Poseidon/Viewport.h"
+#include "Poseidon/SceneManager.h"
+#include "Poseidon/RenderContext.h"
+#include "Poseidon/Camera.h"
 
 #include "../Element.h"
 #include "Texture.h"
 #include "Mesh.h"
 #include "Item.h"
 #include "Scene.h"
+#include "Item2D.h"
 
 namespace Rhea
 {
@@ -26,6 +31,7 @@ namespace Rhea
 		m_element_factory["//meworla/mesh"] = &GraphicsMesh::createElement;
 		m_element_factory["//meworla/item"] = &GraphicsItem::createElement;
 		m_element_factory["//meworla/scene"] = &GraphicsScene::createElement;
+		m_element_factory["//meworla/widget"] = &GraphicsItem2D::createElement;
 	}
 
 	void GraphicsService::setPlatform(Service* platform_service)
@@ -44,6 +50,20 @@ namespace Rhea
 			m_app->log("GraphicsService::onInit: platform not set");
 		else
 			m_core->init(static_cast<PlatformService*>(m_platform)->getEngine());
+
+		// create a render context for HUD / GUI
+		Poseidon::RenderContext* context = m_core->get_scene_manager()->getViewport()->createRenderContext(std::string("HUD"));
+		// add a camera for this context
+		Poseidon::Camera* cam = m_core->createCamera();
+		context->addChild(cam);
+		context->setCamera(cam);
+		float Width = 800;
+		float Height = 600;
+		cam->setAspectRatio((float)Width / (float)Height);
+		cam->setOrthographicSize(600);
+		cam->setOrthographic(true);
+		cam->updateProjection();
+		cam->updateView();
 	}
 	
 	bool GraphicsService::onFrame()

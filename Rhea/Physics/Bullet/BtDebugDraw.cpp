@@ -4,6 +4,7 @@
 #include <Poseidon/SceneManager.h>
 #include <Hippios/VertexBuffer.h>
 #include <Poseidon/Shader.h>
+#include <Poseidon/RenderContext.h>
 
 namespace Rhea
 {
@@ -32,7 +33,7 @@ namespace Rhea
 			app->get_core()->registerMaterial("color", material);
 		}
 
-		app->get_core()->get_scene_manager()->getViewport()->addRenderChild(this);
+		app->get_core()->get_scene_manager()->getViewport()->getRenderContext(std::string("default"))->addRenderChild(this);
 		int mode = DebugDraw::DBG_DrawText |
 			DebugDraw::DBG_DrawFeaturesText |
 			DebugDraw::DBG_DrawContactPoints;

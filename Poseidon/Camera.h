@@ -51,7 +51,7 @@ namespace Poseidon
 		/// Field of view.
 		float fov_;
 		/// Orthographic view size.
-		float orthoSize_;
+		float m_ortho_size;
 		/// Aspect ratio.
 		float aspectRatio_;
 
@@ -66,7 +66,10 @@ namespace Poseidon
 
 		void updateProjection() const;
 		void updateView(void) const;
+		void setProjectionOffset(Vector3 offset);
 
+		void setOrthographic(bool enabled);
+		void setOrthographicSize(float size);
 		void setAspectRatio(float ratio) { aspectRatio_ = ratio; }
 
 		bool render(Viewport*, Camera*) { return true; }

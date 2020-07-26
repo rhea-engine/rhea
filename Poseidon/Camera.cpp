@@ -10,7 +10,7 @@ namespace Poseidon
 	Camera::Camera(Hippios::Renderer* renderer) : m_renderer(renderer), nearClip_(DEFAULT_NEARCLIP),
 		farClip_(DEFAULT_FARCLIP),
 		fov_(DEFAULT_CAMERA_FOV),
-		orthoSize_(DEFAULT_ORTHOSIZE),
+		m_ortho_size(DEFAULT_ORTHOSIZE),
 		aspectRatio_(1.0f),
 		m_projection_offset(Vector3::ZERO)
 	{
@@ -73,7 +73,12 @@ namespace Poseidon
 		}
 		else
 		{
-			float h = (1.0f / (orthoSize_ * 0.5f)) * m_zoom;
+			// ortho matrix is defined as
+			// 2/(right-left)	0	0 -(right + left)/(right - left)
+			// 0	2/(top-bottom)	0 -(top+bottom)/(top-bottom)
+			// 0	0	2/(far-near)	1
+
+			float h = (1.0f / (m_ortho_size * 0.5f)) * m_zoom;
 			float w = h / aspectRatio_;
 			float q = 1.0f / farClip_;
 			float r = 0.0f;
@@ -136,5 +141,20 @@ namespace Poseidon
 
 			m_view_matrix = makeViewMatrix(position, orientation, m_reflect ? &m_reflect_matrix : 0);
 		}
+	}
+
+	void Camera::setProjectionOffset(Vector3 offset)
+	{
+		m_projection_offset = offset;
+	}
+
+	void Camera::setOrthographic(bool enabled)
+	{
+		m_orthographic = enabled;
+	}
+
+	void Camera::setOrthographicSize(float size)
+	{
+		m_ortho_size = size;
 	}
 }

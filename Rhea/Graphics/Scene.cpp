@@ -8,8 +8,10 @@
 
 #include "Item.h"
 #include "Camera.h"
+#include "Item2D.h"
 #include "../Unit.h"
 #include "../Item.h"
+#include "Fabrics/Canvas/Item2D.h"
 
 namespace Rhea
 {
@@ -31,6 +33,8 @@ namespace Rhea
 			Item* item = *it;
 			if (item->getType() == "//meworla/camera")
 				GraphicsCamera::createElement(m_core, item);
+			else if (item->getType() == "//meworla/widget")
+				GraphicsItem2D::createElement(m_core, item);
 			else
 				GraphicsItem::createElement(m_core, item);
 		}

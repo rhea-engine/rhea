@@ -2,6 +2,7 @@
 #include <Poseidon/SceneManager.h>
 #include <Poseidon/Material.h>
 #include <Poseidon/Shader.h>
+#include <Poseidon/RenderContext.h>
 
 #include "../Unit.h"
 #include "../Item.h"
@@ -19,11 +20,11 @@ namespace Rhea
 {
 	GraphicsItem::~GraphicsItem()
 	{
-		m_core
-			->get_scene_manager()
-			->getViewport()
-			->removeRenderChild(static_cast<Poseidon::Entity*>(m_entity));
-		delete m_entity;
+		if (m_entity) {
+			if (m_render_context)
+				m_render_context->removeRenderChild(static_cast<Poseidon::Entity*>(m_entity));
+			delete m_entity;
+		}
 	}
 
 	void GraphicsItem::createItem(Item* item)
@@ -38,7 +39,13 @@ namespace Rhea
 
 		Poseidon::Mesh* engine_mesh = el->getMesh();
 		m_entity = m_core->createEntity(engine_mesh);
-		scene_mgr->getViewport()->addRenderChild(static_cast<Poseidon::Entity*>(m_entity));
+		std::string render_context_name = "default";
+		m_render_context = scene_mgr->getViewport()->getRenderContext(render_context_name);
+		if (!m_render_context) {
+			item->getApplication()->log("GraphicsItem::createItem: render context '" + render_context_name + "' not found");
+			return;
+		}
+		m_render_context->addRenderChild(static_cast<Poseidon::Entity*>(m_entity));
 
 		Poseidon::Position* pos = m_entity->get_position();
 

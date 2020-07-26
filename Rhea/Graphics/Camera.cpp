@@ -2,6 +2,7 @@
 #include <Poseidon/Camera.h>
 #include <Poseidon/Core.h>
 #include <Poseidon/SceneManager.h>
+#include <Poseidon/RenderContext.h>
 
 #include "Camera.h"
 #include "../Unit.h"
@@ -21,8 +22,9 @@ namespace Rhea
 		// TODO get viewport from setup
 
 		// get default viewport
+		std::string render_context = "default";
 		m_scene_mgr->getViewport()->addChild(m_entity);
-		m_scene_mgr->getViewport()->setCamera(static_cast<Poseidon::Camera*>(m_entity));
+		m_scene_mgr->getViewport()->getRenderContext(render_context)->setCamera(static_cast<Poseidon::Camera*>(m_entity));
 
 		Poseidon::Vector3 m_position;
 		Variant pos_sit = cam->getValue("position");

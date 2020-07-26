@@ -14,31 +14,38 @@ namespace Poseidon
 	class Entity;
 	class RenderQueue;
 	class Camera;
+	class RenderContext;
 
 	class Viewport : public Node
 	{
 	public: 		
-		Viewport();
-
-		// cull the fisible objects
-		void cullObjects(RenderQueue* queue);
+		Viewport() :
+			Viewport(std::string("root"))
+		{}
+		Viewport(std::string& name);
+		~Viewport();
 
 		virtual void initRenderTarget(Hippios::Engine* engine);
 		Hippios::Engine* get_renderer() { return m_engine; };
-		void addRenderChild(Renderable* child);
-		
-		// remove render element
-		void removeRenderChild(Renderable* child);
 
-		Camera* get_camera() { return m_camera; };
-		void setCamera(Camera* camera);
+		// render contexts
+		RenderContext* getRenderContext(std::string& name);
+		RenderContext* createRenderContext(std::string& name);
+		std::vector<RenderContext*> getRenderContextList() { return m_render_contexts; }
+
+		// name handling
+		void setName(std::string& name) { m_name = name; }
+		std::string getName() { return m_name; }
+		bool isName(std::string& name) { return m_name == name; }
 
 	protected:
+		std::string m_name;
 		Camera* m_camera = 0; // the active camera
 		Hippios::Engine* m_engine = 0; // reference to the render system
 		Hippios::Renderer* m_renderer = 0;
-		std::vector<Renderable*> m_render_children;
 		Hippios::HippiosWindow* m_win = 0;
+
+		std::vector<RenderContext*> m_render_contexts;
 
 		virtual void registerNode();
 		virtual void registerGroup(std::string group_name, Node* node);

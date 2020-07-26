@@ -295,7 +295,7 @@ namespace Hippios
 				HR = m_d3dDevice->CreateInputLayout(ied, 2, shaderBlob->GetBufferPointer(), shaderBlob->GetBufferSize(), &mInputLayout);
 			}
 			if (FAILED(HR)) {
-				printf("could not create intput layout");
+				printf("D3D11HLSL::GetInputLayout(): could not create input layout");
 			}
 		}
 		return mInputLayout;

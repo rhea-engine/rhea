@@ -4,10 +4,12 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ ${CMAKE_SOURCE_DIR} ${CMAKE_SOU
 
 add_subdirectory(Physics)
 add_subdirectory(Fabrics)
+add_subdirectory(GUI/MWGUI)
 
 add_library (Rhea "Application.cpp" "Importer.cpp" "SceneLoader.cpp" "Unit.cpp" "UnitTree.cpp" "Realm.cpp" "Item.cpp" 
 "Scene.cpp" "Mesh.cpp" "TextResource.cpp" "ImageResource.cpp" "InputMap.cpp" "Dispatcher.cpp" "Controller/BasicController.cpp"
 "Controller/SpectatorController.cpp" "Platform/PlatformService.cpp" "Graphics/GraphicsService.cpp" "Graphics/Texture.cpp" 
-"Graphics/Mesh.cpp" "Graphics/Item.cpp" "Graphics/Scene.cpp" "Graphics/Camera.cpp" "Camera.cpp" "Material.h" "Material.cpp")
+"Graphics/Mesh.cpp" "Graphics/Item.cpp" "Graphics/Scene.cpp" "Graphics/Camera.cpp" "Camera.cpp" "Material.h" "Material.cpp" 
+"Graphics/Item2D.cpp")
 
-target_link_libraries(Rhea Poseidon Orion SimpleParser Winmm RheaPhysics RheaFabrics)
+target_link_libraries(Rhea Poseidon Orion SimpleParser Winmm RheaPhysics RheaFabrics MWGUI)

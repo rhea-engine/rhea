@@ -46,7 +46,7 @@ namespace Poseidon
 		void deregisterViewport(Viewport* viewport);
 
 		// helper 
-		Viewport* getViewport();
+		Viewport* getViewport(std::string name = "root");
 	protected:
 		Node* m_tree = 0;
 		Hippios::Renderer* m_renderer;

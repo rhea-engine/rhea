@@ -57,7 +57,8 @@ namespace Poseidon
 		// get psio engine
 		Psio::Engine* getPsio() { return m_psio; }
 
-		Hippios::Renderer* get_renderer() { return m_renderer->getRenderer(); };
+		Hippios::Renderer* get_renderer() { return m_renderer->getRenderer(); }
+		Hippios::Engine* get_engine() { return m_renderer; }
 
 		// create various items
 		Texture* createTexture(const std::string& file_name);

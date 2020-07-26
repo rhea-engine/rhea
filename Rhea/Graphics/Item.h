@@ -3,6 +3,7 @@
 
 #include <Poseidon/Core.h>
 #include <Poseidon/Node.h>
+#include <Poseidon/RenderContext.h>
 
 #include "../Element.h"
 
@@ -16,7 +17,8 @@ namespace Rhea
 	public:
 		GraphicsItem(Poseidon::Core* core) :
 			m_core(core),
-			m_entity(nullptr)
+			m_entity(nullptr),
+			m_render_context(nullptr)
 		{}
 		~GraphicsItem();
 
@@ -37,7 +39,8 @@ namespace Rhea
 
 	protected:
 		Poseidon::Core* m_core;
-		Poseidon::Node* m_entity;		
+		Poseidon::Node* m_entity;
+		Poseidon::RenderContext* m_render_context;
 	};
 }
 

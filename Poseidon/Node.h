@@ -17,7 +17,7 @@ namespace Poseidon
 		Node() :
 			m_parent_node(NULL)
 		{}
-		~Node();
+		virtual ~Node();
 
 		void setName(char* name);
 		

@@ -130,12 +130,14 @@ namespace Rhea
 			else if (item->getType() == "//meworla/camera") {
 				// make camera without physics	
 				m_item = item;
-			}			
+			}
 			else if (item->getType() == "//meworla/character") {
 				BulletPhysicsCharacter* body = new BulletPhysicsCharacter(m_world, item);
 				body->init();
 				item->addElement("physics", body);
 			}
+			else if (item->getType() == "//meworla/widget")
+				continue;
 			else {
 				BulletPhysicsBody* body = new BulletPhysicsBody(m_world, item);
 				body->init();

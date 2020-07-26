@@ -19,6 +19,7 @@
 #include "Scene.h"
 #include "Mesh.h"
 #include "Camera.h"
+#include "Fabrics/Canvas/Item2D.h"
 #include "Fabrics/Terrain/Terrain.h"
 #include "TextResource.h"
 #include "ImageResource.h"
@@ -68,6 +69,7 @@ namespace Rhea
 		m_unit_tree->registerUnitType("//meworla/terrain", Terrain::createType);
 		m_unit_tree->registerUnitType("//meworla/character", KinematicCharacter::createType);
 		m_unit_tree->registerUnitType("//meworla/shader", TextResource::createType);
+		m_unit_tree->registerUnitType("//meworla/widget", Item2D::createType);
 
 		// add a default input map
 		m_input_map = new InputMap();

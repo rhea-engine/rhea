@@ -3,27 +3,29 @@
 #include "Viewport.h"
 #include "Mesh.h"
 #include "Animatable.h"
-#include "RenderQueue.h"
-#include "Camera.h"
+#include "RenderContext.h"
 
 #include "Entity.h"
 #include "Hippios/D3D11Renderer/D3D11Renderer.h"
 
 namespace Poseidon
 {	
-	Viewport::Viewport()
+	Viewport::Viewport(std::string& name) :
+		m_name(name)
 	{
 		m_groups.emplace("renderable", std::vector<Node*>());
+		RenderContext* context = new RenderContext(std::string("default"));
+		m_render_contexts.push_back(context);
+		Node::addChild(context);
 	}
-	
-	void Viewport::cullObjects(RenderQueue* queue)
+
+	Viewport::~Viewport()
 	{
-		// cull pass
-		// my children
-		for (std::vector<Renderable*>::iterator it = m_render_children.begin(); it != m_render_children.end(); ++it)
+		Node::~Node();
+		for (std::vector<RenderContext*>::iterator it = m_render_contexts.begin(); it != m_render_contexts.end(); ++it)
 		{
-			Renderable* robj = (Renderable*)*it;
-			robj->cullPhase(queue, m_camera);
+			RenderContext* context = *it;
+			delete context;
 		}
 	}
 
@@ -33,9 +35,23 @@ namespace Poseidon
 		m_renderer = m_engine->getRenderer();
 	}
 
-	void Viewport::setCamera(Camera* camera)
+	RenderContext* Viewport::getRenderContext(std::string& name)
 	{
-		m_camera = camera;
+		for (std::vector<RenderContext*>::iterator it = m_render_contexts.begin(); it != m_render_contexts.end(); ++it)
+		{
+			RenderContext* context = *it;
+			if (context->isName(name))
+				return context;
+		}
+		return nullptr;
+	}
+
+	RenderContext* Viewport::createRenderContext(std::string& name)
+	{
+		RenderContext* context = new RenderContext(name);
+		m_render_contexts.push_back(context);
+		Node::addChild(context);
+		return context;
 	}
 
 	void Viewport::registerNode()
@@ -51,17 +67,5 @@ namespace Poseidon
 		}
 
 		Node::registerGroup(group_name, node);
-	}
-
-	void Viewport::addRenderChild(Renderable* child)
-	{
-		Node::addChild(child);
-		m_render_children.push_back(child);
-	}
-
-	void Viewport::removeRenderChild(Renderable* child)
-	{
-		auto it = std::find(m_render_children.begin(), m_render_children.end(), child);
-		m_render_children.erase(it);
-	}
+	}	
 }

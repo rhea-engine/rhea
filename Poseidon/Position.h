@@ -19,11 +19,14 @@ namespace Poseidon
 	protected:
 		Vector3 m_position;
 		Quaternion m_rotation;
+		Matrix3x4 m_wtm;
 
 		Node* m_owner;
 
 		/// Fixed axis to yaw around
 		Vector3 m_yaw_fixed_axis;
+
+		bool m_dirty_wtm;
 	public:
 		Position(Node* owner);
 		void setPosition(float x, float y, float z);

@@ -7,7 +7,10 @@
 
 namespace Poseidon
 {
-	Entity::Entity()
+	Entity::Entity() :
+		m_hidden(false),
+		m_vertex_size(0),
+		m_material(nullptr)
 	{
 		createPosition(0);
 	}
@@ -24,11 +27,25 @@ namespace Poseidon
 	
 	void Entity::cullPhase(RenderQueue* queue, Camera* camera)
 	{
-		// TODO - really cull
+		// make sure we have geometry
 		if (!m_mesh)
 			return;
 
+		// if we are hidden we dont add ourself or our children to the list
+		if (m_hidden)
+			return;
+
+		// TODO - really cull based on AABB or similar
+
+		// add myself to the render list
 		queue->addRenderable(this);
+
+		// add children to render list
+		for (auto it = m_groups["renderable"].begin(); it != m_groups["renderable"].end(); ++it)
+		{
+			Renderable* child = static_cast<Renderable*>(*it);
+			child->cullPhase(queue, camera);
+		}		
 	}
 
 	void Entity::getRenderInput(Hippios::VertexBuffer** pvb, Hippios::IndexBuffer** pib, int& num_indices)

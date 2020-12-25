@@ -22,10 +22,9 @@ void Ceto::setup()
 	}
 	loadScene(m_home_scene, [&](Rhea::Scene* scene, ReqError err) {
 		if (err == ReqError::OK) {
-			log("scene loaded");
 			static_cast<Rhea::GraphicsService*>(m_services["graphics"])->setScene(scene);
 			std::unique_ptr<Rhea::Event> ev = std::make_unique<Rhea::Event>("display");
-			scene->sendEvent(std::string("display"), ev.get());			
+			scene->sendEvent(std::string("display"), ev.get());
 			scene->broadcast("show");
 			Rhea::PhysicsService* physics = static_cast<Rhea::PhysicsService*>(m_services["physics"]);
 			if (!physics) {
@@ -39,7 +38,7 @@ void Ceto::setup()
 				physics->onInit();
 				m_services["physics"] = physics;
 			}
-			
+
 			// search for a controller
 			m_focused_controller = static_cast<Rhea::Controller*>(m_unit_tree->findByType("//meworla/controller"));
 			if (!m_focused_controller) {
@@ -56,10 +55,10 @@ void Ceto::setup()
 				m_focused_controller->connect(m_view);
 				scene->addChild(m_focused_controller);
 			}
-			static_cast<Rhea::PhysicsService*>(m_services["physics"])->setScene(scene);
+			static_cast<Rhea::PhysicsService*>(m_services["physics"])->setScene(static_cast<Rhea::Scene*>(scene));
 
 			// now we are ready
-			log("scene ready");
+			log("scene displayed");
 			std::unique_ptr<Rhea::Event> ev_r = std::make_unique<Rhea::Event>("ready");
 			scene->sendEvent(std::string("ready"), ev_r.get());
 

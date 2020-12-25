@@ -46,8 +46,7 @@ namespace Rhea
 		virtual void close();
 		// load a scene
 		void loadScene(const std::string resourceId, std::function<void(Scene*, ReqError error)> handler);
-		// scene was loaded callback
-		void onSceneReady(Unit *parent, Orion::Resource*, std::function<void(Scene*, ReqError error)> handler);
+
 		virtual void onResourceFailed(Orion::ResourceRequest::Error reason);
         // get a resource
 		void loadResource(const std::string resource_id, Orion::ResourceRequest::RequestHandler handler);

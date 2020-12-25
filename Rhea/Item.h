@@ -42,8 +42,8 @@ namespace Rhea
 		// setup from strings
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
 
-		// load item
-		void load(ReadyHandler handler);
+		// ready event handler
+		void ready();
 
 		// get dependent data
 		Mesh* getMesh() { return m_mesh; }
@@ -84,7 +84,6 @@ namespace Rhea
 		float m_turn;
 		Material* m_material;
 
-		void loadDependencies(ReadyHandler handler);
 		bool getGraphicsItem();
 	};
 }

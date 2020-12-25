@@ -98,17 +98,15 @@ namespace Rhea
 		return false;		
 	}
 
-	void Character::load(ReadyHandler handler)
+	void Character::ready()
 	{
-		Item::load([&](ReqError err) {
+		Item::ready();
 
-			// set defaults
-			m_values["character"] = true;
+		// set defaults
+		m_values["character"] = true;
 
-			// register to physics step
-			m_parent->registerEventHandler("ready", std::bind(&Character::onSceneReady, this, std::placeholders::_1, std::placeholders::_2));
-			handler(err);
-			});
+		// register to physics step
+		m_parent->registerEventHandler("ready", std::bind(&Character::onSceneReady, this, std::placeholders::_1, std::placeholders::_2));
 	}
 
 	bool Character::onSceneReady(Event* ev, Unit* unit)

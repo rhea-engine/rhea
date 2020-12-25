@@ -2,8 +2,5 @@
 
 namespace Rhea 
 {
-	void Material::load(ReadyHandler handler)
-	{
-
-	}
+	
 }

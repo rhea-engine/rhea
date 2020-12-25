@@ -10,30 +10,28 @@ namespace Rhea
 			free(m_buf);
 	}
 
-	void TextResource::load(ReadyHandler handler)
+	void TextResource::load(Orion::ResourceRequest* req, ReadyHandler handler)
 	{
-		if (m_status>=Status::LOADED)
+		if (m_status >= Status::LOADED)
 			return handler(ReqError::OK);
 
-		m_app->loadResource(m_path, [&](Orion::ResourceRequest* req, Orion::ResourceRequest::Error err) {
-			if (req) {
-				Orion::ResourceStream* rs = req->getResource()->Open(Orion::Fs::READ);
-				char* buf;
-				size_t buflen;
-				buflen = rs->ReadBuffer(&buf);
-				delete rs;
-				if (buflen > 0) {
-					m_buf = buf;
-					m_buflen = buflen;
-				}
-				m_status = Status::LOADED;
-				handler(ReqError::OK);
+		if (req) {
+			Orion::ResourceStream* rs = req->getResource()->Open(Orion::Fs::READ);
+			char* buf;
+			size_t buflen;
+			buflen = rs->ReadBuffer(&buf);
+			delete rs;
+			if (buflen > 0) {
+				m_buf = buf;
+				m_buflen = buflen;
 			}
-			else {
-				m_status = Status::NOT_FOUND;
-				handler(ReqError::RESOURCE_NOT_FOUND);
-			}
-			});
+			m_status = Status::LOADED;
+			handler(ReqError::OK);
+		}
+		else {
+			m_status = Status::NOT_FOUND;
+			handler(ReqError::RESOURCE_NOT_FOUND);
+		}
 	}
 	
 	std::string TextResource::getAsString()

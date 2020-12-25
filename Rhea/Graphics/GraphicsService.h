@@ -22,7 +22,7 @@ namespace Rhea
 	public:
 		typedef std::function<Element* (Poseidon::Core*, Unit*)> ElementCreatorFunc;
 
-		GraphicsService(Application* app);
+		GraphicsService(std::string name, std::string type_name);
 
 		// set the platform service
 		void setPlatform(Service* platform_service);
@@ -40,6 +40,9 @@ namespace Rhea
 		bool onFrame();
 		
 		bool onDisplay(Event* ev, Unit* unit);
+
+		// factory function
+		static Unit* createType(std::string name, std::string type);
 
 	protected:
 		std::unique_ptr<Poseidon::Core> m_core;

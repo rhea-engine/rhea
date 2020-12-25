@@ -22,9 +22,9 @@
 
 namespace Rhea
 {
-	GraphicsService::GraphicsService(Application* app) :
+	GraphicsService::GraphicsService(std::string name, std::string type_name) :
 		m_platform(nullptr),
-		Service(app, "GraphicsService")	
+		Service(name, type_name)	
 	{
 		m_core = std::make_unique<Poseidon::Core>();
 		m_element_factory["//meworla/texture"] = &GraphicsTexture::createElement;
@@ -76,11 +76,18 @@ namespace Rhea
 		bool ret = false;
 
 		// create type if factory found
-		auto it = m_element_factory.find(unit->getType());
+		auto it = m_element_factory.find(unit->getTypeName());
 		if (it != m_element_factory.end()) {
 			Element* el = it->second(m_core.get(), unit);
 		}
 
+		return ret;
+	}
+
+	// factory function
+	Unit* GraphicsService::createType(std::string name, std::string type)
+	{
+		Unit* ret = (Unit*)new GraphicsService(name, type);
 		return ret;
 	}
 }

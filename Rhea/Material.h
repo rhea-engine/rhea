@@ -18,9 +18,6 @@ namespace Rhea
 			Resource(name, "//meworla/mesh")
 		{}
 
-		// load mesh
-		void load(ReadyHandler handler);
-
 		// get textures
 		std::vector<ImageResource*>& getTextures() { return m_textures; }
 

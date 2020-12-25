@@ -4,8 +4,8 @@
 
 namespace Rhea
 {
-	PlatformService::PlatformService(Application* app) :
-		Service(app, "platform")
+	PlatformService::PlatformService(std::string name, std::string type_name) :
+		Service("Platform", type_name)
 	{
 		m_psio = std::make_unique<Psio::Engine>();
 	}
@@ -14,4 +14,10 @@ namespace Rhea
 	{
 	}
 
+	// factory function
+	Unit* PlatformService::createType(std::string name, std::string type)
+	{
+		Unit* ret = (Unit*)new PlatformService(name, type);
+		return ret;
+	}
 }

@@ -6,8 +6,10 @@
 #include <unordered_map>
 
 #include "SimpleParser/Variant.h"
+#include "SimpleParser/Type.h"
 #include "Event.h"
 #include "Element.h"
+#include "Error.h"
 
 using SimpleParser::Variant;
 
@@ -16,18 +18,27 @@ namespace Rhea
 	class Application;
 	class Visitor;
 
-	class Unit
+	class Unit : public SimpleParser::Variant
 	{
 	public:
 		Unit(std::string path_name, std::string type_name) :
 			m_app(NULL),
 			m_pathname(path_name),
-			m_type_name(type_name),
 			m_parent(NULL),
-			m_path(path_name)
+			m_path(path_name),
+			m_refcount(0),
+			SimpleParser::Variant(SimpleParser::Type::get(type_name))
 		{}		
 		virtual void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
 		virtual void setup(Application* app) { m_app = app; }
+
+		// async prepare
+		typedef std::function<void(Error*)> ReadyHandler;
+		// async prepare
+		virtual void prepare(ReadyHandler handler);
+
+		// ready signal - all dependant units are prepared and we now finalize for usage, recursive to children
+		virtual void ready();
 
 		// add a child resource
 		void addChild(Unit* child);
@@ -38,8 +49,8 @@ namespace Rhea
 		// get full path
 		std::string getPath() { return m_path; }
 
-		// get my type
-		std::string getType() { return m_type_name; }
+		// get full path for other unit
+		std::string getPath(std::string& unit_path);
 
 		// find by path
 		Unit* find(std::string path, bool create = false);
@@ -53,6 +64,9 @@ namespace Rhea
 		Variant getValue(std::string name, Variant default_val);
 		// set a value
 		void setValue(std::string name, Variant val);
+
+		// rename
+		void setName(std::string name);
 
 		// Elements
 
@@ -69,7 +83,7 @@ namespace Rhea
 		// message implementation
 		virtual void message(std::string method_name);
 
-		// register the event handlre for event event_name
+		// register the event handler for event event_name
 		void registerEventHandler(std::string event_name, Event::EventHandler handler);
 		
 		// register event handler in all children of the unit
@@ -78,11 +92,26 @@ namespace Rhea
 		// send Event
 		void sendEvent(std::string event_name, Event* event);
 
-		// send Event from all children
+		// send Event to all children
 		void sendEventChildren(std::string event_name, Event* event);
 
 		// get Application
 		Application* getApplication() { return m_app; }
+
+		// increment reference count
+		void incRef() { m_refcount++; }
+
+		// decrease reference count
+		void decRef() { m_refcount--; }
+
+		
+		// type functions
+		
+		// create unit type
+		static Unit* createType(std::string name, std::string type_name);
+
+		// type initialization
+		static void initializeType(SimpleParser::Type* type);
 
 		// print my info
 		virtual void logMe();
@@ -91,12 +120,12 @@ namespace Rhea
 		Unit* m_parent;
 		std::string m_pathname;
 		std::string m_path;
-		std::string m_type_name;
 		std::unordered_map<std::string, std::string> m_attributes;
 		std::unordered_map<std::string, Variant> m_values;
 		std::unordered_map<std::string, Unit*> m_children;
 		std::unordered_map < std::string, std::vector<Event::EventHandler>> m_eventhandlers;		
 		std::unordered_map<std::string, Element*> m_elements;
+		int m_refcount;
 	};
 }
 

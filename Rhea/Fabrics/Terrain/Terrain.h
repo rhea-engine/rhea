@@ -27,6 +27,9 @@ namespace Rhea
 			Item(name, type_name)
 		{}
 
+		// setup from strings
+		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
+
 		// get height in world coords
 		float getHeight(float x, float z);
 
@@ -34,7 +37,7 @@ namespace Rhea
 		float getHeightAt(int x, int y);
 
 		// load terrain
-		void load(ReadyHandler handler);
+		void ready();
 
 		ImageResource* getTexture() { return m_texture; }		
 		Poseidon::Vector3 calculateNormal(int x, int y);

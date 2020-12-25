@@ -12,11 +12,9 @@ namespace Rhea
 	class Service : public Unit
 	{
 	public:
-		Service(Application* app, std::string service_name) :
+		Service(std::string service_name, std::string type_name) :
 			Unit(service_name, "//meworla/service")
-		{
-			m_app = app;
-		}
+		{}
 
 		//  events
 		

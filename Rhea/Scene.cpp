@@ -1,6 +1,7 @@
 #include "Scene.h"
 #include "Item.h"
 #include "Graphics/Scene.h"
+#include "SceneLoader.h"
 
 namespace Rhea
 {
@@ -9,33 +10,21 @@ namespace Rhea
 		m_items.push_back(item);
 	}	
 
-	void Scene::load(ReadyHandler handler)
+	Unit* Scene::createType(std::string name, std::string type)
 	{
-		if (m_status >= Status::LOADED)
-			handler(ReqError::OK);
+		Unit* ret = (Unit*)new Scene(name);
+		return ret;
+	}
 
-		int to_load = (int)m_items.size();
-		if (!to_load) {
-			m_status = Status::LOADED;
-			handler(ReqError::OK);
-		}
+	void Scene::load(Orion::ResourceRequest* req, ReadyHandler handler)
+	{
+		// for now we assume a scene file
+		std::unique_ptr<SceneLoader> parser = std::make_unique<SceneLoader>();
 
-		// iterate over children and load them
-		// call ready handler when all children where loaded	
-		// this ignores errors in loading children 
-		// TODO check if this should fail fast instead of ignore?
-		// Note: handlers and loaders may add items to the list
-		int item_size = m_items.size();
-		for (int i = 0; i < item_size; i++) {
-			Item* item = m_items[i];
-			item->load([&](ReqError err) {
-				to_load--;
-				if (to_load <= 0) {
-					m_status = Status::LOADED;
-					handler(ReqError::OK);
-				}
-				});
-		}
+		// parse the file
+		parser->load(this, req->getResource(), m_app);
 
-	}	
+		// assume everything is fine
+		handler(ReqError::OK);
+	}
 }

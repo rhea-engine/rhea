@@ -6,22 +6,14 @@
 
 namespace SimpleParser
 {
+	class Type;
+
 	class Variant
 	{
 	public:
 
-		enum class Type
-		{
-			NONE,
-			BOOL,
-			INT,
-			FLOAT,
-			PTR,
-			STRING,
-			ARRAY
-		};
-
-		Variant() : m_type(Type::NONE) { m_data._int = 0; }
+		Variant();
+		Variant(Type* t) : m_type(t) { m_data._int = 0; }
 		Variant(bool _bool);
 		Variant(int i);
 		Variant(int64_t i);
@@ -32,12 +24,14 @@ namespace SimpleParser
 		Variant(std::vector<Variant>& arr);
 		Variant(const Variant& variant);
 		Variant(const char* s);
+		Variant(Variant* obj);
 
 		~Variant();
 
 		// converters
 		operator std::string() const;
 		operator std::vector<Variant>() const;
+		operator Variant*() const;
 		operator float() const;
 		operator bool() const;
 		operator int() const;
@@ -47,10 +41,19 @@ namespace SimpleParser
 		// comparison
 		bool operator==(const Variant& variant) const;
 		bool operator!=(const Variant& variant) const;
+		bool isNull() const;
 
 		// support functions
 		int length();
+		
 		int size() { return length(); }
+
+		// type info
+		Type* getType() { return m_type; }
+		std::string& getTypeName(); 
+
+		// factory
+		static Variant* createType(std::string name, std::string type);
 
 	protected:
 		union {
@@ -60,9 +63,10 @@ namespace SimpleParser
 			void* _ptr;
 			std::string* _str;
 			std::vector<Variant>* _array;
+			Variant* _obj;
 		} m_data;
 
-		Type m_type;
+		Type* m_type;
 	};
 }
 

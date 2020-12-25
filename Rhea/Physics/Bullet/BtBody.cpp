@@ -3,6 +3,7 @@
 #include "../Mesh.h"
 #include "Fabrics/Terrain/Terrain.h"
 #include <Poseidon/Node.h>
+#include "Application.h"
 
 #include "btBulletDynamicsCommon.h"
 
@@ -68,7 +69,13 @@ namespace Rhea
 					triMesh->addTriangle(v1, v2, v3);
 				}
 
-				colShape = new btBvhTriangleMeshShape(triMesh, true);
+				if (!indices.size()) {
+					m_item->getApplication()->log("BtBody: no indices for item");
+					colShape = new btBoxShape(btVector3(1, 1, 1));
+				}
+				else {
+					colShape = new btBvhTriangleMeshShape(triMesh, true);
+				}
 			}
 			else {
 				// for dynamic objects we handle it not correctly...
@@ -89,7 +96,11 @@ namespace Rhea
 			colShape->calculateLocalInertia(m_mass, localInertia);
 
 		// get position and rotation from m_item
-		Poseidon::Vector3 pos = m_item->getNode()->get_position()->get_worldspace();
+		Poseidon::Node* node = m_item->getNode();
+		if (!node) {
+			return;
+		}
+		Poseidon::Vector3 pos = node->get_position()->get_worldspace();
 		Poseidon::Quaternion rot = m_item->getNode()->get_position()->get_rotation();
 		float offset_y = m_item->getValue("collision_shape_offset_y");
 		if (offset_y)

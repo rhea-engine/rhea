@@ -15,14 +15,17 @@ namespace Rhea
 			NONE,
 			WORLD
 		};
-		PhysicsManagerService(Application* app) :
-			Service(app, "PhysicsManagerService")
+		PhysicsManagerService(std::string name, std::string type_name) :
+			Service("PhysicsManagerService", type_name)
 		{}
 
 		PhysicsService* getPhysicsService(Types type);
 
 		// Service functions
 		virtual void onInit();
+
+		// factory function
+		static Unit* createType(std::string name, std::string type);
 	};
 }
 

@@ -1,38 +1,45 @@
 #include "UnitTree.h"
+#include "SimpleParser/Type.h"
+
 
 namespace Rhea
 {
 	Unit* UnitTree::createUnit(std::string basename, std::string type_name)
 	{
-		//  find factory 
-		std::unordered_map<std::string, UnitCreatorFunc>::const_iterator f = m_factory.find(type_name);
-		Unit* unit;
-		if (f == m_factory.end()) {
-			// type not found - create a base unit type
-			unit = new Unit(basename, type_name);
+		Unit* unit = static_cast<Unit*>(SimpleParser::Type::create(basename, type_name));
+		if (unit->getType() != SimpleParser::Type::get(SimpleParser::Type::BaseType::NONE))
+		{
+			unit->setup(m_app);
+			return unit;
 		}
 		else {
-			UnitCreatorFunc func = f->second;
-			unit = func(basename, type_name);
+#ifndef _DEBUG
+			return nullptr;
+#else
+			throw;
+#endif // !_DEBUG
 		}
-		unit->setup(m_app);
-		
-		return unit;
 	}
 
 	Unit* UnitTree::createUnit(std::string basename, std::string type_name, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{
-		Unit* unit = createUnit(basename, type_name);
-		unit->setup(m_app, attributes, values);
-		return unit;
+		Unit* unit = static_cast<Unit*>(SimpleParser::Type::create(basename, type_name));
+		if (unit->getType() != SimpleParser::Type::get(SimpleParser::Type::BaseType::NONE))
+		{
+			unit->setup(m_app, attributes, values);
+			return unit;
+	}
+		else {
+#ifndef _DEBUG
+			return nullptr;
+#else
+			throw;
+#endif // !_DEBUG
+		}
 	}
 
 	Unit* UnitTree::createUnitById(std::string resource_id, std::string type_name)
 	{
-		//  find factory 
-		std::unordered_map<std::string, UnitCreatorFunc>::const_iterator f = m_factory.find(type_name);
-		Unit* unit;
-
 		// basename / path
 		// split path into basename and path
 		std::string path = resource_id;
@@ -52,24 +59,18 @@ namespace Rhea
 			return NULL;
 
 		// create unit
-		if (f == m_factory.end()) {
-			// type not found - create a base unit type
-			unit = new Unit(path.substr(rpos+1), type_name);
-		}
-		else {
-			UnitCreatorFunc func = f->second;
-			unit = func(path.substr(rpos + 1), type_name);
-		}
-		unit->setup(m_app);
+		Unit* unit = createUnit(path.substr(rpos + 1), type_name);
 
 		// add it to tree
-		unit_parent->addChild(unit);
+		if (unit)
+			unit_parent->addChild(unit);
 
 		return unit;
 	}
 
-	void UnitTree::registerUnitType(std::string type_name, UnitCreatorFunc create_func)
+	Unit* UnitTree::createType(std::string name, std::string type_name)
 	{
-		m_factory[type_name] = create_func;
+		Unit* ret = (Unit*)new UnitTree(name, type_name);
+		return ret;
 	}
 }

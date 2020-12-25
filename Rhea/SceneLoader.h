@@ -15,7 +15,7 @@ namespace Rhea
 	class SceneLoader
 	{
 	public:
-		Scene* load(Unit* parent, Orion::Resource* resource, Application* app);
+		void load(Scene* scene, Orion::Resource* resource, Application* app);
 	};
 }
 #endif // !RHEA_SCENELOADER_H

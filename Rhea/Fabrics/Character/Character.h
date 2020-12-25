@@ -34,8 +34,8 @@ namespace Rhea
 		// handle physics update
 		bool doPhysics(Event* ev, Unit* unit);
 
-		// load item
-		void load(ReadyHandler handler);
+		// ready event handler
+		void ready();
 
 		// scene reads
 		bool onSceneReady(Event* ev, Unit* unit);

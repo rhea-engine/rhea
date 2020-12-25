@@ -10,7 +10,7 @@
 
 namespace Rhea
 {	
-	Scene* SceneLoader::load(Unit* parent, Orion::Resource* resource, Application* app)
+	void SceneLoader::load(Scene* scene, Orion::Resource* resource, Application* app)
 	{
 		std::unique_ptr<SimpleParser::IniFileParser> parser = std::make_unique<SimpleParser::IniFileParser>();
 		std::vector<SimpleParser::IniFileParser::Section> sections;
@@ -21,24 +21,18 @@ namespace Rhea
 		size_t buflen;
 		buflen = rs->ReadBuffer(&buf);
 		if (buflen <= 0)
-			return NULL;
+			return;
 		delete rs;
 
 		int entries = parser->parse(buf, buflen, sections);
-		// create the scene
-		Scene* scene;
+		
+		// initialize the scene
 		if (sections.size() > 0 && sections[0].section_name == "scene") {
 			if (sections[0].values["name"].length())
-				scene = new Scene(sections[0].values["name"]);
-			else
-				scene = new Scene(resource->get_name());
+				scene->setName(sections[0].values["name"]);
 			scene->setup(app, sections[0].attributes, sections[0].values);
 		}
-		else {
-			scene = new Scene(resource->get_name());
-			scene->setup(app);
-		}
-		parent->addChild(scene);
+		std::string basepath = scene->getPath();
 
 		// get all resources packed in this file to prevent reloading them
 		std::vector<std::string> packed_resources;
@@ -47,6 +41,7 @@ namespace Rhea
 			packed_resources.push_back(section.section_name);
 		}
 
+		// setup all resources
 		for (std::vector<SimpleParser::IniFileParser::Section>::iterator it = sections.begin(); it != sections.end(); ++it) {
 			SimpleParser::IniFileParser::Section section = *it;
 			std::string type_name = section.values["type"];
@@ -64,6 +59,8 @@ namespace Rhea
 			std::string ppath;
 			Unit* unit;
 			Unit* child_parent;
+			// add basepath to attributes
+			section.attributes["basepath"] = basepath;
 			if (rpos != std::string::npos) {
 				// create the unit and set config params
 				unit = tree->createUnit(path.substr(rpos + 1), type_name, section.attributes, section.values);
@@ -83,8 +80,6 @@ namespace Rhea
 				scene->addItem((Item*)unit);
 			}
 		}
-		free(buf);
-
-		return scene;		
+		free(buf);	
 	}
 }

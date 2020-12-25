@@ -1,4 +1,5 @@
 #ifndef SIMPLEPARSER_H
+#define SIMPLEPARSER_H
 
 #include <string>
 #include "Variant.h"

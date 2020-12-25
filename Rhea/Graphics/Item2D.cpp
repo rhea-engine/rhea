@@ -54,7 +54,13 @@ namespace Rhea
 			pos->setPosition(0.0f, 0.0f, 0.0f);
 
 		// material
-		string mat_name = item->getMaterial()->getPathName();
+		Rhea::Material* mat = item->getMaterial();
+		if (!mat) {
+			item->getApplication()->log("item2d has no material");
+			item->addElement("graphics", this);
+			return;
+		}
+		string mat_name = mat->getPathName();
 		Poseidon::Material* material = m_core->getMaterial(mat_name);
 		if (!material)
 		{

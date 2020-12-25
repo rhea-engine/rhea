@@ -15,7 +15,6 @@ namespace Rhea
 	{
 	public:
 		Mesh(std::string name) :
-			m_app(nullptr),		
 			m_material(nullptr),
 			Resource(name, "//meworla/mesh")
 		{}
@@ -37,8 +36,8 @@ namespace Rhea
 		// setup from strings
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
 
-		// load mesh
-		void load(ReadyHandler handler);
+		// ready handler
+		void ready();
 				
 		// get material
 		Material* getMaterial() { return m_material; }
@@ -52,7 +51,6 @@ namespace Rhea
 		static Unit* createType(std::string name, std::string type);
 
 	protected:
-		Application* m_app;
 		Material* m_material;
 		std::vector<vertex> m_vertices;
 		std::vector<unsigned long> m_v_indices;

@@ -6,87 +6,39 @@
 #include "Mesh.h"
 #include "Graphics/Item.h"
 #include "Physics/Body.h"
+#include "ResourceList.h"
 
 namespace Rhea
 {
 	void Item::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{
-		m_attributes = attributes;
-		m_values = values;
-		m_app = app;
+		Unit::setup(app, attributes, values);
 		m_status = Status::SETUP;
+
+		m_resource_list = new ResourceList(app);
+
+		// dependent resources
+		if (m_values.find("mesh") != m_values.end())
+			m_resource_list->push("mesh", getPath((std::string)m_values["mesh"]), "//meworla/mesh");
 	}
 
-	void Item::load(ReadyHandler handler)
-	{
-		if (m_status >= Status::LOADED)
-			return handler(ReqError::OK);
-
-		if (m_status == Status::SETUP) {
-			loadDependencies(handler);
-		}
-		else {
-			// TODO load myself and then call dependencies
-			printf("Item::load without setup not implemented\n");
-		}
-	}
-	
 	Unit* Item::createType(std::string name, std::string type)
 	{
 		Unit* ret = (Unit*)new Item(name);
 		return ret;
 	}
 	
-	void Item::loadDependencies(ReadyHandler handler)
+	void Item::ready()
 	{
-		// get all resources we depend on
-		auto m = m_values.find("mesh");
-		if (m != m_values.end()) {
-			std::string path;
-			std::string val = m->second;
-			if (val.substr(0, 1) == "/")
-				path = m->second;
-			else if (m_parent)
-				path = m_parent->getPath() + "/" + val;
-			else
-				path = "//" + val;
+		if (m_status >= Status::READY)
+			return;
+		m_status = Status::READY;
+		Unit::ready();
 
-			// check if resource already loaded
-			Unit* unit = m_app->getUnitTree()->find(path, false);
-			if (unit) {
-				std::string type = unit->getType();
-				if (type == "//meworla/mesh") {
-					m_mesh = (Mesh*)unit;
-					m_mesh->load([&](ReqError err) {
-						m_status = Status::LOADED;
-						handler(err);
-						});
-					return;
-				}
-				else {
-					m_status = Status::LOADED;
-					handler(ReqError::OK);
-					return;
-				}
-			}
-
-			m_app->loadResource(path, [&](Orion::ResourceRequest* req, Orion::ResourceRequest::Error err) {
-				
-				if (req) {
-					m_status = Status::LOADED;
-					// TODO: m_mesh = 
-					handler(ReqError::OK);
-				}
-				else {
-					m_status = Status::NOT_FOUND;
-					m_app->log(Orion::ResourceRequest::getErrorMessage(err) + ": " + path);
-					handler(err);
-				}
-				});
-		}
-		else {
-			m_status = Status::LOADED;
-			handler(ReqError::OK);
+		if (!m_mesh) {
+			m_mesh = static_cast<Mesh*>(m_app->getUnitTree()->find(getPath((std::string)m_values["mesh"]), false));
+			if (m_mesh)
+				m_mesh->ready();
 		}
 	}
 

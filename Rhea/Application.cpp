@@ -35,41 +35,58 @@
 #include "Platform/PlatformService.h"
 #include "Physics/PhysicsManager.h"
 
+#include "SimpleParser/Type.h"
+#include "SimpleParser/Method.h"
+
 #include "Application.h"
 
 namespace Rhea
 {
 	void Application::init()
 	{		
-		// initialize graphics system
-		GraphicsService* g_service = new GraphicsService(this);
+		// register core types
+		SimpleParser::Type::registerType<Unit>("//core/types/unit");
+		SimpleParser::Type::registerType<UnitTree>("//core/unittree");
+
+		// initialize services
+		SimpleParser::Type::registerType<Service>("//meworla/service");
+		SimpleParser::Type::registerType<GraphicsService>("//meworla/graphicsservice");
+		SimpleParser::Type::registerType<PlatformService>("//meworla/platformservice");
+		SimpleParser::Type::registerType<PhysicsManagerService>("//meworla/physicsmanagerservice");
+
+		GraphicsService* g_service = (GraphicsService*)SimpleParser::Type::create("GraphicsService", "//meworla/graphicsservice");
+		g_service->setup(this);
 		m_services["graphics"] = g_service;
-		Service* psio = new PlatformService(this);
+		Service* psio = (PlatformService*)SimpleParser::Type::create("PlatformService", "//meworla/platformservice");
+		psio->setup(this);
 		g_service->setPlatform(psio);
 		m_services["platform"] = psio;
 		core = g_service->getEngine();
-		Service* phy_mgr = new PhysicsManagerService(this);
+		Service* phy_mgr = (PhysicsManagerService*)SimpleParser::Type::create("PhysicsManagerService", "//meworla/physicsmanagerservice");
+		phy_mgr->setup(this);
 		m_services["physics_mgr"] = phy_mgr;
 
 //		core = new Poseidon::Core();
 		m_fs = new Orion::Orion(m_appname);
-		m_unit_tree = new UnitTree(this);
+		m_unit_tree = (UnitTree*)SimpleParser::Type::create("/", "//core/unittree");
+		m_unit_tree->setup(this);
 
-		// register core types
-		m_unit_tree->registerUnitType("//meworla/realm", Realm::createType);
-		m_unit_tree->registerUnitType("//meworla/item", Item::createType);
-		m_unit_tree->registerUnitType("//meworla/mesh", Mesh::createType);
-		m_unit_tree->registerUnitType("//meworla/wavefront-object", TextResource::createType);
-		m_unit_tree->registerUnitType("//meworla/wavefront-material", TextResource::createType);
-		m_unit_tree->registerUnitType("//meworla/texture", ImageResource::createType);
-		m_unit_tree->registerUnitType("//meworla/controller", BasicController::createType);
-		m_unit_tree->registerUnitType("//meworla/spectator", SpectatorController::createType);
-		m_unit_tree->registerUnitType("//meworla/camera", Camera::createType);
-		m_unit_tree->registerUnitType("//meworla/heightmap", ImageResource::createType);
-		m_unit_tree->registerUnitType("//meworla/terrain", Terrain::createType);
-		m_unit_tree->registerUnitType("//meworla/character", KinematicCharacter::createType);
-		m_unit_tree->registerUnitType("//meworla/shader", TextResource::createType);
-		m_unit_tree->registerUnitType("//meworla/widget", Item2D::createType);
+		// register scene types
+		SimpleParser::Type::registerType<Realm>("//meworla/realm");
+		SimpleParser::Type::registerType<Scene>("//meworla/scene");
+		SimpleParser::Type::registerType<Item>("//meworla/item");
+		SimpleParser::Type::registerType<Mesh>("//meworla/mesh");
+		SimpleParser::Type::registerType<TextResource>("//meworla/wavefront-object");
+		SimpleParser::Type::registerType<TextResource>("//meworla/wavefront-material");
+		SimpleParser::Type::registerType<ImageResource>("//meworla/texture");
+		SimpleParser::Type::registerType<BasicController>("//meworla/controller");
+		SimpleParser::Type::registerType<SpectatorController>("//meworla/spectator");
+		SimpleParser::Type::registerType<Camera>("//meworla/camera");
+		SimpleParser::Type::registerType<ImageResource>("//meworla/heightmap");
+		SimpleParser::Type::registerType<Terrain>("//meworla/terrain");
+		SimpleParser::Type::registerType<KinematicCharacter>("//meworla/character");
+		SimpleParser::Type::registerType<TextResource>("//meworla/shader");
+		SimpleParser::Type::registerType<Item2D>("//meworla/widget");
 
 		// add a default input map
 		m_input_map = new InputMap();
@@ -106,38 +123,18 @@ namespace Rhea
 
 	void Application::loadScene(const std::string resourceId, std::function<void(Scene*, ReqError error)> handler)
 	{
-		Orion::ResourceRequest* req = m_fs->getResourceByRid(resourceId);
-		req->resolve([&](Orion::ResourceRequest* req, Orion::ResourceRequest::Error err) {
-			if (err == Orion::ResourceRequest::Error::OK) {
-				// if we have a realm 
-				std::string realm_name = req->getRealmName();
-				Unit* realm_unit = m_unit_tree->find(realm_name, false);
-				if (!realm_unit) {
-					// add the realm
-					realm_unit = (Unit*)new Realm(req->getRealm(), realm_name);
-					m_unit_tree->addChild(realm_unit);
-				}
-				onSceneReady(realm_unit, req->getResource(), handler);
+		loadResource(resourceId, "//meworla/scene", [&](Rhea::Unit* scene, ReqError r_err) {
+			if (r_err == ReqError::OK) {
+				scene->prepare([&](Rhea::Error* err) {
+					log("scene loaded");
+					scene->ready();
+					log("scene ready");
+					handler((Scene*)scene, r_err);
+					});
 			}
 			else {
-				log(Orion::ResourceRequest::getErrorMessage(err) + ": " + resourceId);
-			}
-			});	
-	}
-
-	void Application::onSceneReady(Unit* parent, Orion::Resource* res, std::function<void(Scene*, ReqError error)> handler)
-	{
-		// for now we assume a scene file
-		std::unique_ptr<SceneLoader> parser = std::make_unique<SceneLoader>();
-
-		// parse the file
-		Scene *scene = parser->load(parent, res, this);
-		scene->load([&](ReqError err) {
-			if (err == ReqError::OK) {
-				handler(scene, err);
-			}
-			else {
-				handler(NULL, err);
+				log("loading of scene failed");
+				handler(nullptr, r_err);
 			}
 			});
 	}
@@ -195,6 +192,19 @@ namespace Rhea
 		uint64_t fps_start = psio->getTicks();
 		uint64_t fps_count = 0;
 		float elapsed_fs = 0.0f;
+
+#ifdef _DEBUG
+		Unit* u = m_unit_tree->find("//rhea/shaders");
+		auto mth = u->getType()->getMethod("getName");
+		std::string s = static_cast<std::string>(mth->execute(u));
+		log("shader folder: " + s);
+		Variant v = std::string("new_shaders");
+		Variant* vs[1];
+		vs[0] = &v;
+		//u->getType()->getMethod("setName")->execute(u, v);
+		u->getType()->getMethod("setName")->execute(u, vs, 1);
+		log("shader folder: " + static_cast<std::string>(mth->execute(u)));
+#endif
 
 		while (!ret) {
 
@@ -323,9 +333,9 @@ namespace Rhea
 				// add it to tree
 				parent_unit->addChild(unit);
 
-				// call load of unit
+				// call load of unit				
 				// TODO: check if really is a resource
-				((Resource*)unit)->load([&](ReqError err) {
+				((Resource*)unit)->load(req, [&](ReqError err) {
 					handler(unit, err);
 					});
 			}

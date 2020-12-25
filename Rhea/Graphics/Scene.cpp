@@ -31,9 +31,9 @@ namespace Rhea
 		std::vector<Item*> items = scene->getItems();
 		for (auto it = items.begin(); it != items.end(); ++it) {
 			Item* item = *it;
-			if (item->getType() == "//meworla/camera")
+			if (item->getTypeName() == "//meworla/camera")
 				GraphicsCamera::createElement(m_core, item);
-			else if (item->getType() == "//meworla/widget")
+			else if (item->getTypeName() == "//meworla/widget")
 				GraphicsItem2D::createElement(m_core, item);
 			else
 				GraphicsItem::createElement(m_core, item);

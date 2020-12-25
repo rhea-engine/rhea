@@ -13,8 +13,12 @@ namespace Rhea
 	class PhysicsService : public Service
 	{
 	public:
-		PhysicsService(Application* app);
-		PhysicsService(Application* app, std::string service_name);
+		PhysicsService::PhysicsService(std::string name, std::string type_name) :
+			m_item(nullptr),
+			m_terrain(nullptr),
+			Service(name, type_name)
+		{
+		}
 
 		// process physics with delta seconds (usually 1/60)
 		virtual void step(float delta);

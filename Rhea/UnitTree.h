@@ -16,11 +16,8 @@ namespace Rhea
 	class UnitTree : public Unit
 	{
 	public:
-		typedef std::function<Unit* (std::string, std::string)> UnitCreatorFunc;
-
-		UnitTree(Application* app) :
-			m_app(app),
-			Unit("/", "//core/unittree")
+		UnitTree(std::string basename, std::string type_name) :
+			Unit(basename, type_name)
 		{}
 
 		// create a reource
@@ -32,12 +29,10 @@ namespace Rhea
 		// create a resource with res id and no values
 		Unit* createUnitById(std::string resource_id, std::string type_name);
 
-		// register a type
-		void registerUnitType(std::string type_name, UnitCreatorFunc create_func);
+		// type functions
 
-	protected:
-		Application* m_app;
-		std::unordered_map<std::string, UnitCreatorFunc> m_factory;
+		// create unit type
+		static Unit* createType(std::string name, std::string type_name);
 	};
 }
 

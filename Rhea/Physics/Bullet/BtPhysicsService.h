@@ -14,7 +14,7 @@ namespace Rhea
 	class BulletPhysicsService : public PhysicsService
 	{
 	public:
-		BulletPhysicsService(Application* app);
+		BulletPhysicsService(std::string name, std::string type_name);
 
 		// process physics with delta seconds (usually 1/60)
 		void step(float delta);

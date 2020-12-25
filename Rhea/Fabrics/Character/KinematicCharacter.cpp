@@ -130,18 +130,16 @@ namespace Rhea
 		}
 	}
 
-	void KinematicCharacter::load(ReadyHandler handler)
+	void KinematicCharacter::ready()
 	{
-		Item::load([&](ReqError err) {
+		Item::ready();
 
-			// set some defaults
-			m_values["kinematic"] = true;
-			m_values["body_type"] = "ghost";
+		// set some defaults
+		m_values["kinematic"] = true;
+		m_values["body_type"] = "ghost";
 
-			// register to physics step
-			m_parent->registerEventHandler("ready", std::bind(&KinematicCharacter::onSceneReady, this, std::placeholders::_1, std::placeholders::_2));
-			handler(err);
-			});
+		// register to physics step
+		m_parent->registerEventHandler("ready", std::bind(&KinematicCharacter::onSceneReady, this, std::placeholders::_1, std::placeholders::_2));
 	}
 
 	bool KinematicCharacter::onSceneReady(Event* ev, Unit* unit)

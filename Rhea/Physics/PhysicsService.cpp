@@ -7,21 +7,6 @@
 
 namespace Rhea
 {
-	PhysicsService::PhysicsService(Application* app) :
-		m_item(nullptr),
-		m_terrain(nullptr),
-		Service(app, "PhysicsService")
-	{
-
-	}
-
-	PhysicsService::PhysicsService(Application* app, std::string service_name) : 
-		m_item(nullptr),
-		m_terrain(nullptr),
-		Service(app, service_name)
-	{
-	}
-
 	void PhysicsService::step(float delta)
 	{
 		// send pre event

@@ -1,4 +1,8 @@
 #include "Unit.h"
+#include "SimpleParser/Method.h"
+
+using SimpleParser::Type;
+using SimpleParser::Method;
 
 namespace Rhea
 {
@@ -28,7 +32,7 @@ namespace Rhea
 			if (unit_it == m_children.end()) {
 				if (create) {
 					// not found - create a unit as container
-					Unit* u = new Unit(path, "//core/unit");
+					Unit* u = new Unit(path, "//core/types/unit");
 					addChild(u);
 					return u;
 				} 
@@ -53,7 +57,7 @@ namespace Rhea
 						{
 							if (create) {
 								// not found - create a unit as container
-								Unit* u = new Unit(path, "//core/unit");
+								Unit* u = new Unit(path, "//core/types/unit");
 								addChild(u);
 								return u;
 							}
@@ -77,7 +81,7 @@ namespace Rhea
 	Unit* Unit::findByType(std::string type_name)
 	{
 		// myself?
-		if (m_type_name == type_name)
+		if (m_type->getName() == type_name)
 			return this;
 
 		for (auto it = m_children.begin(); it != m_children.end(); ++it) {
@@ -88,6 +92,33 @@ namespace Rhea
 
 		// not found
 		return nullptr;
+	}
+
+	std::string Unit::getPath(std::string& unit_path)
+	{
+		// is the string a full path?
+		if (unit_path.length() > 1 && unit_path[0] == '/' && unit_path[1] == '/')
+			return unit_path;
+		else if (m_attributes.find("basepath") != m_attributes.end())
+			return m_attributes["basepath"] + "/" + unit_path;
+		else
+			return "//" + unit_path;
+	}
+
+	void Unit::setName(std::string name)
+	{
+		// update the full path
+		if (m_parent) {
+			m_path = m_parent->getPath() + "/" + name;
+			m_parent->m_children[name] = this;
+			m_parent->m_children.erase(m_pathname);
+		}
+		else {
+			m_path = name;
+		}
+
+		// update my unit name
+		m_pathname = name;
 	}
 
 	Variant Unit::getValue(std::string name)
@@ -112,6 +143,41 @@ namespace Rhea
 	void Unit::setValue(std::string name, Variant val)
 	{
 		m_values[name] = val;
+	}
+
+	void Unit::prepare(ReadyHandler handler)
+	{
+		// if we habe no children return
+		int to_load = (int)m_children.size();
+		if (!to_load) {
+			handler(nullptr);
+			return;
+		}
+
+		// call prepare on all children
+		// call ready handler when all children where loaded	
+		// this ignores errors in loading children 
+		// TODO check if this should fail fast instead of ignore?		
+		for (auto it = m_children.begin(); it != m_children.end(); ++it)
+		{
+			Unit* unit = it->second;
+			unit->prepare([&](Error *err) {
+				to_load--;
+				if (to_load <= 0) {					
+					handler(nullptr);
+				}
+				});
+		}
+	}
+
+	void Unit::ready()
+	{
+		// call ready for all children
+		for (auto it = m_children.begin(); it != m_children.end(); ++it)
+		{
+			Unit* unit = it->second;
+			unit->ready();
+		}
 	}
 
 	void Unit::broadcast(std::string method_name)
@@ -180,8 +246,22 @@ namespace Rhea
 			return nullptr;
 	}
 
+	Unit* Unit::createType(std::string name, std::string type_name)
+	{
+		Unit* ret = new Unit(name, type_name);
+		return ret;
+	}
+
+	void Unit::initializeType(Type* type)
+	{
+		type->registerMethod("setName", &Unit::setName);
+		type->registerMethod("getName", &Unit::getPathName);
+
+		type->registerProperty("path", Type::get(Type::BaseType::STRING), "setName", "getName");
+	}
+
 	void Unit::logMe()
 	{
-		printf("--------\nName: %s\nPath: %s\nType: %s\n", m_pathname.c_str(), m_path.c_str(), m_type_name.c_str());
+		printf("--------\nName: %s\nPath: %s\nType: %s\n", m_pathname.c_str(), m_path.c_str(), m_type->getName().c_str());
 	}
 }

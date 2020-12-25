@@ -14,12 +14,12 @@
 
 namespace Rhea
 {
-	BulletPhysicsService::BulletPhysicsService(Application* app) :
+	BulletPhysicsService::BulletPhysicsService(std::string name, std::string type_name) :
 		m_world(nullptr),
 		m_scene(nullptr),
 		m_debug(false),
 		m_debug_draw(nullptr),
-		PhysicsService(app, "BulletPhysicsService")
+		PhysicsService("BulletPhysicsService", type_name)
 	{
 	}
 
@@ -120,23 +120,23 @@ namespace Rhea
 			if (item->getElement("physics"))
 				continue;
 
-			if (item->getType() == "//meworla/terrain") {
+			if (item->getTypeName() == "//meworla/terrain") {
 				BulletHeightMap* hmap = new BulletHeightMap(item);
 				item->addElement("physics", hmap);
 				m_world->addRigidBody(hmap->getBody());
 				// TODO currently simply set the last terrain to active
 				m_terrain = static_cast<Terrain*>(item);
 			}
-			else if (item->getType() == "//meworla/camera") {
+			else if (item->getTypeName() == "//meworla/camera") {
 				// make camera without physics	
 				m_item = item;
 			}
-			else if (item->getType() == "//meworla/character") {
+			else if (item->getTypeName() == "//meworla/character") {
 				BulletPhysicsCharacter* body = new BulletPhysicsCharacter(m_world, item);
 				body->init();
 				item->addElement("physics", body);
 			}
-			else if (item->getType() == "//meworla/widget")
+			else if (item->getTypeName() == "//meworla/widget")
 				continue;
 			else {
 				BulletPhysicsBody* body = new BulletPhysicsBody(m_world, item);

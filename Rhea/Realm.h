@@ -28,9 +28,6 @@ namespace Rhea
 		// set the realm
 		void setRealm(Orion::Realm* realm);
 
-		// load the realm from remote
-		void load(ReadyHandler handler);
-
 		// factory function
 		static Unit* createType(std::string name, std::string type);
 	protected:

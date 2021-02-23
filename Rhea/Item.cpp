@@ -4,7 +4,7 @@
 #include "Poseidon/SceneManager.h"
 #include "UnitTree.h"
 #include "Mesh.h"
-#include "Graphics/Item.h"
+#include "Graphics/RenderElement.h"
 #include "Physics/Body.h"
 #include "ResourceList.h"
 
@@ -46,7 +46,7 @@ namespace Rhea
 	{
 		auto it = m_elements.find("graphics");
 		if (it != m_elements.end()) {
-			m_graphics_item = static_cast<GraphicsItem*>(it->second);
+			m_graphics_item = static_cast<GraphicsRenderElement*>(it->second);
 			return true;
 		}
 		return false;
@@ -116,7 +116,7 @@ namespace Rhea
 		if (!m_graphics_item)
 			if (!getGraphicsItem())
 				return;
-		m_graphics_item->getEntity()->addChild(child);
+		m_graphics_item->getRenderEntity()->addChild(child);
 	}
 	
 	Poseidon::Node* Item::getNode()
@@ -124,6 +124,6 @@ namespace Rhea
 		if (!m_graphics_item)
 			if (!getGraphicsItem())
 				return nullptr;
-		return m_graphics_item->getEntity();
+		return m_graphics_item->getRenderEntity();
 	}
 }

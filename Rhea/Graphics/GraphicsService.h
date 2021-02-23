@@ -16,12 +16,11 @@ namespace Rhea
 	class Unit;
 	class Element;
 	class Event;
+	class GraphicsManager;
 
 	class GraphicsService : public Service
 	{
 	public:
-		typedef std::function<Element* (Poseidon::Core*, Unit*)> ElementCreatorFunc;
-
 		GraphicsService(std::string name, std::string type_name);
 
 		// set the platform service
@@ -41,13 +40,16 @@ namespace Rhea
 		
 		bool onDisplay(Event* ev, Unit* unit);
 
+		// get the manager for a certain type
+		GraphicsManager* getManager(std::string type_name);
+
 		// factory function
 		static Unit* createType(std::string name, std::string type);
 
 	protected:
 		std::unique_ptr<Poseidon::Core> m_core;
 		Service* m_platform;
-		std::unordered_map<std::string, ElementCreatorFunc> m_element_factory;
+		std::unordered_map<std::string, GraphicsManager*> m_managers;
 	};
 }
 

@@ -15,10 +15,12 @@
 
 #include "../Element.h"
 #include "Texture.h"
-#include "Mesh.h"
-#include "Item.h"
-#include "Scene.h"
-#include "Item2D.h"
+#include "ItemManager.h"
+#include "SceneManager.h"
+#include "Item2DManager.h"
+#include "TextManager.h"
+#include "MaterialManager.h"
+#include "CameraManager.h"
 
 namespace Rhea
 {
@@ -27,12 +29,28 @@ namespace Rhea
 		Service(name, type_name)	
 	{
 		m_core = std::make_unique<Poseidon::Core>();
-		m_element_factory["//meworla/texture"] = &GraphicsTexture::createElement;
-		m_element_factory["//meworla/mesh"] = &GraphicsMesh::createElement;
-		m_element_factory["//meworla/item"] = &GraphicsItem::createElement;
-		m_element_factory["//meworla/scene"] = &GraphicsScene::createElement;
-		m_element_factory["//meworla/widget"] = &GraphicsItem2D::createElement;
+
+		m_managers["//meworla/scene"] = new GraphicsSceneManager(this);
+		m_managers["//meworla/item"] = new GraphicsItemManager(this);
+		m_managers["//meworla/character"] = new GraphicsItemManager(this);
+		m_managers["//meworla/textwidget"] = new GraphicsTextManager(this);
+		m_managers["//meworla/material"] = new GraphicsMaterialManager(this);
+		m_managers["//meworla/widget"] = new GraphicsItem2DManager(this);
+		m_managers["//meworla/camera"] = new GraphicsCameraManager(this);
 	}
+
+	GraphicsManager* GraphicsService::getManager(std::string type_name)
+	{
+		// find manager for type name in manager list
+		auto it = m_managers.find(type_name);
+		if (it != m_managers.end()) {
+			GraphicsManager* mgr = it->second;
+			return mgr;
+		}
+
+		return nullptr;
+	}
+
 
 	void GraphicsService::setPlatform(Service* platform_service)
 	{
@@ -75,10 +93,15 @@ namespace Rhea
 	{
 		bool ret = false;
 
-		// create type if factory found
-		auto it = m_element_factory.find(unit->getTypeName());
-		if (it != m_element_factory.end()) {
-			Element* el = it->second(m_core.get(), unit);
+		// try manager
+		GraphicsManager* mgr = getManager(unit->getTypeName());
+		if (mgr) {
+			Element* el = mgr->createElement(m_core.get(), unit);
+		}
+		else {
+			// default: use item manager
+			mgr = getManager("//meworla/item");
+			Element* el = mgr->createElement(m_core.get(), unit);			
 		}
 
 		return ret;

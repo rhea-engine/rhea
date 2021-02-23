@@ -5,9 +5,12 @@
 #include "Rhea/Controller/BasicController.h"
 #include "Rhea/Controller/SpectatorController.h"
 #include "Rhea/Graphics/GraphicsService.h"
-#include "Rhea/Graphics/Camera.h"
+#include "Rhea/Graphics/CameraManager.h"
 #include "Rhea/Camera.h"
 #include "Rhea/Physics/PhysicsManager.h"
+#include "Rhea/Graphics/GraphicsService.h"
+#include "Rhea/Graphics/GraphicsManager.h"
+
 
 void Ceto::setup()
 {
@@ -48,7 +51,11 @@ void Ceto::setup()
 				if (!m_view) {
 					// no camera found - create a default cam
 					m_view = static_cast<Rhea::Camera*>(m_unit_tree->createUnitById(scene->getPath() + "/camera", "//meworla/camera"));
-					Rhea::GraphicsCamera::createElement(core, m_view);
+					
+					Rhea::GraphicsService* gs = static_cast<Rhea::GraphicsService*>(getService("graphics"));
+					Rhea::GraphicsManager* mgr = gs->getManager("//meworla/camera");
+					//Rhea::GraphicsCamera::createElement(core, m_view);
+					mgr->createElement(core, m_view);					
 					m_view->setPosition(Poseidon::Vector3(0, 1.7f, 0.0f));
 				}
 				m_focused_controller = new Rhea::BasicController("camera_controller", "//meworla/controller");

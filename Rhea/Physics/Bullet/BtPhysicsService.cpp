@@ -138,6 +138,8 @@ namespace Rhea
 			}
 			else if (item->getTypeName() == "//meworla/widget")
 				continue;
+			else if (item->getTypeName() == "//meworla/textwidget")
+				continue;
 			else {
 				BulletPhysicsBody* body = new BulletPhysicsBody(m_world, item);
 				body->init();

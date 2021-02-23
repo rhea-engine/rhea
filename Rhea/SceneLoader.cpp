@@ -76,7 +76,7 @@ namespace Rhea
 				child_parent = scene;
 			}
 			child_parent->addChild(unit);				
-			if ((type_name == "//meworla/item") || (type_name == "//meworla/camera") || (type_name == "//meworla/terrain") || (type_name == "//meworla/character") || (type_name == "//meworla/widget")) {
+			if ((type_name == "//meworla/item") || (type_name == "//meworla/camera") || (type_name == "//meworla/terrain") || (type_name == "//meworla/character") || (type_name == "//meworla/widget") || (type_name == "//meworla/textwidget")) {
 				scene->addItem((Item*)unit);
 			}
 		}

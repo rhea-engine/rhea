@@ -4,6 +4,7 @@
 #include "D3D11Renderer.h"
 #include "D3D11Renderer.h"
 #include "D3D11Renderer.h"
+#include "D3D11Renderer.h"
 #include <d3d11shader.h>
 #include <d3dcompiler.h>
 #include <wrl/client.h>
@@ -35,16 +36,21 @@ namespace Hippios {
 		mMaxRequestedFeatureLevel = D3D_FEATURE_LEVEL_11_1;
 		mDriverType = D3D_DRIVER_TYPE_HARDWARE;
 		mFeatureLevel = D3D_FEATURE_LEVEL_11_1;
-
-		
+		m_alpha_enable_blending_state = nullptr;
+		m_alpha_disable_blending_state = nullptr;
+		m_current_texture = nullptr;
 	}
 
-	D3D11Renderer::D3D11Renderer(ID3D11Device* device, ID3D11DeviceContext* device_context) : m_device(device), m_device_context(device_context)
+	D3D11Renderer::D3D11Renderer(ID3D11Device* device, ID3D11DeviceContext* device_context) :
+		m_device(device), m_device_context(device_context)
 	{
 		mMinRequestedFeatureLevel = D3D_FEATURE_LEVEL_9_1;
 		mMaxRequestedFeatureLevel = D3D_FEATURE_LEVEL_11_1;
 		mDriverType = D3D_DRIVER_TYPE_HARDWARE;
 		mFeatureLevel = D3D_FEATURE_LEVEL_11_1;
+		m_alpha_enable_blending_state = nullptr;
+		m_alpha_disable_blending_state = nullptr;
+		m_current_texture = nullptr;
 	}
 
 	void D3D11Renderer::init()
@@ -148,6 +154,40 @@ namespace Hippios {
 			// For example, reduce the feature level requirement, or fail over 
 			// to WARP rendering.
 			cout << "could not create d3d11 device";
+			return hr;
+		}
+
+		// add alpha blend state
+			
+		// Clear the blend state description.
+		D3D11_BLEND_DESC blend_state_description;
+		ZeroMemory(&blend_state_description, sizeof(D3D11_BLEND_DESC));
+		
+		// Create an alpha enabled blend state description.
+		blend_state_description.RenderTarget[0].BlendEnable = TRUE;
+		blend_state_description.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+		blend_state_description.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+		blend_state_description.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+		blend_state_description.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+		blend_state_description.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+		blend_state_description.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+		blend_state_description.RenderTarget[0].RenderTargetWriteMask = 0x0f;
+
+		// Create the blend state using the description.
+		hr = m_device->CreateBlendState(&blend_state_description, &m_alpha_enable_blending_state);
+		if (FAILED(hr))
+		{
+			cout << "could not create d3d11 blend state";
+			return hr;
+		}
+		// Modify the description to create an alpha disabled blend state description.
+		blend_state_description.RenderTarget[0].BlendEnable = FALSE;
+
+		// Create the blend state using the description.
+		hr = m_device->CreateBlendState(&blend_state_description, &m_alpha_disable_blending_state);
+		if (FAILED(hr))
+		{
+			cout << "could not create d3d11 blend state";
 			return hr;
 		}
 
@@ -308,6 +348,27 @@ namespace Hippios {
 			m_device_context->IASetIndexBuffer(buffer, DXGI_FORMAT_R32_UINT, 0);
 			m_ib->is_dirty = false;
 		}
+	}
+
+	void D3D11Renderer::setAlphaBlend(bool enable)
+	{
+		float blend_factor[4];
+
+		// Setup the blend factor.
+		blend_factor[0] = 0.0f;
+		blend_factor[1] = 0.0f;
+		blend_factor[2] = 0.0f;
+		blend_factor[3] = 0.0f;
+
+		if (enable) {
+			// Turn on the alpha blending.
+			m_device_context->OMSetBlendState(m_alpha_enable_blending_state, blend_factor, 0xffffffff);
+		}
+		else {
+			m_device_context->OMSetBlendState(m_alpha_disable_blending_state, blend_factor, 0xffffffff);
+		}
+
+		return;
 	}
 
 	void D3D11Renderer::bindBuffers(VertexBuffer* vb, IndexBuffer* ib)
@@ -539,7 +600,7 @@ namespace Hippios {
 			size_t base = size % 16;
 			size = (base + 1) * 16;
 		}
-		cbbd.ByteWidth = size;
+		cbbd.ByteWidth = (UINT)size;
 		cbbd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 		cbbd.CPUAccessFlags = 0;
 		cbbd.MiscFlags = 0;

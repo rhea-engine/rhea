@@ -105,7 +105,7 @@ namespace Orion
         }
 
         errno_t errcode = fopen_s(f, filename.c_str(), accessMode);
-        if (f == NULL) {
+        if (errcode) {
             return errcode;
         }
         else

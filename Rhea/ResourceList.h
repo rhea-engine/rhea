@@ -22,7 +22,7 @@ namespace Rhea
 		void load(Unit::ReadyHandler handler);
 
 		// add a resource info to the list
-		void push(std::string key, std::string id, std::string type);
+		void push(std::string key, std::string id, std::string type, bool replace = false);
 
 		// get resource with id
 		Unit* get(const std::string& key);

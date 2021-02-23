@@ -9,7 +9,7 @@
 #include "ResourceList.h"
 
 #include "Graphics/Texture.h"
-#include "Graphics/Mesh.h"
+
 
 namespace Rhea
 {

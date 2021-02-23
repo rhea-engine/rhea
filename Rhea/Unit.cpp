@@ -260,6 +260,12 @@ namespace Rhea
 		type->registerProperty("path", Type::get(Type::BaseType::STRING), "setName", "getName");
 	}
 
+	Unit::~Unit()
+	{
+		Event* del_event = new Event("DELETE");
+		sendEvent("delete", del_event);
+	}
+
 	void Unit::logMe()
 	{
 		printf("--------\nName: %s\nPath: %s\nType: %s\n", m_pathname.c_str(), m_path.c_str(), m_type->getName().c_str());

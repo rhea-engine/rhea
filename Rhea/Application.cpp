@@ -39,6 +39,8 @@
 #include "SimpleParser/Method.h"
 
 #include "Application.h"
+#include <Rhea/Fabrics/Text/TextWidget.h>
+#include <Rhea/Fabrics/Text/BitmapFont.h>
 
 namespace Rhea
 {
@@ -87,6 +89,9 @@ namespace Rhea
 		SimpleParser::Type::registerType<KinematicCharacter>("//meworla/character");
 		SimpleParser::Type::registerType<TextResource>("//meworla/shader");
 		SimpleParser::Type::registerType<Item2D>("//meworla/widget");
+		SimpleParser::Type::registerType<TextWidget>("//meworla/textwidget");
+		SimpleParser::Type::registerType<BitmapFont>("//meworla/bitmapfont");
+		SimpleParser::Type::registerType<TextResource>("//meworla/fontinfo");
 
 		// add a default input map
 		m_input_map = new InputMap();

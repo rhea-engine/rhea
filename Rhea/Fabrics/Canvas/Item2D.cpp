@@ -21,7 +21,11 @@ namespace Rhea
 
 		if (m_values.find("texture") != m_values.end()) {
 			m_resource_list->push("texture", m_values["texture"], "//meworla/texture");
-			m_resource_list->push("shader", "//rhea/shaders/widget.hlsl", "//meworla/shader");
+			if (m_values.find("shader") == m_values.end()) {
+				// set a default
+				m_values["shader"] = "//rhea/shaders/widget.hlsl";
+			}
+			m_resource_list->push("shader", m_values["shader"], "//meworla/shader");
 		}
 	}
 
@@ -51,16 +55,17 @@ namespace Rhea
 				m_material->setValue("shader", "widget");
 
 				// get the shader
-				Unit* shader_res = m_app->getUnitTree()->find("//rhea/shaders/widget.hlsl");
+				std::string shader_name = m_values["shader"];
+				Unit* shader_res = m_app->getUnitTree()->find(shader_name);
 				if (shader_res) {
 					m_material->setShader(static_cast<TextResource*>(shader_res));
 				}
 				else {
-					m_app->log("item2d::ready(): Shader for " + m_pathname + " not found");
+					m_app->log("item2d::ready(): Shader '" + shader_name + "' for " + m_pathname + " not found");
 				}
 			}
 			else {
-				m_app->log("item2d::ready(): texture for " + m_pathname + " not found");
+				m_app->log("item2d::ready(): texture '" + (std::string)m_values["texture"] + "' for " + m_pathname + " not found");
 			}
 		}
 	}

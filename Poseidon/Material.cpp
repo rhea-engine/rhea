@@ -7,7 +7,8 @@ namespace Poseidon
 	Material::Material(Hippios::Renderer* renderer) :
 		m_renderer(renderer),
 		m_shader(nullptr),
-		m_topology(4)
+		m_topology(4),
+		m_alpha_blending(false)
 	{}
 
 	Material::~Material()
@@ -21,6 +22,7 @@ namespace Poseidon
 		assert(m_shader != nullptr);
 		if (!m_shader)
 			return;
+		m_renderer->setAlphaBlend(m_alpha_blending);
 		m_renderer->setVertexShader(m_shader->getVShader(), m_topology);
 		m_renderer->setPixelShader(m_shader->getPShader());
 	}

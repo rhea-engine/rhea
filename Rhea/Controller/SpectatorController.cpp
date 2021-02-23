@@ -3,7 +3,9 @@
 #include "../Application.h"
 #include "../UnitTree.h"
 #include "../Camera.h"
-#include "../Graphics/Camera.h"
+#include "../Graphics/CameraManager.h"
+#include "../Graphics/GraphicsService.h"
+#include "../Graphics/GraphicsManager.h"
 
 namespace Rhea
 {
@@ -38,7 +40,10 @@ namespace Rhea
 
 		// create the view
 		m_view = static_cast<Camera*>(m_app->getUnitTree()->createUnit("scene_view", "//meworla/camera", attr, values));
-		GraphicsCamera::createElement(core, m_view);
+		GraphicsService* gs = static_cast<GraphicsService*>(m_app->getService("graphics"));
+		GraphicsManager* mgr = gs->getManager("//meworla/camera");
+		//GraphicsCamera::createElement(core, m_view);
+		mgr->createElement(core, m_view);
 
 		// get target
 		

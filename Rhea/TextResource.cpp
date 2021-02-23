@@ -20,13 +20,20 @@ namespace Rhea
 			char* buf;
 			size_t buflen;
 			buflen = rs->ReadBuffer(&buf);
-			delete rs;
-			if (buflen > 0) {
+			if (!buflen) {
+				int err = rs->error();				
+				m_buflen = 0;
+				delete rs;
+				m_status = Status::NO_ACCESS;
+				handler(ReqError::NO_ACCESS);
+			}
+			else {
 				m_buf = buf;
 				m_buflen = buflen;
+				delete rs;
+				m_status = Status::LOADED;
+				handler(ReqError::OK);
 			}
-			m_status = Status::LOADED;
-			handler(ReqError::OK);
 		}
 		else {
 			m_status = Status::NOT_FOUND;

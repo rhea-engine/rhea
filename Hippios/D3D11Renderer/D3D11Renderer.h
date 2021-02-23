@@ -47,6 +47,8 @@ namespace Hippios
 		D3D11DepthBuffer* m_depth_buffer = 0;
 		ID3D11SamplerState* m_sampler_state = 0;
 		ID3D11Buffer* m_cb_per_object_buffer = 0;
+		ID3D11BlendState* m_alpha_enable_blending_state;
+		ID3D11BlendState* m_alpha_disable_blending_state;
 
 		void createSwapChain();
 		void setRenderTarget();
@@ -113,6 +115,7 @@ namespace Hippios
 
 		// render passes
 		void update();
+		void setAlphaBlend(bool enable);
 		void bindBuffers(VertexBuffer* vb, IndexBuffer* ib);
 		void clearPass();
 		int presentPass();

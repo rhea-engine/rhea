@@ -15,8 +15,8 @@ namespace Orion
 		int status;
 		bool read;
 		bool write;
-		size_t pos = 0;
-		void* buf = NULL;
+		size_t pos;
+		void* buf;
 	public:
 		FileResourceStream(string path, int mode);
 		~FileResourceStream();
@@ -28,7 +28,7 @@ namespace Orion
 		size_t ReadBuffer(char** dest);
 		string getLine();
 		bool eof();
-		int ferror();
+		int error();
 	};
 }
 

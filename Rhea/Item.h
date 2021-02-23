@@ -15,7 +15,7 @@ namespace Rhea
 {
 	class Application;
 	class Mesh;
-	class GraphicsItem;
+	class GraphicsRenderElement;
 	class PhysicsBody;
 	class Material;
 
@@ -78,7 +78,7 @@ namespace Rhea
 
 	protected:
 		Mesh* m_mesh;
-		GraphicsItem* m_graphics_item;
+		GraphicsRenderElement* m_graphics_item;
 		PhysicsBody* m_physics_body;
 		Poseidon::Vector3 m_movement;
 		float m_turn;

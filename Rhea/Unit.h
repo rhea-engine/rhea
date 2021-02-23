@@ -29,6 +29,7 @@ namespace Rhea
 			m_refcount(0),
 			SimpleParser::Variant(SimpleParser::Type::get(type_name))
 		{}		
+		virtual ~Unit();
 		virtual void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
 		virtual void setup(Application* app) { m_app = app; }
 

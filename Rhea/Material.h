@@ -30,10 +30,13 @@ namespace Rhea
 		// get shader resource
 		TextResource* getShader() { return m_shader; }
 
+		// alpha blending
+		bool getAlphaBlending();
+
 	protected:
 		Application* m_app;
 		TextResource* m_shader;
-		std::vector<ImageResource*> m_textures;
+		std::vector<ImageResource*> m_textures;		
 	};
 }
 		

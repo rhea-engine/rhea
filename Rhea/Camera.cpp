@@ -1,5 +1,3 @@
-#include "Graphics/Camera.h"
-
 #include "Camera.h"
 
 namespace Rhea

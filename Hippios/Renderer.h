@@ -30,6 +30,7 @@ namespace Hippios
 		virtual Texture* createTexture() = 0;
 		virtual void clearPass() = 0;
 		virtual int presentPass() = 0;
+		virtual void setAlphaBlend(bool enable) = 0;
 		virtual GPUProgram* addMaterial(std::string filename, char* shader_type, char* entry_point, int vertex_type) = 0;
 		virtual GPUProgram* addMaterial(unsigned char* buf, int buflen, char* shader_type, char* entry_point, int vertex_type) = 0;
 		

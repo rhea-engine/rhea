@@ -25,6 +25,9 @@ namespace Poseidon
 		// set the draw topology
 		void setTopology(int topology) { m_topology = topology; }
 
+		// set alpha blending
+		void setAlphaBlending(bool enable) { m_alpha_blending = enable; }
+
 		// set the current material as active material
 		void activate();
 
@@ -43,6 +46,7 @@ namespace Poseidon
 		Shader* m_shader;
 		int m_topology;
 		std::vector<Texture*> m_textures;
+		bool m_alpha_blending;
 	};
 }
 

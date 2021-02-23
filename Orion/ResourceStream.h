@@ -11,6 +11,10 @@ namespace Orion
 		Resource* m_resource;
 		bool m_isOpen;		
 	public:		
+		ResourceStream() :
+			m_resource(nullptr),
+			m_isOpen(false)
+		{}
 		virtual ~ResourceStream() {}
 
 		// write length bytes to resource
@@ -33,6 +37,11 @@ namespace Orion
 
 		// Close the stream
 		virtual void Close() = 0;
+
+		// error handling
+
+		// return error of stream
+		virtual int error() = 0;
 	};
 }
 

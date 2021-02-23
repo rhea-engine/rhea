@@ -41,6 +41,9 @@ namespace Rhea
 			Unit(basename, type_name)
 		{}
 
+		// destructor
+		~Resource();
+
 		// load the resource from request (may be asynchronus) - call handler on ready
 		virtual void load(Orion::ResourceRequest* req, ReadyHandler handler);
 

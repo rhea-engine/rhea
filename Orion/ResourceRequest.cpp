@@ -44,6 +44,12 @@ namespace Orion
 			return "Realm not found";
 		case Error::RESOURCE_NOT_FOUND:
 			return "Resource not found";
+		case Error::NO_ACCESS:
+			return "Permission denied";
+		case Error::NO_AUTH:
+			return "Authentication failed";
+		default:
+			return "General error";
 		}
 	}
 	

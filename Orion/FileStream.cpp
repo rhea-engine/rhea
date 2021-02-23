@@ -3,7 +3,11 @@
 
 namespace Orion
 {
-	FileResourceStream::FileResourceStream(string path, int mode)
+	FileResourceStream::FileResourceStream(string path, int mode) :
+		f(nullptr),		
+		pos(0),
+		buf(nullptr),
+		ResourceStream()
 	{
 		if (mode & Fs::READ)
 			read = true;
@@ -15,7 +19,8 @@ namespace Orion
 			write = false;
 
 		status = Fs::fileOpen(&f, path, mode);
-		m_isOpen = true;
+		if (!status)
+			m_isOpen = true;
 	}
 
 	FileResourceStream::~FileResourceStream()
@@ -36,7 +41,7 @@ namespace Orion
 		if (status || !write || !f)
 			return 0;
 
-		int written = fwrite(data, 1, length, f);
+		size_t written = fwrite(data, 1, length, f);
 
 		return written;
 	}
@@ -46,9 +51,9 @@ namespace Orion
 		if (status || !read || !f)
 			return 0;
 
-		int read = fread_s(dest, length, 1, length, f);
+		size_t read = fread_s(dest, length, 1, length, f);
 		if (read < length) {
-			if (feof) {
+			if (feof(f)) {
 				length = read;
 			}
 			else
@@ -67,6 +72,11 @@ namespace Orion
 		size_t tmplen;
 		size_t read;
 		size_t size = 0;
+
+		if (status || !m_isOpen || !f) {
+			free(buf);
+			return 0;
+		}
 
 		read = Read(buf, CHUNK_LEN);
 		size += read;
@@ -108,7 +118,7 @@ namespace Orion
 		return feof(f) != 0;
 	}
 	
-	int FileResourceStream::ferror()
+	int FileResourceStream::error()
 	{
 		if (!f)
 			return -1;

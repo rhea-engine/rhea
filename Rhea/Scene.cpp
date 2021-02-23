@@ -1,6 +1,7 @@
+#include <memory>
+
 #include "Scene.h"
 #include "Item.h"
-#include "Graphics/Scene.h"
 #include "SceneLoader.h"
 
 namespace Rhea

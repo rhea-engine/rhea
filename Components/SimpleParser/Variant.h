@@ -26,7 +26,7 @@ namespace SimpleParser
 		Variant(const char* s);
 		Variant(Variant* obj);
 
-		~Variant();
+		virtual ~Variant();
 
 		// converters
 		operator std::string() const;

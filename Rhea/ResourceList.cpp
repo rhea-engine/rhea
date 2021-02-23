@@ -61,6 +61,9 @@ namespace Rhea {
 				else {
 					m_app->loadResource(res.id, res.type, [&](Unit* resource, Orion::ResourceRequest::Error err) {
 						if (resource) {
+							if (err != Orion::ResourceRequest::Error::OK) {
+								m_app->log("Could not load resource " + res.id + ": " + Orion::ResourceRequest::getErrorMessage(err));
+							}
 							resource->prepare([&](Error* err) {
 								if (err) {
 									m_app->log("Could not load resource '" + res.id + "'");
@@ -88,7 +91,7 @@ namespace Rhea {
 		}
 	}
 	
-	void ResourceList::push(std::string key, std::string id, std::string type)
+	void ResourceList::push(std::string key, std::string id, std::string type, bool replace)
 	{
 		// only add new resources
 		if (m_resources.find(key) == m_resources.end()) {
@@ -98,6 +101,19 @@ namespace Rhea {
 				Resource::Status::SETUP,
 				nullptr
 			};
+		}
+		else if (replace) {
+			// if replace option was set - replace resources that where not loaded yet
+			if (m_resources[key].status == Resource::Status::SETUP) {
+				m_resources[key].id = id;
+				m_resources[key].type = type;
+			}
+			else {
+				m_app->log("ResourceList: Could not replace resource '" + key + "': already loaded");
+			}
+		}
+		else {
+			m_app->log("ResourceList: resource '" + key + "' already exists and replace was false");
 		}
 	}
 

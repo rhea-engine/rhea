@@ -4,6 +4,12 @@
 
 namespace Rhea {
 	
+	Resource::~Resource()
+	{
+		if (m_resource_list)
+			delete m_resource_list;
+	}
+
 	void Resource::load(Orion::ResourceRequest* req, ReadyHandler handler)
 	{
 		handler(ReqError::OK);

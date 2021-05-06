@@ -33,6 +33,8 @@ namespace Rhea
 		Poseidon::Core* get_core() { return core; };
 		// get a specific service
 		Service* getService(std::string name);
+		// register a service
+		void registerService(std::string name, Service* service);
 		// load and set up the resources of the application
 		virtual void setup();
 		// the app main loop
@@ -70,6 +72,10 @@ namespace Rhea
 		Dispatcher* m_dispatcher = 0;
 		Controller* m_focused_controller = 0;
 		std::unordered_map<std::string, Service*> m_services;
+
+		// timing info
+		uint64_t current_ticks = 0;
+		float fps = 0.0f;
 	};
 }
 #endif // !RHEA_H

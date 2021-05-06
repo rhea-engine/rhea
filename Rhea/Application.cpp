@@ -30,6 +30,8 @@
 #include "Controller/SpectatorController.h"
 #include "Fabrics/Character/Character.h"
 #include "Fabrics/Character/KinematicCharacter.h"
+#include "Fabrics/GUI/GUIController.h"
+#include "Fabrics/GUI/GuiService.h"
 
 #include "Graphics/GraphicsService.h"
 #include "Platform/PlatformService.h"
@@ -92,6 +94,7 @@ namespace Rhea
 		SimpleParser::Type::registerType<TextWidget>("//meworla/textwidget");
 		SimpleParser::Type::registerType<BitmapFont>("//meworla/bitmapfont");
 		SimpleParser::Type::registerType<TextResource>("//meworla/fontinfo");
+		GUIController::Register(this);
 
 		// add a default input map
 		m_input_map = new InputMap();
@@ -105,6 +108,11 @@ namespace Rhea
 		if (srv == m_services.end())
 			return nullptr;
 		return srv->second;
+	}
+
+	void Application::registerService(std::string name, Service* service)
+	{
+		m_services[name] = service;
 	}
 
 	void Application::setup()
@@ -191,7 +199,7 @@ namespace Rhea
 		float accumulated_time = 0; // time accumulated time since last physical steps
 		//float idle_step;
 
-		float fps = 0;
+		fps = 0.0f;
 		uint64_t frames = 0;
 
 		uint64_t fps_start = psio->getTicks();
@@ -214,7 +222,7 @@ namespace Rhea
 		while (!ret) {
 
 			// timings
-			uint64_t current_ticks = psio->getTicks();
+			current_ticks = psio->getTicks();
 			uint64_t elapsed_ticks = current_ticks - last_ticks;
 			float elapsed_s = (float)elapsed_ticks / 1000000L;
 			last_ticks = current_ticks;

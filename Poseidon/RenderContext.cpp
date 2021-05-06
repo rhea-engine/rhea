@@ -7,7 +7,8 @@ namespace Poseidon
 {
 	RenderContext::RenderContext(std::string& name) :
 		m_camera(nullptr),
-		m_name(name)
+		m_name(name),
+		m_stencil_state(0)
 	{
 	}
 

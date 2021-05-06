@@ -13,7 +13,7 @@ namespace Rhea
 		m_status = Status::SETUP;
 
 		x = values["x"];
-		y = values["y"];
+		y = values["y"];		
 		w = values["w"];
 		h = values["h"];
 

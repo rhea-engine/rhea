@@ -30,6 +30,9 @@ namespace Rhea
 		// get the material
 		Material* getMaterial() { return m_material; }
 
+		void move(int _x, int _y) { x = _x; y = _y; }
+		void resize(int _w, int _h) { w = _w; h = _h; }
+
 		// get dimensions
 		int X() { return x; }
 		int Y() { return y; }
@@ -42,7 +45,7 @@ namespace Rhea
 	protected:
 		Material* m_material;
 
-		// dimensions
+		// dimensions in screen space
 		int x;
 		int y;
 		int w;

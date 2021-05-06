@@ -5,6 +5,7 @@
 #include "D3D11Renderer.h"
 #include "D3D11Renderer.h"
 #include "D3D11Renderer.h"
+#include "D3D11Renderer.h"
 #include <d3d11shader.h>
 #include <d3dcompiler.h>
 #include <wrl/client.h>
@@ -25,6 +26,7 @@ using namespace std;
 #include "Texture.h"
 #include "D3D11Texture.h"
 #include "Components/Psio/Window.h"
+#include "D3D11StencilState.h"
 
 #pragma comment (lib, "d3d11.lib")
 
@@ -243,6 +245,11 @@ namespace Hippios {
 		// create the depth buffer
 		m_depth_buffer = new D3D11DepthBuffer(m_device, 24, m_win->getWindow()->GetWidth(), m_win->getWindow()->GetHeight());
 
+		// create the default stencil states
+		m_stencil_std = new D3D11StencilState(m_device, m_device_context);
+		m_stencil_disabled = new D3D11StencilState(m_device, m_device_context);
+		m_stencil_disabled->initialize();
+
 		// set the render target as the back buffer
 		m_device_context->OMSetRenderTargets(1, &mBackbuffer, m_depth_buffer->get_view());
 
@@ -436,24 +443,33 @@ namespace Hippios {
 			return -1;
 		}
 		return 0;
-	}	
+	}
+	
+	void D3D11Renderer::setStencilState(int state_id)
+	{
+		if (!state_id)
+			m_stencil_std->setState();
+		else
+			m_stencil_disabled->setState();
+	}
 
-	VertexBuffer* D3D11Renderer::createVertexBuffer(size_t vertexSize, size_t numVertices)
+
+	VertexBuffer* D3D11Renderer::createVertexBuffer(size_t vertexSize, size_t numVertices, bool dynamic)
 	{
 		D3D11VertexBuffer* buf;
 
 		//assert(!m_vb && "TODO: only one vertex buffer allowed");
-		buf = new D3D11VertexBuffer(m_device, m_device_context, vertexSize, numVertices);
+		buf = new D3D11VertexBuffer(m_device, m_device_context, vertexSize, numVertices, dynamic);
 		m_vb = buf;
 		return (VertexBuffer*)buf;
 	}
 	
-	IndexBuffer* D3D11Renderer::createIndexBuffer(size_t vertex_size, size_t num_faces)
+	IndexBuffer* D3D11Renderer::createIndexBuffer(size_t vertex_size, size_t num_faces, bool dynamic)
 	{
 		D3D11IndexBuffer* buf;
 
 		//assert(!m_ib && "TODO: only one index buffer allowed");
-		buf = new D3D11IndexBuffer(m_device, m_device_context, vertex_size, num_faces);
+		buf = new D3D11IndexBuffer(m_device, m_device_context, vertex_size, num_faces, dynamic);
 		m_ib = buf;
 		return (IndexBuffer*)buf;
 	}

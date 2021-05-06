@@ -85,6 +85,7 @@ namespace Poseidon
 				Camera* camera = context->get_camera();
 				if (!camera)
 					return false;
+				m_renderer->setStencilState(context->getStencilState());
 
 				// fill per frame buffer
 				per_frame_buf.v = camera->getViewMatrix();

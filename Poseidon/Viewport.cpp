@@ -54,6 +54,22 @@ namespace Poseidon
 		return context;
 	}
 
+	int Viewport::getHeight()
+	{
+		if (m_win) {
+			return m_win->getHeight();
+		}
+		return 0;
+	}
+
+	int Viewport::getWidth()
+	{
+		if (m_win) {
+			return m_win->getWidth();
+		}
+		return 0;
+	}
+
 	void Viewport::registerNode()
 	{
 		registerGroup("viewport", this);

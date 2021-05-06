@@ -21,8 +21,14 @@ namespace Rhea
 		// create
 		GraphicsRenderElement* elem = new GraphicsRenderElement(core);
 		Poseidon::SceneManager* m_scene_mgr = core->get_scene_manager();
-		float Width = 800;
-		float Height = 600;
+		// get dimensions from viewport
+		Poseidon::Viewport* viewport = m_scene_mgr->getViewport();
+		float Width = (float)viewport->getWidth();
+		float Height = (float)viewport->getHeight();
+		if (!Width)
+			Width = 800.0f;
+		if (!Height)
+			Height = 600.0f;
 
 		// add a graphics sys camera
 		Poseidon::Node* m_entity = core->createCamera();

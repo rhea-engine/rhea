@@ -16,15 +16,19 @@ namespace Poseidon
 {
 	class Mesh
 	{
-	protected:
-		Hippios::Renderer* m_renderer = 0;
-		Hippios::VertexBuffer* m_vbuffer = 0;
-		Hippios::IndexBuffer* m_ibuffer = 0;
-		Viewport* m_viewport = 0;
-		int m_vertex_size = 0;	
-		int m_num_indices = 0;
-
 	public:
+		Mesh() :
+			Mesh(false)
+		{}
+		Mesh(bool dynamic) :
+			m_renderer(nullptr),
+			m_vbuffer(nullptr),
+			m_ibuffer(nullptr),
+			m_viewport(nullptr),
+			m_vertex_size(0),
+			m_num_indices(0),
+			m_dynamic_buffer(dynamic)
+		{}
 		virtual ~Mesh();
 		void setVertices(size_t vertex_size, size_t num_vertices, const void* source);
 		void setIndices(size_t vertex_size, size_t num_faces, const void* source);
@@ -34,6 +38,19 @@ namespace Poseidon
 		Hippios::VertexBuffer* get_vbuffer() { return m_vbuffer; };
 		Hippios::IndexBuffer* get_ibuffer() { return m_ibuffer; };
 		int getNumIndices() { return m_num_indices; }
+
+	protected:
+		Hippios::Renderer* m_renderer;
+		Hippios::VertexBuffer* m_vbuffer;
+		Hippios::IndexBuffer* m_ibuffer;
+		Viewport* m_viewport;
+
+		// information about the buffer
+		int m_vertex_size;
+		int m_num_indices;
+
+		// are we using a dynamic buffer?
+		bool m_dynamic_buffer;
 	};
 }
 #endif // !POSEIDON_MESH_H

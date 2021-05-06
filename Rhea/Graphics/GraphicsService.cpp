@@ -26,6 +26,9 @@ namespace Rhea
 {
 	GraphicsService::GraphicsService(std::string name, std::string type_name) :
 		m_platform(nullptr),
+		m_viewport_width(0),
+		m_viewport_height(0),
+		m_g_scene(nullptr),
 		Service(name, type_name)	
 	{
 		m_core = std::make_unique<Poseidon::Core>();
@@ -70,16 +73,23 @@ namespace Rhea
 			m_core->init(static_cast<PlatformService*>(m_platform)->getEngine());
 
 		// create a render context for HUD / GUI
-		Poseidon::RenderContext* context = m_core->get_scene_manager()->getViewport()->createRenderContext(std::string("HUD"));
+		Poseidon::Viewport* viewport = m_core->get_scene_manager()->getViewport();
+		Poseidon::RenderContext* context = viewport->createRenderContext(std::string("HUD"));
+		context->setStencilState(1);
 		// add a camera for this context
 		Poseidon::Camera* cam = m_core->createCamera();
 		context->addChild(cam);
 		context->setCamera(cam);
-		float Width = 800;
-		float Height = 600;
-		cam->setAspectRatio((float)Width / (float)Height);
-		cam->setOrthographicSize(600);
+		m_viewport_width = viewport->getWidth();
+		m_viewport_height = viewport->getHeight();
+		if (!m_viewport_width)
+			m_viewport_width = 800;
+		if (!m_viewport_height)
+			m_viewport_height = 600;
+		cam->setAspectRatio((float)m_viewport_width / (float)m_viewport_height);
+		cam->setOrthographicSize((float)m_viewport_height);
 		cam->setOrthographic(true);
+		cam->setProjectionOffset(Poseidon::Vector3(-0.5f, -0.5f, 0.0f));
 		cam->updateProjection();
 		cam->updateView();
 	}
@@ -93,15 +103,24 @@ namespace Rhea
 	{
 		bool ret = false;
 
+		if (unit->getTypeName().compare("//meworla/scene")) {
+			unit->getApplication()->log("GraphicsService::onDisplay should only be called for scene");
+		}
+
 		// try manager
 		GraphicsManager* mgr = getManager(unit->getTypeName());
+		Element* el;
 		if (mgr) {
-			Element* el = mgr->createElement(m_core.get(), unit);
+			el = mgr->createElement(m_core.get(), unit);
 		}
 		else {
 			// default: use item manager
 			mgr = getManager("//meworla/item");
-			Element* el = mgr->createElement(m_core.get(), unit);			
+			el = mgr->createElement(m_core.get(), unit);			
+		}
+
+		if (!unit->getTypeName().compare("//meworla/scene")) {
+			m_g_scene = static_cast<GraphicsScene*>(el);
 		}
 
 		return ret;

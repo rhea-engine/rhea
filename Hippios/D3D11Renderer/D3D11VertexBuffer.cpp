@@ -9,7 +9,7 @@
 
 namespace Hippios
 {
-	D3D11VertexBuffer::D3D11VertexBuffer(ID3D11Device* d3d_device, ID3D11DeviceContext* device_context, size_t vertex_size, size_t num_vertices) :
+	D3D11VertexBuffer::D3D11VertexBuffer(ID3D11Device* d3d_device, ID3D11DeviceContext* device_context, size_t vertex_size, size_t num_vertices, bool dynamic) :
 		is_dirty(true)
 	{
 		m_device = d3d_device;
@@ -19,7 +19,7 @@ namespace Hippios
 		m_vertex_size = vertex_size;
 		m_num_vertices = num_vertices;
 
-		m_buffer = new D3D11GraphicsBuffer(m_device, m_device_context, D3D11_BIND_VERTEX_BUFFER, m_size_in_bytes);
+		m_buffer = new D3D11GraphicsBuffer(m_device, m_device_context, D3D11_BIND_VERTEX_BUFFER, m_size_in_bytes, dynamic);
 	}
 
 	void* D3D11VertexBuffer::Lock(size_t offset, size_t length)

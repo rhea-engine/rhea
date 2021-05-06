@@ -28,7 +28,7 @@ namespace Hippios
 	public:		
 		size_t get_vertex_size() { return m_vertex_size; };
 		size_t get_vertex_count() { return m_num_vertices; };
-		void update(const void* source) {}
+		virtual void update(const void* source) {}
 	};
 }
 #endif // !HIPPIOS_VERTEXBUFFER_H

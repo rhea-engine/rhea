@@ -38,6 +38,11 @@ namespace Poseidon
 		std::string getName() { return m_name; }
 		bool isName(std::string& name) { return m_name == name; }
 
+		// get height of viewport
+		int getHeight();
+		// get width of viewport
+		int getWidth();
+
 	protected:
 		std::string m_name;
 		Camera* m_camera = 0; // the active camera

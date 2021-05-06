@@ -22,6 +22,7 @@ namespace Hippios
 	class D3D11VertexBuffer;
 	class D3D11IndexBuffer;
 	class Texture;	
+	class D3D11StencilState;
 
 	class D3D11Renderer : public Renderer
 	{
@@ -82,8 +83,8 @@ namespace Hippios
 
 		HippiosWindow* createWindow(Psio::Engine *psio);
 		void set_window(HippiosWindow* win);
-		VertexBuffer* createVertexBuffer(size_t vertexSize, size_t numVertices);
-		IndexBuffer* createIndexBuffer(size_t vertex_size, size_t num_faces);
+		VertexBuffer* createVertexBuffer(size_t vertexSize, size_t numVertices, bool dynamic = false);
+		IndexBuffer* createIndexBuffer(size_t vertex_size, size_t num_faces, bool dynamic = false);
 		GraphicsBuffer* createGraphicsBuffer(size_t size_in_bytes);
 		bool drawBuffer(VertexBuffer* v_buffer, IndexBuffer* i_buffer = 0, Texture* texture = 0);
 		Texture* createTexture();
@@ -121,8 +122,12 @@ namespace Hippios
 		int presentPass();
 		int render();
 
+		void setStencilState(int state_id);
+
 	protected:
 		Texture* m_current_texture;
+		D3D11StencilState* m_stencil_std, * m_stencil_disabled;
+
 	};
 }
 #endif // !HIPPIOS_D3D11RENDERER_H

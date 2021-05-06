@@ -69,6 +69,25 @@ void Ceto::setup()
 			std::unique_ptr<Rhea::Event> ev_r = std::make_unique<Rhea::Event>("ready");
 			scene->sendEvent(std::string("ready"), ev_r.get());
 
+			// load the apps gui			
+			std::string app_gui = "//local/cetogui.scene";
+			loadResource(app_gui, "//meworla/gui", [&](Rhea::Unit* gui, ReqError r_err) {
+				if (r_err == ReqError::OK) {
+					gui->prepare([&](Rhea::Error* err) {
+						gui->ready();
+						log("gui ready");
+
+						// find label for debug text
+						m_debug_text = static_cast<Rhea::Label*>(m_unit_tree->find("//local/cetogui/gui/widget1/laber"));
+						if (!m_debug_text)
+							log("no debug text label found");
+						});
+				}
+				else {
+					log("loading of gui failed");					
+				}
+				});
+
 			//m_unit_tree->broadcast("logme");
 		}
 		else {
@@ -80,6 +99,21 @@ void Ceto::setup()
 void Ceto::setHomeScene(string scene)
 {
 	m_home_scene = scene;
+}
+
+bool Ceto::onFrameEnd()
+{
+	static unsigned int show_ticks = 0;
+
+	if (m_debug_text) {
+		unsigned int ticks_s = (unsigned int)(current_ticks / 1000000L);
+		if (ticks_s > show_ticks) {
+			show_ticks = ticks_s;
+			m_debug_text->setText("debugging: s=" + std::to_string(show_ticks) + "; fps=" + std::to_string(fps));			
+		}		
+	}
+
+	return false;
 }
 
 int main(int argc, char* argv[])

@@ -5,8 +5,9 @@
 
 #include "Item2DManager.h"
 #include "RenderElement.h"
+#include "GraphicsService.h"
 
-
+#include <Poseidon/SceneManager.h>
 
 namespace Rhea
 {
@@ -19,7 +20,7 @@ namespace Rhea
 
 		// create the element
 		GraphicsRenderElement* elem = new GraphicsRenderElement(core);
-		Poseidon::Node* entity = createRenderable(elem, core, unit, "HUD");
+		Poseidon::Node* entity = createRenderable(elem, core, unit, "HUD", false);
 
 		// add the position
 		addPosition(unit, entity);
@@ -54,6 +55,9 @@ namespace Rhea
 		float m_w = (float)item->W();
 		float m_h = (float)item->H();
 
+		// adjust to height of viewport (y is negative)
+		m_y = m_service->getViewportHeight() - m_y;
+
 		float m_u1 = 0.0f;
 		float m_v1 = 0.0f;
 		float m_u2 = 1.0f;
@@ -61,10 +65,10 @@ namespace Rhea
 
 		std::vector<Hippios::vertex_uv> vertices =
 		{
-			{ m_x, m_y, z, m_u1, m_v2 }, // bottom-left
-			{ m_x, m_y + m_h, z, m_u1, m_v1 }, // top-left
-			{ m_x + m_w, m_y + m_h, z, m_u2, m_v1 }, // top-right
-			{ m_x + m_w, m_y, z, m_u2, m_v2 }  // bottom-right
+			{ m_x, m_y - m_h, z, m_u1, m_v2 }, // bottom-left
+			{ m_x, m_y, z, m_u1, m_v1 }, // top-left
+			{ m_x + m_w, m_y, z, m_u2, m_v1 }, // top-right
+			{ m_x + m_w, m_y - m_h, z, m_u2, m_v2 }  // bottom-right
 		};
 		std::vector<unsigned long> v_indices = { 0, 1, 2, 0, 2, 3 };
 

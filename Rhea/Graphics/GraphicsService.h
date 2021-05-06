@@ -17,6 +17,7 @@ namespace Rhea
 	class Element;
 	class Event;
 	class GraphicsManager;
+	class GraphicsScene;
 
 	class GraphicsService : public Service
 	{
@@ -40,6 +41,10 @@ namespace Rhea
 		
 		bool onDisplay(Event* ev, Unit* unit);
 
+		// get current dimensions
+		int getViewportWidth() { return m_viewport_width; }
+		int getViewportHeight() { return m_viewport_height; }
+
 		// get the manager for a certain type
 		GraphicsManager* getManager(std::string type_name);
 
@@ -50,6 +55,12 @@ namespace Rhea
 		std::unique_ptr<Poseidon::Core> m_core;
 		Service* m_platform;
 		std::unordered_map<std::string, GraphicsManager*> m_managers;
+
+		int m_viewport_width;
+		int m_viewport_height;
+
+		// the currently displayed scene
+		GraphicsScene* m_g_scene;
 	};
 }
 

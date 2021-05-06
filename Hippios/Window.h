@@ -18,6 +18,9 @@ namespace Hippios
 		virtual void addViewport(Viewport *viewport) = 0;
 		virtual void update() = 0;
 		virtual void destroy() = 0;		
+
+		virtual int getHeight() = 0;
+		virtual int getWidth() = 0;
 	};
 }
 

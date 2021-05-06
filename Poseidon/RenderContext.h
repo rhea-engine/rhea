@@ -14,7 +14,7 @@ namespace Poseidon
 
 	/** a class that holds a render context.
 	*   a render context has its render queue and its own camera
-	*   render contexts belong to onw viewport and are rendered in the sequence in which they are added to the vieport
+	*   render contexts belong to one viewport and are rendered in the sequence in which they are added to the vieport
 	*/
 	class RenderContext : public Node
 	{
@@ -41,10 +41,15 @@ namespace Poseidon
 		Camera* get_camera() { return m_camera; };
 		void setCamera(Camera* camera);
 
+		// stencil state of the context
+		void setStencilState(int state_id) { m_stencil_state = state_id; }
+		int getStencilState() { return m_stencil_state; }
+
 	protected:
 		std::string m_name;
 		Camera* m_camera;
 		std::vector<Renderable*> m_render_children;
+		int m_stencil_state;
 	};
 }
 

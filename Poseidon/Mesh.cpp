@@ -20,14 +20,14 @@ namespace Poseidon
 	void Mesh::setVertices(size_t vertex_size, size_t num_vertices, const void* source)
 	{
 		assert(m_viewport && "viewport must be initialized before");
-		if (m_vbuffer) {
-			if (m_vbuffer->getLength() > vertex_size * num_vertices) {
+		if (m_vbuffer) {			
+			if (m_vbuffer->getLength() < vertex_size * num_vertices) {
 				delete m_vbuffer;
-				m_vbuffer = m_renderer->createVertexBuffer(vertex_size, num_vertices);
+				m_vbuffer = m_renderer->createVertexBuffer(vertex_size, num_vertices, m_dynamic_buffer);
 			}
 		}
 		else {
-			m_vbuffer = m_renderer->createVertexBuffer(vertex_size, num_vertices);
+			m_vbuffer = m_renderer->createVertexBuffer(vertex_size, num_vertices, m_dynamic_buffer);
 		}
 		m_vbuffer->WriteData(0, vertex_size * num_vertices, source, false);
 		m_vertex_size = (int)vertex_size;
@@ -36,16 +36,17 @@ namespace Poseidon
 	void Mesh::setIndices(size_t vertex_size, size_t num_faces, const void* source)
 	{
 		if (m_ibuffer) {
-			if (m_ibuffer->getLength() > vertex_size * num_faces * 3) {
-				delete m_vbuffer;
-				m_ibuffer = m_renderer->createIndexBuffer(vertex_size, num_faces);
+			if (m_ibuffer->getLength() < vertex_size * num_faces * 3) {
+				delete m_ibuffer;
+				m_ibuffer = m_renderer->createIndexBuffer(vertex_size, num_faces, m_dynamic_buffer);
+				m_num_indices = num_faces * 3;
 			}
 		}
 		else {
-			m_ibuffer = m_renderer->createIndexBuffer(vertex_size, num_faces);
+			m_ibuffer = m_renderer->createIndexBuffer(vertex_size, num_faces, m_dynamic_buffer);
+			m_num_indices = num_faces * 3;
 		}		
 		m_ibuffer->WriteData(0, vertex_size * num_faces * 3, source, false);	
-		m_num_indices = num_faces * 3;
 	}
 
 	void Mesh::addVertexBuffer(Hippios::VertexBuffer* vbuffer)

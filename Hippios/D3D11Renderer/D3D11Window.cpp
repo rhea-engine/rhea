@@ -1,3 +1,5 @@
+#include "D3D11Window.h"
+#include "D3D11Window.h"
 #include <d3d11.h>
 #include <d3d11shader.h>
 #include <d3dcompiler.h>
@@ -145,6 +147,22 @@ namespace Hippios
 	{		
 		mWin->destroy();
 		mWin = 0;
+	}
+
+	int D3D11Window::getHeight()
+	{
+		if (mWin) {
+			return mWin->GetHeight();
+		}
+		return 0;
+	}
+
+	int D3D11Window::getWidth()
+	{
+		if (mWin) {
+			return mWin->GetWidth();
+		}
+		return 0;
 	}
 
 	void D3D11Window::update()

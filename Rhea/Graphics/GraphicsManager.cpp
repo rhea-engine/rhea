@@ -15,7 +15,7 @@
 
 namespace Rhea
 {
-	Poseidon::Node* GraphicsManager::createRenderable(GraphicsRenderElement* elem, Poseidon::Core* core, Unit* item, std::string render_context_name)
+	Poseidon::Node* GraphicsManager::createRenderable(GraphicsRenderElement* elem, Poseidon::Core* core, Unit* item, std::string render_context_name, bool dynamic_usage)
 	{
 		Poseidon::SceneManager* scene_mgr = core->get_scene_manager();
 
@@ -23,7 +23,7 @@ namespace Rhea
 		Poseidon::Mesh* mesh = elem->getMesh();
 		if (!mesh) {
 			// create an empty mesh
-			mesh = new Poseidon::Mesh();
+			mesh = new Poseidon::Mesh(dynamic_usage);
 			mesh->setViewport(scene_mgr
 				->getViewport());
 			elem->SetMesh(mesh);

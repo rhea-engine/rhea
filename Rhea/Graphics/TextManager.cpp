@@ -2,12 +2,14 @@
 #include <algorithm>
 
 #include <Poseidon/Entity.h>
+#include <Poseidon/SceneManager.h>
 
 #include <Rhea/Fabrics/Text/TextWidget.h>
 #include "Application.h"
 
 #include "TextManager.h"
 #include "RenderElement.h"
+#include "GraphicsService.h"
 
 namespace Rhea
 {
@@ -20,7 +22,7 @@ namespace Rhea
 
 		// create the element
 		GraphicsRenderElement* elem = new GraphicsRenderElement(core);
-		Poseidon::Node* entity = createRenderable(elem, core, unit, "HUD");
+		Poseidon::Node* entity = createRenderable(elem, core, unit, "HUD", true);
 
 		// add the position
 		addPosition(unit, entity);
@@ -65,6 +67,9 @@ namespace Rhea
 		float t_y = (float)t->Y();
 		float t_w = (float)t->W();
 		float t_h = (float)t->H();	
+
+		// adjust to height of viewport (y is negative)
+		t_y = m_service->getViewportHeight() - t_y;
 		
 		float z = 0.0f;
 		float draw_x = t_x;
@@ -87,9 +92,9 @@ namespace Rhea
 			float f_bottom = glyph->bottom;
 
 			// do we have space for the next char?
-			if (draw_x + glyph->advance > t_w - t_x) {
+			if (draw_x + glyph->advance > t_w + t_x) {
 				// do we have space for the next line?
-				if (draw_y - (2 * f_sz) < t_y - t_h) {
+				if (draw_y - (2 * f_sz) < t_y - t_h) { // NOTE: "-" because coords are flipped
 					// no - stop rendering
 					break;
 				}
@@ -122,14 +127,27 @@ namespace Rhea
 			draw_x += glyph->advance;
 		}
 
+		if (!v_indices.size()) {
+			return;
+		}
+
+		// fill up the buffer with zeros
+		size_t max_len = t->getMaxLength();
+		if (max_len > sentence.length()) {
+			for (size_t j = sentence.length(); j < max_len; j++) {
+				vertices.push_back({ 0,0,0,0,0 });
+				vertices.push_back({ 0,0,0,0,0 });
+				vertices.push_back({ 0,0,0,0,0 });
+				vertices.push_back({ 0,0,0,0,0 });
+			}
+		}
+
 		elem->getMesh()->setVertices(sizeof(Hippios::vertex_uv), vertices.size(), vertices.data());
 		elem->getMesh()->setIndices(sizeof(unsigned long), v_indices.size() / 3, v_indices.data());
 	}
 
 	bool GraphicsTextManager::onUpdate(Event* ev, Unit* unit)
 	{
-		printf("text updated\n");
-
 		TextWidget* t = static_cast<TextWidget*>(unit);
 		GraphicsRenderElement* elem = static_cast<GraphicsRenderElement*>(t->getElement("graphics"));
 

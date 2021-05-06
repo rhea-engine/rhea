@@ -24,8 +24,8 @@ namespace Hippios
 		virtual HippiosWindow* createWindow(Psio::Engine *psio) = 0;
 		virtual int render() = 0;
 		virtual bool drawBuffer(VertexBuffer* v_buffer, IndexBuffer* i_buffer, Texture* texture) = 0;
-		virtual VertexBuffer* createVertexBuffer(size_t vertexSize, size_t numVertices) = 0;
-		virtual IndexBuffer* createIndexBuffer(size_t vertex_size, size_t num_faces) = 0;
+		virtual VertexBuffer* createVertexBuffer(size_t vertexSize, size_t numVertices, bool dynamic) = 0;
+		virtual IndexBuffer* createIndexBuffer(size_t vertex_size, size_t num_faces, bool dynamic) = 0;
 		virtual GraphicsBuffer* createGraphicsBuffer(size_t size_in_bytes) = 0;
 		virtual Texture* createTexture() = 0;
 		virtual void clearPass() = 0;
@@ -49,6 +49,9 @@ namespace Hippios
 
 		// draw index with current buffers
 		virtual void drawIndexed(int size, int start_idx, int start_vtx) = 0;
+
+		// set the stencil state to state with id
+		virtual void setStencilState(int state_id) = 0;
 
 		// set gpu parameters
 

@@ -27,8 +27,8 @@ namespace Poseidon
 
 		Vector3(const Vector3* _ptr) {
 			x = _ptr->x;
-			y = _ptr->z;
-			z = _ptr->x;				
+			y = _ptr->y;
+			z = _ptr->z;				
 		}	
 
 		// special points

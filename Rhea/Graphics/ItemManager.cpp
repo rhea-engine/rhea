@@ -39,7 +39,7 @@ namespace Rhea
 		}
 
 		// create the element		
-		Poseidon::Node* entity = createRenderable(elem, core, unit, "default");
+		Poseidon::Node* entity = createRenderable(elem, core, unit, "default", false);
 		
 		if (!mesh_el) {
 			// mesh was not defined up till now - store it in mesh unit

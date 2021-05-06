@@ -66,7 +66,7 @@ namespace SimpleParser
 			m_data._bool = variant.m_data._bool;
 			break;
 		case Type::BaseType::INT:
-			m_data._bool = variant.m_data._bool;
+			m_data._int = variant.m_data._int;
 			break;
 		case Type::BaseType::FLOAT:
 			m_data._float = variant.m_data._float;
@@ -205,7 +205,7 @@ namespace SimpleParser
 			m_data._bool = variant.m_data._bool;
 			break;
 		case Type::BaseType::INT:
-			m_data._bool = variant.m_data._bool;
+			m_data._int = variant.m_data._int;
 			break;
 		case Type::BaseType::FLOAT:
 			m_data._float = variant.m_data._float;

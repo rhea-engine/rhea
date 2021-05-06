@@ -1,6 +1,6 @@
 # for now only Direct3dDX11 is supported
 
-add_library(HippiosEngine STATIC Engine.cpp Viewport.cpp Camera.cpp "GPUProgram.h")
+add_library(HippiosEngine STATIC Engine.cpp Viewport.cpp Camera.cpp "GPUProgram.h" "StencilState.h")
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/)
 
 # search only if right platform

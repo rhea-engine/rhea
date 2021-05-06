@@ -6,6 +6,7 @@
 #include <stdio.h>
 
 #include "D3D11GraphicsBuffer.h"
+#include <cassert>
 
 namespace Hippios
 {
@@ -14,23 +15,29 @@ namespace Hippios
 		m_device = d3dDevice;
 		m_device_context = deviceContext;		
 		m_size_in_bytes = size_in_bytes;
+		m_dynamic = dynamic;
 		
 		D3D11_BUFFER_DESC bd;
 		ZeroMemory(&bd, sizeof(bd));
 
-		if (dynamic)
+		if (dynamic) {
 			bd.Usage = D3D11_USAGE_DYNAMIC;                // write access access by CPU and GPU
-		else
+			bd.CPUAccessFlags = access_flag;    // allow CPU to write in buffer?
+		}
+		else {
 			bd.Usage = D3D11_USAGE_DEFAULT;
+			bd.CPUAccessFlags = 0;
+		}
 		bd.ByteWidth = (UINT)m_size_in_bytes;            
 		bd.BindFlags = buffer_type;					   // set buffer type
-		bd.CPUAccessFlags = access_flag;    // allow CPU to write in buffer?
+		
 
 		HRESULT hr = m_device->CreateBuffer(&bd, NULL, &m_buffer);       // create the buffer		
 		if (FAILED(hr))
 		{
 			m_buffer = nullptr;
 			printf("Could not create graphics buffer - expect failure\n");
+			assert(m_buffer != nullptr);
 		}
 	}
 
@@ -71,15 +78,15 @@ namespace Hippios
 
 	void D3D11GraphicsBuffer::WriteData(size_t offset, size_t length, const void* source, bool discardBuffer, bool mapped)
 	{
-		if (mapped)
+		if (mapped && m_dynamic)
 		{
 			void* dest = this->Lock(offset, length);
 			memcpy(dest, source, length);
 			this->Unlock();
 		}
 		else if (m_buffer) {
-			m_device_context->UpdateSubresource(m_buffer, 0, NULL, &source, 0, 0);
-			m_device_context->VSSetConstantBuffers(0, 1, &m_buffer);
+			m_device_context->UpdateSubresource(m_buffer, 0, NULL, source, 0, 0);
+//			m_device_context->VSSetConstantBuffers(0, 1, &m_buffer);
 		}
 	}
 	

@@ -33,7 +33,7 @@ namespace Rhea
 		// renderables utility functions
 
 		// create a renderable mesh
-		Poseidon::Node* createRenderable(GraphicsRenderElement* elem, Poseidon::Core* core, Unit* item, std::string render_context_name);
+		Poseidon::Node* createRenderable(GraphicsRenderElement* elem, Poseidon::Core* core, Unit* item, std::string render_context_name, bool dynamic_usage);
 
 		// set position
 		void addPosition(Unit* item, Poseidon::Node* entity);

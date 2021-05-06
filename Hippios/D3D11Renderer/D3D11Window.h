@@ -34,6 +34,10 @@ namespace Hippios
 		void addViewport(Viewport* viewport);
 		void update();
 		void destroy();	
+
+		int getHeight();
+		int getWidth();
+
 		Psio::Window* getWindow() {
 			return mWin;
 		}

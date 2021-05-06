@@ -16,7 +16,8 @@ namespace Rhea
 		{}
 		TextWidget(std::string name, std::string type_name) :
 			m_font(nullptr),
-			Item2D(name, type_name)
+			Item2D(name, type_name),
+			m_max_length(0)
 		{}
 
 		// setup from strings
@@ -28,6 +29,12 @@ namespace Rhea
 		// get the Text
 		std::string getText() { return m_text; }
 
+		// get the max length of text
+		size_t getMaxLength() { return m_max_length; }
+
+		// set a new text
+		void setText(std::string text);
+
 		// get the font
 		Font* getFont() { return m_font; }
 
@@ -37,6 +44,7 @@ namespace Rhea
 	protected:
 		std::string m_text;
 		Font* m_font;
+		size_t m_max_length;
 	};
 }
 

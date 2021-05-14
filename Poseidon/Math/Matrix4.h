@@ -52,7 +52,7 @@ namespace Poseidon
 		const float* operator[](size_t row) const
 		{
 			return m[row];
-		}
+		}	
 
 		/** Assignment from 3x3 matrix.
 		*/		
@@ -77,6 +77,8 @@ namespace Poseidon
 		}
 
 		Matrix4 transpose() const;
+
+		bool inverse(Matrix4& out);
 	};
 
 	inline Matrix4 Matrix4::transpose() const
@@ -109,6 +111,66 @@ namespace Poseidon
 		r[3][1] = m[3][0] * m2[0][1] + m[3][1] * m2[1][1] + m[3][2] * m2[2][1] + m[3][3] * m2[3][1];
 		r[3][2] = m[3][0] * m2[0][2] + m[3][1] * m2[1][2] + m[3][2] * m2[2][2] + m[3][3] * m2[3][2];
 		r[3][3] = m[3][0] * m2[0][3] + m[3][1] * m2[1][3] + m[3][2] * m2[2][3] + m[3][3] * m2[3][3];
+
+		return r;
+	}
+
+	inline bool Matrix4::inverse(Matrix4 &out)
+	{
+		float s[6];
+		float c[6];
+		s[0] = m[0][0] * m[1][1] - m[1][0] * m[0][1];
+		s[1] = m[0][0] * m[1][2] - m[1][0] * m[0][2];
+		s[2] = m[0][0] * m[1][3] - m[1][0] * m[0][3];
+		s[3] = m[0][1] * m[1][2] - m[1][1] * m[0][2];
+		s[4] = m[0][1] * m[1][3] - m[1][1] * m[0][3];
+		s[5] = m[0][2] * m[1][3] - m[1][2] * m[0][3];
+
+		c[0] = m[2][0] * m[3][1] - m[3][0] * m[2][1];
+		c[1] = m[2][0] * m[3][2] - m[3][0] * m[2][2];
+		c[2] = m[2][0] * m[3][3] - m[3][0] * m[2][3];
+		c[3] = m[2][1] * m[3][2] - m[3][1] * m[2][2];
+		c[4] = m[2][1] * m[3][3] - m[3][1] * m[2][3];
+		c[5] = m[2][2] * m[3][3] - m[3][2] * m[2][3];
+
+		/* is it invertible ? */
+		float id = s[0] * c[5] - s[1] * c[4] + s[2] * c[3] + s[3] * c[2] - s[4] * c[1] + s[5] * c[0];
+		if (id == 0.0f)
+			return false;
+		float idet = 1.0f / id ;
+
+		out.m[0][0] = (m[1][1] * c[5] - m[1][2] * c[4] + m[1][3] * c[3]) * idet;
+		out.m[0][1] = (-m[0][1] * c[5] + m[0][2] * c[4] - m[0][3] * c[3]) * idet;
+		out.m[0][2] = (m[3][1] * s[5] - m[3][2] * s[4] + m[3][3] * s[3]) * idet;
+		out.m[0][3] = (-m[2][1] * s[5] + m[2][2] * s[4] - m[2][3] * s[3]) * idet;
+
+		out.m[1][0] = (-m[1][0] * c[5] + m[1][2] * c[2] - m[1][3] * c[1]) * idet;
+		out.m[1][1] = (m[0][0] * c[5] - m[0][2] * c[2] + m[0][3] * c[1]) * idet;
+		out.m[1][2] = (-m[3][0] * s[5] + m[3][2] * s[2] - m[3][3] * s[1]) * idet;
+		out.m[1][3] = (m[2][0] * s[5] - m[2][2] * s[2] + m[2][3] * s[1]) * idet;
+
+		out.m[2][0] = (m[1][0] * c[4] - m[1][1] * c[2] + m[1][3] * c[0]) * idet;
+		out.m[2][1] = (-m[0][0] * c[4] + m[0][1] * c[2] - m[0][3] * c[0]) * idet;
+		out.m[2][2] = (m[3][0] * s[4] - m[3][1] * s[2] + m[3][3] * s[0]) * idet;
+		out.m[2][3] = (-m[2][0] * s[4] + m[2][1] * s[2] - m[2][3] * s[0]) * idet;
+
+		out.m[3][0] = (-m[1][0] * c[3] + m[1][1] * c[1] - m[1][2] * c[0]) * idet;
+		out.m[3][1] = (m[0][0] * c[3] - m[0][1] * c[1] + m[0][2] * c[0]) * idet;
+		out.m[3][2] = (-m[3][0] * s[3] + m[3][1] * s[1] - m[3][2] * s[0]) * idet;
+		out.m[3][3] = (m[2][0] * s[3] - m[2][1] * s[1] + m[2][2] * s[0]) * idet;
+
+		return true;
+	}
+
+	inline Vector3 operator*(const Matrix4& m, const Vector3& v)
+	{
+		Vector3 r;
+
+		float fInvW = 1.0f / (m[3][0] * v.x + m[3][1] * v.y + m[3][2] * v.z + m[3][3]);
+
+		r.x = (m[0][0] * v.x + m[0][1] * v.y + m[0][2] * v.z + m[0][3]) * fInvW;
+		r.y = (m[1][0] * v.x + m[1][1] * v.y + m[1][2] * v.z + m[1][3]) * fInvW;
+		r.z = (m[2][0] * v.x + m[2][1] * v.y + m[2][2] * v.z + m[2][3]) * fInvW;
 
 		return r;
 	}

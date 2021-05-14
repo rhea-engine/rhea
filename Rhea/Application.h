@@ -22,6 +22,7 @@ namespace Rhea
 	class Scene;
 	class SceneView;
 	class Service;
+	class EventInput;
 
 	class Application
 	{
@@ -40,7 +41,7 @@ namespace Rhea
 		// the app main loop
 		virtual int loop();
 		// handle input - return true for quit
-		virtual bool onInput(std::shared_ptr<Psio::InputEvent> evt);
+		virtual bool onInput(EventInput *e, Unit* unit);
 		// onFrame Event
 		virtual bool onFrameBegin() { return false; }
 		virtual bool onFrameEnd() { return false; }

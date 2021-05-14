@@ -19,6 +19,7 @@ namespace Rhea
 			Unit(path_name, type_name),
 			m_top_window(false),
 			m_visible(false),
+			m_handle_input(false),
 			m_size(0.0f, 0.0f),
 			m_position(0.0f,0.0f),
 			m_base_size(0.0f, 0.0f),
@@ -69,6 +70,11 @@ namespace Rhea
 
 		void setToplevel(bool top) { m_top_window = top; }
 
+		// find lowest widget at position
+		Widget* capture(int x, int y);
+
+		// find input target
+		Widget* getInputTarget();
 
 	protected:
 
@@ -83,6 +89,9 @@ namespace Rhea
 
 		// is widget visible
 		bool m_visible;
+
+		// does widget handle input events
+		bool m_handle_input;
 
 		// defined coordinates
 		

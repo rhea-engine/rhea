@@ -157,4 +157,32 @@ namespace Poseidon
 	{
 		m_ortho_size = size;
 	}
+
+	Ray Camera::getPickingRay(float scr_x, float scr_y, int viewport_width, int viewport_height)
+	{
+		Vector3	origin;
+		Vector3 direction;
+
+		// Get the inverse of the view matrix.
+		Matrix4 _vp = (getProjectionMatrixRS() * getViewMatrix());
+		Matrix4 _vp_inv;
+		_vp.inverse(_vp_inv);
+		 
+		// Move the screen cursor coordinates into the -1 to +1 range.
+		direction.x = ((2.0f * (float)scr_x) / (float)viewport_width) - 1.0f;
+		direction.y = -(((2.0f * (float)scr_y) / (float)viewport_height) - 1.0f);
+		direction.z = 1.0f;
+
+		// ogre: near=-1,mid=0
+		Vector3 nearPoint(direction.x, direction.y, 0.0f);
+		Vector3 midPoint(direction.x, direction.y, 1.0f);
+		Vector3 rayOrigin, rayTarget;
+
+		rayOrigin = _vp_inv * nearPoint;
+		rayTarget = _vp_inv * midPoint;
+		Vector3 rayDirection = rayTarget - rayOrigin;
+		rayDirection.normalise();
+
+		return Ray(rayOrigin, rayDirection);
+	}
 }

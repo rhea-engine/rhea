@@ -30,6 +30,9 @@ namespace Rhea
 
 		void toggleDebug();
 
+		// ray trace
+		Unit* ray(Poseidon::Vector3 origin, Poseidon::Vector3 direction);
+
 	protected:
 		btDynamicsWorld* m_world;
 		Scene* m_scene;

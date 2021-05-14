@@ -31,6 +31,10 @@ namespace Poseidon
 		}
 		m_vbuffer->WriteData(0, vertex_size * num_vertices, source, false);
 		m_vertex_size = (int)vertex_size;
+		if (!m_ibuffer) {
+			// for non-indexed return vertex count as size
+			m_num_indices = num_vertices;
+		}
 	}
 
 	void Mesh::setIndices(size_t vertex_size, size_t num_faces, const void* source)

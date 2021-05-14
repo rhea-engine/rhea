@@ -3,6 +3,7 @@
 
 #include "../Service.h"
 #include "../Scene.h"
+#include <Poseidon/Math/Vector3.h>
 
 namespace Rhea
 {
@@ -31,6 +32,9 @@ namespace Rhea
 
 		// toggle debug draw
 		virtual void toggleDebug() {}
+
+		// ray trace
+		virtual Unit* ray(Poseidon::Vector3 origin, Poseidon::Vector3 direction) { return nullptr; };
 
 	protected:
 		Item* m_item;

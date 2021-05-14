@@ -6,14 +6,17 @@
 #include "../Graphics/CameraManager.h"
 #include "../Graphics/GraphicsService.h"
 #include "../Graphics/GraphicsManager.h"
+#include <Rhea/EventInput.h>
 
 namespace Rhea
 {
-	void SpectatorController::onInput(std::string action, std::shared_ptr<Psio::InputEvent>& evt)
+	bool SpectatorController::onInput(Event* ev, Unit* unit)
 	{
 		// safety check
 		if (!m_target)
-			return;
+			return false;
+
+		EventInput* e = (EventInput*)ev;
 
 		// default speed in m/s
 		float move_step = 1.66f; // ~6km/h 
@@ -23,13 +26,15 @@ namespace Rhea
 
 		// handle actions for the camera (if the camera moves independend of the target)
 
-		if (action == "cam_move_left") {
+		if (e->isAction("cam_move_left")) {
 			//m_move.x = -side_step;
 		}
-		else if (action == "cam_move_right") {
+		else if (e->isAction("cam_move_right")) {
 			//m_move.x = side_step;
 		}
-		BasicController::onInput(action, evt);
+
+		//BasicController::onInput(action, evt);
+		return BasicController::onInput(ev, unit);
 	}
 
 	void SpectatorController::show(Poseidon::Core* core)
@@ -73,6 +78,8 @@ namespace Rhea
 		//  add following
 		((Rhea::Item*)m_target)->addFollower(m_view);
 		m_target->addChild(m_view);
+
+		_registerEvent(m_app->getUnitTree());
 	}
 
 	void SpectatorController::message(std::string method_name)
@@ -94,6 +101,11 @@ namespace Rhea
 	{
 		m_position.lookAt(target, Poseidon::Vector3::UNIT_Z);
 		((Item*)m_target)->setPosition(m_position);
+	}
+
+	void SpectatorController::_registerEvent(Unit* unittree)
+	{
+		unittree->registerEventHandler("unhandled_input", std::bind(&SpectatorController::onInput, this, std::placeholders::_1, std::placeholders::_2));
 	}
 
 	Unit* SpectatorController::createType(std::string name, std::string type)

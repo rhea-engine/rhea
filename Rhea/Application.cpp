@@ -41,8 +41,9 @@
 #include "SimpleParser/Method.h"
 
 #include "Application.h"
-#include <Rhea/Fabrics/Text/TextWidget.h>
-#include <Rhea/Fabrics/Text/BitmapFont.h>
+#include <Fabrics/Text/TextWidget.h>
+#include <Fabrics/Text/BitmapFont.h>
+#include <EventInput.h>
 
 namespace Rhea
 {
@@ -157,8 +158,10 @@ namespace Rhea
 		printf("Resource loading failed\n");
 	}
 
-	bool Application::onInput(std::shared_ptr<Psio::InputEvent> evt)
+	bool Application::onInput(EventInput* e, Unit* unit)
 	{
+		std::shared_ptr<Psio::InputEvent> evt = e->getEvent();
+
 		// close on esc
 		Psio::KeyInputEvent esc(Psio::InputEventId::KEY_PRESSED);
 		esc.set(Psio::Key::CODE_ESC, 0, 0);
@@ -166,11 +169,18 @@ namespace Rhea
 		if (evt->isEvent(&esc)) {
 			return true;
 		}
+
+		// toggle physics service
 		esc.set(Psio::Key::CODE_F9, 0, 0);
 		if (evt->isEvent(&esc)) {
 			PhysicsService* physics = static_cast<PhysicsService*>(m_services["physics"]);
 			physics->toggleDebug();
 		}
+
+		// pressed mouse button
+		Psio::MouseInputEvent btn(Psio::InputEventId::MOUSE_BTN_PRESSED);
+
+
 		return false;
 	}
 
@@ -251,22 +261,25 @@ namespace Rhea
 
 			// check for window and input events
 			while (evt = psio->pollInput()) {
-				// always handle quit
+
+				// always handle OS quit
 				if (evt->getId() == Psio::InputEventId::WMGR_QUIT) {
-					ret = true;
+					return true;
 				}
-				// input map ?
+
+				// get actions from input map
 				iea = m_input_map->getActions(evt);
-				if (iea.actions.size())
-				{
-					for (auto& act : iea.actions) {
-						if (m_focused_controller)
-							m_focused_controller->onInput(act, evt);
-						m_dispatcher->dispatch(act, evt);
-					}
-				}
-				// handle input directly
-				if (onInput(evt))
+
+				// send the input events
+				// TODO: make the event list configurable
+				EventInput e("input", evt, iea.actions);
+				m_unit_tree->sendEvent("input", &e);
+				m_unit_tree->sendEvent("gui_input", &e);
+				m_unit_tree->sendEvent("unhandled_input", &e);
+				m_unit_tree->sendEvent("scene_input", &e);				
+
+				// application input handling comes last
+				if (onInput(&e, nullptr))
 					ret = true;
 			}
 
@@ -279,12 +292,7 @@ namespace Rhea
 			for (int i=0; i < physics_steps; i++)
 			{
 				physics->step(frame_slice);
-			}
-			if (m_focused_controller) {
-				Poseidon::Position *pos = m_focused_controller->getTarget()->getNode()->get_position();
-				Poseidon::Vector3 p = pos->get_worldspace();
-				printf("\rPosition: \t%f\t%f\t%f", p.x, p.y, p.z);
-			}
+			}			
 
 			// idle
 			uint64_t idle_begin = psio->getTicks();

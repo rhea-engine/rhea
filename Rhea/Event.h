@@ -19,6 +19,8 @@ namespace Rhea
 
 		bool isEvent(std::string ev_name) { return ev_name == m_name; }
 
+		std::string getName() { return m_name; }
+
 	protected:
 		std::string m_name;
 	};

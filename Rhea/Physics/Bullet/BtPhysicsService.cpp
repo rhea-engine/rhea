@@ -10,6 +10,13 @@
 #include "Fabrics/Terrain/Terrain.h"
 #include "Application.h"
 
+#include "Poseidon/Core.h"
+#include "Poseidon/Viewport.h"
+#include "Poseidon/SceneManager.h"
+#include <Hippios/VertexBuffer.h>
+#include <Poseidon/Shader.h>
+#include <Poseidon/RenderContext.h>
+
 #include "btBulletDynamicsCommon.h"
 
 namespace Rhea
@@ -174,5 +181,25 @@ namespace Rhea
 			m_debug_draw->toggle();
 		if (!m_debug)
 			m_app->log("physics debug drawer was not enabled at startup");
+	}
+	
+	Unit* BulletPhysicsService::ray(Poseidon::Vector3 origin, Poseidon::Vector3 direction)
+	{
+		btVector3 btRayFrom = btVector3(origin.x, origin.y, origin.z);
+		btVector3 btRayTo = btVector3(direction.x, direction.y, direction.z);
+		
+		btCollisionWorld::ClosestRayResultCallback rayCallback(btRayFrom, btRayTo);
+		m_world->rayTest(btRayFrom, btRayTo, rayCallback);
+		if (rayCallback.hasHit()) {
+			Rhea::Item* item = reinterpret_cast<Rhea::Item*>(rayCallback.m_collisionObject->getUserPointer());
+			//btRigidBody* pBody = btRigidBody::upcast(rayCallback.m_collisionObject);
+			if (item) {
+#ifdef PICK3D_DEBUG
+				m_app->log("item:" + item->getPathName() + " hit");
+#endif
+				return item;
+			}
+		}
+		return nullptr;
 	}
 }

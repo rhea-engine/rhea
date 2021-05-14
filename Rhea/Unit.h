@@ -59,6 +59,12 @@ namespace Rhea
 		// find nearest by type
 		Unit* findByType(std::string type_name);
 
+		// get common ancestor
+		Unit* getCommonAncestor(Unit* u2);
+
+		// is unit the ancestor
+		bool isAncestor(Unit* u2);
+
 		// get value
 		Variant getValue(std::string name);
 		// get value with default
@@ -95,6 +101,9 @@ namespace Rhea
 
 		// send Event to all children
 		void sendEventChildren(std::string event_name, Event* event);
+
+		// send event to parent subtree
+		void sendEventSubtree(Unit* top, std::string event_name, Event* event);
 
 		// get Application
 		Application* getApplication() { return m_app; }

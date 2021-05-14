@@ -11,6 +11,6 @@ add_library (Rhea "Application.cpp" "Importer.cpp" "SceneLoader.cpp" "Unit.cpp" 
 "Graphics/ItemManager.cpp" "Graphics/SceneManager.cpp" "Graphics/CameraManager.cpp" "Camera.cpp" "Material.h" "Material.cpp" 
 "Graphics/Item2DManager.cpp" "ResourceList.cpp" "Error.h" "Resource.cpp" "Graphics/RenderElement.h" "Graphics/RenderElement.cpp"
 "Graphics/GraphicsManager.h" "Graphics/TextManager.h" "Graphics/TextManager.cpp" "Graphics/MaterialManager.cpp" "Graphics/GraphicsManager.cpp" 
-"Graphics/MeshElement.h" "EventUnit.h")
+"Graphics/MeshElement.h" "EventUnit.h" "EventInput.cpp")
 
 target_link_libraries(Rhea Poseidon Orion SimpleParser Winmm RheaPhysics RheaFabrics)

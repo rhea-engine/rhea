@@ -25,9 +25,12 @@ namespace Rhea
 		void setPosition(Poseidon::Vector3 position);
 		void lookAt(Poseidon::Vector3& target);
 
+		Poseidon::Vector3 getPosition();
+
 		// Controller functions
 
-		void onInput(std::string action, std::shared_ptr<Psio::InputEvent>& evt);		
+		// input event handler
+		bool onInput(Event* ev, Unit* unit);
 
 		void connect(Item* target);
 
@@ -42,6 +45,9 @@ namespace Rhea
 
 		Poseidon::Vector3 m_move;
 		float m_turn = 0;
+
+		// register event handler
+		virtual void _registerEvent(Unit* unittree);
 	};
 }
 

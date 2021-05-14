@@ -11,6 +11,9 @@
 #include "Rhea/Graphics/GraphicsService.h"
 #include "Rhea/Graphics/GraphicsManager.h"
 
+#include "Poseidon/Material.h"
+#include "Poseidon/Shader.h"
+#include "Rhea/Material.h"
 
 void Ceto::setup()
 {
@@ -23,6 +26,29 @@ void Ceto::setup()
 	{
 		m_home_scene = "//Ceto/Init/init.scene";		
 	}
+
+	// add defaults
+
+	// a color material
+	Poseidon::Material* material = get_core()->getMaterial("color");
+	if (!material) {
+		material = get_core()->createMaterial();
+		material->setTopology(2);
+		Poseidon::Shader* shader = get_core()->getShader("shader_vp");
+		if (!shader) {
+			shader = get_core()->createShader("shader_vp");
+			shader->setVertexType(0);
+			if (shader->loadFromFile("Data\\Rhea\\shaders\\shader_vp.hlsl", "VShader", "PShader"))
+				exit(-1);
+		}
+		material->setShader(shader);
+		get_core()->registerMaterial("color", material);
+	}
+	Rhea::Material* mat = new Rhea::Material("color");
+	mat->setup(this);	
+	mat->setValue("shader", "shader_vp");
+	m_unit_tree->addChild(mat);
+
 	loadScene(m_home_scene, [&](Rhea::Scene* scene, ReqError err) {
 		if (err == ReqError::OK) {
 			static_cast<Rhea::GraphicsService*>(m_services["graphics"])->setScene(scene);
@@ -79,8 +105,9 @@ void Ceto::setup()
 
 						// find label for debug text
 						m_debug_text = static_cast<Rhea::Label*>(m_unit_tree->find("//local/cetogui/gui/widget1/laber"));
-						if (!m_debug_text)
-							log("no debug text label found");
+						if (!m_debug_text) {
+							log("no debug text label found");						
+						}
 						});
 				}
 				else {
@@ -109,7 +136,13 @@ bool Ceto::onFrameEnd()
 		unsigned int ticks_s = (unsigned int)(current_ticks / 1000000L);
 		if (ticks_s > show_ticks) {
 			show_ticks = ticks_s;
-			m_debug_text->setText("debugging: s=" + std::to_string(show_ticks) + "; fps=" + std::to_string(fps));			
+			std::string debug = "";
+			debug += "debugging: s=" + std::to_string(show_ticks) + "; fps=" + std::to_string(fps);
+			if (m_focused_controller) {
+				Poseidon::Vector3 pos = static_cast<Rhea::BasicController*>(m_focused_controller)->getPosition();
+				debug += "\nPosition: " + std::to_string(pos.x) + " / " + std::to_string(pos.y) + " / " + std::to_string(pos.z);
+			}
+			m_debug_text->setText(debug);
 		}		
 	}
 

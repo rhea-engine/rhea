@@ -94,6 +94,45 @@ namespace Rhea
 		return nullptr;
 	}
 
+	Unit* Unit::getCommonAncestor(Unit* u2)
+	{
+		if (!u2)
+			return u2;
+
+		Unit* u1 = this;
+
+		if (u1 == u2)
+			return u1;
+
+		// if u1 is already anchestor u2 is the result
+		if (u1 && u1->isAncestor(u2))
+			return u2;
+
+		while (u1)
+		{
+			if (u2->isAncestor(u1))
+				break;
+
+			u1 = u1->m_parent;
+		}
+
+		return u1;
+	}
+
+	bool Unit::isAncestor(Unit* u2)
+	{
+		// if we have no parent we have no ancestor
+		if (!m_parent)
+			return false;
+
+		// check our immediate parent
+		if (m_parent == u2)
+			return true;
+
+		// not our parent - check back up the tree
+		return m_parent->isAncestor(u2);
+	}
+
 	std::string Unit::getPath(std::string& unit_path)
 	{
 		// is the string a full path?
@@ -227,6 +266,19 @@ namespace Rhea
 			Unit* c = it->second;
 			c->sendEventChildren(event_name, event);
 		}
+	}
+
+	void Unit::sendEventSubtree(Unit* top, std::string event_name, Event* event)
+	{
+		if (top == this)
+			return;
+
+		Unit* const parent = m_parent;
+
+		if (parent && parent != top)
+			parent->sendEventSubtree(top, event_name, event);
+
+		sendEvent(event_name, event);
 	}
 
 	void Unit::addElement(std::string name, Element* element)

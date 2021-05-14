@@ -103,10 +103,36 @@ namespace Psio
 		case WM_LBUTTONDOWN:
 		case WM_RBUTTONDOWN:
 		case WM_MBUTTONDOWN:
+		case WM_LBUTTONUP:
+		case WM_RBUTTONUP:
+		case WM_MBUTTONUP:
+		case WM_LBUTTONDBLCLK:
+		case WM_RBUTTONDBLCLK:
+		case WM_MBUTTONDBLCLK:
+		case WM_MOUSEMOVE:
 			shift = GetKeyState(VK_SHIFT) & 0x0800;
 			alt = GetKeyState(VK_MENU) & 0x0800;
 			ctrl = GetKeyState(VK_CONTROL) & 0x0800;
-			evt = std::make_shared<MouseInputEvent>(Psio::InputEventId::MOUSE_BTN_PRESSED);
+			switch (uMsg) {
+			case WM_LBUTTONDOWN:
+			case WM_RBUTTONDOWN:
+			case WM_MBUTTONDOWN:
+				evt = std::make_shared<MouseInputEvent>(Psio::InputEventId::MOUSE_BTN_PRESSED);
+				break;
+			case WM_LBUTTONUP:
+			case WM_RBUTTONUP:
+			case WM_MBUTTONUP:
+				evt = std::make_shared<MouseInputEvent>(Psio::InputEventId::MOUSE_BTN_RELEASED);
+				break;
+			case WM_LBUTTONDBLCLK:
+			case WM_RBUTTONDBLCLK:
+			case WM_MBUTTONDBLCLK:
+				evt = std::make_shared<MouseInputEvent>(Psio::InputEventId::MOUSE_BTN_DBLCLICK);
+				break;
+			case WM_MOUSEMOVE:
+				evt = std::make_shared<MouseInputEvent>(Psio::InputEventId::MOUSE_MOVE);
+				break;
+			}
 			evt->setModifiers(shift, alt, ctrl);
 
 			mleft = (wParam & MK_LBUTTON);

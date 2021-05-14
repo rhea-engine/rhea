@@ -27,13 +27,17 @@ namespace Rhea
 
 		// Controller functions
 
-		void onInput(std::string action, std::shared_ptr<Psio::InputEvent>& evt);
+		// input event handler
+		bool onInput(Event* ev, Unit* unit);
 		
 		// factory function
 		static Unit* createType(std::string name, std::string type);
 
 	protected:
 		Camera* m_view;
+
+		// register event handler
+		void _registerEvent(Unit* unittree);
 	};
 }
 

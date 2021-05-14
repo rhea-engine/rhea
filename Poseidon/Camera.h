@@ -11,6 +11,7 @@
 #include "Math/Quaternion.h"
 #include "Math/Matrix3x4.h"
 #include "Math/Matrix4.h"
+#include "Math/Ray.h"
 
 namespace Poseidon
 {
@@ -73,6 +74,8 @@ namespace Poseidon
 		void setAspectRatio(float ratio) { aspectRatio_ = ratio; }
 
 		bool render(Viewport*, Camera*) { return true; }
+
+		Ray getPickingRay(float scr_x, float scr_y, int viewport_width, int viewport_height);
 	};
 }
 

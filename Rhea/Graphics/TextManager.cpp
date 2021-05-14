@@ -79,6 +79,17 @@ namespace Rhea
 
 		for (int i = 0; i < sentence.size(); i++) {
 
+			if (sentence[i] == '\n') {
+				// go to next line
+				if (draw_y - (2 * f_sz) < t_y - t_h) { // NOTE: "-" because coords are flipped
+					// no - stop rendering
+					break;
+				}
+				// go to next line
+				draw_x = t_x;
+				draw_y -= f_sz;
+				continue;
+			}
 			glyph = font->getGlyph((unsigned int)sentence[i]);
 
 			// safety check

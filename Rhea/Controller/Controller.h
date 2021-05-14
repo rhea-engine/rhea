@@ -16,8 +16,8 @@ namespace Rhea
 			Unit(path_name, type_name)
 		{}
 
-		// handle input (after Input Map was applied)
-		virtual void onInput(std::string action, std::shared_ptr<Psio::InputEvent>& evt) = 0;
+		// handle input event (after Input Map was applied)
+		virtual bool onInput(Event* ev, Unit* unit) = 0;
 
 		// set the controlled unit
 		virtual void connect(Item* target) { m_target = target; }

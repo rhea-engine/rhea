@@ -15,6 +15,10 @@ namespace Rhea
 		{}
 		GUIController(std::string name, std::string type_name) :	
 			m_widget(nullptr),
+			m_target(nullptr),
+			m_captured(nullptr),
+			m_mx(0),
+			m_my(0),
 			Resource(name, type_name)
 		{}
 
@@ -23,6 +27,9 @@ namespace Rhea
 
 		// ready event handler
 		void ready();
+
+		// input event handler
+		bool onInput(Event* ev, Unit* unit);
 
 		// load handler
 		void load(Orion::ResourceRequest* req, ReadyHandler handler);
@@ -35,6 +42,15 @@ namespace Rhea
 
 	protected:
 		Widget* m_widget;
+
+		// the currently active widget that receives user input
+		Widget* m_target;
+		// the current hover widget
+		Widget* m_captured;
+
+		// last mouse position
+		int m_mx;
+		int m_my;
 	};
 }
 

@@ -66,6 +66,15 @@ namespace Poseidon
 			return *this;
 		}
 		
+		Vector3& operator*(float s)
+		{
+			Vector3 ret = this;
+			ret.x *= s;
+			ret.y *= s;
+			ret.z *= s;
+			return ret;
+		}
+
 		Vector3& operator-=(const Vector3& b)
 		{
 			x -= b.x;

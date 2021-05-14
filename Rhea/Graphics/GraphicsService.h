@@ -40,6 +40,7 @@ namespace Rhea
 		bool onFrame();
 		
 		bool onDisplay(Event* ev, Unit* unit);
+		bool onInput(Event* ev, Unit* unit);
 
 		// get current dimensions
 		int getViewportWidth() { return m_viewport_width; }
@@ -61,6 +62,12 @@ namespace Rhea
 
 		// the currently displayed scene
 		GraphicsScene* m_g_scene;
+
+		// the current mouse pos
+		int m_mx;
+		int m_my;
+
+		Unit* pick();
 	};
 }
 

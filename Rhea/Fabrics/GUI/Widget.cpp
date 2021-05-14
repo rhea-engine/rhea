@@ -182,6 +182,43 @@ namespace Rhea
 		return m_size;
 	}
 	
+	Widget* Widget::capture(int x, int y)
+	{
+		if (m_screen_position.x > x ||
+			m_screen_position.x + m_size.x < x ||
+			m_screen_position.y > y ||
+			m_screen_position.y + m_size.y < y) {
+			return nullptr;
+		}
+
+		// is a child a better match?
+		Widget* captured;
+		for (auto it = m_children.begin(); it != m_children.end(); ++it)
+		{
+			Widget* w = (Widget*)it->second;
+			if (w->getValue("isWidget", false)) {
+				captured = w->capture(x, y);
+				if (captured) {
+					return captured;
+				}
+			}
+		}
+		return this;
+	}
+
+	Widget* Widget::getInputTarget()
+	{
+		// if we handle input return myself
+		if (m_handle_input)
+			return this;
+
+		// if we are not a top window we have a Widget parent - check it.
+		if (!m_top_window)
+			return static_cast<Widget*>(m_parent)->getInputTarget();
+
+		return nullptr;
+	}
+
 	Vector2 Widget::getScreenPosition()
 	{
 		if (!m_screen_position_valid) {

@@ -22,6 +22,11 @@ namespace Rhea
 		if (val["font"] == Variant()) {
 			// get font from gui
 		}
+
+		// DEBUG
+		// always handle input 
+		m_handle_input = true;
+
 		m_label_item = (TextWidget*)m_app->getUnitTree()->createUnit(m_path + "/label", "//meworla/textwidget", attr, val);
 		addChild(m_label_item);
 	}

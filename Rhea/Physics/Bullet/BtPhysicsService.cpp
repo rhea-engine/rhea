@@ -149,9 +149,10 @@ namespace Rhea
 				continue;
 			else {
 				BulletPhysicsBody* body = new BulletPhysicsBody(m_world, item);
-				body->init();
-				item->addElement("physics", body);
-				m_world->addRigidBody(body->getBody());
+				if (body->init()) {
+					item->addElement("physics", body);
+					m_world->addRigidBody(body->getBody());
+				}
 			}
 		}
 	}

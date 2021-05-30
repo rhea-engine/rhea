@@ -22,8 +22,12 @@ namespace Rhea
 			if (!getPhysicsBody())
 				return false;
 
-		if (!m_position)
-			m_position = getNode()->get_position();
+		if (!m_position) {
+			Poseidon::Node* node = getNode();
+			if (!node)
+				return false;
+			m_position = node->get_position();
+		}
 
 		float delta = static_cast<PhysicsEvent*>(ev)->getDelta();
 		Terrain* terrain = static_cast<PhysicsEvent*>(ev)->getTerrain();

@@ -13,7 +13,7 @@ namespace Rhea
 		BulletPhysicsGhost(btDynamicsWorld* world, Item* item);
 		~BulletPhysicsGhost();
 
-		void init();
+		bool init();
 
 		btPairCachingGhostObject* getObject() { return m_ghost_object; }
 

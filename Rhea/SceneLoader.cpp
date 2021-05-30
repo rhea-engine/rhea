@@ -10,29 +10,30 @@
 
 namespace Rhea
 {	
-	void SceneLoader::load(Scene* scene, Orion::Resource* resource, Application* app)
+	void SceneLoader::load(std::string name, Application* app, Orion::ResourceRequest* req, Resource::LoadedHandler handler)
 	{
 		std::unique_ptr<SimpleParser::IniFileParser> parser = std::make_unique<SimpleParser::IniFileParser>();
 		std::vector<SimpleParser::IniFileParser::Section> sections;
 		UnitTree* tree = app->getUnitTree();
 
-		Orion::ResourceStream* rs = resource->Open(1);
+		Orion::ResourceStream* rs = req->getResource()->Open(1);
 		char* buf;
 		size_t buflen;
 		buflen = rs->ReadBuffer(&buf);
 		if (buflen <= 0)
-			return;
+			return handler(ReqError::DATA_INVALID, nullptr);
 		delete rs;
 
 		int entries = parser->parse(buf, buflen, sections);
 		
 		// initialize the scene
+		Scene* scene = static_cast<Scene*>(tree->createUnit(name, "//meworla/scene"));
 		if (sections.size() > 0 && sections[0].section_name == "scene") {
 			if (sections[0].values["name"].length())
 				scene->setName(sections[0].values["name"]);
 			scene->setup(app, sections[0].attributes, sections[0].values);
 		}
-		std::string basepath = scene->getPath();
+		std::string basepath = "//" + req->getRealmName() + req->getParentPath() + "/" + scene->getPathName();		
 
 		// get all resources packed in this file to prevent reloading them
 		std::vector<std::string> packed_resources;
@@ -80,6 +81,8 @@ namespace Rhea
 				scene->addItem((Item*)unit);
 			}
 		}
-		free(buf);	
+		free(buf);
+
+		handler(ReqError::OK, scene);
 	}
 }

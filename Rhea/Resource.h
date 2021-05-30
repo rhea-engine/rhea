@@ -31,6 +31,7 @@ namespace Rhea
 			DATA_INVALID
 		};
 		typedef std::function<void(ReqError)> ReadyHandler;
+		typedef std::function<void(ReqError, Unit*)> LoadedHandler;
 
 		Resource(std::string basename, std::string type_name) :
 			m_buf(nullptr),
@@ -54,6 +55,9 @@ namespace Rhea
 
 		// get raw data
 		size_t getRaw(char** buf, size_t* buflen) { *buf = m_buf; *buflen = m_buflen; return m_buflen; }
+
+		// set raw data
+		void setRaw(size_t buflen, char* buf);
 
 		// check if resource finished loading
 		bool isLoaded() { return m_status == Status::LOADED; }

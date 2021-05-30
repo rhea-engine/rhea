@@ -1,6 +1,7 @@
 #include "Terrain.h"
+#include "Terrain.h"
 #include "Application.h"
-#include "ImageResource.h"
+#include "Fabrics/Media/ImageResource.h"
 #include "Unit.h"
 #include "Mesh.h"
 #include "UnitTree.h"
@@ -83,6 +84,12 @@ namespace Rhea
 		unsigned char height = (unsigned char)(0.299 * c.r + 0.587 * c.g + 0.114 * c.b);
 		// scale to max_height
 		return (float)height / 256 * m_max_height;
+	}
+
+	Unit* Terrain::getHeightmap()
+	{
+		Unit* map = m_app->getUnitTree()->find(m_values["heightmap"]);
+		return map;
 	}
 
 	Poseidon::Vector3 Terrain::calculateNormal(int x, int y)

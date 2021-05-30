@@ -21,7 +21,7 @@ namespace Rhea
 		PhysicsBody(item)
 	{}
 	
-	void BulletPhysicsBody::init()
+	bool BulletPhysicsBody::init()
 	{	
 		//create a rigidbody
 
@@ -54,6 +54,9 @@ namespace Rhea
 			if (!isDynamic && !m_isKinematic) {
 				// for static object we use the triangles
 				Mesh* mesh = m_item->getMesh();
+				if (!mesh) {
+					return false;
+				}
 				std::vector<Mesh::vertex> vertices;
 				std::vector<unsigned long> indices;
 				mesh->getBuffers(vertices, indices);
@@ -98,7 +101,7 @@ namespace Rhea
 		// get position and rotation from m_item
 		Poseidon::Node* node = m_item->getNode();
 		if (!node) {
-			return;
+			return false;
 		}
 		Poseidon::Vector3 pos = node->get_position()->get_worldspace();
 		Poseidon::Quaternion rot = m_item->getNode()->get_position()->get_rotation();
@@ -123,6 +126,7 @@ namespace Rhea
 			setAngularVelocity(Vector3(0.0, 0.0, 0.0));
 			setFriction(0.0f);
 		}
+		return true;
 	}
 	
 	BulletPhysicsBody::~BulletPhysicsBody()

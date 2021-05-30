@@ -1,6 +1,7 @@
 #include "Orion.h"
 #include "ResourceRequest.h"
 #include "FileResource.h"
+#include "Mime.h"
 
 #include <iostream>
 
@@ -16,7 +17,7 @@ namespace Orion
 
 	ResourceRequest::ResourceRequest(string rid, Orion* orion, std::string type)
 	{
-		m_type = type;
+		m_mime_type = type;
 		m_realm_name = "";
 		m_path = "";
 		m_orion = orion;
@@ -89,6 +90,20 @@ namespace Orion
 			m_realm_name = "local";
 
 		return Error::OK;
+	}
+
+	std::string ResourceRequest::getMimeType()
+	{
+		if (m_mime_type.length())
+			return m_mime_type;
+
+		// try by extensions
+		std::string mime_res;
+		if (MIME::GetFromExtension(m_path, mime_res)) {
+			m_mime_type = mime_res;
+		}
+
+		return m_mime_type;
 	}
 	
 	ResourceRequest::Error ResourceRequest::doResolve()

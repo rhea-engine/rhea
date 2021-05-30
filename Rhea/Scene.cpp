@@ -18,16 +18,4 @@ namespace Rhea
 		Unit* ret = (Unit*)new Scene(name);
 		return ret;
 	}
-
-	void Scene::load(Orion::ResourceRequest* req, ReadyHandler handler)
-	{
-		// for now we assume a scene file
-		std::unique_ptr<SceneLoader> parser = std::make_unique<SceneLoader>();
-
-		// parse the file
-		parser->load(this, req->getResource(), m_app);
-
-		// assume everything is fine
-		handler(ReqError::OK);
-	}
 }

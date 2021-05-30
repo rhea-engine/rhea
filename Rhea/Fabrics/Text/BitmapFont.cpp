@@ -5,7 +5,7 @@
 #include "ResourceList.h"
 #include "Application.h"
 #include "UnitTree.h"
-#include "ImageResource.h"
+#include "Fabrics/Media/ImageResource.h"
 #include "TextResource.h"
 #include "Orion/ResourceStream.h"
 #include <Orion/os/Fs.h>

@@ -31,6 +31,10 @@ namespace Rhea
 		Item* item = static_cast<Item*>(unit);
 		Mesh* item_mesh = item->getMesh();
 
+		// safety check
+		if (!item_mesh)
+			return nullptr;
+
 		// check if mesh already defined
 		GraphicsMesh* mesh_el = static_cast<GraphicsMesh*>(item_mesh->getElement("graphics"));
 		if (mesh_el) {

@@ -26,7 +26,6 @@ namespace Rhea
 		// factory function
 		static Unit* createType(std::string name, std::string type);
 
-		void load(Orion::ResourceRequest* req, ReadyHandler handler);
 	protected:
 		std::vector<Item*> m_items;		
 	};

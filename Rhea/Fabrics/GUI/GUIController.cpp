@@ -157,18 +157,6 @@ namespace Rhea
 		return false;
 	}
 
-	void GUIController::load(Orion::ResourceRequest* req, ReadyHandler handler)
-	{
-		// for now we assume a scene file
-		std::unique_ptr<SceneLoader> parser = std::make_unique<SceneLoader>();
-
-		// parse the file
-		parser->load((Scene*)this, req->getResource(), m_app);
-
-		// assume everything is fine
-		handler(ReqError::OK);
-	}
-	
 	Unit* GUIController::createType(std::string name, std::string type)
 	{
 		Unit* ret = (Unit*)new GUIController(name, type);

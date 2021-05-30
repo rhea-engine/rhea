@@ -6,6 +6,7 @@
 #include "Orion/Orion.h"
 #include "Orion/ResourceStream.h"
 #include "Orion/ResourceRequest.h"
+#include <Orion/Mime.h>
 #include "Poseidon/SceneManager.h"
 #include "Psio/Psio.h"
 #include "Psio/InputEvent.h"
@@ -22,12 +23,14 @@
 #include "Fabrics/Canvas/Item2D.h"
 #include "Fabrics/Terrain/Terrain.h"
 #include "TextResource.h"
-#include "ImageResource.h"
+#include "TextLoader.h"
+#include "Fabrics/Media/ImageResource.h"
 #include "InputMap.h"
 #include "Dispatcher.h"
 #include "Controller/Controller.h"
 #include "Controller/BasicController.h"
 #include "Controller/SpectatorController.h"
+#include "Fabrics/Media/MediaFabrics.h"
 #include "Fabrics/Character/Character.h"
 #include "Fabrics/Character/KinematicCharacter.h"
 #include "Fabrics/GUI/GUIController.h"
@@ -79,23 +82,32 @@ namespace Rhea
 		// register scene types
 		SimpleParser::Type::registerType<Realm>("//meworla/realm");
 		SimpleParser::Type::registerType<Scene>("//meworla/scene");
+		m_resource_loader.registerLoader<SceneLoader>("application/vnd.meworla.scene");
 		SimpleParser::Type::registerType<Item>("//meworla/item");
 		SimpleParser::Type::registerType<Mesh>("//meworla/mesh");
-		SimpleParser::Type::registerType<TextResource>("//meworla/wavefront-object");
-		SimpleParser::Type::registerType<TextResource>("//meworla/wavefront-material");
-		SimpleParser::Type::registerType<ImageResource>("//meworla/texture");
+		MediaFabrics::Register(this);		
 		SimpleParser::Type::registerType<BasicController>("//meworla/controller");
 		SimpleParser::Type::registerType<SpectatorController>("//meworla/spectator");
 		SimpleParser::Type::registerType<Camera>("//meworla/camera");
 		SimpleParser::Type::registerType<ImageResource>("//meworla/heightmap");
 		SimpleParser::Type::registerType<Terrain>("//meworla/terrain");
-		SimpleParser::Type::registerType<KinematicCharacter>("//meworla/character");
-		SimpleParser::Type::registerType<TextResource>("//meworla/shader");
+		SimpleParser::Type::registerType<KinematicCharacter>("//meworla/character");		
 		SimpleParser::Type::registerType<Item2D>("//meworla/widget");
 		SimpleParser::Type::registerType<TextWidget>("//meworla/textwidget");
 		SimpleParser::Type::registerType<BitmapFont>("//meworla/bitmapfont");
 		SimpleParser::Type::registerType<TextResource>("//meworla/fontinfo");
 		GUIController::Register(this);
+		
+		// register generic text loader
+		SimpleParser::Type::registerType<TextResource>("//meworla/text");
+		m_resource_loader.registerLoader<TextLoader>("text/*");
+
+		// register wavefront types
+		m_resource_loader.registerLoader<TextLoader>("model/obj");
+		m_resource_loader.registerLoader<TextLoader>("model/mtl");
+
+		// register mime type for shader
+		Orion::MIME::RegisterExtenstion("text/plain", "hlsl");
 
 		// add a default input map
 		m_input_map = new InputMap();
@@ -195,7 +207,7 @@ namespace Rhea
 		ievt_actions iea;
 		PhysicsService* physics = static_cast<PhysicsService*>(m_services["physics"]);
 		if (!physics) {
-			physics = static_cast<PhysicsManagerService*>(m_services["physics_mgr"])->getPhysicsService(PhysicsManagerService::Types::WORLD);
+			physics = static_cast<PhysicsManagerService*>(m_services["physics_mgr"])->getPhysicsService(PhysicsManagerService::Types::NONE);
 			physics->onInit();
 			m_services["physics"] = physics;
 		}
@@ -345,18 +357,34 @@ namespace Rhea
 					// should not happen
 					return handler(NULL, ReqError::PATH_NOT_FOUND);
 
-				// create unit with the given type
-				Unit* unit = m_unit_tree->createUnit(req->getBasename(), type_name);
-				if (!unit)
-					// should not happen
-					return handler(NULL, ReqError::PATH_NOT_FOUND);
+				// call loader for resource mime type
+
+				// get from request
+				std::string mime = req->getMimeType();
+				if (mime.length()) {
+					if (m_resource_loader.load(req->getBasename(), this, mime, req, [&](ReqError err, Unit* unit) {
+
+						// add it to tree
+						parent_unit->addChild(unit);
+
+						handler(unit, err);
+						}))
+						return;
+						log("No loader for mime type " + mime);
+				}
+				else
+					log("No mime type for " + resource_id);
+
+				// this is only called for unhandled or unknown mime types
+
+				// create a generic resource unit
+				Resource* unit = new Resource(req->getBasename(), type_name);
 
 				// add it to tree
 				parent_unit->addChild(unit);
 
-				// call load of unit				
-				// TODO: check if really is a resource
-				((Resource*)unit)->load(req, [&](ReqError err) {
+				// call load of unit
+				unit->load(req, [&](ReqError err) {
 					handler(unit, err);
 					});
 			}

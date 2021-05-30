@@ -20,7 +20,7 @@ namespace Rhea
 		BulletPhysicsBody(btDynamicsWorld* world, Item* item);
 		~BulletPhysicsBody();
 
-		void init();
+		bool init();
 
 		void doPhysics(float delta, Terrain* terrain);
 

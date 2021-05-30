@@ -55,8 +55,8 @@ namespace Orion
 
 		bool isResolved() { return m_resolved; }
 		Resource* getResource() { return m_resource; }
-		void setType(std::string type) { m_type = type; }
-		std::string getType() { return m_type; }
+		void setMimeType(std::string type) { m_mime_type = type; }
+		std::string getMimeType();
 
 		// parse a resource identifier
 		// rid is //realm/container/node/subnode/...
@@ -121,8 +121,8 @@ namespace Orion
 
 		Orion* m_orion = NULL;
 
-		// full type (not mime)
-		std::string m_type;
+		// MIME type
+		std::string m_mime_type;
 
 		// wheter realm is a local realm
 		bool m_local = false;

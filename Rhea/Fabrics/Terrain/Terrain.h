@@ -36,6 +36,9 @@ namespace Rhea
 		// get height in map coords
 		float getHeightAt(int x, int y);
 
+		// get the heightmap
+		Unit* getHeightmap();
+
 		// load terrain
 		void ready();
 

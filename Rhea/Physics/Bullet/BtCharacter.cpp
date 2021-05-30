@@ -125,11 +125,14 @@ namespace Rhea
 		m_ghost = new BulletPhysicsGhost(world, item);
 	}
 
-	void BulletPhysicsCharacter::init()
+	bool BulletPhysicsCharacter::init()
 	{
 		// init ghost object
-		m_ghost->init();
-		m_ghost_object = m_ghost->getObject();
+		if (m_ghost->init()) {
+			m_ghost_object = m_ghost->getObject();
+			return true;
+		}
+		return false;
 	}
 
 	BulletPhysicsCharacter::~BulletPhysicsCharacter()

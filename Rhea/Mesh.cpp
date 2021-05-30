@@ -4,7 +4,7 @@
 #include "Orion/ResourceStream.h"
 #include "UnitTree.h"
 #include "TextResource.h"
-#include "ImageResource.h"
+#include "Fabrics/Media/ImageResource.h"
 #include "Material.h"
 #include "ResourceList.h"
 

@@ -1,6 +1,6 @@
 #include "BtHeightMap.h"
 #include "../Item.h"
-#include "ImageResource.h"
+#include "Fabrics/Media/ImageResource.h"
 #include "Fabrics/Terrain/Terrain.h"
 #include <Poseidon/Node.h>
 
@@ -18,7 +18,7 @@ namespace Rhea
 		m_height(0),
 		PhysicsHeightMap(item)
 	{
-		Unit* heightmap = item->findByType("//meworla/heightmap");
+		Unit* heightmap = static_cast<Terrain*>(item)->getHeightmap();
 		bool flipZ = true;
 
 		if (heightmap) {

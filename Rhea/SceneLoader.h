@@ -1,10 +1,8 @@
 #ifndef RHEA_SCENELOADER_H
 #define RHEA_SCENELOADER_H
 
-namespace Orion
-{
-	class Resource;
-}
+#include <Rhea/Resource.h>
+#include "ResourceLoader.h"
 
 namespace Rhea
 {
@@ -15,7 +13,8 @@ namespace Rhea
 	class SceneLoader
 	{
 	public:
-		void load(Scene* scene, Orion::Resource* resource, Application* app);
+		static void load(std::string name, Application* app, Orion::ResourceRequest* req, Resource::LoadedHandler handler);
+		//void load(Scene* scene, Orion::Resource* resource, Application* app);
 	};
 }
 #endif // !RHEA_SCENELOADER_H

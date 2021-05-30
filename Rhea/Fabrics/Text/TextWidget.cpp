@@ -1,7 +1,7 @@
 #include "TextWidget.h"
 #include "TextWidget.h"
 #include "Application.h"
-#include "ImageResource.h"
+#include "Fabrics/Media/ImageResource.h"
 #include "TextResource.h"
 #include "UnitTree.h"
 #include "ResourceList.h"

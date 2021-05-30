@@ -9,6 +9,7 @@
 #include "Psio/InputEvent.h"
 #include "Orion/Orion.h"
 #include "Orion/ResourceRequest.h"
+#include "ResourceLoader.h"
 
 using ReqError = Orion::ResourceRequest::Error;
 
@@ -55,7 +56,11 @@ namespace Rhea
 		void loadResource(const std::string resource_id, Orion::ResourceRequest::RequestHandler handler);
 		// get a resource and load it as type
 		void loadResource(const std::string resource_id, std::string type_name, std::function<void(Unit*, ReqError error)> handler);
-		// return the reosurce tree
+
+		// get the resource loader
+		ResourceLoader* getResourceLoader() { return &m_resource_loader; }
+
+		// return the resource tree
 		UnitTree* getUnitTree() { return m_unit_tree; }
 		// get the action dispatcher
 		Dispatcher* getDispatcher() { return m_dispatcher; }
@@ -73,6 +78,8 @@ namespace Rhea
 		Dispatcher* m_dispatcher = 0;
 		Controller* m_focused_controller = 0;
 		std::unordered_map<std::string, Service*> m_services;
+
+		ResourceLoader m_resource_loader;
 
 		// timing info
 		uint64_t current_ticks = 0;

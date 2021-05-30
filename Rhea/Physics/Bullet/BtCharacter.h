@@ -27,7 +27,7 @@ namespace Rhea
 		BulletPhysicsCharacter(btDynamicsWorld *world, Item* item);
 		~BulletPhysicsCharacter();
 
-		void init();
+		bool init();
 
 		// can we controll the move?
 		bool isMoveControllable();

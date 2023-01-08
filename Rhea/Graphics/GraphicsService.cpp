@@ -175,7 +175,7 @@ namespace Rhea
 		if (phys && camera) {
 			
 			// compute the ray
-			Poseidon::Ray ray = camera->getPickingRay(m_mx, m_my, m_viewport_width, m_viewport_height);
+			Poseidon::Ray ray = camera->getPickingRay((float)m_mx, (float)m_my, m_viewport_width, m_viewport_height);
 
 			Poseidon::Vector3 ray_from = ray.getOrigin();
 			Poseidon::Vector3 ray_dir = ray.getDirection();

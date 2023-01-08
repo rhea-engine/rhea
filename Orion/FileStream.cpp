@@ -3,11 +3,33 @@
 
 namespace Orion
 {
-	FileResourceStream::FileResourceStream(string path, int mode) :
+	FileResourceStream::FileResourceStream(std::string path) :
 		f(nullptr),		
 		pos(0),
 		buf(nullptr),
+		m_path(path),
+		write(false),
+		read(false),
+		status(0),
 		ResourceStream()
+	{
+		struct _stat buf;
+
+		int result = _stat(path.c_str(), &buf);
+		if (result != 0) {
+			accessible = false;
+			m_length = 0;
+			m_lastmod = 0;
+		}
+		else {
+			accessible = true;
+			m_length = buf.st_size;
+			m_lastmod = buf.st_mtime;
+		}	
+		m_mode = 0;
+	}
+
+	void FileResourceStream::SetMode(int mode)
 	{
 		if (mode & Fs::READ)
 			read = true;
@@ -17,10 +39,15 @@ namespace Orion
 			write = true;
 		else
 			write = false;
+		m_mode = mode;
+	}
 
-		status = Fs::fileOpen(&f, path, mode);
+	void FileResourceStream::Open()
+	{
+		status = Fs::fileOpen(&f, m_path, m_mode);
 		if (!status)
 			m_isOpen = true;
+		// TODO: else?
 	}
 
 	FileResourceStream::~FileResourceStream()
@@ -62,46 +89,69 @@ namespace Orion
 		return length;
 	}
 
-#define CHUNK_LEN 8192
+#define CHUNK_LEN 64*1024
+	// was 8192
 
-	size_t FileResourceStream::ReadBuffer(char** dest)
+	void FileResourceStream::ReadAsync(Psio::IOBuffer* buf)
 	{
-		char* buf = (char*)malloc(CHUNK_LEN);
 		char* temp;
-		size_t buflen = CHUNK_LEN;
+		size_t buflen;
 		size_t tmplen;
-		size_t read;
+		size_t bytes_read;
 		size_t size = 0;
 
-		if (status || !m_isOpen || !f) {
-			free(buf);
-			return 0;
+		// check if file is open for reading
+		if (!m_isOpen) {
+			// open for reading
+			m_mode |= Orion::Fs::READ;
+			read = true;
+			Open();
 		}
 
-		read = Read(buf, CHUNK_LEN);
-		size += read;
-		while (read == CHUNK_LEN) {
-			tmplen = buflen;
-			buflen += CHUNK_LEN;
-			temp = (char*)realloc(buf, buflen);
-			if (temp != NULL)
-				buf = temp;
-			else {
-				free(buf);
-				return -1;
+		if (status < 0)
+			return;
+
+		// read in the iobuffer
+		// start with the remaining free buffer
+		// grow the buffer by CHUNK_LEN bytes for further reads
+		// repeat until we read fewer bytes than free buf len which indicates file end
+		// this is synchronous!
+		// TODO add asynchronmous file access
+
+		buflen = buf->FreeBufSize();
+		bytes_read = Read(buf->writer(), buflen);
+		if (bytes_read > 0) {
+			if (m_data_handler)
+				m_data_handler(bytes_read);
+			buf->Produce(bytes_read);
+			size += bytes_read;
+		}
+		while (bytes_read == buflen) {
+
+			buf->Grow(CHUNK_LEN);
+			buflen = buf->FreeBufSize();
+
+			bytes_read = Read(buf->writer(), buflen);
+			if (bytes_read > 0) {
+				if (m_data_handler)
+					m_data_handler(bytes_read);
+				buf->Produce(bytes_read);
+				size += bytes_read;
 			}
-			read = Read(buf + tmplen, CHUNK_LEN);
-			size += read;
 		}
-		if (f && read == 0) {
-			if (!feof(f))
-				printf("Error reading stream");
+		if (f && bytes_read == 0) {
+			if (!feof(f)) {
+				printf("Error reading stream\n");
+				status = -1;
+				if (m_error_handler)
+					m_error_handler(status);
+				return;
+			}
 		}
-		*dest = buf;
-		return size;
+		m_end_handler(size);
 	}
 
-	string FileResourceStream::getLine()
+	std::string FileResourceStream::getLine()
 	{		
 		char *r, buf[4096];
 
@@ -110,7 +160,7 @@ namespace Orion
 			return "";
 		}
 		
-		return string(buf);
+		return std::string(buf);
 	}
 
 	bool FileResourceStream::eof()

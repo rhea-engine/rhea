@@ -18,6 +18,13 @@ namespace Rhea
 		if (el)
 			return el;
 
+		// make sure we have a material
+		Rhea::Material* material = static_cast<Item2D*>(unit)->getMaterial();
+		if (!material) {
+			unit->getApplication()->log(unit->getPath() + ": Item2D has no material");
+			return nullptr;
+		}
+
 		// create the element
 		GraphicsRenderElement* elem = new GraphicsRenderElement(core);
 		Poseidon::Node* entity = createRenderable(elem, core, unit, "HUD", false);
@@ -25,12 +32,7 @@ namespace Rhea
 		// add the position
 		addPosition(unit, entity);
 
-		Rhea::Material* material = static_cast<Item2D*>(unit)->getMaterial();
-		if (!material) {
-			unit->getApplication()->log("Item2D has no material");
-			delete elem;
-			return nullptr;
-		}
+		// set the material
 		setMaterial(core, material, entity);
 		unit->addElement("graphics", elem);
 

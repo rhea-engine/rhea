@@ -16,24 +16,31 @@ namespace Rhea
 			return handler(ReqError::OK);
 
 		if (req) {
-			Orion::ResourceStream* rs = req->getResource()->Open(Orion::Fs::READ);
-			char* buf;
-			size_t buflen;
-			buflen = rs->ReadBuffer(&buf);
-			if (!buflen) {
-				int err = rs->error();				
-				m_buflen = 0;
-				delete rs;
-				m_status = Status::NO_ACCESS;
-				handler(ReqError::NO_ACCESS);
-			}
-			else {
-				m_buf = buf;
-				m_buflen = buflen;
-				delete rs;
-				m_status = Status::LOADED;
-				handler(ReqError::OK);
-			}
+			Psio::Stream* rs = req->getStream();
+			Psio::IOBuffer* buf = new Psio::IOBuffer(64 * 1024);
+			rs->onEnd([&](size_t buflen) {
+				if (!buflen) {
+					m_buflen = 0;
+					m_status = Status::NO_ACCESS;
+					delete buf;
+					handler(ReqError::NO_ACCESS);
+				}
+				else {
+					m_buf = (char*)malloc(buflen);
+					if (m_buf) {
+						memcpy(m_buf, buf->reader(), buflen);
+						m_buflen = buflen;
+					}
+					delete buf;
+					m_status = Status::LOADED;
+					handler(ReqError::OK);
+				}
+				});
+			rs->onError([buf, handler](int err) {
+				delete buf;
+				handler(ReqError::DATA_INVALID);
+				});
+			rs->ReadAsync(buf);
 		}
 		else {
 			m_status = Status::NOT_FOUND;

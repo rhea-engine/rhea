@@ -20,26 +20,28 @@ namespace Rhea
 		if (el)
 			return el;
 
+		
+
+		
+		// material (the font bitmap)
+		Rhea::Font* font = static_cast<TextWidget*>(unit)->getFont();
+		if (!font) {
+			unit->getApplication()->log("Text has no font");
+			return nullptr;
+		}
+		Rhea::Material* material = font->getMaterial();
+		if (!material) {
+			unit->getApplication()->log("Text has no material");	
+			return nullptr;
+		}
+
 		// create the element
 		GraphicsRenderElement* elem = new GraphicsRenderElement(core);
 		Poseidon::Node* entity = createRenderable(elem, core, unit, "HUD", true);
 
 		// add the position
 		addPosition(unit, entity);
-		
-		// material (the font bitmap)
-		Rhea::Font* font = static_cast<TextWidget*>(unit)->getFont();
-		if (!font) {
-			unit->getApplication()->log("Text has no font");
-			delete elem;
-			return nullptr;
-		}
-		Rhea::Material* material = font->getMaterial();
-		if (!material) {
-			unit->getApplication()->log("Text has no material");	
-			delete elem;
-			return nullptr;
-		}
+
 		setMaterial(core, material, entity);
 		unit->addElement("graphics", elem);
 		

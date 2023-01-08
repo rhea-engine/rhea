@@ -16,16 +16,21 @@ namespace Rhea
 			WORLD
 		};
 		PhysicsManagerService(std::string name, std::string type_name) :
+			m_phy_services(nullptr),
 			Service("PhysicsManagerService", type_name)
 		{}
 
-		PhysicsService* getPhysicsService(Types type);
+		PhysicsService* createPhysicsService(Types type);
+		PhysicsService* getPhysicsServce() { return m_phy_services; }
 
 		// Service functions
 		virtual void onInit();
 
 		// factory function
 		static Unit* createType(std::string name, std::string type);
+
+	protected:
+		PhysicsService* m_phy_services;
 	};
 }
 

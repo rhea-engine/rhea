@@ -1,4 +1,4 @@
-#include <string.h>
+#include <string>
 
 #include "Http.h"
 #include "Request.h"

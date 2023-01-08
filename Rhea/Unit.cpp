@@ -187,8 +187,8 @@ namespace Rhea
 	void Unit::prepare(ReadyHandler handler)
 	{
 		// if we habe no children return
-		int to_load = (int)m_children.size();
-		if (!to_load) {
+		m_to_load = (int)m_children.size();
+		if (!m_to_load) {
 			handler(nullptr);
 			return;
 		}
@@ -200,9 +200,9 @@ namespace Rhea
 		for (auto it = m_children.begin(); it != m_children.end(); ++it)
 		{
 			Unit* unit = it->second;
-			unit->prepare([&](Error *err) {
-				to_load--;
-				if (to_load <= 0) {					
+			unit->prepare([&, handler](Error *err) {
+				m_to_load--;
+				if (m_to_load <= 0) {					
 					handler(nullptr);
 				}
 				});

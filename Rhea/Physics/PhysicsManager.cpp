@@ -3,20 +3,19 @@
 
 namespace Rhea
 {
-	PhysicsService* PhysicsManagerService::getPhysicsService(Types type)
+	PhysicsService* PhysicsManagerService::createPhysicsService(Types type)
 	{
-		PhysicsService* s;
 		switch (type) {
 		case Types::NONE:
-			s = new PhysicsService("PhysicsService", "/internal/physics");
-			s->setup(m_app);
-			return s;
+			m_phy_services = new PhysicsService("PhysicsService", "/internal/physics");
+			m_phy_services->setup(m_app);
+			break;
 		case Types::WORLD:
-			s =  new BulletPhysicsService("PhysicsService", "/internal/physics");
-			s->setup(m_app);
-			return s;
+			m_phy_services =  new BulletPhysicsService("PhysicsService", "/internal/physics");
+			m_phy_services->setup(m_app);
+			break;
 		}
-		return nullptr;
+		return m_phy_services;
 	}
 
 	void PhysicsManagerService::onInit()

@@ -7,7 +7,7 @@
 #include <bullet/src/LinearMath/btGeometryUtil.h>
 #include <bullet/src/LinearMath/btQuaternion.h>
 
-#include "../Body.h"
+#include "../PhysicsCharacter.h"
 
 class btDynamicsWorld;
 class btPairCachingGhostObject;
@@ -21,7 +21,7 @@ namespace Rhea
 	class Terrain;
 	class BulletPhysicsGhost;
 
-	class BulletPhysicsCharacter : public PhysicsBody
+	class BulletPhysicsCharacter : public PhysicsCharacter
 	{
 	public:
 		BulletPhysicsCharacter(btDynamicsWorld *world, Item* item);

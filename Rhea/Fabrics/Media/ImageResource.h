@@ -12,7 +12,6 @@ namespace Rhea
 			Resource(basename, type_name)
 		{}
 		~ImageResource();
-		void load(Orion::ResourceRequest* req, ReadyHandler handler);
 
 		// factory function
 		static Unit* createType(std::string name, std::string type);	

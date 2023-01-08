@@ -5,11 +5,30 @@
 
 #include <string>
 #include <stdio.h>
+#include <functional>
 
 namespace Orion
 {
 	class FileResourceStream : public ResourceStream
 	{
+	public:
+		FileResourceStream(std::string path);
+		~FileResourceStream();
+
+		void SetMode(int mode);
+		void Open();
+		void Close();
+
+		size_t Write(void* data, size_t length);
+		size_t Read(void* dest, size_t length);
+		void ReadAsync(Psio::IOBuffer* buf);
+		std::string getLine();
+		bool eof();
+		int error();
+
+		size_t get_length() { return m_length; }
+		time_t getLastmod() { return m_lastmod; }
+
 	protected:
 		FILE* f;
 		int status;
@@ -17,18 +36,11 @@ namespace Orion
 		bool write;
 		size_t pos;
 		void* buf;
-	public:
-		FileResourceStream(string path, int mode);
-		~FileResourceStream();
 
-		void Close();
-
-		size_t Write(void* data, size_t length);
-		size_t Read(void* dest, size_t length);
-		size_t ReadBuffer(char** dest);
-		string getLine();
-		bool eof();
-		int error();
+		size_t m_length;
+		std::string m_path;
+		time_t m_lastmod;
+		bool accessible;
 	};
 }
 

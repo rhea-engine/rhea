@@ -60,8 +60,11 @@ namespace Rhea
 		std::vector<ImageResource*> textures = material_res->getTextures();
 		for (auto it = textures.begin(); it != textures.end(); ++it) {
 			Element* comp = GraphicsTexture::createElement(core, (Unit*)*it);
-			Poseidon::Image* tex = ((GraphicsTexture*)comp)->get();
-			item->m_material->addTexture((Poseidon::Texture*)tex);
+			if (comp) {
+				Poseidon::Image* tex = ((GraphicsTexture*)comp)->get();
+				item->m_material->addTexture((Poseidon::Texture*)tex);
+			} 
+			// TODO what should we do on failure?
 		}
 
 		// register to resource

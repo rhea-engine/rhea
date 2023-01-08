@@ -8,7 +8,7 @@
 #include "Physics/PhysicsManager.h"
 #include "Fabrics/Terrain/Terrain.h"
 #include "Physics/Bullet/BtGhost.h"
-#include "Physics/Bullet/BtCharacter.h"
+#include "Physics/PhysicsCharacter.h"
 #include <algorithm>
 
 using Poseidon::Quaternion;
@@ -31,7 +31,7 @@ namespace Rhea
 
 		float delta = static_cast<PhysicsEvent*>(ev)->getDelta();
 		Terrain* terrain = static_cast<PhysicsEvent*>(ev)->getTerrain();
-		BulletPhysicsCharacter* character = static_cast<BulletPhysicsCharacter*>(m_physics_body);
+		PhysicsCharacter* character = static_cast<PhysicsCharacter*>(m_physics_body);
 
 		// if not on ground increase air timer else reset it
 		if (m_move_state != MoveState::GROUND) {
@@ -125,7 +125,7 @@ namespace Rhea
 
 			Poseidon::Vector3 pos = m_position->get_worldspace();
 			m_jump_start_y = pos.y;
-			if (static_cast<BulletPhysicsCharacter*>(m_physics_body)->jump(pos)) {
+			if (static_cast<PhysicsCharacter*>(m_physics_body)->jump(pos)) {
 				// jumping is possible
 				m_position->setPosition(pos);
 				m_move_state = MoveState::JUMP;

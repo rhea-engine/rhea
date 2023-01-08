@@ -27,6 +27,7 @@ namespace Rhea
 			m_parent(NULL),
 			m_path(path_name),
 			m_refcount(0),
+			m_to_load(0),
 			SimpleParser::Variant(SimpleParser::Type::get(type_name))
 		{}		
 		virtual ~Unit();
@@ -136,6 +137,7 @@ namespace Rhea
 		std::unordered_map < std::string, std::vector<Event::EventHandler>> m_eventhandlers;		
 		std::unordered_map<std::string, Element*> m_elements;
 		int m_refcount;
+		int m_to_load;
 	};
 }
 

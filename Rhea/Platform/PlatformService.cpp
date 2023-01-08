@@ -1,4 +1,5 @@
 #include <Psio/Psio.h>
+#include <Psio/Net/Network.h>
 
 #include "PlatformService.h"
 
@@ -12,6 +13,11 @@ namespace Rhea
 
 	void PlatformService::onInit()
 	{
+		// initialize ssl settings
+		std::string appdir = m_values["AppDir"];
+		std::string setting = "ssl_root_ca";
+		std::string cert = appdir + "/ssl/cacert.pem";
+		m_psio->getNet()->SetSetting(setting, cert);
 	}
 
 	// factory function

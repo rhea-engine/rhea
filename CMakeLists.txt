@@ -1,7 +1,7 @@
 ﻿# CMakeList.txt: CMake-Projektdatei der obersten Ebene. Führen Sie hier die globale Konfiguration aus,
 # und schließen Sie Unterprojekte ein.
 #
-cmake_minimum_required (VERSION 3.9.2)
+cmake_minimum_required (VERSION 3.10)
 
 project ("Poseidon")
 
@@ -18,6 +18,7 @@ set(WarningsEXE ${WarningsLib} "-Wno-c++98-compat" "-Wno-c++98-compat-pedantic"
     "-Wno-missing-prototypes" "-Wno-nested-anon-types" "-Wno-unused-const-variable")
 
 # Download and unpack googletest at configure time
+if (1)
 configure_file(ThirdParty/GTestCMakeLists.txt.in googletest-download/CMakeLists.txt)
 execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
   RESULT_VARIABLE result
@@ -30,7 +31,7 @@ execute_process(COMMAND ${CMAKE_COMMAND} --build .
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/googletest-download )
 if(result)
   message(FATAL_ERROR "Build step for googletest failed: ${result}")
-endif()
+ endif()
 
 # Prevent overriding the parent project's compiler/linker
 # settings on Windows
@@ -41,7 +42,7 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src
                  ${CMAKE_CURRENT_BINARY_DIR}/googletest-build
                  EXCLUDE_FROM_ALL)
-
+endif()
                  
 # json library
 set(JSON_BuildTests OFF CACHE INTERNAL "")

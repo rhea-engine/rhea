@@ -25,7 +25,7 @@ namespace Rhea {
 		//m_app->log("prepare: " + m_path);
 
 		// call parent asynchronously
-		Unit::prepare([&](Error* err) {
+		Unit::prepare([&, handler](Error* err) {
 
 			if (err) {
 				m_app->log("Unit::prepare failed");
@@ -38,7 +38,7 @@ namespace Rhea {
 			}
 
 			// load the resources
-			m_resource_list->load([&](Error* err) {
+			m_resource_list->load([&, handler](Error* err) {
 				if (!err)
 					m_status = Status::LOADED;
 				else

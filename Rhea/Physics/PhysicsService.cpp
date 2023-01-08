@@ -4,6 +4,7 @@
 #include "../Item.h"
 #include "../Application.h"
 #include "PhysicsEvent.h"
+#include "PhysicsCharacter.h"
 
 namespace Rhea
 {
@@ -43,12 +44,13 @@ namespace Rhea
 			// get target from controller
 			m_item = controller->getTarget();
 
-			PhysicsBody* body = new PhysicsBody(m_item);
+			PhysicsBody* body = new PhysicsCharacter(m_item);
 			m_item->addElement("physics", body);
 		}
 		else {
 			m_app->log("No controller found in setting scene");
 		}
+
 	}
 	
 	void PhysicsService::onInit()

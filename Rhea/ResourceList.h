@@ -15,7 +15,8 @@ namespace Rhea
 	{
 	public:
 		ResourceList(Application* app) :
-			m_app(app)
+			m_app(app),
+			m_to_load(0)
 		{};
 		~ResourceList();
 
@@ -38,6 +39,7 @@ namespace Rhea
 			Unit* resource;
 		};
 		Application* m_app;
+		int m_to_load;
 
 		std::unordered_map<std::string, ResourceInfo> m_resources;
 	};

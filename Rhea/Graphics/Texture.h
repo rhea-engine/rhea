@@ -21,7 +21,7 @@ namespace Rhea
 		{}
 
 		// create a texture from buffer
-		void createTexture(unsigned char* buf, size_t buflen);
+		Poseidon::Texture* createTexture(unsigned char* buf, size_t buflen);
 
 		// get the Poseidon Texture
 		Poseidon::Texture* get() { return m_img; }

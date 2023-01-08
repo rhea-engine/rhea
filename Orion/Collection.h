@@ -1,7 +1,7 @@
 #ifndef ORION_COLLECTION_H
 #define ORION_COLLECTION_H
 
-#include "Resource.h"
+#include "ResourceStream.h"
 
 namespace Orion
 {
@@ -13,13 +13,13 @@ namespace Orion
 		size_t length;
 	};
 
-	class Collection : public Resource
+	class Collection : public ResourceStream
 	{
 	protected:
 		
 	public:		
 		bool IsDir() { return true; }
-		virtual Resource* GetResource(string name) = 0;
+		//virtual Resource* GetResource(string name) = 0;
 		virtual Entry* next_entry() = 0;
 	};
 }

@@ -3,17 +3,34 @@
 #include "ResourceCache.h"
 #include "ResourceRequest.h"
 #include "ResourceStream.h"
-#include "FileResource.h"
 #include "Realm.h"
 
 namespace Orion
 {	
-	Orion::Orion(string appname)
+	Orion::Orion(Psio::Engine* engine, string appname)
 	{
 		m_cache = NULL;
 		m_realms = NULL;
 		m_appname = appname;
 		m_fs = new Fs(appname);
+		m_engine = engine;
+	}
+
+	bool Orion::poll()
+	{
+		for (auto it = m_requests.begin(); it != m_requests.end(); ++it)
+		{
+			ResourceRequest* req = *it;
+			if (req->isReading()) {
+				// read
+			}
+				
+			if (req->isWriting()) {
+
+			}
+		}
+
+		return false;
 	}
 
 	ResourceRequest* Orion::getResourceByUrl(const string url)
@@ -34,6 +51,7 @@ namespace Orion
 		
 		// parse the rid and try to resolve it
 		res_id = new ResourceRequest(rid, this);
+		m_requests.push_back(res_id);
 		return res_id;		
 	}
 
@@ -41,7 +59,7 @@ namespace Orion
 	{
 		if (!m_realms)
 			m_realms = new Realms(this);
-
+		
 		return m_realms;
 	}
 

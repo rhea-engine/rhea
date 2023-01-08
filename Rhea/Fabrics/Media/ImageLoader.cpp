@@ -1,5 +1,6 @@
 #include <Orion/ResourceStream.h>
 #include <Orion/os/Fs.h>
+#include <Psio/Net/IOBuffer.h>
 
 #include "ImageLoader.h"
 #include "ImageResource.h"
@@ -9,22 +10,26 @@ namespace Rhea
 	void ImageLoader::load(std::string name, Application* app, Orion::ResourceRequest* req, Resource::LoadedHandler handler)
 	{
 		if (req) {
-			char* buf;
-			size_t buflen;
 
-			Orion::ResourceStream* rs = req->getResource()->Open(Orion::Fs::READ | Orion::Fs::BINARY);
-			buflen = rs->ReadBuffer(&buf);
-			delete rs;
-			
-			if (buflen > 0) {
+			Psio::IOBuffer* buf = new Psio::IOBuffer(64 * 1024);
+			Psio::Stream* rs = req->getStream();
+			rs->SetMode(Orion::Fs::READ | Orion::Fs::BINARY);
+			rs->onEnd([name, app, buf, handler](size_t bytes_read) {
 				ImageResource* img = new ImageResource(name, "//meworla/image");
-				img->setRaw(buflen, buf);
-				img->setup(app);
+				char* dest = (char*)malloc(buf->Remaining());
+				if (dest) {
+					memcpy(dest, buf->reader(), buf->Remaining());
+					img->setRaw(buf->Remaining(), dest);
+					img->setup(app);
+				}
+				delete buf;
 				handler(ReqError::OK, img);
-			}
-			else {
+				});
+			rs->onError([buf, handler](int err) {
+				delete buf;
 				handler(ReqError::DATA_INVALID, nullptr);
-			}
+				});
+			rs->ReadAsync(buf);
 		}
 		else {
 			handler(ReqError::RESOURCE_NOT_FOUND, nullptr);

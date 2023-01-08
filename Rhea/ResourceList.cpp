@@ -22,8 +22,8 @@ namespace Rhea {
 		// this ignores errors in loading resources
 		// TODO check if this should fail fast instead of ignore?
 
-		int item_size = m_resources.size();
-		int to_load = item_size;
+		size_t item_size = m_resources.size();
+		m_to_load = item_size;
 		if (!item_size) {
 			// no external resources -> immediately succeed
 			handler(nullptr);
@@ -36,8 +36,8 @@ namespace Rhea {
 			std::string key = it->first;
 			if (res.status == Resource::Status::LOADED) {
 				// already loaded
-				to_load--;
-				if (to_load == 0) {
+				m_to_load--;
+				if (m_to_load == 0) {
 					handler(nullptr);
 				}
 			}
@@ -49,17 +49,17 @@ namespace Rhea {
 						if (err) {
 							m_app->log("Could not load resource '" + res.id + "'");
 						}
-						to_load--;
+						m_to_load--;
 						m_resources[key].status = Resource::Status::LOADED;
 						m_resources[key].resource = resource;
 						resource->incRef();
-						if (to_load == 0) {
+						if (m_to_load == 0) {
 							handler(nullptr);
 						}
 						});
 				}
 				else {
-					m_app->loadResource(res.id, res.type, [&](Unit* resource, Orion::ResourceRequest::Error err) {
+					m_app->loadResource(res.id, res.type, [&, res, key, handler](Unit* resource, Orion::ResourceRequest::Error err) {
 						if (resource) {
 							if (err != Orion::ResourceRequest::Error::OK) {
 								m_app->log("Could not load resource " + res.id + ": " + Orion::ResourceRequest::getErrorMessage(err));
@@ -68,11 +68,11 @@ namespace Rhea {
 								if (err) {
 									m_app->log("Could not load resource '" + res.id + "'");
 								}
-								to_load--;
+								m_to_load--;
 								m_resources[key].status = Resource::Status::LOADED;
 								m_resources[key].resource = resource;
 								resource->incRef();
-								if (to_load == 0) {
+								if (m_to_load == 0) {
 									handler(nullptr);
 								}
 								});
@@ -80,8 +80,8 @@ namespace Rhea {
 						else {
 							m_app->log("Could not load resource " + res.id + ": " + Orion::ResourceRequest::getErrorMessage(err));
 							m_resources[key].status = Resource::Status::DATA_INVALID;
-							to_load--;
-							if (to_load == 0) {
+							m_to_load--;
+							if (m_to_load == 0) {
 								handler(nullptr);
 							}
 						}

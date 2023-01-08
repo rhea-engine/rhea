@@ -1,12 +1,14 @@
 #include "Realms.h"
 #include "Orion.h"
-#include "FileResource.h"
+#include "FileStream.h"
 #include "ResourceStream.h"
+#include "RealmRequest.h"
 
 namespace Orion
 {
 	Realms::Realms(Orion* orion) : m_orion(orion)
 	{
+		LoadIrisServers();
 	}
 
 	Realm* Realms::getRealmCached(string name)
@@ -18,17 +20,17 @@ namespace Orion
 		path += string("/Meworla/Core/realms.conf");
 		if (Fs::fileExists(path))
 		{
-			FileResource* res = new FileResource(path);
+			FileResourceStream* res = new FileResourceStream(path);
+			res->Open();
 			if (m_realms_lastmod < res->getLastmod())
 			{
-				ResourceStream* rs = res->Open(1);
 				m_realms_lastmod = res->getLastmod();
 				for (auto it = m_realms.begin(); it != m_realms.end(); ++it)
 					delete* it;
 				m_file_realms.clear();
 
-				while (!rs->eof()) {
-					string s = rs->getLine();
+				while (!res->eof()) {
+					string s = res->getLine();
 
 					// remove leading whitespace
 					s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
@@ -49,7 +51,6 @@ namespace Orion
 						m_file_realms.push_back(realm);
 					}
 				}
-				delete rs;
 			}
 			delete res;
 		}
@@ -79,8 +80,41 @@ namespace Orion
 		return NULL;
 	}
 
-	int Realms::getRealm(string name, EventHandler* handler)
+	int Realms::getRealm(string name, ResolveHandler handler)
 	{
+		// no check of realms list - we assume that was done before by the client
+		
+		// alredy a request for this realm name pending?
+		auto it = m_requests.find(name);
+		if (it != m_requests.end()) {
+			it->second.handlers.push_back(handler);
+		}
+		else {
+			// no - create new request
+			RealmRequest* req = new RealmRequest(m_orion, m_iris_services);
+			m_requests[name].request = req;
+			m_requests[name].handlers.push_back(handler);
+			
+			// start the request
+			req->Lookup(name, [&, name](Realm *realm, int error) {
+				// store the realm
+				if (!error) {
+					addRealm(realm);
+				}
+
+				// call all handlers
+				for (auto it = m_requests[name].handlers.begin(); it != m_requests[name].handlers.end(); ++it) {
+					ResolveHandler result_handler = *it;
+					result_handler(realm, error);
+				}
+
+				RealmRequest* req = m_requests[name].request;
+				m_requests[name].request = nullptr;
+				m_requests.erase(name);
+				delete req;
+				});			
+		}
+
 		// data is pending
 		return -1;
 	}
@@ -88,5 +122,33 @@ namespace Orion
 	void Realms::addRealm(Realm* realm)
 	{
 		m_realms.push_back(realm);
+	}
+	
+	void Realms::LoadIrisServers()
+	{
+		// get lookup info from iris.conf
+		std::string path = m_orion->getFs()->getInstallDataDir();
+		path += std::string("/Meworla/iris.conf");
+		if (Fs::fileExists(path))
+		{
+			FileResourceStream* res = new FileResourceStream(path);
+			res->SetMode(Fs::READ);
+			res->Open();
+			while (!res->eof()) {
+				std::string s = res->getLine();
+
+				// remove leading whitespace
+				s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
+					return !std::isspace(ch);
+					}));
+
+				// skip empty and comment lines
+				if (s.length() == 0 || (s.at(0) == '#'))
+					continue;
+
+				// parse the line
+				m_iris_services.push_back(s);
+			}
+		}
 	}
 }

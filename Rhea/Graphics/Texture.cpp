@@ -1,14 +1,16 @@
 #include "Texture.h"
 #include "../Unit.h"
 #include "../Resource.h"
+#include <Psio/Log.h>
 
 #include <Poseidon/Texture.h>
 
 namespace Rhea
 {
-	void GraphicsTexture::createTexture(unsigned char* buf, size_t buflen)
+	Poseidon::Texture* GraphicsTexture::createTexture(unsigned char* buf, size_t buflen)
 	{		
 		m_img = m_core->createTexture((unsigned char*)buf, buflen);
+		return m_img;
 	}
 
 	Element* GraphicsTexture::createElement(Poseidon::Core *core, Unit* unit)
@@ -23,7 +25,11 @@ namespace Rhea
 
 		GraphicsTexture* elem = new GraphicsTexture(core);
 		if (static_cast<Resource*>(unit)->getRaw(&buf, &buflen)) {
-			elem->createTexture((unsigned char*)buf, buflen);
+			if (!elem->createTexture((unsigned char*)buf, buflen)) {
+				LOG(LOG_ERROR) << "Image " << unit->getPath() << " could not be created";
+				delete elem;
+				return nullptr;
+			}
 			unit->addElement("graphics", elem);
 		}
 		return elem;

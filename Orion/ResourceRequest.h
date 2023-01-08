@@ -4,14 +4,14 @@
 #include <string>
 
 #include "Realm.h"
-#include "IOCompleteHandler.h"
+#include <Psio/Net/UrlRequest/UrlRequest.h>
 
 using std::string;
 
 namespace Orion
 {
 	class Orion;
-	class Resource;
+	class ResourceStream;
 	class ResourceReadyInterface;
 
 	class ResourceRequestInfo
@@ -19,26 +19,27 @@ namespace Orion
 	protected:
 	};
 
-	class ResourceRequest : public IOCompleteHandler
+	class ResourceRequest
 	{
 	public:
-		enum class Error {
-			OK,
-			IO_PENDING,
-			REALM_NOT_FOUND,
-			RESOURCE_NOT_FOUND,
-			NOT_IMPLEMENTED,
-			PATH_NOT_FOUND,
-			NO_AUTH,
-			NO_ACCESS,
-			CONFIG_ERR,
-			DATA_INVALID
+		enum Error {
+			OK = 0,
+			IO_PENDING = -1,
+			REALM_NOT_FOUND = -2,
+			RESOURCE_NOT_FOUND = -3,
+			NOT_IMPLEMENTED = -4,
+			PATH_NOT_FOUND = -5,
+			NO_AUTH = -6,
+			NO_ACCESS = -7,
+			CONFIG_ERR = -8,
+			DATA_INVALID = -9
 		};
 
-		typedef std::function<void(ResourceRequest*, ResourceRequest::Error err)> RequestHandler;
+		typedef std::function<void(ResourceRequest*, int err)> RequestHandler;
 
 		ResourceRequest(string rid, Orion *orion);
 		ResourceRequest(string rid, Orion* orion, std::string type);
+		~ResourceRequest();
 
 		// get realm name
 		string getRealmName() { return m_realm_name; }
@@ -54,9 +55,13 @@ namespace Orion
 		string getBasename();
 
 		bool isResolved() { return m_resolved; }
-		Resource* getResource() { return m_resource; }
+		Psio::Stream* getStream() { return m_stream; }
 		void setMimeType(std::string type) { m_mime_type = type; }
 		std::string getMimeType();
+
+		// status info functions
+		bool isReading();
+		bool isWriting();
 
 		// parse a resource identifier
 		// rid is //realm/container/node/subnode/...
@@ -72,13 +77,9 @@ namespace Orion
 		Error resolveRealm(Orion* orion);
 
 		// resolve the resource
-		// precondition: realm is resolved
-		// on ready call the onReady callback
+		// on ready call the callback handler
 		// return 0 if resolver started, negative on error
-		Error resolve(RequestHandler handler);
-
-		void onEvent(Event* e) {};
-		void onIOComplete(Event* e);
+		int resolve(RequestHandler handler);
 
 		// set a different handler
 		void setHandler(RequestHandler handler) { m_handler = handler; };
@@ -100,12 +101,12 @@ namespace Orion
 		State m_state = ResourceRequest::State::UNSET;
 		State m_next_state = ResourceRequest::State::UNSET;
 
-		Error doResolve();
-		Error doResolveResource();
-		Error doResolveResourceCompleted();
-		Error doResolveRealm();
-		Error doResolveRealmCompleted();
-		Error doResolveResourceFailed();
+		int ResolveLoop(int result);
+		int doResolveResource(int result);
+		int doResolveResourceCompleted(int result);
+		int doResolveRealm(int result);
+		int doResolveRealmCompleted(int result);
+		int doResolveResourceFailed(int result);
 
 		string m_realm_name;
 		string m_path;
@@ -114,7 +115,7 @@ namespace Orion
 		Realm* m_realm = NULL;
 		bool m_resolved = false;
 		bool m_realm_resolved = false;
-		Resource* m_resource = NULL;
+		Psio::Stream* m_stream = NULL;
 		Error m_error = Error::OK;
 
 		int request_type = 0;
@@ -131,6 +132,10 @@ namespace Orion
 		bool m_addon = false;	
 		RequestHandler m_handler;
 
+		Psio::UrlRequest* m_request;
+
+		// IO step
+		void onIOComplete(int result);
 	};
 
 }

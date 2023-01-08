@@ -13,3 +13,14 @@ Files extracted from upstream source:
 - AUTHORS.txt
 - README.md
 - VERSION
+
+#
+# Dependencies
+#
+
+
+## openssl
+
+- upstream: www.openssl.org
+- License: Apache v2
+

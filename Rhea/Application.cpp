@@ -11,6 +11,7 @@
 #include "Psio/Psio.h"
 #include "Psio/InputEvent.h"
 #include "Psio/Keyboard.h"
+#include "Psio/Log.h"
 #include "Importer.h"
 #include "SceneLoader.h"
 #include "Unit.h"
@@ -52,6 +53,14 @@ namespace Rhea
 {
 	void Application::init()
 	{		
+		// set log severity
+#ifdef _DEBUG
+		Log::logger().setLevel(LOG_DEBUG);
+#else
+		Log::logger().setLevel(LOG_INFO);
+#endif // DEBUG
+
+		
 		// register core types
 		SimpleParser::Type::registerType<Unit>("//core/types/unit");
 		SimpleParser::Type::registerType<UnitTree>("//core/unittree");
@@ -75,7 +84,7 @@ namespace Rhea
 		m_services["physics_mgr"] = phy_mgr;
 
 //		core = new Poseidon::Core();
-		m_fs = new Orion::Orion(m_appname);
+		m_fs = new Orion::Orion(static_cast<PlatformService*>(psio)->getEngine(), m_appname);
 		m_unit_tree = (UnitTree*)SimpleParser::Type::create("/", "//core/unittree");
 		m_unit_tree->setup(this);
 
@@ -145,16 +154,17 @@ namespace Rhea
 			exit(-1);
 		}
 		m_fs->setAppDir(path);
+		m_services["platform"]->setValue("AppDir", SimpleParser::Variant(path));
 	}
 
 	void Application::loadScene(const std::string resourceId, std::function<void(Scene*, ReqError error)> handler)
 	{
-		loadResource(resourceId, "//meworla/scene", [&](Rhea::Unit* scene, ReqError r_err) {
+		loadResource(resourceId, "//meworla/scene", [&, handler](Rhea::Unit* scene, ReqError r_err) {
 			if (r_err == ReqError::OK) {
-				scene->prepare([&](Rhea::Error* err) {
-					log("scene loaded");
+				scene->prepare([r_err, scene, handler](Rhea::Error* err) {
+					LOG(LOG_INFO) << "scene loaded";
 					scene->ready();
-					log("scene ready");
+					LOG(LOG_NOTICE) << "scene ready";
 					handler((Scene*)scene, r_err);
 					});
 			}
@@ -205,12 +215,8 @@ namespace Rhea
 		Psio::Engine* psio = static_cast<PlatformService*>(m_services["platform"])->getEngine();
 		std::shared_ptr<Psio::InputEvent> evt;
 		ievt_actions iea;
-		PhysicsService* physics = static_cast<PhysicsService*>(m_services["physics"]);
-		if (!physics) {
-			physics = static_cast<PhysicsManagerService*>(m_services["physics_mgr"])->getPhysicsService(PhysicsManagerService::Types::NONE);
-			physics->onInit();
-			m_services["physics"] = physics;
-		}
+		PhysicsService* physics = static_cast<Rhea::PhysicsManagerService*>(m_services["physics_mgr"])->getPhysicsServce();
+		
 
 		int iterations_per_second = 60;
 		float frame_slice = 1.0f / iterations_per_second;
@@ -227,19 +233,6 @@ namespace Rhea
 		uint64_t fps_start = psio->getTicks();
 		uint64_t fps_count = 0;
 		float elapsed_fs = 0.0f;
-
-#ifdef _DEBUG
-		Unit* u = m_unit_tree->find("//rhea/shaders");
-		auto mth = u->getType()->getMethod("getName");
-		std::string s = static_cast<std::string>(mth->execute(u));
-		log("shader folder: " + s);
-		Variant v = std::string("new_shaders");
-		Variant* vs[1];
-		vs[0] = &v;
-		//u->getType()->getMethod("setName")->execute(u, v);
-		u->getType()->getMethod("setName")->execute(u, vs, 1);
-		log("shader folder: " + static_cast<std::string>(mth->execute(u)));
-#endif
 
 		while (!ret) {
 
@@ -294,17 +287,21 @@ namespace Rhea
 				if (onInput(&e, nullptr))
 					ret = true;
 			}
+			psio->RunNet();
 
 			// physics
 
 			uint64_t physics_begin = psio->getTicks();
-			static int max_physics_steps = 10;
-			physics_steps = std::min(physics_steps, max_physics_steps);
 
-			for (int i=0; i < physics_steps; i++)
-			{
-				physics->step(frame_slice);
-			}			
+			if (physics || (physics = static_cast<Rhea::PhysicsManagerService*>(m_services["physics_mgr"])->getPhysicsServce())) {
+				static int max_physics_steps = 10;
+				physics_steps = std::min(physics_steps, max_physics_steps);
+
+				for (int i = 0; i < physics_steps; i++)
+				{
+					physics->step(frame_slice);
+				}
+			}
 
 			// idle
 			uint64_t idle_begin = psio->getTicks();
@@ -326,12 +323,16 @@ namespace Rhea
 		return ret;
 	}
 
-	void Application::loadResource(const std::string resource_id, Orion::ResourceRequest::RequestHandler handler)
+	void Application::loadResource(const std::string resource_id, std::string type_name, std::function<void(Unit*, ReqError error)> handler)
 	{
+		log("loading resource: " + resource_id);
 		Orion::ResourceRequest* req = m_fs->getResourceByRid(resource_id);
-		req->resolve([&](Orion::ResourceRequest* req, Orion::ResourceRequest::Error err) {
+		req->resolve([&, req, handler](Orion::ResourceRequest* req, int err) {
 			if (err == Orion::ResourceRequest::Error::OK) {
-				// if we have a realm 
+
+				// we got the resource
+
+				// get the realm parent unit (or create it if it doesn't exists) 
 				std::string realm_name = req->getRealmName();
 				Unit* realm_unit = m_unit_tree->find(realm_name, false);
 				if (!realm_unit) {
@@ -339,19 +340,9 @@ namespace Rhea
 					realm_unit = (Unit*)new Realm(req->getRealm(), realm_name);
 					m_unit_tree->addChild(realm_unit);
 				}
-			}
-			handler(req, err);			
-			});
-	}
 
-	void Application::loadResource(const std::string resource_id, std::string type_name, std::function<void(Unit*, ReqError error)> handler)
-	{
-		loadResource(resource_id, [&](Orion::ResourceRequest* req, ReqError err) {
-			if (req) {
-				// we have found the resource
-
-				// find the parent and create the folders if necessary
-				std::string parentpath = req->getRealmName() + req->getParentPath();
+				// find the unit parent and create the folders if necessary
+				std::string parentpath = realm_name + req->getParentPath();
 				Unit* parent_unit = m_unit_tree->find(parentpath, true);
 				if (!parent_unit)
 					// should not happen
@@ -362,7 +353,7 @@ namespace Rhea
 				// get from request
 				std::string mime = req->getMimeType();
 				if (mime.length()) {
-					if (m_resource_loader.load(req->getBasename(), this, mime, req, [&](ReqError err, Unit* unit) {
+					if (m_resource_loader.load(req->getBasename(), this, mime, req, [&, handler, parent_unit](ReqError err, Unit* unit) {
 
 						// add it to tree
 						parent_unit->addChild(unit);
@@ -384,18 +375,18 @@ namespace Rhea
 				parent_unit->addChild(unit);
 
 				// call load of unit
-				unit->load(req, [&](ReqError err) {
+				unit->load(req, [&, handler](ReqError err) {
 					handler(unit, err);
 					});
 			}
 			else
-				handler(NULL, err);
+				handler(NULL, static_cast<ReqError>(err));
 			});
 	}
-	
+
 	void Application::log(std::string message)
 	{
-		printf("%s\n", message.c_str());
+		LOG(LOG_INFO) << message;
 	}
 
 	void Application::close()

@@ -1,27 +1,34 @@
 #include "Orion.h"
 #include "ResourceRequest.h"
-#include "FileResource.h"
+#include "FileStream.h"
 #include "Mime.h"
+#include <Psio/Log.h>
 
 #include <iostream>
 
 namespace Orion
 {	
-	ResourceRequest::ResourceRequest(string rid, Orion *orion)
+	ResourceRequest::ResourceRequest(string rid, Orion *orion) : 
+		ResourceRequest(rid, orion, "")
 	{
-		m_realm_name = "";
-		m_path = "";
-		m_orion = orion;
+	}
+
+	ResourceRequest::ResourceRequest(string rid, Orion* orion, std::string type) :
+		m_orion(orion),
+		m_mime_type(type),
+		m_realm_name(""),
+		m_path(""),
+		m_request(nullptr)
+	{		
 		parseRid(rid);
 	}
 
-	ResourceRequest::ResourceRequest(string rid, Orion* orion, std::string type)
+	ResourceRequest::~ResourceRequest()
 	{
-		m_mime_type = type;
-		m_realm_name = "";
-		m_path = "";
-		m_orion = orion;
-		parseRid(rid);
+		if (m_stream)
+			delete m_stream;
+		if (m_request)
+			delete m_request;
 	}
 
 	string ResourceRequest::getParentPath()
@@ -32,6 +39,28 @@ namespace Orion
 	string ResourceRequest::getBasename()
 	{
 		return m_basename;
+	}
+
+	bool ResourceRequest::isReading()
+	{
+		if (m_state == ResourceRequest::State::UNSET ||
+			m_state == ResourceRequest::State::RESOLVE_FAILED) {
+			return false;
+		}
+
+		//  resolve was completed - do we have a stream?
+		if (m_state == ResourceRequest::State::RESOURCE_RESOLVE_COMPLETED) {
+			if (m_stream)
+				return true;
+			else
+				return false;
+		}
+		return true;
+	}
+
+	bool ResourceRequest::isWriting()
+	{
+		return false;
 	}
 
 	std::string ResourceRequest::getErrorMessage(Error err)
@@ -45,6 +74,8 @@ namespace Orion
 			return "Realm not found";
 		case Error::RESOURCE_NOT_FOUND:
 			return "Resource not found";
+		case Error::NOT_IMPLEMENTED:
+			return "Not implemented";
 		case Error::NO_ACCESS:
 			return "Permission denied";
 		case Error::NO_AUTH:
@@ -106,38 +137,38 @@ namespace Orion
 		return m_mime_type;
 	}
 	
-	ResourceRequest::Error ResourceRequest::doResolve()
+	int ResourceRequest::ResolveLoop(int result)
 	{
-		m_state = m_next_state;
 		do
 		{
 			m_state = m_next_state;
+			m_next_state = State::UNSET;
 
 			switch (m_state)
 			{
 			case ResourceRequest::State::UNSET:
 				break;
 			case ResourceRequest::State::REALM_RESOLVE:
-				m_error = doResolveRealm();
+				result = doResolveRealm(result);
 				break;
 			case ResourceRequest::State::REALM_RESOLVE_COMPLETED:
-				m_error = doResolveRealmCompleted();
+				result = doResolveRealmCompleted(result);
 				break;
 			case ResourceRequest::State::RESOURCE_RESOLVE:
-				m_error = doResolveResource();
+				result = doResolveResource(result);
 				break;
 			case ResourceRequest::State::RESOURCE_RESOLVE_COMPLETED:
-				m_error = doResolveResourceCompleted();
+				result = doResolveResourceCompleted(result);
 				break;
 			case ResourceRequest::State::RESOLVE_FAILED:
-				m_error = doResolveResourceFailed();
+				result = doResolveResourceFailed(result);
 			default:
 				break;
 			}
 
-		} while ((m_error != Error::IO_PENDING) && (m_state != State::UNSET));
+		} while ((result != Error::IO_PENDING) && (m_state != State::UNSET));
 
-		return m_error;
+		return result;
 	}
 
 	ResourceRequest::Error ResourceRequest::resolveRealm(Orion* orion)
@@ -146,7 +177,7 @@ namespace Orion
 		return Error::OK;
 	}
 
-	ResourceRequest::Error ResourceRequest::doResolveRealm()
+	int ResourceRequest::doResolveRealm(int result)
 	{
 		m_next_state = State::REALM_RESOLVE_COMPLETED;
 
@@ -183,14 +214,23 @@ namespace Orion
 			return Error::OK;
 		}
 
-		// get data from realm list
-		if (!m_orion->getRealms()->getRealm(m_realm_name, this))
+		// get data from realms manager via lookup
+		int ret = m_orion->getRealms()->getRealm(m_realm_name, [&](Realm* realm, int error) {
+			// got a result
+			if (!error) {
+				m_realm_resolved = true;
+				m_realm = realm;
+
+			}
+			onIOComplete(error);
+			});
+		if (!ret)
 			return Error::OK;
 		else
 			return Error::IO_PENDING;
 	}
 
-	ResourceRequest::Error ResourceRequest::doResolveRealmCompleted()
+	int ResourceRequest::doResolveRealmCompleted(int result)
 	{
 		//  get the realm if not resolved already 
 		if (!m_realm_resolved) {
@@ -209,19 +249,26 @@ namespace Orion
 		return Error::OK;
 	}
 
-	ResourceRequest::Error ResourceRequest::resolve(RequestHandler handler)
+	int ResourceRequest::resolve(RequestHandler handler)
 	{
 		m_next_state = State::REALM_RESOLVE;		
 		m_handler = handler;
-		return doResolve();
+		int result = ResolveLoop(Error::OK);
+		if (result != Error::IO_PENDING && m_handler) {
+			m_handler(this, result);
+		}
+		return result;
 	}
 
-	void ResourceRequest::onIOComplete(Event* e)
+	void ResourceRequest::onIOComplete(int result)
 	{
-		doResolve();
+		result = ResolveLoop(result);
+		if (result != Error::IO_PENDING && m_handler) {
+			m_handler(this, result);
+		}
 	}
 
-	ResourceRequest::Error ResourceRequest::doResolveResource()
+	int ResourceRequest::doResolveResource(int result)
 	{
 		// safety check
 		if (!m_realm_resolved)
@@ -243,7 +290,7 @@ namespace Orion
 			{
 				// file exists
 				// create file resource and call callback
-				m_resource = (Resource*)new FileResource(path);
+				m_stream = (Psio::Stream*)new FileResourceStream(path);
 				m_next_state = State::RESOURCE_RESOLVE_COMPLETED;
 				return Error::OK;
 			}
@@ -268,7 +315,7 @@ namespace Orion
 			{
 				// file exists
 				// create file resource and set next state
-				m_resource = (Resource*)new FileResource(path);
+				m_stream = (Psio::Stream*)new FileResourceStream(path);
 				m_next_state = State::RESOURCE_RESOLVE_COMPLETED;
 				return Error::OK;
 			}
@@ -279,35 +326,54 @@ namespace Orion
 			}
 		}
 
-		// not implemented
-		// call callback with error method
-		m_handler(NULL, Error::NOT_IMPLEMENTED);
-		
+		// Resource from net
+		if (m_realm) {
+			string path;
+
+			path = m_realm->getResourceUrl();
+			if (path.back() == '/' && m_path[0] == '/')
+				path += m_path.substr(1);
+			else
+				path += m_path;
+			LOG(LOG_INFO) << "Resource requested: " << path;
+
+			// Request the resource
+			m_request = new Psio::UrlRequest(m_orion->getIO());
+
+			m_request->OnResponse([&](Psio::UrlResponse* res) {
+				m_stream = res;
+				// caller doesn't know about response codes
+				// if not 2xx call with error
+				int code = res->GetResponseCode();
+				int err = 0;
+				if (code == 404)
+					err = Error::RESOURCE_NOT_FOUND;
+				onIOComplete(err);
+				});
+			m_request->OnError([&](int err) {
+				onIOComplete(err);
+				});
+			// GET the resource
+			m_request->Get(path);
+			return Error::IO_PENDING;
+		}
+
+		// not implemented		
 		m_next_state = State::UNSET;
 		return Error::NOT_IMPLEMENTED;
 	}
 
-	ResourceRequest::Error ResourceRequest::doResolveResourceCompleted()
+	int ResourceRequest::doResolveResourceCompleted(int result)
 	{
-		// call callbacks if any
-		m_next_state = State::UNSET;
-
-		if (m_handler) {
-			m_handler(this, Error::OK);
-		}
-		
+		m_next_state = State::UNSET;		
 		return Error::OK;
 	}
 
-	ResourceRequest::Error ResourceRequest::doResolveResourceFailed()
-	{
-		if (m_handler) {
-			m_handler(NULL, m_error);
-		}
-		
-		// TODO call callbacks if any
+	int ResourceRequest::doResolveResourceFailed(int result)
+	{		
 		m_next_state = State::UNSET;
 
-		return Error::OK;
+		// the request may be deleted -> exit loop
+		return Error::RESOURCE_NOT_FOUND;
 	}
 }

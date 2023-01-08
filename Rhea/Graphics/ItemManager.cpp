@@ -34,6 +34,14 @@ namespace Rhea
 		// safety check
 		if (!item_mesh)
 			return nullptr;
+		
+		// make sure we have a material
+		Rhea::Material* material = item_mesh->getMaterial();
+		if (!material) {
+			unit->getApplication()->log(unit->getPath() + ": item has no material");
+			delete elem;
+			return nullptr;
+		}
 
 		// check if mesh already defined
 		GraphicsMesh* mesh_el = static_cast<GraphicsMesh*>(item_mesh->getElement("graphics"));
@@ -60,12 +68,7 @@ namespace Rhea
 		// add the position
 		addPosition(unit, entity);
 
-		Rhea::Material* material = item_mesh->getMaterial();
-		if (!material) {
-			unit->getApplication()->log("Item has no material");
-			delete elem;
-			return nullptr;
-		}
+		// set the material
 		setMaterial(core, material, entity);
 
 		// attach to unit

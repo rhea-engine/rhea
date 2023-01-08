@@ -2,42 +2,49 @@
 #define ORION_REALMS_H
 
 #include <vector>
-
-using std::vector;
+#include <deque>
+#include <unordered_map>
+#include <functional>
 
 #include "Realm.h"
 #include "Event.h"
-#include "EventHandler.h"
 
 namespace Orion
 {
 	class Orion;
-
-	class RealmResolvedEvent : public Event
-	{
-	protected:
-		Realm* m_realm;
-	public:
-		RealmResolvedEvent(Realm* realm) : m_realm(realm) {}
-		Realm* getRealm() { return m_realm; }
-	};
+	class RealmRequest;
 
 	class Realms
 	{
+	public:
+
+		typedef std::function<void(Realm*, int err)> ResolveHandler;
+
+		Realms(Orion* orion);
+		// get realm from cached realm list
+		Realm* getRealmCached(string name);
+		// get realm asynchronously from server
+		int getRealm(string name, ResolveHandler handler);
+		// add realm to realm list
+		void addRealm(Realm* realm);
+
 	protected:
 		Orion* m_orion;
 		std::vector<Realm*> m_realms;
 		std::vector<Realm*> m_file_realms;
 		time_t m_realms_lastmod = 0;
 
-	public:
-		Realms(Orion* orion);
-		// get realm from cached realm list
-		Realm* getRealmCached(string name);
-		// get realm asynchronously from server
-		int getRealm(string name, EventHandler *handler);
-		// add realm to realm list
-		void addRealm(Realm* realm);
+		typedef std::function<void(Realm*, int err)> ResolveHandler;
+
+		void LoadIrisServers();
+
+		struct resolving {
+			RealmRequest* request;
+			std::vector<ResolveHandler> handlers;
+		};
+
+		std::unordered_map<std::string, resolving> m_requests;
+		std::deque<std::string> m_iris_services;
 	};
 }
 

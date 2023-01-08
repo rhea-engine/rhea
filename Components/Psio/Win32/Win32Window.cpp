@@ -83,7 +83,7 @@ namespace Psio
 			else
 				evt = std::make_shared<KeyInputEvent>(Psio::InputEventId::KEY_RELEASED);
 			evt->setModifiers(shift, alt, ctrl);
-			std::static_pointer_cast<KeyInputEvent>(evt)->set(hwKey(wParam), scancode, 0);
+			std::static_pointer_cast<KeyInputEvent>(evt)->set(hwKey((int)wParam), scancode, 0);
 			win->addInputEvent(evt);
 
 			break;

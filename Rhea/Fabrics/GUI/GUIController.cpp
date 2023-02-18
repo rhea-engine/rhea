@@ -1,14 +1,14 @@
 #include "GUIController.h"
 #include "Application.h"
 #include "UnitTree.h"
-#include "Scene.h"
+#include "Fabrics/Core/Scene.h"
 
 #include "GuiService.h"
 
 #include "GUIController.h"
 #include "Widget.h"
 #include "Label.h"
-#include <Rhea/SceneLoader.h>
+#include <Rhea/Fabrics/Core/SceneLoader.h>
 #include <EventInput.h>
 
 namespace Rhea
@@ -38,7 +38,7 @@ namespace Rhea
 				w->onParentMoved();
 			}
 		}
-		m_app->getUnitTree()->registerEventHandler("gui_input", std::bind(&GUIController::onInput, this, std::placeholders::_1, std::placeholders::_2));
+		m_app->getUnitTree()->registerEventHandler("gui_input", this, std::bind(&GUIController::onInput, this, std::placeholders::_1, std::placeholders::_2));
 	}
 
 	bool GUIController::onInput(Event* ev, Unit* unit)

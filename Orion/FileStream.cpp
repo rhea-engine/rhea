@@ -149,6 +149,7 @@ namespace Orion
 			}
 		}
 		m_end_handler(size);
+		Close();
 	}
 
 	std::string FileResourceStream::getLine()

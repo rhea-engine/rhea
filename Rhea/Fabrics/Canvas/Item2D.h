@@ -2,7 +2,8 @@
 #define RHEA_ITEM2D_H
 
 #include "Resource.h"
-#include "Material.h"
+#include "Fabrics/Core/Material.h"
+#include "Fabrics/Core/Transform.h"
 
 namespace Rhea
 {
@@ -18,6 +19,7 @@ namespace Rhea
 			y(0),
 			w(0),
 			h(0),
+			m_transform(nullptr),
 			Resource(name, type_name)
 		{}
 
@@ -39,6 +41,9 @@ namespace Rhea
 		int W() { return w; }
 		int H() { return h; }
 
+		// positionig
+		Transform* getTransform() { return &m_transform; }
+
 		// factory function
 		static Unit* createType(std::string name, std::string type);
 
@@ -50,6 +55,8 @@ namespace Rhea
 		int y;
 		int w;
 		int h;
+
+		Transform m_transform;
 	};
 }
 

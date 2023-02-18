@@ -6,12 +6,13 @@
 
 #include "Application.h"
 #include "Unit.h"
-#include "Material.h"
+#include "Fabrics/Core/Material.h"
 
 #include "GraphicsManager.h"
 #include "MaterialManager.h"
 #include "GraphicsService.h"
 #include "RenderElement.h"
+#include <Psio/Log.h>
 
 namespace Rhea
 {
@@ -34,31 +35,40 @@ namespace Rhea
 		
 		Poseidon::RenderContext* render_context = scene_mgr->getViewport()->getRenderContext(render_context_name);
 		if (!render_context) {
-			item->getApplication()->log("GraphicsText::createText: render context '" + render_context_name + "' not found");
+			LOG(LOG_ERROR) << "GraphicsText::createText: render context '" << render_context_name << "' not found";
 			return nullptr;
 		}
+		elem->setRenderContext(render_context);
 		render_context->addRenderChild(static_cast<Poseidon::Entity*>(entity));
 
 		return entity;
 	}
 
-	void GraphicsManager::addPosition(Unit* item, Poseidon::Node* entity)
+	void GraphicsManager::removeRenderable(GraphicsRenderElement* elem)
 	{
-		Poseidon::Position* pos = entity->get_position();
-		
-		Variant pos_sit = item->getValue("position");
+		Poseidon::RenderContext* render_context = elem->getRenderContext();
+		if (!render_context) {
+			LOG(LOG_ERROR) << "GraphicsText::removeRenderable: render context not set";
+			return;
+		}
+		render_context->removeRenderChild(static_cast<Poseidon::Entity*>(elem->getRenderEntity()));	
+	}
+
+	void GraphicsManager::setPosition(Unit* u, Transform* t)
+	{
+		Variant pos_sit = u->getValue("position");
 		if (pos_sit != Variant()) {
 			float x = pos_sit[0];
-			float y = pos_sit[1];	
+			float y = pos_sit[1];
 			float z = 0.0f;
 			if (pos_sit.size() > 2) {
 				z = pos_sit[2];
 			}
-			
-			pos->setPosition(x, y, z);
+
+			t->get_position()->setPosition(x, y, z);
 		}
 		else
-			pos->setPosition(0.0f, 0.0f, 0.0f);
+			t->get_position()->setPosition(0.0f, 0.0f, 0.0f);
 	}
 
 	void GraphicsManager::setMaterial(Poseidon::Core* core, Material* material, Poseidon::Node* entity)

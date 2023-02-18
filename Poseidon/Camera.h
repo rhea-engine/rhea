@@ -6,12 +6,14 @@
 
 #include "Node.h"
 
-#include "Node.h"
 #include "Math/Vector3.h"
 #include "Math/Quaternion.h"
 #include "Math/Matrix3x4.h"
 #include "Math/Matrix4.h"
 #include "Math/Ray.h"
+
+using Math::Matrix4;
+using Math::Ray;
 
 namespace Poseidon
 {

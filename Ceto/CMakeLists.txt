@@ -3,13 +3,13 @@
 #
 cmake_minimum_required (VERSION 3.9.2)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ ${CMAKE_SOURCE_DIR})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/ThirdParty/bullet/src)
 
 # Define the main app
 add_executable (Ceto "Ceto.cpp")
 
 # add the renderer engine
-target_link_libraries(Ceto Rhea)
+target_link_libraries(Ceto RheaClient)
 
 add_custom_command(TARGET Ceto POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory

@@ -3,33 +3,37 @@
 
 #include <stdio.h>
 #include <list>
-#include "IPAddress.h"
+#include <Psio/Net/Socket/IPAddress.h>
 #include "Task.h"
+#include <Psio/Net/Socket/TCPSocket.h>
+#include <Psio/Net/Network.h>
+#include <string>
 
 namespace Hermes
 {
-	class TcpServer;
-	class IPAddress;
-	class Connection;
-	class IRequestHandlerFactory;
-	class IConnectionHandler;
-
 	class Server : public Task
 	{
 	public:
-		Server(bool tcp, bool udp);
-		int listen(IPAddress& ip, uint16_t port);
-		void setRequestHandlerFactory(IRequestHandlerFactory* req_handler_factory) { m_req_handler_factory = req_handler_factory; }
-		// add handler for connection
-		void addConnectionHandler(IConnectionHandler* conn_handler) { m_conn_handlers.push_back(conn_handler); }
+		Server(Psio::Network* network, bool tcp, bool udp) :
+			m_tcp(tcp),
+			m_udp(udp),
+			m_net(network)
+		{
+		}
+
+		typedef std::function<void(std::unique_ptr<Psio::StreamSocket>, int)> ConnectionHandler;
+
+		int Setup(std::string ip, uint16_t port, ConnectionHandler connection_handler);
+		void Start();
+
+		// run the loop once
 		void run();
 	protected:
-		TcpServer* m_tcp_server = NULL;
+		std::unique_ptr<Psio::StreamSocket> m_server;
+		Psio::Network* m_net;
 		bool m_tcp = true;
 		bool m_udp = true;
-		std::list<Connection*> m_connections;
-		IRequestHandlerFactory* m_req_handler_factory;
-		std::list<IConnectionHandler*> m_conn_handlers;
+		ConnectionHandler m_connection_handler;
 	};
 }
 

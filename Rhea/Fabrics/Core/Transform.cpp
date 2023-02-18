@@ -1,0 +1,70 @@
+#include "Transform.h"
+#include "../3D/Item.h"
+
+namespace Rhea
+{
+	void Transform::update()
+	{
+		// update position
+		if (m_parent) {
+
+			m_in_updating = true;
+
+			Unit* p = m_parent->getParent();
+			if (!p || !p->getTypeName().compare("//meworla/scene")) {
+				m_derived_position.setPosition(m_position);
+				m_derived_valid = true;
+				return;
+			}
+			// TODO: Check if transform component is there
+			Item* parent = static_cast<Item*>(p);
+
+			// Update orientation
+			const Math::Quaternion& parent_rot = parent->getTransform()->get_position()->get_rotation();
+			Position* src = &m_position; // get_position();
+			Position* derived = &m_derived_position; // get_derived_position();
+			if (m_coord_space == 1)
+			{
+				// Combine orientation with that of parent
+				derived->setOrientation(parent_rot * src->get_rotation());
+			}
+			else {
+				derived->setOrientation(get_position()->get_rotation());
+			}
+
+			// Change position vector based on parent's orientation & scale
+			Math::Vector3 derived_pos = parent_rot * src->get_worldspace();
+
+			// Add altered position vector to parents
+			derived_pos += parent->getTransform()->get_derived_position()->get_worldspace();
+			derived->setPosition(derived_pos);
+
+			m_derived_valid = true;
+			m_in_updating = false;
+
+			//m_parent->update();
+		}
+		else {
+			// root node 
+			m_derived_position.setPosition(m_position);
+			m_derived_valid = true;
+		}
+	}
+
+	void Transform::createPosition(int position_type)
+	{
+		m_coord_space = position_type;
+		m_need_update = true;
+		m_position.setPosition(Math::Vector3(0.0f, 0.0f, 0.0f));
+		m_derived_position.setPosition(Math::Vector3(0.0f, 0.0f, 0.0f));
+	}
+
+	Transform* Transform::createType(std::string name, std::string type_name)
+	{
+		return nullptr;
+	}
+
+	void Transform::initializeType(SimpleParser::Type* type)
+	{
+	}
+}

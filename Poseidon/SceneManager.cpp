@@ -57,10 +57,7 @@ namespace Poseidon
 
 	bool SceneManager::update()
 	{
-		if (m_tree)
-			return m_tree->update();
-		else
-			return false;
+		return false;
 	}
 
 	bool SceneManager::render()
@@ -109,12 +106,14 @@ namespace Poseidon
 					}
 
 					// fill per object buffer
-
-					Position* position = renderable->get_derived_position();
+					Rhea::Transform* transform = renderable->getTransform();
+					Position* position = nullptr;
+					if (transform)
+						position = transform->get_derived_position();
 
 					// check if renderable has a position
 					if (position) {
-						Poseidon::Matrix3x4 model_wtm = position->getWorldTransform();
+						Math::Matrix3x4 model_wtm = position->getWorldTransform();
 						per_obj_buf.model = model_wtm;
 						m_object_buffer->update((void*)&per_obj_buf);
 					}

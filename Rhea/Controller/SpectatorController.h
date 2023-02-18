@@ -2,9 +2,9 @@
 #define RHEA_SPECTATORCONTROLLER_H
 
 #include "BasicController.h"
-#include <Poseidon\Math\Vector3.h>
-#include <Poseidon\Math\Quaternion.h>
-#include <Poseidon\Position.h>
+#include <Math/Vector3.h>
+#include <Math/Quaternion.h>
+#include <Rhea/Fabrics/Core/Position.h>
 
 namespace Rhea
 {
@@ -18,12 +18,12 @@ namespace Rhea
 			BasicController(path_name, type_name)
 		{}
 
-		void show(Poseidon::Core* core);
+		void show();
 		void message(std::string method_name);
 
 		// set the position manually
-		void setPosition(Poseidon::Vector3 position);
-		void lookAt(Poseidon::Vector3& target);
+		void setPosition(Math::Vector3 position);
+		void lookAt(Math::Vector3& target);
 
 		// Controller functions
 

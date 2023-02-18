@@ -36,6 +36,8 @@ namespace Psio
 		void SetMethod(std::string mth);
 		std::string GetMethod() { return m_raw_method; }
 
+		void SetUrl(std::string url) { m_url = url; }
+		std::string GetUrl() { return m_url; }
 		std::string GenerateRequestString(std::string& url);
 
 		// set the protocol version
@@ -63,7 +65,9 @@ namespace Psio
 		* 
 		* returns a new HttpHeader object. On error no object is created and NULL is returned.
 		*/
-		static HttpHeaders* CreateFromBuf(std::string input);		
+		static HttpHeaders* CreateFromBuf(std::string input);	
+
+		static void ParseHeaders(std::string input, size_t offset, HttpHeaders* headers);
 
 		static std::unordered_map<int, std::string> Codes;		
 
@@ -75,6 +79,7 @@ namespace Psio
 
 		std::string m_raw_headers;
 		std::string m_raw_method;
+		std::string m_url;
 
 		int m_res_code;
 		bool m_code_valid;

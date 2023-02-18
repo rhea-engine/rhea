@@ -3,7 +3,7 @@
 
 #include <cstdint>
 
-#include <Poseidon/Image.h>
+#include <Psio/Image/Image.h>
 #include <Poseidon/Core.h>
 
 #include "../Element.h"

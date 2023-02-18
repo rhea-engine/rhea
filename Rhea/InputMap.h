@@ -5,6 +5,7 @@
 #include <map>
 #include <vector>
 #include <memory>
+#include <string>
 
 #include <Psio/InputEvent.h>
 

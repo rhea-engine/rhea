@@ -1,15 +1,15 @@
 #include "Poseidon/Material.h"
 #include "Poseidon/Shader.h"
-#include <Poseidon/Image.h>
+#include <Psio/Image/Image.h>
 #include <Poseidon/Texture.h>
 
-#include "Application.h"
 #include "TextResource.h"
 #include "Event.h"
 
-#include "../Material.h"
+#include "Fabrics/Core/Material.h"
 #include "MaterialManager.h"
 #include "./Texture.h"
+#include <Psio/Log.h>
 
 namespace Rhea
 {
@@ -49,7 +49,7 @@ namespace Rhea
 				item->m_material->setShader(shader);
 			}
 			else {
-				material_res->getApplication()->log("Shader " + shader_name + " not found");
+				LOG(LOG_ERROR) << "Shader " << shader_name << " not found";
 			}
 		}
 		else {
@@ -71,7 +71,7 @@ namespace Rhea
 		material_res->addElement("graphics", item);
 
 		// register handlers
-		unit->registerEventHandler("delete", std::bind(&GraphicsMaterialManager::onItemDelete, this, std::placeholders::_1, std::placeholders::_2));
+		unit->registerEventHandler("delete", this, std::bind(&GraphicsMaterialManager::onItemDelete, this, std::placeholders::_1, std::placeholders::_2));
 		//unit->registerEventHandler("update", std::bind(&GraphicsMaterialManager::onUpdate, item, std::placeholders::_1, std::placeholders::_2));
 
 		// add to my list

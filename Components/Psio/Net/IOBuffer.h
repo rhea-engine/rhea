@@ -1,6 +1,8 @@
 #ifndef PSIO_NET_IOBUFFER_H
 #define PSIO_NET_IOBUFFER_H
 
+#include <cstddef>
+
 namespace Psio
 {
 	class IOBuffer
@@ -28,13 +30,13 @@ namespace Psio
 		char* writer() const { return m_buffer + m_write_offset; }
 
 		// consume (read) bytes
-		void Consume(size_t bytes) { m_offset += bytes; }
+		void Consume(size_t bytes);
 
 		// write bytes
 		void Produce(size_t bytes) { m_write_offset += bytes; }
 
 		// write chunk
-		void Write(char* chunk, size_t size);
+		void Write(const char* chunk, size_t size);
 
 		// set offset to read from
 		void SetOffset(int offset) { m_offset = offset; }
@@ -49,6 +51,9 @@ namespace Psio
 		void Grow(size_t size);
 
 		size_t GetSize() { return m_size; }
+
+		char& operator[](int) { return m_buffer[m_write_offset]; }
+		char operator[](int) const { return m_buffer[m_offset]; }
 
 	protected:
 		char* m_buffer;

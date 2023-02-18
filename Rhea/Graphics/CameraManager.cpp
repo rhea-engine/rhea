@@ -6,7 +6,7 @@
 
 #include "CameraManager.h"
 #include "../Unit.h"
-#include "../Camera.h"
+#include "Fabrics/3D/Camera.h"
 #include "RenderElement.h"
 
 namespace Rhea
@@ -38,23 +38,23 @@ namespace Rhea
 
 		// get default viewport
 		std::string render_context = "default";
-		m_scene_mgr->getViewport()->addChild(m_entity);
 		m_scene_mgr->getViewport()->getRenderContext(render_context)->setCamera(static_cast<Poseidon::Camera*>(m_entity));
 
-		Poseidon::Vector3 m_position;
+		Math::Vector3 m_position;
 		Variant pos_sit = unit->getValue("position");
 		if (pos_sit != Variant()) {
 			float x = pos_sit[0];
 			float y = pos_sit[1];
 			float z = pos_sit[2];
-			m_position = Poseidon::Vector3(x, y, z);
+			m_position = Math::Vector3(x, y, z);
 		}
 		else
-			m_position = Poseidon::Vector3(0.0f, 0.0f, 0.0f);
+			m_position = Math::Vector3(0.0f, 0.0f, 0.0f);
 
 		// set a default position
-		m_entity->get_position()->setPosition(m_position);
-		m_entity->get_position()->lookAt(Poseidon::Vector3(0.0f, 0.0f, 0.0f), Poseidon::Vector3::UNIT_Z);
+		((Camera*)unit)->getTransform()->get_position()->setPosition(m_position); 
+		((Camera*)unit)->getTransform()->get_position()->lookAt(Math::Vector3(0.0f, 0.0f, 0.0f), Math::Vector3::UNIT_Z);
+		m_entity->setTransform(((Item*)unit)->getTransform());
 
 		static_cast<Poseidon::Camera*>(m_entity)->setAspectRatio((float)Width / (float)Height);
 

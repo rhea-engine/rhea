@@ -3,10 +3,10 @@
 
 #include <vector>
 #include <Poseidon/Material.h>
-#include <Poseidon/Image.h>
-#include <Poseidon/Math/Vector3.h>
+#include <Psio/Image/Image.h>
+#include <Math/Vector3.h>
 
-#include "Item.h"
+#include "Fabrics/3D/Item.h"
 
 namespace Rhea
 {
@@ -43,7 +43,7 @@ namespace Rhea
 		void ready();
 
 		ImageResource* getTexture() { return m_texture; }		
-		Poseidon::Vector3 calculateNormal(int x, int y);
+		Math::Vector3 calculateNormal(int x, int y);
 
 		// factory
 		static Unit* createType(std::string name, std::string type);
@@ -57,7 +57,7 @@ namespace Rhea
 		Poseidon::Image* m_heightmap;
 		float* m_heights;
 		
-		static float barryCentric(Poseidon::Vector3 p1, Poseidon::Vector3 p2, Poseidon::Vector3 p3, float x, float z);			
+		static float barryCentric(Math::Vector3 p1, Math::Vector3 p2, Math::Vector3 p3, float x, float z);			
 	};
 }
 

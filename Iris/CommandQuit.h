@@ -6,7 +6,7 @@
 class CommandQuit : public Command
 {
 public:
-	void onRequest(std::shared_ptr<Request> request, std::shared_ptr<Response> response);
+	int OnRequest(Psio::HttpRequest* req, Psio::HttpResponse* res);
 };
 
 #endif // !COMMAND_QUIT_H

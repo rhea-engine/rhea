@@ -2,7 +2,7 @@
 #define RHEA_IMPORTER_H
 
 #include <string>
-#include "Mesh.h"
+#include "Fabrics/3D/Mesh.h"
 
 namespace Rhea
 {

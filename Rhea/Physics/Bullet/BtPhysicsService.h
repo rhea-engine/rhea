@@ -25,19 +25,21 @@ namespace Rhea
 		// set scene and initialize objects in it
 		void setScene(Scene* scene);
 
+		// initalize one object
+		void initializeItem(Item* item);
+
+		// remove one object
+		void removeItem(Item* item);
+
 		// Service functions
 		void onInit();
 
-		void toggleDebug();
-
 		// ray trace
-		Unit* ray(Poseidon::Vector3 origin, Poseidon::Vector3 direction);
+		Unit* ray(Math::Vector3 origin, Math::Vector3 direction);
 
 	protected:
 		btDynamicsWorld* m_world;
 		Scene* m_scene;
-		bool m_debug;
-		BulletDebugDraw* m_debug_draw;
 	};
 }
 

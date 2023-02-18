@@ -6,7 +6,7 @@
 
 namespace Psio
 {
-	IOBuffer::IOBuffer(size_t size)		
+	IOBuffer::IOBuffer(size_t size)
 	{
 		m_buffer = (char*)malloc(size);
 		m_size = size;
@@ -19,8 +19,8 @@ namespace Psio
 		if (m_buffer)
 			free(m_buffer);
 	}
-	
-	void IOBuffer::Write(char* chunk, size_t size)
+
+	void IOBuffer::Write(const char* chunk, size_t size)
 	{
 		if (m_size < m_write_offset + size)
 			Grow(size);
@@ -38,6 +38,15 @@ namespace Psio
 		if (newbuf) {
 			m_size += size;
 			m_buffer = newbuf;
+		}
+	}
+
+	void IOBuffer::Consume(size_t bytes)
+	{
+		m_offset += bytes; 
+		if (m_offset == m_write_offset) {
+			m_offset = 0;
+			m_write_offset = 0;
 		}
 	}
 }

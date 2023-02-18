@@ -1,5 +1,6 @@
 #include "SocketAddress.h"
 #include <cassert>
+#include <cstring>
 
 namespace Psio
 {
@@ -39,6 +40,31 @@ namespace Psio
 
 		return true;
 	}
+
+	void SocketAddress::SetAddrNtoH(struct sockaddr_storage* addr, IPAddress& r_ip, uint16_t& r_port)
+	{
+		if (addr->ss_family == AF_INET) {
+
+			struct sockaddr_in* addr4 = (struct sockaddr_in*)addr;
+			r_ip.set_ipv4((uint8_t*)&(addr4->sin_addr.s_addr));
+			r_port = ntohs(addr4->sin_port);
+
+		}
+		else if (addr->ss_family == AF_INET6) {
+
+			struct sockaddr_in6* addr6 = (struct sockaddr_in6*)addr;
+			r_ip.set_ipv6(addr6->sin6_addr.s6_addr);
+			r_port = ntohs(addr6->sin6_port);
+		};
+	}
+
+	bool SocketAddress::SetAddress(SOCKADDR_STORAGE* addr)
+	{
+		m_storage = *addr;
+		SetAddrNtoH(&m_storage, m_ip, m_port);
+		return true;
+	}
+
 	
 	sa_family_t SocketAddress::getFamily() const
 	{

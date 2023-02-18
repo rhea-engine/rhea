@@ -28,6 +28,10 @@ namespace Rhea
 		// get resource with id
 		Unit* get(const std::string& key);
 
+		// Access by []
+		Unit* operator[](std::string key) { return get(key); }
+		Unit* operator[](const char* key) { return get(key); }
+
 		// release a resource
 		void release(const std::string& key);
 

@@ -11,8 +11,10 @@ namespace Psio
 {
 	Engine::Engine()
 	{
+#ifdef WIN32
 		m_input = new Input();
 		initHwKey();
+#endif
 		m_net = new Network(this);
 		m_net->Init();
 	}
@@ -26,7 +28,9 @@ namespace Psio
 
 	std::shared_ptr<InputEvent> Engine::pollInput()
 	{
+#ifdef WIN32
 		return m_input->poll();
+#endif
 	}
 
 	void Engine::RunNet()
@@ -36,7 +40,9 @@ namespace Psio
 
 	uint64_t Engine::getTicks()
 	{
+#ifdef WIN32
 		return Timer::getTicks();
+#endif
 	}
 
 	Window* Engine::createWindow()

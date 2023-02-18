@@ -4,6 +4,7 @@
 #include <functional>
 
 #include "../Network.h"
+#include "SocketAddress.h"
 
 namespace Psio
 {
@@ -28,6 +29,10 @@ namespace Psio
 
 		// read from socket
 		virtual int Read(IOBuffer* buf, Socket::CompletionHandler handler) = 0;
+
+		// Connection Info
+		// return the current remote ip or null if not connected
+		virtual SocketAddress* getRemoteAddress() = 0;
 	};
 }
 

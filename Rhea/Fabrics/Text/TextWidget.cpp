@@ -5,6 +5,7 @@
 #include "TextResource.h"
 #include "UnitTree.h"
 #include "ResourceList.h"
+#include <Psio/Log.h>
 
 namespace Rhea
 {
@@ -36,12 +37,12 @@ namespace Rhea
 		// load and add textures
 		if (m_values.find("font") != m_values.end())
 		{
-			m_font = static_cast<Font*>(m_app->getUnitTree()->find(m_values["font"]));
+			m_font = static_cast<Font*>((*m_resource_list)["font"]);
 			if (m_font) {
 				m_font->ready();
 			}
 			else {
-				m_app->log("TextWidget: Font '" + (std::string)m_values["font"] + "' not found");
+				LOG(LOG_ERROR) << "TextWidget: Font '" << (std::string)m_values["font"] << "' not found";
 			}
 		}
 	}

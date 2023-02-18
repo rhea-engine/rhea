@@ -57,34 +57,34 @@ namespace Poseidon
 		// per object input buffer
 		struct cbPerObjectMVP
 		{
-			Poseidon::Matrix3x4  model;
-			Poseidon::Matrix4 vp;
+			Math::Matrix3x4  model;
+			Math::Matrix4 vp;
 		};
 
 		cbPerObjectMVP cbPerObjMVP;
 
 		struct cbPerObjectVP
 		{
-			Poseidon::Matrix4 vp;
+			Math::Matrix4 vp;
 		};
 
 		cbPerObjectVP cbPerObj;
 
 	public:
 		struct cbPerFrame {
-			Poseidon::Matrix4 v;
-			Poseidon::Matrix4 p;
-			Poseidon::Matrix4 vp;
+			Math::Matrix4 v;
+			Math::Matrix4 p;
+			Math::Matrix4 vp;
 		};
 
 		struct cbPerObject {
-			Poseidon::Matrix3x4 model;
+			Math::Matrix3x4 model;
 		};
 
 		struct cbPerObjectTerrain
 		{
-			Poseidon::Matrix3x4 model;
-			Poseidon::Matrix4 vp;
+			Math::Matrix3x4 model;
+			Math::Matrix4 vp;
 		};
 
 	protected:

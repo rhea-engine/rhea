@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "Node.h"
+#include <Rhea/Fabrics/Core/Transform.h>
 
 namespace Hippios
 {

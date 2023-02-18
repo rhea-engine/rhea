@@ -65,7 +65,7 @@ TEST_F(TCPSocketTest, ServerAcceptBlocking) {
 
 	TEST_F(TCPSocketTest, ServerAccept) {
 		StartServer("0.0.0.0", 8080);
-		int ret = sock->Accept([&](TCPSocket* new_sock, int err) {
+		int ret = sock->Accept([&](StreamSocket* new_sock, int err) {
 			tot_connected = 1;
 			});
 		EXPECT_EQ(ret, -1);
@@ -95,7 +95,7 @@ TEST_F(TCPSocketTest, ServerAcceptBlocking) {
 		r_buffer = new IOBuffer(1024);
 
 		StartServer("0.0.0.0", 8080);
-		int ret = sock->Accept([&](TCPSocket* new_sock, int err) {
+		int ret = sock->Accept([&](StreamSocket* new_sock, int err) {
 			tot_connected = 1;	
 			int ret = new_sock->Read(r_buffer, [&](int result)->int {
 				return OnRead(result);

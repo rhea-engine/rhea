@@ -4,13 +4,18 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ ${CMAKE_SOURCE_DIR} ${CMAKE_SOU
 
 add_subdirectory(Physics)
 add_subdirectory(Fabrics)
+add_subdirectory(Components)
 
-add_library (Rhea "Application.cpp" "Importer.cpp" "SceneLoader.cpp" "Unit.cpp" "UnitTree.cpp" "Realm.cpp" "Item.cpp" 
-"Scene.cpp" "Mesh.cpp" "TextResource.cpp" "InputMap.cpp" "Dispatcher.cpp" "Controller/BasicController.cpp"
-"Controller/SpectatorController.cpp" "Platform/PlatformService.cpp" "Graphics/GraphicsService.cpp" "Graphics/Texture.cpp" 
-"Graphics/ItemManager.cpp" "Graphics/SceneManager.cpp" "Graphics/CameraManager.cpp" "Camera.cpp" "Material.h" "Material.cpp" 
-"Graphics/Item2DManager.cpp" "ResourceList.cpp" "Error.h" "Resource.cpp" "Graphics/RenderElement.h" "Graphics/RenderElement.cpp"
-"Graphics/GraphicsManager.h" "Graphics/TextManager.h" "Graphics/TextManager.cpp" "Graphics/MaterialManager.cpp" "Graphics/GraphicsManager.cpp" 
-"Graphics/MeshElement.h" "EventUnit.h" "EventInput.cpp" "ResourceLoader.h" "ResourceLoader.cpp" "TextLoader.h" "TextLoader.cpp")
+add_library(Rhea "Importer.cpp"  "Unit.cpp" "UnitTree.cpp" "Realm.cpp" "TextResource.cpp" "InputMap.cpp" "Dispatcher.cpp"  "Platform/PlatformService.cpp" 
+"EventUnit.h" "EventInput.cpp" "ResourceLoader.h" "ResourceLoader.cpp" "ResourceList.cpp" "Error.h" "Resource.cpp" 
+"Application.cpp")
 
-target_link_libraries(Rhea Poseidon Orion SimpleParser Winmm RheaPhysics RheaFabrics)
+target_link_libraries(Rhea PoseidonMath Orion SimpleParser RheaPhysics RheaFabrics RheaComponents Psio)
+
+add_library(RheaClient "Controller/BasicController.cpp" "Controller/SpectatorController.cpp" 
+"Graphics/GraphicsService.cpp" "Graphics/Texture.cpp" "Graphics/ItemManager.cpp" "Graphics/SceneManager.cpp" 
+"Graphics/CameraManager.cpp" "Graphics/Item2DManager.cpp" "Graphics/RenderElement.h" "Graphics/RenderElement.cpp"
+"Graphics/GraphicsManager.h" "Graphics/TextManager.h" "Graphics/TextManager.cpp" "Graphics/MaterialManager.cpp"
+"Graphics/GraphicsManager.cpp" "Graphics/MeshElement.h" )
+
+target_link_libraries(RheaClient Rhea Poseidon Winmm RheaPhysicsDebug)

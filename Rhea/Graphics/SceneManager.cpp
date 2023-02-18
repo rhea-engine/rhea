@@ -1,14 +1,14 @@
 #include <Poseidon/SceneManager.h>
 #include <Poseidon/Material.h>
 #include <Poseidon/Shader.h>
-#include <Poseidon/Math/Matrix3x4.h>
-#include <Poseidon/Math/Matrix4.h>
+#include <Math/Matrix3x4.h>
+#include <Math/Matrix4.h>
 
 #include "SceneManager.h"
 #include "ItemManager.h"
 #include "CameraManager.h"
 #include "../Unit.h"
-#include "../Item.h"
+#include "Fabrics/3D/Item.h"
 #include "Fabrics/Canvas/Item2D.h"
 #include "GraphicsService.h"
 #include <Rhea/EventUnit.h>
@@ -29,7 +29,7 @@ namespace Rhea
 		scene->addElement("graphics", elem);
 
 		// listen to add item event		
-		scene->registerEventHandler("add_item", std::bind(&GraphicsSceneManager::onItemAdd, this, std::placeholders::_1, std::placeholders::_2));
+		scene->registerEventHandler("add_item", this, std::bind(&GraphicsSceneManager::onItemAdd, this, std::placeholders::_1, std::placeholders::_2));
 	}
 
 	void GraphicsSceneManager::addItem(Item* item)

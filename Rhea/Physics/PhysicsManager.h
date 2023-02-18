@@ -21,7 +21,7 @@ namespace Rhea
 		{}
 
 		PhysicsService* createPhysicsService(Types type);
-		PhysicsService* getPhysicsServce() { return m_phy_services; }
+		PhysicsService* getPhysicsService() { return m_phy_services; }
 
 		// Service functions
 		virtual void onInit();

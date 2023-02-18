@@ -1,9 +1,6 @@
 #include "Math/Math.h"
 #include "Camera.h"
 #include "Node.h"
-#include "Position.h"
-
-using namespace DirectX;
 
 namespace Poseidon
 {
@@ -13,9 +10,7 @@ namespace Poseidon
 		m_ortho_size(DEFAULT_ORTHOSIZE),
 		aspectRatio_(1.0f),
 		m_projection_offset(Vector3::ZERO)
-	{
-		createPosition(1);
-	}
+	{}
 
 	const Matrix4& Camera::getProjectionMatrixRS(void) const
 	{
@@ -56,7 +51,7 @@ namespace Poseidon
 
 		if (!m_orthographic)
 		{
-			float h = (1.0f / tanf(fov_ * M_DEGTORAD * 0.5f)) * m_zoom;
+			float h = (1.0f / tanf(fov_ * Math::M_DEGTORAD * 0.5f)) * m_zoom;
 			float w = h / aspectRatio_;
 			float q = farClip_ / (farClip_ - nearClip_);
 			float r = -q * nearClip_;
@@ -101,11 +96,11 @@ namespace Poseidon
 		const Matrix4* reflectMatrix)
 	{
 		// This is most efficiently done using 3x3 Matrices
-		Matrix3 rot;
+		Math::Matrix3 rot;
 		orientation.toRotationMatrix(rot);
 
 		// Make the translation relative to new axes
-		Matrix3 rotT = rot.Transpose();
+		Math::Matrix3 rotT = rot.Transpose();
 		Vector3 trans = -rotT * position;
 
 		// Make final matrix
@@ -135,11 +130,13 @@ namespace Poseidon
 
 		//if (!mCustom_view_matrix)
 		{
-			Matrix3 rot;
-			const Quaternion& orientation = m_derived_position->get_rotation();  //getOrientationForViewUpdate();
-			const Vector3& position = m_derived_position->get_worldspace();  //getPositionForViewUpdate();
+			Math::Matrix3 rot;
+			if (m_transform) {
+				const Quaternion& orientation = m_transform->get_derived_position()->get_rotation();  //getOrientationForViewUpdate();
+				const Vector3& position = m_transform->get_derived_position()->get_worldspace();  //getPositionForViewUpdate();
 
-			m_view_matrix = makeViewMatrix(position, orientation, m_reflect ? &m_reflect_matrix : 0);
+				m_view_matrix = makeViewMatrix(position, orientation, m_reflect ? &m_reflect_matrix : 0);
+			}
 		}
 	}
 

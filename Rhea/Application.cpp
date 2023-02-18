@@ -1,36 +1,31 @@
 #include <exception>
 #include <algorithm>
 
-#include "Hippios/Engine.h"
-#include "Poseidon/Core.h"
 #include "Orion/Orion.h"
 #include "Orion/ResourceStream.h"
 #include "Orion/ResourceRequest.h"
 #include <Orion/Mime.h>
-#include "Poseidon/SceneManager.h"
 #include "Psio/Psio.h"
 #include "Psio/InputEvent.h"
 #include "Psio/Keyboard.h"
 #include "Psio/Log.h"
 #include "Importer.h"
-#include "SceneLoader.h"
+#include "Fabrics/Core/SceneLoader.h"
 #include "Unit.h"
 #include "UnitTree.h"
 #include "Realm.h"
-#include "Item.h"
-#include "Scene.h"
-#include "Mesh.h"
-#include "Camera.h"
+#include "Fabrics/3D/Item.h"
+#include "Fabrics/Core/Transform.h"
+#include "Fabrics/Core/Scene.h"
+#include "Fabrics/3D/Mesh.h"
+#include "Fabrics/3D/Camera.h"
 #include "Fabrics/Canvas/Item2D.h"
 #include "Fabrics/Terrain/Terrain.h"
 #include "TextResource.h"
-#include "TextLoader.h"
+#include "Fabrics/Text/TextLoader.h"
 #include "Fabrics/Media/ImageResource.h"
 #include "InputMap.h"
 #include "Dispatcher.h"
-#include "Controller/Controller.h"
-#include "Controller/BasicController.h"
-#include "Controller/SpectatorController.h"
 #include "Fabrics/Media/MediaFabrics.h"
 #include "Fabrics/Character/Character.h"
 #include "Fabrics/Character/KinematicCharacter.h"
@@ -48,6 +43,10 @@
 #include <Fabrics/Text/TextWidget.h>
 #include <Fabrics/Text/BitmapFont.h>
 #include <EventInput.h>
+#include <Fabrics/Core/Avatar.h>
+
+#undef min
+
 
 namespace Rhea
 {
@@ -67,23 +66,17 @@ namespace Rhea
 
 		// initialize services
 		SimpleParser::Type::registerType<Service>("//meworla/service");
-		SimpleParser::Type::registerType<GraphicsService>("//meworla/graphicsservice");
 		SimpleParser::Type::registerType<PlatformService>("//meworla/platformservice");
 		SimpleParser::Type::registerType<PhysicsManagerService>("//meworla/physicsmanagerservice");
 
-		GraphicsService* g_service = (GraphicsService*)SimpleParser::Type::create("GraphicsService", "//meworla/graphicsservice");
-		g_service->setup(this);
-		m_services["graphics"] = g_service;
 		Service* psio = (PlatformService*)SimpleParser::Type::create("PlatformService", "//meworla/platformservice");
 		psio->setup(this);
-		g_service->setPlatform(psio);
 		m_services["platform"] = psio;
-		core = g_service->getEngine();
+
 		Service* phy_mgr = (PhysicsManagerService*)SimpleParser::Type::create("PhysicsManagerService", "//meworla/physicsmanagerservice");
 		phy_mgr->setup(this);
 		m_services["physics_mgr"] = phy_mgr;
 
-//		core = new Poseidon::Core();
 		m_fs = new Orion::Orion(static_cast<PlatformService*>(psio)->getEngine(), m_appname);
 		m_unit_tree = (UnitTree*)SimpleParser::Type::create("/", "//core/unittree");
 		m_unit_tree->setup(this);
@@ -92,11 +85,11 @@ namespace Rhea
 		SimpleParser::Type::registerType<Realm>("//meworla/realm");
 		SimpleParser::Type::registerType<Scene>("//meworla/scene");
 		m_resource_loader.registerLoader<SceneLoader>("application/vnd.meworla.scene");
+		SimpleParser::Type::registerType<Transform>("//meworla/transform");
 		SimpleParser::Type::registerType<Item>("//meworla/item");
 		SimpleParser::Type::registerType<Mesh>("//meworla/mesh");
+		SimpleParser::Type::registerType<Avatar>("//meworla/avatar");
 		MediaFabrics::Register(this);		
-		SimpleParser::Type::registerType<BasicController>("//meworla/controller");
-		SimpleParser::Type::registerType<SpectatorController>("//meworla/spectator");
 		SimpleParser::Type::registerType<Camera>("//meworla/camera");
 		SimpleParser::Type::registerType<ImageResource>("//meworla/heightmap");
 		SimpleParser::Type::registerType<Terrain>("//meworla/terrain");
@@ -144,7 +137,6 @@ namespace Rhea
 			Service* s = it->second;
 			s->onInit();			
 		}
-		//core->init();
 	}
 
 	void Application::setAppDir(char* path)
@@ -210,13 +202,11 @@ namespace Rhea
 	int Application::loop()
 	{
 		// start the loop
-		//int ret = core->loop();
 		int ret = 0;	
 		Psio::Engine* psio = static_cast<PlatformService*>(m_services["platform"])->getEngine();
 		std::shared_ptr<Psio::InputEvent> evt;
 		ievt_actions iea;
-		PhysicsService* physics = static_cast<Rhea::PhysicsManagerService*>(m_services["physics_mgr"])->getPhysicsServce();
-		
+		PhysicsService* physics = static_cast<Rhea::PhysicsManagerService*>(m_services["physics_mgr"])->getPhysicsService();		
 
 		int iterations_per_second = 60;
 		float frame_slice = 1.0f / iterations_per_second;
@@ -293,7 +283,7 @@ namespace Rhea
 
 			uint64_t physics_begin = psio->getTicks();
 
-			if (physics || (physics = static_cast<Rhea::PhysicsManagerService*>(m_services["physics_mgr"])->getPhysicsServce())) {
+			if (physics || (physics = static_cast<Rhea::PhysicsManagerService*>(m_services["physics_mgr"])->getPhysicsService())) {
 				static int max_physics_steps = 10;
 				physics_steps = std::min(physics_steps, max_physics_steps);
 

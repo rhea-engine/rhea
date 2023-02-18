@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include <Poseidon/Position.h>
+#include <Rhea/Fabrics/Core/Position.h>
 #include <bullet/src/LinearMath/btGeometryUtil.h>
 #include <bullet/src/LinearMath/btQuaternion.h>
 
@@ -33,15 +33,15 @@ namespace Rhea
 		bool isMoveControllable();
 
 		// set position
-		void setPosition(Poseidon::Vector3& position);
+		void setPosition(Math::Vector3& position);
 
 		// set jump_state
-		bool jump(Poseidon::Vector3& pos);
+		bool jump(Math::Vector3& pos);
 		// set flying
 		void fly();
 
 		// set orientation
-		void setOrientation(Poseidon::Quaternion& rot);	
+		void setOrientation(Math::Quaternion& rot);	
 		
 		// stop the current movement
 		void stop();
@@ -56,7 +56,7 @@ namespace Rhea
 		void detectGhostContacts();
 
 		// move in the given direction - move must be already adjusted to timestep
-		void moveStep(Poseidon::Position* pos, Poseidon::Vector3& move);
+		void moveStep(Position* pos, Math::Vector3& move);
 
 		// check if we are on the floor
 		// if we are not but in step_height distance adjust current position
@@ -67,7 +67,7 @@ namespace Rhea
 		void updateHeadContact();
 
 		// update in physics step
-		Poseidon::Vector3 update(Poseidon::Position* pos, Poseidon::Vector3& move, Poseidon::Vector3& gravity);
+		Math::Vector3 update(Position* pos, Math::Vector3& move, Math::Vector3& gravity);
 
 	protected:
 		enum class moveState {
@@ -79,8 +79,8 @@ namespace Rhea
 		
 		float m_gravity;
 		moveState m_move_state;
-		Poseidon::Vector3 m_forced_movement;
-		Poseidon::Position* m_position;
+		Math::Vector3 m_forced_movement;
+		Position* m_position;
 
 		btDynamicsWorld* m_world;
 		Item* m_item;
@@ -105,7 +105,7 @@ namespace Rhea
 		float m_minimal_ground;
 
 		bool m_hitting_wall;
-		std::vector<Poseidon::Vector3> m_surface_hits_normals;
+		std::vector<Math::Vector3> m_surface_hits_normals;
 
 		//some internal variables
 		btVector3 m_currentPosition;

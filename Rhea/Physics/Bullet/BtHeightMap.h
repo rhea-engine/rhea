@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <memory>
-#include <Poseidon/Image.h>
+#include <Psio/Image/Image.h>
 
 #include "../PhysicsHeightMap.h"
 

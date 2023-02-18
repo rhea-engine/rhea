@@ -1,6 +1,8 @@
 #ifndef POSEIDON_CORE_H
 #define POSEIDON_CORE_H
 
+#include <Psio/Psio.h>
+
 #include <string>
 #include <functional>
 #include <memory>
@@ -11,11 +13,6 @@
 #include "Hippios/Renderer.h"
 
 #include "Node.h"
-
-namespace Psio
-{
-	class Engine;
-}
 
 namespace Poseidon
 {

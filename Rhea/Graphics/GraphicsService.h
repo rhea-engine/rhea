@@ -5,6 +5,7 @@
 #include <unordered_map>
 
 #include "../Service.h"
+#include <Rhea/Fabrics/Core/Scene.h>
 
 namespace Poseidon
 {
@@ -62,6 +63,8 @@ namespace Rhea
 
 		// the currently displayed scene
 		GraphicsScene* m_g_scene;
+		Scene* m_scene;
+		std::vector<Item*> m_scene_items;
 
 		// the current mouse pos
 		int m_mx;

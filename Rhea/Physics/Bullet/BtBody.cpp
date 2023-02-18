@@ -1,13 +1,12 @@
 #include "BtBody.h"
-#include "../Item.h"
-#include "../Mesh.h"
+#include "Fabrics/3D/Item.h"
+#include "Fabrics/3D/Mesh.h"
 #include "Fabrics/Terrain/Terrain.h"
-#include <Poseidon/Node.h>
-#include "Application.h"
+#include <Psio/Log.h>
 
 #include "btBulletDynamicsCommon.h"
 
-using Poseidon::Vector3;
+using Math::Vector3;
 
 namespace Rhea 
 {
@@ -73,7 +72,7 @@ namespace Rhea
 				}
 
 				if (!indices.size()) {
-					m_item->getApplication()->log("BtBody: no indices for item");
+					LOG(LOG_ERROR) << "BtBody: no indices for item";
 					colShape = new btBoxShape(btVector3(1, 1, 1));
 				}
 				else {
@@ -99,12 +98,9 @@ namespace Rhea
 			colShape->calculateLocalInertia(m_mass, localInertia);
 
 		// get position and rotation from m_item
-		Poseidon::Node* node = m_item->getNode();
-		if (!node) {
-			return false;
-		}
-		Poseidon::Vector3 pos = node->get_position()->get_worldspace();
-		Poseidon::Quaternion rot = m_item->getNode()->get_position()->get_rotation();
+		Transform* transform = m_item->getTransform();
+		Math::Vector3 pos = transform->get_position()->get_worldspace();
+		Math::Quaternion rot = transform->get_position()->get_rotation();
 		float offset_y = m_item->getValue("collision_shape_offset_y");
 		if (offset_y)
 			pos.y += offset_y;
@@ -131,15 +127,20 @@ namespace Rhea
 	
 	BulletPhysicsBody::~BulletPhysicsBody()
 	{
-		if (m_body)
+		if (m_body) {
+			auto motionState = m_body->getMotionState();
+			if (motionState) delete motionState;
+			m_world->removeRigidBody(m_body);
 			delete m_body;
+			m_body = nullptr;
+		}
 	}
 
 	void BulletPhysicsBody::doPhysics(float delta, Terrain *terrain)
 	{		
-		if (m_movement != Poseidon::Vector3::ZERO) {
+		if (m_movement != Math::Vector3::ZERO) {
 			// currently moving			
-			Poseidon::Vector3 move = m_movement;
+			Math::Vector3 move = m_movement;
 			move *= delta;
 			
 			if (m_isKinematic) {
@@ -148,13 +149,14 @@ namespace Rhea
 
 				// move object itself
 			
-				Poseidon::Vector3 pos = m_item->getNode()->get_position()->moveRelative(move);
+				Math::Vector3 pos = m_item->getTransform()->get_position()->moveRelative(move);
 
 				if (terrain) {
 					float height = terrain->getHeight(pos.x, pos.z);
 					if (pos.y < height) {
-						pos.y = height;
-						m_item->getNode()->get_position()->setPosition(pos);
+						pos.y = height;						
+						m_item->getTransform()->get_position()->setPosition(pos);
+
 					}
 				}
 
@@ -166,8 +168,8 @@ namespace Rhea
 				m_body->getMotionState()->setWorldTransform(transform);
 			}
 			else {
-				Poseidon::Quaternion rot = m_item->getNode()->get_position()->get_rotation();
-				Poseidon::Vector3 t = rot * move;
+				Math::Quaternion rot = m_item->getTransform()->get_position()->get_rotation();
+				Math::Vector3 t = rot * move;
 				m_body->setLinearVelocity(btVector3(t.x, t.y, t.z));
 				m_body->setActivationState(ACTIVE_TAG);
 			}
@@ -177,12 +179,12 @@ namespace Rhea
 		/*
 		if (terrain && m_gravity && m_isKinematic) {
 			m_upwards = m_gravity * delta;
-			Poseidon::Vector3 pos = m_item->getNode()->get_position()->moveRelative(Poseidon::Vector3(0.0f, m_upwards, 0.0f));
+			Math::Vector3 pos = m_item->getTransform()->get_position()->moveRelative(Math::Vector3(0.0f, m_upwards, 0.0f));
 
 			float height = terrain->getHeight(pos.x, pos.z);
 			if (pos.y < height) {
 				pos.y = height;
-				m_item->getNode()->get_position()->setPosition(pos);
+				m_item->getTransform()->get_position()->setPosition(pos);
 			}
 
 			btTransform transform;
@@ -213,11 +215,11 @@ namespace Rhea
 				m_body->setActivationState(ACTIVE_TAG);
 			}
 			else {
-				Poseidon::Quaternion q;
-				q.fromAngleAxis(turn_step, Poseidon::Vector3(0, 1, 0));
-				Poseidon::Quaternion m_orientation = q * m_item->getNode()->get_position()->get_rotation(); //* m_orientation;
-				m_orientation.normalise();
-				m_item->getNode()->get_position()->setOrientation(m_orientation);
+				Math::Quaternion q;
+				q.fromAngleAxis(turn_step, Math::Vector3(0, 1, 0));
+				Math::Quaternion m_orientation = q * m_item->getTransform()->get_position()->get_rotation(); //* m_orientation;
+				m_orientation.normalise();				
+				m_item->getTransform()->get_position()->setOrientation(m_orientation);
 				
 				btQuaternion bt_orientation = btQuaternion(
 					btScalar(m_orientation.x),
@@ -238,7 +240,7 @@ namespace Rhea
 		m_body->setActivationState(ACTIVE_TAG);
 	}
 
-	void BulletPhysicsBody::setPosition(Poseidon::Vector3& position)
+	void BulletPhysicsBody::setPosition(Math::Vector3& position)
 	{
 		btTransform transform;
 		transform.setIdentity();
@@ -251,7 +253,7 @@ namespace Rhea
 		m_body->getMotionState()->setWorldTransform(transform);
 	}
 
-	void BulletPhysicsBody::setOrientation(Poseidon::Quaternion& rot)
+	void BulletPhysicsBody::setOrientation(Math::Quaternion& rot)
 	{
 		btQuaternion bt_orientation = btQuaternion(
 			btScalar(rot.x),
@@ -263,7 +265,7 @@ namespace Rhea
 		m_body->setWorldTransform(trans);
 	}
 
-	void BulletPhysicsBody::setAngularVelocity(const Poseidon::Vector3& velocity)
+	void BulletPhysicsBody::setAngularVelocity(const Math::Vector3& velocity)
 	{
 		if (m_body)
 		{
@@ -291,7 +293,7 @@ namespace Rhea
 		}
 	}
 
-	void BulletPhysicsBody::applyOrientation(Poseidon::Quaternion& rot)
+	void BulletPhysicsBody::applyOrientation(Math::Quaternion& rot)
 	{
 		btTransform trans = m_body->getWorldTransform();
 		

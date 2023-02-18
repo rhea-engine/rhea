@@ -9,6 +9,7 @@
 #include "TextResource.h"
 #include "Orion/ResourceStream.h"
 #include <Orion/os/Fs.h>
+#include <Psio/Log.h>
 
 namespace Rhea
 {
@@ -42,8 +43,8 @@ namespace Rhea
 
 		// load and add textures
 		if (m_values.find("texture") != m_values.end())
-		{
-			Unit* tex = m_app->getUnitTree()->find(m_values["texture"]);
+		{			
+			Unit* tex = (*m_resource_list)["texture"];
 			if (tex) {
 
 				// create dummy material
@@ -54,24 +55,24 @@ namespace Rhea
 				m_material->setValue("alpha_blending", true);
 
 				// get the shader
-				Unit* shader_res = m_app->getUnitTree()->find("//rhea/shaders/text.hlsl");
-				if (shader_res) {
+				Unit* shader_res = (*m_resource_list)["shader"];
+				if (shader_res && shader_res->isA("//meworla/text")) {
 					m_material->setShader(static_cast<TextResource*>(shader_res));
 				}
 				else {
-					m_app->log("TextWidget::ready(): Shader for " + m_pathname + " not found");
+					LOG(LOG_ERROR) << "TextWidget::ready(): Shader for " << m_pathname << " not found";
 				}
 			}
 			else {
-				m_app->log("TextWidget::ready(): texture for " + m_pathname + " not found");
+				LOG(LOG_ERROR) << "TextWidget::ready(): texture for " << m_pathname << " not found";
 			}
 		}
 
 		// load font description if any
 		Variant font_info_name = getValue("font_info");
 		if (font_info_name != Variant()) {
-			TextResource* font_info = static_cast<TextResource *>(m_app->getUnitTree()->find(font_info_name));
-			if (font_info) {
+			TextResource* font_info = static_cast<TextResource*>((*m_resource_list)["fontinfo"]);
+			if (font_info && font_info->isA("//meworla/text")) {
 				char* buf;
 				size_t buflen;
 				font_info->getRaw(&buf, &buflen);				

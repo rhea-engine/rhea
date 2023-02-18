@@ -1,15 +1,15 @@
 #ifndef RHEA_H
 #define RHEA_H
 
-#include <string>
-#include <unordered_map>
-#include <memory>
-
 #include "Poseidon/Core.h"
 #include "Psio/InputEvent.h"
 #include "Orion/Orion.h"
 #include "Orion/ResourceRequest.h"
 #include "ResourceLoader.h"
+
+#include <string>
+#include <unordered_map>
+#include <memory>
 
 using ReqError = Orion::ResourceRequest::Error;
 
@@ -32,13 +32,14 @@ namespace Rhea
 		void init();
 		// set the applications name to appname
 		void setAppname(std::string appname) { m_appname = appname; };
-		Poseidon::Core* get_core() { return core; };
 		// get a specific service
 		Service* getService(std::string name);
 		// register a service
 		void registerService(std::string name, Service* service);
 		// load and set up the resources of the application
 		virtual void setup();
+		// onScene Event
+		virtual void onScene(Scene*) = 0;
 		// the app main loop
 		virtual int loop();
 		// handle input - return true for quit
@@ -69,7 +70,6 @@ namespace Rhea
 		virtual void log(std::string message);
 
 	protected:
-		Poseidon::Core* core = 0;
 		Orion::Orion* m_fs = 0;
 		std::string m_appname = "";
 		UnitTree* m_unit_tree = 0;

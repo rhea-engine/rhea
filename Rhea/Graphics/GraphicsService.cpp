@@ -5,7 +5,7 @@
 #include "../Platform/PlatformService.h"
 #include "../Application.h"
 #include "../Unit.h"
-#include "../Scene.h"
+#include "Fabrics/Core//Scene.h"
 #include "../UnitTree.h"
 
 #include "Poseidon/Core.h"
@@ -25,10 +25,12 @@
 #include <Rhea/Physics/PhysicsService.h>
 #include "EventInput.h"
 
-#include "../Item.h"
-#include "../Mesh.h"
+#include "Fabrics/3D/Item.h"
+#include "Fabrics/3D/Mesh.h"
 #include "Poseidon/Renderable.h"
 #include "Poseidon/Entity.h"
+
+#include <Psio/Log.h>
 
 namespace Rhea
 {
@@ -37,6 +39,7 @@ namespace Rhea
 		m_viewport_width(0),
 		m_viewport_height(0),
 		m_g_scene(nullptr),
+		m_scene(nullptr),
 		Service(name, type_name)	
 	{
 		m_core = std::make_unique<Poseidon::Core>();
@@ -70,13 +73,24 @@ namespace Rhea
 
 	void GraphicsService::setScene(Unit* scene)
 	{
-		scene->registerEventHandler("display", std::bind(&GraphicsService::onDisplay, this, std::placeholders::_1, std::placeholders::_2));
+		scene->registerEventHandler("display", this, std::bind(&GraphicsService::onDisplay, this, std::placeholders::_1, std::placeholders::_2));
+		m_scene = static_cast<Scene*>(scene);
+		std::vector<Item*> items = m_scene->getItems();
+		for (auto it = items.begin(); it != items.end(); ++it) {
+			Item* item = *it;
+			std::string type_name = item->getTypeName();
+			if ((type_name == "//meworla/item") || (type_name == "//meworla/camera") || (type_name == "//meworla/terrain") || (type_name == "//meworla/character")) {
+				m_scene_items.push_back(item);
+			}
+		}
 	}
 
 	void GraphicsService::onInit()
 	{
-		if (!m_platform)
-			m_app->log("GraphicsService::onInit: platform not set");
+		if (!m_platform) {
+			LOG(LOG_ERROR) << "GraphicsService::onInit: platform not set";
+			return;
+		}
 		else
 			m_core->init(static_cast<PlatformService*>(m_platform)->getEngine());
 
@@ -86,7 +100,6 @@ namespace Rhea
 		context->setStencilState(1);
 		// add a camera for this context
 		Poseidon::Camera* cam = m_core->createCamera();
-		context->addChild(cam);
 		context->setCamera(cam);
 		m_viewport_width = viewport->getWidth();
 		m_viewport_height = viewport->getHeight();
@@ -97,16 +110,27 @@ namespace Rhea
 		cam->setAspectRatio((float)m_viewport_width / (float)m_viewport_height);
 		cam->setOrthographicSize((float)m_viewport_height);
 		cam->setOrthographic(true);
-		cam->setProjectionOffset(Poseidon::Vector3(-0.5f, -0.5f, 0.0f));
+		cam->setProjectionOffset(Math::Vector3(-0.5f, -0.5f, 0.0f));
 		cam->updateProjection();
 		cam->updateView();
 
 		// register input handler
-		m_app->getUnitTree()->registerEventHandler("scene_input", std::bind(&GraphicsService::onInput, this, std::placeholders::_1, std::placeholders::_2));
+		m_app->getUnitTree()->registerEventHandler("scene_input", this, std::bind(&GraphicsService::onInput, this, std::placeholders::_1, std::placeholders::_2));
 	}
 	
 	bool GraphicsService::onFrame()
 	{
+		// update items
+		if (m_scene) {
+			m_scene->traverse([](std::string& name, Unit* unit)->void {
+				std::string type_name = unit->getTypeName();
+			if ((type_name == "//meworla/item") || (type_name == "//meworla/camera") || (type_name == "//meworla/terrain") || (type_name == "//meworla/character")) {
+				Item* item = static_cast<Item*>(unit);
+				item->getTransform()->update();
+			}
+				});
+		}
+
 		return m_core->iterate();
 	}
 	
@@ -115,7 +139,7 @@ namespace Rhea
 		bool ret = false;
 
 		if (unit->getTypeName().compare("//meworla/scene")) {
-			unit->getApplication()->log("GraphicsService::onDisplay should only be called for scene");
+			LOG(LOG_ERROR) << "GraphicsService::onDisplay should only be called for scene";
 		}
 
 		// try manager
@@ -175,12 +199,12 @@ namespace Rhea
 		if (phys && camera) {
 			
 			// compute the ray
-			Poseidon::Ray ray = camera->getPickingRay((float)m_mx, (float)m_my, m_viewport_width, m_viewport_height);
+			Math::Ray ray = camera->getPickingRay((float)m_mx, (float)m_my, m_viewport_width, m_viewport_height);
 
-			Poseidon::Vector3 ray_from = ray.getOrigin();
-			Poseidon::Vector3 ray_dir = ray.getDirection();
+			Math::Vector3 ray_from = ray.getOrigin();
+			Math::Vector3 ray_dir = ray.getDirection();
 			ray_dir *= 1000.0f;
-			Poseidon::Vector3 ray_to = ray.getOrigin() + ray_dir;
+			Math::Vector3 ray_to = ray.getOrigin() + ray_dir;
 
 			// call ray test from physics service
 			return phys->ray(ray_from, ray_to);
@@ -199,8 +223,8 @@ namespace Rhea
 			}
 
 			std::vector<Hippios::vertex> l_vertices;		
-			Poseidon::Vector3 pos = ray.getOrigin();
-			Poseidon::Vector3 dir = ray_to;
+			Math::Vector3 pos = ray.getOrigin();
+			Math::Vector3 dir = ray_to;
 
 			//dir *= 1000.0f;
 
@@ -208,14 +232,14 @@ namespace Rhea
 			l_vertices.push_back({ dir.x, dir.y, dir.z, 0.0f, 1.0f, 0.0f, 1.0f });
 			m_mesh->setVertices(sizeof(Hippios::vertex), l_vertices.size(), l_vertices.data());
 
-			m_app->log("pos: " + std::to_string(pos.x) + "/" + std::to_string(pos.y) + "/" + std::to_string(pos.z));
-			m_app->log("ray: " + std::to_string(dir.x) + "/" + std::to_string(dir.y) + "/" + std::to_string(dir.z));
+			DLOG(LOG_DEBUG) << "pos: " << std::to_string(pos.x) << "/" + std::to_string(pos.y) << "/" << std::to_string(pos.z);
+			DLOG(LOG_DEBUG) << "ray: " << std::to_string(dir.x) << "/" + std::to_string(dir.y) << "/" + std::to_string(dir.z);
 
-			Poseidon::Vector3 deb1 = camera->getProjectionMatrixRS() * camera->getViewMatrix() * pos;
-			Poseidon::Vector3 deb2 = camera->getProjectionMatrixRS() * camera->getViewMatrix() * dir;
+			Math::Vector3 deb1 = camera->getProjectionMatrixRS() * camera->getViewMatrix() * pos;
+			Math::Vector3 deb2 = camera->getProjectionMatrixRS() * camera->getViewMatrix() * dir;
 
-			m_app->log("deb1: " + std::to_string(deb1.x) + "/" + std::to_string(deb1.y) + "/" + std::to_string(deb1.z));
-			m_app->log("deb2: " + std::to_string(deb2.x) + "/" + std::to_string(deb2.y) + "/" + std::to_string(deb2.z));
+			DLOG(LOG_DEBUG) << "deb1: " << std::to_string(deb1.x) << "/" + std::to_string(deb1.y) << "/" + std::to_string(deb1.z);
+			DLOG(LOG_DEBUG) << "deb2: " << std::to_string(deb2.x) << "/" + std::to_string(deb2.y) << "/" + std::to_string(deb2.z);
 #endif
 		}
 		return nullptr;

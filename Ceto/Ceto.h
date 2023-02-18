@@ -3,13 +3,13 @@
 
 #include <string>
 
-#include "Rhea/Application.h"
-#include "Rhea/Camera.h"
+#include <Poseidon/Poseidon.h>
+#include <Rhea/Fabrics/3D/Camera.h>
 #include <Rhea/Fabrics/GUI/Label.h>
 
 using std::string;
 
-class Ceto : public Rhea::Application
+class Ceto : public Poseidon::Application
 {
 protected:
 	string m_home_scene;
@@ -17,6 +17,7 @@ protected:
 	Rhea::Label* m_debug_text = nullptr;
 public:
 	void setup();
+	void showScene(Rhea::Scene* scene);
 	void setHomeScene(string scene);
 	bool onFrameEnd();
 };

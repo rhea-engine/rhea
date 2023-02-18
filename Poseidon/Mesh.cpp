@@ -5,8 +5,6 @@
 
 #include "Mesh.h"
 
-using namespace DirectX;
-
 namespace Poseidon
 {
 	Mesh::~Mesh()

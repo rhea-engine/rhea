@@ -143,7 +143,6 @@ namespace Poseidon
 		entity = new Entity();
 		if (mesh)
 			entity->set_mesh(mesh);
-		entity->createPosition(0);
 		entity->setMaterial(m_default_material);
 		return entity;
 	}

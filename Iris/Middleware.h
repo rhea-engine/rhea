@@ -5,29 +5,24 @@
 #include <unordered_map>
 #include <string>
 
-#include "Hermes/IRequestHandlerFactory.h"
-
-
 class Command;
-class Iris;
 class Registry;
 
-namespace Hermes
+namespace Psio
 {
-	class Request;
-	class Response;
+	class HttpRequest;
+	class HttpResponse;
 }
 
-class Middleware : public Hermes::IRequestHandlerFactory
+class Middleware 
 {
 public:	
-	Middleware(Iris *iris, Registry *registry);
+	Middleware(Registry *registry);
 	
 	// handle the request after receiving the header
-	Hermes::IRequestHandler* onRequest(std::shared_ptr<Hermes::Request> request);
+	int onRequest(Psio::HttpRequest* req, Psio::HttpResponse* res);
 protected:
 	std::unordered_map<std::string, int> m_command_table;
-	Iris* m_iris;
 	Registry* m_registry;
 };
 

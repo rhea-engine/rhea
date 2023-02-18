@@ -1,9 +1,9 @@
 #ifndef RHEA_KINEMATIC_CHARACTER_H
 #define RHEA_KINEMATIC_CHARACTER_H
 
-#include <Poseidon/Position.h>
+#include <Rhea/Fabrics/Core/Position.h>
 
-#include "Item.h"
+#include "Fabrics/3D/Item.h"
 
 namespace Rhea
 {
@@ -32,8 +32,10 @@ namespace Rhea
 			m_air_timer(0.0f),
 			m_jump_start_y(0.0f),
 			m_vertical_velocity(0.0f),
+			m_phy_pre_handler(nullptr),
 			Item(path_name, type_name)
 		{}
+		virtual ~KinematicCharacter();
 
 		// handle physics update
 		bool doPhysics(Event* ev, Unit* unit);
@@ -44,6 +46,8 @@ namespace Rhea
 		// ready event handler
 		void ready();
 
+		void unready();
+
 		// scene reads
 		bool onSceneReady(Event* ev, Unit* unit);
 
@@ -52,14 +56,16 @@ namespace Rhea
 
 	protected:
 		MoveState m_move_state;
-		Poseidon::Vector3 m_forced_movement;
-		Poseidon::Position* m_position;
+		Math::Vector3 m_forced_movement;
+		Position* m_position;
 		float m_gravity;
 		float m_upwards;
 		float m_jump_start_y;
 		float m_vertical_velocity;
 
 		float m_air_timer;
+
+		Event::EventHandler m_phy_pre_handler;
 	};
 }
 #endif // !RHEA_KINEMATIC_CHARACTER_H

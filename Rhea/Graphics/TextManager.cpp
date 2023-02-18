@@ -5,11 +5,11 @@
 #include <Poseidon/SceneManager.h>
 
 #include <Rhea/Fabrics/Text/TextWidget.h>
-#include "Application.h"
 
 #include "TextManager.h"
 #include "RenderElement.h"
 #include "GraphicsService.h"
+#include <Psio/Log.h>
 
 namespace Rhea
 {
@@ -26,12 +26,12 @@ namespace Rhea
 		// material (the font bitmap)
 		Rhea::Font* font = static_cast<TextWidget*>(unit)->getFont();
 		if (!font) {
-			unit->getApplication()->log("Text has no font");
+			LOG(LOG_ERROR) << "Text has no font";
 			return nullptr;
 		}
 		Rhea::Material* material = font->getMaterial();
 		if (!material) {
-			unit->getApplication()->log("Text has no material");	
+			LOG(LOG_ERROR) << "Text has no material";	
 			return nullptr;
 		}
 
@@ -40,14 +40,16 @@ namespace Rhea
 		Poseidon::Node* entity = createRenderable(elem, core, unit, "HUD", true);
 
 		// add the position
-		addPosition(unit, entity);
+		// set up an empty transform
+		setPosition(unit, ((Item2D*)unit)->getTransform());
+		entity->setTransform(((Item2D*)unit)->getTransform());
 
 		setMaterial(core, material, entity);
 		unit->addElement("graphics", elem);
 		
 		// register handlers
-		unit->registerEventHandler("delete", std::bind(&GraphicsTextManager::onItemDelete, this, std::placeholders::_1, std::placeholders::_2));
-		unit->registerEventHandler("update", std::bind(&GraphicsTextManager::onUpdate, this, std::placeholders::_1, std::placeholders::_2));
+		unit->registerEventHandler("delete", this, std::bind(&GraphicsTextManager::onItemDelete, this, std::placeholders::_1, std::placeholders::_2));
+		unit->registerEventHandler("update", this, std::bind(&GraphicsTextManager::onUpdate, this, std::placeholders::_1, std::placeholders::_2));
 
 		// add to my list
 		m_elements.push_back(elem);
@@ -79,6 +81,7 @@ namespace Rhea
 		Glyph* glyph;
 		float f_sz = font->getFontSize();
 
+		int v_c = 0; // vertex count
 		for (int i = 0; i < sentence.size(); i++) {
 
 			if (sentence[i] == '\n') {
@@ -119,22 +122,24 @@ namespace Rhea
 			// first triangle
 			// top-left
 			vertices.push_back({ draw_x, draw_y, z, f_left, f_top });
-			v_indices.push_back(i * 4);
+			v_indices.push_back(v_c * 4);
 			// bottom-right
 			vertices.push_back({ draw_x + glyph->advance, draw_y - f_sz, z, f_right, f_bottom });
-			v_indices.push_back(i * 4 + 1);
+			v_indices.push_back(v_c * 4 + 1);
 			// bottom-left
 			vertices.push_back({ draw_x, draw_y - f_sz, z, f_left, f_bottom });
-			v_indices.push_back(i * 4 + 2);
+			v_indices.push_back(v_c * 4 + 2);
 
 			// second triangle
 			// top-left
-			v_indices.push_back(i * 4 + 0);
+			v_indices.push_back(v_c * 4 + 0);
 			// top-right
 			vertices.push_back({ draw_x + glyph->advance, draw_y, z, f_right, f_top });
-			v_indices.push_back(i * 4 + 3);
+			v_indices.push_back(v_c * 4 + 3);
 			// bottom-right
-			v_indices.push_back(i * 4 + 1);
+			v_indices.push_back(v_c * 4 + 1);
+
+			v_c++;
 
 			// advance by glyph width
 			draw_x += glyph->advance;

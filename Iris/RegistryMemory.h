@@ -9,7 +9,7 @@ class RegistryMemory : public Registry
 {
 public:
 	// lookup an entry and return success or error code
-	void lookupEntry(std::string path, IRegistryHandler* handler);
+	int lookupEntry(std::string path, EntryHandler handler);
 	// add/replace an entry
 	void insert(std::string path, Entry* entry);
 	

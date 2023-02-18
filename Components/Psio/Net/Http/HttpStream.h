@@ -71,6 +71,7 @@ namespace Psio
 		int DrainBody(Psio::Network::CompletionHandler handler);
 
 		void CallDoLoop(int result);
+		static size_t LocateEndOfHeadersHelper(const char* buf, size_t buf_len, size_t i, bool accept_empty_header_list);
 
 	protected:
 		enum class State {

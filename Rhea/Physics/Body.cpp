@@ -15,10 +15,10 @@ namespace Rhea
 	{
 	}
 
-	void PhysicsBody::move(Poseidon::Vector3 move)
+	void PhysicsBody::move(Math::Vector3 move)
 	{
-		if (move == Poseidon::Vector3::ZERO &&
-			m_movement != Poseidon::Vector3::ZERO) {
+		if (move == Math::Vector3::ZERO &&
+			m_movement != Math::Vector3::ZERO) {
 			stop();
 		}
 		m_movement = move;
@@ -29,7 +29,7 @@ namespace Rhea
 		m_turn = turn;
 	}
 
-	void PhysicsBody::setPosition(Poseidon::Vector3& position)
+	void PhysicsBody::setPosition(Math::Vector3& position)
 	{
 
 	}

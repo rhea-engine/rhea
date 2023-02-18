@@ -30,7 +30,6 @@ namespace Poseidon
 
 	void RenderContext::addRenderChild(Renderable* child)
 	{
-		Node::addChild(child);
 		m_render_children.push_back(child);
 	}
 

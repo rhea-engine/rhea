@@ -1,9 +1,9 @@
 #ifndef RHEA_FABRICS_CHARACTER_H
 #define RHEA_FABRICS_CHARACTER_H
 
-#include <Poseidon/Position.h>
+#include <Rhea/Fabrics/Core/Position.h>
 
-#include "Item.h"
+#include "Fabrics/3D/Item.h"
 
 namespace Rhea
 {	
@@ -28,8 +28,10 @@ namespace Rhea
 			m_gravity(0.0f),
 			m_upwards(0.0f),
 			m_air_timer(0.0f),
+			m_phy_pre_handler(nullptr),
 			Item(path_name, type_name)
 		{}
+		virtual ~Character();
 
 		// handle physics update
 		bool doPhysics(Event* ev, Unit* unit);
@@ -45,10 +47,12 @@ namespace Rhea
 
 	protected:
 		MoveState m_move_state;
-		Poseidon::Vector3 m_forced_movement;
-		Poseidon::Position* m_position;
+		Math::Vector3 m_forced_movement;
+		Rhea::Position* m_position;
 		float m_gravity;
 		float m_upwards;
+
+		Event::EventHandler m_phy_pre_handler;		
 
 		float m_air_timer;
 	};

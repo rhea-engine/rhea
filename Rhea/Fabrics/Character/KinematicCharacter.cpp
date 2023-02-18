@@ -1,3 +1,4 @@
+#include "KinematicCharacter.h"
 #include <functional>
 
 #include "KinematicCharacter.h"
@@ -9,13 +10,22 @@
 #include "Fabrics/Terrain/Terrain.h"
 #include "Physics/Bullet/BtGhost.h"
 #include "Physics/PhysicsCharacter.h"
-#include <algorithm>
+#include "../Core/Transform.h"
 
-using Poseidon::Quaternion;
-using Poseidon::Vector3;
+#include <algorithm>
+#include <Psio/Log.h>
+
+using Math::Quaternion;
+using Math::Vector3;
 
 namespace Rhea
 {
+	KinematicCharacter::~KinematicCharacter()
+	{
+		Service* phy_srv = m_app->getService("physics");
+		phy_srv->unregisterEventHandler("pre_physics", this);
+	}
+
 	bool KinematicCharacter::doPhysics(Event* ev, Unit* unit)
 	{
 		if (!m_physics_body)
@@ -23,15 +33,13 @@ namespace Rhea
 				return false;
 
 		if (!m_position) {
-			Poseidon::Node* node = getNode();
-			if (!node)
-				return false;
-			m_position = node->get_position();
+			m_position = getTransform()->get_position();
 		}
 
 		float delta = static_cast<PhysicsEvent*>(ev)->getDelta();
 		Terrain* terrain = static_cast<PhysicsEvent*>(ev)->getTerrain();
 		PhysicsCharacter* character = static_cast<PhysicsCharacter*>(m_physics_body);
+		bool dirty = false;
 
 		// if not on ground increase air timer else reset it
 		if (m_move_state != MoveState::GROUND) {
@@ -42,8 +50,8 @@ namespace Rhea
 		}
 
 		// handle movement except if if currently standing still on the ground
-		if (m_move_state != MoveState::GROUND || m_movement != Poseidon::Vector3::ZERO) {
-			Poseidon::Vector3 move;
+		if (m_move_state != MoveState::GROUND || m_movement != Math::Vector3::ZERO) {
+			Math::Vector3 move;
 
 			// depending on the state we use the players movement or the enforced movement
 			if (m_move_state == MoveState::GROUND || m_move_state == MoveState::FLY)
@@ -70,12 +78,13 @@ namespace Rhea
 				//if (vertical_offset > 0.0f)
 				m_upwards = vertical_offset;
 			}
-			Poseidon::Vector3 gravity = Vector3(0, m_upwards, 0);
+			Math::Vector3 gravity = Vector3(0, m_upwards, 0);
 
 			// compute the next possitions
-			Poseidon::Vector3 pos = character->update(m_position, move, gravity);
+			Math::Vector3 pos = character->update(m_position, move, gravity);
 			m_position->setPosition(pos);
 			character->setPosition(pos);
+			dirty = true;
 
 			// check if we ended up on ground
 			if (character->isOnGround()) {
@@ -102,14 +111,16 @@ namespace Rhea
 
 		if (m_turn != 0) {
 			float turn_step = m_turn * delta;
-			Poseidon::Quaternion q;
-			q.fromAngleAxis(turn_step, Poseidon::Vector3(0, 1, 0));
-			Poseidon::Quaternion m_orientation = q * m_position->get_rotation();
+			Math::Quaternion q;
+			q.fromAngleAxis(turn_step, Math::Vector3(0, 1, 0));
+			Math::Quaternion m_orientation = q * m_position->get_rotation();
 			m_orientation.normalise();
 			m_position->setOrientation(m_orientation);
-
+			dirty = true;
 			m_physics_body->setOrientation(m_orientation);
 		}
+		if (dirty && m_net_component)
+			m_net_component->onPositionChange();
 
 		return false;
 	}
@@ -123,7 +134,7 @@ namespace Rhea
 			// set the forced movement to the current movement
 			m_forced_movement = m_movement;			
 
-			Poseidon::Vector3 pos = m_position->get_worldspace();
+			Math::Vector3 pos = m_position->get_worldspace();
 			m_jump_start_y = pos.y;
 			if (static_cast<PhysicsCharacter*>(m_physics_body)->jump(pos)) {
 				// jumping is possible
@@ -143,7 +154,20 @@ namespace Rhea
 		m_values["body_type"] = "ghost";
 
 		// register to physics step
-		m_parent->registerEventHandler("ready", std::bind(&KinematicCharacter::onSceneReady, this, std::placeholders::_1, std::placeholders::_2));
+		Service* phy_srv = m_app->getService("physics");
+		// bind our physics loop
+		if (phy_srv) {
+			m_phy_pre_handler = std::bind(&KinematicCharacter::doPhysics, this, std::placeholders::_1, std::placeholders::_2);
+			phy_srv->registerEventHandler("pre_physics", this, m_phy_pre_handler);
+			// gravity - default is scene but char may overwrite it
+			m_gravity = getValue("gravity", m_parent->getValue("gravity"));
+		}
+		else if (m_parent) {
+			m_parent->registerEventHandler("ready", this, std::bind(&KinematicCharacter::onSceneReady, this, std::placeholders::_1, std::placeholders::_2));
+		}
+		else {
+			LOG(LOG_ERROR) << "KinematicCharacter: parent should not be null";
+		}
 	}
 
 	bool KinematicCharacter::onSceneReady(Event* ev, Unit* unit)
@@ -151,7 +175,8 @@ namespace Rhea
 		Service* phy_srv = m_app->getService("physics");
 		// bind our physics loop
 		if (phy_srv) {
-			phy_srv->registerEventHandler("pre_physics", std::bind(&KinematicCharacter::doPhysics, this, std::placeholders::_1, std::placeholders::_2));
+			m_phy_pre_handler = std::bind(&KinematicCharacter::doPhysics, this, std::placeholders::_1, std::placeholders::_2);
+			phy_srv->registerEventHandler("pre_physics", this, m_phy_pre_handler);
 		}
 		// gravity - default is scene but char may overwrite it
 		m_gravity = getValue("gravity", unit->getValue("gravity"));

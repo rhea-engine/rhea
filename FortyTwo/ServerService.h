@@ -1,0 +1,59 @@
+#ifndef FORTYTWO_SERVERSERVICE_H
+#define FORTYTWO_SERVERSERVICE_H
+
+#include <Rhea/Service.h>
+#include <Rhea/Unit.h>
+#include <Psio/Psio.h>
+#include <Psio/Net/Network.h>
+#include <Psio/Net/Socket/TCPSocket.h>
+#include <Hermes/MessageFactory.h>
+#include <Rhea/Fabrics/Core/Scene.h>
+#include <Hermes/ServerStream.h>
+#include "ClientConnection.h"
+
+using Rhea::Unit;
+
+class ServerService : public Rhea::Service
+{
+public:
+	ServerService(std::string name, std::string type) :
+		m_network(nullptr),
+		m_scene(nullptr),
+		nuid(1),
+		Rhea::Service(name, type)
+	{}
+
+	// init event
+	void onInit();
+
+	void setNetwork(Psio::Network* network) { m_network = network; }
+
+	// set the scene we control
+	void setScene(Rhea::Scene* scene) { m_scene = scene; }
+
+	// handle frameupdate
+	bool onFrameEnd();
+
+	// factory function
+	static Unit* createType(std::string name, std::string type);
+
+	int getUID() { return nuid++; }
+
+	// broadcast message
+	// is source is set it is not sent there
+	void broadcast(Hermes::Message* msg, ClientConnection* source);
+
+protected:
+	// disconnect an item
+	void disconnect(Rhea::Item* item);
+	
+	std::unique_ptr<Psio::TCPSocket> m_server_sock;
+	Psio::Network* m_network;
+	std::unique_ptr<Hermes::MessageFactory> m_msg_factory;
+	Rhea::Scene* m_scene;
+	std::vector<ClientConnection*> m_connections;
+
+	int nuid;
+};
+
+#endif // !FORTYTWO_SERVERSERVICE_H

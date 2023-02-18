@@ -1,7 +1,7 @@
 #ifndef RHEA_CONTROLLER_H
 #define RHEA_CONTROLLER_H
 
-#include "../Item.h"
+#include <Rhea/Fabrics/3D/Item.h>
 #include <Psio/InputEvent.h>
 #include <memory>
 

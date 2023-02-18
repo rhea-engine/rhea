@@ -4,9 +4,6 @@ using std::list;
 
 #include "Core.h"
 #include "Hermes/Server.h"
-#include "Hermes/Connection.h"
-
-using Hermes::Connection;
 
 namespace Hermes
 {

@@ -2,7 +2,7 @@
 #include <tiny_obj_loader/tiny_obj_loader.h>
 
 #include "Importer.h"
-#include "Application.h"
+#include <Psio/Log.h>
 
 namespace Rhea
 {
@@ -41,7 +41,7 @@ namespace Rhea
 
         for (const auto& shape : shapes) {
             // shape name
-            app->log("Shape loaded: " + shape.name);
+            DLOG(LOG_DEBUG) << "Shape loaded: " << shape.name;
             
             // indent offset
             size_t index_offset = 0;

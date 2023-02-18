@@ -30,13 +30,13 @@ namespace Psio
 
 		WSAPOLLFD fdarray = { 0 };
 
-		std::vector<sockitem> pending_sockets = m_sockets;
+		std::unordered_map<SOCKET, sockitem> pending_sockets = m_sockets;
 
 		// check all file descs
 		auto it = pending_sockets.begin();
 		while (it != pending_sockets.end()) {
 			
-			sockitem item = *it;
+			sockitem item = it->second;
 
 			//Call WSAPoll for read- or writeability on connecting socket depending on flag
 			fdarray.fd = item.sock;
@@ -55,7 +55,7 @@ namespace Psio
 			if (ret) {
 				// remove watcher
 				if (item.once)
-					it = pending_sockets.erase(it);
+					UnWatch(item.sock);
 				else
 					++it;
 				// data ready
@@ -73,14 +73,14 @@ namespace Psio
 		FD_ZERO(&fd_write);
 		FD_ZERO(&fd_except);
 
-		std::vector<sockitem> pending_sockets = m_sockets;
+		std::unordered_map<SOCKET, sockitem> pending_sockets = m_sockets;
 		int nfds = 0;
 
 		// check all file descs
 		auto it = pending_sockets.begin();
 		while (it != pending_sockets.end()) {
 
-			sockitem item = *it;
+			sockitem item = it->second;
 			SOCKET sock_fd = item.sock;
 
 			if (item.flags)
@@ -108,7 +108,7 @@ namespace Psio
 			auto it = pending_sockets.begin();
 			while (it != pending_sockets.end()) {
 
-				sockitem item = *it;
+				sockitem item = it->second;
 				SOCKET sock_fd = item.sock;
 
 				// check if socket is ready and if yes call watcher
@@ -157,21 +157,16 @@ namespace Psio
 	void Network::Watch(SOCKET sock, int flags, bool once, CompletionHandler handler)
 	{
 		DLOG(LOG_DEBUG) << "watch socket " << sock << " with flags " << flags;
-		m_sockets.push_back({ sock, flags, handler, once });
+		m_sockets[sock]={sock, flags, handler, once};
 	}
 
 	void Network::UnWatch(SOCKET sock)
 	{
 		// check all file descs
-		auto it = m_sockets.begin();
-		while (it != m_sockets.end()) {
-			sockitem item = *it;
-			if (item.sock == sock) {
-				DLOG(LOG_DEBUG) << "unwatch socket " << sock;
-				it = m_sockets.erase(it);
-			}
-			else
-				++it;
+		auto it = m_sockets.find(sock);
+		if (it != m_sockets.end()) {
+			DLOG(LOG_DEBUG) << "unwatch socket " << sock;
+			m_sockets.erase(it);
 		}
 	}
 	
@@ -180,12 +175,29 @@ namespace Psio
 		if (err <= 0)
 			return err;
 		switch (err) {
+#ifdef WIN32
 		case WSAEWOULDBLOCK:
 			return Err::IO_PENDING;
+		case WSAEFAULT:
+			return Err::FAULT;
 		case WSAENOTSOCK:
 			return Err::NO_SOCKET;
 		case WSAENOTCONN:
 			return Err::NOT_CONNECTED;
+		case WSAECONNRESET:
+			return Err::CONN_RESET;
+#else
+		case EWOULDBLOCK:
+			return Err::IO_PENDING;
+		case EFAULT:
+			return Err::Fault;
+		case ENOTSOCK:
+			return Err::NO_SOCKET;
+		case ENOTCONN:
+			return Err::NOT_CONNECTED;
+		case ECONNRESET:
+			return Err::CONN_RESET;
+#endif
 		default:
 			return Err::FAILED;
 		}

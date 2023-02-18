@@ -1,14 +1,13 @@
 #include "BtPhysicsService.h"
 #include "Controller/BasicController.h"
-#include "Item.h"
-#include "Scene.h"
+#include "Fabrics/3D/Item.h"
+#include "Fabrics/Core/Scene.h"
 #include "BtBody.h"
 #include "BtHeightMap.h"
 #include "BtDebugDraw.h"
 #include "BtGhost.h"
 #include "BtCharacter.h"
 #include "Fabrics/Terrain/Terrain.h"
-#include "Application.h"
 
 #include "Poseidon/Core.h"
 #include "Poseidon/Viewport.h"
@@ -18,14 +17,13 @@
 #include <Poseidon/RenderContext.h>
 
 #include "btBulletDynamicsCommon.h"
+#include <Psio/Log.h>
 
 namespace Rhea
 {
 	BulletPhysicsService::BulletPhysicsService(std::string name, std::string type_name) :
 		m_world(nullptr),
 		m_scene(nullptr),
-		m_debug(false),
-		m_debug_draw(nullptr),
 		PhysicsService("BulletPhysicsService", type_name)
 	{
 	}
@@ -69,11 +67,11 @@ namespace Rhea
 				{
 					trans = obj->getWorldTransform();
 				}
-				Poseidon::Position* position = item->getNode()->get_position();
+				Rhea::Position* position = item->getTransform()->get_position();
 
-				position->setPosition(Poseidon::Vector3(float(trans.getOrigin().getX()), float(trans.getOrigin().getY()), float(trans.getOrigin().getZ())));
+				position->setPosition(Math::Vector3(float(trans.getOrigin().getX()), float(trans.getOrigin().getY()), float(trans.getOrigin().getZ())));
 				btQuaternion rot = trans.getRotation();
-				position->setOrientation(Poseidon::Quaternion(rot.getW(), rot.getX(), rot.getY(), rot.getZ()));
+				position->setOrientation(Math::Quaternion(rot.getW(), rot.getX(), rot.getY(), rot.getZ()));
 
 				item->setPosition(*position);				
 			}
@@ -84,11 +82,6 @@ namespace Rhea
 	{
 		btAlignedObjectArray<btCollisionShape*> collisionShapes;
 		bool defaultGround = scene->getValue("ground");
-		m_debug = scene->getValue("debug_physics");
-
-		if (m_debug) {
-			m_debug_draw = new BulletDebugDraw(m_app, m_world);
-		}
 
 		if (defaultGround) {
 			// add default ground (500x500x50, 1 under ground)
@@ -127,34 +120,44 @@ namespace Rhea
 			if (item->getElement("physics"))
 				continue;
 
-			if (item->getTypeName() == "//meworla/terrain") {
-				BulletHeightMap* hmap = new BulletHeightMap(item);
-				item->addElement("physics", hmap);
-				m_world->addRigidBody(hmap->getBody());
-				// TODO currently simply set the last terrain to active
-				m_terrain = static_cast<Terrain*>(item);
-			}
-			else if (item->getTypeName() == "//meworla/camera") {
-				// make camera without physics	
-				m_item = item;
-			}
-			else if (item->getTypeName() == "//meworla/character") {
-				BulletPhysicsCharacter* body = new BulletPhysicsCharacter(m_world, item);
-				body->init();
+			initializeItem(item);
+		}
+	}
+
+	void BulletPhysicsService::initializeItem(Item* item)
+	{
+		if (item->getTypeName() == "//meworla/terrain") {
+			BulletHeightMap* hmap = new BulletHeightMap(item);
+			item->addElement("physics", hmap);
+			m_world->addRigidBody(hmap->getBody());
+			// TODO currently simply set the last terrain to active
+			m_terrain = static_cast<Terrain*>(item);
+		}
+		else if (item->getTypeName() == "//meworla/camera") {
+			// make camera without physics	
+			m_item = item;
+		}
+		else if (item->getTypeName() == "//meworla/character") {
+			BulletPhysicsCharacter* body = new BulletPhysicsCharacter(m_world, item);
+			body->init();
+			item->addElement("physics", body);
+		}
+		else if (item->getTypeName() == "//meworla/widget")
+			return;
+		else if (item->getTypeName() == "//meworla/textwidget")
+			return;
+		else {
+			BulletPhysicsBody* body = new BulletPhysicsBody(m_world, item);
+			if (body->init()) {
 				item->addElement("physics", body);
-			}
-			else if (item->getTypeName() == "//meworla/widget")
-				continue;
-			else if (item->getTypeName() == "//meworla/textwidget")
-				continue;
-			else {
-				BulletPhysicsBody* body = new BulletPhysicsBody(m_world, item);
-				if (body->init()) {
-					item->addElement("physics", body);
-					m_world->addRigidBody(body->getBody());
-				}
+				m_world->addRigidBody(body->getBody());
 			}
 		}
+	}
+
+	void BulletPhysicsService::removeItem(Item* item)
+	{
+		item->addElement("physics", nullptr);
 	}
 
 	void BulletPhysicsService::onInit()
@@ -176,15 +179,7 @@ namespace Rhea
 		m_world->setGravity(btVector3(0.0f, -0.8f, 0.0f));
 	}
 	
-	void BulletPhysicsService::toggleDebug()
-	{
-		if (m_debug_draw)
-			m_debug_draw->toggle();
-		if (!m_debug)
-			m_app->log("physics debug drawer was not enabled at startup");
-	}
-	
-	Unit* BulletPhysicsService::ray(Poseidon::Vector3 origin, Poseidon::Vector3 direction)
+	Unit* BulletPhysicsService::ray(Math::Vector3 origin, Math::Vector3 direction)
 	{
 		btVector3 btRayFrom = btVector3(origin.x, origin.y, origin.z);
 		btVector3 btRayTo = btVector3(direction.x, direction.y, direction.z);
@@ -196,7 +191,7 @@ namespace Rhea
 			//btRigidBody* pBody = btRigidBody::upcast(rayCallback.m_collisionObject);
 			if (item) {
 #ifdef PICK3D_DEBUG
-				m_app->log("item:" + item->getPathName() + " hit");
+				LOG(LOG_ERROR) << "item:" + item->getPathName() + " hit";
 #endif
 				return item;
 			}

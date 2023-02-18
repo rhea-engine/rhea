@@ -5,17 +5,18 @@
 #include "RegistryMemory.h"
 #include "RegistryFileParser.h"
 
-void RegistryMemory::lookupEntry(std::string path, IRegistryHandler* handler)
+int RegistryMemory::lookupEntry(std::string path, EntryHandler handler)
 {
     // lookup in entries array
     auto search = m_entries.find(path);
     // return error if not found
-    if (search == m_entries.end())
-        return handler->onEntryFailed(404);
-
-    // found
-    Entry* entry = search->second;
-    handler->onEntryFound(entry);
+    if (search == m_entries.end()) 
+        return handler(nullptr);
+    else {
+        // found
+        Entry* entry = search->second;
+        return handler(entry);
+    }
 }
 
 void RegistryMemory::insert(std::string path, Entry* entry)

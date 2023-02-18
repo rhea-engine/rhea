@@ -9,6 +9,8 @@
 #include "../Element.h"
 #include "../Event.h"
 
+#include <Poseidon/Node.h>
+
 namespace Rhea
 {
 	class Unit;
@@ -26,14 +28,15 @@ namespace Rhea
 		~GraphicsRenderElement();
 
 		// positioning		
-		void setPosition(Poseidon::Position& position);
-		void setPosition(Poseidon::Vector3 position);
+		void setPosition(Rhea::Position& position);
+		void setPosition(Math::Vector3 position);
 
 		// set direction
-		void lookAt(Poseidon::Vector3 look_at);
+		void lookAt(Math::Vector3 look_at);
 		
 		// setters
 		void SetRenderEntity(Poseidon::Node* node) { m_entity = node; }
+		void setRenderContext(Poseidon::RenderContext* context) { m_render_context = context; }
 		void SetMesh(Poseidon::Mesh* mesh) { m_mesh = mesh; }
 
 		// getters

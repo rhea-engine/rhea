@@ -1,3 +1,4 @@
+#include "Character.h"
 #include <functional>
 
 #include "Character.h"
@@ -8,11 +9,17 @@
 #include "Physics/PhysicsManager.h"
 #include "Fabrics/Terrain/Terrain.h"
 
-using Poseidon::Quaternion;
-using Poseidon::Vector3;
+using Math::Quaternion;
+using Math::Vector3;
 
 namespace Rhea
 {
+	Character::~Character()
+	{		
+		Service* phy_srv = m_app->getService("physics");
+		phy_srv->unregisterEventHandler("pre_physics", this);	
+	}
+
 	bool Character::doPhysics(Event* ev, Unit* unit)
 	{
 		if (!m_physics_body)
@@ -20,7 +27,7 @@ namespace Rhea
 				return false;
 		
 		if (!m_position)
-			m_position = getNode()->get_position();
+			m_position = getTransform()->get_position();
 
 		float delta = static_cast<PhysicsEvent*>(ev)->getDelta();
 		Terrain* terrain = static_cast<PhysicsEvent*>(ev)->getTerrain();
@@ -34,9 +41,9 @@ namespace Rhea
 
 		m_physics_body->setAngularVelocity(Vector3(0.0, 0.0, 0.0));
 
-		if (m_movement != Poseidon::Vector3::ZERO) {
+		if (m_movement != Math::Vector3::ZERO) {
 			// currently moving	
-			Poseidon::Vector3 move;
+			Math::Vector3 move;
 
 			// depending on the state we use the players movement or the enforced movement
 			if (m_move_state == MoveState::GROUND || m_move_state == MoveState::FLY)
@@ -46,13 +53,13 @@ namespace Rhea
 			move *= delta;
 
 			// use physics for movement
-			Poseidon::Quaternion rot = m_position->get_rotation();
+			Math::Quaternion rot = m_position->get_rotation();
 			m_physics_body->applyImpulse(rot * move);
 
 			// move object itself
 
 			/*
-			Poseidon::Vector3 pos = m_position->moveRelative(move);
+			Math::Vector3 pos = m_position->moveRelative(move);
 
 			if (terrain && m_gravity) {
 				float height = terrain->getHeight(pos.x, pos.z);
@@ -70,7 +77,7 @@ namespace Rhea
 /*
 		if (terrain && m_gravity) {
 			m_upwards = m_gravity * delta;
-			Poseidon::Vector3 pos = m_position->moveRelative(Poseidon::Vector3(0.0f, m_upwards, 0.0f));
+			Math::Vector3 pos = m_position->moveRelative(Math::Vector3(0.0f, m_upwards, 0.0f));
 
 			float height = terrain->getHeight(pos.x, pos.z);
 			if (pos.y < height) {
@@ -85,9 +92,9 @@ namespace Rhea
 
 		if (m_turn != 0) {
 			float turn_step = m_turn * delta;
-			Poseidon::Quaternion q;
-			q.fromAngleAxis(turn_step, Poseidon::Vector3(0, 1, 0));
-			Poseidon::Quaternion m_orientation = q * m_position->get_rotation(); //* m_orientation;
+			Math::Quaternion q;
+			q.fromAngleAxis(turn_step, Math::Vector3(0, 1, 0));
+			Math::Quaternion m_orientation = q * m_position->get_rotation(); //* m_orientation;
 			m_orientation.normalise();
 			//m_position->setOrientation(m_orientation);
 
@@ -106,14 +113,22 @@ namespace Rhea
 		m_values["character"] = true;
 
 		// register to physics step
-		m_parent->registerEventHandler("ready", std::bind(&Character::onSceneReady, this, std::placeholders::_1, std::placeholders::_2));
+		Service* phy_srv = m_app->getService("physics");
+		if (phy_srv) {
+			m_phy_pre_handler = std::bind(&Character::doPhysics, this, std::placeholders::_1, std::placeholders::_2);
+			phy_srv->registerEventHandler("pre_physics", this, m_phy_pre_handler);
+			m_gravity = getValue("gravity");
+		}
+		else
+			m_parent->registerEventHandler("ready", this, std::bind(&Character::onSceneReady, this, std::placeholders::_1, std::placeholders::_2));
 	}
 
 	bool Character::onSceneReady(Event* ev, Unit* unit)
 	{
 		Service* phy_srv = m_app->getService("physics");
 		if (phy_srv) {
-			phy_srv->registerEventHandler("pre_physics", std::bind(&Character::doPhysics, this, std::placeholders::_1, std::placeholders::_2));
+			m_phy_pre_handler = std::bind(&Character::doPhysics, this, std::placeholders::_1, std::placeholders::_2);
+			phy_srv->registerEventHandler("pre_physics", this, m_phy_pre_handler);
 		}
 		m_gravity = getValue("gravity");
 		return false;

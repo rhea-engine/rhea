@@ -13,6 +13,13 @@ namespace Psio
 
 		// connect to ip address
 		virtual int Connect(SocketAddress& addr, bool blocking, Socket::CompletionHandler handler) = 0;
+
+		// server functions
+
+		typedef std::function<void(StreamSocket*, int)> ConnectHandler;
+
+		// accept a socket connection
+		virtual int Accept(ConnectHandler handler) = 0;
 	};
 }
 

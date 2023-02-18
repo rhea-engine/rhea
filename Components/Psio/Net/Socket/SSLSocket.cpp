@@ -52,6 +52,14 @@ namespace Psio
 
 		return 0;
 	}
+
+	int SSLSocket::Accept(ConnectHandler handler)
+	{
+		// TODO
+		DLOG(LOG_ERROR) << "SSLSocket::Accept not implemented";
+		abort();
+		return 0;
+	}
 	
 	SSL_CTX* SSLSocket::createClientContext()
 	{
@@ -320,5 +328,9 @@ namespace Psio
 		}
 
 		return 0;
+	}
+	SocketAddress* Psio::SSLSocket::getRemoteAddress()
+	{
+		return m_sock->getRemoteAddress();
 	}
 }

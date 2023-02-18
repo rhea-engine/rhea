@@ -25,7 +25,8 @@ namespace Psio
 		~SSLSocket() override = default;
 		
 		int SSLAccept(Socket::CompletionHandler handler);
-		
+		int Accept(ConnectHandler handler);
+
 		// create a context for a client
 		SSL_CTX* createClientContext();
 
@@ -36,6 +37,7 @@ namespace Psio
 		bool Close();
 		int Write(IOBuffer* buf, Socket::CompletionHandler handler);
 		int Read(IOBuffer* buf, Socket::CompletionHandler handler);
+		SocketAddress* getRemoteAddress();
 
 	protected:
 		Network* m_net;

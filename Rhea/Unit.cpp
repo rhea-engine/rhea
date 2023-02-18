@@ -19,6 +19,12 @@ namespace Rhea
 		child->m_parent = this;
 		m_children[child->m_pathname] = child;
 	}
+
+	void Unit::removeChild(Unit* child)
+	{		
+		m_children.erase(child->m_pathname);
+		child->m_parent = nullptr;
+	}
 	
 	Unit* Unit::find(std::string path, bool create)
 	{
@@ -234,17 +240,25 @@ namespace Rhea
 		if (method_name == "logme") logMe(); 		
 	}
 
-	void Unit::registerEventHandler(std::string event_name, Event::EventHandler handler)
+	void Unit::registerEventHandler(std::string event_name, void* owner, Event::EventHandler handler)
 	{
-		m_eventhandlers[event_name].push_back(handler);
+		m_eventhandlers[event_name][owner] = handler;
 	}
 
-	void Unit::registerEventHandlerChildren(std::string event_name, Event::EventHandler handler)
+	void Unit::unregisterEventHandler(std::string event_name, void* owner)
 	{
-		registerEventHandler(event_name, handler);
+		auto it = m_eventhandlers.find(event_name);
+		if (it != m_eventhandlers.end()) {
+			(it->second)[owner] = nullptr;				
+		}
+	}
+
+	void Unit::registerEventHandlerChildren(std::string event_name, void* owner, Event::EventHandler handler)
+	{
+		registerEventHandler(event_name, owner, handler);
 		for (auto it = m_children.begin(); it != m_children.end(); ++it) {
 			Unit* c = it->second;
-			c->registerEventHandlerChildren(event_name, handler);
+			c->registerEventHandlerChildren(event_name, owner, handler);
 		}
 	}
 
@@ -253,8 +267,9 @@ namespace Rhea
 		auto it = m_eventhandlers.find(event_name);
 		if (it != m_eventhandlers.end()) {
 			for (auto eh_it = it->second.begin(); eh_it != it->second.end(); ++eh_it) {
-				Event::EventHandler eh = *eh_it;
-				eh(event, this);
+				Event::EventHandler eh = eh_it->second;
+				if (eh)
+					eh(event, this);
 			}
 		}
 	}
@@ -279,6 +294,16 @@ namespace Rhea
 			parent->sendEventSubtree(top, event_name, event);
 
 		sendEvent(event_name, event);
+	}
+
+	void Unit::traverse(std::function<void(std::string&, Unit*)> handler)
+	{
+		handler(this->m_pathname, this);
+		for (auto it = m_children.begin(); it != m_children.end(); ++it) {
+			std::string name = it->first;
+			//handler(name, it->second);
+			it->second->traverse(handler);
+		}
 	}
 
 	void Unit::addElement(std::string name, Element* element)

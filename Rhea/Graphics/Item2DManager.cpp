@@ -1,4 +1,3 @@
-#include "Application.h"
 #include "Event.h"
 
 #include "Fabrics/Canvas/Item2D.h"
@@ -8,6 +7,7 @@
 #include "GraphicsService.h"
 
 #include <Poseidon/SceneManager.h>
+#include <Psio/Log.h>
 
 namespace Rhea
 {
@@ -21,7 +21,7 @@ namespace Rhea
 		// make sure we have a material
 		Rhea::Material* material = static_cast<Item2D*>(unit)->getMaterial();
 		if (!material) {
-			unit->getApplication()->log(unit->getPath() + ": Item2D has no material");
+			LOG(LOG_ERROR) << unit->getPath() << ": Item2D has no material";
 			return nullptr;
 		}
 
@@ -29,16 +29,17 @@ namespace Rhea
 		GraphicsRenderElement* elem = new GraphicsRenderElement(core);
 		Poseidon::Node* entity = createRenderable(elem, core, unit, "HUD", false);
 
-		// add the position
-		addPosition(unit, entity);
-
 		// set the material
 		setMaterial(core, material, entity);
 		unit->addElement("graphics", elem);
 
+		// set up an empty transform
+		setPosition(unit, ((Item2D*)unit)->getTransform());
+		entity->setTransform(((Item2D*)unit)->getTransform());
+
 		// register handlers
-		unit->registerEventHandler("delete", std::bind(&GraphicsItem2DManager::onItemDelete, this, std::placeholders::_1, std::placeholders::_2));
-		unit->registerEventHandler("update", std::bind(&GraphicsItem2DManager::onUpdate, this, std::placeholders::_1, std::placeholders::_2));
+		unit->registerEventHandler("delete", this, std::bind(&GraphicsItem2DManager::onItemDelete, this, std::placeholders::_1, std::placeholders::_2));
+		unit->registerEventHandler("update", this, std::bind(&GraphicsItem2DManager::onUpdate, this, std::placeholders::_1, std::placeholders::_2));
 
 		// add to my list
 		m_elements.push_back(elem);

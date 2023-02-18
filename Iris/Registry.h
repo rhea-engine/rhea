@@ -4,14 +4,15 @@
 #include <string>
 #include <functional>
 #include "Entry.h"
-#include "IRegistryHandler.h"
 
 class Registry
 {
 public:
 
+	typedef std::function<int(Entry*)> EntryHandler;
+
 	// lookup an entry and return success or error code
-	virtual void lookupEntry(std::string path, IRegistryHandler *handler) = 0;
+	virtual int lookupEntry(std::string path, EntryHandler handler) = 0;
 	
 	// insert an entry
 	virtual void insert(std::string path, Entry* entry) = 0;

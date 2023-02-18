@@ -5,7 +5,7 @@
 #include "Hippios/Renderer.h"
 #include "Hippios/Texture.h"
 
-#include "Image.h"
+#include <Psio/Image/Image.h>
 
 namespace Poseidon
 {

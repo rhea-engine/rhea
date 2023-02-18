@@ -13,10 +13,10 @@ namespace Rhea
 		{}
 
 		// update in physics step
-		virtual Poseidon::Vector3 update(Poseidon::Position* pos, Poseidon::Vector3& move, Poseidon::Vector3& gravity);
+		virtual Math::Vector3 update(Position* pos, Math::Vector3& move, Math::Vector3& gravity);
 
 		// set jump_state
-		virtual bool jump(Poseidon::Vector3& pos);
+		virtual bool jump(Math::Vector3& pos);
 
 		// get ground state
 		virtual bool isOnGround() {

@@ -1,14 +1,8 @@
 #include "CommandQuit.h"
-#include "Hermes/Connection.h"
 
-void CommandQuit::onRequest(std::shared_ptr<Request> request, std::shared_ptr<Response> response)
+int CommandQuit::OnRequest(Psio::HttpRequest* req, Psio::HttpResponse* res)
 {
-	if (!m_res)
-		return;
-
-	unsigned char answer[] = "\rExiting...\r\n";
-	m_res->write(answer, sizeof(answer));
-	m_res->end();
-
-	return;
+	char answer[] = "\rExiting...\r\n";
+	res->Write(answer, sizeof(answer));
+	return res->end();
 }

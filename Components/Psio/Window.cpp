@@ -10,6 +10,9 @@ namespace Psio
 	{
 #ifdef WIN32
 		Window* win = (Window *)new Win32Window();
+#else
+		// TODO
+		Window *win = nullptr;
 #endif
 		return win;
 	}
@@ -21,7 +24,9 @@ namespace Psio
 
 	void Window::addInputEvent(std::shared_ptr<InputEvent> evt)
 	{
+#ifdef WIN32
 		m_input->addEvent(evt);
+#endif
 	}
 
 	void Window::onKeyDown(unsigned int key)

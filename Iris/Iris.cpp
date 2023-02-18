@@ -1,17 +1,15 @@
 #include <stdio.h>
-
 #include <string>
 
 #include "Iris.h"
-#include "Hermes/Core.h"
-#include "Hermes/IPAddress.h"
-#include "Hermes/Server.h"
-#include "Hermes/Connection.h"
+#include <Psio/Net/Socket/IPAddress.h>
 #include "RegistryMemory.h"
 #include "Middleware.h"
-#include "Components/Log/Log.h"
+#include <Psio/Log.h>
+#include <Psio/Net/Http/Http.h>
 
 struct Config {
+	std::string ip;
 	uint16_t port;
 	bool tcp;
 	bool udp;
@@ -21,8 +19,6 @@ struct Config {
 void Iris::init(Config config)
 {
 	m_registry = new RegistryMemory();
-	m_core = new Hermes::Core();
-	m_log = new Log();
 
 	// add a default value for server
 	Entry server_entry ("Server", "meworla/registry");
@@ -33,42 +29,49 @@ void Iris::init(Config config)
 	if (!config.registry_file.empty()) {
 		static_cast<RegistryMemory*>(m_registry)->setRegistryFile(config.registry_file);
 		int entries = static_cast<RegistryMemory*>(m_registry)->load();
-		m_log->info("Import registry from %s: %d entries", config.registry_file.c_str(), entries);
+		LOG(LOG_INFO) << "Import registry from " << config.registry_file << ": " << entries << " entries";
 	}
 
-	Hermes::IPAddress ip;
-	m_server = new Hermes::Server(config.tcp, config.udp);
-	m_middleware = new Middleware(this, m_registry);
+	m_network = std::make_unique<Psio::Network>(nullptr);
+	m_network->Init();
+	m_server_sock = std::make_unique<Psio::TCPSocket>(m_network.get());
+	m_middleware = new Middleware(m_registry);
 
-	m_server->setRequestHandlerFactory(m_middleware);
-	m_server->addConnectionHandler(this);
-	if (m_server->listen(ip, config.port) != 0) {
-		m_log->info("failed to start server\n");
+	int err = m_server_sock->Server(config.ip, config.port);
+	LOG(LOG_INFO) << "Started Server. Listening on " << config.ip << ":" << config.port;
+	m_server_sock->Accept([&](Psio::StreamSocket* new_sock, int err) {
+		if (err < 0) {
+			LOG(LOG_ERROR) << "OnConnection failed: " << err;
+			return;
+		}
+		std::unique_ptr<Psio::StreamSocket> sock;
+		sock.reset(new_sock);
+		
+		Psio::Http* http = new Psio::Http();
+		int ret = http->OnRequest(std::move(sock), [&](Psio::HttpRequest* req, Psio::HttpResponse* res) -> int {
+			return m_middleware->onRequest(req, res);
+			});
+		if (ret < -1) {
+			delete http;
+		}
+		});
+	if (err < 0) {
+		LOG(LOG_FATAL) << "failed to start server";
 		return;
 	}
-	m_core->addTask(m_server);
-	m_log->info("Started Server listening on port %d\n", config.port);
 }
 
 int Iris::loop()
 {
-	return m_core->loop();
-}
+	do
+	{
+		// iterate over connections
+		m_network->RunLoop();
 
-void Iris::close()
-{
-	delete m_core;
-}
+		// give time to the system
+		Sleep(1);
 
-void Iris::onConnection(Hermes::Connection* conn)
-{
-	m_log->set(Log::LOG_HOST, conn->get_remote_s());
-	m_log->info("Connected on port %d", conn->get_port());
-}
-
-void Iris::onClose(Hermes::Connection* conn)
-{
-	m_log->info("Connection closed");
+	} while (true);
 }
 
 int main(int argc, char* argv[])
@@ -78,6 +81,7 @@ int main(int argc, char* argv[])
 	Config config;
 
 	//  default configuration
+	config.ip = "127.0.0.1";
 	config.port = 27000;
 	config.tcp = true;
 	config.udp = false;	
@@ -87,6 +91,11 @@ int main(int argc, char* argv[])
 			argi++;
 			if (argi < argc)
 				config.port = atoi(argv[argi]);
+		}
+		else if (!strcmp(argv[argi], "-h")) {
+			argi++;
+			if (argi < argc)
+				config.ip = std::string(argv[argi]);
 		}
 		else if (!strcmp(argv[argi], "-r")) {
 			argi++;
@@ -102,8 +111,6 @@ int main(int argc, char* argv[])
 	app->init(config);
 
 	int ret = app->loop();
-
-	app->close();
 
 	return ret;
 }

@@ -99,7 +99,7 @@ namespace Psio
 		}
 
 		// parse status line
-		
+
 		// check: starts with http?
 		if (end_of_status < 4 || strncmp_i(input.data(), "http", 4)) {
 			delete headers;
@@ -119,7 +119,7 @@ namespace Psio
 				if (input[j] != '/') {
 					// no version! perhaps response code?
 					if (input[j] == ' ') {
-						state = State::STATUS_CODE;						
+						state = State::STATUS_CODE;
 						break;
 					}
 					delete headers;
@@ -171,10 +171,29 @@ namespace Psio
 			}
 			j++;
 		} while (j < end_of_status);
-		headers->SetVersion(major, minor); 
+		headers->SetVersion(major, minor);
 		headers->SetResponseCode(code);
-		
+
 		// now parse headers
+		ParseHeaders(input, i, headers);
+		
+		return headers;
+	}
+	
+	void HttpHeaders::ParseHeaders(std::string input, size_t offset, HttpHeaders* headers)
+	{
+		enum State {
+			STATUS_NONE,
+			STATUS_MAJOR,
+			STATUS_MINOR,
+			STATUS_CODE,
+			STATUS_TEXT,
+
+			HTTP_HEADER_NONE,
+			HTTP_HEADER_KEY,
+			HTTP_HEADER_VALUE_START,
+			HTTP_HEADER_VALUE
+		};
 
 		HttpHeaderPair* current_header = nullptr;
 
@@ -182,8 +201,10 @@ namespace Psio
 		size_t key_len = 0;
 		size_t val_start = 0;
 		size_t val_len = 0;
-		state = State::HTTP_HEADER_NONE;
+		int	state = State::HTTP_HEADER_NONE;
 		bool continuation = false;
+		size_t i = offset;
+
 		while (i < input.length()) {
 
 			switch (state) {
@@ -232,8 +253,6 @@ namespace Psio
 			i++;
 			
 		}
-
-		return headers;
 	}
 
 	std::string HttpHeaders::GenerateRequestString(std::string& url)

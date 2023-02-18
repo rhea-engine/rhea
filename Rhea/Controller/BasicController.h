@@ -2,10 +2,9 @@
 #define RHEA_BASICCONTROLLER_H
 
 #include "Controller.h"
-#include <Poseidon\Math\Vector3.h>
-#include <Poseidon\Math\Quaternion.h>
-#include <Poseidon\Position.h>
-#include <Poseidon/Core.h>
+#include <Math/Vector3.h>
+#include <Math/Quaternion.h>
+#include <Rhea/Fabrics/Core/Position.h>
 
 namespace Rhea
 {
@@ -13,19 +12,19 @@ namespace Rhea
 	{
 	public:
 		BasicController(std::string path_name, std::string type_name) :
-			m_position(NULL),
+			m_position(),
 			m_orientation(),
 			Controller(path_name, type_name)
 		{}
 
-		virtual void show(Poseidon::Core* core);
+		virtual void show();
 		void message(std::string method_name);
 
 		// set the position manually
-		void setPosition(Poseidon::Vector3 position);
-		void lookAt(Poseidon::Vector3& target);
+		void setPosition(Math::Vector3 position);
+		void lookAt(Math::Vector3& target);
 
-		Poseidon::Vector3 getPosition();
+		Math::Vector3 getPosition();
 
 		// Controller functions
 
@@ -40,11 +39,13 @@ namespace Rhea
 		void logMe();		
 
 	protected:
-		Poseidon::Position m_position;
-		Poseidon::Quaternion m_orientation;
+		Position m_position;
+		Math::Quaternion m_orientation;
 
-		Poseidon::Vector3 m_move;
+		Math::Vector3 m_move;
 		float m_turn = 0;
+		Math::Vector3 m_last_move;
+		float m_last_turn = 0;
 
 		// register event handler
 		virtual void _registerEvent(Unit* unittree);

@@ -18,6 +18,7 @@ namespace Rhea
 		{}
 
 		bool isAction(std::string action);
+		bool isAction(EventInput* ev);
 		std::shared_ptr<Psio::InputEvent> getEvent() { return m_evt; }
 
 	protected:

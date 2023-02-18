@@ -1,6 +1,7 @@
 #include "ResourceList.h"
 #include "UnitTree.h"
 #include "Application.h"
+#include <Psio/Log.h>
 
 namespace Rhea {
 	
@@ -47,7 +48,7 @@ namespace Rhea {
 					// exists in tree
 					resource->prepare([&](Error* err) {
 						if (err) {
-							m_app->log("Could not load resource '" + res.id + "'");
+							LOG(LOG_ERROR) << "Could not load resource '" << res.id << "'";
 						}
 						m_to_load--;
 						m_resources[key].status = Resource::Status::LOADED;
@@ -62,11 +63,11 @@ namespace Rhea {
 					m_app->loadResource(res.id, res.type, [&, res, key, handler](Unit* resource, Orion::ResourceRequest::Error err) {
 						if (resource) {
 							if (err != Orion::ResourceRequest::Error::OK) {
-								m_app->log("Could not load resource " + res.id + ": " + Orion::ResourceRequest::getErrorMessage(err));
+								LOG(LOG_ERROR) << "Could not load resource " << res.id << ": " << Orion::ResourceRequest::getErrorMessage(err);
 							}
 							resource->prepare([&](Error* err) {
 								if (err) {
-									m_app->log("Could not load resource '" + res.id + "'");
+									LOG(LOG_ERROR) << "Could not load resource '" << res.id + "'";
 								}
 								m_to_load--;
 								m_resources[key].status = Resource::Status::LOADED;
@@ -78,7 +79,7 @@ namespace Rhea {
 								});
 						}
 						else {
-							m_app->log("Could not load resource " + res.id + ": " + Orion::ResourceRequest::getErrorMessage(err));
+							LOG(LOG_ERROR) << "Could not load resource " << res.id << ": " << Orion::ResourceRequest::getErrorMessage(err);
 							m_resources[key].status = Resource::Status::DATA_INVALID;
 							m_to_load--;
 							if (m_to_load == 0) {
@@ -109,11 +110,11 @@ namespace Rhea {
 				m_resources[key].type = type;
 			}
 			else {
-				m_app->log("ResourceList: Could not replace resource '" + key + "': already loaded");
+				LOG(LOG_ERROR) << "ResourceList: Could not replace resource '" << key << "': already loaded";
 			}
 		}
 		else {
-			m_app->log("ResourceList: resource '" + key + "' already exists and replace was false");
+			LOG(LOG_ERROR) << "ResourceList: resource '" << key << "' already exists and replace was false";
 		}
 	}
 
@@ -127,7 +128,7 @@ namespace Rhea {
 		}
 		return nullptr;
 	}
-	
+
 	void ResourceList::release(const std::string& key)
 	{
 		// search for resource and decrease ref count then remove from list

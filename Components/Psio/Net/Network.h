@@ -7,6 +7,7 @@
 #include <functional>
 #include <vector>
 #include <unordered_map>
+#include <string>
 
 namespace Psio
 {
@@ -51,6 +52,8 @@ namespace Psio
 			ABORTED = -3,
 			NO_SOCKET = -4,
 			NOT_CONNECTED = -5,
+			FAULT = -6,
+			CONN_RESET = -7,
 
 			// 3xx HTTP errors
 
@@ -88,7 +91,7 @@ namespace Psio
 		};
 
 		Engine* m_engine;
-		std::vector<sockitem> m_sockets;
+		std::unordered_map<SOCKET, sockitem> m_sockets;
 		std::unordered_map<std::string, std::string> m_settings;
 	};
 }

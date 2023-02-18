@@ -1,9 +1,12 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <cstring>
 
 #include "../Socket/Socket_test.h"
 #include "HttpStream.h"
 #include "HttpRequest.h"
+#include <algorithm>
+#undef min;
 
 using testing::_;
 using testing::MockFunction;
@@ -179,7 +182,7 @@ namespace Psio
 
 		EXPECT_FALSE(req_failed) << "Request failed";
 		EXPECT_FALSE(empty_body);
-		size_t len = min(buf->Remaining(), strlen(testbuf));
+		size_t len = std::min(buf->Remaining(), strlen(testbuf));
 		EXPECT_TRUE(has_headers) << "No headers read";
 		EXPECT_TRUE(res_headers && res_headers->GetMajor() == 1 && res_headers->GetMinor() == 1) << "Header version missmatch - should be 1.1";
 		EXPECT_TRUE(0 == std::memcmp(testbuf, buf->reader(), len));
@@ -205,7 +208,7 @@ namespace Psio
 		EXPECT_FALSE(empty_body);
 		EXPECT_TRUE(has_headers) << "No headers read";
 		EXPECT_TRUE(res_headers && res_headers->GetMajor() == 0 && res_headers->GetMinor() == 9) << "Header version missmatch - should be 0.9";;
-		size_t len = min(buf->Remaining(), strlen(testbuf));
+		size_t len = std::min(buf->Remaining(), strlen(testbuf));
 		EXPECT_TRUE(0 == std::memcmp(testbuf, buf->reader(), len));
 	}
 
@@ -233,7 +236,7 @@ namespace Psio
 
 		EXPECT_FALSE(req_failed) << "Request failed";
 		EXPECT_FALSE(empty_body);
-		size_t len = min(buf->Remaining(), strlen(testbuf));
+		size_t len = std::min(buf->Remaining(), strlen(testbuf));
 		EXPECT_TRUE(has_headers) << "No headers read";
 		EXPECT_TRUE(res_headers && res_headers->GetMajor() == 1 && res_headers->GetMinor() == 1) << "Header version missmatch - should be 1.1";
 		EXPECT_TRUE(res_headers && !(*res_headers)["Server"].compare("TestMockServer v1") && !(*res_headers)["Content-Length"].compare("123")) << "Headers not parsed correctly";
@@ -262,7 +265,7 @@ namespace Psio
 
 		EXPECT_FALSE(req_failed) << "Request failed";
 		EXPECT_FALSE(empty_body);
-		size_t len = min(sock->GetSentData()->Remaining(), strlen(sentbuf));
+		size_t len = std::min(sock->GetSentData()->Remaining(), strlen(sentbuf));
 		EXPECT_TRUE(0 == std::memcmp(sentbuf, sock->GetSentData()->reader(), len));
 	}
 
@@ -294,7 +297,7 @@ namespace Psio
 
 		EXPECT_FALSE(req_failed) << "Request failed";
 		EXPECT_FALSE(empty_body);
-		size_t len = min(sock->GetSentData()->Remaining(), strlen(sentbuf));
+		size_t len = std::min(sock->GetSentData()->Remaining(), strlen(sentbuf));
 		EXPECT_TRUE(0 == std::memcmp(sentbuf, sock->GetSentData()->reader(), len)) << "Sent headers and status line mismatch";
 	}
 
@@ -343,7 +346,7 @@ namespace Psio
 		IOBuffer w_buffer(1024);
 		w_buffer.Write(answer, strlen(answer));
 		std::string srv_got;
-		int ret = srv_sock.Accept([&](TCPSocket* new_sock, int err) {
+		int ret = srv_sock.Accept([&](StreamSocket* new_sock, int err) {
 			int ret = new_sock->Read(&r_buffer, [&,new_sock](int result)->int {
 				srv_got = std::string(r_buffer.reader(), result);
 				printf("Server received:\n%s\n--\n", srv_got.c_str());

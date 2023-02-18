@@ -13,5 +13,11 @@ namespace Rhea
 				return true;
 		}
 		return false;
-	}	
+	}
+	
+	bool EventInput::isAction(EventInput* ev)
+	{
+		return (m_actions==ev->m_actions);
+	}
+
 }

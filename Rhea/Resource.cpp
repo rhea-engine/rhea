@@ -1,6 +1,6 @@
 #include "Resource.h"
 #include "ResourceList.h"
-#include "Application.h"
+#include <Psio/Log.h>
 
 namespace Rhea {
 	
@@ -28,7 +28,7 @@ namespace Rhea {
 		Unit::prepare([&, handler](Error* err) {
 
 			if (err) {
-				m_app->log("Unit::prepare failed");
+				LOG(LOG_ERROR) << "Unit::prepare failed";
 			}
 
 			// do nothing if no resources are defined

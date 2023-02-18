@@ -1,6 +1,6 @@
 #include "CommandError.h"
 
-void CommandError::onRequest(std::shared_ptr<Request> request, std::shared_ptr<Response> response)
+int CommandError::OnRequest(Psio::HttpRequest* req, Psio::HttpResponse* res)
 {
-	response->sendError(501);
+	return res->sendError(501);
 }

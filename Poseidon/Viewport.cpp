@@ -16,7 +16,6 @@ namespace Poseidon
 		m_groups.emplace("renderable", std::vector<Node*>());
 		RenderContext* context = new RenderContext(std::string("default"));
 		m_render_contexts.push_back(context);
-		Node::addChild(context);
 	}
 
 	Viewport::~Viewport()
@@ -50,7 +49,6 @@ namespace Poseidon
 	{
 		RenderContext* context = new RenderContext(name);
 		m_render_contexts.push_back(context);
-		Node::addChild(context);
 		return context;
 	}
 

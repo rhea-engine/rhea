@@ -1,12 +1,13 @@
 #include "SpectatorController.h"
-#include "../Item.h"
+#include "Fabrics/3D/Item.h"
 #include "../Application.h"
 #include "../UnitTree.h"
-#include "../Camera.h"
+#include "Fabrics/3D/Camera.h"
 #include "../Graphics/CameraManager.h"
 #include "../Graphics/GraphicsService.h"
 #include "../Graphics/GraphicsManager.h"
 #include <Rhea/EventInput.h>
+#include <Psio/Log.h>
 
 namespace Rhea
 {
@@ -37,7 +38,7 @@ namespace Rhea
 		return BasicController::onInput(ev, unit);
 	}
 
-	void SpectatorController::show(Poseidon::Core* core)
+	void SpectatorController::show()
 	{
 
 		std::unordered_map<std::string, std::string> attr;
@@ -48,35 +49,34 @@ namespace Rhea
 		GraphicsService* gs = static_cast<GraphicsService*>(m_app->getService("graphics"));
 		GraphicsManager* mgr = gs->getManager("//meworla/camera");
 		//GraphicsCamera::createElement(core, m_view);
-		mgr->createElement(core, m_view);
+		mgr->createElement(gs->getEngine(), m_view);
 
 		// get target
 		
 		auto target_name_it = m_values.find("target");
 		if (target_name_it == m_values.end()) {
-			m_app->log("Spectator " + m_pathname + ": no target defined");
+			LOG(LOG_ERROR) << "Spectator " << m_pathname << ": no target defined";
 			return;
 		}
 		// connect
 		m_target = static_cast<Item*>(m_app->getUnitTree()->find(target_name_it->second));
 		if (!m_target) {
 			std::string name = target_name_it->second;
-			m_app->log("Spectator " + m_pathname + ": target " + name + " not found");
+			LOG(LOG_ERROR) << "Spectator " << m_pathname << ": target " << name << " not found";
 			return;
 		}		
 
 		// add relative position of view
 		auto it = m_values.find("position");
-		Poseidon::Vector3 position;
+		Math::Vector3 position;
 		if (it != m_values.end())
-			position = Poseidon::Vector3(it->second[0], it->second[1], it->second[2]);
+			position = Math::Vector3(it->second[0], it->second[1], it->second[2]);
 		else
-			position = Poseidon::Vector3(0.0f, 1.7f, -3.0f);
+			position = Math::Vector3(0.0f, 1.7f, -3.0f);
 		m_view->setPosition(position);
 		m_position.setPosition(position);
 
 		//  add following
-		((Rhea::Item*)m_target)->addFollower(m_view);
 		m_target->addChild(m_view);
 
 		_registerEvent(m_app->getUnitTree());
@@ -86,26 +86,26 @@ namespace Rhea
 	{
 		Unit::message(method_name);
 		if (method_name == "show")
-			show(m_app->get_core());
+			show();
 	}
 
-	void SpectatorController::setPosition(Poseidon::Vector3 position)
+	void SpectatorController::setPosition(Math::Vector3 position)
 	{
 		m_position.setPosition(position);
-		//m_position.setOrientation(Poseidon::Quaternion(m_rotation, Poseidon::Vector3(0.0f, 1.0f, 0.0f))); 
+		//m_position.setOrientation(Math::Quaternion(m_rotation, Math::Vector3(0.0f, 1.0f, 0.0f))); 
 		((Item*)m_target)->setPosition(m_position);
 
 	}
 
-	void SpectatorController::lookAt(Poseidon::Vector3& target)
+	void SpectatorController::lookAt(Math::Vector3& target)
 	{
-		m_position.lookAt(target, Poseidon::Vector3::UNIT_Z);
+		m_position.lookAt(target, Math::Vector3::UNIT_Z);
 		((Item*)m_target)->setPosition(m_position);
 	}
 
 	void SpectatorController::_registerEvent(Unit* unittree)
 	{
-		unittree->registerEventHandler("unhandled_input", std::bind(&SpectatorController::onInput, this, std::placeholders::_1, std::placeholders::_2));
+		unittree->registerEventHandler("unhandled_input", this, std::bind(&SpectatorController::onInput, this, std::placeholders::_1, std::placeholders::_2));
 	}
 
 	Unit* SpectatorController::createType(std::string name, std::string type)

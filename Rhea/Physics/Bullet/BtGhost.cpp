@@ -1,13 +1,12 @@
-#include <Poseidon/Math/Quaternion.h>
-#include <Poseidon/Node.h>
+#include <Math/Quaternion.h>
 
 #include "BtGhost.h"
-#include "Item.h"
+#include "Fabrics/3D/Item.h"
 
 #include "btBulletDynamicsCommon.h"
 #include "BulletCollision/CollisionDispatch/btGhostObject.h"
 
-using Poseidon::Vector3;
+using Math::Vector3;
 
 namespace Rhea {
 
@@ -20,19 +19,17 @@ namespace Rhea {
 
 	BulletPhysicsGhost::~BulletPhysicsGhost()
 	{
-		if (m_ghost_object)
+		if (m_ghost_object) {
+			m_world->removeCollisionObject(m_ghost_object);
 			delete m_ghost_object;
+		}
 	}
 
 	bool BulletPhysicsGhost::init()
 	{
-		Poseidon::Node* node = m_item->getNode();
-		if (!node || !node->get_position())
-			return false;
-
 		// get position and rotation from m_item
-		Poseidon::Vector3 pos = node->get_position()->get_worldspace();
-		Poseidon::Quaternion rot = node->get_position()->get_rotation();
+		Math::Vector3 pos = m_item->getTransform()->get_position()->get_worldspace();
+		Math::Quaternion rot = m_item->getTransform()->get_position()->get_rotation();
 		m_offset_y = m_item->getValue("collision_shape_offset_y");
 		if (m_offset_y)
 			pos.y += m_offset_y;
@@ -56,7 +53,7 @@ namespace Rhea {
 		return true;
 	}
 
-	void BulletPhysicsGhost::setPosition(Poseidon::Vector3& position)
+	void BulletPhysicsGhost::setPosition(Math::Vector3& position)
 	{
 		if (m_ghost_object) {
 			btTransform newTrans = m_ghost_object->getWorldTransform();
@@ -65,7 +62,7 @@ namespace Rhea {
 		}
 	}
 	
-	void BulletPhysicsGhost::setOrientation(Poseidon::Quaternion& rot)
+	void BulletPhysicsGhost::setOrientation(Math::Quaternion& rot)
 	{
 		if (m_ghost_object) {
 			btTransform newTrans = m_ghost_object->getWorldTransform();

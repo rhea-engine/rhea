@@ -1,6 +1,6 @@
 #include "Poseidon/Core.h"
 #include "Poseidon/Mesh.h"
-#include "Poseidon/Image.h"
+#include <Psio/Image/Image.h>
 #include "Poseidon/Material.h"
 #include "Poseidon/Viewport.h"
 

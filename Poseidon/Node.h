@@ -5,60 +5,41 @@
 #include <unordered_map>
 #include <string>
 
-#include "Position.h"
+#include <Rhea/Fabrics/Core/Position.h>
+#include <Rhea/Element.h>
+#include <Rhea/Unit.h>
+#include <Rhea/Fabrics/Core/Transform.h>
+
+using Rhea::Position;
 
 namespace Poseidon
 {
 	/** A node is an item in the scene tree	 
 	*/
-	class Node
+	class Node : public Rhea::Element
 	{
 	public:
-		Node() :
-			m_parent_node(NULL)
+		Node() 
 		{}
 		virtual ~Node();
 
-		void setName(char* name);
-		
-		// adding a child
-		void addChild(Node* child_node);
-
-		// remove a child
-		void removeChild(Node* child_node);
-
-		// get parent - returns NULL for top
-		Node* getParent() { return m_parent_node; }
-		Node* createChild();
-		virtual bool update();
-		virtual void updateImpl();
-
 		// position related
 
-		// get position or if empty the nearest parents
+		// get position
 		Position* get_position();
 		Position* get_derived_position();
-
-		// create a position of the given type
-		void createPosition(int position_type);
 
 		// set the coord space 0: world, 1: parent
 		void setCoordSpace(int space) { m_coord_space = space; }
 
-		// we need an update
-		void needUpdate();
-
+		void setTransform(Rhea::Transform* transform) { m_transform = transform; }
+		Rhea::Transform* getTransform() { return m_transform; }
+	
 	protected:	
-		char* m_node_name = "(unknwon)";
-		Node* m_parent_node = 0;
-		int depth = 0;
-		std::vector<Node*> children;
-		Position* m_position = NULL;
-		Position* m_derived_position = NULL;
+		
 		int m_coord_space = 0;
-		bool m_need_update = false;
-		bool m_in_updating = false;
-		bool m_derived_valid = false;
+
+		Rhea::Transform* m_transform = nullptr;
 
 		// groups of nodes
 

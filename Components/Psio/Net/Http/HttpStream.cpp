@@ -1,9 +1,13 @@
 #include "HttpStream.h"
+#include "HttpStream.h"
 #include "../Network.h"
 #include "../IOBuffer.h"
 #include "../Socket/TCPSocket.h"
 #include <Components/Psio/Util.h>
 #include <Psio/Log.h>
+#include <string.h>
+#include <algorithm>
+#undef min
 
 namespace Psio
 {
@@ -28,7 +32,8 @@ namespace Psio
 		m_request = request_info;
 		std::string request;
 		m_handler = handler;
-		request = m_request.headers.GenerateRequestString(m_request.url.Path()) + m_request.headers.ToString();
+		std::string url = m_request.url.Path();
+		request = m_request.headers.GenerateRequestString(url) + m_request.headers.ToString();
 	
 		size_t request_headers_length = request.size();
 		m_req_buffer = new IOBuffer(request_headers_length);
@@ -216,7 +221,7 @@ namespace Psio
 	}
 
 	// from chromium net/http/http_util.cc
-	static size_t LocateEndOfHeadersHelper(const char* buf, size_t buf_len, size_t i, bool accept_empty_header_list) {
+	size_t HttpStream::LocateEndOfHeadersHelper(const char* buf, size_t buf_len, size_t i, bool accept_empty_header_list) {
 		char last_c = '\0';
 		bool was_lf = false;
 		if (accept_empty_header_list) {
@@ -279,7 +284,7 @@ namespace Psio
 			const size_t http_len = 4;
 
 			if (buf_len >= http_len) {
-				size_t i_max = min(buf_len - http_len, slop);
+				size_t i_max = std::min(buf_len - http_len, slop);
 				for (size_t i = 0; i <= i_max; ++i) {
 					if (!strncmp_i(buf + i, "http", http_len)) {
 						m_headers_start = i;

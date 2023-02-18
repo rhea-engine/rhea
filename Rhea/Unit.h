@@ -45,6 +45,12 @@ namespace Rhea
 		// add a child resource
 		void addChild(Unit* child);
 
+		// remove a child
+		void removeChild(Unit* child);
+
+		// get parent - returns NULL for top
+		Unit* getParent() { return m_parent; }
+
 		// get name
 		std::string getPathName() { return m_pathname; }
 
@@ -92,10 +98,13 @@ namespace Rhea
 		virtual void message(std::string method_name);
 
 		// register the event handler for event event_name
-		void registerEventHandler(std::string event_name, Event::EventHandler handler);
+		void registerEventHandler(std::string event_name, void* owner, Event::EventHandler handler);
+
+		// unregister a handler
+		void unregisterEventHandler(std::string event_name, void* owner);
 		
 		// register event handler in all children of the unit
-		void registerEventHandlerChildren(std::string event_name, Event::EventHandler handler);
+		void registerEventHandlerChildren(std::string event_name, void* owner, Event::EventHandler handler);
 
 		// send Event
 		void sendEvent(std::string event_name, Event* event);
@@ -105,6 +114,9 @@ namespace Rhea
 
 		// send event to parent subtree
 		void sendEventSubtree(Unit* top, std::string event_name, Event* event);
+
+		// void traverser subtree
+		void traverse(std::function<void(std::string&, Unit*)> handler);
 
 		// get Application
 		Application* getApplication() { return m_app; }
@@ -134,7 +146,7 @@ namespace Rhea
 		std::unordered_map<std::string, std::string> m_attributes;
 		std::unordered_map<std::string, Variant> m_values;
 		std::unordered_map<std::string, Unit*> m_children;
-		std::unordered_map < std::string, std::vector<Event::EventHandler>> m_eventhandlers;		
+		std::unordered_map < std::string, std::unordered_map<void*, Event::EventHandler >> m_eventhandlers;
 		std::unordered_map<std::string, Element*> m_elements;
 		int m_refcount;
 		int m_to_load;

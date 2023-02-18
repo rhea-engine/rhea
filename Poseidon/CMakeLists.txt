@@ -3,16 +3,17 @@
 #
 cmake_minimum_required (VERSION 3.9.2)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ ${CMAKE_SOURCE_DIR}/ ${CMAKE_SOURCE_DIR}/Components ${CMAKE_SOURCE_DIR}/ThirdParty)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ ${CMAKE_SOURCE_DIR}/ ${CMAKE_SOURCE_DIR}/Components ${CMAKE_SOURCE_DIR}/ThirdParty ${CMAKE_SOURCE_DIR}/ThirdParty/bullet/src)
 
 # define the main library
-add_library (Poseidon "Core.cpp" "Node.cpp" "Mesh.cpp" "Viewport.cpp" "Image.cpp" 
-"Texture.cpp" "Material.cpp" "Camera.cpp" "Entity.cpp" "Position.cpp" "RenderQueue.cpp" "SceneManager.cpp"
-"Math/Quaternion.cpp" "Math/Vector3.cpp" "Math/Matrix3.cpp" "Math/Matrix4.cpp" "Math/Matrix3x4.cpp"
- "SceneManager.cpp" "Window.cpp" "Shader.h" "Shader.cpp" "RenderContext.h" "RenderContext.cpp")
+add_library (Poseidon "Core.cpp" "Node.cpp" "Mesh.cpp" "Viewport.cpp" 
+"Texture.cpp" "Material.cpp" "Camera.cpp" "Entity.cpp" "RenderQueue.cpp" "SceneManager.cpp"
+ "SceneManager.cpp" "Window.cpp" "Shader.h" "Shader.cpp" "RenderContext.h" "RenderContext.cpp" "Poseidon.cpp"
+"Network/ClientService.h" "Network/ClientService.cpp" "Network/WorldClient.h" "Network/WorldClient.cpp")
 
 # build the components
-target_link_libraries(Poseidon Psio)
+#target_link_libraries(Poseidon Psio)
+
 
 # add the renderer engine
-target_link_libraries(Poseidon HippiosEngine)
+target_link_libraries(Poseidon HippiosEngine Hermes)

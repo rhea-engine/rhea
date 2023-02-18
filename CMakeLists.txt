@@ -9,6 +9,10 @@ project ("Poseidon")
 #set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/CMake")
 #set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/CMake")
 
+message("MSVC_VERSION: ${MSVC_VERSION}")
+message("MSVC_TOOLSET_VERSION: ${MSVC_TOOLSET_VERSION}")
+include(InstallRequiredSystemLibraries)
+
 # add some warnings
 enable_testing()
 
@@ -58,8 +62,14 @@ endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ ${CMAKE_SOURCE_DIR}/Components/ ${CMAKE_SOURCE_DIR}/ThirdParty/)
 
+# Cross-Compiling works only for some projects
+set(targetdirs Components FortyTwo)
+if(WIN32)
+    list(APPEND targetdirs Poseidon Hippios Orion Rhea Ceto Hermes Iris)    
+endif()
+
 # Targets
-foreach (TARGET Poseidon Components Hippios Orion Rhea Ceto Hermes Iris)
+foreach (TARGET ${targetdirs})
 	add_subdirectory(${TARGET})	
 endforeach ()
 

@@ -63,7 +63,7 @@ const long LOCAL_FL_SET = FIONBIO;
 const int LOCAL_BLOCKING_ERROR = EAGAIN;
 const int LOCAL_CONNECT_BLOCKING = EINPROGRESS;
 
-#elif defined(IS_LINUX) || defined(IS_OSX) || defined(IS_FREEBSD)
+#elif defined(__linux__) || defined(IS_LINUX) || defined(IS_OSX) || defined(IS_FREEBSD)
 /*
 *	Linux, OSX, FreeBSD
 */

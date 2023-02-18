@@ -4,7 +4,7 @@
 #include <Poseidon/Core.h>
 
 #include "../Element.h"
-#include "../Scene.h"
+#include "Fabrics/Core/Scene.h"
 
 #include "GraphicsManager.h"
 

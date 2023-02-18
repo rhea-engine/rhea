@@ -1,72 +1,40 @@
 #include "Server.h"
-#include "TcpServer.h"
-#include "Connection.h"
-#include "IConnectionHandler.h"
+#include <Psio/Log.h>
 
 using std::list;
 
 namespace Hermes
 {
-	Server::Server(bool tcp, bool udp) :
-		m_tcp(tcp),
-		m_udp(udp),
-		m_req_handler_factory(NULL)
-	{
-	}
-
-	int Server::listen(IPAddress& ip, uint16_t port)
+	int Server::Setup(std::string ip, uint16_t port, ConnectionHandler connection_handler)
 	{
 		int ret = 0;
+		m_connection_handler = connection_handler;
 
 		if (m_tcp)
 		{
-			if (!m_tcp_server)
-				m_tcp_server = new TcpServer();
-			ret = m_tcp_server->start(ip, port);
+			if (!m_server)
+				m_server = std::make_unique<Psio::TCPSocket>(m_net);
+			ret = static_cast<Psio::TCPSocket*>(m_server.get())->Server(ip, port);
 		}
 		return ret;
 	}
 
+	void Server::Start()
+	{
+		int ret = m_server->Accept([&](Psio::StreamSocket* new_sock, int err) {
+			if (err >= 0) {
+				std::unique_ptr<Psio::StreamSocket> sock;
+				sock.reset(new_sock);
+				m_connection_handler(std::move(sock), err);
+			}
+			else {
+				LOG(LOG_ERROR) << "Accept failed with error: " << err;
+			}
+			});
+	}
+
 	void Server::run()
 	{
-		// check for new connections
-		while (m_tcp_server->connectionAvailable())
-		{
-			Hermes::TcpStream* s = m_tcp_server->accept();
-			if (s) {
-
-				Connection* conn = new Connection(s, m_req_handler_factory);
-				// handle onConnection
-				for (std::list<IConnectionHandler*>::iterator it = m_conn_handlers.begin(); it != m_conn_handlers.end(); ++it) {
-					IConnectionHandler *h = *it;
-					h->onConnection(conn);
-				}
-
-				m_connections.push_back(conn);
-			}
-		}
-
-		// iterate over connections
-		list <Connection*> ::iterator conn_it = m_connections.begin();
-		list <Connection*> ::iterator conn_end = m_connections.end();
-		Connection::CONN_STATE conn_state;
-		while (conn_it != conn_end)
-		{
-			Connection* conn = *conn_it;
-			conn_state = conn->iterate();
-			if (conn_state != Connection::STATE_CLOSED)
-				++conn_it;
-			else
-			{
-				// connection is closed - remove it
-				conn_it = m_connections.erase(conn_it);
-				for (std::list<IConnectionHandler*>::iterator it = m_conn_handlers.begin(); it != m_conn_handlers.end(); ++it) {
-					IConnectionHandler* h = *it;
-					h->onClose(conn);
-				}
-				delete conn;
-			}
-		}
-
+		m_net->RunLoop();
 	}
 }

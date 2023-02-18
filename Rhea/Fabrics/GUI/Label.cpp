@@ -1,8 +1,9 @@
 #include "Label.h"
 #include "Application.h"
 #include "UnitTree.h"
-#include "Scene.h"
+#include "Fabrics/Core/Scene.h"
 #include "../Text/TextWidget.h"
+#include <Psio/Log.h>
 
 namespace Rhea
 {
@@ -64,7 +65,7 @@ namespace Rhea
 		// find the scene
 		Scene* scene = (Scene*)m_app->getUnitTree()->findByType("//meworla/scene");
 		if (!scene) {
-			m_app->log("Widget: Scene not found");
+			LOG(LOG_ERROR) << "Widget: Scene not found";
 			return;
 		}
 

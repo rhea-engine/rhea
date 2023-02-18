@@ -174,29 +174,42 @@ namespace Psio
 
 	int TCPSocket::Accept(ConnectHandler handler)
 	{
-		SOCKET connected_socket = accept(m_socket, NULL, NULL);
+		struct sockaddr_storage remote_address;
+		socklen_t size = sizeof(remote_address);
+
+		SOCKET connected_socket = accept(m_socket, (struct sockaddr*)&remote_address, &size);
 		if (connected_socket == INVALID_SOCKET) {
 			int ret = WSAGetLastError();
 			if (ret == WSA_IO_PENDING || ret == WSAEWOULDBLOCK) {
 				// non blocking
 				DLOG(LOG_DEBUG) << "watch for incomming connection";
+
 				m_net->Watch(m_socket, Network::IOFLAG::READ, false, [&, handler](int result) {
+					struct sockaddr_storage remote_address;
+					socklen_t size = sizeof(remote_address);
 					if (result >= 0)
 						result = Network::Err::OK;
-					SOCKET connected_socket = accept(m_socket, NULL, NULL);
-					DLOG(LOG_DEBUG) << "New socket: " << connected_socket;
+					SOCKET connected_socket = accept(m_socket, (struct sockaddr*)&remote_address, &size);
 					if (connected_socket == INVALID_SOCKET) {
 						result = WSAGetLastError();
-						handler(nullptr, result);
+						int err = m_net->SysErr(result);
+						handler(nullptr, err);
 					}
 					else {
+						DLOG(LOG_DEBUG) << "New socket: " << connected_socket;
 						TCPSocket* new_sock = new TCPSocket(m_net, connected_socket);
+						m_addr.SetAddress(&remote_address);
+						new_sock->SetAddress(m_addr);
 						handler(new_sock, result);
 					}
 					});
 				return Network::Err::IO_PENDING;
 			}
 			return m_net->SysErr(ret);
+		}
+		else {
+			//synchronous accept not implemented
+			abort();
 		}
 		return 0;
 	}
@@ -213,6 +226,11 @@ namespace Psio
 					if (ret == INVALID_SOCKET) {
 						int err = WSAGetLastError();
 						ret = m_net->SysErr(err);
+						if (ret == Network::Err::IO_PENDING) {
+							// retry
+							Write(buf, handler);
+							return;
+						}
 					}
 					else if (ret > 0)
 						buf->Consume(ret);
@@ -239,10 +257,18 @@ namespace Psio
 			if (err == WSAEWOULDBLOCK) {
 				// non-blocking read
 				m_net->Watch(m_socket, Network::IOFLAG::READ, true, [&, handler, buf](int result)->void {
+					if (buf->FreeBufSize() < 8 * 1024) {
+						buf->Grow(64 * 1024);
+					}
 					int ret = recv(m_socket, buf->writer(), (int)buf->FreeBufSize(), 0);
 					if (ret == INVALID_SOCKET) {
 						int err = WSAGetLastError();
 						ret = m_net->SysErr(err);
+						if (ret == Network::Err::IO_PENDING) {
+							// retry
+							Read(buf, handler);
+							return;
+						}
 					}
 					if (ret>0)
 						buf->Produce(ret);

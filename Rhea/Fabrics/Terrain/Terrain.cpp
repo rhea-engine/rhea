@@ -3,14 +3,15 @@
 #include "Application.h"
 #include "Fabrics/Media/ImageResource.h"
 #include "Unit.h"
-#include "Mesh.h"
+#include "Fabrics/3D/Mesh.h"
 #include "UnitTree.h"
-#include <Poseidon/Image.h>
+#include <Psio/Image/Image.h>
 #include <Poseidon/SceneManager.h>
 #include <Poseidon/Shader.h>
-#include "Material.h"
+#include "Fabrics/Core/Material.h"
 #include "TextResource.h"
 #include "ResourceList.h"
+#include <Psio/Log.h>
 
 namespace Rhea
 {
@@ -55,9 +56,9 @@ namespace Rhea
 			float h_bottom_left = m_heights[gridX + (gridZ + 1) * m_length];
 
 			ret = barryCentric(
-				Poseidon::Vector3(0, h_top_left, 0),
-				Poseidon::Vector3(1, h_top_right, 0),
-				Poseidon::Vector3(0, h_bottom_left, 1), 
+				Math::Vector3(0, h_top_left, 0),
+				Math::Vector3(1, h_top_right, 0),
+				Math::Vector3(0, h_bottom_left, 1), 
 				xCoord, zCoord);
 		}
 		else {
@@ -66,9 +67,9 @@ namespace Rhea
 			float h_bottom_left = m_heights[gridX + (gridZ + 1) * m_length];
 
 			ret = barryCentric(
-				Poseidon::Vector3(1, h_top_right, 0),
-				Poseidon::Vector3(1, h_bottom_right, 1),
-				Poseidon::Vector3(0, h_bottom_left, 1), 
+				Math::Vector3(1, h_top_right, 0),
+				Math::Vector3(1, h_bottom_right, 1),
+				Math::Vector3(0, h_bottom_left, 1), 
 				xCoord, zCoord);
 		}
 		return ret;
@@ -92,14 +93,14 @@ namespace Rhea
 		return map;
 	}
 
-	Poseidon::Vector3 Terrain::calculateNormal(int x, int y)
+	Math::Vector3 Terrain::calculateNormal(int x, int y)
 	{
 		float heightL = getHeightAt(x - 1, y);
 		float heightR = getHeightAt(x + 1, y);
 		float heightD = getHeightAt(x, y - 1);
 		float heightU = getHeightAt(x, y + 1);
 
-		Poseidon::Vector3 normal(heightL - heightR, 2.0f, heightD - heightU);
+		Math::Vector3 normal(heightL - heightR, 2.0f, heightD - heightU);
 		normal.normalise();
 
 		return normal;
@@ -112,7 +113,7 @@ namespace Rhea
 		m_status = Status::READY;
 		Unit::ready();
 
-		Unit* map = m_app->getUnitTree()->find(m_values["heightmap"]);
+		Unit* map = (*m_resource_list)["heightmap"];
 		if (map) {
 			addChild(map);
 
@@ -141,7 +142,7 @@ namespace Rhea
 					// build buffers
 					std::vector<Mesh::vertex> vertices;
 					std::vector<unsigned long> indices;
-					std::vector<Poseidon::Vector3> normals;
+					std::vector<Math::Vector3> normals;
 					Mesh::vertex vertex;
 					m_heights = new float[(long)m_length * (long)m_width];
 
@@ -200,51 +201,38 @@ namespace Rhea
 				material->setup(m_app);
 				material->setValue("shader", std::string("terrain"));
 
-				m_mesh->setMaterial(material);
-
-				/*
-				m_material = m_app->get_core()->getMaterial("terrain");
-				if (!m_material) {
-					m_material = m_app->get_core()->createMaterial();
-					Poseidon::Shader* m_shader = m_app->get_core()->getShader("terrain");
-					m_material->setTopology(2);
-					if (m_shader->loadFromFile("Data\\Rhea\\shaders\\terrain.hlsl", "VShader", "PShader"))
-						exit(-1);
-					m_material->setShader(m_shader);
-					m_app->get_core()->registerMaterial("terrain", m_material);
-				}
-				*/
+				m_mesh->setMaterial(material);				
 			}
 
 			Material* material = m_mesh->getMaterial();
 
 			// add shader
-			Unit* shader = m_app->getUnitTree()->find("//rhea/shaders/terrain.hlsl");
+			Unit* shader = (*m_resource_list)["shader"];
 			if (shader)
 				material->setShader(static_cast<TextResource*>(shader));
 			else
-				m_app->log("Terrain: shader not found");
+				LOG(LOG_ERROR) << "Terrain: shader not found";
 
 			// add textures
 			Unit* texture;
 			if (m_values["blendmap"] != Variant()) {
-				texture = m_app->getUnitTree()->find(m_values["blendmap"]);
+				texture = (*m_resource_list)["blendmap"];
 				material->addTexture(static_cast<ImageResource*>(texture));
 			}
 			if (m_values["texture1"] != Variant()) {
-				texture = m_app->getUnitTree()->find(m_values["texture1"]);
+				texture = (*m_resource_list)["texture1"];
 				material->addTexture(static_cast<ImageResource*>(texture));
 			}
 			if (m_values["texture2"] != Variant()) {
-				texture = m_app->getUnitTree()->find(m_values["texture2"]);
+				texture = (*m_resource_list)["texture2"];
 				material->addTexture(static_cast<ImageResource*>(texture));
 			}
 			if (m_values["texture3"] != Variant()) {
-				texture = m_app->getUnitTree()->find(m_values["texture3"]);
+				texture = (*m_resource_list)["texture3"];
 				material->addTexture(static_cast<ImageResource*>(texture));
 			}
 			if (m_values["texture4"] != Variant()) {
-				texture = m_app->getUnitTree()->find(m_values["texture4"]);
+				texture = (*m_resource_list)["texture4"];
 				material->addTexture(static_cast<ImageResource*>(texture));
 			}
 		}
@@ -256,7 +244,7 @@ namespace Rhea
 		return ret;
 	}
 
-	float Terrain::barryCentric(Poseidon::Vector3 p1, Poseidon::Vector3 p2, Poseidon::Vector3 p3, float x, float z)
+	float Terrain::barryCentric(Math::Vector3 p1, Math::Vector3 p2, Math::Vector3 p3, float x, float z)
 	{
 		float det = (p2.z - p3.z) * (p1.x - p3.x) + (p3.x - p2.x) * (p1.z - p3.z);
 		float l1 = ((p2.z - p3.z) * (x - p3.x) + (p3.x - p2.x) * (z - p3.z)) / det;

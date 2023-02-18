@@ -5,17 +5,17 @@
 #include <Poseidon/RenderContext.h>
 
 #include "../Unit.h"
-#include "../Item.h"
-#include "../Mesh.h"
-#include "../Material.h"
+#include "Fabrics/3D/Item.h"
+#include "Fabrics/3D/Mesh.h"
+#include "Fabrics/Core/Material.h"
 #include "../TextResource.h"
-#include "../Application.h"
 #include "../UnitTree.h"
 
 #include "ItemManager.h"
-#include "Mesh.h"
 #include "Texture.h"
 #include "MeshElement.h"
+
+#include <Psio/Log.h>
 
 namespace Rhea
 {
@@ -32,13 +32,15 @@ namespace Rhea
 		Mesh* item_mesh = item->getMesh();
 
 		// safety check
-		if (!item_mesh)
+		if (!item_mesh) {
+			DLOG(LOG_DEBUG) << "GraphicsItemManager::createElement: getMesh returned nullptr";
 			return nullptr;
+		}
 		
 		// make sure we have a material
 		Rhea::Material* material = item_mesh->getMaterial();
 		if (!material) {
-			unit->getApplication()->log(unit->getPath() + ": item has no material");
+			LOG(LOG_ERROR) << unit->getPath() + ": item has no material";
 			delete elem;
 			return nullptr;
 		}
@@ -51,7 +53,7 @@ namespace Rhea
 		}
 
 		// create the element		
-		Poseidon::Node* entity = createRenderable(elem, core, unit, "default", false);
+		Poseidon::Renderable* entity = static_cast<Poseidon::Renderable*>(createRenderable(elem, core, unit, "default", false));
 		
 		if (!mesh_el) {
 			// mesh was not defined up till now - store it in mesh unit
@@ -66,7 +68,7 @@ namespace Rhea
 		}
 
 		// add the position
-		addPosition(unit, entity);
+		entity->setTransform(((Item*)unit)->getTransform());
 
 		// set the material
 		setMaterial(core, material, entity);
@@ -75,8 +77,8 @@ namespace Rhea
 		unit->addElement("graphics", elem);
 
 		// register handlers
-		unit->registerEventHandler("delete", std::bind(&GraphicsItemManager::onItemDelete, this, std::placeholders::_1, std::placeholders::_2));
-		unit->registerEventHandler("update", std::bind(&GraphicsItemManager::onUpdate, this, std::placeholders::_1, std::placeholders::_2));
+		unit->registerEventHandler("delete", this, std::bind(&GraphicsItemManager::onItemDelete, this, std::placeholders::_1, std::placeholders::_2));
+		unit->registerEventHandler("update", this, std::bind(&GraphicsItemManager::onUpdate, this, std::placeholders::_1, std::placeholders::_2));
 
 		// add to my list
 		m_elements.push_back(elem);
@@ -126,13 +128,13 @@ namespace Rhea
 	bool GraphicsItemManager::onItemDelete(Event* ev, Unit* unit)
 	{
 		//erase element from list
-		Element* elem = unit->getElement("graphics");
+		GraphicsRenderElement* elem = (GraphicsRenderElement*)(unit->getElement("graphics"));
 		auto elem_pos = std::find(m_elements.begin(), m_elements.end(), elem);
 		if (elem_pos != m_elements.end())
 			m_elements.erase(elem_pos);
-		unit->addElement("graphics", nullptr);
+
 		// free element
-		delete elem;
+		unit->addElement("graphics", nullptr);
 
 		return false;
 	}

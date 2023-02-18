@@ -5,6 +5,7 @@
 #include <Hippios/VertexBuffer.h>
 #include <Poseidon/Shader.h>
 #include <Poseidon/RenderContext.h>
+#include <Graphics/GraphicsService.h>
 
 namespace Rhea
 {
@@ -12,28 +13,35 @@ namespace Rhea
 	{
 		m_app = app;
 		m_mesh = new Poseidon::Mesh();
-		m_mesh->setViewport(app->get_core()->get_scene_manager()->getViewport());
+		Poseidon::Core* core;
+
+		GraphicsService* gs = static_cast<GraphicsService*>(m_app->getService("graphics"));
+		if (!gs)
+			return;
+		core = gs->getEngine();
+
+		m_mesh->setViewport(core->get_scene_manager()->getViewport());
 		m_world = world;
 		m_num_faces = 0;	
 		m_enabled = true;
 
 		// prepare shaders		
-		material = app->get_core()->getMaterial("color");
+		material = core->getMaterial("color");
 		if (!material) {
-			material = app->get_core()->createMaterial();
+			material = core->createMaterial();
 			material->setTopology(2);
-			Poseidon::Shader* shader = app->get_core()->getShader("shader_vp");
+			Poseidon::Shader* shader = core->getShader("shader_vp");
 			if (!shader) {
-				shader = app->get_core()->createShader("shader_vp");
+				shader = core->createShader("shader_vp");
 				shader->setVertexType(0);
 				if (shader->loadFromFile("Data\\Rhea\\shaders\\shader_vp.hlsl", "VShader", "PShader"))
 					exit(-1);
 			}
 			material->setShader(shader);
-			app->get_core()->registerMaterial("color", material);
+			core->registerMaterial("color", material);
 		}
 
-		app->get_core()->get_scene_manager()->getViewport()->getRenderContext(std::string("default"))->addRenderChild(this);
+		core->get_scene_manager()->getViewport()->getRenderContext(std::string("default"))->addRenderChild(this);
 		int mode = DebugDraw::DBG_DrawText |
 			DebugDraw::DBG_DrawFeaturesText |
 			DebugDraw::DBG_DrawContactPoints;
@@ -158,13 +166,13 @@ namespace Rhea
 
 		Line line;
 
-		line.p0 = Poseidon::Vector3((float)from.getX(),
+		line.p0 = Math::Vector3((float)from.getX(),
 			(float)from.getY(),
 			(float)from.getZ());
-		line.p1 = Poseidon::Vector3((float)to.getX(),
+		line.p1 = Math::Vector3((float)to.getX(),
 			(float)to.getY(),
 			(float)to.getZ());
-		line.color = Poseidon::Vector3((float)r,
+		line.color = Math::Vector3((float)r,
 			(float)g,
 			(float)b);
 
@@ -191,19 +199,19 @@ namespace Rhea
 
 		Triangle tri;
 
-		tri.p0 = Poseidon::Vector3((float)v0.getX(),
+		tri.p0 = Math::Vector3((float)v0.getX(),
 			(float)v0.getY(),
 			(float)v0.getZ());
 
-		tri.p1 = Poseidon::Vector3((float)v1.getX(),
+		tri.p1 = Math::Vector3((float)v1.getX(),
 			(float)v1.getY(),
 			(float)v1.getZ());
 
-		tri.p2 = Poseidon::Vector3((float)v2.getX(),
+		tri.p2 = Math::Vector3((float)v2.getX(),
 			(float)v2.getY(),
 			(float)v2.getZ());
 
-		tri.color = Poseidon::Vector3((float)r,
+		tri.color = Math::Vector3((float)r,
 			(float)g,
 			(float)b);
 

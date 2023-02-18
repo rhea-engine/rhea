@@ -24,10 +24,10 @@ namespace Psio
 		{}
 		~TCPSocket();
 
-		typedef std::function<void(TCPSocket*, int err)> ConnectHandler;
-
 		// Create a socket with the given family
 		void SetAddress(SocketAddress& addr);
+		SocketAddress GetAddress();
+
 		int Open();
 		bool Close();
 
@@ -45,7 +45,10 @@ namespace Psio
 		int DoConnectLoop(int result);
 
 		// server functions
+
+		// setup a server on ip and port
 		int Server(std::string ip, int port, bool blocking = false);
+
 		// bind socket
 		int Bind();
 		// listen on address
@@ -57,6 +60,7 @@ namespace Psio
 		// socket implementation
 		int Write(IOBuffer* buf, Socket::CompletionHandler handler);
 		int Read(IOBuffer* buf, Socket::CompletionHandler handler);
+		SocketAddress* getRemoteAddress() { return &m_addr; }
 
 		// get raw socket
 		SOCKET GetRawSocket() { return m_socket; }

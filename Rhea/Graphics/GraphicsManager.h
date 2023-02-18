@@ -34,9 +34,12 @@ namespace Rhea
 
 		// create a renderable mesh
 		Poseidon::Node* createRenderable(GraphicsRenderElement* elem, Poseidon::Core* core, Unit* item, std::string render_context_name, bool dynamic_usage);
+		
+		// remove renderable from engine
+		void removeRenderable(GraphicsRenderElement* elem);
 
-		// set position
-		void addPosition(Unit* item, Poseidon::Node* entity);
+		// set position from values to transform t
+		void setPosition(Unit* u, Transform* t);
 
 		// set material
 		void setMaterial(Poseidon::Core* core, Material* material, Poseidon::Node* entity);

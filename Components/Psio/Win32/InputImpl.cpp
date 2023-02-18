@@ -1,10 +1,7 @@
-#ifdef WIN32
 #include <Windows.h>
-#endif
 
 #include "../Input.h"
 
-#ifdef WIN32
 namespace Psio
 {
 	std::shared_ptr<InputEvent> Input::poll()
@@ -35,4 +32,3 @@ namespace Psio
 		m_queue.push(evt);
 	}
 }
-#endif // WIN32

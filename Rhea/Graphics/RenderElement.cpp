@@ -13,18 +13,18 @@ namespace Rhea
 		}
 	}
 
-	void GraphicsRenderElement::setPosition(Poseidon::Position& position)
+	void GraphicsRenderElement::setPosition(Rhea::Position& position)
 	{
-		m_entity->get_position()->setPosition(position);
+		//m_entity->get_position()->setPosition(position);
 	}
 
-	void GraphicsRenderElement::setPosition(Poseidon::Vector3 position)
+	void GraphicsRenderElement::setPosition(Math::Vector3 position)
 	{
-		m_entity->get_position()->setPosition(position);
+		//m_entity->get_position()->setPosition(position);
 	}
 
-	void GraphicsRenderElement::lookAt(Poseidon::Vector3 look_at)
+	void GraphicsRenderElement::lookAt(Math::Vector3 look_at)
 	{
-		m_entity->get_position()->lookAt(look_at);
+		// m_entity->get_position()->lookAt(look_at);
 	}
 }

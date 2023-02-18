@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "btBulletDynamicsCommon.h"
-#include <Poseidon/Math/Vector3.h>
+#include <Math/Vector3.h>
 #include <Poseidon/Renderable.h>
 #include <Poseidon/Mesh.h>
 #include <vector>
@@ -20,16 +20,16 @@ namespace Rhea
 	{
     public:
         struct Line {
-            Poseidon::Vector3 p0;
-            Poseidon::Vector3 p1;
-            Poseidon::Vector3 color;
+            Math::Vector3 p0;
+            Math::Vector3 p1;
+            Math::Vector3 color;
         };
 
         struct Triangle {
-            Poseidon::Vector3 p0;
-            Poseidon::Vector3 p1;
-            Poseidon::Vector3 p2;
-            Poseidon::Vector3 color;
+            Math::Vector3 p0;
+            Math::Vector3 p1;
+            Math::Vector3 p2;
+            Math::Vector3 color;
         };
 
         BulletDebugDraw(Application* app, btDynamicsWorld* world);

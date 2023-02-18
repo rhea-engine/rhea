@@ -2,8 +2,8 @@
 #define RHEA_PHYSICS_SERVICE_H
 
 #include "../Service.h"
-#include "../Scene.h"
-#include <Poseidon/Math/Vector3.h>
+#include <Rhea/Fabrics/Core/Scene.h>
+#include <Math/Vector3.h>
 
 namespace Rhea
 {
@@ -27,6 +27,12 @@ namespace Rhea
 		// set scene and initialize objects in it
 		virtual void setScene(Scene* scene);
 
+		// initalize one object
+		virtual void initializeItem(Item* item);
+
+		// remove one object
+		virtual void removeItem(Item* item);
+
 		// Service functions
 		void onInit();	
 
@@ -34,7 +40,7 @@ namespace Rhea
 		virtual void toggleDebug() {}
 
 		// ray trace
-		virtual Unit* ray(Poseidon::Vector3 origin, Poseidon::Vector3 direction) { return nullptr; };
+		virtual Unit* ray(Math::Vector3 origin, Math::Vector3 direction) { return nullptr; };
 
 	protected:
 		Item* m_item;

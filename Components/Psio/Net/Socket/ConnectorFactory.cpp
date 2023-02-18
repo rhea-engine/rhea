@@ -1,6 +1,8 @@
 #include "ConnectorFactory.h"
 #include "TCPConnector.h"
+#ifdef HAS_OPENSSL
 #include "SSLConnector.h"
+#endif
 #include <Psio/Log.h>
 
 namespace Psio
@@ -16,10 +18,11 @@ namespace Psio
 		if (!scheme.compare("http")) {
 			return std::make_unique<TCPConnector>(net, host, port);
 		}
+#ifdef HAS_OPENSSL
 		else if (!scheme.compare("https")) {
 			return std::make_unique<SSLConnector>(net, host, port);
 		}
-
+#endif
 		LOG(LOG_ERROR) << "Unknown scheme";
 		return nullptr;
 	}

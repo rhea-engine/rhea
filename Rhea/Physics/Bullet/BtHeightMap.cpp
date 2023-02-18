@@ -1,15 +1,17 @@
 #include "BtHeightMap.h"
-#include "../Item.h"
+#include "Fabrics/3D/Item.h"
 #include "Fabrics/Media/ImageResource.h"
 #include "Fabrics/Terrain/Terrain.h"
-#include <Poseidon/Node.h>
 
 #include "Graphics/Texture.h"
 #include <Poseidon/Texture.h>
 
 #include "btBulletDynamicsCommon.h"
 #include "BulletCollision/CollisionShapes/btHeightfieldTerrainShape.h"
+
 #include <algorithm>
+#undef min
+#undef max
 
 namespace Rhea
 {

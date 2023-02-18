@@ -1,8 +1,8 @@
 #include "BasicController.h"
-#include "Item.h"
-#include "Poseidon/Node.h"
+#include "Fabrics/3D/Item.h"
 #include "../Application.h"
 #include "../UnitTree.h"
+#include <Psio/Log.h>
 
 #include "EventInput.h"
 
@@ -70,27 +70,41 @@ namespace Rhea
 			m_turn = 0;
 		else if (e->isAction("jump"))
 			m_target->jump();
+		else if (e->isAction("debug")) {
+			Unit* tree = m_app->getUnitTree();
+			DLOG(LOG_DEBUG) << "Debug positions";
+			tree->traverse([](std::string& name, Unit* u) {
+				std::string type_name = u->getTypeName();
+			if ((type_name == "//meworla/item") || (type_name == "//meworla/camera") || (type_name == "//meworla/terrain") || (type_name == "//meworla/character")) {
+				DLOG(LOG_DEBUG) << "debugtree: " << u->getPath();
+				Math::Vector3 pos = ((Item*)u)->getTransform()->get_position()->get_worldspace();
+				Math::Vector3 pos_d = ((Item*)u)->getTransform()->get_derived_position()->get_worldspace();
+				DLOG(LOG_DEBUG) << "item:pos(" << pos.x << ", " << pos.y << ", " << pos.z << "); DPos(" << pos_d.x << ", " << pos_d.y << ", " << pos_d.z << ")";
+			}
+				});
+		}
 
-		m_target->setMovement(m_move);
-		m_target->setTurn(m_turn);
+		if (m_last_move != m_move) {
+			m_last_move = m_move;
+			m_target->setMovement(m_move);
+		}
+		if (m_turn != m_last_turn) {
+			m_last_turn = m_turn;
+			m_target->setTurn(m_turn);
+		}
 
 		return false;
 	}
 	
 	void BasicController::connect(Item* target)
 	{
-		m_target = target;
-		Poseidon::Node* node = m_target->getNode();
-		if (!node) {
-			m_app->log("Basic Controller: target has no node");
-			m_target = nullptr;
-			return;
-		}
-		m_position = *node->get_derived_position();
+		m_position = *target->getTransform()->get_derived_position();
 		m_orientation = m_position.get_rotation();
+		if (!m_target)
+			m_target = target;
 	}
 
-	void BasicController::show(Poseidon::Core* core)
+	void BasicController::show()
 	{
 		auto target_it = m_values.find("target");
 		Unit* target;
@@ -107,26 +121,26 @@ namespace Rhea
 	{
 		Unit::message(method_name);
 		if (method_name == "show")
-			show(m_app->get_core());
+			show();
 	}
 
-	void BasicController::setPosition(Poseidon::Vector3 position)
+	void BasicController::setPosition(Math::Vector3 position)
 	{
 		m_position.setPosition(position);
-		//m_position.setOrientation(Poseidon::Quaternion(m_rotation, Poseidon::Vector3(0.0f, 1.0f, 0.0f))); 
+		//m_position.setOrientation(Math::Quaternion(m_rotation, Math::Vector3(0.0f, 1.0f, 0.0f))); 
 		((Item*)m_target)->setPosition(m_position);
 	}
 
-	void BasicController::lookAt(Poseidon::Vector3& target)
+	void BasicController::lookAt(Math::Vector3& target)
 	{
-		m_position.lookAt(target, Poseidon::Vector3::UNIT_Z);
+		m_position.lookAt(target, Math::Vector3::UNIT_Z);
 		((Item*)m_target)->setPosition(m_position);
 	}
 
-	Poseidon::Vector3 BasicController::getPosition()
+	Math::Vector3 BasicController::getPosition()
 	{
 		if (m_target)
-			return m_target->getNode()->get_derived_position()->get_worldspace();
+			return m_target->getTransform()->get_derived_position()->get_worldspace();
 		return m_position.get_worldspace();
 	}
 
@@ -139,7 +153,7 @@ namespace Rhea
 
 	void BasicController::_registerEvent(Unit* unittree)
 	{
-		unittree->registerEventHandler("unhandled_input", std::bind(&BasicController::onInput, this, std::placeholders::_1, std::placeholders::_2));
+		unittree->registerEventHandler("unhandled_input", this, std::bind(&BasicController::onInput, this, std::placeholders::_1, std::placeholders::_2));
 	}
 
 	Unit* BasicController::createType(std::string name, std::string type)

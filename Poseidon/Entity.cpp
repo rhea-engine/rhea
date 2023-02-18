@@ -11,9 +11,7 @@ namespace Poseidon
 		m_hidden(false),
 		m_vertex_size(0),
 		m_material(nullptr)
-	{
-		createPosition(0);
-	}
+	{ }
 
 	void Entity::set_mesh(Mesh* node)
 	{

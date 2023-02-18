@@ -4,6 +4,7 @@
 #include "TextResource.h"
 #include "UnitTree.h"
 #include "ResourceList.h"
+#include <Psio/Log.h>
 
 namespace Rhea
 {
@@ -45,7 +46,7 @@ namespace Rhea
 		// load and add textures
 		if (m_values.find("texture") != m_values.end())
 		{
-			Unit* tex = m_app->getUnitTree()->find(m_values["texture"]);
+			Unit* tex = (*m_resource_list)["texture"];
 			if (tex) {
 
 				// create dummy material
@@ -55,17 +56,16 @@ namespace Rhea
 				m_material->setValue("shader", "widget");
 
 				// get the shader
-				std::string shader_name = m_values["shader"];
-				Unit* shader_res = m_app->getUnitTree()->find(shader_name);
+				Unit* shader_res = (*m_resource_list)["shader"];
 				if (shader_res) {
 					m_material->setShader(static_cast<TextResource*>(shader_res));
 				}
 				else {
-					m_app->log("item2d::ready(): Shader '" + shader_name + "' for " + m_pathname + " not found");
+					LOG(LOG_ERROR) << "item2d::ready(): Shader '" << (std::string)m_values["shader"] << "' for " << m_pathname << " not found";
 				}
 			}
 			else {
-				m_app->log("item2d::ready(): texture '" + (std::string)m_values["texture"] + "' for " + m_pathname + " not found");
+				LOG(LOG_ERROR) << "item2d::ready(): texture '" << (std::string)m_values["texture"] << "' for " << m_pathname << " not found";
 			}
 		}
 	}

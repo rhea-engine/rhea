@@ -1,0 +1,166 @@
+#include "WorldClient.h"
+#include <Hermes/Opcode.h>
+#include "../Poseidon.h"
+#include <Rhea/UnitTree.h>
+#include <Rhea/Fabrics/3D/Item.h>
+#include <Psio/Log.h>
+#include <Hermes/Messages/MessageMove.h>
+#include <Hermes/Messages/MessageTurn.h>
+#include <Hermes/Messages/MessagePosition.h>
+#include <Hermes/Messages/MessageCreate.h>
+#include <Hermes/Messages/MessageDestroy.h>
+#include <Hermes/Messages/MessageAvatarList.h>
+#include <Hermes/Messages/MessageEnterWorld.h>
+
+namespace Poseidon
+{
+	void WorldClient::setAuth(std::string avatar)
+	{
+		m_avatar = avatar;
+	}
+
+	void WorldClient::start(Rhea::Scene* scene, OnWorldHandler handler)
+	{
+		m_scene = scene;
+		m_onWorldHandler = handler;
+
+		m_hermes->login([&, scene](int err) {
+			if (err >= 0) {
+				DLOG(LOG_DEBUG) << "login succeeded";
+
+				m_hermes->onMessage([&, scene](std::unique_ptr<Hermes::Message> msg, int err) {
+					if (!err) {
+						if (msg->base.opcode == HERMES_MSG_AVATARLIST) {
+							Hermes::MessageAvatarList* msgc = (Hermes::MessageAvatarList*)msg.get();
+							if (msgc->avatars.size()) {
+								// for now tkae the first
+								Hermes::MessageEnterWorld msg_enter;
+								msg_enter.avatar = msgc->avatars[0].avatar;
+								m_hermes->sendMessage(&msg_enter, nullptr);
+
+								// TODO choose avatar								
+							}
+							else {
+								// TODO create avatar scene
+								LOG(LOG_FATAL) << "No avatars defined.";
+								exit(-1);
+							}
+						}
+						else if (msg->base.opcode == HERMES_MSG_CREATE) {
+							Hermes::MessageCreate* msgc = (Hermes::MessageCreate*)msg.get();
+							// instancing the player
+							Rhea::Item* gnar = (Rhea::Item*)(m_app->getUnitTree()->find(msgc->type_name));
+							if (gnar) {
+								Rhea::Item* player;
+								if (msgc->is_player && m_player_set) {
+									LOG(LOG_ERROR) << "isPlayer set multiple times";
+									msgc->is_player = false;
+								}
+								if (msgc->is_player) {
+									player = gnar->instance("player");
+									m_player_set = true;
+								}
+								else
+									player = gnar->instance(msgc->path);
+								scene->addChild(player);
+								Math::Vector3 position = Math::Vector3(msgc->pos[0], msgc->pos[1], msgc->pos[2]);
+								Math::Quaternion rot = Math::Quaternion(msgc->transform[0], msgc->transform[1], msgc->transform[2], msgc->transform[3]);
+								player->setPosition(position);
+								player->getTransform()->get_position()->setOrientation(rot);
+								std::unique_ptr<Rhea::NetworkComponent> net_comp = std::make_unique<Rhea::NetworkComponent>(player, msgc->NUID, NET_ROLE_CLIENT);
+								net_comp->setDelegate(this);
+								player->setNetworkComponent(std::move(net_comp));
+								m_net_items[msgc->NUID] = player;
+
+								player->prepare([&, scene, player, msgc](Rhea::Error* err) {
+									if (!err) {
+										scene->addItem(player);
+
+										player->ready();
+
+										if (msgc->is_player && m_onWorldHandler) {
+											m_onWorldHandler(0);
+											m_onWorldHandler = nullptr;
+										}
+									}
+									else {
+										LOG(LOG_ERROR) << "Could not prepare player";
+									}
+									});
+							}
+							else {
+								LOG(LOG_ERROR) << "Did not find player template";
+							}
+						}
+						else if (msg->base.opcode == HERMES_MSG_POSITION) {
+							Rhea::Position pos;
+							Hermes::MessagePosition* move_msg = (Hermes::MessagePosition*)msg.get();
+							pos.setPosition(move_msg->pos[0], move_msg->pos[1], move_msg->pos[2]);
+							Math::Quaternion q(move_msg->transform[0], move_msg->transform[1], move_msg->transform[2], move_msg->transform[3]);
+							pos.setOrientation(q);
+							auto it = m_net_items.find(move_msg->NUID);
+							if (it != m_net_items.end()) {
+								it->second->setPosition(pos);
+							}
+							else {
+								DLOG(LOG_DEBUG) << "Net item with id " << move_msg->NUID << " not set";
+							}
+							DLOG(LOG_DEBUG) << "Position received " << move_msg->pos[0] << ", " << move_msg->pos[1] << ", " << move_msg->pos[2] << " for[" << move_msg->NUID << "]";
+						}
+						else if (msg->base.opcode == HERMES_MSG_DESTROY) {
+							// destruction of item requested
+							Hermes::MessageDestroy* msgc = (Hermes::MessageDestroy*)msg.get();
+							auto it = m_net_items.find(msgc->NUID);
+							if (it != m_net_items.end()) {
+								Rhea::Item* item = it->second;
+								scene->removeItem(item);
+								scene->removeChild(item);
+								delete item;
+								m_net_items.erase(it);
+							}
+							// Note if not found we ignore it
+						}
+						else {
+							DLOG(LOG_DEBUG) << "Unexpected message with opcode=" << msg->getOpcode();
+						}
+					}
+					else {
+						// TODO, for now assume connection failure
+						// for now simply exit the client
+						LOG(LOG_FATAL) << "Server connection lost";
+						exit(-1);
+					}
+					});
+			}
+			else {
+				// TODO handle login failure
+				DLOG(LOG_DEBUG) << "login failed " << err;
+			}
+			});
+	}
+	
+	void WorldClient::stop()
+	{
+		m_hermes.reset();
+	}
+
+	void WorldClient::changeMovement(int nuid, Math::Vector3 move)
+	{
+		Hermes::MessageMove move_msg;
+		move_msg.NUID = nuid;
+		move_msg.move[0] = move.x;
+		move_msg.move[1] = move.y;
+		move_msg.move[2] = move.z;
+
+		m_hermes->sendMessage(&move_msg, nullptr);
+	}
+
+	void WorldClient::changeTurn(int nuid, float turn)
+	{
+		Hermes::MessageTurn turn_msg;
+		turn_msg.NUID = nuid;
+		turn_msg.turn = turn;
+
+		m_hermes->sendMessage(&turn_msg, nullptr);
+	}
+}

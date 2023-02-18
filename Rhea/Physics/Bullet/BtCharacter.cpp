@@ -1,14 +1,13 @@
 #include "BtCharacter.h"
-#include "../Item.h"
+#include "Fabrics/3D/Item.h"
 #include "Fabrics/Terrain/Terrain.h"
-#include <Poseidon/Node.h>
 #include "BtGhost.h"
 
 #include "btBulletDynamicsCommon.h"
 #include <BulletCollision/CollisionDispatch/btGhostObject.h>
 #include "BulletCollision/NarrowPhaseCollision/btRaycastCallback.h"
 
-using Poseidon::Vector3;
+using Math::Vector3;
 
 namespace Rhea
 {
@@ -156,13 +155,13 @@ namespace Rhea
 		return m_move_state == moveState::GROUND || m_move_state == moveState::FLY;
 	}
 
-	void BulletPhysicsCharacter::setPosition(Poseidon::Vector3& position)
+	void BulletPhysicsCharacter::setPosition(Math::Vector3& position)
 	{
 		if (m_ghost)
 			m_ghost->setPosition(position);
 	}
 
-	bool BulletPhysicsCharacter::jump(Poseidon::Vector3& position)
+	bool BulletPhysicsCharacter::jump(Math::Vector3& position)
 	{
 		if (m_move_state == moveState::GROUND) {
 			// check if jumping possible
@@ -183,7 +182,7 @@ namespace Rhea
 		m_move_state = moveState::FLY;
 	}
 
-	void BulletPhysicsCharacter::setOrientation(Poseidon::Quaternion& rot)
+	void BulletPhysicsCharacter::setOrientation(Math::Quaternion& rot)
 	{
 		if (m_ghost)
 			m_ghost->setOrientation(rot);
@@ -249,7 +248,7 @@ namespace Rhea
 		}
 	}
 
-	void BulletPhysicsCharacter::moveStep(Poseidon::Position* pos, Poseidon::Vector3& move)
+	void BulletPhysicsCharacter::moveStep(Rhea::Position* pos, Math::Vector3& move)
 	{
 		Vector3 trans = pos->get_rotation() * move;
 		//Vector3 position = pos->get_worldspace();
@@ -358,7 +357,7 @@ namespace Rhea
 		m_head_contact_pos = results.m_hitPointWorld;
 	}
 
-	Poseidon::Vector3 BulletPhysicsCharacter::update(Poseidon::Position* pos, Poseidon::Vector3& move, Poseidon::Vector3& gravity)
+	Math::Vector3 BulletPhysicsCharacter::update(Rhea::Position* pos, Math::Vector3& move, Math::Vector3& gravity)
 	{
 		m_position = pos;
 		Vector3 position = pos->get_worldspace();

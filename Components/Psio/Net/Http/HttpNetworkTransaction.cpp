@@ -2,6 +2,7 @@
 #include "../Socket/TCPSocket.h"
 #include "../Socket/ConnectorFactory.h"
 #include <Psio/Log.h>
+#include "../Network.h"
 
 namespace Psio
 {
@@ -111,6 +112,10 @@ namespace Psio
 
 		m_connector = ConnectorFactory::factory().Create(m_engine->getNet(), scheme, host, port);
 
+		if (!m_connector) {
+			LOG(LOG_ERROR) << "Scheme " << scheme << " not supported";
+			return -2;
+		}
 		int ret = m_connector->Start([&](int result) -> void {
 			CallDoLoop(result);
 			});

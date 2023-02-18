@@ -18,10 +18,10 @@ namespace Rhea
 		btPairCachingGhostObject* getObject() { return m_ghost_object; }
 
 		// set position
-		void setPosition(Poseidon::Vector3& position);
+		void setPosition(Math::Vector3& position);
 
 		// set orientation
-		void setOrientation(Poseidon::Quaternion& rot);
+		void setOrientation(Math::Quaternion& rot);
 
 		// stop the current movement
 		void stop() {}

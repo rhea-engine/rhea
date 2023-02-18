@@ -10,7 +10,6 @@
 #include "Texture.h"
 
 #include <vector>
-#include <d3d11.h>
 
 namespace Poseidon
 {

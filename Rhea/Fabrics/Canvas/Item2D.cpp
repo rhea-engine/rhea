@@ -1,22 +1,24 @@
 #include "Item2D.h"
+#include "Item2D.h"
 #include "Application.h"
 #include "Fabrics/Media/ImageResource.h"
 #include "TextResource.h"
 #include "UnitTree.h"
 #include "ResourceList.h"
 #include <Psio/Log.h>
+#include <Graphics/GraphicsService.h>
 
 namespace Rhea
 {
 	void Item2D::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{
-		Unit::setup(app, attributes, values);
+		Item::setup(app, attributes, values);
 		m_status = Status::SETUP;
 
-		x = values["x"];
-		y = values["y"];		
-		w = values["w"];
-		h = values["h"];
+		m_position.x = values["x"];
+		m_position.y = values["y"];		
+		m_size.x = values["w"];
+		m_size.y = values["h"];
 
 		m_resource_list = new ResourceList(app);
 
@@ -40,7 +42,6 @@ namespace Rhea
 	{
 		if (m_status >= Status::READY)
 			return;
-		m_status = Status::READY;
 		Unit::ready();
 
 		// load and add textures
@@ -63,10 +64,60 @@ namespace Rhea
 				else {
 					LOG(LOG_ERROR) << "item2d::ready(): Shader '" << (std::string)m_values["shader"] << "' for " << m_pathname << " not found";
 				}
+
+				// add the mesh
+				if (!m_mesh) {
+
+					std::unordered_map<std::string, std::string> attributes;
+					std::unordered_map<std::string, Variant> values;
+					m_mesh = static_cast<Mesh*>(m_app->getUnitTree()->createUnit(m_pathname + "_mesh", "//meworla/mesh", attributes, values));
+					m_mesh->setMaterial(m_material);
+
+					setMesh();
+					
+					m_render_component->setMesh(m_mesh);
+				}
 			}
 			else {
 				LOG(LOG_ERROR) << "item2d::ready(): texture '" << (std::string)m_values["texture"] << "' for " << m_pathname << " not found";
 			}
 		}
+		m_status = Status::READY;
+	}
+
+	void Item2D::setMesh()
+	{
+		float z = 0.0f;
+		float m_x = X();
+		float m_y = Y();
+		float m_w = W();
+		float m_h = H();
+
+		// adjust to height of viewport (y is negative)
+		GraphicsService* gsrv = (GraphicsService*)m_app->getService("graphics");
+		m_y = gsrv->getViewportHeight() - m_y;
+
+		float m_u1 = 0.0f;
+		float m_v1 = 0.0f;
+		float m_u2 = 1.0f;
+		float m_v2 = 1.0f;
+
+		std::vector<Mesh::vertex> vertices =
+		{
+			{ m_x, m_y - m_h, z, m_u1, m_v2 }, // bottom-left
+			{ m_x, m_y, z, m_u1, m_v1 }, // top-left
+			{ m_x + m_w, m_y, z, m_u2, m_v1 }, // top-right
+			{ m_x + m_w, m_y - m_h, z, m_u2, m_v2 }  // bottom-right
+		};
+		std::vector<unsigned long> v_indices = { 0, 1, 2, 0, 2, 3 };
+		m_mesh->setBuffers(vertices, v_indices);
+		m_mesh->sendEvent("update", nullptr);
+	}
+	
+	void Rhea::Item2D::update()
+	{
+		if (m_mesh)
+			setMesh();
+		sendEvent("update", nullptr);
 	}
 }

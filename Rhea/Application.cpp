@@ -205,8 +205,7 @@ namespace Rhea
 		int ret = 0;	
 		Psio::Engine* psio = static_cast<PlatformService*>(m_services["platform"])->getEngine();
 		std::shared_ptr<Psio::InputEvent> evt;
-		ievt_actions iea;
-		PhysicsService* physics = static_cast<Rhea::PhysicsManagerService*>(m_services["physics_mgr"])->getPhysicsService();		
+		ievt_actions iea;		
 
 		int iterations_per_second = 60;
 		float frame_slice = 1.0f / iterations_per_second;
@@ -283,13 +282,13 @@ namespace Rhea
 
 			uint64_t physics_begin = psio->getTicks();
 
-			if (physics || (physics = static_cast<Rhea::PhysicsManagerService*>(m_services["physics_mgr"])->getPhysicsService())) {
+			if (m_physics) {
 				static int max_physics_steps = 10;
 				physics_steps = std::min(physics_steps, max_physics_steps);
 
 				for (int i = 0; i < physics_steps; i++)
 				{
-					physics->step(frame_slice);
+					m_physics->step(frame_slice);
 				}
 			}
 
@@ -346,7 +345,8 @@ namespace Rhea
 					if (m_resource_loader.load(req->getBasename(), this, mime, req, [&, handler, parent_unit](ReqError err, Unit* unit) {
 
 						// add it to tree
-						parent_unit->addChild(unit);
+						if (unit)
+							parent_unit->addChild(unit);
 
 						handler(unit, err);
 						}))

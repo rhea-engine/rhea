@@ -13,6 +13,7 @@
 #include "GraphicsService.h"
 #include "RenderElement.h"
 #include <Psio/Log.h>
+#include <Fabrics/GUI/Widget.h>
 
 namespace Rhea
 {
@@ -39,19 +40,22 @@ namespace Rhea
 			return nullptr;
 		}
 		elem->setRenderContext(render_context);
-		render_context->addRenderChild(static_cast<Poseidon::Entity*>(entity));
+		//render_context->addRenderChild(static_cast<Poseidon::Entity*>(entity));
+		//render_context->addRenderChild((Item*)item);
 
 		return entity;
 	}
 
-	void GraphicsManager::removeRenderable(GraphicsRenderElement* elem)
+	void GraphicsManager::removeRenderable(Item* item)
 	{
+		GraphicsRenderElement* elem = (GraphicsRenderElement*)item->getElement("graphics");
 		Poseidon::RenderContext* render_context = elem->getRenderContext();
 		if (!render_context) {
 			LOG(LOG_ERROR) << "GraphicsText::removeRenderable: render context not set";
 			return;
 		}
-		render_context->removeRenderChild(static_cast<Poseidon::Entity*>(elem->getRenderEntity()));	
+		//render_context->removeRenderChild(static_cast<Poseidon::Entity*>(elem->getRenderEntity()));	
+		render_context->removeRenderChild(static_cast<Item*>(item));	
 	}
 
 	void GraphicsManager::setPosition(Unit* u, Transform* t)
@@ -71,7 +75,7 @@ namespace Rhea
 			t->get_position()->setPosition(0.0f, 0.0f, 0.0f);
 	}
 
-	void GraphicsManager::setMaterial(Poseidon::Core* core, Material* material, Poseidon::Node* entity)
+	void GraphicsManager::setMaterial(Poseidon::Core* core, Material* material)
 	{
 		// get the material element
 		GraphicsMaterial* mat_elem = static_cast<GraphicsMaterial*>(material->getElement("graphics"));
@@ -81,7 +85,22 @@ namespace Rhea
 			GraphicsMaterialManager* mat_mgr = static_cast<GraphicsMaterialManager*>(m_service->getManager("//meworla/material"));
 			mat_elem = static_cast<GraphicsMaterial*>(mat_mgr->createElement(core, material));
 		}
+	}
 
-		static_cast<Poseidon::Entity*>(entity)->setMaterial(mat_elem->m_material);
+	bool GraphicsManager::onHide(Event* ev, Unit* unit)
+	{
+		GraphicsRenderElement* elem = (GraphicsRenderElement*)unit->getElement("graphics");
+		Poseidon::Entity* entity = static_cast<Poseidon::Entity*>(elem->getRenderEntity());
+		entity->hide();
+		return true;
+	}
+
+	bool GraphicsManager::onShow(Event* ev, Unit* unit)
+	{
+
+		GraphicsRenderElement* elem = (GraphicsRenderElement*)unit->getElement("graphics");
+		Poseidon::Entity* entity = static_cast<Poseidon::Entity*>(elem->getRenderEntity());
+		entity->show();
+		return true;
 	}
 }

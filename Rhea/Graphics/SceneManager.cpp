@@ -11,7 +11,6 @@
 #include "Fabrics/3D/Item.h"
 #include "Fabrics/Canvas/Item2D.h"
 #include "GraphicsService.h"
-#include <Rhea/EventUnit.h>
 
 namespace Rhea
 {
@@ -21,18 +20,19 @@ namespace Rhea
 		m_core = core;
 
 		// add my items
-		std::vector<Item*> items = scene->getItems();
-		for (auto it = items.begin(); it != items.end(); ++it) {
-			Item* item = *it;
-			addItem(item);
-		}
+		scene->traverse([&](std::string& name, Unit* unit)->bool {
+			if (unit != scene) {
+				addItem(unit);
+			}
+		return true;
+			});
 		scene->addElement("graphics", elem);
 
 		// listen to add item event		
 		scene->registerEventHandler("add_item", this, std::bind(&GraphicsSceneManager::onItemAdd, this, std::placeholders::_1, std::placeholders::_2));
 	}
 
-	void GraphicsSceneManager::addItem(Item* item)
+	void GraphicsSceneManager::addItem(Unit* item)
 	{
 		printf("add typename: %s\n", item->getTypeName().c_str());
 
@@ -41,15 +41,11 @@ namespace Rhea
 		if (mgr) {
 			mgr->createElement(m_core, item);
 		}
-		else {
-			mgr = m_service->getManager("//meworla/item");
-			mgr->createElement(m_core, item);
-		}
 	}
 
 	bool GraphicsSceneManager::onItemAdd(Event* ev, Unit* unit)
 	{		
-		Item* item = static_cast<Item*>(static_cast<EventUnit*>(ev)->getTarget());
+		Item* item = static_cast<Item*>(ev->getTarget());
 		addItem(item);
 
 		return false;

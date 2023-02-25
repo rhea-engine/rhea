@@ -70,7 +70,7 @@ bool World::onFrameEnd()
 void World::onScene(Rhea::Scene* scene)
 {
 	log("scene displayed");
-	std::unique_ptr<Rhea::Event> ev_r = std::make_unique<Rhea::Event>("ready");
+	std::unique_ptr<Rhea::Event> ev_r = std::make_unique<Rhea::Event>("ready",nullptr);
 	scene->sendEvent(std::string("ready"), ev_r.get());
 	m_server_service->setScene(scene);
 }

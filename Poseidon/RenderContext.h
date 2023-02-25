@@ -5,11 +5,14 @@
 #include <vector>
 
 #include "Node.h"
+#include <Rhea/Fabrics/3D/Item.h>
+
+using Rhea::Item;
 
 namespace Poseidon
 {
 	class Camera;
-	class Renderable;
+//	class Renderable;
 	class RenderQueue;
 
 	/** a class that holds a render context.
@@ -33,10 +36,10 @@ namespace Poseidon
 		void cullObjects(RenderQueue* queue);
 
 		// add render child
-		void addRenderChild(Renderable* child);
+		void addRenderChild(Item* child);
 
 		// remove render element
-		void removeRenderChild(Renderable* child);
+		void removeRenderChild(Item* child);
 
 		Camera* get_camera() { return m_camera; };
 		void setCamera(Camera* camera);
@@ -48,7 +51,7 @@ namespace Poseidon
 	protected:
 		std::string m_name;
 		Camera* m_camera;
-		std::vector<Renderable*> m_render_children;
+		std::vector<Item*> m_render_children;
 		int m_stencil_state;
 	};
 }

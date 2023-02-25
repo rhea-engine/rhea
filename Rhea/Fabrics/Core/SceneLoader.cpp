@@ -71,13 +71,7 @@ namespace Rhea
 					// find parent relative to top parent			
 					child_parent = scene;
 				}
-				child_parent->addChild(unit);
-				// dont add fabrics
-				if (!(section.values["fabric"] == Variant() || section.values["fabric"])) {
-					if ((type_name == "//meworla/item") || (type_name == "//meworla/camera") || (type_name == "//meworla/terrain") || (type_name == "//meworla/character") || (type_name == "//meworla/widget") || (type_name == "//meworla/textwidget")) {
-						scene->addItem((Item*)unit);
-					}
-				}
+				child_parent->addChild(unit);				
 			}
 			delete buf;
 

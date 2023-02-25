@@ -9,6 +9,7 @@
 #include <Poseidon/Mesh.h>
 #include <vector>
 #include <Poseidon/Material.h>
+#include <Rhea/Fabrics/3D/Item.h>
 
 class btDynamicsWorld;
 
@@ -16,7 +17,7 @@ namespace Rhea
 {
     class Application;
 
-	class BulletDebugDraw : public Poseidon::Renderable
+	class BulletDebugDraw : public Item
 	{
     public:
         struct Line {

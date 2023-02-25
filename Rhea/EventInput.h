@@ -12,7 +12,7 @@ namespace Rhea
 	{
 	public:
 		EventInput(std::string e_name, std::shared_ptr<Psio::InputEvent> evt, std::vector<std::string> &actions) :
-			Event(e_name),
+			Event(e_name, nullptr),
 			m_evt(evt),
 			m_actions(actions)
 		{}

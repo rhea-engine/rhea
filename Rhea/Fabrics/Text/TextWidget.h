@@ -26,6 +26,9 @@ namespace Rhea
 		// ready event handler
 		void ready();
 
+		// reset the mesh for the text
+		void setMesh();
+
 		// get the Text
 		std::string getText() { return m_text; }
 

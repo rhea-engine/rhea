@@ -31,6 +31,12 @@ namespace Rhea
 		// set the scene to display
 		void setScene(Unit* scene);
 
+		// register a tree root
+		void registerScene(std::string render_context, Unit* root);
+
+		// add item to render context
+		void addItem(std::string render_context, Item* item);
+
 		// get the engine
 		Poseidon::Core* getEngine() { return m_core.get(); }
 
@@ -42,6 +48,7 @@ namespace Rhea
 		
 		bool onDisplay(Event* ev, Unit* unit);
 		bool onInput(Event* ev, Unit* unit);
+		bool onAddItem(Event* ev, Unit* unit);
 
 		// get current dimensions
 		int getViewportWidth() { return m_viewport_width; }
@@ -64,7 +71,7 @@ namespace Rhea
 		// the currently displayed scene
 		GraphicsScene* m_g_scene;
 		Scene* m_scene;
-		std::vector<Item*> m_scene_items;
+		//std::vector<Item*> m_scene_items;
 
 		// the current mouse pos
 		int m_mx;

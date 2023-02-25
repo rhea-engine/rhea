@@ -94,6 +94,8 @@ namespace Rhea {
 	
 	void ResourceList::push(std::string key, std::string id, std::string type, bool replace)
 	{
+		assert(id.compare("No type"));
+
 		// only add new resources
 		if (m_resources.find(key) == m_resources.end()) {
 			m_resources[key] = {

@@ -1,7 +1,9 @@
 #include "RenderContext.h"
-#include "Renderable.h"
+//#include "Renderable.h"
 #include "RenderQueue.h"
 #include "Camera.h"
+#include <Rhea/Graphics/RenderElement.h>
+#include <Rhea/Components/RenderComponent.h>
 
 namespace Poseidon
 {
@@ -16,10 +18,28 @@ namespace Poseidon
 	{
 		// cull pass
 		// my children
-		for (std::vector<Renderable*>::iterator it = m_render_children.begin(); it != m_render_children.end(); ++it)
+		for (std::vector<Item*>::iterator it = m_render_children.begin(); it != m_render_children.end(); ++it)
 		{
-			Renderable* robj = (Renderable*)*it;
-			robj->cullPhase(queue, m_camera);
+			Item* robj = (Item*)*it;
+
+			// cull phase for top item robj
+			robj->traverse([&](std::string name, Rhea::Unit* uitem)->bool {
+				if (uitem->getValue("isItem")) {
+					Item* item = (Item*)uitem;
+					Rhea::RenderComponent* render_com = item->getGraphicsComponent();
+					if (!render_com->isVisible())
+						return false;
+					if (render_com->getMesh())
+						queue->addRenderable(item);
+					return true;
+				}
+				else {
+					// not an item - try children (note we can start with scene like this)
+					return true;
+				}
+				});
+
+		//	robj->cullPhase(queue, m_camera);
 		}
 	}
 
@@ -28,12 +48,12 @@ namespace Poseidon
 		m_camera = camera;
 	}
 
-	void RenderContext::addRenderChild(Renderable* child)
+	void RenderContext::addRenderChild(Item* child)
 	{
 		m_render_children.push_back(child);
 	}
 
-	void RenderContext::removeRenderChild(Renderable* child)
+	void RenderContext::removeRenderChild(Item* child)
 	{
 		auto it = std::find(m_render_children.begin(), m_render_children.end(), child);
 		m_render_children.erase(it);

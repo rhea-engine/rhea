@@ -7,6 +7,7 @@
 #include "Math/Vector3.h"
 #include "../Core/Transform.h"
 #include "../../Components/NetworkComponent.h"
+#include <Rhea/Components/RenderComponent.h>
 
 namespace Poseidon
 {
@@ -34,6 +35,7 @@ namespace Rhea
 			m_turn(0.0f),
 			m_material(nullptr),
 			m_transform(this),
+			m_render_component(nullptr),
 			Resource(name, type_name)
 		{}
 		virtual ~Item() = default;
@@ -74,6 +76,9 @@ namespace Rhea
 		float getTurn() { return m_turn; }
 		virtual void jump() {}
 
+		// graphics
+		RenderComponent* getGraphicsComponent() { return m_render_component.get();}
+
 		// networking
 		void setNetworkComponent(std::unique_ptr<NetworkComponent> component) { m_net_component = std::move(component); }
 		NetworkComponent* getNetworkComponent() { return m_net_component.get(); }
@@ -84,6 +89,7 @@ namespace Rhea
 	protected:
 		Mesh* m_mesh;
 		GraphicsRenderElement* m_graphics_item;
+		std::unique_ptr<RenderComponent> m_render_component;
 		PhysicsBody* m_physics_body;
 		std::unique_ptr<NetworkComponent> m_net_component;
 		Math::Vector3 m_movement;

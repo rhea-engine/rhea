@@ -193,8 +193,8 @@ namespace Rhea
 	void Unit::prepare(ReadyHandler handler)
 	{
 		// if we habe no children return
-		m_to_load = (int)m_children.size();
-		if (!m_to_load) {
+		int  to_load = (int)m_children.size();
+		if (!to_load) {
 			handler(nullptr);
 			return;
 		}
@@ -206,9 +206,9 @@ namespace Rhea
 		for (auto it = m_children.begin(); it != m_children.end(); ++it)
 		{
 			Unit* unit = it->second;
-			unit->prepare([&, handler](Error *err) {
-				m_to_load--;
-				if (m_to_load <= 0) {					
+			unit->prepare([&to_load,&handler](Error *err) {
+				to_load--;
+				if (!to_load) {					
 					handler(nullptr);
 				}
 				});
@@ -296,13 +296,21 @@ namespace Rhea
 		sendEvent(event_name, event);
 	}
 
-	void Unit::traverse(std::function<void(std::string&, Unit*)> handler)
+	void Unit::bubbleEvent(std::string event_name, Event* event)
 	{
-		handler(this->m_pathname, this);
-		for (auto it = m_children.begin(); it != m_children.end(); ++it) {
-			std::string name = it->first;
-			//handler(name, it->second);
-			it->second->traverse(handler);
+		sendEvent(event_name, event);
+		if (!event->isPropagationStoppped() && m_parent)
+			m_parent->bubbleEvent(event_name, event);
+	}
+
+	void Unit::traverse(std::function<bool(std::string&, Unit*)> handler)
+	{
+		if (handler(this->m_pathname, this)) {
+			for (auto it = m_children.begin(); it != m_children.end(); ++it) {
+				std::string name = it->first;
+				//handler(name, it->second);
+				it->second->traverse(handler);
+			}
 		}
 	}
 
@@ -339,7 +347,7 @@ namespace Rhea
 
 	Unit::~Unit()
 	{
-		Event* del_event = new Event("DELETE");
+		Event* del_event = new Event("DELETE", this);
 		sendEvent("delete", del_event);
 	}
 

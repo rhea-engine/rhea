@@ -15,8 +15,12 @@ namespace SimpleParser
 		TOKEN_RIGHT_PARENTHESIS,
 		TOKEN_LEFT_BRACKET,
 		TOKEN_RIGHT_BRACKET,
+		TOKEN_LEFT_CURLYBRACKET,
+		TOKEN_RIGHT_CURLYBRACKET,
 		TOKEN_NEWLINE,
-		TOKEN_COMMA
+		TOKEN_COMMA,
+		TOKEN_COLON,
+		TOKEN_SEMICOLON
 	};
 
 	struct Token
@@ -57,6 +61,7 @@ namespace SimpleParser
 		char* getErrMsg(Error);
 	protected:
 		bool m_ignore_newline;
+		char* id_chars = "_/:";
 	};
 }
 #endif // !SIMPLEPARSER_H

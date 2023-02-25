@@ -17,7 +17,7 @@ namespace Rhea
 {
 	void Terrain::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{
-		Unit::setup(app, attributes, values);
+		Item::setup(app, attributes, values);
 
 		m_resource_list = new ResourceList(app);
 
@@ -194,6 +194,7 @@ namespace Rhea
 						}
 					}
 					m_mesh->setBuffers(vertices, indices);
+					m_render_component->setMesh(m_mesh);
 				}
 
 				// prepare shaders	

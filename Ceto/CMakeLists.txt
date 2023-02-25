@@ -6,7 +6,7 @@ cmake_minimum_required (VERSION 3.9.2)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/ThirdParty/bullet/src)
 
 # Define the main app
-add_executable (Ceto "Ceto.cpp")
+add_executable (Ceto "Ceto.cpp" "UserPrefs.h" "UserPrefs.cpp")
 
 # add the renderer engine
 target_link_libraries(Ceto RheaClient)

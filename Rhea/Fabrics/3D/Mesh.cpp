@@ -20,9 +20,11 @@ namespace Rhea
 		m_resource_list = new ResourceList(app);
 
 		// dependent resources
-		m_resource_list->push("material", m_values["material"], "//meworla/wavefront-material");
+		if (m_values.find("material") != m_values.end())
+			m_resource_list->push("material", m_values["material"], "//meworla/wavefront-material");
 
-		m_resource_list->push("obj", m_values["path"], "//meworla/wavefront-object");
+		if (m_values.find("path") != m_values.end())
+			m_resource_list->push("obj", m_values["path"], "//meworla/wavefront-object");
 		if (m_values.find("texture") != m_values.end()) {
 			m_resource_list->push("texture", m_values["texture"], "//meworla/texture");
 			m_resource_list->push("shader", "//rhea/shaders/uvshader_vp.hlsl", "//meworla/shader");

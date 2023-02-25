@@ -1,26 +1,25 @@
 #ifndef RHEA_ITEM2D_H
 #define RHEA_ITEM2D_H
 
-#include "Resource.h"
-#include "Fabrics/Core/Material.h"
-#include "Fabrics/Core/Transform.h"
+#include "../Core/Material.h"
+#include "../Core/Transform.h"
+#include "../3D/Item.h"
+#include <Math/Vector2.h>
+
+using Math::Vector2;
 
 namespace Rhea
 {
-	class Item2D : public Resource
+	class Item2D : public Item
 	{
 	public:
 		Item2D(std::string name) :
 			Item2D(name, "//meworla/Item2D")
 		{}
 		Item2D(std::string name, std::string type_name) :
-			m_material(nullptr),
-			x(0),
-			y(0),
-			w(0),
-			h(0),
-			m_transform(nullptr),
-			Resource(name, type_name)
+			m_size(0.0f, 0.0f),
+			m_position(0.0f, 0.0f),
+			Item(name, type_name)
 		{}
 
 		// setup from strings
@@ -29,34 +28,28 @@ namespace Rhea
 		// ready event handler
 		void ready();
 
-		// get the material
-		Material* getMaterial() { return m_material; }
+		virtual void setMesh();
 
-		void move(int _x, int _y) { x = _x; y = _y; }
-		void resize(int _w, int _h) { w = _w; h = _h; }
+		void move(float _x, float _y) { m_position.x = _x; m_position.y = _y; }
+		void resize(float _w, float _h) { m_size.x = _w; m_size.y = _h; }
+		void update();
 
 		// get dimensions
-		int X() { return x; }
-		int Y() { return y; }
-		int W() { return w; }
-		int H() { return h; }
-
-		// positionig
-		Transform* getTransform() { return &m_transform; }
+		float X() { return m_position.x; }
+		float Y() { return m_position.y; }
+		float W() { return m_size.x; }
+		float H() { return m_size.y; }
 
 		// factory function
 		static Unit* createType(std::string name, std::string type);
 
 	protected:
-		Material* m_material;
-
 		// dimensions in screen space
-		int x;
-		int y;
-		int w;
-		int h;
-
-		Transform m_transform;
+		
+		// current position in pixel
+		Vector2 m_position;
+		// current  width in pixel
+		Vector2 m_size;
 	};
 }
 

@@ -18,11 +18,9 @@ namespace Rhea
 		val["y"] = m_base_position.y;
 		val["w"] = m_base_size.x;
 		val["h"] = m_base_size.y;
-		val["text"] = getValue("text");
-		val["font"] = getValue("font");
-		if (val["font"] == Variant()) {
-			// get font from gui
-		}
+		val["text"] = getValue("text", "");
+		if (m_values.find("font") != m_values.end())
+			val["font"] = getValue("font");
 
 		// DEBUG
 		// always handle input 
@@ -48,19 +46,24 @@ namespace Rhea
 	{
 		Widget::setArea(moved, sized);
 
-		if (m_label_item) {
-			if (moved)
-				m_label_item->move((int)m_screen_position.x, (int)m_screen_position.y);
-			if (sized)
-				m_label_item->resize((int)m_size.x, (int)m_size.y);
+		if (m_label_item) {			
+			if (moved) {
+				DLOG(LOG_DEBUG) << "GUI::Label: widget " << m_pathname << ": screen(x,y)=" << m_position.x << ", " << m_position.y << ")";
+				m_label_item->move(m_position.x, m_position.y);
+			}
+			if (sized) {
+				DLOG(LOG_DEBUG) << "GUI::Label: widget " << m_pathname << ": size(w,h)" << m_size.x << ", " << m_size.y << ")";
+				m_label_item->resize(m_size.x, m_size.y);
+			}
+			if (sized || moved) {
+				m_label_item->update();
+			}
 		}
 	}
 
 	void Label::ready()
 	{
-		if (m_parent) {
-
-		}
+		Widget::ready();
 
 		// find the scene
 		Scene* scene = (Scene*)m_app->getUnitTree()->findByType("//meworla/scene");
@@ -71,10 +74,7 @@ namespace Rhea
 
 		if (m_label_item) {
 			m_label_item->ready();
-			scene->addItem((Item*)m_label_item);
+			//scene->addItem((Item*)m_label_item);
 		}
-
-		// handle children
-		Unit::ready();
 	}
 }

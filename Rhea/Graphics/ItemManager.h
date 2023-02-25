@@ -24,9 +24,6 @@ namespace Rhea
 		// create an element for this unit
 		Element* createElement(Poseidon::Core* core, Unit* unit);
 
-		// set the item to a new value
-		void setItem(Item* item, GraphicsRenderElement* elem);
-
 		// handle update event
 		bool onUpdate(Event* ev, Unit* unit);
 

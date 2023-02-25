@@ -16,6 +16,99 @@
 #include "Rhea/Fabrics/Core/Material.h"
 #include <Poseidon/Network/ClientService.h>
 #include <Psio/Log.h>
+#include <Psio/Keyboard.h>
+#include <Rhea/EventInput.h>
+#include <Rhea/Fabrics/GUI/List.h>
+#include <Orion/FileStream.h>
+
+bool Ceto::onQuitDialog(Rhea::Event* ev, Rhea::Unit* unit)
+{
+	Rhea::Widget* w = static_cast<Rhea::Widget*>(m_unit_tree->find("//local/cetogui/gui/quit"));
+	if (w) {
+		w->hide();
+	}
+	ev->stopPropagation();
+
+	// handle the buttons
+	Unit* target = ev->getTarget();
+	if (!target->getPathName().compare("ok")) {
+		// quit the application
+		exit(0);
+	}
+
+	return false;
+}
+
+bool Ceto::onInput(Rhea::EventInput* e, Rhea::Unit* unit)
+{
+	std::shared_ptr<Psio::InputEvent> evt = e->getEvent();
+
+	// close on esc
+	Psio::KeyInputEvent esc(Psio::InputEventId::KEY_PRESSED);
+	esc.set(Psio::Key::CODE_ESC, 0, 0);
+
+	if (evt->isEvent(&esc)) {
+		Rhea::Widget* w = static_cast<Rhea::Widget*>(m_unit_tree->find("//local/cetogui/gui/quit"));
+		if (w) {
+			w->show();
+		}
+		return false;
+	}
+
+	// open
+	esc.set(Psio::Key::CODE_O, 0, 0);
+	if (evt->isEvent(&esc)) {
+		Rhea::Widget* w = static_cast<Rhea::Widget*>(m_unit_tree->find("//local/cetogui/gui/realms"));
+		if (w) {
+			w->show();
+		}
+		return false;
+	}
+
+	return false;
+}
+
+bool Ceto::onRealmSelect(Rhea::Event* ev, Rhea::Unit* unit)
+{
+	Rhea::Widget* w = static_cast<Rhea::Widget*>(m_unit_tree->find("//local/cetogui/gui/realms"));
+	if (w) {
+		w->hide();
+	}
+	ev->stopPropagation();
+
+	Unit* target = ev->getTarget();
+	DLOG(LOG_DEBUG) << "target selected was '" << (std::string)target->getValue("value") << "'";
+	m_home_scene = (std::string)target->getValue("value");
+
+	// open the scene
+	setScene();
+	SimpleParser::CssParser::PropertyMap properties;
+	properties["background-image"] = { "none" };
+	w = static_cast<Rhea::Widget*>(m_unit_tree->find("//local/cetogui/gui"));
+	w->setStyle(properties);
+
+	return false;
+}
+
+void Ceto::setRealmSelectDialog()
+{
+	// fill last used list
+	// file last used list
+	Rhea::ListWidget* list = static_cast<Rhea::ListWidget*>(m_unit_tree->find("//local/cetogui/gui/realms/lastused"));
+	std::vector<std::string> lastused = m_userprefs.lastUsed();
+	if (list && lastused.size()) {
+		for (auto it = lastused.begin(); it != lastused.end(); it++) {
+			list->addItem((*it), (*it));
+		}
+	}
+
+	// show dialog
+	Rhea::Widget* w = static_cast<Rhea::Widget*>(m_unit_tree->find("//local/cetogui/gui/realms"));
+	if (w) {
+		w->registerEventHandler("selected", this, std::bind(&Ceto::onRealmSelect, this, std::placeholders::_1, std::placeholders::_2));
+		w->show();
+	}
+}
 
 void Ceto::setup()
 {
@@ -26,10 +119,27 @@ void Ceto::setup()
 	// load home scene if any
 	if (!m_home_scene.length())
 	{
-		m_home_scene = "//Ceto/Init/init.scene";		
+		m_home_scene = "//Ceto/Init/init.scene";
 	}
 
 	// add defaults
+
+	// read from userprefs
+	m_userpref_path = m_fs->getFs()->getHomeDir();
+	m_userpref_path += string("/ceto.json");
+
+	if (m_fs->getFs()->fileExists(m_userpref_path))
+	{
+		// file exists		
+		std::unique_ptr<Orion::FileResourceStream> stream = std::make_unique<Orion::FileResourceStream>(m_userpref_path);
+		std::unique_ptr<Psio::IOBuffer> buf = std::make_unique<Psio::IOBuffer>(64 * 1024);
+		if (stream->Read(buf.get())) {
+			const char* ptr = buf->reader();
+			size_t len = buf->Remaining();		
+			json prefs = json::parse(ptr, ptr + len, nullptr, false);
+			m_userprefs = prefs;			
+		}
+	}
 
 	// a color material
 	Poseidon::Material* material = get_core()->getMaterial("color");
@@ -47,9 +157,21 @@ void Ceto::setup()
 		get_core()->registerMaterial("color", material);
 	}
 	Rhea::Material* mat = new Rhea::Material("color");
-	mat->setup(this);	
+	mat->setup(this);
 	mat->setValue("shader", "shader_vp");
 	m_unit_tree->addChild(mat);
+}
+
+void Ceto::setScene()
+{
+	m_userprefs.lastUsed(m_home_scene);
+
+	std::string s = m_userprefs.toJSON();
+	std::unique_ptr<Orion::FileResourceStream> stream = std::make_unique<Orion::FileResourceStream>(m_userpref_path);
+	stream->SetMode(Orion::Fs::WRITE);
+	stream->Open();
+	stream->Write(s.c_str(), s.size());
+	stream->Close();		
 
 	loadScene(m_home_scene, [&](Rhea::Scene* scene, ReqError err) {
 		if (err == ReqError::OK) {
@@ -93,7 +215,7 @@ void Ceto::setup()
 void Ceto::showScene(Rhea::Scene* scene)
 {
 	static_cast<Rhea::GraphicsService*>(m_services["graphics"])->setScene(scene);
-	std::unique_ptr<Rhea::Event> ev = std::make_unique<Rhea::Event>("display");
+	std::unique_ptr<Rhea::Event> ev = std::make_unique<Rhea::Event>("display", scene);
 	scene->sendEvent(std::string("display"), ev.get());
 	scene->broadcast("show");
 
@@ -109,10 +231,12 @@ void Ceto::showScene(Rhea::Scene* scene)
 		}
 		physics->onInit();
 		m_services["physics"] = physics;
+		// store in lopcal "cache" var
+		m_physics = physics;
 	}
 
 	// search for a camera			
-	m_view = static_cast<Rhea::Camera*>(m_unit_tree->findByType("//meworla/camera"));
+	m_view = static_cast<Rhea::Camera*>(scene->findByType("//meworla/camera"));
 	if (!m_view) {
 		// no camera found - create a default cam
 		m_view = static_cast<Rhea::Camera*>(m_unit_tree->createUnitById(scene->getPath() + "/camera", "//meworla/camera"));
@@ -145,7 +269,10 @@ void Ceto::showScene(Rhea::Scene* scene)
 
 	// now we are ready
 	onScene(scene);
+}
 
+void Ceto::loadMainGUI()
+{
 	// load the apps gui			
 	std::string app_gui = "//local/cetogui.scene";
 	loadResource(app_gui, "//meworla/gui", [&](Rhea::Unit* gui, ReqError r_err) {
@@ -153,20 +280,30 @@ void Ceto::showScene(Rhea::Scene* scene)
 			gui->prepare([&](Rhea::Error* err) {
 				gui->ready();
 			log("gui ready");
+			static_cast<Rhea::GraphicsService*>(m_services["graphics"])->registerScene("HUD", gui);
 
 			// find label for debug text
 			m_debug_text = static_cast<Rhea::Label*>(m_unit_tree->find("//local/cetogui/gui/widget1/laber"));
 			if (!m_debug_text) {
 				log("no debug text label found");
 			}
+
+			// setup system dialogs
+
+			// quit dialog
+			Rhea::Widget* w = static_cast<Rhea::Widget*>(m_unit_tree->find("//local/cetogui/gui/quit"));
+			if (w) {
+				w->registerEventHandler("clicked", this, std::bind(&Ceto::onQuitDialog, this, std::placeholders::_1, std::placeholders::_2));
+			}
+
+			// realm selection
+			setRealmSelectDialog();
 				});
 		}
 		else {
 			log("loading of gui failed");
 		}
 		});
-
-	//m_unit_tree->broadcast("logme");
 }
 
 void Ceto::setHomeScene(string scene)
@@ -212,8 +349,12 @@ int main(int argc, char* argv[])
 			app->setHomeScene(argv[argi]);
 		argi++;
 	}
-		
+
 	app->setup();
+
+	app->loadMainGUI();
+		
+	//app->setScene();
 
 	app->loop();	
 

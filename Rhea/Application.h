@@ -24,6 +24,7 @@ namespace Rhea
 	class SceneView;
 	class Service;
 	class EventInput;
+	class PhysicsService;
 
 	class Application
 	{
@@ -77,6 +78,7 @@ namespace Rhea
 		Dispatcher* m_dispatcher = 0;
 		Controller* m_focused_controller = 0;
 		std::unordered_map<std::string, Service*> m_services;
+		PhysicsService* m_physics = nullptr;
 
 		ResourceLoader m_resource_loader;
 

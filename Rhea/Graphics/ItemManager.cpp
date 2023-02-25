@@ -14,6 +14,7 @@
 #include "ItemManager.h"
 #include "Texture.h"
 #include "MeshElement.h"
+#include "GraphicsService.h"
 
 #include <Psio/Log.h>
 
@@ -45,33 +46,18 @@ namespace Rhea
 			return nullptr;
 		}
 
-		// check if mesh already defined
+		// check if mesh element already defined
 		GraphicsMesh* mesh_el = static_cast<GraphicsMesh*>(item_mesh->getElement("graphics"));
-		if (mesh_el) {
-			// reference the existing mesh
-			elem->SetMesh(mesh_el->m_mesh);
+		if (!mesh_el) {
+			// create using mesh manager
+			mesh_el = (GraphicsMesh*)m_service->getManager("//meworla/mesh")->createElement(core, item_mesh);
 		}
 
 		// create the element		
 		Poseidon::Renderable* entity = static_cast<Poseidon::Renderable*>(createRenderable(elem, core, unit, "default", false));
-		
-		if (!mesh_el) {
-			// mesh was not defined up till now - store it in mesh unit
-
-			// create mesh element
-			setItem(item, elem);
-			mesh_el = new GraphicsMesh();
-			mesh_el->m_mesh = elem->getMesh();
-
-			// attach it to mesh resource
-			item_mesh->addElement("graphics", mesh_el);
-		}
-
-		// add the position
-		entity->setTransform(((Item*)unit)->getTransform());
 
 		// set the material
-		setMaterial(core, material, entity);
+		setMaterial(core, material);
 
 		// attach to unit
 		unit->addElement("graphics", elem);
@@ -86,41 +72,19 @@ namespace Rhea
 		return elem;
 	}
 
-	void GraphicsItemManager::setItem(Item* item, GraphicsRenderElement* elem)
-	{
-		Poseidon::Mesh* m_mesh = elem->getMesh();
-		Mesh* mesh = item->getMesh();
-
-		// add vertex and index buffer
-
-		std::vector<Mesh::vertex> vertices;
-		std::vector<unsigned long> v_indices;
-
-		mesh->getBuffers(vertices, v_indices);
-
-		if (!vertices.size() || !v_indices.size()) {
-			printf("Vertex is empty\n");
-			return;
-		}
-
-		std::vector<Hippios::vertex_uv> hippios_vertices;
-		for (auto it = vertices.begin(); it != vertices.end(); ++it) {
-			Mesh::vertex v = *it;
-			hippios_vertices.push_back(Hippios::vertex_uv(v.x, v.y, v.z, v.u, v.v));
-		}
-
-		m_mesh->setVertices(sizeof(Hippios::vertex_uv), hippios_vertices.size(), hippios_vertices.data());
-		m_mesh->setIndices(sizeof(unsigned long), v_indices.size() / 3, v_indices.data());		
-	}
-
 	bool GraphicsItemManager::onUpdate(Event* ev, Unit* unit)
 	{
-		printf("item updated\n");
-
 		Item* item = static_cast<Item*>(unit);
 		GraphicsRenderElement* elem = static_cast<GraphicsRenderElement*>(item->getElement("graphics"));
 
-		setItem(item, elem); // TODO: what could possibly be an update?
+		// possible material change - check if material has element
+		if (Material* mat = item->getGraphicsComponent()->getMaterial()) {
+			if (!mat->getElement("graphics")) {
+				// create the element for the new material
+				GraphicsManager* mgr = m_service->getManager(mat->getTypeName());
+				mgr->createElement(m_service->getEngine(), mat);
+			}
+		}
 
 		return false;
 	}

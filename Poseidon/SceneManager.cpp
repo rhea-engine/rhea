@@ -7,9 +7,14 @@
 #include "Texture.h"
 #include "Material.h"
 #include "Shader.h"
+#include "Mesh.h"
 
 #include <Hippios/Renderer.h>
 #include <Hippios/GraphicsBuffer.h>
+#include <Rhea/Fabrics/Core/Material.h>
+#include <Rhea/Graphics/MaterialManager.h>
+#include <Rhea/Graphics/MeshElement.h>
+#include <Rhea/Fabrics/3D/Mesh.h>
 
 namespace Poseidon
 {
@@ -81,7 +86,7 @@ namespace Poseidon
 				// render pass
 				Camera* camera = context->get_camera();
 				if (!camera)
-					return false;
+					continue;
 				m_renderer->setStencilState(context->getStencilState());
 
 				// fill per frame buffer
@@ -91,11 +96,23 @@ namespace Poseidon
 
 				m_frame_buffer->update((void*)&per_frame_buf);
 
-				Renderable* renderable = m_rend_queue->first();
-				for (Renderable* renderable = m_rend_queue->first(); renderable != NULL; renderable = m_rend_queue->next()) {
+				Item* renderable = m_rend_queue->first();
+				for (Item* renderable = m_rend_queue->first(); renderable != NULL; renderable = m_rend_queue->next()) {
+
+					Rhea::RenderComponent* r_comp = renderable->getGraphicsComponent();
 
 					// material
-					Material* mat = renderable->getMaterial();
+					Rhea::Mesh* rmesh = r_comp->getMesh();
+					if (!rmesh)
+						continue;
+					Rhea::Material* rmat = rmesh->getMaterial();
+					//Rhea::Material* rmat = r_comp->getMaterial(); //rmesh->getMaterial();					
+					Material* mat = nullptr;
+					if (rmat) {
+						Rhea::GraphicsMaterial* gmat = (Rhea::GraphicsMaterial*)rmat->getElement("graphics");
+						if (gmat)
+							mat = gmat->m_material;
+					}
 					if (mat != m_current_material && mat) {
 						m_current_material = mat;
 						mat->activate();
@@ -120,7 +137,7 @@ namespace Poseidon
 
 					// set texture(s)
 
-					std::vector<Poseidon::Texture*> texs = mat->getTextures();
+					std::vector<Poseidon::Texture*> texs = m_current_material->getTextures();
 					if (texs.size()) {
 						for (int i = 0; i < texs.size(); i++) {
 							m_renderer->setTexture(texs[i]->get_texture(), i);
@@ -133,7 +150,11 @@ namespace Poseidon
 					Hippios::VertexBuffer* vb;
 					Hippios::IndexBuffer* ib;
 					int num_indices;
-					renderable->getRenderInput(&vb, &ib, num_indices);
+					
+					Rhea::GraphicsMesh* m_elem = (Rhea::GraphicsMesh*)rmesh->getElement("graphics");
+					if (!m_elem)
+						continue;
+					m_elem->m_mesh->getRenderInput(&vb, &ib, num_indices);
 
 					if (m_current_material->getShader()->getVertexType() == 0) {
 						if (vb) {

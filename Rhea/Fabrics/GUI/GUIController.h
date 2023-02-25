@@ -1,13 +1,13 @@
 #ifndef RHEA_GUI_CONTROLLER_H
 #define RHEA_GUI_CONTROLLER_H
 
-#include "Resource.h"
+#include "Widget.h"
 
 namespace Rhea
 {
 	class Widget;
 
-	class GUIController : public Resource
+	class GUIController : public Widget
 	{
 	public:
 		GUIController(std::string name) :
@@ -19,7 +19,7 @@ namespace Rhea
 			m_captured(nullptr),
 			m_mx(0),
 			m_my(0),
-			Resource(name, type_name)
+			Widget(name, type_name)
 		{}
 
 		// setup from strings
@@ -27,6 +27,9 @@ namespace Rhea
 
 		// ready event handler
 		void ready();
+
+		// overwrite widget size
+		Vector2 size();
 
 		// input event handler
 		bool onInput(Event* ev, Unit* unit);

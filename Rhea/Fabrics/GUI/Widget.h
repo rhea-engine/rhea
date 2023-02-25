@@ -2,40 +2,36 @@
 #define RHEA_GUI_WIDGET_H
 
 #include "../../Unit.h"
-#include "Vector2.h"
+#include "../Canvas/Item2D.h"
+#include <Math/Vector2.h>
+#include <SimpleParser/CssParser.h>
+
+using Math::Vector2;
 
 namespace Rhea
 {
-	class Item2D;
 	class Event;
-
-	class Widget : public Unit {
+	
+	class Widget : public Item2D {
 	
 	public:
 		Widget(std::string path_name) :
 			Widget(path_name, "//meworla/gui/widget")
 		{}
 		Widget(std::string path_name, std::string type_name) :
-			Unit(path_name, type_name),
+			Item2D(path_name, type_name),
 			m_top_window(false),
-			m_visible(false),
-			m_handle_input(false),
-			m_size(0.0f, 0.0f),
-			m_position(0.0f,0.0f),
+			m_visible(true),
+			m_handle_input(false),			
 			m_base_size(0.0f, 0.0f),
 			m_base_position(0.0f, 0.0f),
-			m_screen_position(0.0f, 0.0f),
-			m_screen_position_valid(false),
-			m_background_item(nullptr)
+			m_cur_position(0.0f, 0.0f),
+			m_screen_position_valid(false)			
 		{}
 
 		virtual void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
 
-		void prepare(Unit::ReadyHandler handler);
-
 		static Widget* createType(std::string name, std::string type);
-
-		Item2D* getItem() { return m_background_item; }
 
 		void ready();
 
@@ -66,9 +62,20 @@ namespace Rhea
 		// get the current size
 		Vector2 getSize() {	return m_size; }
 
-		// properties
+		// style
+		void setStyle(SimpleParser::CssParser::PropertyMap& properties);
+		std::vector<Variant>* getStyle(std::string name);
 
+		// Widget handling functions
+
+		// set the widget to be at toplevel (not a child of another widget)
 		void setToplevel(bool top) { m_top_window = top; }
+		// show the widget
+		void show();
+		// hide the widget
+		void hide();
+
+		bool isVisible() { return m_visible; }
 
 		// find lowest widget at position
 		Widget* capture(int x, int y);
@@ -103,15 +110,13 @@ namespace Rhea
 		// current coordinates
 
 		// current position in pixel
-		Vector2 m_position;
-		// current  width in pixel
-		Vector2 m_size;
+		Vector2 m_cur_position;
 
 		// screen space
-		Vector2 m_screen_position;
 		bool m_screen_position_valid;
 
-		Item2D* m_background_item;
+		// my styles
+		SimpleParser::CssParser::PropertyMap m_properties;
 	};
 }
 

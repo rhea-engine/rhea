@@ -11,14 +11,10 @@ namespace Rhea
 	{
 	public:
 		WidgetEvent(std::string name, Widget* w) :
-			Event(name),
-			m_w(w)
+			Event(name, (Unit*)w)			
 		{}
 
-		Widget* getWidget() { return m_w; }
-
-	protected:
-		Widget* m_w;
+		Widget* getWidget() { return (Widget*)m_target; }
 	};
 }
 

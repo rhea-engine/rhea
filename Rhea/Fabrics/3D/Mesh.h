@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include "Resource.h"
+#include <Rhea/Resource.h>
 
 namespace Rhea
 {

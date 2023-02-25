@@ -8,7 +8,7 @@ namespace Rhea
 	{
 		if (m_entity) {
 			if (m_render_context)
-				m_render_context->removeRenderChild(static_cast<Poseidon::Entity*>(m_entity));
+				//m_render_context->removeRenderChild(static_cast<Poseidon::Entity*>(m_entity));
 			delete m_entity;
 		}
 	}

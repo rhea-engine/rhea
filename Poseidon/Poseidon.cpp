@@ -48,7 +48,7 @@ namespace Poseidon
 	void Application::onScene(Rhea::Scene* scene)
 	{
 		log("scene displayed");
-		std::unique_ptr<Rhea::Event> ev_r = std::make_unique<Rhea::Event>("ready");
+		std::unique_ptr<Rhea::Event> ev_r = std::make_unique<Rhea::Event>("ready", scene);
 		scene->sendEvent(std::string("ready"), ev_r.get());
 
 		m_phys_debug = scene->getValue("debug_physics");

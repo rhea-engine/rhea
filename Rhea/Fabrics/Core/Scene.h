@@ -26,6 +26,12 @@ namespace Rhea
 		// get the items
 		std::vector<Item*> getItems() { return m_items; }
 
+		// ready event handler
+		void ready();
+
+		// handle new items in scene
+		bool onSceneEnter(Event* ev, Unit* unit);
+
 		// factory function
 		static Unit* createType(std::string name, std::string type);
 

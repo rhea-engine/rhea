@@ -11,6 +11,7 @@ namespace Orion
 	protected:
 		std::string m_appname;
 		std::string m_app_dir;
+		std::string m_home;
 	public:
 		Fs(std::string appname);
 
@@ -31,6 +32,9 @@ namespace Orion
 
 		// Test if the given file exists
 		static bool fileExists(const std::string& path);
+
+		// get user home dir
+		std::string getHomeDir();
 
 		static const int READ = 1;
 		static const int WRITE = 2;

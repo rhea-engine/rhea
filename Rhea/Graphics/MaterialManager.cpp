@@ -82,10 +82,7 @@ namespace Rhea
 	
 	bool GraphicsMaterialManager::onItemDelete(Event* ev, Unit* unit)
 	{
-		Element* el = unit->getElement("graphics");
-		if (el)
-			delete el;
-
+		unit->addElement("graphics", nullptr);
 		return false;
 	}
 }

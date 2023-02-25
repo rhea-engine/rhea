@@ -27,7 +27,6 @@ namespace Rhea
 			m_parent(NULL),
 			m_path(path_name),
 			m_refcount(0),
-			m_to_load(0),
 			SimpleParser::Variant(SimpleParser::Type::get(type_name))
 		{}		
 		virtual ~Unit();
@@ -115,8 +114,12 @@ namespace Rhea
 		// send event to parent subtree
 		void sendEventSubtree(Unit* top, std::string event_name, Event* event);
 
-		// void traverser subtree
-		void traverse(std::function<void(std::string&, Unit*)> handler);
+		// bubble event (send to parents)
+		void bubbleEvent(std::string event_name, Event* event);
+
+		// void traverse subtree
+		// if the handler returns false the children will not be called
+		void traverse(std::function<bool(std::string&, Unit*)> handler);
 
 		// get Application
 		Application* getApplication() { return m_app; }
@@ -149,7 +152,6 @@ namespace Rhea
 		std::unordered_map < std::string, std::unordered_map<void*, Event::EventHandler >> m_eventhandlers;
 		std::unordered_map<std::string, Element*> m_elements;
 		int m_refcount;
-		int m_to_load;
 	};
 }
 

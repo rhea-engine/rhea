@@ -11,7 +11,7 @@ namespace Rhea
 			m_in_updating = true;
 
 			Unit* p = m_parent->getParent();
-			if (!p || !p->getTypeName().compare("//meworla/scene")) {
+			if (!p || !p->getValue("isItem")) {
 				m_derived_position.setPosition(m_position);
 				m_derived_valid = true;
 				return;

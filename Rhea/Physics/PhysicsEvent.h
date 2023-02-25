@@ -13,7 +13,7 @@ namespace Rhea
 		PhysicsEvent(std::string e_name, float delta, Terrain* terrain) :
 			m_delta(delta),
 			m_terrain(terrain),
-			Event(e_name)
+			Event(e_name, (Unit*)terrain)
 		{}
 
 		//getters

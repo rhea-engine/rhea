@@ -2,7 +2,7 @@
 
 namespace Poseidon
 {
-	void RenderQueue::addRenderable(Renderable* renderable)
+	void RenderQueue::addRenderable(Item* renderable)
 	{
 		m_render_items.push_back(renderable);
 	}
@@ -12,14 +12,14 @@ namespace Poseidon
 		m_render_items.clear();
 	}
 
-	Renderable* RenderQueue::first()
+	Item* RenderQueue::first()
 	{
 		it = m_render_items.begin();
 		if (it != m_render_items.end())
 			return *it;
 	}
 
-	Renderable* RenderQueue::next()
+	Item* RenderQueue::next()
 	{
 		++it;
 		if (it != m_render_items.end())

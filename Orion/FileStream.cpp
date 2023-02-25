@@ -63,7 +63,7 @@ namespace Orion
 		}
 	}
 
-	size_t FileResourceStream::Write(void* data, size_t length)
+	size_t FileResourceStream::Write(const void* data, size_t length)
 	{
 		if (status || !write || !f)
 			return 0;
@@ -87,6 +87,37 @@ namespace Orion
 				return 0;
 		}
 		return length;
+	}
+
+	size_t FileResourceStream::Read(Psio::IOBuffer* buf)
+	{
+		size_t size = 0;
+
+		if (!m_isOpen) {
+			// open for reading
+			m_mode |= Orion::Fs::READ;
+			read = true;
+			Open();
+		}
+
+		if (status || !read || !f)
+			return 0;
+
+		size_t buflen = buf->FreeBufSize();
+		size_t bytes_read = fread_s(buf->writer(), buflen, 1, buflen, f);
+		do {
+			buf->Produce(bytes_read);
+			size += bytes_read;
+			if (buf->FreeBufSize() < 8 * 1024) {
+				buf->Grow(64 * 1024);
+			}
+			if (bytes_read < buflen)
+				break;
+			else
+				buflen = buf->FreeBufSize();
+			bytes_read = fread_s(buf->writer(), buflen, 1, buflen, f);
+		} while (true);
+		return size;
 	}
 
 #define CHUNK_LEN 64*1024

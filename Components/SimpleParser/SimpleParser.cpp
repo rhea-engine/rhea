@@ -32,22 +32,38 @@ namespace SimpleParser
 				return Error::PARSE_OK;
 			case '(':
 				token.type = TokenType::TOKEN_LEFT_PARENTHESIS;
-				reader++; 
+				reader++;
 				return Error::PARSE_OK;
 			case ')':
 				token.type = TokenType::TOKEN_RIGHT_PARENTHESIS;
-				reader++; 
+				reader++;
 				return Error::PARSE_OK;
 			case '[':
 				token.type = TokenType::TOKEN_LEFT_BRACKET;
-				reader++; 
+				reader++;
 				return Error::PARSE_OK;
 			case ']':
 				token.type = TokenType::TOKEN_RIGHT_BRACKET;
-				reader++; 
+				reader++;
+				return Error::PARSE_OK;
+			case '{':
+				token.type = TokenType::TOKEN_LEFT_CURLYBRACKET;
+				reader++;
+				return Error::PARSE_OK;
+			case '}':
+				token.type = TokenType::TOKEN_RIGHT_CURLYBRACKET;
+				reader++;
 				return Error::PARSE_OK;
 			case ',':
 				token.type = TokenType::TOKEN_COMMA;
+				reader++;
+				return Error::PARSE_OK;
+			case ':':
+				token.type = TokenType::TOKEN_COLON;
+				reader++;
+				return Error::PARSE_OK;
+			case ';':
+				token.type = TokenType::TOKEN_SEMICOLON;
 				reader++;
 				return Error::PARSE_OK;
 			case '\n':
@@ -68,6 +84,7 @@ namespace SimpleParser
 				reader++;
 				break;
 			case ' ':
+			case '\t':
 				// skip whitespace
 				reader++;
 				break;
@@ -93,10 +110,10 @@ namespace SimpleParser
 				// number value
 				int neg = 1;
 				bool is_float = false;
-				if ((buf[reader] >= '0' && buf[reader] <= '9') || buf[reader]=='-') {
-					s_start = &buf[reader];					
+				if ((buf[reader] >= '0' && buf[reader] <= '9') || buf[reader] == '-') {
+					s_start = &buf[reader];
 					if (buf[reader] == '-') {
-						neg = -1;					
+						neg = -1;
 						reader++;
 						s_start++;
 						if (!(reader < buflen))
@@ -132,8 +149,7 @@ namespace SimpleParser
 						((buf[reader] >= 'a' && buf[reader] <= 'z') ||
 							(buf[reader] >= 'A' && buf[reader] <= 'Z') ||
 							(buf[reader] >= '0' && buf[reader] <= '9') ||
-							buf[reader] == '_' || buf[reader] == ':' ||
-							buf[reader] == '/'
+							strchr(id_chars, buf[reader])
 							))
 						reader++;
 					if (&buf[reader] - s_start == 0)

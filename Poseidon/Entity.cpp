@@ -36,7 +36,7 @@ namespace Poseidon
 		// TODO - really cull based on AABB or similar
 
 		// add myself to the render list
-		queue->addRenderable(this);
+		//queue->addRenderable(this);
 
 		// add children to render list
 		for (auto it = m_groups["renderable"].begin(); it != m_groups["renderable"].end(); ++it)

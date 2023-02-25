@@ -94,6 +94,7 @@ namespace Hermes
 		std::unique_ptr<Message> msg;
 		msg.reset(m_msg_factory->getMessage(m_inbuf.get()));
 		if (msg) {
+			DLOG(LOG_DEBUG) << "received message with opcode=" << msg->getOpcode();
 			m_message_handler(std::move(msg), 0);
 			if (m_inbuf->Remaining()) {
 				m_next_state = HERMES_STATE::HERMES_READMESSAGE_COMPLETED;

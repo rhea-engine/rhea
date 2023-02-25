@@ -19,8 +19,9 @@ namespace Orion
 		void Open();
 		void Close();
 
-		size_t Write(void* data, size_t length);
+		size_t Write(const void* data, size_t length);
 		size_t Read(void* dest, size_t length);
+		size_t Read(Psio::IOBuffer* buf);
 		void ReadAsync(Psio::IOBuffer* buf);
 		std::string getLine();
 		bool eof();

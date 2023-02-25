@@ -59,6 +59,13 @@ namespace Poseidon
 		m_vbuffer = vbuffer;
 	}
 
+	void Mesh::getRenderInput(Hippios::VertexBuffer** pvb, Hippios::IndexBuffer** pib, int& num_indices)
+	{
+		*pvb = get_vbuffer();
+		*pib = get_ibuffer();
+		num_indices = getNumIndices();
+	}
+
 	void Mesh::setViewport(Viewport* viewport)
 	{
 		m_viewport = viewport;		

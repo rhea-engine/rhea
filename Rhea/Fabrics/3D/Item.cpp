@@ -17,6 +17,8 @@ namespace Rhea
 		Unit::setup(app, attributes, values);
 		m_status = Status::SETUP;
 
+		m_values["isItem"] = true;
+
 		m_resource_list = new ResourceList(app);
 
 		// dependent resources
@@ -33,6 +35,8 @@ namespace Rhea
 			}
 			m_transform.get_position()->setPosition(x, y, z);
 		}
+
+		m_render_component = std::make_unique<RenderComponent>(this);
 	}
 
 	Unit* Item::createType(std::string name, std::string type)
@@ -50,8 +54,10 @@ namespace Rhea
 
 		if (!m_mesh && m_resource_list) {
 			m_mesh = static_cast<Mesh*>((*m_resource_list)["mesh"]);
-			if (m_mesh)
+			if (m_mesh) {
 				m_mesh->ready();
+				m_render_component->setMesh(m_mesh);
+			}
 		}
 	}
 
@@ -78,7 +84,9 @@ namespace Rhea
 
 		// copy item values
 		new_item->m_mesh = m_mesh;
+		m_render_component->setMesh(m_mesh);
 		new_item->m_material = m_material;
+		m_render_component->setMaterial(m_material); //TODO check!
 
 		return new_item;
 	}

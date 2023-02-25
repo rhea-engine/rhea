@@ -27,7 +27,7 @@ namespace Orion
 
 		// write length bytes to resource
 		// returns actual bytes written
-		virtual size_t Write(void* data, size_t length) = 0;
+		virtual size_t Write(const void* data, size_t length) = 0;
 
 		// read from resource up to length bytes
 

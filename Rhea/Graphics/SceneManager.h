@@ -39,7 +39,7 @@ namespace Rhea
 		void createScene(Poseidon::Core* core, GraphicsScene* elem, Scene* scene);
 
 		// add one item to the scene (creating the corresponding element)
-		void addItem(Item* item);
+		void addItem(Unit* item);
 
 		// handle add item event
 		bool onItemAdd(Event* ev, Unit* unit);

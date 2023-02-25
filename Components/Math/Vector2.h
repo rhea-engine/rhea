@@ -1,7 +1,7 @@
-#ifndef RHEA_GUI_VECTOR2_H
-#define RHEA_GUI_VECTOR2_H
+#ifndef MATH_VECTOR2_H
+#define MATH_VECTOR2_H
 
-namespace Rhea
+namespace Math
 {
 	class Vector2 {
 	public:
@@ -71,4 +71,4 @@ namespace Rhea
 		bool operator!=(const Vector2& v) const { return !(*this == v); }
 	};
 }
-#endif // !RHEA_GUI_VECTOR2_H
+#endif // !MATH_VECTOR2_H

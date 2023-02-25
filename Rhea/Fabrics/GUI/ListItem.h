@@ -1,0 +1,32 @@
+#ifndef RHEA_GUI_LISTITEM_H
+#define RHEA_GUI_LISTITEM_H
+
+#include "Widget.h"
+#include "Label.h"
+
+namespace Rhea
+{
+	class ListWidgetItem : public Widget
+	{
+	public:
+		ListWidgetItem(std::string path_name) :
+			ListWidgetItem(path_name, "//meworla/gui/listitem")
+		{}
+		ListWidgetItem(std::string path_name, std::string type_name) :
+			m_label(nullptr), 
+			Widget(path_name, type_name)
+		{}
+
+		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
+
+		static ListWidgetItem* createType(std::string name, std::string type_name);
+
+		// input handling
+		bool onMouseClick(Event* ev, Unit* unit);
+
+	protected:
+		Label* m_label;
+	};
+}
+
+#endif // !RHEA_GUI_LISTITEM_H

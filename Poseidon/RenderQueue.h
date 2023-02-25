@@ -2,21 +2,22 @@
 #define POSEIDON_RENDERQUEUE_H
 
 #include <vector>
+#include <Rhea/Fabrics/3D/Item.h>
+
+using Rhea::Item;
 
 namespace Poseidon
 {
-	class Renderable;
-
 	class RenderQueue
 	{
 	public:
-		void addRenderable(Renderable* renderable);
+		void addRenderable(Item* renderable);
 		void clear();
-		Renderable* first();
-		Renderable* next();
+		Item* first();
+		Item* next();
 	protected:
-		std::vector<Renderable*> m_render_items;
-		std::vector<Renderable*>::iterator it;
+		std::vector<Item*> m_render_items;
+		std::vector<Item*>::iterator it;
 	};
 }
 

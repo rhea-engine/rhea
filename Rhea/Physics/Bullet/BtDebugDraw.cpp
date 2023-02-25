@@ -9,7 +9,8 @@
 
 namespace Rhea
 {
-	BulletDebugDraw::BulletDebugDraw(Application* app, btDynamicsWorld* world)
+	BulletDebugDraw::BulletDebugDraw(Application* app, btDynamicsWorld* world) :
+		Item("DebugDraw")
 	{
 		m_app = app;
 		m_mesh = new Poseidon::Mesh();

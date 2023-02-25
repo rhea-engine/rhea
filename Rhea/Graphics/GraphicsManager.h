@@ -36,13 +36,17 @@ namespace Rhea
 		Poseidon::Node* createRenderable(GraphicsRenderElement* elem, Poseidon::Core* core, Unit* item, std::string render_context_name, bool dynamic_usage);
 		
 		// remove renderable from engine
-		void removeRenderable(GraphicsRenderElement* elem);
+		void removeRenderable(Item* elem);
 
 		// set position from values to transform t
 		void setPosition(Unit* u, Transform* t);
 
 		// set material
-		void setMaterial(Poseidon::Core* core, Material* material, Poseidon::Node* entity);
+		void setMaterial(Poseidon::Core* core, Material* material);
+
+		// default event functions
+		bool onHide(Event* ev, Unit* unit);
+		bool onShow(Event* ev, Unit* unit);
 
 	protected:
 		GraphicsService* m_service;

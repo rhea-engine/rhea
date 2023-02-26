@@ -150,6 +150,15 @@ namespace Rhea
 			return "//" + unit_path;
 	}
 
+	Unit* Unit::getChild(std::string name)
+	{
+		auto it = m_children.find(name);
+		if (it != m_children.end()) {
+			return it->second;
+		}
+		return nullptr;
+	}
+
 	void Unit::setName(std::string name)
 	{
 		// update the full path
@@ -311,6 +320,15 @@ namespace Rhea
 				//handler(name, it->second);
 				it->second->traverse(handler);
 			}
+		}
+	}
+
+	void Unit::children(std::function<bool(std::string&, Unit*)> handler)
+	{
+		for (auto it = m_children.begin(); it != m_children.end(); ++it) {
+			std::string name = it->first;
+			if (!handler(name, it->second))
+				return;
 		}
 	}
 

@@ -4,73 +4,78 @@
 #include <Rhea/Physics/PhysicsManager.h>
 #include "ServerService.h"
 #include <Rhea/Platform/PlatformService.h>
-
-void World::init()
-{
-	Rhea::Application::init();
-
-	SimpleParser::Type::registerType<Rhea::Unit>("//meworla/controller");
-	SimpleParser::Type::registerType<Rhea::Unit>("//meworla/spectator");
-
-	// setup network server
-	SimpleParser::Type::registerType<ServerService>("//meworla/serverservice");
-	m_server_service = (ServerService*)SimpleParser::Type::create("ServerService", "//meworla/serverservice");
-	m_services["server"] = m_server_service;
-	m_server_service->setup(this);
-	
-	m_server_service->setNetwork(static_cast<Rhea::PlatformService*>(m_services["platform"])->getEngine()->getNet());
-}
+#include <Rhea/ResourceList.h>
+#include <Rhea/UnitTree.h>
 
 void World::setScene(std::string scene)
 {
-	m_scene = scene;
+	m_scene_name = scene;
 }
 
-void World::setup()
+void World::setup(Rhea::Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 {
-	Rhea::Application::setup();
+	Resource::setup(app, attributes, values);
 
-	if (!m_scene.length()) {
-		LOG(LOG_ERROR) << "No scene defined. Exiting.";
-		exit(1);
+	if (m_values.find("avatarlist") != m_values.end()) {
+		if (!m_resource_list)
+			m_resource_list = new Rhea::ResourceList(app);
+		m_resource_list->push("avatarlist", m_values["avatarlist"], "//meworla/avatarlist");
 	}
 
-	loadScene(m_scene, [&](Rhea::Scene* scene, ReqError err) {
-		if (err == ReqError::OK) {
-			Rhea::PhysicsService* physics = static_cast<Rhea::PhysicsService*>(m_services["physics"]);
-			if (!physics) {
-				Variant phy = scene->getValue("physics");
-				if (phy == std::string("none")) {
-					physics = static_cast<Rhea::PhysicsManagerService*>(m_services["physics_mgr"])->createPhysicsService(Rhea::PhysicsManagerService::Types::NONE);
-				}
-				else {
-					physics = static_cast<Rhea::PhysicsManagerService*>(m_services["physics_mgr"])->createPhysicsService(Rhea::PhysicsManagerService::Types::WORLD);
-				}
-				physics->onInit();
-				m_services["physics"] = physics;
+	if (m_values.find("scene") == m_values.end()) {
+		LOG(LOG_ERROR) << "No scene defined. Exiting.";
+		//exit(1);
+	}
+	else {
+		if (!m_resource_list)
+			m_resource_list = new Rhea::ResourceList(app);
+		m_resource_list->push("scene", m_values["scene"], "//meworla/scene");
+	}
+}
+
+Rhea::Unit* World::getUserInfo(std::string username)
+{
+	Rhea::Unit* a_list = (*m_resource_list)["avatarlist"];
+	if (a_list) {
+		Rhea::Unit* user_info = a_list->getChild(username);
+		return user_info;
+	}
+	else
+		return nullptr;
+}
+
+void World::ready()
+{
+	m_scene = (Rhea::Scene*)(*m_resource_list)["scene"];
+
+	if (m_scene) {
+
+		Rhea::PhysicsService* physics = static_cast<Rhea::PhysicsService*>(m_app->getService("physics"));
+		if (!physics) {
+			Variant phy = m_scene->getValue("physics");
+			if (phy == std::string("none")) {
+				physics = static_cast<Rhea::PhysicsManagerService*>(m_app->getService("physics_mgr"))->createPhysicsService(Rhea::PhysicsManagerService::Types::NONE);
 			}
-
-			static_cast<Rhea::PhysicsService*>(m_services["physics"])->setScene(static_cast<Rhea::Scene*>(scene));
-
-			// now we are ready
-			onScene(scene);
-
+			else {
+				physics = static_cast<Rhea::PhysicsManagerService*>(m_app->getService("physics_mgr"))->createPhysicsService(Rhea::PhysicsManagerService::Types::WORLD);
+			}
+			physics->onInit();
+			m_app->registerService("physics", physics);
 		}
-		else {
-			LOG(LOG_ERROR) << "Could not load scene";
-		}
-		});
+
+		static_cast<Rhea::PhysicsService*>(m_app->getService("physics"))->setScene(static_cast<Rhea::Scene*>(m_scene));
+
+		// now we are ready
+		std::unique_ptr<Rhea::Event> ev_r = std::make_unique<Rhea::Event>("ready", nullptr);
+		m_scene->sendEvent(std::string("ready"), ev_r.get());
+	}
+	else {
+		LOG(LOG_ERROR) << "World::ready(): Could not load scene";	
+	}
 }
 
-bool World::onFrameEnd()
+Rhea::Unit* World::createType(std::string name, std::string type)
 {
-	return m_server_service->onFrameEnd();	
-}
-
-void World::onScene(Rhea::Scene* scene)
-{
-	log("scene displayed");
-	std::unique_ptr<Rhea::Event> ev_r = std::make_unique<Rhea::Event>("ready",nullptr);
-	scene->sendEvent(std::string("ready"), ev_r.get());
-	m_server_service->setScene(scene);
+	Unit* ret = (Unit*)new World(name, type);
+	return ret;
 }

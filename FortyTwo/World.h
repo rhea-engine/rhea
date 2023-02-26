@@ -3,30 +3,36 @@
 
 #include <string>
 #include <Rhea/Application.h>
-#include "ServerService.h"
+#include <Rhea/Resource.h>
 
-class World : public Rhea::Application
+class World : public Rhea::Resource
 {
 public:
-	World() :
-		m_scene_ready(false)
+	World(std::string name, std::string type) :
+		m_scene_ready(false),
+		m_scene(nullptr),
+		Rhea::Resource(name,type)
 	{}
-	void init();
+
 	void setScene(std::string scene);
 
 	// start the setup process
-	void setup();
+	void setup(Rhea::Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
 
-	// listen to actions
-	bool onFrameEnd();
+	Rhea::Scene* getScene() { return m_scene; }
 
-	void onScene(Rhea::Scene* scene);
+	// get user info by username
+	Rhea::Unit* getUserInfo(std::string username);
+
+	// ready event
+	void ready();
+
+	static Rhea::Unit* createType(std::string name, std::string type);
 
 protected:
-	std::string m_scene;
+	std::string m_scene_name;
+	Rhea::Scene* m_scene;
 	bool m_scene_ready;
-	ServerService* m_server_service;
-
 };
 
 #endif

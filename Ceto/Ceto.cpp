@@ -20,6 +20,7 @@
 #include <Rhea/EventInput.h>
 #include <Rhea/Fabrics/GUI/List.h>
 #include <Orion/FileStream.h>
+#include <Rhea/Fabrics/Core/Avatar.h>
 
 bool Ceto::onQuitDialog(Rhea::Event* ev, Rhea::Unit* unit)
 {
@@ -93,7 +94,6 @@ bool Ceto::onRealmSelect(Rhea::Event* ev, Rhea::Unit* unit)
 void Ceto::setRealmSelectDialog()
 {
 	// fill last used list
-	// file last used list
 	Rhea::ListWidget* list = static_cast<Rhea::ListWidget*>(m_unit_tree->find("//local/cetogui/gui/realms/lastused"));
 	std::vector<std::string> lastused = m_userprefs.lastUsed();
 	if (list && lastused.size()) {
@@ -185,8 +185,23 @@ void Ceto::setScene()
 					{
 						scene->addChild(client);
 						DLOG(LOG_DEBUG) << "connected to server";
-						client->setAuth("gnar");
-						client->start(scene, [&, scene](int err) {
+						client->setAuth("anonymous");
+						client->start(scene, 
+							[&, client](int err) {
+								if (!err) {
+									showAvatarSelect(scene, client);
+								}
+								else {
+									switch (err) {
+									case -2:										
+										showAlert("Avatar not found");
+										break;
+									default:
+										showAlert("General connection error");
+									}
+								}
+							},
+							[&, scene](int err) {
 							if (!err) {
 								showScene(scene);
 							}
@@ -269,6 +284,84 @@ void Ceto::showScene(Rhea::Scene* scene)
 
 	// now we are ready
 	onScene(scene);
+}
+
+void Ceto::showAvatarSelect(Rhea::Scene* scene, Rhea::Unit* client)
+{
+	// fill last used list	
+	Rhea::ListWidget* list = static_cast<Rhea::ListWidget*>(m_unit_tree->find("//local/cetogui/gui/avatars/list"));	
+	if (list) {
+		Rhea::Unit* avatar_list = scene->getChild("avatarlist");
+		if (avatar_list) {
+			avatar_list->children([&list](std::string& name, Rhea::Unit* unit)->bool {
+				if (unit->getTypeName() == "//meworla/avatar") {
+					Rhea::Avatar* avatar = (Rhea::Avatar*)unit;
+					list->addItem(name, name);
+				}
+			return true;
+				});
+		}
+	}
+
+	// show dialog
+	Rhea::Widget* w = static_cast<Rhea::Widget*>(m_unit_tree->find("//local/cetogui/gui/avatars"));
+	if (w) {
+		w->setUserPtr((void*)client);
+		w->registerEventHandler("selected", this, std::bind(&Ceto::onAvatarSelect, this, std::placeholders::_1, std::placeholders::_2));
+		w->show();
+	}
+}
+
+bool Ceto::onAvatarSelect(Rhea::Event* ev, Rhea::Unit* unit)
+{
+	Rhea::Widget* w = static_cast<Rhea::Widget*>(m_unit_tree->find("//local/cetogui/gui/avatars"));
+	if (w) {
+		w->hide();
+	}
+	ev->stopPropagation();
+
+	Unit* target = ev->getTarget();
+	DLOG(LOG_DEBUG) << "target selected was '" << (std::string)target->getValue("value") << "'";
+	std::string avatar_name = (std::string)target->getValue("value");
+
+	// enter the world with given avatarname
+	if (avatar_name.length()) {
+		Poseidon::WorldClient* client = (Poseidon::WorldClient*)w->getUserPtr();
+		client->enterWorld(avatar_name);
+	//	SimpleParser::CssParser::PropertyMap properties;
+	//	properties["background-image"] = { "none" };
+	//	w = static_cast<Rhea::Widget*>(m_unit_tree->find("//local/cetogui/gui"));
+	//	w->setStyle(properties);
+	}
+
+	return false;
+}
+
+void Ceto::showAlert(std::string text)
+{
+	// set the text
+	Rhea::Label* info_text = static_cast<Rhea::Label*>(m_unit_tree->find("//local/cetogui/gui/alert/info"));
+	if (info_text) {
+		info_text->setText(text);
+	}
+	 
+	// show dialog
+	Rhea::Widget* w = static_cast<Rhea::Widget*>(m_unit_tree->find("//local/cetogui/gui/alert"));
+	if (w) {		
+		w->registerEventHandler("clicked", this, std::bind(&Ceto::onAlertDialog, this, std::placeholders::_1, std::placeholders::_2));
+		w->show();
+	}
+}
+
+bool Ceto::onAlertDialog(Rhea::Event* ev, Rhea::Unit* unit)
+{
+	Rhea::Widget* w = static_cast<Rhea::Widget*>(m_unit_tree->find("//local/cetogui/gui/alert"));
+	if (w) {
+		w->hide();
+	}
+	ev->stopPropagation();
+
+	return false;
 }
 
 void Ceto::loadMainGUI()

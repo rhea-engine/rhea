@@ -20,8 +20,12 @@ namespace Rhea
 
 		Math::Vector3 getPosition() { return m_position; }
 
+		void setModel(std::string model) { m_modelname = model; m_values["model"] = model; }
+		std::string getModel() { return m_modelname; }
+
 	protected:
 		Math::Vector3 m_position;
+		std::string m_modelname;
 	};
 }
 

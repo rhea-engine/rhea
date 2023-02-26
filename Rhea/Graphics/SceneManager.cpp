@@ -21,10 +21,12 @@ namespace Rhea
 
 		// add my items
 		scene->traverse([&](std::string& name, Unit* unit)->bool {
-			if (unit != scene) {
-				addItem(unit);
+			{
+				if (unit != scene) {
+					addItem(unit);
+				}
+				return true;
 			}
-		return true;
 			});
 		scene->addElement("graphics", elem);
 
@@ -34,7 +36,7 @@ namespace Rhea
 
 	void GraphicsSceneManager::addItem(Unit* item)
 	{
-		printf("add typename: %s\n", item->getTypeName().c_str());
+		printf("GraphicsSceneManager::addItem: %s add typename: %s\n", item->getPathName().c_str(), item->getTypeName().c_str());
 
 		// try manager
 		GraphicsManager* mgr = m_service->getManager(item->getTypeName());

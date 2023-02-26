@@ -37,6 +37,9 @@ namespace Rhea
 		}
 
 		m_render_component = std::make_unique<RenderComponent>(this);
+
+		if (m_values.find("fabric") != m_values.end())
+			m_render_component->hide();
 	}
 
 	Unit* Item::createType(std::string name, std::string type)
@@ -79,14 +82,20 @@ namespace Rhea
 			return nullptr;
 		}
 		std::unordered_map<std::string, std::string> attr;
-		new_item->Unit::setup(m_app, attr, m_values);
+		std::unordered_map<std::string, Variant> values = m_values;
+		auto fit = values.find("fabric");
+		if (fit != values.end())
+			values.erase(fit);
+
+		new_item->Unit::setup(m_app, attr, values);
 		new_item->m_status = Status::SETUP;
 
 		// copy item values
+		new_item->m_render_component = std::make_unique<RenderComponent>(new_item);
 		new_item->m_mesh = m_mesh;
-		m_render_component->setMesh(m_mesh);
+		new_item->m_render_component->setMesh(m_mesh);
 		new_item->m_material = m_material;
-		m_render_component->setMaterial(m_material); //TODO check!
+		new_item->m_render_component->setMaterial(m_material); //TODO check!
 
 		return new_item;
 	}

@@ -22,7 +22,8 @@ namespace Rhea
 			Item2D(path_name, type_name),
 			m_top_window(false),
 			m_visible(true),
-			m_handle_input(false),			
+			m_handle_input(false),		
+			m_user_ptr(nullptr),
 			m_base_size(0.0f, 0.0f),
 			m_base_position(0.0f, 0.0f),
 			m_cur_position(0.0f, 0.0f),
@@ -83,6 +84,10 @@ namespace Rhea
 		// find input target
 		Widget* getInputTarget();
 
+		// user ptr
+		void setUserPtr(void* ptr) { m_user_ptr = ptr; }
+		void* getUserPtr() { return m_user_ptr; }
+
 	protected:
 
 		// get the screen position
@@ -114,6 +119,9 @@ namespace Rhea
 
 		// screen space
 		bool m_screen_position_valid;
+
+		// a user ptr
+		void* m_user_ptr;
 
 		// my styles
 		SimpleParser::CssParser::PropertyMap m_properties;

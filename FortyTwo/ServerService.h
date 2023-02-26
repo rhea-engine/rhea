@@ -9,6 +9,8 @@
 #include <Hermes/MessageFactory.h>
 #include <Rhea/Fabrics/Core/Scene.h>
 #include <Hermes/ServerStream.h>
+#include <Rhea/Application.h>
+
 #include "ClientConnection.h"
 
 using Rhea::Unit;
@@ -20,11 +22,14 @@ public:
 		m_network(nullptr),
 		m_scene(nullptr),
 		nuid(1),
+		port(4242),
 		Rhea::Service(name, type)
 	{}
 
-	// init event
-	void onInit();
+	void setup(Rhea::Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
+
+	// ready event
+	void ready();
 
 	void setNetwork(Psio::Network* network) { m_network = network; }
 
@@ -52,6 +57,8 @@ protected:
 	std::unique_ptr<Hermes::MessageFactory> m_msg_factory;
 	Rhea::Scene* m_scene;
 	std::vector<ClientConnection*> m_connections;
+	std::string ip;
+	uint16_t port;
 
 	int nuid;
 };

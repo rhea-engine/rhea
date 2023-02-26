@@ -13,6 +13,9 @@ namespace Rhea
 	{
 	public:
 		Service(std::string service_name, std::string type_name) :
+			Unit(service_name, type_name)
+		{}
+		Service(std::string service_name) :
 			Unit(service_name, "//meworla/service")
 		{}
 

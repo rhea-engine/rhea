@@ -11,6 +11,7 @@
 #include <Rhea/Fabrics/Core/Avatar.h>
 #include <Psio/Log.h>
 #include "ServerService.h"
+#include <Hermes/Messages/MessageEnterFailed.h>
 
 int ClientConnection::Start(Psio::Network::CompletionHandler err_handler)
 {
@@ -105,16 +106,33 @@ int ClientConnection::DoLoginCompleted(int result)
 		return result;
 
 	// login succesful, send avatar list (which may be empty)
-	Hermes::MessageAvatarList msg_al;
-	Rhea::Avatar* avatar = (Rhea::Avatar*)m_app->getUnitTree()->findByType("//meworla/avatar");
-	if (avatar) {
-		std::string name = avatar->getPathName();
-		std::string model = avatar->getValue("model");
-		msg_al.addAvatar(name, model);
+	m_world = (World*)m_app->getUnitTree()->findByType("//meworla/world");
+	if (m_world) {
+		m_username = "anonymous";
+		Rhea::Unit* user_info = ((World*)m_world)->getUserInfo(m_username);
+		if (!user_info) {
+			LOG(LOG_ERROR) << "User " << m_username << " is not registered";
+			// TODO Send auth failure
+			//return 0;
+		}
+		Hermes::MessageAvatarList msg_al;
+		user_info->children([&msg_al](std::string& name, Rhea::Unit* avatar_unit)->bool {
+			if (avatar_unit->getTypeName() == "//meworla/avatar") {
+				Rhea::Avatar* avatar = (Rhea::Avatar*)avatar_unit;
+				std::string name = avatar->getPathName();
+				std::string model = avatar->getValue("model");
+				msg_al.addAvatar(name, model);
+			}
+		return true;
+			});
+		m_hermes->sendMessage(&msg_al, nullptr);
+		m_next_state = CONN_AVATAR;
+		return 0;
 	}
-	m_hermes->sendMessage(&msg_al, nullptr);
-	m_next_state = CONN_AVATAR;
-	return 0;
+	else {
+		LOG(LOG_ERROR) << "Configuration error: World not found";
+		return 0;
+	}	
 }
 
 int ClientConnection::DoAvatar(int result)
@@ -134,12 +152,20 @@ int ClientConnection::DoAvatar(int result)
 				Hermes::MessageEnterWorld* msgc = (Hermes::MessageEnterWorld*)msg.get();
 
 				// get the avatar with that name
-				Rhea::Avatar* avatar = (Rhea::Avatar*)m_app->getUnitTree()->findByType("//meworla/avatar");
-				if (msgc->avatar.compare(avatar->getPathName())) {
+				Rhea::Avatar* avatar = nullptr;
+				Rhea::Unit* user_info = ((World*)m_world)->getUserInfo(m_username);
+				if (user_info) {
+					avatar = (Rhea::Avatar*)user_info->getChild(msgc->avatar);
+				}
+				if (!avatar || avatar->getTypeName() != "//meworla/avatar") {
 					LOG(LOG_ERROR) << "Avatar " << msgc->avatar << " not found";
-					// send some message
+					// send error message
+					Hermes::MessageEnterFailed errmsg;
+					errmsg.reason = 1;
+					m_hermes->sendMessage((Hermes::Message*)&errmsg, nullptr);
 					return;
 				}
+				LOG(LOG_INFO) << "Avatar " << msgc->avatar << " entered scene";
 
 				// instancing the player
 				Rhea::Item* gnar = (Rhea::Item*)m_app->getUnitTree()->find(avatar->getValue("model"));

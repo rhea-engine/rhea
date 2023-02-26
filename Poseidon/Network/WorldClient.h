@@ -26,10 +26,13 @@ namespace Poseidon
 
 		// startup
 		typedef std::function<void(int)> OnWorldHandler;
-		void start(Rhea::Scene* scene, OnWorldHandler handler);
+		void start(Rhea::Scene* scene, OnWorldHandler avlist_handler, OnWorldHandler handler);
 
 		// stop the connection
 		void stop();
+
+		// special messages
+		void enterWorld(std::string avatar_name);
 
 		// NetworkDelegate functions
 		void changeMovement(int nuid, Math::Vector3 move);

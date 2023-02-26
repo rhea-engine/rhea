@@ -316,7 +316,8 @@ namespace Rhea
 	{
 		log("loading resource: " + resource_id);
 		Orion::ResourceRequest* req = m_fs->getResourceByRid(resource_id);
-		req->resolve([&, req, handler](Orion::ResourceRequest* req, int err) {
+		req->resolve([&, req, handler, resource_id](Orion::ResourceRequest* req, int err) {
+
 			if (err == Orion::ResourceRequest::Error::OK) {
 
 				// we got the resource

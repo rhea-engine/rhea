@@ -59,6 +59,9 @@ namespace Rhea
 		// get full path for other unit
 		std::string getPath(std::string& unit_path);
 
+		// find child with given name
+		Unit* getChild(std::string name);
+
 		// find by path
 		Unit* find(std::string path, bool create = false);
 
@@ -117,9 +120,13 @@ namespace Rhea
 		// bubble event (send to parents)
 		void bubbleEvent(std::string event_name, Event* event);
 
-		// void traverse subtree
+		// traverse subtree
 		// if the handler returns false the children will not be called
 		void traverse(std::function<bool(std::string&, Unit*)> handler);
+
+		// execute handler on all children
+		// if the handler return false the traverse is stopped
+		void children(std::function<bool(std::string&, Unit*)> handler);
 
 		// get Application
 		Application* getApplication() { return m_app; }

@@ -5,6 +5,7 @@
 #include <Hermes/ServerStream.h>
 #include <Rhea/Application.h>
 #include <Rhea/Fabrics/Core/Scene.h>
+#include "World.h"
 
 class ClientConnection
 {
@@ -13,6 +14,7 @@ public:
 		m_app(app),
 		m_scene(scene),
 		m_player(nullptr),
+		m_world(nullptr),
 		m_state(CONN_NONE),
 		m_next_state(CONN_NONE)
 	{
@@ -30,6 +32,8 @@ protected:
 	Rhea::Application* m_app;
 	Rhea::Scene* m_scene;
 	Rhea::Item* m_player;
+	Rhea::Unit* m_world;
+	std::string m_username;
 
 	std::unique_ptr<Hermes::ServerStream> m_hermes;
 	Psio::Network::CompletionHandler m_error_handler;

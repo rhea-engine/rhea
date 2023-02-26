@@ -4,5 +4,5 @@ if (OPENSSL_FOUND)
 	INCLUDE_DIRECTORIES( ${OPENSSL_INCLUDE_DIR} )
 endif()
 
-add_executable (fortytwo "FortyTwo.cpp" "World.h" "World.cpp" "ServerService.h" "ServerService.cpp" "ClientConnection.h" "ClientConnection.cpp")
+add_executable (fortytwo "FortyTwo.cpp" "World.h" "World.cpp" "ServerService.h" "ServerService.cpp" "ClientConnection.h" "ClientConnection.cpp" "FortyTwo.h")
 target_link_libraries(fortytwo Psio Rhea Hermes)

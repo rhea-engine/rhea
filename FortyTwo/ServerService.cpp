@@ -7,12 +7,26 @@
 #include <Hermes/Messages/MessagePosition.h>
 #include <Hermes/Messages/MessageDestroy.h>
 #include <Rhea/Physics/PhysicsService.h>
+#include <Rhea/Platform/PlatformService.h>
 
-void ServerService::onInit()
+void ServerService::setup(Rhea::Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 {
-	std::string ip = "127.0.0.1";
-	uint16_t port = 4242;
+	Service::setup(app, attributes, values);
 
+	ip = "127.0.0.1";
+	port = 4242;
+
+	if (m_values.find("ip") != m_values.end())
+		ip = m_values["ip"];
+	if (m_values.find("port") != m_values.end())
+		port = (int)m_values["port"];
+
+	// get network from services
+	m_network = static_cast<Rhea::PlatformService*>(m_app->getService("platform"))->getEngine()->getNet();
+}
+
+void ServerService::ready()
+{
 	if (!m_network) {
 		LOG(LOG_FATAL) << "Network service not found";
 		return;

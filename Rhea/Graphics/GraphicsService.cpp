@@ -246,6 +246,8 @@ namespace Rhea
 			render_context->addRenderChild((Item*)unit);
 		}
 
+		unit->registerEventHandler("add_item", this, std::bind(&GraphicsService::onAddItem, this, std::placeholders::_1, std::placeholders::_2));
+
 		return ret;
 	}
 

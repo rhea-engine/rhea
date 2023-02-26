@@ -10,6 +10,7 @@
 #include <Hermes/Messages/MessageCreate.h>
 #include <Hermes/Messages/MessageDestroy.h>
 #include <Hermes/Messages/MessageAvatarList.h>
+#include <Rhea/Fabrics/Core/Avatar.h>
 #include <Hermes/Messages/MessageEnterWorld.h>
 
 namespace Poseidon
@@ -19,7 +20,7 @@ namespace Poseidon
 		m_avatar = avatar;
 	}
 
-	void WorldClient::start(Rhea::Scene* scene, OnWorldHandler handler)
+	void WorldClient::start(Rhea::Scene* scene, OnWorldHandler avlist_handler, OnWorldHandler handler)
 	{
 		m_scene = scene;
 		m_onWorldHandler = handler;
@@ -28,23 +29,37 @@ namespace Poseidon
 			if (err >= 0) {
 				DLOG(LOG_DEBUG) << "login succeeded";
 
-				m_hermes->onMessage([&, scene](std::unique_ptr<Hermes::Message> msg, int err) {
+				m_hermes->onMessage([&, scene, avlist_handler, handler](std::unique_ptr<Hermes::Message> msg, int err) {
 					if (!err) {
 						if (msg->base.opcode == HERMES_MSG_AVATARLIST) {
 							Hermes::MessageAvatarList* msgc = (Hermes::MessageAvatarList*)msg.get();
 							if (msgc->avatars.size()) {
-								// for now tkae the first
-								Hermes::MessageEnterWorld msg_enter;
-								msg_enter.avatar = msgc->avatars[0].avatar;
-								m_hermes->sendMessage(&msg_enter, nullptr);
 
-								// TODO choose avatar								
+								// fill up avatar list of scene
+								Rhea::Unit* avatar_list = scene->getChild("avatarlist");
+								if (!avatar_list) {
+									avatar_list = new Rhea::Unit("avatarlist", "//meworla/avatarlist");
+									avatar_list->setup(m_app);
+									scene->addChild(avatar_list);
+								}
+								for (auto it = msgc->avatars.begin(); it != msgc->avatars.end(); it++) {
+									Rhea::Avatar* avatar = (Rhea::Avatar*)m_app->getUnitTree()->createUnit((*it).avatar, "//meworla/avatar");
+									avatar->setModel((*it).type_name);
+									avatar_list->addChild(avatar);
+								}
+								avlist_handler(0);					
 							}
 							else {
 								// TODO create avatar scene
 								LOG(LOG_FATAL) << "No avatars defined.";
 								exit(-1);
 							}
+						}
+						else if (msg->base.opcode == HERMES_MSG_ENTER_FAILED) {
+							// avatar entering failed
+							// inform user
+							avlist_handler(-2);
+							return;
 						}
 						else if (msg->base.opcode == HERMES_MSG_CREATE) {
 							Hermes::MessageCreate* msgc = (Hermes::MessageCreate*)msg.get();
@@ -71,7 +86,8 @@ namespace Poseidon
 								net_comp->setDelegate(this);
 								player->setNetworkComponent(std::move(net_comp));
 								m_net_items[msgc->NUID] = player;
-
+								Rhea::Event e("scene_enter", player);
+								bubbleEvent("scene_enter", &e);
 								player->prepare([&, scene, player, msgc](Rhea::Error* err) {
 									if (!err) {
 										scene->addItem(player);
@@ -142,6 +158,14 @@ namespace Poseidon
 	void WorldClient::stop()
 	{
 		m_hermes.reset();
+	}
+
+	void WorldClient::enterWorld(std::string avatar_name)
+	{
+		// send enter with the given avatar name
+		Hermes::MessageEnterWorld msg_enter;
+		msg_enter.avatar = avatar_name;
+		m_hermes->sendMessage(&msg_enter, nullptr);
 	}
 
 	void WorldClient::changeMovement(int nuid, Math::Vector3 move)

@@ -19,13 +19,17 @@ protected:
 	bool onQuitDialog(Rhea::Event* ev, Rhea::Unit* unit);
 	bool onInput(Rhea::EventInput* e, Rhea::Unit* unit);
 	bool onRealmSelect(Rhea::Event* ev, Rhea::Unit* unit);
-	void setRealmSelectDialog();	
+	void showAvatarSelect(Rhea::Scene* scene, Rhea::Unit* client);	
+	bool onAvatarSelect(Rhea::Event* ev, Rhea::Unit* unit);
+	void showAlert(std::string text);
+	bool onAlertDialog(Rhea::Event* ev, Rhea::Unit* unit);
+	void setRealmSelectDialog();
 	UserPrefs m_userprefs;
 	std::string m_userpref_path;
 public:
 	void setup();
 	void setScene();
-	void showScene(Rhea::Scene* scene);
+	void showScene(Rhea::Scene* scene);	
 	void loadMainGUI();
 	void setHomeScene(string scene);
 	bool onFrameEnd();

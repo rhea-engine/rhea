@@ -27,6 +27,8 @@ namespace Poseidon
 				if (uitem->getValue("isItem")) {
 					Item* item = (Item*)uitem;
 					Rhea::RenderComponent* render_com = item->getGraphicsComponent();
+					if (!render_com)
+						return true;
 					if (!render_com->isVisible())
 						return false;
 					if (render_com->getMesh())

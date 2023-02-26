@@ -7,11 +7,11 @@ namespace Rhea
 	{
 		switch (type) {
 		case Types::NONE:
-			m_phy_services = new PhysicsService("PhysicsService", "/internal/physics");
+			m_phy_services = new PhysicsService("PhysicsService", "//meworla/service");
 			m_phy_services->setup(m_app);
 			break;
 		case Types::WORLD:
-			m_phy_services =  new BulletPhysicsService("PhysicsService", "/internal/physics");
+			m_phy_services =  new BulletPhysicsService("PhysicsService", "//meworla/service");
 			m_phy_services->setup(m_app);
 			break;
 		}

@@ -14,30 +14,32 @@ void World::setScene(std::string scene)
 
 void World::setup(Rhea::Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 {
-	Resource::setup(app, attributes, values);
+	Unit::setup(app, attributes, values);	
+}
 
+std::vector<Unit::Export> World::getReferences()
+{
+	std::vector<Export> refs = Unit::getReferences();
 	if (m_values.find("avatarlist") != m_values.end()) {
-		if (!m_resource_list)
-			m_resource_list = new Rhea::ResourceList(app);
-		m_resource_list->push("avatarlist", m_values["avatarlist"], "//meworla/avatarlist");
+		refs.push_back({ "avatarlist", "//meworla/avatarlist", m_values["avatarlist"] });
 	}
-
-	if (m_values.find("scene") == m_values.end()) {
-		LOG(LOG_ERROR) << "No scene defined. Exiting.";
-		//exit(1);
+	if (m_values.find("scene") != m_values.end()) {
+		refs.push_back({ "scene", "//meworla/scene", m_values["scene"] });
 	}
 	else {
-		if (!m_resource_list)
-			m_resource_list = new Rhea::ResourceList(app);
-		m_resource_list->push("scene", m_values["scene"], "//meworla/scene");
+		LOG(LOG_ERROR) << "No scene defined. Exiting.";
 	}
+	return refs;
 }
+
 
 Rhea::Unit* World::getUserInfo(std::string username)
 {
-	Rhea::Unit* a_list = (*m_resource_list)["avatarlist"];
-	if (a_list) {
-		Rhea::Unit* user_info = a_list->getChild(username);
+	if (!m_a_list && m_values.find("avatarlist")!=m_values.end()) {
+		m_a_list = m_app->getUnitTree()->find(m_values["avatarlist"]);
+	}
+	if (m_a_list) {
+		Rhea::Unit* user_info = m_a_list->getChild(username);
 		return user_info;
 	}
 	else
@@ -46,7 +48,7 @@ Rhea::Unit* World::getUserInfo(std::string username)
 
 void World::ready()
 {
-	m_scene = (Rhea::Scene*)(*m_resource_list)["scene"];
+	m_scene = (Rhea::Scene*)m_app->getUnitTree()->find(m_values["scenename"], m_attributes["basepath"], false);
 
 	if (m_scene) {
 
@@ -70,7 +72,7 @@ void World::ready()
 		m_scene->sendEvent(std::string("ready"), ev_r.get());
 	}
 	else {
-		LOG(LOG_ERROR) << "World::ready(): Could not load scene";	
+		LOG(LOG_ERROR) << "World::ready(): Could not load scene " << (std::string)m_values["scenename"];
 	}
 }
 

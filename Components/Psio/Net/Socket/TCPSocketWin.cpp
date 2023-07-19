@@ -242,8 +242,10 @@ namespace Psio
 				return m_net->SysErr(err);
 			}
 		}
-		else if (ret > 0)
+		else if (ret > 0) {
 			buf->Consume(ret);
+			handler(ret);
+		}
 		return ret;
 	}
 
@@ -280,8 +282,10 @@ namespace Psio
 				return m_net->SysErr(err);
 			}
 		}
-		else if (ret > 0)
+		else if (ret > 0) {
 			buf->Produce(ret);
+			handler(ret);
+		}
 		return ret;
 	}
 }

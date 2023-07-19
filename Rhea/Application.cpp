@@ -9,7 +9,7 @@
 #include "Psio/InputEvent.h"
 #include "Psio/Keyboard.h"
 #include "Psio/Log.h"
-#include "Importer.h"
+#include "Fabrics/3D/ObjLoader.h"
 #include "Fabrics/Core/SceneLoader.h"
 #include "Unit.h"
 #include "UnitTree.h"
@@ -21,7 +21,7 @@
 #include "Fabrics/3D/Camera.h"
 #include "Fabrics/Canvas/Item2D.h"
 #include "Fabrics/Terrain/Terrain.h"
-#include "TextResource.h"
+#include "Resources/TextResource.h"
 #include "Fabrics/Text/TextLoader.h"
 #include "Fabrics/Media/ImageResource.h"
 #include "InputMap.h"
@@ -31,6 +31,7 @@
 #include "Fabrics/Character/KinematicCharacter.h"
 #include "Fabrics/GUI/GUIController.h"
 #include "Fabrics/GUI/GuiService.h"
+#include "Resources/ResourceService.h"
 
 #include "Graphics/GraphicsService.h"
 #include "Platform/PlatformService.h"
@@ -44,6 +45,7 @@
 #include <Fabrics/Text/BitmapFont.h>
 #include <EventInput.h>
 #include <Fabrics/Core/Avatar.h>
+#include <Fabrics/3D/ObjLoader.h>
 
 #undef min
 
@@ -68,6 +70,7 @@ namespace Rhea
 		SimpleParser::Type::registerType<Service>("//meworla/service");
 		SimpleParser::Type::registerType<PlatformService>("//meworla/platformservice");
 		SimpleParser::Type::registerType<PhysicsManagerService>("//meworla/physicsmanagerservice");
+		SimpleParser::Type::registerType<ResourceService>("//meworla/resourceservice");
 
 		Service* psio = (PlatformService*)SimpleParser::Type::create("PlatformService", "//meworla/platformservice");
 		psio->setup(this);
@@ -80,6 +83,9 @@ namespace Rhea
 		m_fs = new Orion::Orion(static_cast<PlatformService*>(psio)->getEngine(), m_appname);
 		m_unit_tree = (UnitTree*)SimpleParser::Type::create("/", "//core/unittree");
 		m_unit_tree->setup(this);
+
+		Service* res_service = (Service*)SimpleParser::Type::create("ResourceService", "//meworla/resourceservice");
+		m_services["resources"] = res_service;
 
 		// register scene types
 		SimpleParser::Type::registerType<Realm>("//meworla/realm");
@@ -107,6 +113,8 @@ namespace Rhea
 		// register wavefront types
 		m_resource_loader.registerLoader<TextLoader>("model/obj");
 		m_resource_loader.registerLoader<TextLoader>("model/mtl");
+		SimpleParser::Type::registerType<Geometry>("//meworla/geometry");
+		SimpleParser::Type::registerType<ObjLoader>("//meworla/wavefront");
 
 		// register mime type for shader
 		Orion::MIME::RegisterExtenstion("text/plain", "hlsl");
@@ -153,12 +161,10 @@ namespace Rhea
 	{
 		loadResource(resourceId, "//meworla/scene", [&, handler](Rhea::Unit* scene, ReqError r_err) {
 			if (r_err == ReqError::OK) {
-				scene->prepare([r_err, scene, handler](Rhea::Error* err) {
-					LOG(LOG_INFO) << "scene loaded";
-					scene->ready();
-					LOG(LOG_NOTICE) << "scene ready";
-					handler((Scene*)scene, r_err);
-					});
+				LOG(LOG_INFO) << "scene loaded";
+				scene->ready();
+				LOG(LOG_NOTICE) << "scene ready";
+				handler((Scene*)scene, r_err);
 			}
 			else {
 				log("loading of scene failed");

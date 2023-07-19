@@ -1,16 +1,16 @@
 #ifndef RHEA_AVATAR_H
 #define RHEA_AVATAR_H
 
-#include <Rhea/Resource.h>
+#include <Rhea/Unit.h>
 #include <Math/Vector3.h>
 
 namespace Rhea
 {
-	class Avatar : public Resource
+	class Avatar : public Unit
 	{
 	public:
 		Avatar(std::string name) :
-			Resource(name, "//meworla/avatar")
+			Unit(name, "//meworla/avatar")
 		{}
 
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);

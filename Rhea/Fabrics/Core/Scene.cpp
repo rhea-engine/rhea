@@ -18,12 +18,13 @@ namespace Rhea
 	void Scene::removeItem(Item* item)
 	{
 		m_items.erase(std::remove(m_items.begin(), m_items.end(), item), m_items.end());
-		sendEvent("remove_item", new Event("remove_item", item));
+		Event e("remove_item", item);
+		sendEvent("remove_item", &e);
 	}
 
 	void Scene::ready()
 	{
-		Resource::ready();
+		Unit::ready();
 
 		for (auto it = m_children.begin(); it != m_children.end(); ++it) {
 			Unit* child = it->second;

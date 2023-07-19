@@ -84,6 +84,13 @@ namespace Rhea
 		}
 	}
 
+	Unit* Unit::find(std::string path, std::string basepath, bool create)
+	{
+		if (path[0] != '/' || path[1] != '/')
+			path = basepath + "/" + path;
+		return find(path, create);
+	}
+
 	Unit* Unit::findByType(std::string type_name)
 	{
 		// myself?
@@ -199,29 +206,9 @@ namespace Rhea
 		m_values[name] = val;
 	}
 
-	void Unit::prepare(ReadyHandler handler)
+	std::vector<Unit::Export> Unit::getReferences()
 	{
-		// if we habe no children return
-		int  to_load = (int)m_children.size();
-		if (!to_load) {
-			handler(nullptr);
-			return;
-		}
-
-		// call prepare on all children
-		// call ready handler when all children where loaded	
-		// this ignores errors in loading children 
-		// TODO check if this should fail fast instead of ignore?		
-		for (auto it = m_children.begin(); it != m_children.end(); ++it)
-		{
-			Unit* unit = it->second;
-			unit->prepare([&to_load,&handler](Error *err) {
-				to_load--;
-				if (!to_load) {					
-					handler(nullptr);
-				}
-				});
-		}
+		return std::vector<Export>();
 	}
 
 	void Unit::ready()

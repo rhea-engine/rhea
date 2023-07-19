@@ -1,12 +1,12 @@
 #include "Mesh.h"
 #include "Application.h"
-#include "Importer.h"
+#include "ObjLoader.h"
 #include "Orion/ResourceStream.h"
 #include "UnitTree.h"
-#include "TextResource.h"
+#include "Resources/TextResource.h"
 #include "Fabrics/Media/ImageResource.h"
 #include "../Core/Material.h"
-#include "ResourceList.h"
+#include "Resources/ResourceList.h"
 
 #include "Graphics/Texture.h"
 
@@ -17,47 +17,41 @@ namespace Rhea
 	{
 		Unit::setup(app, attributes, values);
 
-		m_resource_list = new ResourceList(app);
-
 		// dependent resources
-		if (m_values.find("material") != m_values.end())
-			m_resource_list->push("material", m_values["material"], "//meworla/wavefront-material");
-
-		if (m_values.find("path") != m_values.end())
-			m_resource_list->push("obj", m_values["path"], "//meworla/wavefront-object");
-		if (m_values.find("texture") != m_values.end()) {
-			m_resource_list->push("texture", m_values["texture"], "//meworla/texture");
-			m_resource_list->push("shader", "//rhea/shaders/uvshader_vp.hlsl", "//meworla/shader");
+		if (m_values.find("texture") != m_values.end() &&
+			m_values.find("shader") == m_values.end()) {
+			m_values["shader"] = "//rhea/shaders/uvshader_vp.hlsl";
 		}
 	}
 
+	std::vector<Unit::Export> Mesh::getReferences()
+	{
+		std::vector<Export> refs;
+		if (m_values.find("geometry") != m_values.end())
+			refs.push_back({ "geometry", "//meworla/geometryloader", m_values["geometry"] });		
+		if (m_values.find("texture") != m_values.end()) {
+			refs.push_back({ "texture", "//meworla/texture", m_values["texture"] });
+			refs.push_back({ "shader", "//meworla/shader", m_values["shader"] });
+		}
+		return refs;
+	}
+
+
 	void Mesh::ready()
 	{
-		if (m_status == Status::READY)
-			return;
-		m_status = Status::READY;
 		Unit::ready();
 
-		std::string mtlbuf;
-		std::string objbuf;
-
-		// add material
-		Unit* mtl = (*m_resource_list)["material"];
-		if (mtl) {
-			mtlbuf = ((TextResource*)mtl)->getAsString();
-		}
-
-		// add object from .objfile
-		Unit* obj = (*m_resource_list)["obj"];
-		if (obj) {
-			objbuf = ((TextResource*)obj)->getAsString();
-			Importer importer;
-			importer.load(m_app, objbuf, mtlbuf, m_vertices, m_v_indices);
+		// using geometry
+		if (m_values.find("geometry") != m_values.end()) {
+			Geometry* geometry = (Geometry*)m_app->getUnitTree()->find(m_values["geometry"], m_attributes["basepath"], false);
+			geometry->get(m_vertices, m_v_indices);
 		}
 		
 		if (m_values.find("texture") != m_values.end())
 		{
-			Unit* tex = (*m_resource_list)["texture"];
+			Unit* tex = nullptr;
+
+			tex = m_app->getUnitTree()->find(m_values["texture"], m_attributes["basepath"], false);
 			if (tex) {
 				m_material = new Material(m_path + "_material");
 				m_material->setup(m_app);
@@ -65,9 +59,12 @@ namespace Rhea
 				m_material->setValue("shader", "uvshader_vp");
 
 				// get the shader
-				Unit* shader_res = (*m_resource_list)["shader"];
+				TextResource* shader_res = static_cast<TextResource*>(m_app->getUnitTree()->find(m_values["shader"], m_attributes["basepath"], false));
 				if (shader_res) {				
-					m_material->setShader(static_cast<TextResource*>(shader_res));
+					m_material->setShader(shader_res);
+				}
+				else {
+					//abort();
 				}
 			}
 		}	

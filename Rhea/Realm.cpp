@@ -5,7 +5,6 @@ namespace Rhea
 	void Realm::setRealm(Orion::Realm* realm)
 	{
 		m_realm = realm;
-		m_status = Status::LOADED;
 	}
 
 	Unit* Realm::createType(std::string name, std::string type)

@@ -126,6 +126,7 @@ void ServerService::broadcast(Hermes::Message* msg, ClientConnection* source)
 void ServerService::disconnect(Rhea::Item* item)
 {
 	if (item) {
+		LOG(LOG_INFO) << "Disconnecting avatar: " << item->getPathName();
 		// cancel all movement
 		item->setMovement(Math::Vector3::ZERO);
 		item->setTurn(0.0f);
@@ -145,5 +146,6 @@ void ServerService::disconnect(Rhea::Item* item)
 				((Rhea::PhysicsService*)phy_srv)->removeItem(item);
 			}
 		}
+		delete item;
 	}
 }

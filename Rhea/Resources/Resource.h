@@ -6,14 +6,12 @@
 
 #include "Orion/ResourceRequest.h"
 
-#include "Unit.h"
+#include "../Unit.h"
 
 using ReqError = Orion::ResourceRequest::Error;
 
 namespace Rhea
 {
-	class ResourceList;
-
 	// a resource is a unit that holds some data structure and may be loaded from remote	
 	class Resource : public Unit
 	{
@@ -37,7 +35,6 @@ namespace Rhea
 			m_buf(nullptr),
 			m_buflen(0),
 			m_status(Status::NONE),
-			m_resource_list(nullptr),
 			m_prepared(false),
 			Unit(basename, type_name)
 		{}
@@ -47,8 +44,6 @@ namespace Rhea
 
 		// load the resource from request (may be asynchronus) - call handler on ready
 		virtual void load(Orion::ResourceRequest* req, ReadyHandler handler);
-
-		void prepare(Unit::ReadyHandler handler);
 
 		// get the status of the Unit
 		Status getStatus() { return m_status; }
@@ -62,12 +57,6 @@ namespace Rhea
 		// check if resource finished loading
 		bool isLoaded() { return m_status == Status::LOADED; }
 
-		// get the resource list of this unit
-		ResourceList* res() { return m_resource_list; }
-
-		// get one resource by name
-		Unit* res(const std::string& key);
-
 	protected:
 		Status m_status;
 		char* m_buf;
@@ -76,7 +65,6 @@ namespace Rhea
 			std::string id;
 			std::string type;
 		};
-		ResourceList* m_resource_list;
 		bool m_prepared;
 	};
 }

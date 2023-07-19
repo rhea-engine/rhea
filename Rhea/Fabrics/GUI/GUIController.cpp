@@ -1,14 +1,10 @@
 #include "GUIController.h"
-#include "GUIController.h"
-#include "GUIController.h"
-#include "GUIController.h"
 #include "Application.h"
 #include "UnitTree.h"
 #include "Fabrics/Core/Scene.h"
 
 #include "GuiService.h"
 
-#include "GUIController.h"
 #include "Widget.h"
 #include "Label.h"
 #include <Rhea/Fabrics/Core/SceneLoader.h>
@@ -17,7 +13,6 @@
 #include "Dialog.h"
 #include "List.h"
 #include "ListItem.h"
-#include <Rhea/ResourceList.h>
 #include "StyleSheet.h"
 #include "CssLoader.h"
 #include <Graphics/GraphicsService.h>
@@ -34,40 +29,43 @@ namespace Rhea
 		values["w"] = m_size.x;
 		values["h"] = m_size.y;
 
-		Widget::setup(app, attributes, values);
-		m_status = Status::SETUP;
+		Widget::setup(app, attributes, values);		
+	}
 
-		// add a stylesheet for this controller
-		if (m_values["stylesheet"] != Variant()) {
-			if (!m_resource_list)
-				m_resource_list = new ResourceList(m_app);
-			m_resource_list->push("stylesheet", m_values["stylesheet"], "text/css");
+	std::vector<Unit::Export> GUIController::getReferences()
+	{
+		std::vector<Export> refs = Widget::getReferences();
+		if (m_values.find("stylesheet") != m_values.end()) {
+			refs.push_back({ "stylesheet", "text/css", m_values["stylesheet"] });
 		}
+		return refs;
 	}
 
 	void GUIController::ready()
 	{
-		if (m_status >= Status::READY)
-			return;
-
 		// prepare all children
 		Widget::ready();
 
 		// apply Style
 		if (m_values["stylesheet"] != Variant()) {
-			StyleSheet* css = (StyleSheet*)(*m_resource_list)["stylesheet"];
-			traverse([&,css](std::string name, Rhea::Unit* unit)->bool {
-				if (unit->getValue("isWidget")) {
-					css->applyStyle((Widget*)unit);
-					return true;
-				}
-				else if (unit == this) {
-					return true;
-				}
-				else {
-					return false;
-				}
-				});
+			StyleSheet* css = (StyleSheet*)m_app->getUnitTree()->find(m_values["stylesheet"], m_attributes["basepath"], false);
+			if (css) {
+				traverse([&, css](std::string name, Rhea::Unit* unit)->bool {
+					if (unit->getValue("isWidget")) {
+						css->applyStyle((Widget*)unit);
+						return true;
+					}
+					else if (unit == this) {
+						return true;
+					}
+					else {
+						return false;
+					}
+					});
+			}
+			else {
+				LOG(LOG_ERROR) << "No stylesheet defined for GUI Controller";
+			}
 		}
 
 		// all children are ready - initial resize		
@@ -81,7 +79,6 @@ namespace Rhea
 			}
 		}
 		m_app->getUnitTree()->registerEventHandler("gui_input", this, std::bind(&GUIController::onInput, this, std::placeholders::_1, std::placeholders::_2));
-		m_status = Status::READY;
 	}
 
 	Vector2 GUIController::size()

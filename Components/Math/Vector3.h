@@ -168,6 +168,11 @@ namespace Math
 
 		float squaredLength() const { return dotProduct(*this); }
 
+		bool equals(const Vector3& vec) {
+			Vector3 offset = *this - vec;
+			return (offset.squaredLength() < 1e-005f * 1e-005f);
+		}
+
 		/** Returns the length (magnitude) of the vector.
 			@warning
 				This operation requires a square root and is expensive in

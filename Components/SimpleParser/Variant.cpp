@@ -137,7 +137,7 @@ namespace SimpleParser
 	
 	Variant::operator Variant*() const
 	{
-		if (m_type->m_base == Type::BaseType::ARRAY)
+		if (m_type->m_base == Type::BaseType::OBJECT)
 			return m_data._obj;
 		else
 			return nullptr;

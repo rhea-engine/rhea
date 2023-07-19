@@ -16,14 +16,17 @@ namespace Rhea
 	public:
 		ResourceList(Application* app) :
 			m_app(app),
-			m_to_load(0)
+			m_to_load(0),
+			m_loaded(false)
 		{};
 		~ResourceList();
 
 		void load(Unit::ReadyHandler handler);
 
+		bool decrementToLoadAndCheckIfZero(Unit::ReadyHandler handler, Error* err);
+
 		// add a resource info to the list
-		void push(std::string key, std::string id, std::string type, bool replace = false);
+		void push(std::string key, std::string id, std::string type, bool replace = false, Unit* unit = nullptr);
 
 		// get resource with id
 		Unit* get(const std::string& key);
@@ -35,6 +38,10 @@ namespace Rhea
 		// release a resource
 		void release(const std::string& key);
 
+		bool isLoaded() { return m_loaded; }
+
+		size_t size() { return m_resources.size(); }
+
 	protected:
 		struct ResourceInfo {
 			std::string id;
@@ -44,6 +51,7 @@ namespace Rhea
 		};
 		Application* m_app;
 		int m_to_load;
+		bool m_loaded;
 
 		std::unordered_map<std::string, ResourceInfo> m_resources;
 	};

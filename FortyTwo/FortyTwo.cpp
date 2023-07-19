@@ -65,6 +65,8 @@ void FortyTwo::setup()
 					exit(1);
 				}
 			}
+			// set physics cache
+			m_physics = (Rhea::PhysicsService*)m_services["physics"];
 		}
 		else {
 			LOG(LOG_FATAL) << "FortyTwo::setup: could not load scene " << m_server_name;

@@ -1,5 +1,4 @@
 #include "Item.h"
-#include "Item.h"
 #include "Application.h"
 #include "Poseidon/Entity.h"
 #include "Poseidon/SceneManager.h"
@@ -7,7 +6,6 @@
 #include "Mesh.h"
 #include "Graphics/RenderElement.h"
 #include "Physics/Body.h"
-#include "ResourceList.h"
 #include <Psio/Log.h>
 
 namespace Rhea
@@ -15,15 +13,8 @@ namespace Rhea
 	void Item::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{
 		Unit::setup(app, attributes, values);
-		m_status = Status::SETUP;
 
 		m_values["isItem"] = true;
-
-		m_resource_list = new ResourceList(app);
-
-		// dependent resources
-		if (m_values.find("mesh") != m_values.end())
-			m_resource_list->push("mesh", getPath((std::string)m_values["mesh"]), "//meworla/mesh");
 
 		Variant pos_sit = getValue("position");
 		if (pos_sit != Variant()) {
@@ -48,20 +39,30 @@ namespace Rhea
 		return ret;
 	}
 	
+	std::vector<Unit::Export> Item::getReferences()
+	{
+		std::vector<Export> refs;
+		if (m_values.find("mesh") != m_values.end()) {
+			refs.push_back({ "mesh", "//meworla/mesh", m_values["mesh"] });
+		}
+		return refs;
+	}
+
 	void Item::ready()
 	{
-		if (m_status >= Status::READY)
-			return;
-		m_status = Status::READY;
 		Unit::ready();
 
-		if (!m_mesh && m_resource_list) {
-			m_mesh = static_cast<Mesh*>((*m_resource_list)["mesh"]);
+		auto mesh_it = m_values.find("mesh");
+		if (!m_mesh && mesh_it != m_values.end()) {			
+			m_mesh = static_cast<Mesh*>(m_app->getUnitTree()->find(mesh_it->second, m_attributes["basepath"], false));
 			if (m_mesh) {
 				m_mesh->ready();
 				m_render_component->setMesh(m_mesh);
 			}
-		}
+			else {
+				LOG(LOG_ERROR) << "No mesh defined for item";
+			}
+		}		
 	}
 
 	bool Item::getGraphicsItem()
@@ -81,14 +82,13 @@ namespace Rhea
 			LOG(LOG_ERROR) << "could not instance type with type " << getTypeName();
 			return nullptr;
 		}
-		std::unordered_map<std::string, std::string> attr;
+		std::unordered_map<std::string, std::string> attr = m_attributes;
 		std::unordered_map<std::string, Variant> values = m_values;
 		auto fit = values.find("fabric");
 		if (fit != values.end())
 			values.erase(fit);
 
 		new_item->Unit::setup(m_app, attr, values);
-		new_item->m_status = Status::SETUP;
 
 		// copy item values
 		new_item->m_render_component = std::make_unique<RenderComponent>(new_item);

@@ -5,19 +5,22 @@
 #include <Rhea/Application.h>
 #include <Rhea/Resource.h>
 
-class World : public Rhea::Resource
+class World : public Rhea::Unit
 {
 public:
 	World(std::string name, std::string type) :
 		m_scene_ready(false),
 		m_scene(nullptr),
-		Rhea::Resource(name,type)
+		m_a_list(nullptr),
+		Rhea::Unit(name,type)
 	{}
 
 	void setScene(std::string scene);
 
 	// start the setup process
 	void setup(Rhea::Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
+
+	std::vector<Unit::Export> getReferences();
 
 	Rhea::Scene* getScene() { return m_scene; }
 
@@ -33,6 +36,7 @@ protected:
 	std::string m_scene_name;
 	Rhea::Scene* m_scene;
 	bool m_scene_ready;
+	Rhea::Unit* m_a_list;
 };
 
 #endif

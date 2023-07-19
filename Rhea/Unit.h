@@ -35,8 +35,6 @@ namespace Rhea
 
 		// async prepare
 		typedef std::function<void(Error*)> ReadyHandler;
-		// async prepare
-		virtual void prepare(ReadyHandler handler);
 
 		// ready signal - all dependant units are prepared and we now finalize for usage, recursive to children
 		virtual void ready();
@@ -64,6 +62,7 @@ namespace Rhea
 
 		// find by path
 		Unit* find(std::string path, bool create = false);
+		Unit* find(std::string path, std::string basepath, bool create);
 
 		// find nearest by type
 		Unit* findByType(std::string type_name);
@@ -80,6 +79,13 @@ namespace Rhea
 		Variant getValue(std::string name, Variant default_val);
 		// set a value
 		void setValue(std::string name, Variant val);
+		// get exported values
+		typedef struct {
+			std::string name;
+			std::string type;
+			Variant value;
+		} Export;
+		virtual std::vector<Export> getReferences();
 
 		// rename
 		void setName(std::string name);

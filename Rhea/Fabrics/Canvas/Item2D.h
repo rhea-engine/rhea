@@ -25,6 +25,8 @@ namespace Rhea
 		// setup from strings
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
 
+		std::vector<Unit::Export> getReferences();
+
 		// ready event handler
 		void ready();
 

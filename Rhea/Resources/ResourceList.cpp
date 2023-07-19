@@ -24,9 +24,10 @@ namespace Rhea {
 		// TODO check if this should fail fast instead of ignore?
 
 		size_t item_size = m_resources.size();
-		m_to_load = item_size;
+		m_to_load = (int)item_size;
 		if (!item_size) {
 			// no external resources -> immediately succeed
+			m_loaded = true;
 			handler(nullptr);
 			return;
 		}
@@ -37,27 +38,22 @@ namespace Rhea {
 			std::string key = it->first;
 			if (res.status == Resource::Status::LOADED) {
 				// already loaded
-				m_to_load--;
-				if (m_to_load == 0) {
-					handler(nullptr);
-				}
+				decrementToLoadAndCheckIfZero(handler, nullptr);
 			}
 			else {
 				Unit* resource = tree->find(res.id);
 				if (resource) {
-					// exists in tree
-					resource->prepare([&](Error* err) {
-						if (err) {
-							LOG(LOG_ERROR) << "Could not load resource '" << res.id << "'";
-						}
-						m_to_load--;
-						m_resources[key].status = Resource::Status::LOADED;
-						m_resources[key].resource = resource;
-						resource->incRef();
-						if (m_to_load == 0) {
-							handler(nullptr);
-						}
-						});
+
+					// exists in tree					
+					m_resources[key].status = Resource::Status::LOADED;
+					m_resources[key].resource = resource;
+					resource->incRef();
+					decrementToLoadAndCheckIfZero(handler, nullptr);
+				}
+				else if (res.resource) {
+					// exists in res list						
+					m_resources[key].status = Resource::Status::LOADED;
+					decrementToLoadAndCheckIfZero(handler, nullptr);
 				}
 				else {
 					m_app->loadResource(res.id, res.type, [&, res, key, handler](Unit* resource, Orion::ResourceRequest::Error err) {
@@ -65,34 +61,34 @@ namespace Rhea {
 							if (err != Orion::ResourceRequest::Error::OK) {
 								LOG(LOG_ERROR) << "Could not load resource " << res.id << ": " << Orion::ResourceRequest::getErrorMessage(err);
 							}
-							resource->prepare([&](Error* err) {
-								if (err) {
-									LOG(LOG_ERROR) << "Could not load resource '" << res.id + "'";
-								}
-								m_to_load--;
-								m_resources[key].status = Resource::Status::LOADED;
-								m_resources[key].resource = resource;
-								resource->incRef();
-								if (m_to_load == 0) {
-									handler(nullptr);
-								}
-								});
+
+							m_resources[key].status = Resource::Status::LOADED;
+							m_resources[key].resource = resource;
+							resource->incRef();
+							decrementToLoadAndCheckIfZero(handler, nullptr);
 						}
 						else {
 							LOG(LOG_ERROR) << "Could not load resource " << res.id << ": " << Orion::ResourceRequest::getErrorMessage(err);
 							m_resources[key].status = Resource::Status::DATA_INVALID;
-							m_to_load--;
-							if (m_to_load == 0) {
-								handler(nullptr);
-							}
+							Error errmsg(Error::Type::RESOURCE_ERROR, Orion::ResourceRequest::getErrorMessage(err));
+							decrementToLoadAndCheckIfZero(handler, &errmsg);							
 						}
 						});
 				}
 			}
 		}
 	}
+
+	bool ResourceList::decrementToLoadAndCheckIfZero(Unit::ReadyHandler handler, Error* err) {
+		if (--m_to_load == 0) {
+			m_loaded = true;
+			handler(err);
+			return true;
+		}
+		return false;
+	}
 	
-	void ResourceList::push(std::string key, std::string id, std::string type, bool replace)
+	void ResourceList::push(std::string key, std::string id, std::string type, bool replace, Unit* unit)
 	{
 		assert(id.compare("No type"));
 
@@ -102,7 +98,7 @@ namespace Rhea {
 				id,
 				type,
 				Resource::Status::SETUP,
-				nullptr
+				unit
 			};
 		}
 		else if (replace) {
@@ -110,6 +106,7 @@ namespace Rhea {
 			if (m_resources[key].status == Resource::Status::SETUP) {
 				m_resources[key].id = id;
 				m_resources[key].type = type;
+				m_resources[key].resource = unit;
 			}
 			else {
 				LOG(LOG_ERROR) << "ResourceList: Could not replace resource '" << key << "': already loaded";

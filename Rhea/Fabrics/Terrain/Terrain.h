@@ -28,7 +28,8 @@ namespace Rhea
 		{}
 
 		// setup from strings
-		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
+		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);		
+		std::vector<Export> getReferences();
 
 		// get height in world coords
 		float getHeight(float x, float z);

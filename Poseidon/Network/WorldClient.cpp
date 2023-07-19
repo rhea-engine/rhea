@@ -88,21 +88,14 @@ namespace Poseidon
 								m_net_items[msgc->NUID] = player;
 								Rhea::Event e("scene_enter", player);
 								bubbleEvent("scene_enter", &e);
-								player->prepare([&, scene, player, msgc](Rhea::Error* err) {
-									if (!err) {
-										scene->addItem(player);
 
-										player->ready();
+								scene->addItem(player);
+								player->ready();
 
-										if (msgc->is_player && m_onWorldHandler) {
-											m_onWorldHandler(0);
-											m_onWorldHandler = nullptr;
-										}
-									}
-									else {
-										LOG(LOG_ERROR) << "Could not prepare player";
-									}
-									});
+								if (msgc->is_player && m_onWorldHandler) {
+									m_onWorldHandler(0);
+									m_onWorldHandler = nullptr;
+								}
 							}
 							else {
 								LOG(LOG_ERROR) << "Did not find player template";

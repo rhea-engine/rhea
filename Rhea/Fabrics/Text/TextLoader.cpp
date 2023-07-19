@@ -2,7 +2,7 @@
 #include <Orion/os/Fs.h>
 
 #include "TextLoader.h"
-#include "TextResource.h"
+#include "Resources/TextResource.h"
 
 namespace Rhea
 {

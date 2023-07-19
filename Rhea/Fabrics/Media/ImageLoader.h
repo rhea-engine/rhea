@@ -1,8 +1,8 @@
 #ifndef RHEA_FABRICS_MEDIA_IMAGELOADER_H
 #define RHEA_FABRICS_MEDIA_IMAGELOADER_H
 
-#include <Rhea/Resource.h>
-#include "ResourceLoader.h"
+#include "Resources/Resource.h"
+#include "Resources/ResourceLoader.h"
 
 namespace Rhea
 {

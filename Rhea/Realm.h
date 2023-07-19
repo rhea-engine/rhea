@@ -2,7 +2,6 @@
 #define RHEA_REALM_H
 
 #include "Unit.h"
-#include "Resource.h"
 
 namespace Orion
 {
@@ -11,18 +10,17 @@ namespace Orion
 
 namespace Rhea
 {
-	class Realm : public Resource
+	class Realm : public Unit
 	{
 	public:
 		Realm(Orion::Realm *realm, std::string pathname) :
 			m_realm(realm),
-			Resource(pathname, "//meworla/realm")
-		{
-			m_status = Status::LOADED;
-		}
+			Unit(pathname, "//meworla/realm")
+		{}
+
 		Realm(std::string name) :
 			m_realm(NULL),
-			Resource(name, "//meworla/realm")
+			Unit(name, "//meworla/realm")
 		{}
 
 		// set the realm

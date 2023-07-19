@@ -1,9 +1,9 @@
 #include "TextWidget.h"
 #include "Application.h"
 #include "Fabrics/Media/ImageResource.h"
-#include "TextResource.h"
+#include "Resources/TextResource.h"
 #include "UnitTree.h"
-#include "ResourceList.h"
+#include "Resources/ResourceList.h"
 #include <Psio/Log.h>
 #include <Graphics/GraphicsService.h>
 #include <GUI/Widget.h>
@@ -16,11 +16,17 @@ namespace Rhea
 		
 		m_text = values["text"];
 		m_max_length = m_text.length();
-
-		if (m_values.find("font") != m_values.end()) {
-			m_resource_list->push("font", m_values["font"], "//meworla/bitmapfont");
-		}
 	}
+
+	std::vector<Unit::Export> TextWidget::getReferences()
+	{
+		std::vector<Export> refs = Item2D::getReferences();
+		if (m_values.find("font") != m_values.end()) {
+			refs.push_back({ "font", "//meworla/bitmapfont", m_values["font"] });
+		}		
+		return refs;
+	}
+
 
 	Unit* TextWidget::createType(std::string name, std::string type)
 	{
@@ -30,14 +36,12 @@ namespace Rhea
 
 	void TextWidget::ready()
 	{
-		if (m_status >= Status::READY)
-			return;
 		Item2D::ready();
 
 		// load and add font and text
 		if (m_values.find("font") != m_values.end())
 		{
-			m_font = static_cast<Font*>((*m_resource_list)["font"]);
+			m_font = static_cast<Font*>(m_app->getUnitTree()->find(m_values["font"], m_attributes["basepath"], false));
 			if (!m_font)
 				LOG(LOG_ERROR) << "TextWidget: Font '" << (std::string)m_values["font"] << "' not found";
 		}
@@ -73,7 +77,6 @@ namespace Rhea
 			}
 
 		}
-		m_status = Status::READY;
 	}
 	
 	void TextWidget::setMesh()

@@ -2,6 +2,7 @@
 
 #include <SimpleParser/CssParser.h>
 #include "StyleSheet.h"
+#include <Resources/ResourceService.h>
 
 namespace Rhea {
 	
@@ -23,7 +24,15 @@ namespace Rhea {
 				css->setup(app, attributes, values);
 				css->setStyle(entries);
 
-				handler(ReqError::OK, css);
+				// resource to load?
+				ResourceList res_list(app);
+				std::vector<Unit::Export> references = css->getReferences();
+				for (auto ref_it = references.begin(); ref_it != references.end(); ++ref_it) {					
+					res_list.push(ref_it->name, ref_it->value, ref_it->type);					
+				}
+				static_cast<ResourceService*>(app->getService("resources"))->loadAsync(res_list, [css, handler](ResourceList* rh, Error* err) {
+					handler(ReqError::OK, css);
+					});			
 			}			
 			});
 		rs->onError([buf, handler](int err) {

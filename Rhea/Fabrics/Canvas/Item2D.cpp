@@ -1,10 +1,9 @@
 #include "Item2D.h"
-#include "Item2D.h"
 #include "Application.h"
 #include "Fabrics/Media/ImageResource.h"
-#include "TextResource.h"
+#include "Resources/TextResource.h"
 #include "UnitTree.h"
-#include "ResourceList.h"
+#include "Resources/ResourceList.h"
 #include <Psio/Log.h>
 #include <Graphics/GraphicsService.h>
 
@@ -12,24 +11,31 @@ namespace Rhea
 {
 	void Item2D::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{
-		Item::setup(app, attributes, values);
-		m_status = Status::SETUP;
+		Item::setup(app, attributes, values);		
 
 		m_position.x = values["x"];
 		m_position.y = values["y"];		
 		m_size.x = values["w"];
 		m_size.y = values["h"];
 
-		m_resource_list = new ResourceList(app);
-
 		if (m_values.find("texture") != m_values.end()) {
-			m_resource_list->push("texture", m_values["texture"], "//meworla/texture");
 			if (m_values.find("shader") == m_values.end()) {
 				// set a default
 				m_values["shader"] = "//rhea/shaders/widget.hlsl";
 			}
-			m_resource_list->push("shader", m_values["shader"], "//meworla/shader");
 		}
+	}
+
+	std::vector<Unit::Export> Item2D::getReferences()
+	{
+		std::vector<Export> refs = Item::getReferences();
+		if (m_values.find("texture") != m_values.end()) {
+			refs.push_back({ "texture", "//meworla/texture", m_values["texture"] });
+		}
+		if (m_values.find("shader") != m_values.end()) {
+			refs.push_back({ "shader", "//meworla/shader", m_values["shader"] });
+		}
+		return refs;
 	}
 
 	Unit* Item2D::createType(std::string name, std::string type)
@@ -40,14 +46,12 @@ namespace Rhea
 
 	void Item2D::ready()
 	{
-		if (m_status >= Status::READY)
-			return;
-		Unit::ready();
+		Item::ready();
 
 		// load and add textures
 		if (m_values.find("texture") != m_values.end())
-		{
-			Unit* tex = (*m_resource_list)["texture"];
+		{			
+			Unit* tex = m_app->getUnitTree()->find(m_values["texture"], m_attributes["basepath"], false);
 			if (tex) {
 
 				// create dummy material
@@ -57,7 +61,7 @@ namespace Rhea
 				m_material->setValue("shader", "widget");
 
 				// get the shader
-				Unit* shader_res = (*m_resource_list)["shader"];
+				Unit* shader_res = m_app->getUnitTree()->find(m_values["shader"], m_attributes["basepath"], false);
 				if (shader_res) {
 					m_material->setShader(static_cast<TextResource*>(shader_res));
 				}
@@ -79,10 +83,9 @@ namespace Rhea
 				}
 			}
 			else {
-				LOG(LOG_ERROR) << "item2d::ready(): texture '" << (std::string)m_values["texture"] << "' for " << m_pathname << " not found";
+				LOG(LOG_ERROR) << "texture or shader for item2d not found";
 			}
 		}
-		m_status = Status::READY;
 	}
 
 	void Item2D::setMesh()

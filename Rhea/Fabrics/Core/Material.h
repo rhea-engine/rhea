@@ -1,7 +1,7 @@
 #ifndef RHEA_MATERIAL
 #define RHEA_MATERIAL
 
-#include "Rhea/Resource.h"
+#include "Rhea/Unit.h"
 
 namespace Rhea
 {
@@ -9,13 +9,13 @@ namespace Rhea
 	class ImageResource;
 	class TextResource;
 
-	class Material : public Resource
+	class Material : public Unit
 	{
 	public:
 		Material(std::string name) :
 			m_app(nullptr),
 			m_shader(nullptr),
-			Resource(name, "//meworla/mesh")
+			Unit(name, "//meworla/mesh")
 		{}
 
 		// get textures

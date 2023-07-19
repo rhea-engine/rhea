@@ -1,7 +1,9 @@
 #ifndef REHA_ITEM_H
 #define REHA_ITEM_H
 
-#include <Rhea/Resource.h>
+#include <memory>
+
+#include <Rhea/Unit.h>
 
 #include "Rhea/Fabrics/Core/Position.h"
 #include "Math/Vector3.h"
@@ -22,7 +24,7 @@ namespace Rhea
 	class PhysicsBody;
 	class Material;
 
-	class Item : public Resource
+	class Item : public Unit
 	{
 	public:
 		Item(std::string name) :
@@ -36,7 +38,7 @@ namespace Rhea
 			m_material(nullptr),
 			m_transform(this),
 			m_render_component(nullptr),
-			Resource(name, type_name)
+			Unit(name, type_name)
 		{}
 		virtual ~Item() = default;
 
@@ -54,6 +56,8 @@ namespace Rhea
 
 		// factory function
 		static Unit* createType(std::string name, std::string type);
+
+		std::vector<Export> getReferences();
 
 		// instancing
 		virtual Item* instance(std::string name);

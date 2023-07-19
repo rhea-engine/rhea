@@ -1,12 +1,13 @@
+#include "BitmapFont.h"
 #include <vector>
 #include <string>
 
 #include "BitmapFont.h"
-#include "ResourceList.h"
+#include "Resources/ResourceList.h"
 #include "Application.h"
 #include "UnitTree.h"
 #include "Fabrics/Media/ImageResource.h"
-#include "TextResource.h"
+#include "Resources/TextResource.h"
 #include "Orion/ResourceStream.h"
 #include <Orion/os/Fs.h>
 #include <Psio/Log.h>
@@ -17,34 +18,38 @@ namespace Rhea
 	{
 		Unit::setup(app, attributes, values);
 
-		m_resource_list = new ResourceList(app);
-
 		// dependent resources
-		m_resource_list->push("texture", m_values["texture"], "//meworla/texture");
-		m_resource_list->push("shader", "//rhea/shaders/text.hlsl", "//meworla/shader", true);
-		// do we have a font information?
-		Variant font_info_name = getValue("font_info");
-		if (font_info_name != Variant()) {
-			m_resource_list->push("fontinfo", font_info_name, "//meworla/fontinfo");
-		}
+		m_values["shader"] = "//rhea/shaders/text.hlsl";
 
 		// default values
 		m_sz = getValue("font_size", 32.0f);
 		m_dim_w = getValue("bmp_width", 256.0f);
 		m_dim_h = getValue("bmp_height", 256.0f);
 	}
+
+	std::vector<Unit::Export> BitmapFont::getReferences()
+	{
+		std::vector<Export> refs;
+		if (m_values.find("texture") != m_values.end()) {
+			refs.push_back({ "texture", "//meworla/texture", m_values["texture"] });
+		}
+		if (m_values.find("shader") != m_values.end()) {
+			refs.push_back({ "shader", "//meworla/shader", m_values["shader"] });
+		}
+		if (m_values.find("font_info") != m_values.end()) {
+			refs.push_back({ "fontinfo", "//meworla/fontinfo", m_values["font_info"] });
+		}
+		return refs;
+	}
 	
 	void BitmapFont::ready()
 	{
-		if (m_status >= Status::READY)
-			return;
-		m_status = Status::READY;
 		Unit::ready();
 
 		// load and add textures
 		if (m_values.find("texture") != m_values.end())
-		{			
-			Unit* tex = (*m_resource_list)["texture"];
+		{						
+			Unit* tex = m_app->getUnitTree()->find(m_values["texture"], m_attributes["basepath"], false);
 			if (tex) {
 
 				// create dummy material
@@ -55,7 +60,7 @@ namespace Rhea
 				m_material->setValue("alpha_blending", true);
 
 				// get the shader
-				Unit* shader_res = (*m_resource_list)["shader"];
+				Unit* shader_res = m_app->getUnitTree()->find(m_values["shader"], m_attributes["basepath"], false);
 				if (shader_res && shader_res->isA("//meworla/text")) {
 					m_material->setShader(static_cast<TextResource*>(shader_res));
 				}
@@ -68,10 +73,9 @@ namespace Rhea
 			}
 		}
 
-		// load font description if any
-		Variant font_info_name = getValue("font_info");
-		if (font_info_name != Variant()) {
-			TextResource* font_info = static_cast<TextResource*>((*m_resource_list)["fontinfo"]);
+		// load font description if any		
+		if (m_values.find("font_info")!=m_values.end()) {
+			TextResource* font_info = static_cast<TextResource*>(m_app->getUnitTree()->find(m_values["font_info"], m_attributes["basepath"], false));
 			if (font_info && font_info->isA("//meworla/text")) {
 				char* buf;
 				size_t buflen;
@@ -128,7 +132,7 @@ namespace Rhea
 									m_cell_h = (float)val;									
 								}
 								else if (!key.compare("Font Height")) {
-									m_sz = val;
+									m_sz = (float)val;
 								}
 								else if (!(key.substr(0,5).compare("Char "))) {
 									if (meta) {
@@ -144,22 +148,22 @@ namespace Rhea
 											break;
 									}
 									int letter = std::atoi(key.substr(5, len).c_str());
-									if (letter >= m_start_letter) {
+									if ((unsigned int)letter >= m_start_letter) {
 										
 										len = 5 + len + 1;
 
 										if (!key.substr(len, 4).compare("Base")) {
 
 											int letter_fixed = letter - m_start_letter;
-											unsigned int col = floor(letter_fixed % nof_cols);
-											unsigned int row = floor(letter_fixed / nof_rows);
+											unsigned int col = (unsigned int)floor(letter_fixed % nof_cols);
+											unsigned int row = (unsigned int)floor(letter_fixed / nof_rows);
 
 											// compute position of glyph (in uv coords 0/0-1/1)
 											glyph.left = (float)((col * m_cell_w) / m_dim_w);
 											glyph.right = glyph.left + ((float)val / m_dim_w);
 											glyph.top = (float)((row * m_cell_h) / m_dim_h);
-											glyph.bottom = glyph.top + (m_sz / m_dim_h);
-											glyph.advance = val;
+											glyph.bottom = glyph.top + (m_sz / (float)m_dim_h);
+											glyph.advance = (float)val;
 											m_glyphs.push_back(glyph);
 										}
 									}

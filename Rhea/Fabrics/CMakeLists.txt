@@ -11,4 +11,5 @@ add_library (RheaFabrics "Character/Character.cpp" "Character/KinematicCharacter
 "Core/Material.h" "Core/Material.cpp" "Text/TextLoader.h" "Text/TextLoader.cpp" "Core/SceneLoader.cpp" "Core/Scene.cpp" 
 "Core/Position.h" "Core/Position.cpp" "Core/Transform.h" "Core/Transform.cpp"
 "3D/Item.cpp" "3D/Camera.cpp" "3D/Mesh.cpp"  "Core/Avatar.h" "Core/Avatar.cpp" "GUI/Button.h" "GUI/Button.cpp" "GUI/Dialog.h" 
-"GUI/Dialog.cpp" "GUI/List.h" "GUI/List.cpp" "GUI/ListItem.h" "GUI/ListItem.cpp" "GUI/StyleSheet.h" "GUI/StyleSheet.cpp" "GUI/CssLoader.h" "GUI/CssLoader.cpp")
+"GUI/Dialog.cpp" "GUI/List.h" "GUI/List.cpp" "GUI/ListItem.h" "GUI/ListItem.cpp" "GUI/StyleSheet.h" "GUI/StyleSheet.cpp" "GUI/CssLoader.h" "GUI/CssLoader.cpp" 
+"Core/Geometry.h" "3D/ObjLoader.h" "3D/ObjLoader.cpp")

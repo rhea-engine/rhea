@@ -8,7 +8,7 @@
 #include "Fabrics/3D/Item.h"
 #include "Fabrics/3D/Mesh.h"
 #include "Fabrics/Core/Material.h"
-#include "../TextResource.h"
+#include "../Resources/TextResource.h"
 #include "../UnitTree.h"
 
 #include "ItemManager.h"

@@ -5,7 +5,7 @@
 #include "UnitTree.h"
 #include "Fabrics/Core/Scene.h"
 #include "Fabrics/Media/ImageResource.h"
-#include "TextResource.h"
+#include "Resources/TextResource.h"
 
 #include "../Canvas/Item2D.h"
 #include <Psio/Log.h>

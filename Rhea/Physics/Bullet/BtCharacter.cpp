@@ -391,8 +391,10 @@ namespace Rhea
 
 		// safety check - note: if enabled this means we cant go below ground!
 		if (m_check_ground)
-			if (m_currentPosition.getY() < m_minimal_ground - 0.01f)
+			if (m_currentPosition.getY() < m_minimal_ground - 0.01f) {
 				m_currentPosition.setY(m_minimal_ground);
+				m_move_state = moveState::GROUND;
+			}
 		Vector3 target_position = Vector3(m_currentPosition.getX(), m_currentPosition.getY(), m_currentPosition.getZ());
 		
 		m_last_position = m_currentPosition;

@@ -1,24 +1,24 @@
 #ifndef RHEA_GUI_STYLESHEET_H
 #define RHEA_GUI_STYLESHEET_H
 
-#include <Rhea/Resource.h>
+#include <Resources/Resource.h>
 #include <SimpleParser/CssParser.h>
 #include "Widget.h"
 
 namespace Rhea
 {
-	class StyleSheet : public Resource
+	class StyleSheet : public Unit
 	{
 	public:
 		StyleSheet(std::string path_name) :
 			StyleSheet(path_name, "//meworla/gui/stylesheet")
 		{}
 		StyleSheet(std::string path_name, std::string type_name) :
-			Resource(path_name, type_name)
+			Unit(path_name, type_name)
 		{}
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
 
-		void prepare(Unit::ReadyHandler handler);
+		std::vector<Unit::Export> getReferences();
 
 		void applyStyle(Widget* w);
 
@@ -29,6 +29,7 @@ namespace Rhea
 
 	protected:
 		std::vector<SimpleParser::CssParser::Entry> m_entries;
+		std::vector<Unit::Export> refs;
 	};
 }
 

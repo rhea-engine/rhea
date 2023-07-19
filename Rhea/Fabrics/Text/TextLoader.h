@@ -1,8 +1,8 @@
 #ifndef RHEA_TEXTLOADER_H
 #define RHEA_TEXTLOADER_H
 
-#include <Rhea/Resource.h>
-#include "ResourceLoader.h"
+#include "Resources/Resource.h"
+#include "Resources/ResourceLoader.h"
 
 namespace Rhea
 {

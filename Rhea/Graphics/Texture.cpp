@@ -1,6 +1,6 @@
 #include "Texture.h"
 #include "../Unit.h"
-#include "../Resource.h"
+#include "../Resources/Resource.h"
 #include <Psio/Log.h>
 
 #include <Poseidon/Texture.h>
@@ -25,7 +25,7 @@ namespace Rhea
 
 		GraphicsTexture* elem = new GraphicsTexture(core);
 		if (static_cast<Resource*>(unit)->getRaw(&buf, &buflen)) {
-			if (!elem->createTexture((unsigned char*)buf, buflen)) {
+			if (!buf || !elem->createTexture((unsigned char*)buf, buflen)) {
 				LOG(LOG_ERROR) << "Image " << unit->getPath() << " could not be created";
 				delete elem;
 				return nullptr;

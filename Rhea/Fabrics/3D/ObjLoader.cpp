@@ -1,7 +1,10 @@
 #define TINYOBJLOADER_IMPLEMENTATION 
 #include <tiny_obj_loader/tiny_obj_loader.h>
 
-#include "Importer.h"
+#include "ObjLoader.h"
+#include <Application.h>
+#include <UnitTree.h>
+#include <Resources/TextResource.h>
 #include <Psio/Log.h>
 
 namespace Rhea
@@ -25,7 +28,7 @@ namespace Rhea
     };
 
 
-	bool Importer::load(Application* app, std::string objbuf, std::string mtlbuf, std::vector<Mesh::vertex>& vertices, std::vector<unsigned long>& indices)
+	bool ObjLoader::load(std::string objbuf, std::string mtlbuf, std::vector<Mesh::vertex>& vertices, std::vector<unsigned long>& indices)
 	{
 		tinyobj::ObjReader reader;
 		tinyobj::ObjReaderConfig config;     
@@ -110,4 +113,51 @@ namespace Rhea
 
 		return ret;
 	}
+
+    bool ObjLoader::get(std::vector<Mesh::vertex>& vertices, std::vector<unsigned long>& indices)
+    {
+        std::string objbuf;
+        std::string mtlbuf;
+
+        if (m_values.find("material") != m_values.end()) {
+            TextResource* mtl = (TextResource*)m_app->getUnitTree()->find(m_values["material"]);
+            if (mtl) {
+                mtlbuf = mtl->getAsString();
+            }
+        }
+        if (m_values.find("path") != m_values.end()) {
+            TextResource* obj = (TextResource*)m_app->getUnitTree()->find(m_values["path"]);
+            if (obj) {
+                objbuf = obj->getAsString();
+            }
+            else {
+                DLOG(LOG_DEBUG) << "obj not found in objloader";
+                return false;
+            }
+        }
+        else {
+            LOG(LOG_ERROR) << "Could not open " << m_pathname << ": Obj file not defined.";
+            return false;
+        }
+        
+        return load(objbuf, mtlbuf, vertices, indices);
+    }
+
+    std::vector<Unit::Export> ObjLoader::getReferences()
+    {
+        std::vector<Unit::Export> refs;
+        if (m_values.find("path") != m_values.end())
+            refs.push_back({ "obj", "//meworla/wavefront-object", m_values["path"] });
+        else
+            LOG(LOG_ERROR) << "Wavefront Obj-Loader: no path to obj file defined";
+        if (m_values.find("material") != m_values.end())
+            refs.push_back({ "material", "//meworla/wavefront-material", m_values["material"] });
+        return refs;
+    }
+
+    Unit* Rhea::ObjLoader::createType(std::string name, std::string type)
+    {
+        Unit* ret = (Unit*)new ObjLoader(name, "//meworla/wavefront");
+        return ret;
+    }
 }

@@ -3,7 +3,7 @@
 #include <Psio/Image/Image.h>
 #include <Poseidon/Texture.h>
 
-#include "TextResource.h"
+#include "Resources/TextResource.h"
 #include "Event.h"
 
 #include "Fabrics/Core/Material.h"
@@ -62,7 +62,12 @@ namespace Rhea
 			Element* comp = GraphicsTexture::createElement(core, (Unit*)*it);
 			if (comp) {
 				Poseidon::Image* tex = ((GraphicsTexture*)comp)->get();
-				item->m_material->addTexture((Poseidon::Texture*)tex);
+				if (tex) {
+					item->m_material->addTexture((Poseidon::Texture*)tex);
+				}
+				else {
+					DLOG(LOG_DEBUG) << "GraphicsMaterialManager::createElement: empty texture";
+				}
 			} 
 			// TODO what should we do on failure?
 		}

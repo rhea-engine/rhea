@@ -168,95 +168,97 @@ int ClientConnection::DoAvatar(int result)
 				LOG(LOG_INFO) << "Avatar " << msgc->avatar << " entered scene";
 
 				// instancing the player
-				Rhea::Item* gnar = (Rhea::Item*)m_app->getUnitTree()->find(avatar->getValue("model"));
-				if (gnar) {
-					int i = 0;
-					std::string basename = msgc->avatar;
-					while (m_scene->find(msgc->avatar)) {
-						// make sure no items with the same name exist
-						msgc->avatar = basename + std::string("-") + std::to_string(++i);
-					}
-					m_player = gnar->instance(msgc->avatar);
-					Math::Vector3 position = { 128.0f, 0.0f, 10.0f };
-					m_scene->addChild(m_player);
-					m_player->setPosition(position);
+				Rhea::Item* player_model = (Rhea::Item*)m_app->getUnitTree()->find(avatar->getValue("model"));
+				if (!player_model) {
+					LOG(LOG_ERROR) << " could not open avatar " << msgc->avatar;
+					return;
+				}
 
-					// add a network controller
-					ServerService* server_srv = (ServerService*)m_app->getService("server");
-					int id = server_srv->getUID();
-					std::unique_ptr<Rhea::NetworkComponent> net_com = std::make_unique<Rhea::NetworkComponent>(m_player, id, NET_ROLE_SERVER);
-					m_player->setNetworkComponent(std::move(net_com));
+				int i = 0;
+				std::string basename = msgc->avatar;
+				while (m_scene->find(msgc->avatar)) {
+					// make sure no items with the same name exist
+					msgc->avatar = basename + std::string("-") + std::to_string(++i);
+				}
+				m_player = player_model->instance(msgc->avatar);
+				Math::Vector3 position = { 128.0f, 0.0f, 10.0f };
+				position = avatar->getPosition();
+				m_scene->addChild(m_player);
+				m_player->setPosition(position);
+				m_player->setValue("avatar", avatar);
 
-					m_player->prepare([&, server_srv, avatar](Rhea::Error* err) {
-						if (!err) {
-							m_scene->addItem(m_player);
+				// add a network controller
+				ServerService* server_srv = (ServerService*)m_app->getService("server");
+				int id = server_srv->getUID();
+				std::unique_ptr<Rhea::NetworkComponent> net_com = std::make_unique<Rhea::NetworkComponent>(m_player, id, NET_ROLE_SERVER);
+				m_player->setNetworkComponent(std::move(net_com));
 
-							m_player->ready();
-							DLOG(LOG_DEBUG) << "player ready";
+				m_scene->addItem(m_player);
 
-							Rhea::Service* phy_srv = m_app->getService("physics");
-							// add to physics					
-							if (phy_srv) {
-								((Rhea::PhysicsService*)phy_srv)->initializeItem(m_player);
-							}
+				m_player->ready();
+				DLOG(LOG_DEBUG) << "player ready";
 
-							// inform connector
-							Hermes::MessageCreate msg;
-							Math::Vector3 pos = m_player->getTransform()->get_position()->get_worldspace();
-							msg.path = msgc->avatar;
-							msg.type_name = avatar->getValue("model");
-							msg.NUID = m_player->getNetworkComponent()->NUID();
-							msg.pos[0] = pos.x;
-							msg.pos[1] = pos.y;
-							msg.pos[2] = pos.z;
-							Math::Quaternion q = m_player->getTransform()->get_position()->get_rotation();
-							msg.transform[0] = q.w;
-							msg.transform[1] = q.x;
-							msg.transform[2] = q.y;
-							msg.transform[3] = q.z;
-							msg.is_player = true;
-							m_hermes->sendMessage((Hermes::Message*)&msg, nullptr);
+				Rhea::Service* phy_srv = m_app->getService("physics");
+				// add to physics					
+				if (phy_srv) {
+					((Rhea::PhysicsService*)phy_srv)->initializeItem(m_player);
+				}
 
-							// send all items with networ component
-							std::vector<Rhea::Item*> items = m_scene->getItems();
-							for (auto item_it = items.begin(); item_it != items.end(); ++item_it) {
-								if (*item_it == m_player)
-									continue;
-								Rhea::NetworkComponent* net_com = (*item_it)->getNetworkComponent();
-								if (net_com) {
-									Hermes::MessageCreate item_msg;
-									Math::Vector3 pos = (*item_it)->getTransform()->get_position()->get_worldspace();
-									item_msg.path = (*item_it)->getPathName();
-									item_msg.type_name = "//local/scene1/gnar";
-									item_msg.NUID = (*item_it)->getNetworkComponent()->NUID();
-									item_msg.pos[0] = pos.x;
-									item_msg.pos[1] = pos.y;
-									item_msg.pos[2] = pos.z;
-									Math::Quaternion q = (*item_it)->getTransform()->get_position()->get_rotation();
-									item_msg.transform[0] = q.w;
-									item_msg.transform[1] = q.x;
-									item_msg.transform[2] = q.y;
-									item_msg.transform[3] = q.z;
-									item_msg.is_player = false;
-									m_hermes->sendMessage((Hermes::Message*)&item_msg, nullptr);
-								}
-							}
-							// inform all other connectors
-							msg.is_player = false;
-							server_srv->broadcast((Hermes::Message*)&msg, this);
+				// inform connector
+				Hermes::MessageCreate msg;
+				Math::Vector3 pos = m_player->getTransform()->get_position()->get_worldspace();
+				msg.path = msgc->avatar;
+				msg.type_name = avatar->getValue("model");
+				msg.NUID = m_player->getNetworkComponent()->NUID();
+				msg.pos[0] = pos.x;
+				msg.pos[1] = pos.y;
+				msg.pos[2] = pos.z;
+				Math::Quaternion q = m_player->getTransform()->get_position()->get_rotation();
+				msg.transform[0] = q.w;
+				msg.transform[1] = q.x;
+				msg.transform[2] = q.y;
+				msg.transform[3] = q.z;
+				msg.is_player = true;
+				m_hermes->sendMessage((Hermes::Message*)&msg, nullptr);
 
-							// enter normal state
-							m_next_state = CONN_MESSAGE;
-							DoLoop(0);
+				// send all items with network component
+				std::vector<Rhea::Item*> items = m_scene->getItems();
+				for (auto item_it = items.begin(); item_it != items.end(); ++item_it) {
+					if (*item_it == m_player)
+						continue;
+					Rhea::NetworkComponent* net_com = (*item_it)->getNetworkComponent();
+					if (net_com) {
+						Hermes::MessageCreate item_msg;
+						Math::Vector3 pos = (*item_it)->getTransform()->get_position()->get_worldspace();
+						item_msg.path = (*item_it)->getPathName();
+						avatar = (Rhea::Avatar*)(Variant*)(*item_it)->getValue("avatar");						
+						if (avatar) {
+							item_msg.type_name = avatar->getValue("model");
 						}
 						else {
-							LOG(LOG_ERROR) << "Could not prepare player";
+							// no avatar -> TODO: check can there be normal items without avatar?
+							continue;
 						}
-						});
+						item_msg.NUID = (*item_it)->getNetworkComponent()->NUID();
+						item_msg.pos[0] = pos.x;
+						item_msg.pos[1] = pos.y;
+						item_msg.pos[2] = pos.z;
+						Math::Quaternion q = (*item_it)->getTransform()->get_position()->get_rotation();
+						item_msg.transform[0] = q.w;
+						item_msg.transform[1] = q.x;
+						item_msg.transform[2] = q.y;
+						item_msg.transform[3] = q.z;
+						item_msg.is_player = false;
+						m_hermes->sendMessage((Hermes::Message*)&item_msg, nullptr);
+					}
 				}
-				else {
-					LOG(LOG_ERROR) << " could not open avatar " << msgc->avatar;
-				}
+				// inform all other connectors
+				msg.is_player = false;
+				server_srv->broadcast((Hermes::Message*)&msg, this);
+
+				// enter normal state
+				m_next_state = CONN_MESSAGE;
+				DoLoop(0);
 			}
 		}
 		else {

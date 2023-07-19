@@ -246,7 +246,7 @@ void Ceto::showScene(Rhea::Scene* scene)
 		}
 		physics->onInit();
 		m_services["physics"] = physics;
-		// store in lopcal "cache" var
+		// store in local "cache" var
 		m_physics = physics;
 	}
 
@@ -370,8 +370,8 @@ void Ceto::loadMainGUI()
 	std::string app_gui = "//local/cetogui.scene";
 	loadResource(app_gui, "//meworla/gui", [&](Rhea::Unit* gui, ReqError r_err) {
 		if (r_err == ReqError::OK) {
-			gui->prepare([&](Rhea::Error* err) {
-				gui->ready();
+			
+			gui->ready();
 			log("gui ready");
 			static_cast<Rhea::GraphicsService*>(m_services["graphics"])->registerScene("HUD", gui);
 
@@ -391,7 +391,6 @@ void Ceto::loadMainGUI()
 
 			// realm selection
 			setRealmSelectDialog();
-				});
 		}
 		else {
 			log("loading of gui failed");

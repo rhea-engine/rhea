@@ -1,21 +1,19 @@
 #include "StyleSheet.h"
-#include <Rhea/ResourceList.h>
+#include "Application.h"
 
 namespace Rhea
 {
 	void StyleSheet::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{
 		Unit::setup(app, attributes, values);
-		
-		if (m_values["path"] != Variant()) {
-			m_resource_list = new ResourceList(m_app);
-			m_resource_list->push("stylesheet", m_values["path"], "text/css");
-		}		
+		refs = Unit::getReferences();
 	}
 
-	void StyleSheet::prepare(Unit::ReadyHandler handler)
+	std::vector<Unit::Export> StyleSheet::getReferences()
 	{
-		Resource::prepare(handler);
+		if (m_values.find("path") != m_values.end())
+			refs.push_back({ "path", "text/css", m_values["path"] });
+		return refs;
 	}
 
 	void StyleSheet::applyStyle(Widget* w)
@@ -34,13 +32,11 @@ namespace Rhea
 	{
 		m_entries = entries;
 		int i = 0;
-		for (auto it= m_entries.begin(); it!=m_entries.end(); ++it)
+		for (auto it = m_entries.begin(); it != m_entries.end(); ++it)
 			for (auto p_it = (*it).properties.begin(); p_it != (*it).properties.end(); ++p_it)
 			{
 				if (!p_it->first.compare("background-image")) {
-					if (!m_resource_list)
-						m_resource_list = new ResourceList(m_app);
-					m_resource_list->push("image" + i++, p_it->second[0], "image/png");
+					refs.push_back({ "image_" + std::to_string(i++), "image/png", p_it->second[0] });
 				}
 			}
 	}

@@ -80,11 +80,13 @@ namespace Rhea
 			}
 			Math::Vector3 gravity = Vector3(0, m_upwards, 0);
 
-			// compute the next possitions
-			Math::Vector3 pos = character->update(m_position, move, gravity);
-			m_position->setPosition(pos);
-			character->setPosition(pos);
-			dirty = true;
+			// compute the next position
+			Math::Vector3 pos = character->update(m_position, move, gravity);			
+			if (!pos.equals(m_position->get_worldspace())) {
+				m_position->setPosition(pos);
+				character->setPosition(pos);
+				dirty = true;
+			}
 
 			// check if we ended up on ground
 			if (character->isOnGround()) {
@@ -160,7 +162,7 @@ namespace Rhea
 			m_phy_pre_handler = std::bind(&KinematicCharacter::doPhysics, this, std::placeholders::_1, std::placeholders::_2);
 			phy_srv->registerEventHandler("pre_physics", this, m_phy_pre_handler);
 			// gravity - default is scene but char may overwrite it
-			m_gravity = getValue("gravity", m_parent->getValue("gravity"));
+			m_gravity = getValue("gravity", m_parent->getValue("linear_gravity"));
 		}
 		else if (m_parent) {
 			m_parent->registerEventHandler("ready", this, std::bind(&KinematicCharacter::onSceneReady, this, std::placeholders::_1, std::placeholders::_2));
@@ -179,7 +181,7 @@ namespace Rhea
 			phy_srv->registerEventHandler("pre_physics", this, m_phy_pre_handler);
 		}
 		// gravity - default is scene but char may overwrite it
-		m_gravity = getValue("gravity", unit->getValue("gravity"));
+		m_gravity = getValue("gravity", unit->getValue("linear_gravity"));
 		
 		return false;
 	}

@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include <Rhea/Resource.h>
+#include <Rhea/Unit.h>
 
 namespace Rhea
 {
@@ -11,12 +11,12 @@ namespace Rhea
 	class ImageResource;
 	class Material;
 
-	class Mesh : public Resource
+	class Mesh : public Unit
 	{
 	public:
 		Mesh(std::string name) :
 			m_material(nullptr),
-			Resource(name, "//meworla/mesh")
+			Unit(name, "//meworla/mesh")
 		{}
 
 		struct vertex {
@@ -35,6 +35,8 @@ namespace Rhea
 
 		// setup from strings
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
+
+		std::vector<Unit::Export> getReferences();
 
 		// ready handler
 		void ready();

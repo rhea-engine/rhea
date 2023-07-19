@@ -3,18 +3,18 @@
 
 #include <vector>
 
-#include "Rhea/Resource.h"
+#include "Rhea/Resources/Resource.h"
 
 namespace Rhea
 {
 	class Item;
 
 	// a scene is a holder for various corresponding scene objects
-	class Scene : public Resource
+	class Scene : public Unit
 	{
 	public:
 		Scene(std::string name) :
-			Resource(name, "//meworla/scene")
+			Unit(name, "//meworla/scene")
 		{}
 
 		// add an item to the scene

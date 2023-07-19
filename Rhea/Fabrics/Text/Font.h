@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include "Resource.h"
+#include "Unit.h"
 
 namespace Rhea
 {
@@ -23,13 +23,13 @@ namespace Rhea
 		float advance;
 	};
 
-	class Font : public Resource
+	class Font : public Unit
 	{
 	public:
 		Font(std::string name, std::string type_name) :
 			m_material(nullptr),
 			m_sz(0.0f),
-			Resource(name, type_name)
+			Unit(name, type_name)
 		{}
 		Font(std::string name) :
 			Font(name, "//meworla/font")

@@ -1,5 +1,4 @@
 #include "Terrain.h"
-#include "Terrain.h"
 #include "Application.h"
 #include "Fabrics/Media/ImageResource.h"
 #include "Unit.h"
@@ -9,8 +8,7 @@
 #include <Poseidon/SceneManager.h>
 #include <Poseidon/Shader.h>
 #include "Fabrics/Core/Material.h"
-#include "TextResource.h"
-#include "ResourceList.h"
+#include "Resources/TextResource.h"
 #include <Psio/Log.h>
 
 namespace Rhea
@@ -19,21 +17,27 @@ namespace Rhea
 	{
 		Item::setup(app, attributes, values);
 
-		m_resource_list = new ResourceList(app);
+		m_values["shader"] = "//rhea/shaders/terrain.hlsl";		
+	}
 
-		m_resource_list->push("heightmap", m_values["heightmap"], "//meworla/heightmap");
-		m_resource_list->push("shader", "//rhea/shaders/terrain.hlsl", "//meworla/shader");
-
+	std::vector<Unit::Export> Terrain::getReferences()
+	{
+		std::vector<Export> refs = Item::getReferences();
+		if (m_values["heightmap"] != Variant())
+			refs.push_back({ "heightmap", "//meworla/heightmap", m_values["heightmap"] });
+		if (m_values["shader"] != Variant())
+			refs.push_back({ "shader", "//meworla/shader", m_values["shader"] });
 		if (m_values["blendmap"] != Variant())
-			m_resource_list->push("blendmap", m_values["blendmap"], "//meworla/texture");
+			refs.push_back({ "blendmap", "//meworla/texture", m_values["blendmap"] });
 		if (m_values["texture1"] != Variant())
-			m_resource_list->push("texture1", m_values["texture1"], "//meworla/texture");
+			refs.push_back({ "texture1", "//meworla/texture", m_values["texture1"] });
 		if (m_values["texture2"] != Variant())
-			m_resource_list->push("texture2", m_values["texture2"], "//meworla/texture");
+			refs.push_back({ "texture2", "//meworla/texture", m_values["texture2"] });
 		if (m_values["texture3"] != Variant())
-			m_resource_list->push("texture3", m_values["texture3"], "//meworla/texture");
+			refs.push_back({ "texture3", "//meworla/texture", m_values["texture3"] });
 		if (m_values["texture4"] != Variant())
-			m_resource_list->push("texture4", m_values["texture4"], "//meworla/texture");
+			refs.push_back({ "texture4", "//meworla/texture", m_values["texture4"] });
+		return refs;
 	}
 
 	float Terrain::getHeight(float x, float z)
@@ -108,134 +112,136 @@ namespace Rhea
 
 	void Terrain::ready()
 	{
-		if (m_status >= Status::READY)
-			return;
-		m_status = Status::READY;
 		Unit::ready();
 
-		Unit* map = (*m_resource_list)["heightmap"];
-		if (map) {
-			addChild(map);
+		if (m_values.find("heightmap") != m_values.end()) {
+			Unit* map = m_app->getUnitTree()->find(m_values["heightmap"], m_attributes["basepath"], false);
+			if (map) {
+				addChild(map);
 
-			unsigned char* buf;
-			size_t buflen;
-			bool flipZ = true;
+				unsigned char* buf;
+				size_t buflen;
+				bool flipZ = true;
 
-			float max_height = getValue("height");
-			if (max_height)
-				m_max_height = max_height;
+				float max_height = getValue("height");
+				if (max_height)
+					m_max_height = max_height;
 
-			// if not overwritten by mesh build from heightmap
-			if (!m_mesh) {
+				// if not overwritten by mesh build from heightmap
+				if (!m_mesh) {
 
-				std::unordered_map<std::string, std::string> attributes;
-				std::unordered_map<std::string, Variant> values;
-				m_mesh = static_cast<Mesh*>(m_app->getUnitTree()->createUnit(m_pathname + "_mesh", "//meworla/mesh", attributes, values));
+					std::unordered_map<std::string, std::string> attributes;
+					std::unordered_map<std::string, Variant> values;
+					m_mesh = static_cast<Mesh*>(m_app->getUnitTree()->createUnit(m_pathname + "_mesh", "//meworla/mesh", attributes, values));
 
-				// build vertex/index buffers from image
-				m_heightmap = new Poseidon::Image();
-				if (static_cast<Resource*>(map)->getRaw((char**)&buf, &buflen)) {
-					m_heightmap->load(buf, buflen);
-					m_width = m_heightmap->getWidth();
-					m_length = m_heightmap->getHeight();
+					// build vertex/index buffers from image
+					m_heightmap = new Poseidon::Image();
+					if (static_cast<Resource*>(map)->getRaw((char**)&buf, &buflen)) {
+						m_heightmap->load(buf, buflen);
+						m_width = m_heightmap->getWidth();
+						m_length = m_heightmap->getHeight();
 
-					// build buffers
-					std::vector<Mesh::vertex> vertices;
-					std::vector<unsigned long> indices;
-					std::vector<Math::Vector3> normals;
-					Mesh::vertex vertex;
-					m_heights = new float[(long)m_length * (long)m_width];
+						// build buffers
+						std::vector<Mesh::vertex> vertices;
+						std::vector<unsigned long> indices;
+						std::vector<Math::Vector3> normals;
+						Mesh::vertex vertex;
+						m_heights = new float[(long)m_length * (long)m_width];
 
-					for (int h = 0; h < m_length; h++) {
-						for (int w = 0; w < m_width; w++) {
-							vertex.x = (float)w / ((float)m_width - 1) * m_width;
-							vertex.y = (float)getHeightAt(w, h);
-							if (flipZ) {
-								vertex.z = (float)(m_length - 1 - h) / ((float)m_length - 1) * m_length;
-								m_heights[h * m_width + w] = vertex.y;
-							}
-							else {
-								vertex.z = (float)h / ((float)m_length - 1) * m_length;
-								m_heights[h * m_width + w] = vertex.y;
-							}
-							normals.push_back(calculateNormal(w, h));
+						for (int h = 0; h < m_length; h++) {
+							for (int w = 0; w < m_width; w++) {
+								vertex.x = (float)w / ((float)m_width - 1) * m_width;
+								vertex.y = (float)getHeightAt(w, h);
+								if (flipZ) {
+									vertex.z = (float)(m_length - 1 - h) / ((float)m_length - 1) * m_length;
+									m_heights[h * m_width + w] = vertex.y;
+								}
+								else {
+									vertex.z = (float)h / ((float)m_length - 1) * m_length;
+									m_heights[h * m_width + w] = vertex.y;
+								}
+								normals.push_back(calculateNormal(w, h));
 
-							vertex.u = (float)w / ((float)m_width - 1);
-							vertex.v = (float)h / ((float)m_length - 1);
+								vertex.u = (float)w / ((float)m_width - 1);
+								vertex.v = (float)h / ((float)m_length - 1);
 
-							vertices.push_back(vertex);
-						}
-					}
-
-					for (int gz = 0; gz < m_length - 1; gz++) {
-						for (int gx = 0; gx < m_width - 1; gx++) {
-							int topLeft = (gz * m_length) + gx;
-							int topRight = topLeft + 1;
-							int bottomLeft = ((gz + 1) * m_length) + gx;
-							int bottomRight = bottomLeft + 1;
-							if (!flipZ) {
-								indices.push_back(topLeft);
-								indices.push_back(bottomLeft);
-								indices.push_back(topRight);
-
-								indices.push_back(topRight);
-								indices.push_back(bottomLeft);
-								indices.push_back(bottomRight);
-							}
-							else {
-								indices.push_back(topLeft);
-								indices.push_back(topRight);
-								indices.push_back(bottomLeft);
-
-								indices.push_back(topRight);
-								indices.push_back(bottomRight);
-								indices.push_back(bottomLeft);
+								vertices.push_back(vertex);
 							}
 						}
+
+						for (int gz = 0; gz < m_length - 1; gz++) {
+							for (int gx = 0; gx < m_width - 1; gx++) {
+								int topLeft = (gz * m_length) + gx;
+								int topRight = topLeft + 1;
+								int bottomLeft = ((gz + 1) * m_length) + gx;
+								int bottomRight = bottomLeft + 1;
+								if (!flipZ) {
+									indices.push_back(topLeft);
+									indices.push_back(bottomLeft);
+									indices.push_back(topRight);
+
+									indices.push_back(topRight);
+									indices.push_back(bottomLeft);
+									indices.push_back(bottomRight);
+								}
+								else {
+									indices.push_back(topLeft);
+									indices.push_back(topRight);
+									indices.push_back(bottomLeft);
+
+									indices.push_back(topRight);
+									indices.push_back(bottomRight);
+									indices.push_back(bottomLeft);
+								}
+							}
+						}
+						m_mesh->setBuffers(vertices, indices);
+						m_render_component->setMesh(m_mesh);
 					}
-					m_mesh->setBuffers(vertices, indices);
-					m_render_component->setMesh(m_mesh);
+
+					// prepare shaders	
+					Material* material = new Material("terrain");
+					material->setup(m_app);
+					material->setValue("shader", std::string("terrain"));
+
+					m_mesh->setMaterial(material);
 				}
 
-				// prepare shaders	
-				Material* material = new Material("terrain");
-				material->setup(m_app);
-				material->setValue("shader", std::string("terrain"));
+				Material* material = m_mesh->getMaterial();
 
-				m_mesh->setMaterial(material);				
-			}
+				// add shader
+				Unit* shader = m_app->getUnitTree()->find(m_values["shader"], m_attributes["basepath"], false);
+				if (shader)
+					material->setShader(static_cast<TextResource*>(shader));
+				else
+					LOG(LOG_ERROR) << "Terrain: shader not found";
 
-			Material* material = m_mesh->getMaterial();
-
-			// add shader
-			Unit* shader = (*m_resource_list)["shader"];
-			if (shader)
-				material->setShader(static_cast<TextResource*>(shader));
-			else
-				LOG(LOG_ERROR) << "Terrain: shader not found";
-
-			// add textures
-			Unit* texture;
-			if (m_values["blendmap"] != Variant()) {
-				texture = (*m_resource_list)["blendmap"];
-				material->addTexture(static_cast<ImageResource*>(texture));
+				// add textures
+				Unit* texture;
+				if (m_values["blendmap"] != Variant()) {
+					texture = m_app->getUnitTree()->find(m_values["blendmap"], m_attributes["basepath"], false);
+					material->addTexture(static_cast<ImageResource*>(texture));
+				}
+				if (m_values["texture1"] != Variant()) {
+					texture = m_app->getUnitTree()->find(m_values["texture1"], m_attributes["basepath"], false);
+					material->addTexture(static_cast<ImageResource*>(texture));
+				}
+				if (m_values["texture2"] != Variant()) {
+					texture = m_app->getUnitTree()->find(m_values["texture2"], m_attributes["basepath"], false);
+					material->addTexture(static_cast<ImageResource*>(texture));
+				}
+				if (m_values["texture3"] != Variant()) {
+					texture = m_app->getUnitTree()->find(m_values["texture3"], m_attributes["basepath"], false);
+					material->addTexture(static_cast<ImageResource*>(texture));
+				}
+				if (m_values["texture4"] != Variant()) {
+					texture = m_app->getUnitTree()->find(m_values["texture4"], m_attributes["basepath"], false);
+					material->addTexture(static_cast<ImageResource*>(texture));
+				}
 			}
-			if (m_values["texture1"] != Variant()) {
-				texture = (*m_resource_list)["texture1"];
-				material->addTexture(static_cast<ImageResource*>(texture));
-			}
-			if (m_values["texture2"] != Variant()) {
-				texture = (*m_resource_list)["texture2"];
-				material->addTexture(static_cast<ImageResource*>(texture));
-			}
-			if (m_values["texture3"] != Variant()) {
-				texture = (*m_resource_list)["texture3"];
-				material->addTexture(static_cast<ImageResource*>(texture));
-			}
-			if (m_values["texture4"] != Variant()) {
-				texture = (*m_resource_list)["texture4"];
-				material->addTexture(static_cast<ImageResource*>(texture));
-			}
+		}
+		else {
+			LOG(LOG_ERROR) << "No map defined for terrain";
 		}
 	}
 

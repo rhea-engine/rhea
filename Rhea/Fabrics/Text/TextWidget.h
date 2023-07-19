@@ -1,7 +1,7 @@
 #ifndef RHEA_TEXTWIDGET_H
 #define RHEA_TEXTWIDGET_H
 
-#include "Resource.h"
+#include "Resources/Resource.h"
 #include "Fabrics/Core/Material.h"
 #include "Font.h"
 #include "../Canvas/Item2D.h"
@@ -22,6 +22,8 @@ namespace Rhea
 
 		// setup from strings
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
+
+		std::vector<Unit::Export> getReferences();
 
 		// ready event handler
 		void ready();

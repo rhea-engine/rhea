@@ -1,7 +1,7 @@
 #ifndef RHEA_RESOURCELOADER_H
 #define RHEA_RESOURCELOADER_H
 
-#include <Rhea/Resource.h>
+#include <Rhea/Resources/Resource.h>
 
 namespace Rhea
 {

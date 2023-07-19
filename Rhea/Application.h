@@ -5,7 +5,7 @@
 #include "Psio/InputEvent.h"
 #include "Orion/Orion.h"
 #include "Orion/ResourceRequest.h"
-#include "ResourceLoader.h"
+#include "Resources/ResourceLoader.h"
 
 #include <string>
 #include <unordered_map>

@@ -6,6 +6,8 @@
 #include "SimpleParser/IniFileParser.h"
 #include "Orion/ResourceStream.h"
 #include "Scene.h"
+#include <Resources/ResourceList.h>
+#include <Resources/ResourceService.h>
 
 namespace Rhea
 {	
@@ -37,6 +39,8 @@ namespace Rhea
 				packed_resources.push_back(section.section_name);
 			}
 
+			ResourceList res_list(app);
+
 			// setup all resources
 			for (std::vector<SimpleParser::IniFileParser::Section>::iterator it = sections.begin(); it != sections.end(); ++it) {
 				SimpleParser::IniFileParser::Section section = *it;
@@ -59,10 +63,12 @@ namespace Rhea
 				section.attributes["basepath"] = basepath;
 				if (rpos != std::string::npos) {
 					// create the unit and set config params
-					unit = tree->createUnit(path.substr(rpos + 1), type_name, section.attributes, section.values);
+					ppath = path.substr(0, rpos);
+					path = path.substr(rpos + 1);
+					unit = tree->createUnit(path, type_name, section.attributes, section.values);
 
 					// find parent relative to top parent			
-					child_parent = scene->find(path.substr(0, rpos), true);
+					child_parent = scene->find(ppath, true);
 				}
 				else {
 					// create the unit and set config params
@@ -71,11 +77,28 @@ namespace Rhea
 					// find parent relative to top parent			
 					child_parent = scene;
 				}
-				child_parent->addChild(unit);				
+				child_parent->addChild(unit);
+
+				static int i = 0;
+				i++;
+
+				// resource to load?
+				std::vector<Unit::Export> references = unit->getReferences();
+				for (auto ref_it = references.begin(); ref_it != references.end(); ++ref_it) {
+					std::string id = ref_it->value;
+					// if absolute path it is a resource not satified by this scene file
+					if (id[0] == '/' && id[1] == '/') {
+						res_list.push(section.section_name + '_' + id, id, ref_it->type);
+					}
+				}
 			}
 			delete buf;
 
-			handler(ReqError::OK, scene);
+			// get dependencies
+			static_cast<ResourceService*>(app->getService("resources"))->loadAsync(res_list, [scene, handler](ResourceList* rh, Error* err) {
+				handler(ReqError::OK, scene);
+			});
+
 			});
 		rs->onError([buf, handler](int err) {
 			delete buf;

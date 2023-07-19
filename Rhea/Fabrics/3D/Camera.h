@@ -16,9 +16,6 @@ namespace Rhea
 			Item(name, type_name)
 		{}
 
-		// load camera
-		void load(ReadyHandler handler);
-
 		// factory function
 		static Unit* createType(std::string name, std::string type);
 	};

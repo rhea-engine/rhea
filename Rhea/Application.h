@@ -83,7 +83,7 @@ namespace Rhea
 		ResourceLoader m_resource_loader;
 
 		// timing info
-		uint64_t current_ticks = 0;
+		uint64_t elapsed_ticks = 0;
 		float fps = 0.0f;
 	};
 }

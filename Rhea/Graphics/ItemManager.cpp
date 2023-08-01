@@ -54,7 +54,7 @@ namespace Rhea
 		}
 
 		// create the element		
-		Poseidon::Renderable* entity = static_cast<Poseidon::Renderable*>(createRenderable(elem, core, unit, "default", false));
+		Poseidon::Renderable* entity = static_cast<Poseidon::Renderable*>(createRenderable(elem, core, unit, "default", item_mesh->isDynamic()));
 
 		// set the material
 		setMaterial(core, material);

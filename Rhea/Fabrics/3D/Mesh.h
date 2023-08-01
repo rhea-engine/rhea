@@ -16,6 +16,7 @@ namespace Rhea
 	public:
 		Mesh(std::string name) :
 			m_material(nullptr),
+			m_isDynamic(false),
 			Unit(name, "//meworla/mesh")
 		{}
 
@@ -45,6 +46,10 @@ namespace Rhea
 		Material* getMaterial() { return m_material; }
 		void setMaterial(Material* material) { m_material = material; }
 
+		// do we need dynamic buffers?
+		void setDynamic(bool is_dynamic) { m_isDynamic = is_dynamic; }
+		bool isDynamic() { return m_isDynamic; }
+
 		// return the buffers
 		void getBuffers(std::vector<vertex>& vertices, std::vector<unsigned long>& indices);
 		void setBuffers(std::vector<vertex>& vertices, std::vector<unsigned long>& indices);
@@ -56,6 +61,7 @@ namespace Rhea
 		Material* m_material;
 		std::vector<vertex> m_vertices;
 		std::vector<unsigned long> m_v_indices;
+		bool m_isDynamic;
 	};
 }
 

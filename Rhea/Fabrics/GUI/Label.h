@@ -25,6 +25,9 @@ namespace Rhea
 		// update the text
 		void setText(std::string text);
 
+		// get info
+		TextWidget* getTextWidget() { return m_label_item; }
+
 		// events
 
 		void setArea(bool moved, bool sized);

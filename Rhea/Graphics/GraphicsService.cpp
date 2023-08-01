@@ -197,7 +197,7 @@ namespace Rhea
 		m_app->getUnitTree()->registerEventHandler("scene_input", this, std::bind(&GraphicsService::onInput, this, std::placeholders::_1, std::placeholders::_2));
 	}
 	
-	bool GraphicsService::onFrame()
+	bool GraphicsService::onFrame(float delta)
 	{
 		// update items
 		if (m_scene) {

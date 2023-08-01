@@ -27,7 +27,8 @@ namespace Rhea
 			m_base_size(0.0f, 0.0f),
 			m_base_position(0.0f, 0.0f),
 			m_cur_position(0.0f, 0.0f),
-			m_screen_position_valid(false)			
+			m_screen_position_valid(false),	
+			m_is_rtl(false)
 		{}
 
 		virtual void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
@@ -125,6 +126,9 @@ namespace Rhea
 
 		// my styles
 		SimpleParser::CssParser::PropertyMap m_properties;
+
+		// rtl layout
+		bool m_is_rtl;
 	};
 }
 

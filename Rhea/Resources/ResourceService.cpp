@@ -23,11 +23,6 @@ namespace Rhea {
 		}
 	}
 
-	bool ResourceService::onFrame()
-	{
-		return false;
-	}
-
 	Unit* ResourceService::createType(std::string name, std::string type)
 	{
 		Unit* ret = (Unit*)new ResourceService(name, type);

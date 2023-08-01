@@ -19,8 +19,6 @@ namespace Rhea
 
 		void loadAsync(ResourceList& resreq, OnLoadHandler onLoaded);
 
-		bool onFrame();
-
 		// factory function
 		static Unit* createType(std::string name, std::string type);
 

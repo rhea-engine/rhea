@@ -65,7 +65,8 @@ namespace Rhea
 		// positionig
 		Transform* getTransform() { return &m_transform; }
 
-		void update(); // update on frame
+		// update on frame
+		virtual void onFrame(float delta);
 
 		virtual void setPosition(Rhea::Position& position);
 		virtual void setPosition(Math::Vector3 position);

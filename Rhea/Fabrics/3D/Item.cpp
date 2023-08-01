@@ -100,7 +100,7 @@ namespace Rhea
 		return new_item;
 	}
 
-	void Item::update()
+	void Item::onFrame(float delta)
 	{
 		// update myself
 		m_transform.update();		

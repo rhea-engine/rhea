@@ -25,7 +25,7 @@ namespace Rhea
 		virtual void onInit() {};
 
 		// every frame
-		virtual bool onFrame() { return false; };
+		virtual bool onFrame(float delta) { return false; };
 
 	protected:
 		

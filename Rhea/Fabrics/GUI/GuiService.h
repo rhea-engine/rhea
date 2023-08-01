@@ -5,6 +5,8 @@
 
 namespace Rhea
 {
+	class GUIController;
+
 	class GuiService : public Service
 	{
 	public:
@@ -16,12 +18,18 @@ namespace Rhea
 
 		void onInit();
 
-		bool onFrame();
+		bool onFrame(float delta);
 
 		bool onDisplay(Event* ev, Unit* unit);
 
 		// factory function
 		static Unit* createType(std::string name, std::string type);
+
+		void registerController(GUIController* ctrl) { m_controllers.push_back(ctrl); }
+		void unregisterController(GUIController* ctrl); 
+
+	protected:
+		std::vector<GUIController*> m_controllers;
 
 	};
 }

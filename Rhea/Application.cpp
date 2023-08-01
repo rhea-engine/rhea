@@ -215,6 +215,7 @@ namespace Rhea
 
 		int iterations_per_second = 60;
 		float frame_slice = 1.0f / iterations_per_second;
+		uint64_t current_ticks = 0;
 		uint64_t last_ticks = psio->getTicks();
 
 		uint64_t frame = 0;
@@ -233,8 +234,8 @@ namespace Rhea
 
 			// timings
 			current_ticks = psio->getTicks();
-			uint64_t elapsed_ticks = current_ticks - last_ticks;
-			float elapsed_s = (float)elapsed_ticks / 1000000L;
+			elapsed_ticks = current_ticks - last_ticks;
+			float elapsed_s = static_cast<float>(elapsed_ticks) / 1000000.0f;
 			last_ticks = current_ticks;
 
 			// compute fps					
@@ -274,9 +275,12 @@ namespace Rhea
 				// TODO: make the event list configurable
 				EventInput e("input", evt, iea.actions);
 				m_unit_tree->sendEvent("input", &e);
-				m_unit_tree->sendEvent("gui_input", &e);
-				m_unit_tree->sendEvent("unhandled_input", &e);
-				m_unit_tree->sendEvent("scene_input", &e);				
+				if (!e.isPropagationStoppped())
+					m_unit_tree->sendEvent("gui_input", &e);
+				if (!e.isPropagationStoppped())
+					m_unit_tree->sendEvent("unhandled_input", &e);
+				if (!e.isPropagationStoppped())
+					m_unit_tree->sendEvent("scene_input", &e);
 
 				// application input handling comes last
 				if (onInput(&e, nullptr))
@@ -305,7 +309,7 @@ namespace Rhea
 
 			// render
 			for (auto it = m_services.begin(); it != m_services.end(); ++it) {
-				if (it->second->onFrame())
+				if (it->second->onFrame(elapsed_s))
 					ret = true;
 			}			
 

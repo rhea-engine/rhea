@@ -1,4 +1,5 @@
 #include "GuiService.h"
+#include "GUIController.h"
 
 namespace Rhea
 {
@@ -7,8 +8,16 @@ namespace Rhea
 		return;
 	}
 
-	bool GuiService::onFrame()
+	bool GuiService::onFrame(float delta)
 	{	
+		for (auto it = m_controllers.begin(); it < m_controllers.end(); it++)
+		{
+			(*it)->traverse([delta](std::string& name, Unit* unit)->bool {
+				static_cast<Item*>(unit)->onFrame(delta);
+				return true;
+				});
+		}
+		
 		return false;
 	}
 
@@ -22,5 +31,10 @@ namespace Rhea
 	{
 		Unit* ret = (Unit*)new GuiService(name, type);
 		return ret;
+	}
+
+	void Rhea::GuiService::unregisterController(GUIController* ctrl)
+	{
+		remove(m_controllers.begin(), m_controllers.end(), ctrl);
 	}
 }

@@ -15,7 +15,7 @@ namespace Rhea
 
 		// create the element
 		Mesh* mesh_res = static_cast<Mesh*>(unit);
-		bool dynamic_usage = false;
+		bool dynamic_usage = mesh_res->isDynamic();
 		GraphicsMesh* mesh_el = new GraphicsMesh();
 		Poseidon::SceneManager* scene_mgr = core->get_scene_manager();
 

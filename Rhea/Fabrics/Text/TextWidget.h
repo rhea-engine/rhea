@@ -5,6 +5,7 @@
 #include "Fabrics/Core/Material.h"
 #include "Font.h"
 #include "../Canvas/Item2D.h"
+#include "Math/Vector2.h"
 
 namespace Rhea
 {
@@ -17,7 +18,11 @@ namespace Rhea
 		TextWidget(std::string name, std::string type_name) :
 			m_font(nullptr),
 			Item2D(name, type_name),
-			m_max_length(0)
+			m_max_length(0),
+			m_vertex_size(0),
+			m_word_wrap(true),
+			m_multiline(true),
+			m_offset_x(0.0f)
 		{}
 
 		// setup from strings
@@ -34,11 +39,25 @@ namespace Rhea
 		// get the Text
 		std::string getText() { return m_text; }
 
-		// get the max length of text
-		size_t getMaxLength() { return m_max_length; }
-
 		// set a new text
 		void setText(std::string text);
+
+		// get the max length of text
+		size_t getMaxLength() { return m_max_length; }
+		// set the max length of text
+		void setMaxLength(int max_length) { m_max_length = max_length; }
+
+		// get relative pixel position of position
+		Vector2 getCursorPosition(size_t pos);
+		// get text position of pixel (rounded up)
+		size_t getTextPosition(Vector2 pos);
+		// get length of text (only for one-liner useful)
+		float getTextWidth(size_t pos);
+		// offset to one side for text input
+		void setOffset(float offset) { m_offset_x = offset; }
+
+		// set word wrap option
+		void setWordWrap(bool word_warp);
 
 		// get the font
 		Font* getFont() { return m_font; }
@@ -50,6 +69,10 @@ namespace Rhea
 		std::string m_text;
 		Font* m_font;
 		size_t m_max_length;
+		size_t m_vertex_size;
+		bool m_word_wrap;
+		bool m_multiline;
+		float m_offset_x;
 	};
 }
 

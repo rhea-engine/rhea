@@ -17,6 +17,7 @@
 #include "CssLoader.h"
 #include <Graphics/GraphicsService.h>
 #include <Psio/Log.h>
+#include "TextInput.h"
 
 namespace Rhea
 {
@@ -79,6 +80,7 @@ namespace Rhea
 			}
 		}
 		m_app->getUnitTree()->registerEventHandler("gui_input", this, std::bind(&GUIController::onInput, this, std::placeholders::_1, std::placeholders::_2));
+		static_cast<GuiService*>(m_app->getService("gui"))->registerController(this);
 	}
 
 	Vector2 GUIController::size()
@@ -111,7 +113,7 @@ namespace Rhea
 			if (mx != m_mx || my != m_my) {
 				// mouse really moved - call mouse move
 
-				// new aptured window
+				// new captured window
 				Widget* captured = nullptr;
 				Widget* root_capture = nullptr;
 
@@ -178,7 +180,11 @@ namespace Rhea
 			}
 		}
 
-		if (id == Psio::InputEventId::MOUSE_BTN_PRESSED) {
+		switch(id) {
+		case Psio::InputEventId::MOUSE_BTN_PRESSED:
+
+			DLOG(LOG_DEBUG) << "Mouse: x=" << m_mx << "/y=" << m_my;
+			
 			// do btn down on current input target
 			if (m_captured) {
 				Widget* new_target = m_captured->getInputTarget();
@@ -194,8 +200,8 @@ namespace Rhea
 					m_target = new_target;
 				}
 				if (m_target) {
-					Event click("mouse_click_pressed", m_target);
-					m_target->bubbleEvent("mouse_btn_down", &click);
+					e->setTarget(m_target);
+					m_target->bubbleEvent("mouse_btn_down", e);
 				}
 			}
 			else {
@@ -206,6 +212,22 @@ namespace Rhea
 					m_target = nullptr;
 				}
 			}
+			break;
+
+		case Psio::InputEventId::KEY_PRESSED:
+			// text input
+			if (m_target) {
+				m_target->bubbleEvent("key_pressed", e);
+			}
+			break;
+
+		case Psio::InputEventId::TEXT:
+			// text input
+			if (m_target) {
+				m_target->bubbleEvent("text_input", e);
+			}
+			break;
+
 		}
 		
 		return false;
@@ -227,6 +249,7 @@ namespace Rhea
 		// register widget types
 		SimpleParser::Type::registerType<Widget>("//meworla/gui/widget");
 		SimpleParser::Type::registerType<Label>("//meworla/gui/label");
+		SimpleParser::Type::registerType<TextInput>("//meworla/gui/textinput");
 		SimpleParser::Type::registerType<Button>("//meworla/gui/button");
 		SimpleParser::Type::registerType<Dialog>("//meworla/gui/dialog");
 		SimpleParser::Type::registerType<ListWidget>("//meworla/gui/list");

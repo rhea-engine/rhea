@@ -24,6 +24,7 @@ namespace Rhea
 		std::string getName() { return m_name; }
 
 		Unit* getTarget() { return m_target; }
+		void setTarget(Unit* target) { m_target = target; }
 
 		void stopPropagation() { m_is_stopped = true; }
 		bool isPropagationStoppped() { return m_is_stopped; }

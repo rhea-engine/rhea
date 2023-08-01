@@ -79,6 +79,9 @@ namespace Psio
 
 		void set(uint32_t keycode, uint32_t physical_keycode, uint8_t unicode);
 
+		uint8_t getCode() { return m_unicode; }
+		uint32_t getKeyCode() { return m_keycode; }
+
 	protected:
 		uint32_t m_keycode;
 		uint32_t m_physical_keycode;

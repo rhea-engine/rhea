@@ -405,20 +405,19 @@ void Ceto::setHomeScene(string scene)
 
 bool Ceto::onFrameEnd()
 {
-	static unsigned int show_ticks = 0;
+	static float elapsed_s = 0.0f;
 
 	if (m_debug_text) {
-		unsigned int ticks_s = (unsigned int)(current_ticks / 1000000L);
-		if (ticks_s > show_ticks) {
-			show_ticks = ticks_s;
-			std::string debug = "";
-			debug += "debugging: s=" + std::to_string(show_ticks) + "; fps=" + std::to_string(fps);
-			if (m_focused_controller) {
-				Math::Vector3 pos = static_cast<Rhea::BasicController*>(m_focused_controller)->getPosition();
-				debug += "\nPosition: " + std::to_string(pos.x) + " / " + std::to_string(pos.y) + " / " + std::to_string(pos.z);
-			}
-			m_debug_text->setText(debug);
-		}		
+		float elapsed_d_s = static_cast<float>(elapsed_ticks) / 1000000.0f;
+		elapsed_s += elapsed_d_s;
+
+		std::string debug = "";
+		debug += "debugging: sec=" + std::to_string(elapsed_s) +"; fps = " + std::to_string(fps);
+		if (m_focused_controller) {
+			Math::Vector3 pos = static_cast<Rhea::BasicController*>(m_focused_controller)->getPosition();
+			debug += "\nPosition: " + std::to_string(pos.x) + " / " + std::to_string(pos.y) + " / " + std::to_string(pos.z);
+		}
+		m_debug_text->setText(debug);
 	}
 
 	return false;

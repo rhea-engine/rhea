@@ -21,6 +21,8 @@ namespace Rhea
 		val["text"] = getValue("text", "");
 		if (m_values.find("font") != m_values.end())
 			val["font"] = getValue("font");
+		val["word_wrap"] = getValue("word_wrap", true);
+		val["multiline"] = getValue("multiline", true);
 
 		// DEBUG
 		// always handle input 
@@ -40,7 +42,6 @@ namespace Rhea
 	{
 		m_label_item->setText(text);
 	}
-
 
 	void Label::setArea(bool moved, bool sized)
 	{

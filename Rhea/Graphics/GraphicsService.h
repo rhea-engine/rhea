@@ -44,7 +44,7 @@ namespace Rhea
 
 		void onInit();
 
-		bool onFrame();
+		bool onFrame(float delta) override;
 		
 		bool onDisplay(Event* ev, Unit* unit);
 		bool onInput(Event* ev, Unit* unit);

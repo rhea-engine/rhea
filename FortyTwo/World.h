@@ -3,7 +3,7 @@
 
 #include <string>
 #include <Rhea/Application.h>
-#include <Rhea/Resource.h>
+#include <Rhea/Resources/Resource.h>
 
 class World : public Rhea::Unit
 {

@@ -8,7 +8,7 @@
 #include "Rhea/Fabrics/Core/Position.h"
 #include "Math/Vector3.h"
 #include "../Core/Transform.h"
-#include "../../Components/NetworkComponent.h"
+#include "../Network/NetworkComponent.h"
 #include <Rhea/Components/RenderComponent.h>
 
 namespace Poseidon

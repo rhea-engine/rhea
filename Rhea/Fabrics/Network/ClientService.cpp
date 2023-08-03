@@ -5,7 +5,7 @@
 #include <Hermes/Opcode.h>
 #include <Hermes/Messages/MessageCreate.h>
 
-namespace Poseidon
+namespace Rhea
 {
 	void ClientService::onInit()
 	{

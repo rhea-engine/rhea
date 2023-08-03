@@ -14,7 +14,7 @@
 #include "Poseidon/Material.h"
 #include "Poseidon/Shader.h"
 #include "Rhea/Fabrics/Core/Material.h"
-#include <Poseidon/Network/ClientService.h>
+#include <Rhea/Fabrics/Network/ClientService.h>
 #include <Psio/Log.h>
 #include <Psio/Keyboard.h>
 #include <Rhea/EventInput.h>
@@ -179,8 +179,8 @@ void Ceto::setScene()
 			// is this network controlled?
 			Variant worldserver = scene->getValue("worldserver");
 			if (worldserver != Variant()) {
-				Poseidon::ClientService* client_service = (Poseidon::ClientService*)getService("clientservice");
-				client_service->connect(worldserver, [&, scene](Poseidon::WorldClient* client, int err) {
+				Rhea::ClientService* client_service = (Rhea::ClientService*)getService("clientservice");
+				client_service->connect(worldserver, [&, scene](Rhea::WorldClient* client, int err) {
 					if (!err)
 					{
 						scene->addChild(client);
@@ -326,7 +326,7 @@ bool Ceto::onAvatarSelect(Rhea::Event* ev, Rhea::Unit* unit)
 
 	// enter the world with given avatarname
 	if (avatar_name.length()) {
-		Poseidon::WorldClient* client = (Poseidon::WorldClient*)w->getUserPtr();
+		Rhea::WorldClient* client = (Rhea::WorldClient*)w->getUserPtr();
 		client->enterWorld(avatar_name);
 	//	SimpleParser::CssParser::PropertyMap properties;
 	//	properties["background-image"] = { "none" };

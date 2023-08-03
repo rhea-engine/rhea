@@ -4,7 +4,7 @@
 #include <Rhea/Physics/PhysicsManager.h>
 #include "ServerService.h"
 #include <Rhea/Platform/PlatformService.h>
-#include <Rhea/ResourceList.h>
+#include <Rhea/Resources/ResourceList.h>
 #include <Rhea/UnitTree.h>
 
 void World::setScene(std::string scene)

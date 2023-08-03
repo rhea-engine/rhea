@@ -1,6 +1,5 @@
 #include "WorldClient.h"
 #include <Hermes/Opcode.h>
-#include "../Poseidon.h"
 #include <Rhea/UnitTree.h>
 #include <Rhea/Fabrics/3D/Item.h>
 #include <Psio/Log.h>
@@ -12,8 +11,9 @@
 #include <Hermes/Messages/MessageAvatarList.h>
 #include <Rhea/Fabrics/Core/Avatar.h>
 #include <Hermes/Messages/MessageEnterWorld.h>
+#include <Application.h>
 
-namespace Poseidon
+namespace Rhea
 {
 	void WorldClient::setAuth(std::string avatar)
 	{

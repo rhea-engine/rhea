@@ -7,13 +7,15 @@
 #include <Rhea/Controller/SpectatorController.h>
 #include <Psio/Log.h>
 #include <Rhea/Physics/Bullet/BtPhysicsService.h>
-#include <Network/ClientService.h>
+#include <Rhea/Fabrics/Network/ClientService.h>
 #include <Rhea/Platform/PlatformService.h>
 
 using Rhea::GraphicsService;
 using Rhea::Service;
 using Rhea::BasicController;
 using Rhea::SpectatorController;
+using Rhea::ClientService;
+using Rhea::WorldClient;
 
 namespace Poseidon
 {

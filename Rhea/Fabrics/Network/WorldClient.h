@@ -1,13 +1,13 @@
-#ifndef POSEIDON_WORLDCLIENT_H
-#define POSEIDON_WORLDCLIENT_H
+#ifndef RHEA_WORLDCLIENT_H
+#define RHEA_WORLDCLIENT_H
 
 #include <Rhea/Unit.h>
 #include <Hermes/ClientStream.h>
 #include <Rhea/Fabrics/Core/Scene.h>
-#include <Rhea/Components/NetworkDelegate.h>
+#include "NetworkDelegate.h"
 #include <Math/Vector3.h>
 
-namespace Poseidon
+namespace Rhea
 {
 	class WorldClient : public Rhea::Unit, public Rhea::NetworkDelegate
 	{
@@ -48,4 +48,4 @@ namespace Poseidon
 	};
 }
 
-#endif // !POSEIDON_WORLDCLIENT_H
+#endif // !RHEA_WORLDCLIENT_H

@@ -1,5 +1,5 @@
-#ifndef POSEIDON_CLIENTSERVICE_H
-#define POSEIDON_CLIENTSERVICE_H
+#ifndef RHEA_CLIENTSERVICE_H
+#define RHEA_CLIENTSERVICE_H
 
 #include <Rhea/Service.h>
 #include <Rhea/Unit.h>
@@ -13,7 +13,7 @@
 
 using Rhea::Unit;
 
-namespace Poseidon
+namespace Rhea
 {
 	class ClientService : public Rhea::Service
 	{
@@ -41,4 +41,4 @@ namespace Poseidon
 	};
 
 }
-#endif // !POSEIDON_CLIENTSERVICE_H
+#endif // !RHEA_CLIENTSERVICE_H

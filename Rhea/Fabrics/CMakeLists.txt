@@ -13,4 +13,6 @@ add_library (RheaFabrics "Character/Character.cpp" "Character/KinematicCharacter
 "3D/Item.cpp" "3D/Camera.cpp" "3D/Mesh.cpp"  "Core/Avatar.h" "Core/Avatar.cpp" "GUI/Button.h" "GUI/Button.cpp" "GUI/Dialog.h" 
 "GUI/Dialog.cpp" "GUI/List.h" "GUI/List.cpp" "GUI/ListItem.h" "GUI/ListItem.cpp" "GUI/StyleSheet.h" "GUI/StyleSheet.cpp" "GUI/CssLoader.h" "GUI/CssLoader.cpp" 
 "GUI/TextInput.h" "GUI/TextInput.cpp"
+"Network/ClientService.h" "Network/ClientService.cpp" "Network/WorldClient.h" "Network/WorldClient.cpp" 
+"Network/NetworkComponent.h" "Network/NetworkComponent.cpp" "Network/NetworkDelegate.h"
 "Core/Geometry.h" "3D/ObjLoader.h" "3D/ObjLoader.cpp")

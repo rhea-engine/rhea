@@ -7,6 +7,7 @@
 #include <Psio/Log.h>
 #include <Psio/Keyboard.h>
 #include "EventInput.h"
+#include "Events/SubmitEvent.h"
 
 namespace Rhea
 {
@@ -22,7 +23,9 @@ namespace Rhea
 		val["w"] = m_base_size.x;
 		val["h"] = m_base_size.y;
 		val["text"] = getValue("text", "");
+		val["templating"] = false; // dont template the user input
 		m_text = val["text"];
+		m_values["text"] = m_text;
 		val["placeholder"] = getValue("placeholder", "");
 		// multiline is not implemented yet
 		val["multiline"] = false;
@@ -71,7 +74,7 @@ namespace Rhea
 
 	void TextInput::setText(std::string text)
 	{
-		m_text = text;
+		m_text = text;		
 		m_pos = m_text.size();
 		m_length = m_pos;
 		updateText();
@@ -183,8 +186,13 @@ namespace Rhea
 				updateCursor();
 			}
 			else {
-				Event my_ev = Event("submitted", this);
-				bubbleEvent("submitted", &my_ev);
+				SubmitEvent my_ev = SubmitEvent("submit", this);
+				m_values["value"] = m_text;
+				my_ev.values[m_pathname] = m_text;
+				bubbleEvent("submit", &my_ev);
+				if (m_values["onSubmit"] != Variant()) {
+					sendBoundEvent(m_values["onSubmit"], &my_ev);
+				}
 			}
 			ev->stopPropagation();
 			break;
@@ -255,6 +263,7 @@ namespace Rhea
 			return;
 
 		m_label_item->setText(m_text);
+		m_values["text"] = m_text;
 
 		float offset_x = m_textwidget->W() - m_textwidget->getTextWidth(m_pos);
 		offset_x = (offset_x < 0.0f) ? offset_x : 0.0f;

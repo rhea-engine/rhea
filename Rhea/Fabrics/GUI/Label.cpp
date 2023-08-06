@@ -14,6 +14,8 @@ namespace Rhea
 		std::unordered_map<std::string, std::string> attr;
 		std::unordered_map<std::string, Variant> val;
 
+		m_templating = getValue("templating", m_templating);
+
 		val["x"] = m_base_position.x;
 		val["y"] = m_base_position.y;
 		val["w"] = m_base_size.x;
@@ -28,6 +30,11 @@ namespace Rhea
 		// always handle input 
 		m_handle_input = true;
 
+		if (m_templating) {
+			parseText(val["text"]);
+			val["text"] = getText();
+		}
+
 		m_label_item = (TextWidget*)m_app->getUnitTree()->createUnit(m_path + "/label", "//meworla/textwidget", attr, val);
 		addChild(m_label_item);
 	}
@@ -40,7 +47,90 @@ namespace Rhea
 
 	void Label::setText(std::string text)
 	{
+		m_values["text"] = text; 
+		if (m_templating) {
+			parseText(text);
+			text = getText();
+		}		
 		m_label_item->setText(text);
+	}
+
+	void Label::parseText(const std::string text)
+	{
+		m_textElements.clear();
+		size_t reader = 0;
+		size_t start = 0;
+		int state = 0;
+		std::string path;
+
+		size_t len = text.length();
+
+		while (reader < len) {
+			switch (state) {
+			case 0:
+				if (text[reader] == '{') {
+					m_textElements.push_back({ 0, text.substr(start, reader - start) });
+					start = reader + 1;
+					state = 1;
+					path = "";
+				}
+				break;
+			case 1:
+				if (text[reader] == '}') {
+					if (start < reader)
+						m_textElements.push_back({ 1, "", text.substr(start, reader - start) });
+					start = reader + 1;
+					state = 0;
+				}
+				else if (text[reader] == '.') {
+					if (start < reader)
+						path = text.substr(start, reader - start);
+					start = reader + 1;
+					state = 2;
+				}
+				break;
+			case 2:
+				if (text[reader] == '}') {
+					if (start < reader)
+						m_textElements.push_back({ 1, text.substr(start, reader - start), path });
+					start = reader + 1;
+					state = 0;
+				}
+				break;
+			}
+			reader++;
+		}
+		if (start < len)
+			m_textElements.push_back({ 0, text.substr(start) });
+	}
+
+	std::string Label::getText()
+	{
+		std::string res;
+		for (auto it = m_textElements.begin(); it != m_textElements.end(); ++it) {
+			switch (it->type) {
+			case 0:
+				res += it->value;
+				break;
+			case 1:
+				std::string path = m_attributes["basepath"] + "/" + it->path;
+				Unit* u = m_app->getUnitTree()->find(path);
+				if (u != nullptr)
+					res += u->getValue(it->value);
+				break;
+			}
+		}
+		return res;
+	}
+
+	void Label::onFrame(float delta)
+	{
+		if (m_templating) {
+			std::string t = getText();
+			if (t.compare(m_label_item->getText())) {
+				m_label_item->setText(t);
+			}
+		}
 	}
 
 	void Label::setArea(bool moved, bool sized)

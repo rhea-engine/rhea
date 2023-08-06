@@ -85,6 +85,9 @@ namespace Rhea
 		// find input target
 		Widget* getInputTarget();
 
+		// event sending (for gui binding)
+		void sendBoundEvent(std::string binding, Event* ev);
+
 		// user ptr
 		void setUserPtr(void* ptr) { m_user_ptr = ptr; }
 		void* getUserPtr() { return m_user_ptr; }

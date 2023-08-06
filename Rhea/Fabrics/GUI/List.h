@@ -20,6 +20,9 @@ namespace Rhea
 
 		void addItem(std::string text, std::string value);
 
+		// list item selected
+		bool onSelected(Event* ev, Unit* unit);
+
 		static ListWidget* createType(std::string name, std::string type_name);
 
 	protected:

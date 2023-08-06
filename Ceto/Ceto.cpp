@@ -71,23 +71,12 @@ bool Ceto::onInput(Rhea::EventInput* e, Rhea::Unit* unit)
 
 bool Ceto::onRealmSelect(Rhea::Event* ev, Rhea::Unit* unit)
 {
-	Rhea::Widget* w = static_cast<Rhea::Widget*>(m_unit_tree->find("//local/cetogui/gui/realms"));
-	if (w) {
-		w->hide();
-	}
 	ev->stopPropagation();
 
 	Unit* target = ev->getTarget();
 	DLOG(LOG_DEBUG) << "target selected was '" << (std::string)target->getValue("value") << "'";
-	m_home_scene = (std::string)target->getValue("value");
 
-	// open the scene
-	setScene();
-	SimpleParser::CssParser::PropertyMap properties;
-	properties["background-image"] = { "none" };
-	w = static_cast<Rhea::Widget*>(m_unit_tree->find("//local/cetogui/gui"));
-	w->setStyle(properties);
-
+	openScene((std::string)target->getValue("value"));
 	return false;
 }
 
@@ -105,9 +94,25 @@ void Ceto::setRealmSelectDialog()
 	// show dialog
 	Rhea::Widget* w = static_cast<Rhea::Widget*>(m_unit_tree->find("//local/cetogui/gui/realms"));
 	if (w) {
-		w->registerEventHandler("selected", this, std::bind(&Ceto::onRealmSelect, this, std::placeholders::_1, std::placeholders::_2));
 		w->show();
 	}
+}
+
+void Ceto::openScene(std::string scene_name)
+{
+	Rhea::Widget* w = static_cast<Rhea::Widget*>(m_unit_tree->find("//local/cetogui/gui/realms"));
+	if (w) {
+		w->hide();
+	}
+	m_home_scene = scene_name;
+
+	// open the scene
+	setScene();
+	SimpleParser::CssParser::PropertyMap properties;
+	properties["background-image"] = { "none" };
+	w = static_cast<Rhea::Widget*>(m_unit_tree->find("//local/cetogui/gui"));
+	w->setStyle(properties);
+
 }
 
 void Ceto::setup()
@@ -391,6 +396,9 @@ void Ceto::loadMainGUI()
 
 			// realm selection
 			setRealmSelectDialog();
+
+			// register open
+			gui->registerEventHandler("open", this, std::bind(&Ceto::onRealmSelect, this, std::placeholders::_1, std::placeholders::_2));
 		}
 		else {
 			log("loading of gui failed");

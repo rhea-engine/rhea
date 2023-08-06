@@ -28,6 +28,16 @@ namespace Rhea
 		item->onParentMoved();
 		Event e("scene_enter", item);
 		bubbleEvent("scene_enter", &e);
+
+		registerEventHandler("selected", this, std::bind(&ListWidget::onSelected, this, std::placeholders::_1, std::placeholders::_2));
+	}
+
+	bool ListWidget::onSelected(Event* ev, Unit* unit)
+	{
+		if (m_values["onSelected"] != Variant()) {
+			sendBoundEvent(m_values["onSelected"], ev);
+		}
+		return false;
 	}
 
 	ListWidget* Rhea::ListWidget::createType(std::string name, std::string type_name)

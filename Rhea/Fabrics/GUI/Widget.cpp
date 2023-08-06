@@ -1,4 +1,5 @@
 #include "Widget.h"
+#include "Widget.h"
 #include "WidgetEvent.h"
 
 #include "Application.h"
@@ -307,6 +308,25 @@ namespace Rhea
 			return static_cast<Widget*>(m_parent)->getInputTarget();
 
 		return nullptr;
+	}
+
+	void Widget::sendBoundEvent(std::string binding, Event* ev)
+	{		
+		std::string event_name;
+		size_t pos = binding.find(".");
+		Unit* target;
+		if (pos != std::string::npos && pos) {
+			target = m_app->getUnitTree()->find(m_attributes["basepath"] + "/" + binding.substr(0, pos - 1));
+			event_name = binding.substr(pos + 1);
+		}
+		else {
+			target = m_app->getUnitTree()->find(m_attributes["basepath"]);
+			if (!pos)
+				event_name = binding.substr(pos + 1); // if someone put a "." at start
+			else
+				event_name = binding;
+		}
+		target->sendEvent(event_name, ev);
 	}
 
 	Vector2 Widget::getScreenPosition()

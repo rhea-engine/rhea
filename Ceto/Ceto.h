@@ -24,6 +24,7 @@ protected:
 	void showAlert(std::string text);
 	bool onAlertDialog(Rhea::Event* ev, Rhea::Unit* unit);
 	void setRealmSelectDialog();
+	void openScene(std::string scene_name);
 	UserPrefs m_userprefs;
 	std::string m_userpref_path;
 public:

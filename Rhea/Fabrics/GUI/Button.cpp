@@ -46,6 +46,9 @@ namespace Rhea
 	{
 		Event my_ev = Event("clicked", this);
 		bubbleEvent("clicked", &my_ev);
+		if (m_values["onClick"] != Variant()) {
+			sendBoundEvent(m_values["onClick"], ev);
+		}
 		return false;
 	}
 }

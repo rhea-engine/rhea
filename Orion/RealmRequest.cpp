@@ -1,6 +1,6 @@
 #include "RealmRequest.h"
 #include "Orion.h"
-#include <ThirdParty/json/single_include/nlohmann/json.hpp>
+#include <nlohmann/json.hpp>
 
 namespace Orion
 {

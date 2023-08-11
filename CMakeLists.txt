@@ -34,8 +34,8 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(googletest)
                 
 # json library
-set(JSON_BuildTests OFF CACHE INTERNAL "")
-add_subdirectory(ThirdParty/json)
+FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.2/json.tar.xz)
+FetchContent_MakeAvailable(json)
 
 # bullet 
 add_subdirectory (ThirdParty/bullet)
@@ -45,7 +45,7 @@ if(WIN32)
 #  set(CMAKE_EXE_LINKER_FLAGS -static)
 endif()
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ ${CMAKE_SOURCE_DIR}/Components/ ${CMAKE_SOURCE_DIR}/ThirdParty/)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ ${CMAKE_SOURCE_DIR}/Components/ ${json_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/ThirdParty/)
 
 # Cross-Compiling works only for some projects
 set(targetdirs Components FortyTwo)

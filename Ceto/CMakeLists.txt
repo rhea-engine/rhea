@@ -9,7 +9,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ ${CMAKE_SOURCE_DIR} ${CMAKE_SOU
 add_executable (Ceto "Ceto.cpp" "UserPrefs.h" "UserPrefs.cpp")
 
 # add the renderer engine
-target_link_libraries(Ceto RheaClient MeworlaFabrics)
+target_link_libraries(Ceto RheaClient MeworlaFabrics nlohmann_json::nlohmann_json)
 
 add_custom_command(TARGET Ceto POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory

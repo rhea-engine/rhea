@@ -8,6 +8,7 @@
 #include "Scene.h"
 #include <Resources/ResourceList.h>
 #include <Resources/ResourceService.h>
+#include <Psio/Log.h>
 
 namespace Rhea
 {	
@@ -44,10 +45,18 @@ namespace Rhea
 			// setup all resources
 			for (std::vector<SimpleParser::IniFileParser::Section>::iterator it = sections.begin(); it != sections.end(); ++it) {
 				SimpleParser::IniFileParser::Section section = *it;
-				std::string type_name = section.values["type"];
-
 				if (section.section_name == "scene")
 					continue;
+
+				auto val = section.values.find("type");
+				std::string type_name;
+				if (val != section.values.end()) {
+					type_name = val->second;
+				}
+				else {
+					LOG(LOG_ERROR) << "Type name not set";
+					continue;
+				}
 
 				// split path into basename and path
 				std::string path = section.section_name;
@@ -95,6 +104,7 @@ namespace Rhea
 			delete buf;
 
 			// get dependencies
+			LOG(LOG_INFO) << "scene loaded. Loading dependencies.";
 			static_cast<ResourceService*>(app->getService("resources"))->loadAsync(res_list, [scene, handler](ResourceList* rh, Error* err) {
 				handler(ReqError::OK, scene);
 			});

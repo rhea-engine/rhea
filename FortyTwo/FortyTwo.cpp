@@ -4,6 +4,7 @@
 #include <string>
 #include <Psio/Log.h>
 #include <Rhea/UnitTree.h>
+#include <Rhea/Fabrics/Core/Avatar.h>
 
 void FortyTwo::init()
 {
@@ -12,6 +13,10 @@ void FortyTwo::init()
 	// ignore controller and spectator defs
 	SimpleParser::Type::registerType<Rhea::Unit>("//meworla/controller");
 	SimpleParser::Type::registerType<Rhea::Unit>("//meworla/spectator");
+
+	// user and avatar types
+	SimpleParser::Type::registerType<Rhea::Unit>("//meworla/user");
+	SimpleParser::Type::registerType<Rhea::Avatar>("//meworla/avatar");
 
 	// add world server item
 	SimpleParser::Type::registerType<World>("//meworla/world");
@@ -36,7 +41,8 @@ void FortyTwo::setup()
 	}
 
 	// load the world server definition
-	loadScene(m_server_name, [&](Rhea::Scene* world_scene, ReqError err) {
+	loadResource(m_server_name, "//meworla/scene", [&](Rhea::Unit* scene_unit, ReqError err) {
+		Rhea::Scene* world_scene = static_cast<Rhea::Scene*>(scene_unit);
 		if (err == ReqError::OK) {
 
 			m_server_service = (ServerService*)world_scene->findByType("//meworla/serverservice");
@@ -53,7 +59,12 @@ void FortyTwo::setup()
 				exit(1);
 			}
 			else {
-				Rhea::Scene* scene = ((World*)world_scene->findByType("//meworla/world"))->getScene();
+				World* world = ((World*)world_scene->findByType("//meworla/world"));
+				if (!world) {
+					LOG(LOG_FATAL) << "world not defined";
+					exit(1);
+				}
+				Rhea::Scene* scene = world->getScene();
 				if (scene) {
 					m_server_service->setScene(scene);
 					m_services["server"] = m_server_service;

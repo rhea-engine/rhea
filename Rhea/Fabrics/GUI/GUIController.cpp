@@ -30,7 +30,10 @@ namespace Rhea
 		values["w"] = m_size.x;
 		values["h"] = m_size.y;
 
-		Widget::setup(app, attributes, values);		
+		Widget::setup(app, attributes, values);
+
+		// make sure the GUI is not displayed in the world render context by default
+		m_values["rendercontext"] = getValue("rendercontext", "HUD");
 	}
 
 	std::vector<Unit::Export> GUIController::getReferences()
@@ -79,8 +82,25 @@ namespace Rhea
 				w->onParentMoved();
 			}
 		}
+
+		registerEventHandler("scene_show", this, std::bind(&GUIController::onShow, this, std::placeholders::_1, std::placeholders::_2));
+		registerEventHandler("scene_hide", this, std::bind(&GUIController::onHide, this, std::placeholders::_1, std::placeholders::_2));
+	}
+
+	bool GUIController::onShow(Event* ev, Unit* unit)
+	{
 		m_app->getUnitTree()->registerEventHandler("gui_input", this, std::bind(&GUIController::onInput, this, std::placeholders::_1, std::placeholders::_2));
 		static_cast<GuiService*>(m_app->getService("gui"))->registerController(this);
+
+		return false;
+	}
+
+	bool GUIController::onHide(Event* ev, Unit* unit)
+	{
+		m_app->getUnitTree()->unregisterEventHandler("gui_input", this);
+		static_cast<GuiService*>(m_app->getService("gui"))->unregisterController(this);
+
+		return false;
 	}
 
 	Vector2 GUIController::size()

@@ -18,12 +18,14 @@ namespace Rhea
 		child->m_path = m_path + "/" + child->m_pathname;
 		child->m_parent = this;
 		m_children[child->m_pathname] = child;
+		child->onParented();
 	}
 
 	void Unit::removeChild(Unit* child)
 	{		
 		m_children.erase(child->m_pathname);
 		child->m_parent = nullptr;
+		child->onRemoved();
 	}
 	
 	Unit* Unit::find(std::string path, bool create)

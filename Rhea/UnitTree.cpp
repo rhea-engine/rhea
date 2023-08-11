@@ -33,7 +33,7 @@ namespace Rhea
 #ifndef _DEBUG
 			return nullptr;
 #else
-			throw;
+			abort();
 #endif // !_DEBUG
 		}
 	}

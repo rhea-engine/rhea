@@ -44,7 +44,8 @@ namespace Rhea
 		// using geometry
 		if (m_values.find("geometry") != m_values.end()) {
 			Geometry* geometry = (Geometry*)m_app->getUnitTree()->find(m_values["geometry"], m_attributes["basepath"], false);
-			geometry->get(m_vertices, m_v_indices);
+			if (geometry)
+				geometry->get(m_vertices, m_v_indices);
 		}
 		
 		if (m_values.find("texture") != m_values.end())

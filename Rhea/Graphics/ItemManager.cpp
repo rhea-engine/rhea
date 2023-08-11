@@ -45,6 +45,13 @@ namespace Rhea
 			delete elem;
 			return nullptr;
 		}
+		if (!material->getElement("graphics")) {
+			if (!m_service->addElement(material)) {
+				LOG(LOG_ERROR) << "GraphicsItemManager::createElement: could not create element for material";
+				delete elem;
+				return nullptr;
+			}
+		}
 
 		// check if mesh element already defined
 		GraphicsMesh* mesh_el = static_cast<GraphicsMesh*>(item_mesh->getElement("graphics"));

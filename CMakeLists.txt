@@ -65,7 +65,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ ${CMAKE_SOURCE_DIR}/Components/
 # Cross-Compiling works only for some projects
 set(targetdirs Components FortyTwo)
 if(WIN32)
-    list(APPEND targetdirs Poseidon Hippios Orion Rhea Ceto Hermes Iris)    
+    list(APPEND targetdirs Poseidon Hippios Orion Rhea Ceto Hermes Iris Meworla)    
 endif()
 
 # Targets

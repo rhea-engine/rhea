@@ -1,13 +1,24 @@
 #include "Scene.h"
+#include "Scene.h"
+#include "Scene.h"
+
 #include <memory>
 
-#include "Scene.h"
 #include "Fabrics/3D/Item.h"
 #include "SceneLoader.h"
 #include "Event.h"
+#include "Application.h"
+#include "UnitTree.h"
+#include <Psio/Log.h>
 
 namespace Rhea
 {
+	void Scene::onParented()
+	{		
+		LOG(LOG_NOTICE) << "scene ready";
+		ready(); 
+	}
+
 	void Scene::addItem(Item* item)
 	{
 		m_items.push_back(item);
@@ -42,6 +53,38 @@ namespace Rhea
 		Event e("add_item", ev->getTarget());
 		sendEvent("add_item", &e);
 		return true;
+	}
+
+	void Scene::show()
+	{
+		// the scene needs to be active
+		if (!m_is_active)
+			activate();
+
+		Rhea::Event ev("scene_show", this);
+		sendEventChildren(std::string("scene_show"), &ev);
+		broadcast("show");
+		m_app->onScene(this);
+	}
+
+	void Scene::hide()
+	{
+		Rhea::Event ev("scene_hide", this);
+		sendEventChildren("scene_hide", &ev);
+	}
+
+	void Scene::activate()
+	{
+		Event e("scene_activate", this);
+		m_app->getUnitTree()->sendEvent("scene_activate", &e);
+		m_is_active = true;
+	}
+
+	void Scene::deactive()
+	{
+		Event e("scene_deactivate", this);
+		m_app->getUnitTree()->sendEvent("scene_deactivate", &e);
+		m_is_active = false;
 	}
 
 	Unit* Scene::createType(std::string name, std::string type)

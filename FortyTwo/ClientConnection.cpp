@@ -113,7 +113,7 @@ int ClientConnection::DoLoginCompleted(int result)
 		if (!user_info) {
 			LOG(LOG_ERROR) << "User " << m_username << " is not registered";
 			// TODO Send auth failure
-			//return 0;
+			return 0;
 		}
 		Hermes::MessageAvatarList msg_al;
 		user_info->children([&msg_al](std::string& name, Rhea::Unit* avatar_unit)->bool {

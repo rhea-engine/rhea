@@ -13,7 +13,6 @@ namespace Rhea
 	{
 	public:
 		WorldClient(std::unique_ptr<Hermes::ClientStream> hermes) :
-			m_onWorldHandler(nullptr),
 			m_scene(nullptr),
 			m_player_set(false),
 			Unit("worldclient", "//meworla/worldclient")
@@ -25,8 +24,8 @@ namespace Rhea
 		void setAuth(std::string avatar);
 
 		// startup
-		typedef std::function<void(int)> OnWorldHandler;
-		void start(Rhea::Scene* scene, OnWorldHandler avlist_handler, OnWorldHandler handler);
+		void start();
+		void setScene(Rhea::Scene* scene) { m_scene = scene; }
 
 		// stop the connection
 		void stop();
@@ -41,7 +40,6 @@ namespace Rhea
 	protected:
 		std::unique_ptr<Hermes::ClientStream> m_hermes;
 		Rhea::Scene* m_scene;
-		OnWorldHandler m_onWorldHandler;
 		std::string m_avatar;
 		std::map<int,Rhea::Item*> m_net_items;
 		bool m_player_set;

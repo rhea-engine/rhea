@@ -29,6 +29,12 @@ namespace Rhea
 		// ready event handler
 		void ready();
 
+		// show event handler
+		bool onShow(Event* ev, Unit* unit);
+
+		// hide event handler
+		bool onHide(Event* ev, Unit* unit);
+
 		// overwrite widget size
 		Vector2 size();
 

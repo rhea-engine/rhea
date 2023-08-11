@@ -43,6 +43,10 @@ namespace Rhea
 		if (mgr) {
 			mgr->createElement(m_core, item);
 		}
+		else if (item->getValue("isItem", false)) {
+			mgr = m_service->getManager("//meworla/item");
+			mgr->createElement(m_core, item);
+		}
 	}
 
 	bool GraphicsSceneManager::onItemAdd(Event* ev, Unit* unit)

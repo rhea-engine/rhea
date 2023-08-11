@@ -200,7 +200,7 @@ namespace Psio
 
 
 		// Create the window for our viewport.
-		mHWnd = CreateWindowEx(dwStyle, PSIO_WIN_CLASS_NAME, "Poseidon", WS_OVERLAPPEDWINDOW, 300, 300, wr.right - wr.left, wr.bottom - wr.top,
+		mHWnd = CreateWindowEx(dwStyle, PSIO_WIN_CLASS_NAME, "Poseidon", WS_OVERLAPPEDWINDOW, 300, 200, wr.right - wr.left, wr.bottom - wr.top,
 			parentHWnd,
 			NULL,
 			mHInstance,

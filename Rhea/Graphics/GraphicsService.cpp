@@ -1,8 +1,7 @@
 #include "GraphicsService.h"
 #include "GraphicsService.h"
-#include <functional>
-
 #include "GraphicsService.h"
+#include <functional>
 
 #include "../Platform/PlatformService.h"
 #include "../Application.h"
@@ -40,8 +39,6 @@ namespace Rhea
 		m_platform(nullptr),
 		m_viewport_width(0),
 		m_viewport_height(0),
-		m_g_scene(nullptr),
-		m_scene(nullptr),
 		Service(name, type_name)	
 	{
 		m_core = std::make_unique<Poseidon::Core>();
@@ -67,52 +64,22 @@ namespace Rhea
 		return nullptr;
 	}
 
+	bool GraphicsService::addElement(Unit* unit)
+	{
+		// find manager for type name in manager list
+		auto it = m_managers.find(unit->getTypeName());
+		if (it != m_managers.end()) {
+			GraphicsManager* mgr = it->second;
+			mgr->createElement(m_core.get(), unit);
+			return true;
+		}
+		return false;
+	}
+
 
 	void GraphicsService::setPlatform(Service* platform_service)
 	{
 		m_platform = platform_service;
-	}
-
-	void GraphicsService::setScene(Unit* scene)
-	{
-		scene->registerEventHandler("display", this, std::bind(&GraphicsService::onDisplay, this, std::placeholders::_1, std::placeholders::_2));
-		m_scene = static_cast<Scene*>(scene);		
-	}
-
-	void GraphicsService::registerScene(std::string render_context, Unit* root)
-	{
-		Poseidon::SceneManager* sceneMgr = m_core->get_scene_manager();
-		if (!sceneMgr) {
-			LOG(LOG_ERROR) << "GraphicsService::registerScene: no scene manager";
-			return;
-		}
-		Poseidon::Viewport* viewport = m_core->get_scene_manager()->getViewport();
-		if (viewport) {
-			Poseidon::RenderContext* context = viewport->getRenderContext(render_context);
-			if (context) {
-				context->addRenderChild((Item*)root);
-
-				// handle all current children
-				root->traverse([&](std::string& name, Unit* unit)->bool {
-					if (unit != root) {
-						printf("GraphicsService::registerScene: add typename: %s\n", unit->getTypeName().c_str());
-
-						// try manager
-						GraphicsManager* mgr = getManager(unit->getTypeName());
-						if (mgr) {
-							mgr->createElement(m_core.get(), unit);
-						}
-						else if (unit->getValue("isItem")) {
-							m_managers["//meworla/item"]->createElement(m_core.get(), unit);
-						}
-						return true;
-					}
-					});
-
-				root->registerEventHandler("add_item", this, std::bind(&GraphicsService::onAddItem, this, std::placeholders::_1, std::placeholders::_2));
-			}
-		}
-		
 	}
 
 	bool GraphicsService::onAddItem(Event* ev, Unit* unit)
@@ -195,13 +162,21 @@ namespace Rhea
 
 		// register input handler
 		m_app->getUnitTree()->registerEventHandler("scene_input", this, std::bind(&GraphicsService::onInput, this, std::placeholders::_1, std::placeholders::_2));
+		m_app->getUnitTree()->registerEventHandler("scene_activate", this, [&](Event* ev, Unit* tree)->bool {
+			onSceneActivate((Scene*)ev->getTarget());
+			return false;
+			});
+		m_app->getUnitTree()->registerEventHandler("scene_deactivate", this, [&](Event* ev, Unit* tree)->bool {
+			onSceneDeactivate((Scene*)ev->getTarget());
+			return false;
+			});
 	}
 	
 	bool GraphicsService::onFrame(float delta)
 	{
 		// update items
-		if (m_scene) {
-			m_scene->traverse([](std::string& name, Unit* unit)->bool {
+		for (auto it=m_scenes.begin(); it<m_scenes.end(); ++it) {
+			(*it)->traverse([](std::string& name, Unit* unit)->bool {
 				std::string type_name = unit->getTypeName();
 			if ((type_name == "//meworla/item") || (type_name == "//meworla/camera") || (type_name == "//meworla/terrain") || (type_name == "//meworla/character")) {
 				Item* item = static_cast<Item*>(unit);
@@ -214,41 +189,120 @@ namespace Rhea
 		return m_core->iterate();
 	}
 	
-	bool GraphicsService::onDisplay(Event* ev, Unit* unit)
+	void GraphicsService::onSceneActivate(Scene* scene)
 	{
-		bool ret = false;
-
-		if (unit->getTypeName().compare("//meworla/scene")) {
-			LOG(LOG_ERROR) << "GraphicsService::onDisplay should only be called for scene";
+		if (scene->getTypeName().compare("//meworla/scene")) {
+			LOG(LOG_ERROR) << "GraphicsService::onSceneActivate should only be called for scene";
+			return;
 		}
+		m_scenes.push_back(scene);
 
 		// try manager
-		GraphicsManager* mgr = getManager(unit->getTypeName());
-		Element* el;
+		GraphicsManager* mgr = getManager(scene->getTypeName());
+		Element* el = nullptr;
 		if (mgr) {
-			el = mgr->createElement(m_core.get(), unit);
+			el = mgr->createElement(m_core.get(), scene);
 		}
 		else {
-			// default: use item manager
-			mgr = getManager("//meworla/item");
-			el = mgr->createElement(m_core.get(), unit);			
+			LOG(LOG_ERROR) << "no graphics scene manager defined.";
+			return;
 		}
 
-		if (!unit->getTypeName().compare("//meworla/scene")) {
-			m_g_scene = static_cast<GraphicsScene*>(el);
-			Poseidon::SceneManager* scene_mgr = m_core->get_scene_manager();
-			std::string render_context_name = "default";
-			Poseidon::RenderContext* render_context = scene_mgr->getViewport()->getRenderContext(render_context_name);
-			if (!render_context) {
-				LOG(LOG_ERROR) << "GraphicsService::onDisplay: render context '" << render_context_name << "' not found";
-				return false;
+		scene->registerEventHandler("add_item", this, std::bind(&GraphicsService::onAddItem, this, std::placeholders::_1, std::placeholders::_2));
+		scene->registerEventHandler("scene_show", this, [&](Event* ev, Unit* unit)->bool {
+			Rhea::Scene* scene = static_cast<Scene*>(ev->getTarget());
+			if (!scene->getTypeName().compare("//meworla/scene"))
+				showScene(scene);
+			return false;
+			});
+		scene->registerEventHandler("scene_hide", this, [&](Event* ev, Unit* unit)->bool {
+			Rhea::Scene* scene = static_cast<Scene*>(ev->getTarget());
+			if (!scene->getTypeName().compare("//meworla/scene"))
+				hideScene(scene);
+			return false;
+			});
+	}
+
+	void GraphicsService::onSceneDeactivate(Scene* scene)
+	{
+		m_scenes.erase(std::remove(m_scenes.begin(), m_scenes.end(), scene));
+		scene->addElement("graphics", nullptr);
+		scene->traverse([](std::string& name, Unit* unit)->bool {
+			unit->addElement("graphics", nullptr);
+			return true;
+			});
+	}
+
+	void GraphicsService::showScene(Scene* scene)
+	{
+		Poseidon::SceneManager* scene_mgr = m_core->get_scene_manager();
+		if (!scene_mgr) {
+			LOG(LOG_ERROR) << "GraphicsService::showScene: no scene manager";
+			return;
+		}
+		std::string render_context_name = scene->getValue("rendercontext", "default");
+		Poseidon::RenderContext* render_context = scene_mgr->getViewport()->getRenderContext(render_context_name);
+		if (!render_context) {
+			LOG(LOG_ERROR) << "GraphicsService::showScene: render context '" << render_context_name << "' not found";
+			return;
+		}
+		render_context->addRenderChild((Item*)scene);
+
+		// scene children with other contexts
+		// handle all current subtree nodes
+		scene->traverse([scene, scene_mgr](std::string& name, Unit* unit)->bool {
+			if (scene == unit)
+				return true;
+			// we simply assume if the rendercontext is set we must add a render child
+			std::string render_context_name = unit->getValue("rendercontext", "");
+			if (unit->getValue("isItem") && render_context_name != "") {
+				Poseidon::RenderContext* render_context = scene_mgr->getViewport()->getRenderContext(render_context_name);
+				if (!render_context) {
+					LOG(LOG_ERROR) << "GraphicsService::showScene: render context '" << render_context_name << "' not found";
+					return false;
+				}
+				else {
+					render_context->addRenderChild((Item*)unit);
+				}
 			}
-			render_context->addRenderChild((Item*)unit);
+			return true;
+			});
+	}
+
+	void GraphicsService::hideScene(Scene* scene)
+	{
+		Poseidon::SceneManager* scene_mgr = m_core->get_scene_manager();
+		if (!scene_mgr) {
+			LOG(LOG_ERROR) << "GraphicsService::hideScene: no scene manager";
+			return;
 		}
+		std::string render_context_name = scene->getValue("rendercontext", "default");
+		Poseidon::RenderContext* render_context = scene_mgr->getViewport()->getRenderContext(render_context_name);
+		if (!render_context) {
+			LOG(LOG_ERROR) << "GraphicsService::hideScene: render context '" << render_context_name << "' not found";
+			return;
+		}
+		render_context->removeRenderChild((Item*)scene);
 
-		unit->registerEventHandler("add_item", this, std::bind(&GraphicsService::onAddItem, this, std::placeholders::_1, std::placeholders::_2));
-
-		return ret;
+		// scene children with other contexts
+		// handle all current subtree nodes
+		scene->traverse([scene, scene_mgr](std::string& name, Unit* unit)->bool {
+			if (scene == unit)
+				return true;
+			// we simply assume if the rendercontext is set we must add a render child
+			std::string render_context_name = unit->getValue("rendercontext", "");
+			if (unit->getValue("isItem") && render_context_name != "") {
+				Poseidon::RenderContext* render_context = scene_mgr->getViewport()->getRenderContext(render_context_name);
+				if (!render_context) {
+					LOG(LOG_ERROR) << "GraphicsService::hideScene: render context '" << render_context_name << "' not found";
+					return false;
+				}
+				else {
+					render_context->removeRenderChild((Item*)unit);
+				}
+			}
+			return true;
+			});
 	}
 
 	bool GraphicsService::onInput(Event* ev, Unit* unit)

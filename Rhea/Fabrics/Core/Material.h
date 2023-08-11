@@ -13,9 +13,12 @@ namespace Rhea
 	{
 	public:
 		Material(std::string name) :
+			Material(name, "//meworla/material")
+		{}
+		Material(std::string name, std::string type_name) :
 			m_app(nullptr),
 			m_shader(nullptr),
-			Unit(name, "//meworla/mesh")
+			Unit(name, type_name)
 		{}
 
 		// get textures
@@ -32,6 +35,9 @@ namespace Rhea
 
 		// alpha blending
 		bool getAlphaBlending();
+
+		// factory function
+		static Unit* createType(std::string name, std::string type);
 
 	protected:
 		Application* m_app;

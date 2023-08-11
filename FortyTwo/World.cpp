@@ -65,11 +65,7 @@ void World::ready()
 			m_app->registerService("physics", physics);
 		}
 
-		static_cast<Rhea::PhysicsService*>(m_app->getService("physics"))->setScene(static_cast<Rhea::Scene*>(m_scene));
-
-		// now we are ready
-		std::unique_ptr<Rhea::Event> ev_r = std::make_unique<Rhea::Event>("ready", nullptr);
-		m_scene->sendEvent(std::string("ready"), ev_r.get());
+		m_scene->show();
 	}
 	else {
 		LOG(LOG_ERROR) << "World::ready(): Could not load scene " << (std::string)m_values["scenename"];

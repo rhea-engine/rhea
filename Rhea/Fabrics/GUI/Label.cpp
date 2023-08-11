@@ -116,7 +116,7 @@ namespace Rhea
 				std::string path = m_attributes["basepath"] + "/" + it->path;
 				Unit* u = m_app->getUnitTree()->find(path);
 				if (u != nullptr)
-					res += u->getValue(it->value);
+					res += u->getValue(it->value, "");
 				break;
 			}
 		}

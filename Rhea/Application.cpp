@@ -94,6 +94,7 @@ namespace Rhea
 		SimpleParser::Type::registerType<Transform>("//meworla/transform");
 		SimpleParser::Type::registerType<Item>("//meworla/item");
 		SimpleParser::Type::registerType<Mesh>("//meworla/mesh");
+		SimpleParser::Type::registerType<Material>("//meworla/material");
 		SimpleParser::Type::registerType<Avatar>("//meworla/avatar");
 		MediaFabrics::Register(this);		
 		SimpleParser::Type::registerType<Camera>("//meworla/camera");
@@ -155,22 +156,6 @@ namespace Rhea
 		}
 		m_fs->setAppDir(path);
 		m_services["platform"]->setValue("AppDir", SimpleParser::Variant(path));
-	}
-
-	void Application::loadScene(const std::string resourceId, std::function<void(Scene*, ReqError error)> handler)
-	{
-		loadResource(resourceId, "//meworla/scene", [&, handler](Rhea::Unit* scene, ReqError r_err) {
-			if (r_err == ReqError::OK) {
-				LOG(LOG_INFO) << "scene loaded";
-				scene->ready();
-				LOG(LOG_NOTICE) << "scene ready";
-				handler((Scene*)scene, r_err);
-			}
-			else {
-				log("loading of scene failed");
-				handler(nullptr, r_err);
-			}
-			});
 	}
 
 	void Application::onResourceFailed(Orion::ResourceRequest::Error reason)

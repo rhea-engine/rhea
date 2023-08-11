@@ -14,8 +14,12 @@ namespace Rhea
 	{
 	public:
 		Scene(std::string name) :
+			m_is_active(false),
 			Unit(name, "//meworla/scene")
 		{}
+
+		// implement onParented
+		void onParented();
 
 		// add an item to the scene
 		void addItem(Item* item);
@@ -32,11 +36,20 @@ namespace Rhea
 		// handle new items in scene
 		bool onSceneEnter(Event* ev, Unit* unit);
 
+		// handle scene show/hide
+		void show();
+		void hide();
+
+		// handle scene active state
+		void activate();
+		void deactive();
+
 		// factory function
 		static Unit* createType(std::string name, std::string type);
 
 	protected:
 		std::vector<Item*> m_items;		
+		bool m_is_active;
 	};
 }
 

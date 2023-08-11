@@ -4,11 +4,15 @@
 #include <Hermes/ClientStream.h>
 #include <Hermes/Opcode.h>
 #include <Hermes/Messages/MessageCreate.h>
+#include <Rhea/Application.h>
+#include <Rhea/Platform/PlatformService.h>
 
 namespace Rhea
 {
-	void ClientService::onInit()
+	void ClientService::ready()
 	{
+		Rhea::PlatformService* psio = static_cast<Rhea::PlatformService*>(m_app->getService("platform"));
+		m_network = psio->getEngine()->getNet();
 	}
 
 	void ClientService::connect(std::string host, ConnectionHandler handler)

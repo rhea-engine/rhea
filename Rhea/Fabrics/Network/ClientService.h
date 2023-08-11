@@ -24,7 +24,7 @@ namespace Rhea
 		{}
 
 		// init event
-		void onInit();
+		void ready();
 
 		// connecting
 		typedef std::function<void(WorldClient* client, int)> ConnectionHandler;

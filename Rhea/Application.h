@@ -50,8 +50,6 @@ namespace Rhea
 		virtual bool onFrameEnd() { return false; }
 		// close the app
 		virtual void close();
-		// load a scene
-		void loadScene(const std::string resourceId, std::function<void(Scene*, ReqError error)> handler);
 
 		virtual void onResourceFailed(Orion::ResourceRequest::Error reason);
 

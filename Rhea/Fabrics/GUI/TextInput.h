@@ -48,6 +48,9 @@ namespace Rhea
 		bool onTextInput(Event* ev, Unit* unit);
 		bool onMouseButton(Event* ev, Unit* unit);
 
+		// parent was hidden
+		bool onHide(Event* ev, Unit* unit);
+
 		// events
 
 		void setArea(bool moved, bool sized);

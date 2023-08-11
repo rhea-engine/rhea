@@ -45,6 +45,10 @@ namespace Rhea
 		// remove a child
 		void removeChild(Unit* child);
 
+		// handle on parented
+		virtual void onParented() {}
+		virtual void onRemoved() {}
+
 		// get parent - returns NULL for top
 		Unit* getParent() { return m_parent; }
 

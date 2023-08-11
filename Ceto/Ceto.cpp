@@ -178,51 +178,20 @@ void Ceto::setScene()
 	stream->Write(s.c_str(), s.size());
 	stream->Close();		
 
-	loadScene(m_home_scene, [&](Rhea::Scene* scene, ReqError err) {
+	loadResource(m_home_scene, "//meworla/scene", [&](Rhea::Unit* scene_unit, ReqError err) {
+		Rhea::Scene* scene = static_cast<Rhea::Scene*>(scene_unit);
 		if (err == ReqError::OK) {
 
-			// is this network controlled?
-			Variant worldserver = scene->getValue("worldserver");
-			if (worldserver != Variant()) {
-				Rhea::ClientService* client_service = (Rhea::ClientService*)getService("clientservice");
-				client_service->connect(worldserver, [&, scene](Rhea::WorldClient* client, int err) {
-					if (!err)
-					{
-						scene->addChild(client);
-						DLOG(LOG_DEBUG) << "connected to server";
-						client->setAuth("anonymous");
-						client->start(scene, 
-							[&, client](int err) {
-								if (!err) {
-									showAvatarSelect(scene, client);
-								}
-								else {
-									switch (err) {
-									case -2:										
-										showAlert("Avatar not found");
-										break;
-									default:
-										showAlert("General connection error");
-									}
-								}
-							},
-							[&, scene](int err) {
-							if (!err) {
-								showScene(scene);
-							}
-							});
-					}
-					else {
-						
-						// TODO show choose realm screen
-						// for now exit
-						LOG(LOG_FATAL) << "Could not connect to server";
-						exit(-1);
-					}
-					});
+			// display scene
+			std::string start_scene = scene->getValue("startscene", "");
+			if (start_scene != "") {
+				Rhea::Scene* go_scene = (Rhea::Scene*)m_unit_tree->find(start_scene, scene->getPath(), false);
+				if (go_scene)
+					showScene(go_scene);
+				else
+					showScene(scene);
 			}
 			else {
-				// no special handling - display scene
 				showScene(scene);
 			}
 		}
@@ -234,11 +203,6 @@ void Ceto::setScene()
 
 void Ceto::showScene(Rhea::Scene* scene)
 {
-	static_cast<Rhea::GraphicsService*>(m_services["graphics"])->setScene(scene);
-	std::unique_ptr<Rhea::Event> ev = std::make_unique<Rhea::Event>("display", scene);
-	scene->sendEvent(std::string("display"), ev.get());
-	scene->broadcast("show");
-
 	// initialize physics
 	Rhea::PhysicsService* physics = static_cast<Rhea::PhysicsService*>(m_services["physics"]);
 	if (!physics) {
@@ -259,7 +223,8 @@ void Ceto::showScene(Rhea::Scene* scene)
 	m_view = static_cast<Rhea::Camera*>(scene->findByType("//meworla/camera"));
 	if (!m_view) {
 		// no camera found - create a default cam
-		m_view = static_cast<Rhea::Camera*>(m_unit_tree->createUnitById(scene->getPath() + "/camera", "//meworla/camera"));
+		m_view = static_cast<Rhea::Camera*>(m_unit_tree->createUnit("camera", "//meworla/camera"));
+		scene->addChild(m_view);
 
 		Rhea::GraphicsService* gs = static_cast<Rhea::GraphicsService*>(getService("graphics"));
 		Rhea::GraphicsManager* mgr = gs->getManager("//meworla/camera");
@@ -285,10 +250,8 @@ void Ceto::showScene(Rhea::Scene* scene)
 		m_focused_controller->connect(m_view);
 		scene->addChild(m_focused_controller);
 	}
-	static_cast<Rhea::PhysicsService*>(m_services["physics"])->setScene(static_cast<Rhea::Scene*>(scene));
-
 	// now we are ready
-	onScene(scene);
+	scene->show();
 }
 
 void Ceto::showAvatarSelect(Rhea::Scene* scene, Rhea::Unit* client)
@@ -373,13 +336,12 @@ void Ceto::loadMainGUI()
 {
 	// load the apps gui			
 	std::string app_gui = "//local/cetogui.scene";
-	loadResource(app_gui, "//meworla/gui", [&](Rhea::Unit* gui, ReqError r_err) {
+	loadResource(app_gui, "//meworla/scene", [&](Rhea::Unit* gui, ReqError r_err) {
 		if (r_err == ReqError::OK) {
 			
-			gui->ready();
+			((Rhea::Scene*)gui)->show();
 			log("gui ready");
-			static_cast<Rhea::GraphicsService*>(m_services["graphics"])->registerScene("HUD", gui);
-
+			
 			// find label for debug text
 			m_debug_text = static_cast<Rhea::Label*>(m_unit_tree->find("//local/cetogui/gui/widget1/laber"));
 			if (!m_debug_text) {
@@ -421,6 +383,7 @@ bool Ceto::onFrameEnd()
 
 		std::string debug = "";
 		debug += "debugging: sec=" + std::to_string(elapsed_s) +"; fps = " + std::to_string(fps);
+		m_focused_controller = static_cast<Rhea::Controller*>(m_unit_tree->find("//local/scene1/maincamera"));
 		if (m_focused_controller) {
 			Math::Vector3 pos = static_cast<Rhea::BasicController*>(m_focused_controller)->getPosition();
 			debug += "\nPosition: " + std::to_string(pos.x) + " / " + std::to_string(pos.y) + " / " + std::to_string(pos.z);

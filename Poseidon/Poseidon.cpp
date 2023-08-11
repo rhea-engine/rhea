@@ -9,6 +9,7 @@
 #include <Rhea/Physics/Bullet/BtPhysicsService.h>
 #include <Rhea/Fabrics/Network/ClientService.h>
 #include <Rhea/Platform/PlatformService.h>
+#include <Meworla/meworlafabrics.h>
 
 using Rhea::GraphicsService;
 using Rhea::Service;
@@ -39,13 +40,10 @@ namespace Poseidon
 
 		Rhea::PlatformService* psio = static_cast<Rhea::PlatformService *>(m_services["platform"]);
 		g_service->setPlatform(psio);
-
-		ClientService* client = (ClientService*)SimpleParser::Type::create("ClientService", "//meworla/clientservice");
-		client->setNetwork(psio->getEngine()->getNet());
-		client->setup(this);
-		m_services["clientservice"] = client;
-
 		core = g_service->getEngine();
+
+		// register meworla fabrics
+		MeworlaFabrics::registerFabrics(this);
 	}
 
 	void Application::onScene(Rhea::Scene* scene)

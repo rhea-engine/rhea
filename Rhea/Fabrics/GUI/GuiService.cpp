@@ -35,6 +35,6 @@ namespace Rhea
 
 	void Rhea::GuiService::unregisterController(GUIController* ctrl)
 	{
-		remove(m_controllers.begin(), m_controllers.end(), ctrl);
+		m_controllers.erase(std::remove(m_controllers.begin(), m_controllers.end(), ctrl));
 	}
 }

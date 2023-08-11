@@ -20,85 +20,86 @@ namespace Rhea
 		m_avatar = avatar;
 	}
 
-	void WorldClient::start(Rhea::Scene* scene, OnWorldHandler avlist_handler, OnWorldHandler handler)
+	void WorldClient::start()
 	{
-		m_scene = scene;
-		m_onWorldHandler = handler;
-
-		m_hermes->login([&, scene](int err) {
+		m_hermes->login([&](int err) {
 			if (err >= 0) {
 				DLOG(LOG_DEBUG) << "login succeeded";
 
-				m_hermes->onMessage([&, scene, avlist_handler, handler](std::unique_ptr<Hermes::Message> msg, int err) {
+				m_hermes->onMessage([&](std::unique_ptr<Hermes::Message> msg, int err) {
 					if (!err) {
 						if (msg->base.opcode == HERMES_MSG_AVATARLIST) {
 							Hermes::MessageAvatarList* msgc = (Hermes::MessageAvatarList*)msg.get();
 							if (msgc->avatars.size()) {
 
 								// fill up avatar list of scene
-								Rhea::Unit* avatar_list = scene->getChild("avatarlist");
+								Rhea::Unit* avatar_list = getChild("avatarlist");
 								if (!avatar_list) {
 									avatar_list = new Rhea::Unit("avatarlist", "//meworla/avatarlist");
 									avatar_list->setup(m_app);
-									scene->addChild(avatar_list);
+									addChild(avatar_list);
 								}
 								for (auto it = msgc->avatars.begin(); it != msgc->avatars.end(); it++) {
 									Rhea::Avatar* avatar = (Rhea::Avatar*)m_app->getUnitTree()->createUnit((*it).avatar, "//meworla/avatar");
 									avatar->setModel((*it).type_name);
 									avatar_list->addChild(avatar);
 								}
-								avlist_handler(0);					
 							}
-							else {
-								// TODO create avatar scene
-								LOG(LOG_FATAL) << "No avatars defined.";
-								exit(-1);
-							}
+							m_values["nofAvatars"] = (int)msgc->avatars.size();
+							Event ev("avatarlist", this);
+							sendEvent("avatarlist", &ev);
 						}
 						else if (msg->base.opcode == HERMES_MSG_ENTER_FAILED) {
 							// avatar entering failed
 							// inform user
-							avlist_handler(-2);
+							Event ev("entering_failed", this);
+							sendEvent("entering_failed", &ev);
 							return;
 						}
 						else if (msg->base.opcode == HERMES_MSG_CREATE) {
-							Hermes::MessageCreate* msgc = (Hermes::MessageCreate*)msg.get();
-							// instancing the player
-							Rhea::Item* gnar = (Rhea::Item*)(m_app->getUnitTree()->find(msgc->type_name));
-							if (gnar) {
-								Rhea::Item* player;
-								if (msgc->is_player && m_player_set) {
-									LOG(LOG_ERROR) << "isPlayer set multiple times";
-									msgc->is_player = false;
-								}
-								if (msgc->is_player) {
-									player = gnar->instance("player");
-									m_player_set = true;
-								}
-								else
-									player = gnar->instance(msgc->path);
-								scene->addChild(player);
-								Math::Vector3 position = Math::Vector3(msgc->pos[0], msgc->pos[1], msgc->pos[2]);
-								Math::Quaternion rot = Math::Quaternion(msgc->transform[0], msgc->transform[1], msgc->transform[2], msgc->transform[3]);
-								player->setPosition(position);
-								player->getTransform()->get_position()->setOrientation(rot);
-								std::unique_ptr<Rhea::NetworkComponent> net_comp = std::make_unique<Rhea::NetworkComponent>(player, msgc->NUID, NET_ROLE_CLIENT);
-								net_comp->setDelegate(this);
-								player->setNetworkComponent(std::move(net_comp));
-								m_net_items[msgc->NUID] = player;
-								Rhea::Event e("scene_enter", player);
-								bubbleEvent("scene_enter", &e);
-
-								scene->addItem(player);
-								player->ready();
-
-								if (msgc->is_player && m_onWorldHandler) {
-									m_onWorldHandler(0);
-									m_onWorldHandler = nullptr;
-								}
+							if (!m_scene) {
+								LOG(LOG_ERROR) << "Network Client: Scene is not set";
 							}
 							else {
-								LOG(LOG_ERROR) << "Did not find player template";
+								Hermes::MessageCreate* msgc = (Hermes::MessageCreate*)msg.get();
+								// instancing the player
+								Rhea::Item* gnar = (Rhea::Item*)(m_app->getUnitTree()->find(msgc->type_name));
+								if (gnar) {
+									Rhea::Item* player;
+									if (msgc->is_player && m_player_set) {
+										LOG(LOG_ERROR) << "isPlayer set multiple times";
+										msgc->is_player = false;
+									}
+									if (msgc->is_player) {
+										player = gnar->instance("player");
+										m_player_set = true;
+									}
+									else
+										player = gnar->instance(msgc->path);
+
+									m_scene->addChild(player);
+									Math::Vector3 position = Math::Vector3(msgc->pos[0], msgc->pos[1], msgc->pos[2]);
+									Math::Quaternion rot = Math::Quaternion(msgc->transform[0], msgc->transform[1], msgc->transform[2], msgc->transform[3]);
+									player->setPosition(position);
+									player->getTransform()->get_position()->setOrientation(rot);
+									std::unique_ptr<Rhea::NetworkComponent> net_comp = std::make_unique<Rhea::NetworkComponent>(player, msgc->NUID, NET_ROLE_CLIENT);
+									net_comp->setDelegate(this);
+									player->setNetworkComponent(std::move(net_comp));
+									m_net_items[msgc->NUID] = player;
+									Rhea::Event e("scene_enter", player);
+									m_scene->bubbleEvent("scene_enter", &e);
+
+									m_scene->addItem(player);
+									player->ready();
+
+									if (msgc->is_player) {
+										Event ev("world_enter", this);
+										sendEvent("world_enter", &ev);
+									}
+								}
+								else {
+									LOG(LOG_ERROR) << "Did not find player template";
+								}
 							}
 						}
 						else if (msg->base.opcode == HERMES_MSG_POSITION) {
@@ -122,8 +123,10 @@ namespace Rhea
 							auto it = m_net_items.find(msgc->NUID);
 							if (it != m_net_items.end()) {
 								Rhea::Item* item = it->second;
-								scene->removeItem(item);
-								scene->removeChild(item);
+								if (m_scene) {
+									m_scene->removeItem(item);
+									m_scene->removeChild(item);
+								}
 								delete item;
 								m_net_items.erase(it);
 							}
@@ -135,15 +138,17 @@ namespace Rhea
 					}
 					else {
 						// TODO, for now assume connection failure
-						// for now simply exit the client
 						LOG(LOG_FATAL) << "Server connection lost";
-						exit(-1);
+						Event ev("connection_failure", this);
+						sendEvent("connection_failure", &ev);
 					}
 					});
 			}
 			else {
 				// TODO handle login failure
 				DLOG(LOG_DEBUG) << "login failed " << err;
+				Event ev("login_failure", this);
+				sendEvent("login_failure", &ev);
 			}
 			});
 	}

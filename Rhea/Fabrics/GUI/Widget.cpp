@@ -1,4 +1,4 @@
-#include "Widget.h"
+
 #include "Widget.h"
 #include "WidgetEvent.h"
 
@@ -262,12 +262,16 @@ namespace Rhea
 	{
 		m_visible = true;
 		m_render_component->show();
+		Event e("show", this);
+		sendEventChildren("show", &e);
 	}
 
 	void Widget::hide()
 	{
 		m_visible = false;
 		m_render_component->hide();
+		Event e("hide", this);
+		sendEventChildren("hide", &e);
 	}
 
 	Widget* Widget::capture(int c_x, int c_y)
@@ -316,7 +320,7 @@ namespace Rhea
 		size_t pos = binding.find(".");
 		Unit* target;
 		if (pos != std::string::npos && pos) {
-			target = m_app->getUnitTree()->find(m_attributes["basepath"] + "/" + binding.substr(0, pos - 1));
+			target = m_app->getUnitTree()->find(m_attributes["basepath"] + "/" + binding.substr(0, pos));
 			event_name = binding.substr(pos + 1);
 		}
 		else {
@@ -326,7 +330,10 @@ namespace Rhea
 			else
 				event_name = binding;
 		}
-		target->sendEvent(event_name, ev);
+		if (target)
+			target->sendEvent(event_name, ev);
+		else
+			LOG(LOG_ERROR) << "Sending Event: Target " + m_attributes["basepath"] + "/" + binding.substr(0, pos) + " not found";
 	}
 
 	Vector2 Widget::getScreenPosition()

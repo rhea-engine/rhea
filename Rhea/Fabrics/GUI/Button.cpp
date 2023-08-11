@@ -44,6 +44,10 @@ namespace Rhea
 	
 	bool Button::onMouseClick(Event* ev, Unit* unit)
 	{
+		// consume the mouse event
+		ev->stopPropagation();
+
+		// send clicked event
 		Event my_ev = Event("clicked", this);
 		bubbleEvent("clicked", &my_ev);
 		if (m_values["onClick"] != Variant()) {

@@ -18,6 +18,8 @@
 
 #include "btBulletDynamicsCommon.h"
 #include <Psio/Log.h>
+#include "Application.h"
+#include "UnitTree.h"
 
 namespace Rhea
 {
@@ -177,6 +179,11 @@ namespace Rhea
 		m_world = new btDiscreteDynamicsWorld(dispatcher, overlappingPairCache, solver, collisionConfiguration);
 
 		m_world->setGravity(btVector3(0.0f, -0.8f, 0.0f));
+
+		m_app->getUnitTree()->registerEventHandler("scene_activate", this, [&](Event* ev, Unit* tree)->bool {
+			setScene((Scene*)ev->getTarget());
+			return false;
+			});
 	}
 	
 	Unit* BulletPhysicsService::ray(Math::Vector3 origin, Math::Vector3 direction)

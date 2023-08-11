@@ -64,6 +64,8 @@ namespace Rhea
 		registerEventHandler("key_pressed", this, std::bind(&TextInput::onKeyPressed, this, std::placeholders::_1, std::placeholders::_2));
 		registerEventHandler("text_input", this, std::bind(&TextInput::onTextInput, this, std::placeholders::_1, std::placeholders::_2));
 		registerEventHandler("mouse_btn_down", this, std::bind(&TextInput::onMouseButton, this, std::placeholders::_1, std::placeholders::_2));		
+		registerEventHandler("hide", this, std::bind(&TextInput::onHide, this, std::placeholders::_1, std::placeholders::_2));
+
 	}
 
 	TextInput* TextInput::createType(std::string name, std::string type_name)
@@ -141,13 +143,15 @@ namespace Rhea
 
 	bool TextInput::onKeyPressed(Event* ev, Unit* unit)
 	{
+		if (!m_has_focus)
+			return false;
+
 		Psio::KeyInputEvent* e = static_cast<Psio::KeyInputEvent*>(static_cast<EventInput*>(ev)->getEvent().get());
 		switch (e->getKeyCode()) {
 		case Psio::Key::CODE_LEFT:
 			if (m_pos > 0) {
 				m_pos--;
-				updateCursor(true);
-				
+				updateCursor(true);				
 			}
 			ev->stopPropagation();
 			break;
@@ -214,6 +218,9 @@ namespace Rhea
 
 	bool TextInput::onMouseButton(Event* ev, Unit* unit)
 	{
+		// consume the mouse event
+		ev->stopPropagation();
+
 		EventInput* ei = static_cast<EventInput*>(ev);
 		std::shared_ptr<Psio::MouseInputEvent> e = std::static_pointer_cast<Psio::MouseInputEvent>(ei->getEvent());
 		int mx = e->getX();
@@ -226,6 +233,16 @@ namespace Rhea
 
 		updateCursor(true);
 
+		return false;
+	}
+
+	bool TextInput::onHide(Event* ev, Unit* unit)
+	{
+		if (m_has_focus) {
+			Event focus_lost("focus_lost", this);
+			bubbleEvent("focus_lost", &focus_lost);
+			m_has_focus = false;
+		}
 		return false;
 	}
 

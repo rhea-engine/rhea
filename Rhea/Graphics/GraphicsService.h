@@ -28,11 +28,13 @@ namespace Rhea
 		// set the platform service
 		void setPlatform(Service* platform_service);
 
-		// set the scene to display
-		void setScene(Unit* scene);
+		// prepare a scene to display
+		void onSceneActivate(Scene* scene);
+		void onSceneDeactivate(Scene* scene);
 
-		// register a tree root
-		void registerScene(std::string render_context, Unit* root);
+		// show the targeted scene
+		void showScene(Scene* scene);
+		void hideScene(Scene* scene);
 
 		// add item to render context
 		void addItem(std::string render_context, Item* item);
@@ -46,7 +48,6 @@ namespace Rhea
 
 		bool onFrame(float delta) override;
 		
-		bool onDisplay(Event* ev, Unit* unit);
 		bool onInput(Event* ev, Unit* unit);
 		bool onAddItem(Event* ev, Unit* unit);
 
@@ -56,6 +57,8 @@ namespace Rhea
 
 		// get the manager for a certain type
 		GraphicsManager* getManager(std::string type_name);
+		// create element for the unit
+		bool addElement(Unit* unit);
 
 		// factory function
 		static Unit* createType(std::string name, std::string type);
@@ -68,10 +71,8 @@ namespace Rhea
 		int m_viewport_width;
 		int m_viewport_height;
 
-		// the currently displayed scene
-		GraphicsScene* m_g_scene;
-		Scene* m_scene;
-		//std::vector<Item*> m_scene_items;
+		// the activated scenes
+		std::vector<Scene*> m_scenes;
 
 		// the current mouse pos
 		int m_mx;

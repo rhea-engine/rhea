@@ -1,10 +1,9 @@
 #include "PhysicsService.h"
-#include "PhysicsService.h"
-#include "PhysicsService.h"
 #include "Body.h"
 #include "../Controller/BasicController.h"
 #include "Fabrics/3D/Item.h"
 #include "../Application.h"
+#include "UnitTree.h"
 #include "PhysicsEvent.h"
 #include "PhysicsCharacter.h"
 #include <Psio/Log.h>
@@ -68,5 +67,9 @@ namespace Rhea
 	
 	void PhysicsService::onInit()
 	{
+		m_app->getUnitTree()->registerEventHandler("scene_activate", this, [&](Event* ev, Unit* tree)->bool {
+			setScene((Scene*)ev->getTarget());
+			return false;
+			});
 	}
 }

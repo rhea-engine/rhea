@@ -37,6 +37,10 @@ namespace Rhea
 	
 	bool ListWidgetItem::onMouseClick(Event* ev, Unit* unit)
 	{
+		// consume the mouse event
+		ev->stopPropagation();
+
+		// send selected event
 		Event my_ev = Event("selected", this);
 		bubbleEvent("selected", &my_ev);		
 		return false;

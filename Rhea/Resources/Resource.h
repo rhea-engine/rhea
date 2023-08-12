@@ -15,6 +15,7 @@ namespace Rhea
 	// a resource is a unit that holds some data structure and may be loaded from remote	
 	class Resource : public Unit
 	{
+		MECLASS(Resource, Unit)
 	public:
 		enum struct Status
 		{

@@ -11,6 +11,7 @@ namespace Rhea
 
 	class Material : public Unit
 	{
+		MECLASS(Material, Unit)
 	public:
 		Material(std::string name) :
 			Material(name, "//meworla/material")
@@ -35,9 +36,6 @@ namespace Rhea
 
 		// alpha blending
 		bool getAlphaBlending();
-
-		// factory function
-		static Unit* createType(std::string name, std::string type);
 
 	protected:
 		Application* m_app;

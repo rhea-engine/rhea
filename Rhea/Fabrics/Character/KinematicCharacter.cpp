@@ -184,11 +184,5 @@ namespace Rhea
 		m_gravity = getValue("gravity", unit->getValue("linear_gravity"));
 		
 		return false;
-	}
-
-	Unit* KinematicCharacter::createType(std::string name, std::string type)
-	{
-		KinematicCharacter* character = new KinematicCharacter(name, type);
-		return character;
-	}
+	}	
 }

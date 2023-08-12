@@ -10,14 +10,13 @@ namespace Rhea
 
 			m_in_updating = true;
 
-			Unit* p = m_parent->getParent();
-			if (!p || !p->getValue("isItem")) {
+			// TODO: Check if transform component is there
+			Item* parent = doCast<Item>(m_parent->getParent());
+			if (!parent) {
 				m_derived_position.setPosition(m_position);
 				m_derived_valid = true;
 				return;
 			}
-			// TODO: Check if transform component is there
-			Item* parent = static_cast<Item*>(p);
 
 			// Update orientation
 			const Math::Quaternion& parent_rot = parent->getTransform()->get_position()->get_rotation();

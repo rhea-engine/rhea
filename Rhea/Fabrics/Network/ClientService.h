@@ -17,6 +17,7 @@ namespace Rhea
 {
 	class ClientService : public Rhea::Service
 	{
+		MECLASS(ClientService, Rhea::Service)
 	public:
 		ClientService(std::string name, std::string type) :
 			m_network(nullptr),
@@ -31,9 +32,6 @@ namespace Rhea
 		void connect(std::string host, ConnectionHandler handler);		
 
 		void setNetwork(Psio::Network* network) { m_network = network; }
-
-		// factory function
-		static Unit* createType(std::string name, std::string type);
 
 	protected:
 		Psio::Network* m_network;

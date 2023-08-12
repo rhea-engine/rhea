@@ -8,6 +8,7 @@ namespace Rhea
 {
 	class Dialog : public Widget
 	{
+		MECLASS(Dialog, Widget)
 	public:
 		Dialog(std::string path_name) :
 			Dialog(path_name, "//meworla/gui/dialog")
@@ -17,8 +18,6 @@ namespace Rhea
 		{}
 
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
-
-		static Dialog* createType(std::string name, std::string type_name);
 
 	protected:
 		

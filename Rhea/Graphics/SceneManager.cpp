@@ -11,6 +11,7 @@
 #include "Fabrics/3D/Item.h"
 #include "Fabrics/Canvas/Item2D.h"
 #include "GraphicsService.h"
+#include <Psio/Log.h>
 
 namespace Rhea
 {
@@ -18,6 +19,11 @@ namespace Rhea
 	{
 		Poseidon::SceneManager* scene_mgr = core->get_scene_manager();
 		m_core = core;
+
+		if (!scene) {
+			LOG(LOG_ERROR) << "GraphicsSceneManager::createScene: no scene.";
+			return;
+		}
 
 		// add my items
 		scene->traverse([&](std::string& name, Unit* unit)->bool {
@@ -43,7 +49,7 @@ namespace Rhea
 		if (mgr) {
 			mgr->createElement(m_core, item);
 		}
-		else if (item->getValue("isItem", false)) {
+		else if (doCast<Item>(item)) {
 			mgr = m_service->getManager("//meworla/item");
 			mgr->createElement(m_core, item);
 		}
@@ -51,22 +57,29 @@ namespace Rhea
 
 	bool GraphicsSceneManager::onItemAdd(Event* ev, Unit* unit)
 	{		
-		Item* item = static_cast<Item*>(ev->getTarget());
-		addItem(item);
+		Item* item = doCast<Item>(ev->getTarget());
+		if (item)
+			addItem(item);
 
 		return false;
 	}
 
 	Element* GraphicsSceneManager::createElement(Poseidon::Core* core, Unit* unit)
 	{
+		Scene* scene = doCast<Scene>(unit);
+		if (!scene) {
+			LOG(LOG_ERROR) << "GraphicsSceneManager::createElement: no scene";
+			return nullptr;
+		}
+
 		// check if already created
-		Element* el = unit->getElement("graphics");
+		Element* el = scene->getElement("graphics");
 		if (el)
 			return el;
 
 		// create it
-		GraphicsScene* scene_elem = new GraphicsScene(static_cast<Scene*>(unit));
-		createScene(core, scene_elem, static_cast<Scene*>(unit));
+		GraphicsScene* scene_elem = new GraphicsScene(scene);
+		createScene(core, scene_elem, scene);
 
 		return scene_elem;
 	}

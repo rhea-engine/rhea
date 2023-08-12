@@ -40,11 +40,5 @@ namespace Rhea
 				}
 			}
 	}
-	
-	StyleSheet* StyleSheet::createType(std::string name, std::string type)
-	{
-		StyleSheet* stylesheet = new StyleSheet(name, type);
-		return stylesheet;
-	}
 }
 

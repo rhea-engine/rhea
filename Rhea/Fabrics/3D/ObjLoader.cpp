@@ -27,7 +27,6 @@ namespace Rhea
         }
     };
 
-
 	bool ObjLoader::load(std::string objbuf, std::string mtlbuf, std::vector<Mesh::vertex>& vertices, std::vector<unsigned long>& indices)
 	{
 		tinyobj::ObjReader reader;
@@ -153,11 +152,5 @@ namespace Rhea
         if (m_values.find("material") != m_values.end())
             refs.push_back({ "material", "//meworla/wavefront-material", m_values["material"] });
         return refs;
-    }
-
-    Unit* Rhea::ObjLoader::createType(std::string name, std::string type)
-    {
-        Unit* ret = (Unit*)new ObjLoader(name, "//meworla/wavefront");
-        return ret;
     }
 }

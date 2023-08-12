@@ -22,6 +22,7 @@ namespace Rhea
 
 	class GraphicsService : public Service
 	{
+		MECLASS(GraphicsService, Service)
 	public:
 		GraphicsService(std::string name, std::string type_name);
 
@@ -59,9 +60,6 @@ namespace Rhea
 		GraphicsManager* getManager(std::string type_name);
 		// create element for the unit
 		bool addElement(Unit* unit);
-
-		// factory function
-		static Unit* createType(std::string name, std::string type);
 
 	protected:
 		std::unique_ptr<Poseidon::Core> m_core;

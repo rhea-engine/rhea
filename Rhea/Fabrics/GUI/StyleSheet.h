@@ -9,6 +9,7 @@ namespace Rhea
 {
 	class StyleSheet : public Unit
 	{
+		MECLASS(StyleSheet, Unit)
 	public:
 		StyleSheet(std::string path_name) :
 			StyleSheet(path_name, "//meworla/gui/stylesheet")
@@ -23,9 +24,6 @@ namespace Rhea
 		void applyStyle(Widget* w);
 
 		void setStyle(std::vector<SimpleParser::CssParser::Entry>& entries);
-
-		// type functions
-		static StyleSheet* createType(std::string name, std::string type);
 
 	protected:
 		std::vector<SimpleParser::CssParser::Entry> m_entries;

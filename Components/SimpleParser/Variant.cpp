@@ -291,7 +291,7 @@ namespace SimpleParser
 		}
 	}
 
-	std::string& Variant::getTypeName()
+	std::string Variant::getTypeName() const
 	{
 		return m_type->m_name;
 	}

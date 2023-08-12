@@ -26,6 +26,8 @@ namespace Rhea
 
 	class Item : public Unit
 	{
+		MECLASS(Item, Unit)
+
 	public:
 		Item(std::string name) :
 			Item(name, "//meworla/item")
@@ -53,9 +55,6 @@ namespace Rhea
 
 		// material
 		Material* getMaterial() { return m_material; }
-
-		// factory function
-		static Unit* createType(std::string name, std::string type);
 
 		std::vector<Export> getReferences();
 

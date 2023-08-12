@@ -31,7 +31,8 @@ namespace Rhea
 				sock.reset(m_sock);
 				std::unique_ptr<Hermes::ClientStream> hermes = std::make_unique<Hermes::ClientStream>(std::move(sock), m_msg_factory.get());
 				hermes->connect(nullptr);
-				WorldClient* client = new WorldClient(std::move(hermes));
+				WorldClient* client = new WorldClient();
+				client->setStream(std::move(hermes));
 				client->setup(m_app);
 				handler(client, 0);
 			}
@@ -41,11 +42,5 @@ namespace Rhea
 				delete m_sock;
 			}
 			});
-	}
-
-	Unit* ClientService::createType(std::string name, std::string type)
-	{
-		Unit* ret = (Unit*)new ClientService(name, type);
-		return ret;
 	}
 }

@@ -13,6 +13,7 @@ namespace Rhea
 
 	class BulletPhysicsService : public PhysicsService
 	{
+		MECLASS(BulletPhysicsService, PhysicsService)
 	public:
 		BulletPhysicsService(std::string name, std::string type_name);
 

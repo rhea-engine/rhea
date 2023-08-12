@@ -88,7 +88,9 @@ namespace Rhea
 
 	Unit* Unit::find(std::string path, std::string basepath, bool create)
 	{
-		if (path[0] != '/' || path[1] != '/')
+		if (path == "")
+			return nullptr;
+		if (path.size() < 2 || (path[0] != '/' || path[1] != '/'))
 			path = basepath + "/" + path;
 		return find(path, create);
 	}

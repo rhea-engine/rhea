@@ -10,6 +10,7 @@ namespace Meworla
 {
 	class ClientConnect : public Rhea::Unit
 	{
+		MECLASS(ClientConnect, Unit)
 	public:
 		ClientConnect(std::string path_name, std::string type_name) :
 			m_connection_state(0),
@@ -34,9 +35,6 @@ namespace Meworla
 		void doError();
 		void ready();
 
-		// constructor
-		static Rhea::Unit* createType(std::string name, std::string type);
-	
 	protected:
 		int m_connection_state;
 		int m_error;

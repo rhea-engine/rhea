@@ -25,6 +25,7 @@ namespace Rhea
 
 	class Font : public Unit
 	{
+		MECLASS_VIRTUAL(Font, Unit)
 	public:
 		Font(std::string name, std::string type_name) :
 			m_material(nullptr),

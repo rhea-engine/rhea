@@ -20,10 +20,14 @@ namespace Rhea
 		if (el)
 			return el;
 
+		Material* material_res = doCast<Material>(unit);
+		if (!material_res) {
+			LOG(LOG_ERROR) << "GraphicsMaterialManager::createElement: no material.";
+			return nullptr;
+		}
+
 		// create the element
-		GraphicsMaterial* item = new GraphicsMaterial();
-		Material* material_res = static_cast<Material*>(unit);
-		
+		GraphicsMaterial* item = new GraphicsMaterial();		
 		item->m_material = core->createMaterial();
 		std::string mat_name = material_res->getPathName();
 

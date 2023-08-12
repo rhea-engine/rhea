@@ -11,12 +11,13 @@ namespace Rhea
 
 	class Service : public Unit
 	{
+		MECLASS(Service, Unit)
 	public:
 		Service(std::string service_name, std::string type_name) :
 			Unit(service_name, type_name)
 		{}
 		Service(std::string service_name) :
-			Unit(service_name, "//meworla/service")
+			Service(service_name, "//meworla/service")
 		{}
 
 		//  events

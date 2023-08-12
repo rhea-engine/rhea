@@ -71,7 +71,7 @@ namespace Rhea
 		//if (nums == m_drawer.m_lines.size())
 		//	return;
 
-		nums = m_drawer.m_lines.size();
+		nums = (int)m_drawer.m_lines.size();
 
 		// draw to the mesh
 
@@ -90,7 +90,7 @@ namespace Rhea
 		}
 
 		m_mesh->setVertices(sizeof(Hippios::vertex), l_vertices.size(), l_vertices.data());
-		m_num_faces = l_vertices.size();
+		m_num_faces = (int)l_vertices.size();
 
 		// render triangles
 		/*

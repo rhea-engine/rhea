@@ -10,6 +10,7 @@ namespace Rhea
 {
 	class BasicController : public Controller
 	{
+		MECLASS(BasicController, Controller)
 	public:
 		BasicController(std::string path_name, std::string type_name) :
 			m_position(),
@@ -32,9 +33,6 @@ namespace Rhea
 		bool onInput(Event* ev, Unit* unit);
 
 		void connect(Item* target);
-
-		// factory function
-		static Unit* createType(std::string name, std::string type);
 
 		void logMe();		
 

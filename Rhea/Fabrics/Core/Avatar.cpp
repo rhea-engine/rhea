@@ -14,10 +14,4 @@ namespace Rhea {
 		else
 			m_position.z = 0.0f;
 	}
-
-	Unit* Avatar::createType(std::string name, std::string type)
-	{
-		Unit* ret = (Unit*)new Avatar(name);
-		return ret;
-	}
 }

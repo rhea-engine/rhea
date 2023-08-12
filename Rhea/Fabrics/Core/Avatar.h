@@ -8,15 +8,16 @@ namespace Rhea
 {
 	class Avatar : public Unit
 	{
+		MECLASS(Avatar, Unit)
 	public:
+		Avatar(std::string name, std::string type_name) :
+			Unit(name, type_name)
+		{}
 		Avatar(std::string name) :
-			Unit(name, "//meworla/avatar")
+			Avatar(name, "//meworla/avatar")
 		{}
 
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
-
-		// factory function
-		static Unit* createType(std::string name, std::string type);
 
 		Math::Vector3 getPosition() { return m_position; }
 

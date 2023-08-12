@@ -8,6 +8,7 @@ namespace Rhea
 {
 	class BitmapFont : public Font
 	{
+		MECLASS(BitmapFont, Font)
 	public:
 		BitmapFont(std::string name, std::string type_name) :
 			m_dim_w(256),
@@ -28,9 +29,6 @@ namespace Rhea
 
 		// get info about a glyph
 		Glyph* getGlyph(unsigned int letter);
-
-		// factory function
-		static Unit* createType(std::string name, std::string type);
 
 	protected:
 		int m_dim_w;

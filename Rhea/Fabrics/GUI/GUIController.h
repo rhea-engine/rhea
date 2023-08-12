@@ -9,6 +9,7 @@ namespace Rhea
 
 	class GUIController : public Widget
 	{
+		MECLASS(GUIController, Widget)
 	public:
 		GUIController(std::string name) :
 			GUIController(name, "//meworla/mwgui/controller")
@@ -40,9 +41,6 @@ namespace Rhea
 
 		// input event handler
 		bool onInput(Event* ev, Unit* unit);
-
-		// factory function
-		static Unit* createType(std::string name, std::string type);
 
 		// gui fabric function
 		static void Register(Application* app);

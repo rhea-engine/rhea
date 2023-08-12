@@ -18,13 +18,19 @@ namespace Rhea
 		char* buf;
 		size_t buflen;
 
+		Resource* res = doCast<Resource>(unit);
+		if (!res) {
+			LOG(LOG_ERROR) << "GraphicsTexture::createElement: not a resource";
+			return nullptr;
+		}
+
 		// check if already created
 		Element* el = unit->getElement("graphics");
 		if (el)
 			return el;
 
 		GraphicsTexture* elem = new GraphicsTexture(core);
-		if (static_cast<Resource*>(unit)->getRaw(&buf, &buflen)) {
+		if (res->getRaw(&buf, &buflen)) {
 			if (!buf || !elem->createTexture((unsigned char*)buf, buflen)) {
 				LOG(LOG_ERROR) << "Image " << unit->getPath() << " could not be created";
 				delete elem;

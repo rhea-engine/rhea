@@ -10,6 +10,7 @@ namespace Rhea
 	// class to controll an object with user input
 	class Controller : public Unit
 	{
+		MECLASS_VIRTUAL(Controller, Unit)
 	public:
 		Controller(std::string path_name, std::string type_name) :
 			m_target(NULL),

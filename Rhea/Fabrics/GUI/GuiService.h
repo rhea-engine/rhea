@@ -9,6 +9,7 @@ namespace Rhea
 
 	class GuiService : public Service
 	{
+		MECLASS(GuiService, Service)
 	public:
 		GuiService::GuiService(std::string name, std::string type_name) :
 			Service(name, type_name)
@@ -21,9 +22,6 @@ namespace Rhea
 		bool onFrame(float delta);
 
 		bool onDisplay(Event* ev, Unit* unit);
-
-		// factory function
-		static Unit* createType(std::string name, std::string type);
 
 		void registerController(GUIController* ctrl) { m_controllers.push_back(ctrl); }
 		void unregisterController(GUIController* ctrl); 

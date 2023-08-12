@@ -16,10 +16,4 @@ namespace Meworla
 		SimpleParser::Type::registerType<ClientConnect>("//meworla/lobby/connect");
 		SimpleParser::Type::registerType<Avatars>("//meworla/lobby/avatars");
 	}
-
-	Rhea::Unit* Lobby::createType(std::string name, std::string type)
-	{
-		Rhea::Unit* ret = (Unit*)new Lobby(name, type);
-		return ret;
-	}
 }

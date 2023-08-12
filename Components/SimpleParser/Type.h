@@ -41,6 +41,7 @@ namespace SimpleParser
 		Type(BaseType base, std::string name, CreatorFunc factory) :
 			m_base(base),
 			m_name(name),
+			m_parent(nullptr),
 			m_factory(factory)
 		{
 			m_types[name] = this;
@@ -52,7 +53,16 @@ namespace SimpleParser
 		static void registerType(std::string URI)
 		{
 			Type* type = Type::Register(URI, T::createType);
+			T::staticType(type);
 			T::initializeType(type);
+		}
+		// register an additional type name for a Type
+		// Note: this is proably only useful in creation
+		//		 a search would return the real type
+		template <class T>
+		static void registerTypeName(std::string URI)
+		{
+			m_types[URI] = T::staticType();
 		}
 
 		// get name of type
@@ -86,7 +96,10 @@ namespace SimpleParser
 
 		static Type* get(BaseType t);
 		static Type* get(std::string& type_name);
-		
+
+		Type* getParent() { return m_parent; }
+		void setParent(Type* parentType) { m_parent = parentType; }
+
 		friend class Variant;
 
 	protected:
@@ -95,11 +108,66 @@ namespace SimpleParser
 		std::unordered_map<std::string, Property*> m_properties;
 		CreatorFunc m_factory;
 		std::unordered_map<std::string, Method*> m_methods;
+		Type* m_parent;
 
 		// type database
 		static std::unordered_map<std::string, Type*> m_types;
 		static std::map<BaseType, Type*> m_base_types;
 	};
 }
+
+template<class T>
+T* isCast(SimpleParser::Variant* src)
+{
+	return src && (src->getType() == T::staticType()) ? (T*)src : nullptr;
+
+};
+
+template<class T>
+T* doCast(SimpleParser::Variant* src)
+{
+	if (!src) return nullptr;
+	if (src->getType() == T::staticType()) return (T*)src;
+	SimpleParser::Type* p = src->getType()->getParent();
+	while (p) {
+		if (p == T::staticType()) return (T*)src;
+		p = p->getParent();
+	}
+	return nullptr;
+}
+
+#define MECLASS(_MeClass, _Inherit)  \
+	public: \
+static SimpleParser::Type* staticType(SimpleParser::Type* newType = nullptr) { \
+	static SimpleParser::Type* _static_type = nullptr; \
+	if (!_static_type && newType) { \
+		SimpleParser::Type* p = _Inherit::staticType(); \
+		newType->setParent(p);	\
+		_static_type = newType; \
+	} \
+	return _static_type; \
+} \
+ \
+static Unit* createType(std::string name, std::string type) \
+{ \
+	Unit* ret = (Unit*)new _MeClass(name, type); \
+	return ret; \
+} \
+ \
+private: \
+
+#define MECLASS_VIRTUAL(_MeClass, _Inherit)  \
+	public: \
+static SimpleParser::Type* staticType(SimpleParser::Type* newType = nullptr) { \
+	static SimpleParser::Type* _static_type = nullptr; \
+	if (!_static_type && newType) { \
+		SimpleParser::Type* p = _Inherit::staticType(); \
+		newType->setParent(p);	\
+		_static_type = newType; \
+	} \
+	return _static_type; \
+} \
+ \
+private: \
 
 #endif // !SIMPLEPARSER_TYPE_H

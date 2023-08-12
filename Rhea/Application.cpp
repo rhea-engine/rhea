@@ -86,6 +86,11 @@ namespace Rhea
 
 		Service* res_service = (Service*)SimpleParser::Type::create("ResourceService", "//meworla/resourceservice");
 		m_services["resources"] = res_service;
+		SimpleParser::Type::registerType<Resource>("//meworla/resource");
+
+		// register generic text loader
+		SimpleParser::Type::registerType<TextResource>("//meworla/text");
+		m_resource_loader.registerLoader<TextLoader>("text/*");
 
 		// register scene types
 		SimpleParser::Type::registerType<Realm>("//meworla/realm");
@@ -98,19 +103,16 @@ namespace Rhea
 		SimpleParser::Type::registerType<Avatar>("//meworla/avatar");
 		MediaFabrics::Register(this);		
 		SimpleParser::Type::registerType<Camera>("//meworla/camera");
-		SimpleParser::Type::registerType<ImageResource>("//meworla/heightmap");
+		SimpleParser::Type::registerTypeName<ImageResource>("//meworla/heightmap");
 		SimpleParser::Type::registerType<Terrain>("//meworla/terrain");
 		SimpleParser::Type::registerType<KinematicCharacter>("//meworla/character");		
 		SimpleParser::Type::registerType<Item2D>("//meworla/widget");
 		SimpleParser::Type::registerType<TextWidget>("//meworla/textwidget");
+		SimpleParser::Type::registerType<Font>("//meworla/font");
 		SimpleParser::Type::registerType<BitmapFont>("//meworla/bitmapfont");
-		SimpleParser::Type::registerType<TextResource>("//meworla/fontinfo");
+		SimpleParser::Type::registerTypeName<TextResource>("//meworla/fontinfo");
 		GUIController::Register(this);
 		
-		// register generic text loader
-		SimpleParser::Type::registerType<TextResource>("//meworla/text");
-		m_resource_loader.registerLoader<TextLoader>("text/*");
-
 		// register wavefront types
 		m_resource_loader.registerLoader<TextLoader>("model/obj");
 		m_resource_loader.registerLoader<TextLoader>("model/mtl");

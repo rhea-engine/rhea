@@ -53,8 +53,7 @@ namespace Rhea
 		if (!render_context) {
 			LOG(LOG_ERROR) << "GraphicsText::removeRenderable: render context not set";
 			return;
-		}
-		//render_context->removeRenderChild(static_cast<Poseidon::Entity*>(elem->getRenderEntity()));	
+		}		
 		render_context->removeRenderChild(static_cast<Item*>(item));	
 	}
 

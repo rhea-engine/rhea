@@ -16,6 +16,7 @@ namespace Rhea
 	 */
 	class KinematicCharacter : public Item
 	{
+		MECLASS(KinematicCharacter, Item)
 	public:
 		enum class MoveState {
 			GROUND,
@@ -50,9 +51,6 @@ namespace Rhea
 
 		// scene reads
 		bool onSceneReady(Event* ev, Unit* unit);
-
-		// factory function
-		static Unit* createType(std::string name, std::string type);
 
 	protected:
 		MoveState m_move_state;

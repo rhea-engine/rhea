@@ -225,10 +225,4 @@ namespace Rhea
 		}
 		return &m_glyphs[letter];
 	}
-
-	Unit* BitmapFont::createType(std::string name, std::string type)
-	{
-		Unit* ret = (Unit*)new BitmapFont(name, type);
-		return ret;
-	}
 }

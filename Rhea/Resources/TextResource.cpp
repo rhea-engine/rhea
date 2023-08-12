@@ -52,10 +52,4 @@ namespace Rhea
 	{
 		return std::string(m_buf, m_buflen);
 	}
-	
-	Unit* TextResource::createType(std::string name, std::string type)
-	{
-		Unit* ret = new TextResource(name, type);
-		return ret;
-	}
 }

@@ -36,7 +36,6 @@ namespace Rhea
 		return refs;
 	}
 
-
 	void Mesh::ready()
 	{
 		Unit::ready();
@@ -81,11 +80,5 @@ namespace Rhea
 	{
 		m_vertices = vertices;
 		m_v_indices = indices;
-	}
-
-	Unit* Mesh::createType(std::string name, std::string type)
-	{
-		Unit* ret = (Unit*)new Mesh(name);
-		return ret;
 	}
 }

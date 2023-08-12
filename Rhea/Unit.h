@@ -69,6 +69,16 @@ namespace Rhea
 		Unit* find(std::string path, std::string basepath, bool create);
 
 		// find nearest by type
+		template <class T>
+		T* findByType() {
+			if (doCast<T>(this)) return (T*)this;
+			for (auto it = m_children.begin(); it != m_children.end(); ++it) {
+				T* ret = it->second->findByType<T>();
+				if (ret)
+					return ret;
+			}
+			return nullptr;
+		}
 		Unit* findByType(std::string type_name);
 
 		// get common ancestor
@@ -155,6 +165,16 @@ namespace Rhea
 
 		// type initialization
 		static void initializeType(SimpleParser::Type* type);
+		// type helper
+		static SimpleParser::Type* staticType(SimpleParser::Type* newType = nullptr) {
+			static SimpleParser::Type* _static_type = nullptr;
+			if (newType) {
+					SimpleParser::Type* p = Variant::staticType(); 
+					newType->setParent(p);	
+					_static_type = newType; 
+			} 
+			return _static_type;
+		}
 
 		// print my info
 		virtual void logMe();

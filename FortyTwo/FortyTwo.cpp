@@ -11,11 +11,11 @@ void FortyTwo::init()
 	Rhea::Application::init();
 
 	// ignore controller and spectator defs
-	SimpleParser::Type::registerType<Rhea::Unit>("//meworla/controller");
-	SimpleParser::Type::registerType<Rhea::Unit>("//meworla/spectator");
+	SimpleParser::Type::registerTypeName<Rhea::Unit>("//meworla/controller");
+	SimpleParser::Type::registerTypeName<Rhea::Unit>("//meworla/spectator");
 
 	// user and avatar types
-	SimpleParser::Type::registerType<Rhea::Unit>("//meworla/user");
+	SimpleParser::Type::registerTypeName<Rhea::Unit>("//meworla/user");
 	SimpleParser::Type::registerType<Rhea::Avatar>("//meworla/avatar");
 
 	// add world server item
@@ -42,10 +42,10 @@ void FortyTwo::setup()
 
 	// load the world server definition
 	loadResource(m_server_name, "//meworla/scene", [&](Rhea::Unit* scene_unit, ReqError err) {
-		Rhea::Scene* world_scene = static_cast<Rhea::Scene*>(scene_unit);
-		if (err == ReqError::OK) {
+		Rhea::Scene* world_scene = doCast<Rhea::Scene>(scene_unit);
+		if (world_scene && err == ReqError::OK) {
 
-			m_server_service = (ServerService*)world_scene->findByType("//meworla/serverservice");
+			m_server_service = world_scene->findByType<ServerService>();
 			if (!m_server_service) {
 
 				/* TODO: if not defined in config add one?
@@ -59,7 +59,7 @@ void FortyTwo::setup()
 				exit(1);
 			}
 			else {
-				World* world = ((World*)world_scene->findByType("//meworla/world"));
+				World* world = world_scene->findByType<World>();
 				if (!world) {
 					LOG(LOG_FATAL) << "world not defined";
 					exit(1);

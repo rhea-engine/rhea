@@ -8,6 +8,7 @@ namespace Meworla
 {
 	class Avatars : public Rhea::Unit
 	{
+		MECLASS(Avatars, Unit)
 	public:
 		Avatars(std::string path_name, std::string type_name) :
 			m_net(nullptr),
@@ -24,9 +25,6 @@ namespace Meworla
 		// entering world
 		bool onWorldEnter(Rhea::Event* ev, Rhea::Unit* unit);
 		void enterWithAvatar(Rhea::Scene* world_scene, std::string avatar_name);
-
-		// constructor
-		static Rhea::Unit* createType(std::string name, std::string type);
 
 	protected:
 		Rhea::ClientService* m_net;

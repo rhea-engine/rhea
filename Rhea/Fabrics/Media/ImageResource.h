@@ -7,6 +7,7 @@ namespace Rhea
 {
 	class ImageResource : public Resource
 	{
+		MECLASS(ImageResource, Resource)
 	public:
 		ImageResource(std::string basename, std::string type_name) :
 			Resource(basename, type_name)
@@ -20,9 +21,6 @@ namespace Rhea
 
 		// handle ready event
 		void ready();
-
-		// factory function
-		static Unit* createType(std::string name, std::string type);	
 	};
 }
 

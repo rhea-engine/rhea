@@ -8,6 +8,7 @@ namespace Rhea
 {
 	class Button : public Widget
 	{
+		MECLASS(Button, Widget)
 	public:
 		Button(std::string path_name) :
 			Button(path_name, "//meworla/gui/button")
@@ -18,8 +19,6 @@ namespace Rhea
 		{}
 
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
-
-		static Button* createType(std::string name, std::string type_name);
 
 		void setText(std::string text);
 

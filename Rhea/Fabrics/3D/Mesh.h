@@ -13,11 +13,15 @@ namespace Rhea
 
 	class Mesh : public Unit
 	{
+		MECLASS(Mesh, Unit)
 	public:
-		Mesh(std::string name) :
+		Mesh(std::string name, std::string type_name) :
 			m_material(nullptr),
 			m_isDynamic(false),
-			Unit(name, "//meworla/mesh")
+			Unit(name, type_name)
+		{}
+		Mesh(std::string name) :
+			Mesh(name, "//meworla/mesh")
 		{}
 
 		struct vertex {
@@ -53,9 +57,6 @@ namespace Rhea
 		// return the buffers
 		void getBuffers(std::vector<vertex>& vertices, std::vector<unsigned long>& indices);
 		void setBuffers(std::vector<vertex>& vertices, std::vector<unsigned long>& indices);
-
-		// factory function
-		static Unit* createType(std::string name, std::string type);
 
 	protected:
 		Material* m_material;

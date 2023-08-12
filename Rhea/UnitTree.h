@@ -15,6 +15,7 @@ namespace Rhea
 	// it is also a Unit factory
 	class UnitTree : public Unit
 	{
+		MECLASS(UnitTree, Unit)
 	public:
 		UnitTree(std::string basename, std::string type_name) :
 			Unit(basename, type_name)
@@ -29,10 +30,6 @@ namespace Rhea
 		// create a resource with res id and no values
 		Unit* createUnitById(std::string resource_id, std::string type_name);
 
-		// type functions
-
-		// create unit type
-		static Unit* createType(std::string name, std::string type_name);
 	};
 }
 

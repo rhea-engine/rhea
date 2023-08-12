@@ -29,13 +29,6 @@ namespace Rhea
 		return refs;
 	}
 
-
-	Unit* TextWidget::createType(std::string name, std::string type)
-	{
-		Unit* ret = (Unit*)new TextWidget(name, type);
-		return ret;
-	}
-
 	void TextWidget::ready()
 	{
 		Item2D::ready();
@@ -43,15 +36,15 @@ namespace Rhea
 		// load and add font and text
 		if (m_values.find("font") != m_values.end())
 		{
-			m_font = static_cast<Font*>(m_app->getUnitTree()->find(m_values["font"], m_attributes["basepath"], false));
+			m_font = doCast<Font>(m_app->getUnitTree()->find(m_values["font"], m_attributes["basepath"], false));
 			if (!m_font)
 				LOG(LOG_ERROR) << "TextWidget: Font '" << (std::string)m_values["font"] << "' not found";
 		}
 		else {
-			if (m_parent->getValue("isWidget")) {
+			if (doCast<Widget>(m_parent)) {
 				std::vector<Variant>* font_prop = ((Widget*)m_parent)->getStyle("font");
 				if (font_prop) {
-					m_font = static_cast<Font*>(m_app->getUnitTree()->find((*font_prop)[0]));
+					m_font = doCast<Font>(m_app->getUnitTree()->find((*font_prop)[0]));
 					if (!m_font)
 						LOG(LOG_ERROR) << "font " << (std::string)(*font_prop)[0] << " not found";
 				}

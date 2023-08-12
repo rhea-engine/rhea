@@ -11,13 +11,11 @@ namespace Rhea
 
 	class Camera : public Item
 	{
+		MECLASS(Camera, Item)
 	public:
 		Camera(std::string name, std::string type_name) :			
 			Item(name, type_name)
 		{}
-
-		// factory function
-		static Unit* createType(std::string name, std::string type);
 	};
 }
 

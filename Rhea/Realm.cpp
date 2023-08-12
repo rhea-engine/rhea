@@ -6,10 +6,4 @@ namespace Rhea
 	{
 		m_realm = realm;
 	}
-
-	Unit* Realm::createType(std::string name, std::string type)
-	{
-		Unit* ret = (Unit*)new Realm(name);
-		return ret;
-	}
 }

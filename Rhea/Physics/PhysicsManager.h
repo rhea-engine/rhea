@@ -9,6 +9,7 @@ namespace Rhea
 
 	class PhysicsManagerService : public Service
 	{
+		MECLASS(PhysicsManagerService, Service)
 	public:
 		enum class Types
 		{
@@ -25,9 +26,6 @@ namespace Rhea
 
 		// Service functions
 		virtual void onInit();
-
-		// factory function
-		static Unit* createType(std::string name, std::string type);
 
 	protected:
 		PhysicsService* m_phy_services;

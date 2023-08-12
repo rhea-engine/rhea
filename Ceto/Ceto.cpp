@@ -24,7 +24,7 @@
 
 bool Ceto::onQuitDialog(Rhea::Event* ev, Rhea::Unit* unit)
 {
-	Rhea::Widget* w = static_cast<Rhea::Widget*>(m_unit_tree->find("//local/cetogui/gui/quit"));
+	Rhea::Widget* w = doCast<Rhea::Widget>(m_unit_tree->find("//local/cetogui/gui/quit"));
 	if (w) {
 		w->hide();
 	}
@@ -49,7 +49,7 @@ bool Ceto::onInput(Rhea::EventInput* e, Rhea::Unit* unit)
 	esc.set(Psio::Key::CODE_ESC, 0, 0);
 
 	if (evt->isEvent(&esc)) {
-		Rhea::Widget* w = static_cast<Rhea::Widget*>(m_unit_tree->find("//local/cetogui/gui/quit"));
+		Rhea::Widget* w = doCast<Rhea::Widget>(m_unit_tree->find("//local/cetogui/gui/quit"));
 		if (w) {
 			w->show();
 		}
@@ -59,7 +59,7 @@ bool Ceto::onInput(Rhea::EventInput* e, Rhea::Unit* unit)
 	// open
 	esc.set(Psio::Key::CODE_O, 0, 0);
 	if (evt->isEvent(&esc)) {
-		Rhea::Widget* w = static_cast<Rhea::Widget*>(m_unit_tree->find("//local/cetogui/gui/realms"));
+		Rhea::Widget* w = doCast<Rhea::Widget>(m_unit_tree->find("//local/cetogui/gui/realms"));
 		if (w) {
 			w->show();
 		}
@@ -83,16 +83,18 @@ bool Ceto::onRealmSelect(Rhea::Event* ev, Rhea::Unit* unit)
 void Ceto::setRealmSelectDialog()
 {
 	// fill last used list
-	Rhea::ListWidget* list = static_cast<Rhea::ListWidget*>(m_unit_tree->find("//local/cetogui/gui/realms/lastused"));
-	std::vector<std::string> lastused = m_userprefs.lastUsed();
-	if (list && lastused.size()) {
-		for (auto it = lastused.begin(); it != lastused.end(); it++) {
-			list->addItem((*it), (*it));
+	Rhea::ListWidget* list = isCast<Rhea::ListWidget>(m_unit_tree->find("//local/cetogui/gui/realms/lastused"));
+	if (list) {
+		std::vector<std::string> lastused = m_userprefs.lastUsed();
+		if (list && lastused.size()) {
+			for (auto it = lastused.begin(); it != lastused.end(); it++) {
+				list->addItem((*it), (*it));
+			}
 		}
 	}
 
 	// show dialog
-	Rhea::Widget* w = static_cast<Rhea::Widget*>(m_unit_tree->find("//local/cetogui/gui/realms"));
+	Rhea::Widget* w = doCast<Rhea::Widget>(m_unit_tree->find("//local/cetogui/gui/realms"));
 	if (w) {
 		w->show();
 	}
@@ -100,7 +102,7 @@ void Ceto::setRealmSelectDialog()
 
 void Ceto::openScene(std::string scene_name)
 {
-	Rhea::Widget* w = static_cast<Rhea::Widget*>(m_unit_tree->find("//local/cetogui/gui/realms"));
+	Rhea::Widget* w = doCast<Rhea::Widget>(m_unit_tree->find("//local/cetogui/gui/realms"));
 	if (w) {
 		w->hide();
 	}
@@ -110,9 +112,9 @@ void Ceto::openScene(std::string scene_name)
 	setScene();
 	SimpleParser::CssParser::PropertyMap properties;
 	properties["background-image"] = { "none" };
-	w = static_cast<Rhea::Widget*>(m_unit_tree->find("//local/cetogui/gui"));
-	w->setStyle(properties);
-
+	w = doCast<Rhea::Widget>(m_unit_tree->find("//local/cetogui/gui"));
+	if (w)
+		w->setStyle(properties);
 }
 
 void Ceto::setup()
@@ -179,17 +181,19 @@ void Ceto::setScene()
 	stream->Close();		
 
 	loadResource(m_home_scene, "//meworla/scene", [&](Rhea::Unit* scene_unit, ReqError err) {
-		Rhea::Scene* scene = static_cast<Rhea::Scene*>(scene_unit);
-		if (err == ReqError::OK) {
+		Rhea::Scene* scene = doCast<Rhea::Scene>(scene_unit);
+		if (scene && err == ReqError::OK) {
 
 			// display scene
 			std::string start_scene = scene->getValue("startscene", "");
 			if (start_scene != "") {
-				Rhea::Scene* go_scene = (Rhea::Scene*)m_unit_tree->find(start_scene, scene->getPath(), false);
+				Rhea::Scene* go_scene = doCast<Rhea::Scene>(m_unit_tree->find(start_scene, scene->getPath(), false));
 				if (go_scene)
 					showScene(go_scene);
-				else
+				else {
+					LOG(LOG_ERROR) << "Startscene '" << start_scene << "' not found.";
 					showScene(scene);
+				}
 			}
 			else {
 				showScene(scene);
@@ -220,7 +224,7 @@ void Ceto::showScene(Rhea::Scene* scene)
 	}
 
 	// search for a camera			
-	m_view = static_cast<Rhea::Camera*>(scene->findByType("//meworla/camera"));
+	m_view = scene->findByType<Rhea::Camera>();
 	if (!m_view) {
 		// no camera found - create a default cam
 		m_view = static_cast<Rhea::Camera*>(m_unit_tree->createUnit("camera", "//meworla/camera"));
@@ -241,7 +245,7 @@ void Ceto::showScene(Rhea::Scene* scene)
 	}
 
 	// search for a controller
-	m_focused_controller = static_cast<Rhea::Controller*>(m_unit_tree->findByType("//meworla/controller"));
+	m_focused_controller = m_unit_tree->findByType<Rhea::Controller>();
 	if (!m_focused_controller) {
 		// no controller found - use camera and add default controller for it
 		// note: spectator does not work, because we have no controlled element
@@ -254,67 +258,16 @@ void Ceto::showScene(Rhea::Scene* scene)
 	scene->show();
 }
 
-void Ceto::showAvatarSelect(Rhea::Scene* scene, Rhea::Unit* client)
-{
-	// fill last used list	
-	Rhea::ListWidget* list = static_cast<Rhea::ListWidget*>(m_unit_tree->find("//local/cetogui/gui/avatars/list"));	
-	if (list) {
-		Rhea::Unit* avatar_list = scene->getChild("avatarlist");
-		if (avatar_list) {
-			avatar_list->children([&list](std::string& name, Rhea::Unit* unit)->bool {
-				if (unit->getTypeName() == "//meworla/avatar") {
-					Rhea::Avatar* avatar = (Rhea::Avatar*)unit;
-					list->addItem(name, name);
-				}
-			return true;
-				});
-		}
-	}
-
-	// show dialog
-	Rhea::Widget* w = static_cast<Rhea::Widget*>(m_unit_tree->find("//local/cetogui/gui/avatars"));
-	if (w) {
-		w->setUserPtr((void*)client);
-		w->registerEventHandler("selected", this, std::bind(&Ceto::onAvatarSelect, this, std::placeholders::_1, std::placeholders::_2));
-		w->show();
-	}
-}
-
-bool Ceto::onAvatarSelect(Rhea::Event* ev, Rhea::Unit* unit)
-{
-	Rhea::Widget* w = static_cast<Rhea::Widget*>(m_unit_tree->find("//local/cetogui/gui/avatars"));
-	if (w) {
-		w->hide();
-	}
-	ev->stopPropagation();
-
-	Unit* target = ev->getTarget();
-	DLOG(LOG_DEBUG) << "target selected was '" << (std::string)target->getValue("value") << "'";
-	std::string avatar_name = (std::string)target->getValue("value");
-
-	// enter the world with given avatarname
-	if (avatar_name.length()) {
-		Rhea::WorldClient* client = (Rhea::WorldClient*)w->getUserPtr();
-		client->enterWorld(avatar_name);
-	//	SimpleParser::CssParser::PropertyMap properties;
-	//	properties["background-image"] = { "none" };
-	//	w = static_cast<Rhea::Widget*>(m_unit_tree->find("//local/cetogui/gui"));
-	//	w->setStyle(properties);
-	}
-
-	return false;
-}
-
 void Ceto::showAlert(std::string text)
 {
 	// set the text
-	Rhea::Label* info_text = static_cast<Rhea::Label*>(m_unit_tree->find("//local/cetogui/gui/alert/info"));
+	Rhea::Label* info_text = doCast<Rhea::Label>(m_unit_tree->find("//local/cetogui/gui/alert/info"));
 	if (info_text) {
 		info_text->setText(text);
 	}
 	 
 	// show dialog
-	Rhea::Widget* w = static_cast<Rhea::Widget*>(m_unit_tree->find("//local/cetogui/gui/alert"));
+	Rhea::Widget* w = doCast<Rhea::Widget>(m_unit_tree->find("//local/cetogui/gui/alert"));
 	if (w) {		
 		w->registerEventHandler("clicked", this, std::bind(&Ceto::onAlertDialog, this, std::placeholders::_1, std::placeholders::_2));
 		w->show();
@@ -323,7 +276,7 @@ void Ceto::showAlert(std::string text)
 
 bool Ceto::onAlertDialog(Rhea::Event* ev, Rhea::Unit* unit)
 {
-	Rhea::Widget* w = static_cast<Rhea::Widget*>(m_unit_tree->find("//local/cetogui/gui/alert"));
+	Rhea::Widget* w = doCast<Rhea::Widget>(m_unit_tree->find("//local/cetogui/gui/alert"));
 	if (w) {
 		w->hide();
 	}
@@ -336,14 +289,15 @@ void Ceto::loadMainGUI()
 {
 	// load the apps gui			
 	std::string app_gui = "//local/cetogui.scene";
-	loadResource(app_gui, "//meworla/scene", [&](Rhea::Unit* gui, ReqError r_err) {
-		if (r_err == ReqError::OK) {
+	loadResource(app_gui, "//meworla/scene", [&](Rhea::Unit* res, ReqError r_err) {
+		Rhea::Scene* gui = doCast<Rhea::Scene>(res);
+		if (gui && r_err == ReqError::OK) {
 			
-			((Rhea::Scene*)gui)->show();
+			gui->show();
 			log("gui ready");
 			
 			// find label for debug text
-			m_debug_text = static_cast<Rhea::Label*>(m_unit_tree->find("//local/cetogui/gui/widget1/laber"));
+			m_debug_text = doCast<Rhea::Label>(m_unit_tree->find("//local/cetogui/gui/widget1/laber"));
 			if (!m_debug_text) {
 				log("no debug text label found");
 			}
@@ -351,7 +305,7 @@ void Ceto::loadMainGUI()
 			// setup system dialogs
 
 			// quit dialog
-			Rhea::Widget* w = static_cast<Rhea::Widget*>(m_unit_tree->find("//local/cetogui/gui/quit"));
+			Rhea::Widget* w = doCast<Rhea::Widget>(m_unit_tree->find("//local/cetogui/gui/quit"));
 			if (w) {
 				w->registerEventHandler("clicked", this, std::bind(&Ceto::onQuitDialog, this, std::placeholders::_1, std::placeholders::_2));
 			}
@@ -383,7 +337,7 @@ bool Ceto::onFrameEnd()
 
 		std::string debug = "";
 		debug += "debugging: sec=" + std::to_string(elapsed_s) +"; fps = " + std::to_string(fps);
-		m_focused_controller = static_cast<Rhea::Controller*>(m_unit_tree->find("//local/scene1/maincamera"));
+		m_focused_controller = doCast<Rhea::BasicController>(m_unit_tree->find("//local/scene1/maincamera"));
 		if (m_focused_controller) {
 			Math::Vector3 pos = static_cast<Rhea::BasicController*>(m_focused_controller)->getPosition();
 			debug += "\nPosition: " + std::to_string(pos.x) + " / " + std::to_string(pos.y) + " / " + std::to_string(pos.z);

@@ -12,6 +12,7 @@ namespace Rhea
 
 	class SpectatorController : public BasicController
 	{
+		MECLASS(SpectatorController, BasicController)
 	public:
 		SpectatorController(std::string path_name, std::string type_name) :
 			m_view(NULL),
@@ -29,9 +30,6 @@ namespace Rhea
 
 		// input event handler
 		bool onInput(Event* ev, Unit* unit);
-		
-		// factory function
-		static Unit* createType(std::string name, std::string type);
 
 	protected:
 		Camera* m_view;

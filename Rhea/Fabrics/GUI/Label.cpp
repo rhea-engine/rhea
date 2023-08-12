@@ -39,12 +39,6 @@ namespace Rhea
 		addChild(m_label_item);
 	}
 
-	Label* Label::createType(std::string name, std::string type_name)
-	{
-		Label* ret = new Label(name, type_name);
-		return ret;
-	}
-
 	void Label::setText(std::string text)
 	{
 		m_values["text"] = text; 
@@ -156,16 +150,8 @@ namespace Rhea
 	{
 		Widget::ready();
 
-		// find the scene
-		Scene* scene = (Scene*)m_app->getUnitTree()->findByType("//meworla/scene");
-		if (!scene) {
-			LOG(LOG_ERROR) << "Widget: Scene not found";
-			return;
-		}
-
 		if (m_label_item) {
 			m_label_item->ready();
-			//scene->addItem((Item*)m_label_item);
 		}
 	}
 }

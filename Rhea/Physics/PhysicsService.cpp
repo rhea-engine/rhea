@@ -41,7 +41,7 @@ namespace Rhea
 
 	void PhysicsService::setScene(Scene* scene)
 	{
-		Controller* controller = static_cast<Controller*>(scene->findByType("//meworla/controller"));
+		Controller* controller = scene->findByType<Controller>();
 		if (controller) {
 			// get target from controller
 			m_item = controller->getTarget();

@@ -71,9 +71,3 @@ void World::ready()
 		LOG(LOG_ERROR) << "World::ready(): Could not load scene " << (std::string)m_values["scenename"];
 	}
 }
-
-Rhea::Unit* World::createType(std::string name, std::string type)
-{
-	Unit* ret = (Unit*)new World(name, type);
-	return ret;
-}

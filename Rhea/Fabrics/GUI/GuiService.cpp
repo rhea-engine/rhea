@@ -13,7 +13,8 @@ namespace Rhea
 		for (auto it = m_controllers.begin(); it < m_controllers.end(); it++)
 		{
 			(*it)->traverse([delta](std::string& name, Unit* unit)->bool {
-				static_cast<Item*>(unit)->onFrame(delta);
+				Item* item = doCast<Item>(unit);
+				if (item) item->onFrame(delta);
 				return true;
 				});
 		}
@@ -24,13 +25,6 @@ namespace Rhea
 	bool GuiService::onDisplay(Event* ev, Unit* unit)
 	{
 		return false;
-	}
-
-	// factory function
-	Unit* GuiService::createType(std::string name, std::string type)
-	{
-		Unit* ret = (Unit*)new GuiService(name, type);
-		return ret;
 	}
 
 	void Rhea::GuiService::unregisterController(GUIController* ctrl)

@@ -102,12 +102,6 @@ bool ServerService::onFrameEnd()
 	return false;
 }
 
-Rhea::Unit* ServerService::createType(std::string name, std::string type)
-{
-	Unit* ret = (Unit*)new ServerService(name, type);
-	return ret;
-}
-
 void ServerService::broadcast(Hermes::Message* msg, ClientConnection* source)
 {
 	// send to all clients

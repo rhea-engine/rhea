@@ -12,6 +12,7 @@ namespace Rhea
 {
 	class Item2D : public Item
 	{
+		MECLASS(Item2D, Item)
 	public:
 		Item2D(std::string name) :
 			Item2D(name, "//meworla/Item2D")
@@ -41,9 +42,6 @@ namespace Rhea
 		float Y() { return m_position.y; }
 		float W() { return m_size.x; }
 		float H() { return m_size.y; }
-
-		// factory function
-		static Unit* createType(std::string name, std::string type);
 
 	protected:
 		// dimensions in screen space

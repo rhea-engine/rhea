@@ -67,8 +67,10 @@ namespace Rhea
 	{
 		printf("item updated\n");
 
-		Item* item = static_cast<Item*>(unit);
-		GraphicsRenderElement* elem = static_cast<GraphicsRenderElement*>(item->getElement("graphics"));
+/*		Item* item = doCast<Item>(unit);
+		if (item)
+			GraphicsRenderElement* elem = static_cast<GraphicsRenderElement*>(item->getElement("graphics"));
+*/
 
 		// TODO (?) what could be an update?
 

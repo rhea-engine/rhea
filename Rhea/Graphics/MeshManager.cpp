@@ -3,6 +3,7 @@
 #include <Rhea/Fabrics/3D/Mesh.h>
 #include <Poseidon/Mesh.h>
 #include <Poseidon/SceneManager.h>
+#include <Psio/Log.h>
 
 namespace Rhea
 {
@@ -14,7 +15,11 @@ namespace Rhea
 			return el;
 
 		// create the element
-		Mesh* mesh_res = static_cast<Mesh*>(unit);
+		Mesh* mesh_res = doCast<Mesh>(unit);
+		if (!mesh_res) {
+			LOG(LOG_ERROR) << "GraphicsMeshManager::createElement: No mesh.";
+			return nullptr;
+		}
 		bool dynamic_usage = mesh_res->isDynamic();
 		GraphicsMesh* mesh_el = new GraphicsMesh();
 		Poseidon::SceneManager* scene_mgr = core->get_scene_manager();
@@ -38,7 +43,11 @@ namespace Rhea
 	bool GraphicsMeshManager::onUpdate(Event* ev, Unit* unit)
 	{
 		GraphicsMesh* mesh_el = (GraphicsMesh*)unit->getElement("graphics");
-		Mesh* mesh = ((Mesh*)unit);
+		Mesh* mesh = doCast<Mesh>(unit);
+		if (!mesh) {
+			LOG(LOG_ERROR) << "GraphicsMeshManager::onUpdate: No mesh.";
+			return nullptr;
+		}
 
 		// add vertex and index buffer
 

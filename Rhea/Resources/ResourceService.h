@@ -10,6 +10,7 @@ namespace Rhea
 {
 	class ResourceService : public Service
 	{
+		MECLASS(ResourceService, Service)
 	public:
 		ResourceService(std::string name, std::string type_name) :
 			Service("ResourceManager", type_name)
@@ -18,9 +19,6 @@ namespace Rhea
 		typedef std::function<void(ResourceList*, Error*)> OnLoadHandler;
 
 		void loadAsync(ResourceList& resreq, OnLoadHandler onLoaded);
-
-		// factory function
-		static Unit* createType(std::string name, std::string type);
 
 	protected:
 		struct Request {

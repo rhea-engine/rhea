@@ -49,7 +49,7 @@ namespace Meworla
 				m_values["info"] = "Sending login information";
 				DLOG(LOG_DEBUG) << "connected to server";
 				client->setAuth("anonymous");
-				Rhea::Scene* avatar_select_scene = static_cast<Rhea::Scene*>(m_app->getUnitTree()->find(getValue("onAvatarSelectScene"), m_attributes["basepath"], false));
+				Rhea::Scene* avatar_select_scene = doCast<Rhea::Scene>(m_app->getUnitTree()->find(getValue("onAvatarSelectScene"), m_attributes["basepath"], false));
 				if (avatar_select_scene) {
 					client->registerEventHandler("avatarlist", this, [&, avatar_select_scene](Rhea::Event* ev, Rhea::Unit* t)->bool {
 						if ((int)t->getValue("nofAvatars", 0) > 0) {
@@ -57,7 +57,7 @@ namespace Meworla
 							m_values["info"] = "select avatar";
 							if (m_info_w)
 								m_info_w->hide();
-							if (m_parent && !m_parent->getTypeName().compare("//meworla/scene"))
+							if (doCast<Rhea::Scene>(m_parent))
 								static_cast<Rhea::Scene*>(m_parent)->hide();
 							avatar_select_scene->show();
 						}
@@ -112,24 +112,14 @@ namespace Meworla
 	void ClientConnect::ready()
 	{
 		// preapre my references
-		m_net = static_cast<Rhea::ClientService*>(m_app->getUnitTree()->find(m_values["netManager"], m_attributes["basepath"], false));
-		m_info_w = static_cast<Rhea::Widget*>(m_app->getUnitTree()->find(m_values["infowidget"], m_attributes["basepath"], false));
-		if (m_info_w && !m_info_w->getValue("isWidget"))
-			m_info_w = nullptr;
-		m_error_w = static_cast<Rhea::Widget*>(m_app->getUnitTree()->find(m_values["errorwidget"], m_attributes["basepath"], false));
-		if (m_error_w && !m_error_w->getValue("isWidget"))
-			m_error_w = nullptr;
+		m_net = isCast<Rhea::ClientService>(m_app->getUnitTree()->find(m_values["netManager"], m_attributes["basepath"], false));
+		m_info_w = doCast<Rhea::Widget>(m_app->getUnitTree()->find(m_values["infowidget"], m_attributes["basepath"], false));
+		m_error_w = doCast<Rhea::Widget>(m_app->getUnitTree()->find(m_values["errorwidget"], m_attributes["basepath"], false));
 
 		// register event handlers
 
 		registerEventHandler("scene_show", this, std::bind(&ClientConnect::onDisplay, this, std::placeholders::_1, std::placeholders::_2));
 		registerEventHandler("abort", this, std::bind(&ClientConnect::onAbort, this, std::placeholders::_1, std::placeholders::_2));
 		registerEventHandler("retry", this, std::bind(&ClientConnect::onRetry, this, std::placeholders::_1, std::placeholders::_2));
-	}
-
-	Rhea::Unit* ClientConnect::createType(std::string name, std::string type)
-	{
-		Rhea::Unit* ret = (Unit*)new ClientConnect(name, type);
-		return ret;
 	}
 }

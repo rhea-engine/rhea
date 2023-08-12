@@ -29,12 +29,6 @@ namespace Rhea
 
 	}
 	
-	ListWidgetItem* ListWidgetItem::createType(std::string name, std::string type_name)
-	{
-		ListWidgetItem* ret = new ListWidgetItem(name);
-		return ret;
-	}
-	
 	bool ListWidgetItem::onMouseClick(Event* ev, Unit* unit)
 	{
 		// consume the mouse event

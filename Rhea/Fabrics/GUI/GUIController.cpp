@@ -55,11 +55,9 @@ namespace Rhea
 			StyleSheet* css = (StyleSheet*)m_app->getUnitTree()->find(m_values["stylesheet"], m_attributes["basepath"], false);
 			if (css) {
 				traverse([&, css](std::string name, Rhea::Unit* unit)->bool {
-					if (unit->getValue("isWidget")) {
-						css->applyStyle((Widget*)unit);
-						return true;
-					}
-					else if (unit == this) {
+					Widget* w = doCast<Widget>(unit);
+					if (w) {
+						css->applyStyle(w);
 						return true;
 					}
 					else {
@@ -75,8 +73,8 @@ namespace Rhea
 		// all children are ready - initial resize		
 		for (auto it = m_children.begin(); it != m_children.end(); ++it)
 		{
-			Widget* w = (Widget*)it->second;
-			if (w->getValue("isWidget", false)) {
+			Widget* w = doCast<Widget>(it->second);
+			if (w) {
 				w->setToplevel(true);
 				w->onParentSized(nullptr);
 				w->onParentMoved();
@@ -106,8 +104,8 @@ namespace Rhea
 	Vector2 GUIController::size()
 	{
 		GraphicsService* gsrv = (GraphicsService*)m_app->getService("graphics");
-		m_size.x = gsrv->getViewportWidth();
-		m_size.y = gsrv->getViewportHeight();
+		m_size.x = (float)gsrv->getViewportWidth();
+		m_size.y = (float)gsrv->getViewportHeight();
 		return m_size;
 	}
 
@@ -140,8 +138,8 @@ namespace Rhea
 				// check all top level windows
 				for (auto it = m_children.begin(); it != m_children.end(); ++it)
 				{
-					Widget* w = (Widget*)it->second;
-					if (w->getValue("isWidget", false)) {
+					Widget* w = doCast<Widget>(it->second);
+					if (w) {
 
 						if (me->getX() > 330) {
 							captured = nullptr;
@@ -164,8 +162,8 @@ namespace Rhea
 					if (captured) {
 
 						// inform all about leave and enter that are not common ancestors
-						Widget* ancestor = static_cast<Widget*>(captured->getCommonAncestor(m_captured));
-						if (ancestor && ancestor->getValue("isWidget"), false) {
+						Widget* ancestor = doCast<Widget>(captured->getCommonAncestor(m_captured));
+						if (ancestor) {
 
 							// leave old captured widget
 							Event leave("mouse_leave", captured);
@@ -251,21 +249,10 @@ namespace Rhea
 		}
 		
 		return false;
-	}
-
-	Unit* GUIController::createType(std::string name, std::string type)
-	{
-		Unit* ret = (Unit*)new GUIController(name, type);
-		return ret;
-	}
+	}	
 
 	void GUIController::Register(Application* app)
 	{
-		// general gui types
-		SimpleParser::Type::registerType<GUIController>("//meworla/gui");
-		SimpleParser::Type::registerType<StyleSheet>("//meworla/gui/stylesheet");
-		app->getResourceLoader()->registerLoader<CssLoader>("text/css");
-
 		// register widget types
 		SimpleParser::Type::registerType<Widget>("//meworla/gui/widget");
 		SimpleParser::Type::registerType<Label>("//meworla/gui/label");
@@ -275,6 +262,12 @@ namespace Rhea
 		SimpleParser::Type::registerType<ListWidget>("//meworla/gui/list");
 		SimpleParser::Type::registerType<ListWidgetItem>("//meworla/gui/listitem");
 
+		// general gui types
+		SimpleParser::Type::registerType<GUIController>("//meworla/gui");
+		
+		// register helpers
+		SimpleParser::Type::registerType<StyleSheet>("//meworla/gui/stylesheet");
+		app->getResourceLoader()->registerLoader<CssLoader>("text/css");
 		SimpleParser::Type::registerType<GuiService>("//meworla/gui/service"); 
 		
 		GuiService* service = (GuiService*)SimpleParser::Type::create("GuiService", "//meworla/gui/service");

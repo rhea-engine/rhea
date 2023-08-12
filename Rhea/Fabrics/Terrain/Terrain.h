@@ -15,6 +15,7 @@ namespace Rhea
 
 	class Terrain : public Item
 	{
+		MECLASS(Terrain, Item)
 	public:
 		Terrain(std::string name, std::string type_name) :
 			m_texture(nullptr),
@@ -45,9 +46,6 @@ namespace Rhea
 
 		ImageResource* getTexture() { return m_texture; }		
 		Math::Vector3 calculateNormal(int x, int y);
-
-		// factory
-		static Unit* createType(std::string name, std::string type);
 
 	protected:
 		ImageResource* m_texture;		

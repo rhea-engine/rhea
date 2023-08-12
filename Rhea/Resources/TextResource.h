@@ -7,6 +7,7 @@ namespace Rhea
 {
 	class TextResource : public Resource
 	{
+		MECLASS(TextResource, Resource)
 	public:
 		TextResource(std::string basename, std::string type_name) :
 			Resource(basename, type_name)
@@ -15,10 +16,6 @@ namespace Rhea
 		void load(Orion::ResourceRequest* req, ReadyHandler handler);
 
 		std::string getAsString();
-
-		// factory function
-		static Unit* createType(std::string name, std::string type);
-
 	};
 }
 

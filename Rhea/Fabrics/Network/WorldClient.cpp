@@ -63,7 +63,7 @@ namespace Rhea
 							else {
 								Hermes::MessageCreate* msgc = (Hermes::MessageCreate*)msg.get();
 								// instancing the player
-								Rhea::Item* gnar = (Rhea::Item*)(m_app->getUnitTree()->find(msgc->type_name));
+								Rhea::Item* gnar = doCast<Rhea::Item>(m_app->getUnitTree()->find(msgc->type_name));
 								if (gnar) {
 									Rhea::Item* player;
 									if (msgc->is_player && m_player_set) {

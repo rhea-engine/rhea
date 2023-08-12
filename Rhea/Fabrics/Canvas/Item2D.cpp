@@ -37,13 +37,7 @@ namespace Rhea
 		}
 		return refs;
 	}
-
-	Unit* Item2D::createType(std::string name, std::string type)
-	{
-		Unit* ret = (Unit*)new Item2D(name, type);
-		return ret;
-	}
-
+	
 	void Item2D::ready()
 	{
 		Item::ready();

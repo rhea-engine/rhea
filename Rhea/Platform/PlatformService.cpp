@@ -19,11 +19,4 @@ namespace Rhea
 		std::string cert = appdir + "/ssl/cacert.pem";
 		m_psio->getNet()->SetSetting(setting, cert);
 	}
-
-	// factory function
-	Unit* PlatformService::createType(std::string name, std::string type)
-	{
-		Unit* ret = (Unit*)new PlatformService(name, type);
-		return ret;
-	}
 }

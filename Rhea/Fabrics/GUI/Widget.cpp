@@ -23,9 +23,6 @@ namespace Rhea
 		m_base_size.x = getValue("w");
 		m_base_size.y = getValue("h");
 
-		// internal
-		m_values["isWidget"] = true;
-
 		// set styles based on values
 		if (m_values.find("font") != m_values.end())
 			m_properties["font"].push_back({ m_values["font"] });
@@ -36,28 +33,11 @@ namespace Rhea
 		std::unordered_map<std::string, Variant> val;		
 	}
 
-	Widget* Widget::createType(std::string name, std::string type)
-	{
-		Widget* ret = new Widget(name);
-		return ret;
-	}
-	
 	void Widget::ready()
 	{
 		// prepare material
 		Item2D::ready();
 
-		// find the scene
-		Scene* scene = (Scene*)m_app->getUnitTree()->findByType("//meworla/scene");
-		if (!scene) {
-			LOG(LOG_ERROR) << "Widget: Scene not found";
-			return;
-		}
-
-		if (m_material) {
-		//	scene->addItem(this);
-		}
-	
 		// if we are hidden at the beggining - send the event
 		if (!m_visible) {
 			hide();
@@ -128,8 +108,8 @@ namespace Rhea
 	void Widget::sizeChildren()
 	{
 		for (auto it = m_children.begin(); it != m_children.end(); ++it) {
-			Widget* w = (Widget*)it->second;
-			if (w->getValue("isWidget", false)) {
+			Widget* w = doCast<Widget>(it->second);
+			if (w) {
 				w->onParentSized(nullptr);
 			}
 		}
@@ -138,8 +118,8 @@ namespace Rhea
 	void Widget::moveChildren()
 	{
 		for (auto it = m_children.begin(); it != m_children.end(); ++it) {
-			Widget* w = (Widget*)it->second;
-			if (w->getValue("isWidget", false)) {
+			Widget* w = doCast<Widget>(it->second);
+			if (w) {
 				w->onParentMoved();
 			}
 		}
@@ -151,7 +131,8 @@ namespace Rhea
 		// if size is not set use remaining size of parent
 
 		m_size = m_base_size;
-		if (m_parent && !m_parent->getValue("isWidget", false)) {
+		// TODO This seems not to be called and is probably wrong (parent of parent?)
+		if (m_parent && !doCast<Widget>(m_parent)) {
 			// get remaining parent area (parents area minus my relative position)
 			Vector2 p_size = static_cast<Widget*>(m_parent)->getSize() - m_cur_position;
 
@@ -252,7 +233,7 @@ namespace Rhea
 		auto it = m_properties.find(name);
 		if (it != m_properties.end())
 			return &it->second;
-		else if (m_parent->getValue("isWidget"))
+		else if (doCast<Widget>(m_parent))
 			return ((Widget*)m_parent)->getStyle(name);
 		else
 			return nullptr;
@@ -290,8 +271,8 @@ namespace Rhea
 		Widget* captured;
 		for (auto it = m_children.begin(); it != m_children.end(); ++it)
 		{
-			Widget* w = (Widget*)it->second;
-			if (w->getValue("isWidget", false)) {
+			Widget* w = doCast<Widget>(it->second);
+			if (w) {
 				captured = w->capture(c_x, c_y);
 				if (captured) {
 					return captured;

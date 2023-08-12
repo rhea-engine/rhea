@@ -14,6 +14,7 @@ namespace Rhea
 {
 	class PlatformService : public Service
 	{
+		MECLASS(PlatformService, Service)
 	public:
 		PlatformService(std::string name, std::string type_name);
 
@@ -21,9 +22,6 @@ namespace Rhea
 
 		// Service functions
 		void onInit();
-
-		// factory function
-		static Unit* createType(std::string name, std::string type);
 	
 	protected:
 		std::unique_ptr<Psio::Engine> m_psio;

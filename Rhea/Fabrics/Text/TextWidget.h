@@ -11,6 +11,7 @@ namespace Rhea
 {
 	class TextWidget : public Item2D
 	{
+		MECLASS(TextWidget, Item2D)
 	public:
 		TextWidget(std::string name) :
 			TextWidget(name, "//meworla/textwidget")
@@ -61,9 +62,6 @@ namespace Rhea
 
 		// get the font
 		Font* getFont() { return m_font; }
-
-		// factory function
-		static Unit* createType(std::string name, std::string type);
 
 	protected:
 		std::string m_text;

@@ -17,6 +17,7 @@ using Rhea::Unit;
 
 class ServerService : public Rhea::Service
 {
+	MECLASS(ServerService, Rhea::Service)
 public:
 	ServerService(std::string name, std::string type) :
 		m_network(nullptr),
@@ -38,9 +39,6 @@ public:
 
 	// handle frameupdate
 	bool onFrameEnd();
-
-	// factory function
-	static Unit* createType(std::string name, std::string type);
 
 	int getUID() { return nuid++; }
 

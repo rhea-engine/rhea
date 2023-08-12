@@ -12,8 +12,12 @@ namespace Rhea
 	// a scene is a holder for various corresponding scene objects
 	class Scene : public Unit
 	{
+		MECLASS(Scene, Unit)
 	public:
-		Scene(std::string name) :
+		Scene(std::string name) :			
+			Scene(name, "//meworla/scene")
+		{}
+		Scene(std::string name, std::string typename) :
 			m_is_active(false),
 			Unit(name, "//meworla/scene")
 		{}
@@ -43,10 +47,7 @@ namespace Rhea
 		// handle scene active state
 		void activate();
 		void deactive();
-
-		// factory function
-		static Unit* createType(std::string name, std::string type);
-
+		
 	protected:
 		std::vector<Item*> m_items;		
 		bool m_is_active;

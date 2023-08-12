@@ -13,6 +13,7 @@ namespace Rhea
 
 	class PhysicsService : public Service
 	{
+		MECLASS(PhysicsService, Service)
 	public:
 		PhysicsService::PhysicsService(std::string name, std::string type_name) :
 			m_item(nullptr),

@@ -11,6 +11,7 @@ namespace Rhea
 
 	class ObjLoader : public Geometry
 	{
+		MECLASS(ObjLoader, Geometry)
 	public:	
 		ObjLoader(std::string path_name, std::string type_name) :
 			Geometry(path_name, type_name)
@@ -19,9 +20,6 @@ namespace Rhea
 		bool get(std::vector<Mesh::vertex>& vertices, std::vector<unsigned long>& indices);
 
 		std::vector<Unit::Export> getReferences();
-
-		// factory function
-		static Unit* createType(std::string name, std::string type);
 	};
 }
 

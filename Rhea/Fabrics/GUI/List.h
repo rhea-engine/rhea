@@ -8,6 +8,7 @@ namespace Rhea
 {
 	class ListWidget : public Widget
 	{
+		MECLASS(ListWidget, Widget)
 	public:
 		ListWidget(std::string path_name) :
 			ListWidget(path_name, "//meworla/gui/list")
@@ -22,8 +23,6 @@ namespace Rhea
 
 		// list item selected
 		bool onSelected(Event* ev, Unit* unit);
-
-		static ListWidget* createType(std::string name, std::string type_name);
 
 	protected:
 

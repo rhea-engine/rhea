@@ -14,8 +14,6 @@ namespace Rhea
 	{
 		Unit::setup(app, attributes, values);
 
-		m_values["isItem"] = true;
-
 		Variant pos_sit = getValue("position");
 		if (pos_sit != Variant()) {
 			float x = pos_sit[0];
@@ -33,12 +31,6 @@ namespace Rhea
 			m_render_component->hide();
 	}
 
-	Unit* Item::createType(std::string name, std::string type)
-	{
-		Unit* ret = (Unit*)new Item(name);
-		return ret;
-	}
-	
 	std::vector<Unit::Export> Item::getReferences()
 	{
 		std::vector<Export> refs;

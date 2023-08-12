@@ -9,7 +9,7 @@ namespace Rhea
 	class Label;
 
 	class TextInput : public Widget {
-
+		MECLASS(TextInput, Widget)
 	public:
 		TextInput(std::string path_name) :
 			TextInput(path_name, "//meworla/gui/textinput")
@@ -29,8 +29,6 @@ namespace Rhea
 		{}
 
 		virtual void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
-
-		static TextInput* createType(std::string name, std::string type_name);
 
 		// update the text
 		void setText(std::string text);

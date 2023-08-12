@@ -39,10 +39,4 @@ namespace Rhea
 		}
 		return false;
 	}
-
-	ListWidget* Rhea::ListWidget::createType(std::string name, std::string type_name)
-	{
-		ListWidget* ret = new ListWidget(name);
-		return ret;
-	}
 }

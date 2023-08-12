@@ -19,8 +19,6 @@ protected:
 	bool onQuitDialog(Rhea::Event* ev, Rhea::Unit* unit);
 	bool onInput(Rhea::EventInput* e, Rhea::Unit* unit);
 	bool onRealmSelect(Rhea::Event* ev, Rhea::Unit* unit);
-	void showAvatarSelect(Rhea::Scene* scene, Rhea::Unit* client);	
-	bool onAvatarSelect(Rhea::Event* ev, Rhea::Unit* unit);
 	void showAlert(std::string text);
 	bool onAlertDialog(Rhea::Event* ev, Rhea::Unit* unit);
 	void setRealmSelectDialog();

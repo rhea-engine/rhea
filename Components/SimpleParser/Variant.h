@@ -50,11 +50,18 @@ namespace SimpleParser
 
 		// type info
 		Type* getType() { return m_type; }
-		std::string& getTypeName(); 
+		std::string getTypeName() const; 
 		bool isA(std::string type) { return !getTypeName().compare(type); }
 
 		// factory
 		static Variant* createType(std::string name, std::string type);
+		// type helper
+		static Type* staticType(Type* type = nullptr) {
+			static Type* _static_type = nullptr;
+			if (type)
+				_static_type = type;
+			return _static_type;
+		}
 
 	protected:
 		union {

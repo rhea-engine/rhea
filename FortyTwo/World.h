@@ -7,6 +7,7 @@
 
 class World : public Rhea::Unit
 {
+	MECLASS(World, Rhea::Unit)
 public:
 	World(std::string name, std::string type) :
 		m_scene_ready(false),
@@ -29,8 +30,6 @@ public:
 
 	// ready event
 	void ready();
-
-	static Rhea::Unit* createType(std::string name, std::string type);
 
 protected:
 	std::string m_scene_name;

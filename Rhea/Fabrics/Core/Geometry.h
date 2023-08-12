@@ -8,6 +8,7 @@ namespace Rhea
 {
 	class Geometry : public Unit
 	{
+		MECLASS_VIRTUAL(Geometry, Unit)
 	public:
 		Geometry(std::string path_name, std::string type_name) :
 			Unit(path_name, type_name)

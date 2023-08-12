@@ -27,14 +27,18 @@ namespace Rhea
 		if (item_el)
 			return item_el;
 
+		Item* item = doCast<Item>(unit);
+		if (!item)
+			return nullptr;
+
 		// prepare basic elements
-		GraphicsRenderElement* elem = new GraphicsRenderElement(core);
-		Item* item = static_cast<Item*>(unit);
+		GraphicsRenderElement* elem = new GraphicsRenderElement(core);		
 		Mesh* item_mesh = item->getMesh();
 
 		// safety check
 		if (!item_mesh) {
 			DLOG(LOG_DEBUG) << "GraphicsItemManager::createElement: getMesh returned nullptr";
+			delete elem;
 			return nullptr;
 		}
 		

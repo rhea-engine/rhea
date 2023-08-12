@@ -13,7 +13,8 @@ namespace Rhea
 	class Event;
 	
 	class Widget : public Item2D {
-	
+		MECLASS(Widget, Item2D)
+
 	public:
 		Widget(std::string path_name) :
 			Widget(path_name, "//meworla/gui/widget")
@@ -32,8 +33,6 @@ namespace Rhea
 		{}
 
 		virtual void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
-
-		static Widget* createType(std::string name, std::string type);
 
 		void ready();
 

@@ -1,6 +1,7 @@
 #include "Scene.h"
 #include "Scene.h"
 #include "Scene.h"
+#include "Scene.h"
 
 #include <memory>
 
@@ -38,9 +39,9 @@ namespace Rhea
 		Unit::ready();
 
 		for (auto it = m_children.begin(); it != m_children.end(); ++it) {
-			Unit* child = it->second;
-			if (child->getValue("isItem"))
-				m_items.push_back((Item*)child);
+			Item* child = doCast<Item>(it->second);
+			if (child)
+				m_items.push_back(child);
 		}
 		registerEventHandler("scene_enter", this, std::bind(&Scene::onSceneEnter, this, std::placeholders::_1, std::placeholders::_2));
 	}
@@ -85,11 +86,5 @@ namespace Rhea
 		Event e("scene_deactivate", this);
 		m_app->getUnitTree()->sendEvent("scene_deactivate", &e);
 		m_is_active = false;
-	}
-
-	Unit* Scene::createType(std::string name, std::string type)
-	{
-		Unit* ret = (Unit*)new Scene(name);
-		return ret;
 	}
 }

@@ -68,12 +68,6 @@ namespace Rhea
 
 	}
 
-	TextInput* TextInput::createType(std::string name, std::string type_name)
-	{
-		TextInput* ret = new TextInput(name, type_name);
-		return ret;
-	}
-
 	void TextInput::setText(std::string text)
 	{
 		m_text = text;		

@@ -21,11 +21,4 @@ namespace Rhea
 	void PhysicsManagerService::onInit()
 	{
 	}
-
-	// factory function
-	Unit* PhysicsManagerService::createType(std::string name, std::string type)
-	{
-		Unit* ret = (Unit*)new PhysicsManagerService(name, type);
-		return ret;
-	}
 }

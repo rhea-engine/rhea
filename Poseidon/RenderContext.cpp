@@ -24,8 +24,8 @@ namespace Poseidon
 
 			// cull phase for top item robj
 			robj->traverse([&](std::string name, Rhea::Unit* uitem)->bool {
-				if (uitem->getValue("isItem")) {
-					Item* item = (Item*)uitem;
+				Item* item = doCast<Item>(uitem);
+				if (item) {
 					Rhea::RenderComponent* render_com = item->getGraphicsComponent();
 					if (!render_com)
 						return true;

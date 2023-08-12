@@ -67,10 +67,4 @@ namespace Rhea
 
 		return unit;
 	}
-
-	Unit* UnitTree::createType(std::string name, std::string type_name)
-	{
-		Unit* ret = (Unit*)new UnitTree(name, type_name);
-		return ret;
-	}
 }

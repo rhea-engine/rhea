@@ -59,7 +59,7 @@ namespace Rhea
 			return;
 		}
 		// connect
-		m_target = static_cast<Item*>(m_app->getUnitTree()->find(target_name_it->second));
+		m_target = doCast<Item>(m_app->getUnitTree()->find(target_name_it->second));
 		if (!m_target) {
 			std::string name = target_name_it->second;
 			LOG(LOG_ERROR) << "Spectator " << m_pathname << ": target " << name << " not found";
@@ -106,11 +106,5 @@ namespace Rhea
 	void SpectatorController::_registerEvent(Unit* unittree)
 	{
 		unittree->registerEventHandler("unhandled_input", this, std::bind(&SpectatorController::onInput, this, std::placeholders::_1, std::placeholders::_2));
-	}
-
-	Unit* SpectatorController::createType(std::string name, std::string type)
-	{
-		Unit* ret = (Unit*)new SpectatorController(name, type);
-		return ret;
 	}
 }

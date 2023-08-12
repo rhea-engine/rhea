@@ -245,12 +245,6 @@ namespace Rhea
 		}
 	}
 
-	Unit* Terrain::createType(std::string name, std::string type)
-	{
-		Unit* ret = (Unit*)new Terrain(name, type);
-		return ret;
-	}
-
 	float Terrain::barryCentric(Math::Vector3 p1, Math::Vector3 p2, Math::Vector3 p3, float x, float z)
 	{
 		float det = (p2.z - p3.z) * (p1.x - p3.x) + (p3.x - p2.x) * (p1.z - p3.z);

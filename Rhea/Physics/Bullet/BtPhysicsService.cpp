@@ -54,7 +54,7 @@ namespace Rhea
 		for (int j = m_world->getNumCollisionObjects() - 1; j >= 0; j--)
 		{
 			btCollisionObject* obj = m_world->getCollisionObjectArray()[j];
-			Item* item = static_cast<Item*>(obj->getUserPointer());
+			Item* item = doCast<Item>((SimpleParser::Variant*)obj->getUserPointer());
 
 			// update position for dynamic objects from physics engine
 			if (item && static_cast<PhysicsBody*>(item->getPhysicsBody())->isDynamic()) {
@@ -82,6 +82,11 @@ namespace Rhea
 	
 	void BulletPhysicsService::setScene(Scene* scene)
 	{
+		if (!scene) {
+			LOG(LOG_ERROR) << "BulletPhysicsService::setScene: no scene";
+			return;
+		}
+
 		btAlignedObjectArray<btCollisionShape*> collisionShapes;
 		bool defaultGround = scene->getValue("ground");
 
@@ -133,7 +138,7 @@ namespace Rhea
 			item->addElement("physics", hmap);
 			m_world->addRigidBody(hmap->getBody());
 			// TODO currently simply set the last terrain to active
-			m_terrain = static_cast<Terrain*>(item);
+			m_terrain = doCast<Terrain>(item);
 		}
 		else if (item->getTypeName() == "//meworla/camera") {
 			// make camera without physics	
@@ -181,7 +186,7 @@ namespace Rhea
 		m_world->setGravity(btVector3(0.0f, -0.8f, 0.0f));
 
 		m_app->getUnitTree()->registerEventHandler("scene_activate", this, [&](Event* ev, Unit* tree)->bool {
-			setScene((Scene*)ev->getTarget());
+			setScene(doCast<Scene>(ev->getTarget()));
 			return false;
 			});
 	}

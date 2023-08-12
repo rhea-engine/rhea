@@ -107,13 +107,11 @@ namespace Rhea
 
 	void BasicController::show()
 	{
-		auto target_it = m_values.find("target");
-		Unit* target;
+		auto target_it = m_values.find("target");		
 		if (target_it != m_values.end()) {
-			target = m_app->getUnitTree()->find(target_it->second);
+			Item* target = doCast<Item>(m_app->getUnitTree()->find(target_it->second));
 			if (target)
-				// TODO: safety check
-				connect(static_cast<Item*>(target));
+				connect(target);
 		}
 		_registerEvent(m_app->getUnitTree());
 	}
@@ -156,10 +154,4 @@ namespace Rhea
 	{
 		unittree->registerEventHandler("unhandled_input", this, std::bind(&BasicController::onInput, this, std::placeholders::_1, std::placeholders::_2));
 	}
-
-	Unit* BasicController::createType(std::string name, std::string type)
-	{
-		Unit* ret = (Unit*)new BasicController(name, type);
-		return ret;
-	}	
 }

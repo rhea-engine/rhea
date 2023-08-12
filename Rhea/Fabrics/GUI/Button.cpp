@@ -30,12 +30,6 @@ namespace Rhea
 		registerEventHandler("mouse_btn_down", this, std::bind(&Button::onMouseClick, this, std::placeholders::_1, std::placeholders::_2));
 	}
 
-	Button* Button::createType(std::string name, std::string type_name)
-	{
-		Button* ret = new Button(name, type_name);
-		return ret;
-	}
-
 	void Button::setText(std::string text)
 	{
 		if (m_label)

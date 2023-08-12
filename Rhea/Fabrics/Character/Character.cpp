@@ -133,10 +133,4 @@ namespace Rhea
 		m_gravity = getValue("gravity");
 		return false;
 	}
-
-	Unit* Character::createType(std::string name, std::string type)
-	{
-		Character* character = new Character(name, type);
-		return character;
-	}
 }

@@ -11,12 +11,19 @@ namespace Rhea
 {
 	class WorldClient : public Rhea::Unit, public Rhea::NetworkDelegate
 	{
+		MECLASS(WorldClient, Rhea::Unit)
 	public:
-		WorldClient(std::unique_ptr<Hermes::ClientStream> hermes) :
+		WorldClient(std::string name, std::string type_name) :
 			m_scene(nullptr),
 			m_player_set(false),
-			Unit("worldclient", "//meworla/worldclient")
-		{
+			Unit(name, type_name)
+		{}
+		WorldClient() :
+			WorldClient("worldclient", "//meworla/worldclient")
+		{}
+
+		// set hermes
+		void setStream(std::unique_ptr<Hermes::ClientStream> hermes) {
 			m_hermes = std::move(hermes);
 		}
 

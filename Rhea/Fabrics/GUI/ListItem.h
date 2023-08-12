@@ -8,6 +8,7 @@ namespace Rhea
 {
 	class ListWidgetItem : public Widget
 	{
+		MECLASS(ListWidgetItem, Widget)
 	public:
 		ListWidgetItem(std::string path_name) :
 			ListWidgetItem(path_name, "//meworla/gui/listitem")
@@ -18,8 +19,6 @@ namespace Rhea
 		{}
 
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
-
-		static ListWidgetItem* createType(std::string name, std::string type_name);
 
 		// input handling
 		bool onMouseClick(Event* ev, Unit* unit);

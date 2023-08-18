@@ -11,11 +11,9 @@ namespace Rhea
 		std::unordered_map<std::string, std::string> attr;
 		std::unordered_map<std::string, Variant> val;
 
-		val["x"] = 5;
-		val["y"] = 5;
-		val["w"] = m_base_size.x - 5;
-		val["h"] = m_base_size.y - 5;
+		val["padding"] = getValue("padding", 5.0f);
 		val["text"] = getValue("text", "");
+		val["fillwidth"] = true;
 		if (m_values.find("font") != m_values.end())
 			val["font"] = getValue("font");
 
@@ -26,7 +24,6 @@ namespace Rhea
 		addChild(m_label);
 
 		registerEventHandler("mouse_btn_down", this, std::bind(&ListWidgetItem::onMouseClick, this, std::placeholders::_1, std::placeholders::_2));
-
 	}
 	
 	bool ListWidgetItem::onMouseClick(Event* ev, Unit* unit)

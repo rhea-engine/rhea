@@ -330,6 +330,10 @@ namespace Rhea
 		if (ev->isEvent("input")) {
 			EventInput* e = static_cast<EventInput*>(ev);
 			std::shared_ptr<Psio::MouseInputEvent> me = std::static_pointer_cast<Psio::MouseInputEvent>(e->getEvent());
+			int viewport_width;
+			int viewport_height;
+			std::string context_name;
+			Unit* picked;
 
 			switch (e->getEvent()->getId()) {
 			case Psio::InputEventId::MOUSE_MOVE:				
@@ -337,9 +341,43 @@ namespace Rhea
 				m_my = me->getY();				
 				break;
 			case Psio::InputEventId::MOUSE_BTN_PRESSED:
-				Unit* picked = pick();
+				picked = pick();
 				if (picked)
 					picked->sendEvent("scene_input", ev);
+				break;
+
+			case Psio::InputEventId::WIN_SIZE:
+				// resize window
+				/*
+				std::shared_ptr<Psio::WinSizeEvent> me = std::static_pointer_cast<Psio::WinSizeEvent>(e->getEvent());
+				viewport_width = me->width();
+				viewport_height = me->height();
+				if (viewport_width != m_viewport_width || viewport_height != m_viewport_height) {
+					float ratio = (float)m_viewport_width / (float)m_viewport_height;
+					if (ratio < (800.0f / 600.f)) {
+						viewport_height = (float)m_viewport_width / (800.0f / 600.f);
+					}
+					else {
+						viewport_width = (float)m_viewport_height / (800.0f / 600.f);
+					}
+					
+					m_viewport_wbidth = viewport_width;
+					m_viewport_height = viewport_height;
+
+					Poseidon::Viewport* viewport = m_core->get_scene_manager()->getViewport();
+					context_name = "HUD";
+					Poseidon::RenderContext* context = viewport->getRenderContext(context_name);
+					if (0 && context) {
+						Poseidon::Camera* cam = context->get_camera();
+						//cam->setAspectRatio((float)m_viewport_width / (float)m_viewport_height);
+						cam->setAspectRatio((800.0f / 600.f));
+						cam->setOrthographicSize((float)m_viewport_height);			
+						cam->updateProjection();
+						cam->updateView();
+					}
+				}
+				*/
+				break;
 			}
 		}
 		return false;

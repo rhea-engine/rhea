@@ -5,6 +5,8 @@
 #include "../Canvas/Item2D.h"
 #include <Math/Vector2.h>
 #include <SimpleParser/CssParser.h>
+#include "Modifier/Modifier.h"
+#include "Layout/Alignment.h"
 
 using Math::Vector2;
 
@@ -23,45 +25,48 @@ namespace Rhea
 			Item2D(path_name, type_name),
 			m_top_window(false),
 			m_visible(true),
-			m_handle_input(false),		
+			m_handle_input(false),
 			m_user_ptr(nullptr),
 			m_base_size(0.0f, 0.0f),
 			m_base_position(0.0f, 0.0f),
 			m_cur_position(0.0f, 0.0f),
-			m_screen_position_valid(false),	
-			m_is_rtl(false)
+			m_screen_position_valid(false),
+			m_is_rtl(false),
+			m_essential_size_valid(false)
 		{}
 
 		virtual void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
 
+		// Event handling
 		void ready();
 
-		// events
-
-		// parent has changed its size
-		virtual void onParentSized(Event* event);
-		// parent has been moved - used to recalculate screen coords
-		virtual void onParentMoved();
-
-		// we changed our size
-		void onSized();
+		// default events
+		void setOnClick(std::string target);
+		virtual bool onClicked(Event* ev, Unit* unit);
 
 		// move the current position
 		void setPosition(Vector2 position);
-
-		// we moved our position
-		void onMoved();
-
-		// notify children of resize
-		void sizeChildren();
-		// notify children of move
-		void moveChildren();
+		virtual void onSetPosition();
 
 		// recalculate my size
-		virtual Vector2 size();
+		Vector2 size(Vector2 size_constraints);
+		virtual Vector2 innerSize(Vector2 size_constraints);
 
 		// get the current size
 		Vector2 getSize() {	return m_size; }
+		// set the current size
+		void setSize(Vector2 size) { m_size = size; }
+		
+		// minimal size for container layouts
+		Vector2 getMinSize(Vector2 size_constraints);
+		virtual void innerGetMinSize(Vector2 size_constraints, Vector2& min_size);
+
+		Vector2 getOuterSize() { return m_outer_size; }
+
+		// get the current position (relative to parent)
+		Vector2 getBasePosition() { return m_base_position; }
+		// set the position (relative to parent)
+		void setBasePosition(Vector2 pos) { m_base_position = pos; }
 
 		// style
 		void setStyle(SimpleParser::CssParser::PropertyMap& properties);
@@ -73,8 +78,12 @@ namespace Rhea
 		void setToplevel(bool top) { m_top_window = top; }
 		// show the widget
 		void show();
+		// show the widget but dont send event
+		void makeVisble();
 		// hide the widget
 		void hide();
+		// hide the widget but dont send event
+		void makeInvisble();
 
 		bool isVisible() { return m_visible; }
 
@@ -96,9 +105,6 @@ namespace Rhea
 		// get the screen position
 		Vector2 getScreenPosition();
 
-		// reapply the current position and size properties for our geometry
-		virtual void setArea(bool moved, bool sized);
-
 		// wheter this is a top window
 		bool m_top_window;
 
@@ -114,6 +120,14 @@ namespace Rhea
 		Vector2 m_base_position;		
 		// initial size of element
 		Vector2 m_base_size;
+		// outer size of element
+		Vector2 m_outer_size;
+
+		Vector2 m_cached_min_size;
+		Vector2 m_cached_max_size;
+		bool m_essential_size_valid;
+
+		std::vector<std::unique_ptr<Modifier>> m_modifiers;
 
 		// current coordinates
 
@@ -123,6 +137,9 @@ namespace Rhea
 		// screen space
 		bool m_screen_position_valid;
 
+		// layout
+		std::unique_ptr<Alignment> m_alignment;
+
 		// a user ptr
 		void* m_user_ptr;
 
@@ -131,6 +148,9 @@ namespace Rhea
 
 		// rtl layout
 		bool m_is_rtl;
+
+		// event handler cache
+		std::string m_onClick;
 	};
 }
 

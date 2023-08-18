@@ -18,12 +18,14 @@ namespace Rhea
 		child->m_path = m_path + "/" + child->m_pathname;
 		child->m_parent = this;
 		m_children[child->m_pathname] = child;
+		m_ordered_children.push_back(child);
 		child->onParented();
 	}
 
 	void Unit::removeChild(Unit* child)
 	{		
 		m_children.erase(child->m_pathname);
+		m_ordered_children.erase(std::remove(m_ordered_children.begin(), m_ordered_children.end(), child));
 		child->m_parent = nullptr;
 		child->onRemoved();
 	}
@@ -114,7 +116,7 @@ namespace Rhea
 	Unit* Unit::getCommonAncestor(Unit* u2)
 	{
 		if (!u2)
-			return u2;
+			return nullptr;
 
 		Unit* u1 = this;
 
@@ -188,10 +190,11 @@ namespace Rhea
 
 	Variant Unit::getValue(std::string name)
 	{
-
-		auto val = m_values.find(name);
-		if (val != m_values.end()) {
-			return val->second;
+		if (name != "") {
+			auto val = m_values.find(name);
+			if (val != m_values.end()) {
+				return val->second;
+			}
 		}
 		return Variant();
 	}

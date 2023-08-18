@@ -17,6 +17,13 @@ namespace Rhea
 	{
 		MECLASS(UnitTree, Unit)
 	public:
+
+		class Binding {
+		public:
+			Unit* target;
+			std::string value;
+		};
+
 		UnitTree(std::string basename, std::string type_name) :
 			Unit(basename, type_name)
 		{}
@@ -29,6 +36,9 @@ namespace Rhea
 
 		// create a resource with res id and no values
 		Unit* createUnitById(std::string resource_id, std::string type_name);
+
+		// get a binding via path
+		Binding getBinding(std::string binding_desc, std::string base);
 
 	};
 }

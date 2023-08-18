@@ -1,4 +1,5 @@
 #include "TextWidget.h"
+#include "TextWidget.h"
 #include "Application.h"
 #include "Fabrics/Media/ImageResource.h"
 #include "Resources/TextResource.h"
@@ -80,6 +81,9 @@ namespace Rhea
 	{
 		Rhea::Font* font = getFont();
 		std::string sentence = getText();
+
+		if (!font)
+			return;
 
 		float t_x = (float)X() + m_offset_x;
 		float t_y = (float)Y();
@@ -203,6 +207,8 @@ namespace Rhea
 		Vector2 res;
 		Rhea::Font* font = getFont();
 		std::string sentence = getText();
+		if (!font)
+			return Vector2();
 		float f_sz = font->getFontSize();
 		Glyph* glyph;
 
@@ -253,6 +259,8 @@ namespace Rhea
 		size_t txt_pos = 0;
 		Rhea::Font* font = getFont();
 		std::string sentence = getText();
+		if (!font)
+			return 0;
 		float f_sz = font->getFontSize();
 		Glyph* glyph;
 		float x = X() + m_offset_x;
@@ -274,6 +282,8 @@ namespace Rhea
 	{
 		float ret_x = 0.0f;
 		Rhea::Font* font = getFont();
+		if (!font)
+			return 0.0f;
 		std::string sentence = getText();
 		float f_sz = font->getFontSize();
 		Glyph* glyph;
@@ -290,6 +300,38 @@ namespace Rhea
 		m_text = text;
 		if (m_mesh)
 			setMesh();
+	}
+
+	Vector2 TextWidget::getTextSize()
+	{
+		float ret_x = 0.0f;
+		Rhea::Font* font = getFont();
+		std::string sentence = getText();
+		if (!font)
+			return Vector2();
+		float f_sz = font->getFontSize();
+		Glyph* glyph;
+		Vector2 size(0.0f, 0.0f);
+
+		// At least one line height
+		size.y = f_sz;
+		for (int i = 0; i < sentence.size(); i++) {
+			glyph = font->getGlyph(static_cast<unsigned char>(sentence[i]));
+			
+			unsigned char c = static_cast<unsigned char>(sentence[i]);
+			if (m_multiline && (c == '\n')) {
+				if (ret_x > size.x)
+					size.x = ret_x;
+				ret_x = 0.0f;
+				size.y += f_sz;
+			}
+			else {
+				ret_x += glyph->advance;
+			}
+		}
+		if (ret_x > size.x)
+			size.x = ret_x;
+		return size;
 	}
 
 	void TextWidget::setWordWrap(bool word_wrap) {

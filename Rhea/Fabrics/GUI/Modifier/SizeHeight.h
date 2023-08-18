@@ -1,0 +1,40 @@
+#ifndef RHEA_GUI_MODIFIER_SIZEHEIGHT_H
+#define RHEA_GUI_MODIFIER_SIZEHEIGHT_H
+
+#include "Modifier.h"
+#include "../Widget.h"
+#include <Math/Vector2.h>
+
+namespace Rhea {
+
+	class SizeHeightModifier : public Modifier
+	{
+	public:
+		SizeHeightModifier(float size) :
+			m_size(size)
+		{}
+
+		void apply(Widget* w, Vector2& size_constraints, Vector2& inner_size, Vector2& outer_size) {
+			inner_size.y = m_size;
+			if (size_constraints.y < inner_size.y)
+				inner_size.y = size_constraints.y;
+			outer_size.y += m_size;
+			size_constraints.y = m_size;
+		};
+
+		void essentialSize(Widget* w, Vector2& min_inner_size, Vector2& max_inner_size, Vector2& min_outer_size) {
+			min_inner_size.y = m_size;			
+			if (max_inner_size.y < min_inner_size.y)
+				min_inner_size.y = max_inner_size.y;
+			max_inner_size.y = m_size;
+			min_outer_size.y += m_size;
+		}
+
+		std::string name() { return "height"; }
+
+	protected:
+		float m_size;
+	};
+}
+
+#endif // !RHEA_GUI_MODIFIER_SIZEHEIGHT_H

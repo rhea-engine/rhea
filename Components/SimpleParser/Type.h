@@ -6,11 +6,10 @@
 #include <map>
 #include <functional>
 
-#include "Variant.h"
-
 namespace SimpleParser
 {
 	class Method;
+	class Variant;
 
 	class Type
 	{

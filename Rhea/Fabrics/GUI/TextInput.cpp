@@ -18,10 +18,6 @@ namespace Rhea
 		std::unordered_map<std::string, std::string> attr;
 		std::unordered_map<std::string, Variant> val;
 
-		val["x"] = 0.0f;
-		val["y"] = 0.0f;
-		val["w"] = m_base_size.x;
-		val["h"] = m_base_size.y;
 		val["text"] = getValue("text", "");
 		val["templating"] = false; // dont template the user input
 		m_text = val["text"];
@@ -30,6 +26,13 @@ namespace Rhea
 		// multiline is not implemented yet
 		val["multiline"] = false;
 		val["word_wrap"] = false;
+
+		val["padding"] = 2.0f;
+
+		if (!val["multiline"])
+			val["fillwidth"] = true;
+		else
+			val["fillsize"] = true;
 		m_placeholder = val["placeholder"];
 		m_pos = m_text.size();
 		if (!m_pos) {
@@ -63,9 +66,7 @@ namespace Rhea
 		registerEventHandler("focus_lost", this, std::bind(&TextInput::onLooseFocus, this, std::placeholders::_1, std::placeholders::_2));
 		registerEventHandler("key_pressed", this, std::bind(&TextInput::onKeyPressed, this, std::placeholders::_1, std::placeholders::_2));
 		registerEventHandler("text_input", this, std::bind(&TextInput::onTextInput, this, std::placeholders::_1, std::placeholders::_2));
-		registerEventHandler("mouse_btn_down", this, std::bind(&TextInput::onMouseButton, this, std::placeholders::_1, std::placeholders::_2));		
-		registerEventHandler("hide", this, std::bind(&TextInput::onHide, this, std::placeholders::_1, std::placeholders::_2));
-
+		registerEventHandler("mouse_btn_down", this, std::bind(&TextInput::onMouseButton, this, std::placeholders::_1, std::placeholders::_2));	
 	}
 
 	void TextInput::setText(std::string text)
@@ -85,8 +86,24 @@ namespace Rhea
 		if (m_cursor_timer >= 0.7f) {
 			m_cursor_shown = !m_cursor_shown;
 			m_cursor_timer = 0.0f;
-			(m_cursor_shown) ? m_cursor_item->show() : m_cursor_item->hide();
+			(m_cursor_shown) ? m_cursor_item->makeVisble() : m_cursor_item->makeInvisble();
 		}
+	}
+
+	Vector2 TextInput::innerSize(Vector2 size_constraints)
+	{
+		// size my label item
+		Vector2 label_size = m_label_item->size(size_constraints);
+		
+		m_cursor_item->size(size_constraints);	
+
+		return label_size;
+	}
+
+	void TextInput::onSetPosition()
+	{
+		m_label_item->setPosition(m_position);		
+		m_cursor_item->setPosition(m_cursor_position);
 	}
 
 	void TextInput::updateCursor(bool onlyCursor)
@@ -105,14 +122,15 @@ namespace Rhea
 			}
 		}
 		
-		Vector2 px_pos = m_textwidget->getCursorPosition(m_pos);
-		m_cursor_item->move(px_pos.x-2.0f, px_pos.y);
-		m_cursor_item->setArea(true, false);
+		m_cursor_position = m_textwidget->getCursorPosition(m_pos);
 
 		// reset timer
 		m_cursor_timer = 0.0f;
 		m_cursor_shown = true;
-		m_cursor_item->show();
+		m_cursor_item->makeVisble();
+
+		Event gui_update("gui_update", this);
+		bubbleEvent("gui_redraw", &gui_update);
 	}
 
 	bool TextInput::onFocus(Event* ev, Unit* unit)
@@ -228,35 +246,6 @@ namespace Rhea
 		updateCursor(true);
 
 		return false;
-	}
-
-	bool TextInput::onHide(Event* ev, Unit* unit)
-	{
-		if (m_has_focus) {
-			Event focus_lost("focus_lost", this);
-			bubbleEvent("focus_lost", &focus_lost);
-			m_has_focus = false;
-		}
-		return false;
-	}
-
-	void TextInput::setArea(bool moved, bool sized)
-	{
-		Widget::setArea(moved, sized);
-
-		if (m_label_item) {
-			if (moved) {
-				DLOG(LOG_DEBUG) << "GUI::TextInput: widget " << m_pathname << ": screen(x,y)=" << m_position.x << ", " << m_position.y << ")";
-				m_label_item->move(m_position.x, m_position.y);
-			}
-			if (sized) {
-				DLOG(LOG_DEBUG) << "GUI::TextInput: widget " << m_pathname << ": size(w,h)" << m_size.x << ", " << m_size.y << ")";
-				m_label_item->resize(m_size.x, m_size.y);
-			}
-			if (sized || moved) {
-				m_label_item->update();
-			}
-		}
 	}
 
 	void TextInput::ready()

@@ -18,19 +18,20 @@
 #include <Graphics/GraphicsService.h>
 #include <Psio/Log.h>
 #include "TextInput.h"
+#include "Box.h"
+#include "Modifier/FillSize.h"
+#include "Column.h"
+#include "Row.h"
 
 namespace Rhea
 {
 	void GUIController::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{
 		m_app = app;
-		size();
-		values["x"] = 0;
-		values["y"] = 0;
-		values["w"] = m_size.x;
-		values["h"] = m_size.y;
 
 		Widget::setup(app, attributes, values);
+
+		m_modifiers.push_back(std::make_unique<FillSizeModifier>());
 
 		// make sure the GUI is not displayed in the world render context by default
 		m_values["rendercontext"] = getValue("rendercontext", "HUD");
@@ -70,25 +71,41 @@ namespace Rhea
 			}
 		}
 
-		// all children are ready - initial resize		
+		// set current viewport size
+		GraphicsService* gsrv = (GraphicsService*)m_app->getService("graphics");
+		m_viewport_width = gsrv->getViewportWidth();
+		m_viewport_height = gsrv->getViewportHeight();
+
+		// all children are ready - set toplevel mark
 		for (auto it = m_children.begin(); it != m_children.end(); ++it)
 		{
 			Widget* w = doCast<Widget>(it->second);
 			if (w) {
 				w->setToplevel(true);
-				w->onParentSized(nullptr);
-				w->onParentMoved();
 			}
 		}
+	
+		// initial resize is done by "show" handler		
 
 		registerEventHandler("scene_show", this, std::bind(&GUIController::onShow, this, std::placeholders::_1, std::placeholders::_2));
 		registerEventHandler("scene_hide", this, std::bind(&GUIController::onHide, this, std::placeholders::_1, std::placeholders::_2));
+
+		// watch for updates
+		registerEventHandler("scene_enter", this, std::bind(&GUIController::onGuiUpdate, this, std::placeholders::_1, std::placeholders::_2));
+		registerEventHandler("scene_leave", this, std::bind(&GUIController::onGuiUpdate, this, std::placeholders::_1, std::placeholders::_2));
+		registerEventHandler("gui_redraw", this, std::bind(&GUIController::onGuiUpdate, this, std::placeholders::_1, std::placeholders::_2));
+
+		// handle show/hide of children
+		registerEventHandler("show", this, std::bind(&GUIController::onShowWidget, this, std::placeholders::_1, std::placeholders::_2));
+		registerEventHandler("hide", this, std::bind(&GUIController::onHideWidget, this, std::placeholders::_1, std::placeholders::_2));
 	}
 
 	bool GUIController::onShow(Event* ev, Unit* unit)
 	{
 		m_app->getUnitTree()->registerEventHandler("gui_input", this, std::bind(&GUIController::onInput, this, std::placeholders::_1, std::placeholders::_2));
 		static_cast<GuiService*>(m_app->getService("gui"))->registerController(this);
+		// resize
+		onGuiUpdate(ev, unit);
 
 		return false;
 	}
@@ -97,16 +114,10 @@ namespace Rhea
 	{
 		m_app->getUnitTree()->unregisterEventHandler("gui_input", this);
 		static_cast<GuiService*>(m_app->getService("gui"))->unregisterController(this);
+		m_captured = nullptr;
+		m_target = nullptr;
 
 		return false;
-	}
-
-	Vector2 GUIController::size()
-	{
-		GraphicsService* gsrv = (GraphicsService*)m_app->getService("graphics");
-		m_size.x = (float)gsrv->getViewportWidth();
-		m_size.y = (float)gsrv->getViewportHeight();
-		return m_size;
 	}
 
 	bool GUIController::onInput(Event* ev, Unit* unit)
@@ -246,15 +257,66 @@ namespace Rhea
 			}
 			break;
 
+		case Psio::InputEventId::WIN_SIZE:
+			// resize window
+/*
+			std::shared_ptr<Psio::WinSizeEvent> me = std::static_pointer_cast<Psio::WinSizeEvent>(e->getEvent());
+			m_viewport_width = me->width();
+			m_viewport_height = me->height();
+			onGuiUpdate(ev, unit);
+			*/
+			break;
+
 		}
 		
 		return false;
-	}	
+	}
+
+	bool GUIController::onShowWidget(Event* ev, Unit* unit)
+	{
+		return onGuiUpdate(ev, unit);
+	}
+
+	bool GUIController::onHideWidget(Event* ev, Unit* unit)
+	{
+		Widget* hidden_widget = doCast<Widget>(ev->getTarget());
+		
+		// loose focus if focus is on child
+		if (m_target && hidden_widget && (hidden_widget == m_target || m_target->isAncestor(hidden_widget))) {
+			Event focus_lost("focus_lost", m_target);
+			m_target->bubbleEvent("focus_lost", &focus_lost);
+			m_target = nullptr;
+		}
+		if (m_captured && hidden_widget && (hidden_widget == m_captured || m_captured->isAncestor(hidden_widget))) {
+			m_captured = nullptr;
+		}
+
+		return onGuiUpdate(ev, unit);
+	}
+
+	bool GUIController::onGuiUpdate(Event* ev, Unit* unit)
+	{
+		// sizing with constraint of viewport size
+		//Vector2 vp_size((float)m_viewport_width, (float)m_viewport_height);
+		GraphicsService* gsrv = (GraphicsService*)m_app->getService("graphics");
+		Vector2 vp_size((float)gsrv->getViewportWidth(), (float)gsrv->getViewportHeight());
+		size(vp_size);
+
+		setPosition(Vector2(m_base_position));
+		return false;
+	}
 
 	void GUIController::Register(Application* app)
 	{
 		// register widget types
 		SimpleParser::Type::registerType<Widget>("//meworla/gui/widget");
+
+		// layout types
+		SimpleParser::Type::registerType<BoxWidget>("//meworla/gui/box");
+		SimpleParser::Type::registerType<ColumnWidget>("//meworla/gui/column");
+		SimpleParser::Type::registerType<RowWidget>("//meworla/gui/row");
+	
+		// basic widgets
 		SimpleParser::Type::registerType<Label>("//meworla/gui/label");
 		SimpleParser::Type::registerType<TextInput>("//meworla/gui/textinput");
 		SimpleParser::Type::registerType<Button>("//meworla/gui/button");

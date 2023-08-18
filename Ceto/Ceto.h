@@ -16,11 +16,10 @@ protected:
 	string m_home_scene;
 	Rhea::Camera* m_view = 0;
 	Rhea::Label* m_debug_text = nullptr;
-	bool onQuitDialog(Rhea::Event* ev, Rhea::Unit* unit);
+	bool onQuit(Rhea::Event* ev, Rhea::Unit* unit);
 	bool onInput(Rhea::EventInput* e, Rhea::Unit* unit);
 	bool onRealmSelect(Rhea::Event* ev, Rhea::Unit* unit);
 	void showAlert(std::string text);
-	bool onAlertDialog(Rhea::Event* ev, Rhea::Unit* unit);
 	void setRealmSelectDialog();
 	void openScene(std::string scene_name);
 	UserPrefs m_userprefs;

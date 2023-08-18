@@ -22,20 +22,11 @@
 #include <Orion/FileStream.h>
 #include <Rhea/Fabrics/Core/Avatar.h>
 
-bool Ceto::onQuitDialog(Rhea::Event* ev, Rhea::Unit* unit)
+bool Ceto::onQuit(Rhea::Event* ev, Rhea::Unit* unit)
 {
-	Rhea::Widget* w = doCast<Rhea::Widget>(m_unit_tree->find("//local/cetogui/gui/quit"));
-	if (w) {
-		w->hide();
-	}
 	ev->stopPropagation();
 
-	// handle the buttons
-	Unit* target = ev->getTarget();
-	if (!target->getPathName().compare("ok")) {
-		// quit the application
-		exit(0);
-	}
+	exit(0);
 
 	return false;
 }
@@ -52,6 +43,10 @@ bool Ceto::onInput(Rhea::EventInput* e, Rhea::Unit* unit)
 		Rhea::Widget* w = doCast<Rhea::Widget>(m_unit_tree->find("//local/cetogui/gui/quit"));
 		if (w) {
 			w->show();
+			w = doCast<Rhea::Widget>(m_unit_tree->find("//local/cetogui/gui/realms"));
+			if (w) {
+				w->hide();
+			}
 		}
 		return false;
 	}
@@ -82,17 +77,6 @@ bool Ceto::onRealmSelect(Rhea::Event* ev, Rhea::Unit* unit)
 
 void Ceto::setRealmSelectDialog()
 {
-	// fill last used list
-	Rhea::ListWidget* list = isCast<Rhea::ListWidget>(m_unit_tree->find("//local/cetogui/gui/realms/lastused"));
-	if (list) {
-		std::vector<std::string> lastused = m_userprefs.lastUsed();
-		if (list && lastused.size()) {
-			for (auto it = lastused.begin(); it != lastused.end(); it++) {
-				list->addItem((*it), (*it));
-			}
-		}
-	}
-
 	// show dialog
 	Rhea::Widget* w = doCast<Rhea::Widget>(m_unit_tree->find("//local/cetogui/gui/realms"));
 	if (w) {
@@ -147,6 +131,26 @@ void Ceto::setup()
 			m_userprefs = prefs;			
 		}
 	}
+
+	std::unordered_map<std::string, std::string> attributes;
+	std::unordered_map<std::string, Variant> values;
+
+	// create a representation for the engine
+	Unit* engine = m_unit_tree->createUnit("engine", "//core/types/unit", attributes, values);
+	m_unit_tree->addChild(engine);
+
+	// create a user unit
+
+	std::vector<std::string> lastused = m_userprefs.lastUsed();
+	if (lastused.size()) {
+		std::vector<Variant> lastused_arr;
+		for (auto it = lastused.begin(); it != lastused.end(); it++) {
+			lastused_arr.push_back(*it);
+		}
+		values["lastused"] = lastused_arr;
+	}
+	Unit* user = m_unit_tree->createUnit("user", "//core/types/unit", attributes, values);
+	engine->addChild(user);
 
 	// a color material
 	Poseidon::Material* material = get_core()->getMaterial("color");
@@ -261,28 +265,16 @@ void Ceto::showScene(Rhea::Scene* scene)
 void Ceto::showAlert(std::string text)
 {
 	// set the text
-	Rhea::Label* info_text = doCast<Rhea::Label>(m_unit_tree->find("//local/cetogui/gui/alert/info"));
-	if (info_text) {
-		info_text->setText(text);
+	Rhea::Label* gui = doCast<Rhea::Label>(m_unit_tree->find("//local/cetogui/gui"));
+	if (gui) {
+		gui->setValue("alert", text);
 	}
 	 
 	// show dialog
 	Rhea::Widget* w = doCast<Rhea::Widget>(m_unit_tree->find("//local/cetogui/gui/alert"));
-	if (w) {		
-		w->registerEventHandler("clicked", this, std::bind(&Ceto::onAlertDialog, this, std::placeholders::_1, std::placeholders::_2));
+	if (w) {
 		w->show();
 	}
-}
-
-bool Ceto::onAlertDialog(Rhea::Event* ev, Rhea::Unit* unit)
-{
-	Rhea::Widget* w = doCast<Rhea::Widget>(m_unit_tree->find("//local/cetogui/gui/alert"));
-	if (w) {
-		w->hide();
-	}
-	ev->stopPropagation();
-
-	return false;
 }
 
 void Ceto::loadMainGUI()
@@ -305,10 +297,7 @@ void Ceto::loadMainGUI()
 			// setup system dialogs
 
 			// quit dialog
-			Rhea::Widget* w = doCast<Rhea::Widget>(m_unit_tree->find("//local/cetogui/gui/quit"));
-			if (w) {
-				w->registerEventHandler("clicked", this, std::bind(&Ceto::onQuitDialog, this, std::placeholders::_1, std::placeholders::_2));
-			}
+			gui->registerEventHandler("quit", this, std::bind(&Ceto::onQuit, this, std::placeholders::_1, std::placeholders::_2));
 
 			// realm selection
 			setRealmSelectDialog();
@@ -360,6 +349,7 @@ int main(int argc, char* argv[])
 		if (!strcmp(argv[argi], "-d")) {
 			argi++;
 			app->setAppDir(argv[argi]);
+			LOG(LOG_INFO) << "Set //local to directory: " << argv[argi];
 		}
 		else
 			app->setHomeScene(argv[argi]);

@@ -17,7 +17,11 @@ namespace Rhea
 			Widget(path_name, type_name)		
 		{}
 
+		void ready();		
+
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
+
+		void onSetPosition();
 
 	protected:
 		

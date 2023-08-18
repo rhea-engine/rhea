@@ -3,11 +3,10 @@
 
 #include <string>
 #include <vector>
+#include "Type.h"
 
 namespace SimpleParser
 {
-	class Type;
-
 	class Variant
 	{
 	public:
@@ -52,6 +51,7 @@ namespace SimpleParser
 		Type* getType() { return m_type; }
 		std::string getTypeName() const; 
 		bool isA(std::string type) { return !getTypeName().compare(type); }
+		bool isArray() { return (m_type->m_base == Type::BaseType::ARRAY); }
 
 		// factory
 		static Variant* createType(std::string name, std::string type);

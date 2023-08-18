@@ -5,7 +5,6 @@
 
 namespace Rhea
 {
-	class Widget;
 
 	class GUIController : public Widget
 	{
@@ -20,6 +19,8 @@ namespace Rhea
 			m_captured(nullptr),
 			m_mx(0),
 			m_my(0),
+			m_viewport_width(0),
+			m_viewport_height(0),
 			Widget(name, type_name)
 		{}
 
@@ -36,11 +37,17 @@ namespace Rhea
 		// hide event handler
 		bool onHide(Event* ev, Unit* unit);
 
-		// overwrite widget size
-		Vector2 size();
-
 		// input event handler
 		bool onInput(Event* ev, Unit* unit);
+
+		// show widget event handler
+		bool onShowWidget(Event* ev, Unit* unit);
+
+		// hide widget event handler
+		bool onHideWidget(Event* ev, Unit* unit);
+
+		// redraw requested
+		bool onGuiUpdate(Event* ev, Unit* unit);
 
 		// gui fabric function
 		static void Register(Application* app);
@@ -56,6 +63,10 @@ namespace Rhea
 		// last mouse position
 		int m_mx;
 		int m_my;
+
+		// viewport size
+		unsigned int m_viewport_width;
+		unsigned int m_viewport_height;
 	};
 }
 

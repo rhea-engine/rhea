@@ -13,10 +13,6 @@ namespace Rhea
 		std::unordered_map<std::string, std::string> attr;
 		std::unordered_map<std::string, Variant> val;
 
-		val["x"] = 5;
-		val["y"] = 5;
-		val["w"] = m_base_size.x-5;
-		val["h"] = m_base_size.y-5;
 		val["text"] = getValue("text", "");
 		if (m_values.find("font") != m_values.end())
 			val["font"] = getValue("font");
@@ -26,6 +22,9 @@ namespace Rhea
 		// add a label
 		m_label = (Label*)m_app->getUnitTree()->createUnit(m_path + "/label", "//meworla/gui/label", attr, val);
 		addChild(m_label);
+
+		if (!m_alignment)
+			m_alignment = std::make_unique<Alignment>(Alignment::Horizontal::CENTER, Alignment::Vertical::CENTER);
 
 		registerEventHandler("mouse_btn_down", this, std::bind(&Button::onMouseClick, this, std::placeholders::_1, std::placeholders::_2));
 	}
@@ -48,5 +47,18 @@ namespace Rhea
 			sendBoundEvent(m_values["onClick"], ev);
 		}
 		return false;
+	}
+
+	void Button::onSetPosition()
+	{
+		// for now we assume only one child is possible
+		// currently the label
+
+		Vector2 child_pos = m_position;
+		if (m_alignment)
+			m_alignment->apply(m_size, m_label->getOuterSize(), child_pos);
+
+		m_label->setPosition(child_pos);
+
 	}
 }

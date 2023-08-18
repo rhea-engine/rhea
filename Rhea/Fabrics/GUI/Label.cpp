@@ -25,6 +25,7 @@ namespace Rhea
 			val["font"] = getValue("font");
 		val["word_wrap"] = getValue("word_wrap", true);
 		val["multiline"] = getValue("multiline", true);
+		m_clip = getValue("clip", m_clip);
 
 		// DEBUG
 		// always handle input 
@@ -47,6 +48,49 @@ namespace Rhea
 			text = getText();
 		}		
 		m_label_item->setText(text);
+	}
+
+	Vector2 Label::innerSize(Vector2 size_constraints)
+	{
+		// get height from font of text widget
+		Vector2 child_size = m_label_item->getTextSize();
+		// fill label to my size
+		if (m_size.x > child_size.x) {
+			child_size.x = m_size.x;
+		}
+		if (m_size.y > child_size.y) {
+			child_size.y = m_size.y;
+		}
+
+		// clipping?
+		if (m_clip) {
+			if (child_size.x > size_constraints.x)
+				child_size.x = size_constraints.x;
+			if (child_size.y > size_constraints.y)
+				child_size.y = size_constraints.y;
+		}
+
+		// set the size for the label
+		m_label_item->resize(child_size.x, child_size.y);
+
+		return child_size;
+	}
+
+	void Label::innerGetMinSize(Vector2& min_size)
+	{
+		Vector2 child_size = m_label_item->getTextSize();
+		if (min_size.x < child_size.x)
+			min_size.x = child_size.x;
+		if (min_size.y < child_size.y)
+			min_size.y = child_size.y;
+	}
+
+	void Label::onSetPosition()
+	{
+		if (m_label_item) {
+			m_label_item->move(m_position.x, m_position.y);
+			m_label_item->update();
+		}
 	}
 
 	void Label::parseText(const std::string text)
@@ -123,25 +167,6 @@ namespace Rhea
 			std::string t = getText();
 			if (t.compare(m_label_item->getText())) {
 				m_label_item->setText(t);
-			}
-		}
-	}
-
-	void Label::setArea(bool moved, bool sized)
-	{
-		Widget::setArea(moved, sized);
-
-		if (m_label_item) {			
-			if (moved) {
-				DLOG(LOG_DEBUG) << "GUI::Label: widget " << m_pathname << ": screen(x,y)=" << m_position.x << ", " << m_position.y << ")";
-				m_label_item->move(m_position.x, m_position.y);
-			}
-			if (sized) {
-				DLOG(LOG_DEBUG) << "GUI::Label: widget " << m_pathname << ": size(w,h)" << m_size.x << ", " << m_size.y << ")";
-				m_label_item->resize(m_size.x, m_size.y);
-			}
-			if (sized || moved) {
-				m_label_item->update();
 			}
 		}
 	}

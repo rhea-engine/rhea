@@ -67,4 +67,27 @@ namespace Rhea
 
 		return unit;
 	}
+
+	UnitTree::Binding UnitTree::getBinding(std::string binding_desc, std::string basepath)
+	{
+		Binding binding = { nullptr, std::string("") };
+
+		size_t pos = binding_desc.find(".");
+		if (pos != std::string::npos && pos) {
+			if (basepath != "")
+				binding.target = find(basepath + "/" + binding_desc.substr(0, pos));
+			else
+				binding.target = find(binding_desc.substr(0, pos));
+
+			binding.value = binding_desc.substr(pos + 1);
+		}
+		else {
+			binding.target = find(basepath);
+			if (!pos)
+				binding.value = binding_desc.substr(pos + 1); // if someone put a "." at start
+			else
+				binding.value = binding_desc;
+		}
+		return binding;
+	}
 }

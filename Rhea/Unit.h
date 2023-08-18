@@ -186,6 +186,7 @@ namespace Rhea
 		std::unordered_map<std::string, std::string> m_attributes;
 		std::unordered_map<std::string, Variant> m_values;
 		std::unordered_map<std::string, Unit*> m_children;
+		std::vector<Unit*> m_ordered_children;
 		std::unordered_map < std::string, std::unordered_map<void*, Event::EventHandler >> m_eventhandlers;
 		std::unordered_map<std::string, Element*> m_elements;
 		int m_refcount;

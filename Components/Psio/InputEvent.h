@@ -15,7 +15,8 @@ namespace Psio
 		MOUSE_BTN_PRESSED,
 		MOUSE_BTN_RELEASED,
 		MOUSE_BTN_DBLCLICK,
-		WMGR_QUIT
+		WMGR_QUIT,
+		WIN_SIZE
 	};
 
 	class InputEvent
@@ -115,6 +116,22 @@ namespace Psio
 		bool m_middle;
 		int m_x;
 		int m_y;
+	};
+
+	class WinSizeEvent : public InputEvent
+	{
+	public:
+		WinSizeEvent(InputEventId id, unsigned int width, unsigned int height) :
+			m_width(width),
+			m_height(height),
+			InputEvent(id)
+		{}
+		unsigned int width() { return m_width; }
+		unsigned int height() { return m_height; }
+
+	protected:
+		unsigned int m_height;
+		unsigned int m_width;
 	};
 }
 

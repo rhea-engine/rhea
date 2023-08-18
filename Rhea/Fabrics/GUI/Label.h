@@ -16,13 +16,21 @@ namespace Rhea
 		Label(std::string path_name, std::string type_name) :
 			Widget(path_name, type_name),			
 			m_label_item(nullptr),
-			m_templating(true)
+			m_templating(true),
+			m_clip(true)
 		{}
 
 		virtual void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
 
 		// update the text
 		void setText(std::string text);
+
+		// recalculate my size
+		Vector2 innerSize(Vector2 size_constraints);
+		void innerGetMinSize(Vector2& min_size);
+
+		// reset the textWidget
+		void onSetPosition();
 
 		// parse template
 		void parseText(const std::string text);
@@ -35,8 +43,6 @@ namespace Rhea
 		TextWidget* getTextWidget() { return m_label_item; }
 
 		// events
-
-		void setArea(bool moved, bool sized);
 
 		void ready();
 
@@ -53,6 +59,9 @@ namespace Rhea
 
 		// cache of the textwidget item
 		TextWidget* m_label_item;
+
+		// what happens if text is too large
+		bool m_clip;
 	};
 }
 

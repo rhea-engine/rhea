@@ -36,6 +36,12 @@ namespace Rhea
 		// frame handler
 		void onFrame(float delta);
 
+		// recalculate my size
+		Vector2 innerSize(Vector2 size_constraints);
+
+		// reset the textWidget
+		void onSetPosition();
+
 		// update cursor position
 		void updateCursor(bool onlyCursor = false);
 
@@ -46,12 +52,7 @@ namespace Rhea
 		bool onTextInput(Event* ev, Unit* unit);
 		bool onMouseButton(Event* ev, Unit* unit);
 
-		// parent was hidden
-		bool onHide(Event* ev, Unit* unit);
-
 		// events
-
-		void setArea(bool moved, bool sized);
 
 		void ready();
 
@@ -69,6 +70,8 @@ namespace Rhea
 		
 		// position of cursor in text
 		size_t m_pos;
+		// pixel offset of cursor
+		Vector2 m_cursor_position;
 		
 		// length of text
 		size_t m_length;

@@ -1,4 +1,5 @@
 #include "List.h"
+#include "ListItem.h"
 #include <Rhea/Application.h>
 #include <Rhea/UnitTree.h>
 
@@ -7,6 +8,11 @@ namespace Rhea
 	void Rhea::ListWidget::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{
 		Widget::setup(app, attributes, values);
+
+		Variant data_binding = getValue("data");
+		if (data_binding != Variant()) {
+			m_data_binding = m_app->getUnitTree()->getBinding(data_binding, m_attributes["base_path"]);
+		}
 	}
 
 	void ListWidget::addItem(std::string text, std::string value)
@@ -14,22 +20,74 @@ namespace Rhea
 		std::unordered_map<std::string, std::string> attributes;
 		std::unordered_map<std::string, Variant> values;
 
-		values["x"] = 5.0f;
-		values["y"] = 5.0f + 30.0f * (m_children.size());
-		values["w"] = m_size.x - 2 * 5.0f;
-		values["h"] = 30.0f - 2 * 5.0f;
+		values["padding"] = getValue("item_padding", 0.0f);
 		values["text"] = text;
 		values["value"] = value;
+		values["fillwidth"] = true;
 
 		Widget* item = (Widget*)m_app->getUnitTree()->createUnit("child_" + std::to_string(1 + m_children.size()), "//meworla/gui/listitem", attributes, values);
 		addChild(item);
 		item->ready();
-		item->onParentSized(nullptr);
-		item->onParentMoved();
+
 		Event e("scene_enter", item);
 		bubbleEvent("scene_enter", &e);
 
 		registerEventHandler("selected", this, std::bind(&ListWidget::onSelected, this, std::placeholders::_1, std::placeholders::_2));
+	}
+
+	void ListWidget::ready()
+	{
+		Widget::ready();
+
+		// fill the list once
+		pollData();
+	}
+
+	void ListWidget::onFrame(float delta)
+	{
+		// rebuild item list
+		if (m_data_binding.target) {
+			pollData();
+		}
+	}
+
+	// this polls the bound data
+	// change is detected by comparing the value
+	// if at least one value is not the same rebuild the list
+	// all children are deleted and the list is created from scratch
+	void ListWidget::pollData()
+	{
+		Variant items = m_data_binding.target->getValue(m_data_binding.value);
+		if (items != Variant()) {
+			// changed?
+			bool changed = false;
+			if (m_children.size()) {
+				if (m_children.size() == items.length()) {
+					for (int i = 0; i < items.length(); i++) {
+						if (std::string(m_ordered_children[i]->getValue("value")).compare(items[i]))
+							changed = true;
+					}
+				}
+				else
+					changed = true;
+				if (changed) {
+
+					for (int i = 0; i < m_ordered_children.size(); i++) {
+						delete m_ordered_children[i];
+					}
+					m_ordered_children.clear();
+					m_children.clear();
+				}
+			}
+			else
+				changed = true;
+			if (changed) {
+				for (int i = 0; i < items.length(); i++) {
+					Variant item = items[i];
+					addItem(item, item);
+				}
+			}
+		}
 	}
 
 	bool ListWidget::onSelected(Event* ev, Unit* unit)
@@ -38,5 +96,37 @@ namespace Rhea
 			sendBoundEvent(m_values["onSelected"], ev);
 		}
 		return false;
+	}
+
+	void ListWidget::onSetPosition()
+	{
+		m_cur_position = m_position;
+
+		Vector2 child_position = m_position;
+		for (auto it = m_children.begin(); it != m_children.end(); ++it) {
+			Widget* w = doCast<Widget>(it->second);
+			if (w) {
+				w->setPosition(child_position);
+				child_position.y += w->H();
+			}
+		}
+	}
+
+	// the list widget inner size is the max width of its children
+	// and the sum of its childrens heights
+	Vector2 ListWidget::innerSize(Vector2 size_constraints)
+	{
+		Vector2 innerSize(0.0f, 0.0f);
+
+		for (auto it = m_children.begin(); it != m_children.end(); ++it) {
+			ListWidgetItem* li = doCast<ListWidgetItem>(it->second);
+			if (li) {
+				Vector2 child_size = li->size(size_constraints);
+				if (child_size.x > innerSize.x)
+					innerSize.x = child_size.x;
+				innerSize.y += child_size.y;
+			}
+		}
+		return innerSize;
 	}
 }

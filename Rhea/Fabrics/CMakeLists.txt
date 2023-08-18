@@ -15,4 +15,8 @@ add_library (RheaFabrics "Character/Character.cpp" "Character/KinematicCharacter
 "GUI/TextInput.h" "GUI/TextInput.cpp"
 "Network/ClientService.h" "Network/ClientService.cpp" "Network/WorldClient.h" "Network/WorldClient.cpp" 
 "Network/NetworkComponent.h" "Network/NetworkComponent.cpp" "Network/NetworkDelegate.h"
-"Core/Geometry.h" "3D/ObjLoader.h" "3D/ObjLoader.cpp" "GUI/Events/SubmitEvent.h")
+"Core/Geometry.h" "3D/ObjLoader.h" "3D/ObjLoader.cpp" "GUI/Events/SubmitEvent.h" "GUI/Box.h" "GUI/Box.cpp"
+"GUI/Modifier/Modifier.h"  "GUI/Modifier/Size.h" "GUI/Modifier/Offset.h" "GUI/Modifier/FillWidth.h" 
+"GUI/Modifier/FillSize.h" "GUI/Modifier/Padding.h" "GUI/Column.h" "GUI/Column.cpp" "GUI/Row.h" "GUI/Row.cpp"
+"GUI/Modifier/SizeWidth.h" "GUI/Modifier/SizeHeight.h" 
+"GUI/Layout/Alignment.h" )

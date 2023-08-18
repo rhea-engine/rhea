@@ -13,9 +13,13 @@ namespace Rhea
 		for (auto it = m_controllers.begin(); it < m_controllers.end(); it++)
 		{
 			(*it)->traverse([delta](std::string& name, Unit* unit)->bool {
-				Item* item = doCast<Item>(unit);
-				if (item) item->onFrame(delta);
-				return true;
+				Widget* item = doCast<Widget>(unit);
+				if (item && item->isVisible()) {
+					item->onFrame(delta);
+					return true;
+				}
+				else
+					return false;
 				});
 		}
 		

@@ -1,3 +1,4 @@
+#include "Widget.h"
 
 #include "Widget.h"
 #include "WidgetEvent.h"
@@ -11,17 +12,91 @@
 #include "../Canvas/Item2D.h"
 #include <Psio/Log.h>
 
+#include "Modifier/FillSize.h"
+#include "Modifier/Offset.h"
+#include "Modifier/Size.h"
+#include "Modifier/SizeWidth.h"
+#include "Modifier/SizeHeight.h"
+#include "Modifier/Padding.h"
+#include "Modifier/FillWidth.h"
+
 namespace Rhea
 {
 	void Widget::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{
 		Item2D::setup(app, attributes, values);
 
-		m_base_position.x = getValue("x");
-		m_base_position.y = getValue("y");
+		// offset
+		m_base_position.x = getValue("x", 0.0f);
+		m_base_position.y = getValue("y", 0.0f);
+		Variant offset_vec = getValue("position");
+		if (offset_vec != Variant()) {
+			m_base_position.x = offset_vec[0];
+			m_base_position.y = offset_vec[1];
+		}
 		m_cur_position = m_base_position;
-		m_base_size.x = getValue("w");
-		m_base_size.y = getValue("h");
+
+		if (m_base_position.x || m_base_position.y) {
+			m_modifiers.push_back(std::make_unique<OffsetModifier>(m_base_position));
+		}
+
+		// size set
+		if (m_values["w"] != Variant() || m_values["h"] != Variant()) {
+			if (m_values["w"] != Variant() && m_values["h"] != Variant()) {
+				m_base_size.x = getValue("w", 0.0f);
+				m_base_size.y = getValue("h", 0.0f);
+				m_modifiers.push_back(std::make_unique<SizeModifier>(m_base_size));
+			}
+			else if (m_values["w"] != Variant()) {
+				m_base_size.x = getValue("w", 0.0f);
+				m_modifiers.push_back(std::make_unique<SizeWidthModifier>(m_base_size.x));
+			}
+			else {
+				m_base_size.y = getValue("h", 0.0f);
+				m_modifiers.push_back(std::make_unique<SizeHeightModifier>(m_base_size.y));
+			}
+		}
+
+		// padding
+		Variant padding = getValue("padding");
+		if (padding != Variant()) {
+			if (!padding.isArray())
+				m_modifiers.push_back(std::make_unique<PaddingModifier>(padding));
+			else if (padding.length() == 4)
+				m_modifiers.push_back(std::make_unique<PaddingModifier>(padding[0], padding[1], padding[2], padding[3]));
+		}
+
+		// fillsize
+		if (getValue("fillsize", false)) {
+			m_modifiers.push_back(std::make_unique<FillSizeModifier>());
+		}
+		if (getValue("fillwidth", false)) {
+			m_modifiers.push_back(std::make_unique<FillWidthModifier>());
+		}
+
+		// layout
+		Variant align = getValue("alignment");
+		if (align.isArray()) {
+			Alignment::Horizontal h_align = Alignment::Horizontal::START;
+			Alignment::Vertical v_align = Alignment::Vertical::TOP;
+			if (align.size() > 0) {
+				if (align[0] == "start")
+					h_align = Alignment::Horizontal::START;
+				else if (align[0] == "end")
+					h_align = Alignment::Horizontal::END;
+				else if (align[0] == "center")
+					h_align = Alignment::Horizontal::CENTER;
+			}
+			if (align.size() > 1) {
+				if (align[1] == "top")
+					v_align = Alignment::Vertical::TOP;
+				else if (align[1] == "bottom")
+					v_align = Alignment::Vertical::BOTTOM;
+				else if (align[1] == "center")
+					v_align = Alignment::Vertical::CENTER;
+			}
+			m_alignment = std::make_unique<Alignment>(h_align, v_align);
+		}
 
 		// set styles based on values
 		if (m_values.find("font") != m_values.end())
@@ -30,7 +105,10 @@ namespace Rhea
 			m_properties["background-image"].push_back({ m_values["texture"] });
 
 		std::unordered_map<std::string, std::string> attr;
-		std::unordered_map<std::string, Variant> val;		
+		std::unordered_map<std::string, Variant> val;
+
+		if (m_values.find("onClick") != m_values.end())
+			setOnClick(m_values["onClick"]);
 	}
 
 	void Widget::ready()
@@ -43,117 +121,147 @@ namespace Rhea
 			hide();
 		}
 	}
-	
-	void Widget::onParentSized(Event* event)
+
+	void Widget::setOnClick(std::string target)
 	{
-		// remember old size
-		Vector2 old_size(m_size);
+		bool is_set = (m_onClick != "");
+		bool is_new_set = (target != "");
+		m_onClick = target;
+		if (!is_set && is_new_set)
+			registerEventHandler("mouse_btn_down", this, [&](Event* e, Unit* u)->bool {
+			return onClicked(e, u);
+				});
+		if (is_set && !is_new_set)
+			unregisterEventHandler("mouse_btn_down", this);
+	}
 
-		// recalculate my size
-		m_size = size();
-		
-		// check if the size changed
-		const bool sized = (m_size != old_size);
-
-		if (sized) {
-			onSized();
+	bool Widget::onClicked(Event* ev, Unit* unit)
+	{
+		if (m_values.find("onClick") != m_values.end()) {
+			sendBoundEvent(m_values["onClick"], ev);
 		}
-
-	}
-
-	void Widget::onParentMoved()
-	{
-		m_screen_position_valid = false;
-		Vector2 pos = getScreenPosition();
-
-		setArea(true, false);
-
-		// recalc children
-		moveChildren();
-	}
-
-	void Widget::onSized()
-	{
-		sizeChildren();
-
-		setArea(false, true);
-
-		WidgetEvent e("Sized", this);
-		sendEvent("Sized", (Event*)&e);
+		return false;
 	}
 
 	void Widget::setPosition(Vector2 position)
 	{
-		// if the position really changes recalculate and send event
-		if (position != m_cur_position) {
-			m_cur_position = position;
-			m_screen_position_valid = false;
-			onMoved();
+		// set the screen coords
+		m_position = position + m_base_position;
+
+		onSetPosition();
+		if (m_material) {
+			DLOG(LOG_DEBUG) << "GUI::Widget: widget " << m_pathname <<
+				": screen(x,y)=(" << m_position.x << ", " << m_position.y <<
+				"); size(w,h)=(" << m_size.x << ", " << m_size.y << ")";
+			update();
 		}
 	}
 
-	void Widget::onMoved()
-	{
-		Vector2 pos = getScreenPosition();
-
-		setArea(true, false);
-
-		// recalc screen coords of children
-		sizeChildren();
-
-		WidgetEvent e("Moved", this);
-		sendEvent("Moved", (Event*)&e);
-	}
-
-	void Widget::sizeChildren()
+	void Widget::onSetPosition()
 	{
 		for (auto it = m_children.begin(); it != m_children.end(); ++it) {
 			Widget* w = doCast<Widget>(it->second);
 			if (w) {
-				w->onParentSized(nullptr);
+				w->setPosition(m_position);
 			}
 		}
 	}
 
-	void Widget::moveChildren()
+	// compute widget size
+	// apply all modifiers	
+	// call internal size
+	// compute and return outer_size
+	Vector2 Widget::size(Vector2 size_constraints)
+	{
+		m_size = Vector2(0.0f, 0.0f);
+		m_base_position = Vector2(0.0f, 0.0f);
+
+		// reported size to parent
+		m_outer_size = Vector2(0.0f, 0.0f);
+		// constraints for children
+		Vector2 inner_size = size_constraints;
+
+		// apply modifiers
+		for (auto it = m_modifiers.begin(); it < m_modifiers.end(); ++it) {
+			(*it)->apply(this, inner_size, m_size, m_outer_size);
+		}
+		Vector2 child_size = innerSize(inner_size);
+
+		// enlarge size and m_outer_size if child is larger than size;
+		float child_delta_x = child_size.x - m_size.x;
+		if (child_delta_x > 0.0f) {
+			m_size.x = child_size.x;
+			m_outer_size.x += child_delta_x;
+		}
+		float child_delta_y = child_size.y - m_size.y;
+		if (child_delta_y > 0.0f) {
+			m_size.y = child_size.y;
+			m_outer_size.y += child_delta_y;
+		}
+
+		// report only the constraint size
+		if (m_outer_size.x > size_constraints.x)
+			m_outer_size.x = size_constraints.x;
+		if (m_outer_size.y > size_constraints.y)
+			m_outer_size.y = size_constraints.y;
+
+		return m_outer_size;
+	}
+
+	Vector2 Widget::innerSize(Vector2 size_constraints)
+	{
+		Vector2 max_child_size = Vector2(0.0f, 0.0f);
+		for (auto it = m_children.begin(); it != m_children.end(); ++it) {
+			Widget* w = doCast<Widget>(it->second);
+			if (w) {
+				// get child size
+				// this is guaranteed to be in the constraint
+				Vector2 child_size = w->size(size_constraints);
+				if (child_size.x > max_child_size.x)
+					max_child_size.x = child_size.x;
+				if (child_size.y > max_child_size.y)
+					max_child_size.y = child_size.y;
+			}
+		}
+		return max_child_size;
+	}
+
+	Vector2 Widget::getMinSize(Vector2 size_constraints)
+	{
+		Vector2 min_inner_size;
+		Vector2 min_outer_size = size_constraints;
+		Vector2 max_inner_size;
+
+		// fill min_size by modifiers
+		for (auto it = m_modifiers.begin(); it < m_modifiers.end(); ++it) {
+			(*it)->essentialSize(this, min_inner_size, max_inner_size, min_outer_size);
+		}
+		Vector2 padding = min_outer_size - min_inner_size;
+		// enlarge to inner size of myself
+		innerGetMinSize(max_inner_size, min_inner_size);
+
+		m_cached_min_size = min_inner_size + padding;
+		m_cached_max_size = max_inner_size + padding;
+		if (m_cached_min_size.x > m_cached_max_size.x)
+			m_cached_min_size.x = m_cached_max_size.x;
+		if (m_cached_min_size.y > m_cached_max_size.y)
+			m_cached_min_size.y = m_cached_max_size.y;
+
+		return m_cached_min_size;
+	}
+
+	void Widget::innerGetMinSize(Vector2 size_constraints, Vector2& min_size)
 	{
 		for (auto it = m_children.begin(); it != m_children.end(); ++it) {
 			Widget* w = doCast<Widget>(it->second);
 			if (w) {
-				w->onParentMoved();
+				Vector2 child_min = w->getMinSize(size_constraints);
+				if (child_min.x > min_size.x)
+					min_size.x = child_min.x;
+				if (child_min.y > min_size.y)
+					min_size.y = child_min.y;
 			}
 		}
-	}
-
-	Vector2 Widget::size()
-	{
-		// if size is set, clip to parent
-		// if size is not set use remaining size of parent
-
-		m_size = m_base_size;
-		// TODO This seems not to be called and is probably wrong (parent of parent?)
-		if (m_parent && !doCast<Widget>(m_parent)) {
-			// get remaining parent area (parents area minus my relative position)
-			Vector2 p_size = static_cast<Widget*>(m_parent)->getSize() - m_cur_position;
-
-			// get parent remaining size if not set
-			if (m_base_size.x == 0)
-				m_size.x = p_size.x;
-			if (m_base_size.y == 0)
-				m_size.y = p_size.y;
-			
-			// clip to parent
-			if (p_size.x < m_size.x)
-				m_size.x = p_size.x;
-			if (m_size.x < 0.0f)
-				m_size.x = 0.0f;
-			if (p_size.y < m_size.y)
-				m_size.y = p_size.y;
-			if (m_size.y < 0.0f)
-				m_size.y = 0.0f;
-		}
-
-		return m_size;
 	}
 
 	void Widget::setStyle(SimpleParser::CssParser::PropertyMap& properties)
@@ -179,7 +287,6 @@ namespace Rhea
 					std::unordered_map<std::string, std::string> attr;
 					std::unordered_map<std::string, Variant> val;
 
-					
 					Unit* tex = m_app->getUnitTree()->find(resname);
 					if (tex) {
 
@@ -220,7 +327,7 @@ namespace Rhea
 						sendEvent("update", nullptr);
 					}
 				}
-				else if (m_values["texture"]==Variant()) {
+				else if (m_values["texture"] == Variant()) {
 					DLOG(LOG_DEBUG) << "TODO: Handle owverwriting of texture, if not set on widget";
 				}
 			}
@@ -238,13 +345,19 @@ namespace Rhea
 		else
 			return nullptr;
 	}
-	
+
 	void Widget::show()
 	{
 		m_visible = true;
 		m_render_component->show();
 		Event e("show", this);
-		sendEventChildren("show", &e);
+		bubbleEvent("show", &e);
+	}
+
+	void Widget::makeVisble()
+	{
+		m_visible = true;
+		m_render_component->show();
 	}
 
 	void Widget::hide()
@@ -252,7 +365,13 @@ namespace Rhea
 		m_visible = false;
 		m_render_component->hide();
 		Event e("hide", this);
-		sendEventChildren("hide", &e);
+		bubbleEvent("hide", &e);
+	}
+
+	void Widget::makeInvisble()
+	{
+		m_visible = false;
+		m_render_component->hide();
 	}
 
 	Widget* Widget::capture(int c_x, int c_y)
@@ -296,51 +415,19 @@ namespace Rhea
 	}
 
 	void Widget::sendBoundEvent(std::string binding, Event* ev)
-	{		
-		std::string event_name;
-		size_t pos = binding.find(".");
-		Unit* target;
-		if (pos != std::string::npos && pos) {
-			target = m_app->getUnitTree()->find(m_attributes["basepath"] + "/" + binding.substr(0, pos));
-			event_name = binding.substr(pos + 1);
-		}
-		else {
-			target = m_app->getUnitTree()->find(m_attributes["basepath"]);
-			if (!pos)
-				event_name = binding.substr(pos + 1); // if someone put a "." at start
-			else
-				event_name = binding;
-		}
-		if (target)
-			target->sendEvent(event_name, ev);
+	{
+		UnitTree::Binding event_binding;
+
+		event_binding = m_app->getUnitTree()->getBinding(binding, m_attributes["basepath"]);
+
+		if (event_binding.target)
+			event_binding.target->sendEvent(event_binding.value, ev);
 		else
-			LOG(LOG_ERROR) << "Sending Event: Target " + m_attributes["basepath"] + "/" + binding.substr(0, pos) + " not found";
+			LOG(LOG_ERROR) << "Sending Event: Binding " << binding << " not found";
 	}
 
 	Vector2 Widget::getScreenPosition()
 	{
-		if (!m_screen_position_valid) {
-			if (m_top_window) {
-				m_position = m_cur_position;
-			}
-			else {
-				m_position = static_cast<Widget*>(m_parent)->getScreenPosition() + m_cur_position;
-			}
-			m_screen_position_valid = true;
-		}
 		return m_position;
-	}
-	
-	void Widget::setArea(bool moved, bool sized)
-	{
-		if (m_material && (sized || moved)) {
-			if (moved) {
-				DLOG(LOG_DEBUG) << "GUI::Widget: widget " << m_pathname << ": screen(x,y)=" << m_position.x << ", " << m_position.y << ")";			
-			}
-			if (sized) {
-				DLOG(LOG_DEBUG) << "GUI::Widget: widget " << m_pathname << ": size(w,h)" << m_size.x << ", " << m_size.y << ")";
-			}
-			update();
-		} 		
 	}
 }

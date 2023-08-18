@@ -55,15 +55,22 @@ namespace Psio
 		bool mleft;
 		bool mright;
 		bool mmiddle;
+		unsigned int width;
+		unsigned int height;
 
 		switch (uMsg)
 		{
 		case WM_CLOSE:
-		{
 			win->destroy();
 			return 0;
-		}
-
+		
+		case WM_SIZE:
+			width = LOWORD(lParam);
+			height = HIWORD(lParam);
+			evt = std::make_shared<WinSizeEvent>(Psio::InputEventId::WIN_SIZE, width, height);
+			win->addInputEvent(evt);
+			break;
+	
 		case WM_DESTROY:		
 			PostQuitMessage(0);
 			break;

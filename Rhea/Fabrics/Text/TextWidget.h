@@ -57,6 +57,9 @@ namespace Rhea
 		// offset to one side for text input
 		void setOffset(float offset) { m_offset_x = offset; }
 
+		// get size of current text
+		Vector2 getTextSize();
+
 		// set word wrap option
 		void setWordWrap(bool word_warp);
 

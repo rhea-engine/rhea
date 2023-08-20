@@ -7,6 +7,9 @@
 #include <stdio.h>
 #include <io.h>
 #include <direct.h>
+#include <Psio/Log.h>
+#include <tchar.h> 
+#include <strsafe.h>
 
 using std::string;
 
@@ -47,6 +50,13 @@ namespace Orion
 
         m_app_dir = res;
 
+        if (!fileExists(m_app_dir)) {
+            int check = _mkdir(m_app_dir.c_str());
+            if (check) {
+                LOG(LOG_ERROR) << "could not create app data folder: " << errno;
+            }
+        }
+
         return res;
     }
 
@@ -84,6 +94,31 @@ namespace Orion
         return "";
     }
 
+    std::string Fs::getHomeDir(bool create)
+    {
+        if (m_home.length())
+            return m_home;
+
+        char* home_env = getenv("HOMEPATH"); 
+        if (!home_env)
+            home_env = getenv("APPDATA");
+        if (home_env)
+            m_home = std::string(home_env);
+        else
+            m_home = ".";
+
+        m_home += "\\Meworla";
+        if (!fileExists(m_home) && create) {
+            int check = _mkdir(m_home.c_str());
+            if (check) {
+                LOG(LOG_ERROR) << "could not create data folder in users home: " << errno;
+            }
+        }
+
+        return m_home;
+
+    }
+
     int Fs::fileOpen(FILE** f, string filename, int mode)
     {
         char* accessMode = "";
@@ -116,4 +151,54 @@ namespace Orion
     {
         return _access(path.c_str(), 04) == 0;
     }
+
+    class WinDirectoryHandle : public Fs::DirectoryHandle
+    {
+    public:
+        ~WinDirectoryHandle() {
+            FindClose(hFind);
+        }
+        
+        WIN32_FIND_DATA ffd;
+        HANDLE hFind = INVALID_HANDLE_VALUE;
+    };
+
+    Fs::DirectoryHandle* Fs::openDirectory(std::string path)
+    {        
+        WinDirectoryHandle *fh = new WinDirectoryHandle();
+        path += "/*.*";
+
+        fh->hFind = FindFirstFileA(path.c_str(), &fh->ffd);
+        if (fh->hFind == INVALID_HANDLE_VALUE) {
+            delete fh;
+            return nullptr;
+        }
+        else
+            return fh;
+    }
+
+    int Fs::readEntry(DirectoryHandle* handle, FileAttributes* attributes)
+    {
+        WinDirectoryHandle* fh = static_cast<WinDirectoryHandle*>(handle);
+        
+        attributes->name = fh->ffd.cFileName;
+        WIN32_FIND_DATA ffd = fh->ffd;
+        if (fh->ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+            attributes->is_dir = true;
+            attributes->size = 0;
+        }
+        else {
+            attributes->is_dir = false;
+            uint64_t size = (fh->ffd.nFileSizeHigh * (static_cast<uint64_t>(MAXDWORD) + 1)) + fh->ffd.nFileSizeLow;
+            attributes->size = size;
+        }
+        return 0;
+    }
+
+    bool Fs::nextEntry(DirectoryHandle* handle) 
+    {
+        WinDirectoryHandle* fh = static_cast<WinDirectoryHandle*>(handle);
+        return FindNextFileA(fh->hFind, &fh->ffd);
+    }
+
 }

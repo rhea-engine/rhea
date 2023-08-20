@@ -12,25 +12,38 @@ using std::string;
 
 class Ceto : public Poseidon::Application
 {
+public:
+	Ceto() :
+		m_gui(nullptr),
+		m_view(nullptr),
+		m_debug_text(nullptr)
+	{}
+	void setup();
+	void setScene(bool mark_preferrences = true);
+	void showScene(Rhea::Scene* scene);
+	void loadMainGUI();
+	void setHomeScene(string scene);
+	bool onFrameEnd();
+
 protected:
 	string m_home_scene;
-	Rhea::Camera* m_view = 0;
-	Rhea::Label* m_debug_text = nullptr;
+	Rhea::Camera* m_view;
+	Rhea::Label* m_debug_text;
+
+	// event functions
 	bool onQuit(Rhea::Event* ev, Rhea::Unit* unit);
 	bool onInput(Rhea::EventInput* e, Rhea::Unit* unit);
 	bool onRealmSelect(Rhea::Event* ev, Rhea::Unit* unit);
 	void showAlert(std::string text);
 	void setRealmSelectDialog();
 	void openScene(std::string scene_name);
+	
+	// user preferences
 	UserPrefs m_userprefs;
 	std::string m_userpref_path;
-public:
-	void setup();
-	void setScene();
-	void showScene(Rhea::Scene* scene);	
-	void loadMainGUI();
-	void setHomeScene(string scene);
-	bool onFrameEnd();
+
+	// cache of ceto gui scene
+	Rhea::Scene* m_gui;
 };
 
 #endif // !CETO_H

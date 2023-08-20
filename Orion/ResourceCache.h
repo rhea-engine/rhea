@@ -1,21 +1,18 @@
 #ifndef ORION_RESOURCECACHE_H
 #define ORION_RESOURCECACHE_H
 
-#include <string>
-
-using std::string;
+#include "ResolverInterface.h"
 
 #include "Orion.h"
 
 namespace Orion
 {
-	class ResourceReadyInterface;
-
-	class ResourceCache
+	class ResourceCache : public ResolverInterface
 	{
 	public:
 		ResourceCache();
-		int GetResource(string url);
+
+		std::unique_ptr<ResourceStream> getResource(std::string realm_name, std::string resource_path);
 	};
 }
 

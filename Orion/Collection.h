@@ -1,26 +1,27 @@
 #ifndef ORION_COLLECTION_H
 #define ORION_COLLECTION_H
 
+#include <string>
+
 #include "ResourceStream.h"
 
 namespace Orion
 {
-	class Entry
-	{
-	public:
-		string name;
-		string mime;
-		size_t length;
-	};
-
 	class Collection : public ResourceStream
 	{
 	protected:
 		
 	public:		
+		struct Entry
+		{
+			std::string name;
+			std::string mime;
+			size_t length;
+		};
+
 		bool IsDir() { return true; }
-		//virtual Resource* GetResource(string name) = 0;
-		virtual Entry* next_entry() = 0;
+
+		virtual Entry* nextEntry() = 0;
 	};
 }
 #endif // ! ORION_COLLECTION_H

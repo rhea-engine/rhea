@@ -30,6 +30,8 @@ namespace Psio
 
 		int GetResponseCode() {	return m_response_code;	}
 
+		size_t getLength() { return m_size; }
+
 	protected:
 		HttpTransaction* m_transaction;
 		IOBuffer* m_buffer;

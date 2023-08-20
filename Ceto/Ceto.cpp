@@ -21,6 +21,7 @@
 #include <Rhea/Fabrics/GUI/List.h>
 #include <Orion/FileStream.h>
 #include <Rhea/Fabrics/Core/Avatar.h>
+#include <Rhea/Resources/Collection.h>
 
 bool Ceto::onQuit(Rhea::Event* ev, Rhea::Unit* unit)
 {
@@ -93,12 +94,7 @@ void Ceto::openScene(std::string scene_name)
 	m_home_scene = scene_name;
 
 	// open the scene
-	setScene();
-	SimpleParser::CssParser::PropertyMap properties;
-	properties["background-image"] = { "none" };
-	w = doCast<Rhea::Widget>(m_unit_tree->find("//local/cetogui/gui"));
-	if (w)
-		w->setStyle(properties);
+	setScene();	
 }
 
 void Ceto::setup()
@@ -116,7 +112,7 @@ void Ceto::setup()
 	// add defaults
 
 	// read from userprefs
-	m_userpref_path = m_fs->getFs()->getHomeDir();
+	m_userpref_path = m_fs->getFs()->getAppDataDir();
 	m_userpref_path += string("/ceto.json");
 
 	if (m_fs->getFs()->fileExists(m_userpref_path))
@@ -173,20 +169,29 @@ void Ceto::setup()
 	m_unit_tree->addChild(mat);
 }
 
-void Ceto::setScene()
+void Ceto::setScene(bool mark_preferrences)
 {
-	m_userprefs.lastUsed(m_home_scene);
+	if (mark_preferrences) {
+		m_userprefs.lastUsed(m_home_scene);
 
-	std::string s = m_userprefs.toJSON();
-	std::unique_ptr<Orion::FileResourceStream> stream = std::make_unique<Orion::FileResourceStream>(m_userpref_path);
-	stream->SetMode(Orion::Fs::WRITE);
-	stream->Open();
-	stream->Write(s.c_str(), s.size());
-	stream->Close();		
+		std::string s = m_userprefs.toJSON();
+		std::unique_ptr<Orion::FileResourceStream> stream = std::make_unique<Orion::FileResourceStream>(m_userpref_path);
+		stream->SetMode(Orion::Fs::WRITE);
+		stream->Open();
+		stream->Write(s.c_str(), s.size());
+		stream->Close();
+	}
 
 	loadResource(m_home_scene, "//meworla/scene", [&](Rhea::Unit* scene_unit, ReqError err) {
 		Rhea::Scene* scene = doCast<Rhea::Scene>(scene_unit);
 		if (scene && err == ReqError::OK) {
+
+			// hide GUI background
+			SimpleParser::CssParser::PropertyMap properties;
+			properties["background-image"] = { "none" };
+			Rhea::Widget* w = doCast<Rhea::Widget>(m_unit_tree->find("//local/cetogui/gui"));
+			if (w)
+				w->setStyle(properties);
 
 			// display scene
 			std::string start_scene = scene->getValue("startscene", "");
@@ -204,7 +209,20 @@ void Ceto::setScene()
 			}
 		}
 		else {
+			Rhea::Collection* dir = doCast<Rhea::Collection>(scene_unit);
+			if (dir) {
+				// user tried to open directory
+				// try world.scene
+				m_home_scene += "/world.scene";
+				return setScene(false);
+			}
+
 			log("Could not open scene");
+			Rhea::Widget* w = doCast<Rhea::Widget>(m_unit_tree->find("//local/cetogui/gui/realms"));
+			if (w) {
+				w->hide();
+			}
+			showAlert("Could not open scene");
 		}
 		});
 }
@@ -265,10 +283,7 @@ void Ceto::showScene(Rhea::Scene* scene)
 void Ceto::showAlert(std::string text)
 {
 	// set the text
-	Rhea::Label* gui = doCast<Rhea::Label>(m_unit_tree->find("//local/cetogui/gui"));
-	if (gui) {
-		gui->setValue("alert", text);
-	}
+	m_gui->setValue("alert", text);
 	 
 	// show dialog
 	Rhea::Widget* w = doCast<Rhea::Widget>(m_unit_tree->find("//local/cetogui/gui/alert"));
@@ -286,6 +301,7 @@ void Ceto::loadMainGUI()
 		if (gui && r_err == ReqError::OK) {
 			
 			gui->show();
+			m_gui = gui;
 			log("gui ready");
 			
 			// find label for debug text

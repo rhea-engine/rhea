@@ -46,6 +46,8 @@
 #include <EventInput.h>
 #include <Fabrics/Core/Avatar.h>
 #include <Fabrics/3D/ObjLoader.h>
+#include <Resources/Resources.h>
+#include <Resources/Collection.h>
 
 #undef min
 
@@ -65,6 +67,7 @@ namespace Rhea
 		// register core types
 		SimpleParser::Type::registerType<Unit>("//core/types/unit");
 		SimpleParser::Type::registerType<UnitTree>("//core/unittree");
+		SimpleParser::Type::registerType<Collection>("//core/collection");
 
 		// initialize services
 		SimpleParser::Type::registerType<Service>("//meworla/service");
@@ -96,6 +99,7 @@ namespace Rhea
 		SimpleParser::Type::registerType<Realm>("//meworla/realm");
 		SimpleParser::Type::registerType<Scene>("//meworla/scene");
 		m_resource_loader.registerLoader<SceneLoader>("application/vnd.meworla.scene");
+		SimpleParser::Type::registerType<Resources>("//meworla/resources");
 		SimpleParser::Type::registerType<Transform>("//meworla/transform");
 		SimpleParser::Type::registerType<Item>("//meworla/item");
 		SimpleParser::Type::registerType<Mesh>("//meworla/mesh");
@@ -156,7 +160,7 @@ namespace Rhea
 			printf("Error: SetAppDir called before App::init()\n");
 			exit(-1);
 		}
-		m_fs->setAppDir(path);
+		m_fs->setLocalDir(path);
 		m_services["platform"]->setValue("AppDir", SimpleParser::Variant(path));
 	}
 
@@ -335,6 +339,14 @@ namespace Rhea
 					// should not happen
 					return handler(NULL, ReqError::PATH_NOT_FOUND);
 
+				if (req->getStream()->IsDir()) {
+					// sepcial case for directory
+					Collection* collection = new Collection(req->getBasename(), "//core/collection");
+					collection->readFromStream(req->getStream());
+					parent_unit->addChild(collection);
+					return handler(collection, ReqError::OK);
+				}
+
 				// call loader for resource mime type
 
 				// get from request
@@ -357,7 +369,7 @@ namespace Rhea
 				// this is only called for unhandled or unknown mime types
 
 				// create a generic resource unit
-				Resource* unit = new Resource(req->getBasename(), type_name);
+				Resource* unit = new Resource(req->getBasename(), "//meworla/resource");
 
 				// add it to tree
 				parent_unit->addChild(unit);

@@ -19,7 +19,7 @@ namespace Orion
 		virtual bool IsDir() { return false; }
 		virtual std::string get_mime() { return m_mime; }
 		virtual std::string get_name() { return m_name; }
-		virtual size_t get_length() = 0;
+		virtual size_t getLength() = 0;
 
 		// open for reading
 		// used internally for async functions or must be called before using sync functions
@@ -42,11 +42,6 @@ namespace Orion
 
 		// Close the stream
 		virtual void Close() = 0;
-
-		// error handling
-
-		// return error of stream
-		virtual int error() = 0;
 
 	protected:
 		bool m_isOpen;

@@ -55,7 +55,7 @@ namespace Orion
 		string getBasename();
 
 		bool isResolved() { return m_resolved; }
-		Psio::Stream* getStream() { return m_stream; }
+		ResourceStream* getStream() { return m_stream.get(); }
 		void setMimeType(std::string type) { m_mime_type = type; }
 		std::string getMimeType();
 
@@ -91,6 +91,7 @@ namespace Orion
 
 		enum class State {
 			UNSET,
+			CACHE_RESOLVE,
 			REALM_RESOLVE,
 			REALM_RESOLVE_COMPLETED,			
 			RESOURCE_RESOLVE,
@@ -102,6 +103,7 @@ namespace Orion
 		State m_next_state = ResourceRequest::State::UNSET;
 
 		int ResolveLoop(int result);
+		int doCacheResolve(int result);
 		int doResolveResource(int result);
 		int doResolveResourceCompleted(int result);
 		int doResolveRealm(int result);
@@ -115,7 +117,7 @@ namespace Orion
 		Realm* m_realm = NULL;
 		bool m_resolved = false;
 		bool m_realm_resolved = false;
-		Psio::Stream* m_stream = NULL;
+		std::unique_ptr<ResourceStream> m_stream;
 		Error m_error = Error::OK;
 
 		int request_type = 0;
@@ -128,8 +130,6 @@ namespace Orion
 		// wheter realm is a local realm
 		bool m_local = false;
 
-		// wheter the realm is an addon (installed with program)
-		bool m_addon = false;	
 		RequestHandler m_handler;
 
 		Psio::UrlRequest* m_request;

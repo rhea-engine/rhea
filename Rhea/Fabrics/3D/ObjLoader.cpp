@@ -100,7 +100,7 @@ namespace Rhea
 
                 index_offset += num_vertices;
                 // per-face material
-                shape.mesh.material_ids[f];
+                int face_id = shape.mesh.material_ids[f];
             }
             
             if (change_handedness) {
@@ -119,18 +119,18 @@ namespace Rhea
         std::string mtlbuf;
 
         if (m_values.find("material") != m_values.end()) {
-            TextResource* mtl = (TextResource*)m_app->getUnitTree()->find(m_values["material"]);
+            TextResource* mtl = (TextResource*)m_app->getUnitTree()->find(m_values["material"], m_attributes["basepath"], false);
             if (mtl) {
                 mtlbuf = mtl->getAsString();
             }
         }
         if (m_values.find("path") != m_values.end()) {
-            TextResource* obj = (TextResource*)m_app->getUnitTree()->find(m_values["path"]);
+            TextResource* obj = (TextResource*)m_app->getUnitTree()->find(m_values["path"], m_attributes["basepath"], false);
             if (obj) {
                 objbuf = obj->getAsString();
             }
             else {
-                DLOG(LOG_DEBUG) << "obj not found in objloader";
+                DLOG(LOG_DEBUG) << "Obj not found in objloader. Path was: " << (std::string)m_values["path"];
                 return false;
             }
         }

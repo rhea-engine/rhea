@@ -81,9 +81,17 @@ namespace Rhea
 			}
 			subpath = path.substr(0, pos);
 			auto unit_it = m_children.find(subpath);
-			if (unit_it == m_children.end())
-				// TODO if create
-				return NULL;
+			if (unit_it == m_children.end()) {
+				if (create) {
+					// not found - create a unit as container
+					Unit* u = new Unit(subpath, "//core/types/unit");
+					addChild(u);
+					unit_it = m_children.find(subpath);
+				}
+				else {			
+					return NULL;
+				}
+			}
 			return unit_it->second->find(path.substr(pos + 1, path.length()), create);
 		}
 	}
@@ -92,8 +100,18 @@ namespace Rhea
 	{
 		if (path == "")
 			return nullptr;
-		if (path.size() < 2 || (path[0] != '/' || path[1] != '/'))
-			path = basepath + "/" + path;
+		if (path.size() > 1)
+			if (path[0] == '/') {
+				if (path[1] != '/') {
+					// use parent of basepath
+					size_t pos = basepath.rfind("/");
+					if (pos != std::string::npos && pos > 1)
+						path = basepath.substr(0, pos) + path;
+				}
+				// else is absolute
+			}
+			else
+				path = basepath + "/" + path;
 		return find(path, create);
 	}
 

@@ -11,6 +11,7 @@ using std::string;
 #include "os/Fs.h"
 #include "Realms.h"
 #include <Psio/Psio.h>
+#include "ResolverInterface.h"
 
 namespace Orion
 {	
@@ -32,6 +33,9 @@ namespace Orion
 		// if we have the rid we have to resolve the Resource and then get it
 		ResourceRequest* getResourceByRid(const string rid);
 
+		// get by cache
+		std::unique_ptr<ResourceStream> getResourceFromCache(const string realm_name, const string resource_path);
+
 		// force closing a request
 		void close(ResourceRequest* req);
 
@@ -46,18 +50,21 @@ namespace Orion
 		// get realm from realm list
 		Realms* getRealms();		
 
-		// set the app dir manually
+		// set an app dir manually
 		void setAppDir(std::string dirname);
+
+		// set a local dir manually
+		void setLocalDir(std::string dirname);
 
 		static const int ERR_NOTFOUND = -1;
 		static const int ERR_NOTIMPLEMENTED = -2;
 
 	protected:
 		// realm list
-		Realms* m_realms;
+		std::unique_ptr<Realms> m_realms;
 
 		// the resource cache
-		ResourceCache* m_cache;
+		std::vector<std::unique_ptr<ResolverInterface>> m_caches;
 
 		// pointer to the OS Fs
 		Fs* m_fs;

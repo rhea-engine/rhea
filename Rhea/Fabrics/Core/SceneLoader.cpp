@@ -18,6 +18,8 @@ namespace Rhea
 		std::vector<SimpleParser::IniFileParser::Section> sections;
 		UnitTree* tree = app->getUnitTree();
 
+		std::string scene_root = "//" + req->getRealmName() + req->getParentPath();
+
 		Psio::Stream* rs = req->getStream();
 		Psio::IOBuffer* buf = new Psio::IOBuffer(64 * 1024);
 		rs->onEnd([&](size_t buflen) {
@@ -95,9 +97,12 @@ namespace Rhea
 				std::vector<Unit::Export> references = unit->getReferences();
 				for (auto ref_it = references.begin(); ref_it != references.end(); ++ref_it) {
 					std::string id = ref_it->value;
-					// if absolute path it is a resource not satified by this scene file
-					if (id[0] == '/' && id[1] == '/') {
-						res_list.push(section.section_name + '_' + id, id, ref_it->type);
+					// if absolute path or base path it is a resource not satified by this scene file
+					if (id.size() > 1 && id[0] == '/') {
+						if (id[1] == '/')
+							res_list.push(section.section_name + '_' + id, id, ref_it->type);
+						else
+							res_list.push(section.section_name + '_' + id, scene_root + id, ref_it->type);
 					}
 				}
 			}

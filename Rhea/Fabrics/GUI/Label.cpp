@@ -107,7 +107,9 @@ namespace Rhea
 			switch (state) {
 			case 0:
 				if (text[reader] == '{') {
-					m_textElements.push_back({ 0, text.substr(start, reader - start) });
+					// up to now we have a normal string
+					if (start < reader)
+						m_textElements.push_back({ 0, text.substr(start, reader - start) });
 					start = reader + 1;
 					state = 1;
 					path = "";
@@ -116,13 +118,13 @@ namespace Rhea
 			case 1:
 				if (text[reader] == '}') {
 					if (start < reader)
-						m_textElements.push_back({ 1, "", text.substr(start, reader - start) });
+						m_textElements.push_back({ 1, text.substr(start, reader - start), m_attributes["basepath"] });
 					start = reader + 1;
 					state = 0;
 				}
 				else if (text[reader] == '.') {
 					if (start < reader)
-						path = text.substr(start, reader - start);
+						path = m_attributes["basepath"] + "/" + text.substr(start, reader - start);
 					start = reader + 1;
 					state = 2;
 				}
@@ -150,9 +152,8 @@ namespace Rhea
 			case 0:
 				res += it->value;
 				break;
-			case 1:
-				std::string path = m_attributes["basepath"] + "/" + it->path;
-				Unit* u = m_app->getUnitTree()->find(path);
+			case 1:				
+				Unit* u = m_app->getUnitTree()->find(it->path);
 				if (u != nullptr)
 					res += u->getValue(it->value, "");
 				break;

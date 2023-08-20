@@ -15,6 +15,7 @@ namespace Psio
 			m_error_handler(nullptr),
 			m_error(0)
 		{}
+		virtual ~Stream() {}
 
 		// callback types
 		typedef std::function<void(size_t)> DataHandler;
@@ -40,6 +41,11 @@ namespace Psio
 
 		// set internal mode
 		virtual void SetMode(int mode) = 0;
+
+		// error handling
+
+		// return error of stream
+		virtual int error() { return m_error; }
 
 	protected:
 		DataHandler m_data_handler;

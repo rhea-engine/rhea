@@ -145,6 +145,9 @@ namespace Rhea
 
 	void Widget::setPosition(Vector2 position)
 	{
+		if (!m_visible)
+			return;
+
 		// set the screen coords
 		m_position = position + m_base_position;
 
@@ -180,6 +183,9 @@ namespace Rhea
 		m_outer_size = Vector2(0.0f, 0.0f);
 		// constraints for children
 		Vector2 inner_size = size_constraints;
+
+		if (!m_visible)
+			return m_outer_size;
 
 		// apply modifiers
 		for (auto it = m_modifiers.begin(); it < m_modifiers.end(); ++it) {

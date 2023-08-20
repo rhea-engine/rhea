@@ -4,6 +4,7 @@
 #include "ResourceStream.h"
 
 #include <string>
+#include <memory>
 #include <stdio.h>
 #include <functional>
 
@@ -13,6 +14,7 @@ namespace Orion
 	{
 	public:
 		FileResourceStream(std::string path);
+		FileResourceStream(std::string path, bool accessible, size_t length, time_t lastmod);
 		~FileResourceStream();
 
 		void SetMode(int mode);
@@ -27,8 +29,10 @@ namespace Orion
 		bool eof();
 		int error();
 
-		size_t get_length() { return m_length; }
+		size_t getLength() { return m_length; }
 		time_t getLastmod() { return m_lastmod; }
+
+		static std::unique_ptr<ResourceStream> getStream(std::string path);
 
 	protected:
 		FILE* f;
@@ -41,7 +45,7 @@ namespace Orion
 		size_t m_length;
 		std::string m_path;
 		time_t m_lastmod;
-		bool accessible;
+		bool m_accessible;
 	};
 }
 

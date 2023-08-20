@@ -1,5 +1,6 @@
 #include "os/Fs.h"
 #include "FileStream.h"
+#include "FileCollection.h"
 
 namespace Orion
 {
@@ -17,16 +18,48 @@ namespace Orion
 
 		int result = _stat(path.c_str(), &buf);
 		if (result != 0) {
-			accessible = false;
+			m_accessible = false;
 			m_length = 0;
 			m_lastmod = 0;
 		}
 		else {
-			accessible = true;
+			m_accessible = true;
 			m_length = buf.st_size;
 			m_lastmod = buf.st_mtime;
 		}	
 		m_mode = 0;
+	}
+
+	FileResourceStream::FileResourceStream(std::string path, bool accessible, size_t length, time_t lastmod) :
+		f(nullptr),
+		pos(0),
+		buf(nullptr),
+		m_path(path),
+		write(false),
+		read(false),
+		status(0),
+		m_accessible(accessible),
+		m_length(length),
+		m_lastmod(lastmod),		
+		ResourceStream()
+	{}
+
+	// static constructor return filestream or directory
+	std::unique_ptr<ResourceStream> FileResourceStream::getStream(std::string path)
+	{
+		struct _stat buf;
+
+		int result = _stat(path.c_str(), &buf);
+		if (result != 0)
+			return nullptr;
+
+		// directory?
+		if (buf.st_mode & _S_IFDIR) {			
+			return std::make_unique<FileCollection>(path);
+		}
+		else {
+			return std::make_unique<FileResourceStream>(path, true, buf.st_size, buf.st_mtime);
+		}
 	}
 
 	void FileResourceStream::SetMode(int mode)

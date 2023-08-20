@@ -109,7 +109,7 @@ namespace Rhea
 	{
 		auto target_it = m_values.find("target");		
 		if (target_it != m_values.end()) {
-			Item* target = doCast<Item>(m_app->getUnitTree()->find(target_it->second));
+			Item* target = doCast<Item>(m_app->getUnitTree()->find(target_it->second, m_attributes["basepath"], false));
 			if (target)
 				connect(target);
 		}

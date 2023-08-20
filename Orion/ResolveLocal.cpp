@@ -1,0 +1,24 @@
+#include "ResolveLocal.h"
+#include "os/Fs.h"
+#include "FileStream.h"
+
+std::unique_ptr<Orion::ResourceStream> Orion::ResolveLocal::getResource(std::string realm_name, std::string resource_path)
+{
+	std::unique_ptr<ResourceStream> stream;
+	std::string path;
+
+	if (!m_is_local)
+		path = m_path + "/" + realm_name + resource_path;
+	else
+		path = m_path + resource_path;
+
+	if (Fs::fileExists(path))
+	{
+		// file exists
+		// create file resource and return it
+		stream = FileResourceStream::getStream(path);
+		return stream;
+	}
+
+	return nullptr;
+}

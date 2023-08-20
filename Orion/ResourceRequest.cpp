@@ -3,6 +3,7 @@
 #include "FileStream.h"
 #include "Mime.h"
 #include <Psio/Log.h>
+#include "UrlResponseStream.h"
 
 #include <iostream>
 
@@ -24,9 +25,7 @@ namespace Orion
 	}
 
 	ResourceRequest::~ResourceRequest()
-	{
-		if (m_stream)
-			delete m_stream;
+	{		
 		if (m_request)
 			delete m_request;
 	}
@@ -148,6 +147,9 @@ namespace Orion
 			{
 			case ResourceRequest::State::UNSET:
 				break;
+			case ResourceRequest::State::CACHE_RESOLVE:
+				result = doCacheResolve(result);
+				break;
 			case ResourceRequest::State::REALM_RESOLVE:
 				result = doResolveRealm(result);
 				break;
@@ -177,6 +179,18 @@ namespace Orion
 		return Error::OK;
 	}
 
+	int ResourceRequest::doCacheResolve(int result)
+	{
+		m_stream = m_orion->getResourceFromCache(m_realm_name, m_path);
+		if (m_stream) {
+			m_next_state = State::RESOURCE_RESOLVE_COMPLETED;
+		}
+		else {
+			m_next_state = State::REALM_RESOLVE;;
+		}
+		return Error::OK;
+	}
+
 	int ResourceRequest::doResolveRealm(int result)
 	{
 		m_next_state = State::REALM_RESOLVE_COMPLETED;
@@ -190,19 +204,6 @@ namespace Orion
 		if (!m_realm_name.compare("local")) {
 			m_local = true;
 			m_realm_resolved = true;
-			return Error::OK;
-		}
-
-		// check if the realm is provided by the installation
-		// this is used for core realms and addons
-		string path;
-
-		path = m_orion->getFs()->getInstallDataDir();
-		path += string("/") + m_realm_name;
-		if (Fs::fileExists(path))
-		{
-			m_addon = true;
-			m_realm_resolved = true;			
 			return Error::OK;
 		}
 
@@ -251,7 +252,7 @@ namespace Orion
 
 	int ResourceRequest::resolve(RequestHandler handler)
 	{
-		m_next_state = State::REALM_RESOLVE;		
+		m_next_state = State::CACHE_RESOLVE;
 		m_handler = handler;
 		int result = ResolveLoop(Error::OK);
 		if (result != Error::IO_PENDING && m_handler) {
@@ -274,56 +275,11 @@ namespace Orion
 		if (!m_realm_resolved)
 			return Error::IO_PENDING;
 
-		// local files are directly usable
 		if (m_local) {
-			m_resolved = true;
-			
-			// open the resource as a file resource
-
-			// resolve the path
-			string path;
-			path = m_orion->getFs()->getAppDataDir();
-
-			path += string("/") + m_path;		
-
-			if (Fs::fileExists(path))
-			{
-				// file exists
-				// create file resource and call callback
-				m_stream = (Psio::Stream*)new FileResourceStream(path);
-				m_next_state = State::RESOURCE_RESOLVE_COMPLETED;
-				return Error::OK;
-			}
-			else
-			{
-				// does not exists
-				m_next_state = State::RESOLVE_FAILED;
-				return Error::RESOURCE_NOT_FOUND;
-			}
-		}
-
-		// check if realm is provided by installation
-		// these are directly usable
-		if (m_addon)
-		{
-			string path;
-
-			path = m_orion->getFs()->getInstallDataDir();
-			path += string("/") + m_realm_name + m_path;
-
-			if (Fs::fileExists(path))
-			{
-				// file exists
-				// create file resource and set next state
-				m_stream = (Psio::Stream*)new FileResourceStream(path);
-				m_next_state = State::RESOURCE_RESOLVE_COMPLETED;
-				return Error::OK;
-			}
-			else {
-				// does not exists
-				m_next_state = State::RESOLVE_FAILED;
-				return Error::RESOURCE_NOT_FOUND;
-			}
+			// if we could not find local resource with resolvers
+			// report it as missing
+			m_next_state = State::UNSET;
+			return Error::RESOURCE_NOT_FOUND;
 		}
 
 		// Resource from net
@@ -341,7 +297,9 @@ namespace Orion
 			m_request = new Psio::UrlRequest(m_orion->getIO());
 
 			m_request->OnResponse([&](Psio::UrlResponse* res) {
-				m_stream = res;
+				std::unique_ptr<Psio::UrlResponse> resp;
+				resp.reset(res);
+				m_stream = std::make_unique<UrlResponseStream>(std::move(resp));
 				// caller doesn't know about response codes
 				// if not 2xx call with error
 				int code = res->GetResponseCode();

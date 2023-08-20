@@ -7,8 +7,8 @@ namespace Orion
 
 	}
 
-	int ResourceCache::GetResource(string url)
-	{		
-		return -1;
+	std::unique_ptr<ResourceStream> ResourceCache::getResource(std::string realm_name, std::string resource_path)
+	{
+		return nullptr;
 	}
 }

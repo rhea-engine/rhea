@@ -103,12 +103,6 @@ void Ceto::setup()
 
 	// check for config file
 
-	// load home scene if any
-	if (!m_home_scene.length())
-	{
-		m_home_scene = "//Ceto/Init/init.scene";
-	}
-
 	// add defaults
 
 	// read from userprefs
@@ -332,6 +326,11 @@ void Ceto::setHomeScene(string scene)
 	m_home_scene = scene;
 }
 
+bool Ceto::checkLocalScene(std::string realm_name, std::string path)
+{
+	return m_fs->checkResourceFromCache(realm_name, path);
+}
+
 bool Ceto::onFrameEnd()
 {
 	static float elapsed_s = 0.0f;
@@ -358,6 +357,7 @@ int main(int argc, char* argv[])
 	Ceto* app = new Ceto();
 	app->setAppname("Ceto");
 	int argi = 1;
+	bool scene_set = false;
 
 	app->init();
 
@@ -367,13 +367,33 @@ int main(int argc, char* argv[])
 			app->setAppDir(argv[argi]);
 			LOG(LOG_INFO) << "Set //local to directory: " << argv[argi];
 		}
-		else
+		else {
 			app->setHomeScene(argv[argi]);
+			scene_set = true;
+		}
 		argi++;
 	}
 
 	app->setup();
 
+	if (!scene_set) {
+
+		// try world scene in root
+		if (app->checkLocalScene("", "world.scene"))
+			app->setHomeScene("world.scene");
+		else {
+
+			// try ceto world scene
+			if (app->checkLocalScene("ceto", "/world.scene"))
+				app->setHomeScene("//ceto/world.scene");
+			else {
+
+				// no template found - show error
+				printf("Could not open scene file. No world.scene file found");
+				exit(-1);
+			}
+		}
+	}
 	app->loadMainGUI();
 		
 	//app->setScene();

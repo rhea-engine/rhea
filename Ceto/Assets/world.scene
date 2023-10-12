@@ -1,0 +1,5 @@
+[scene]
+name="ceto"
+
+[assets]
+gui="//local/cetogui.scene"

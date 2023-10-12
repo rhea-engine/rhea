@@ -80,6 +80,20 @@ namespace Orion
 		return nullptr;
 	}
 
+	bool Orion::checkResourceFromCache(const string realm_name, const string resource_path)
+	{
+		// try resolvers
+		
+		for (auto it = m_caches.begin(); it != m_caches.end(); ++it)
+		{
+			if ((*it)->checkResourceExists(realm_name, resource_path))
+				return true;
+		}
+
+		// not found in caches
+		return false;
+	}
+
 	Realms* Orion::getRealms()
 	{
 		if (!m_realms)

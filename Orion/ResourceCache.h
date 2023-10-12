@@ -13,6 +13,7 @@ namespace Orion
 		ResourceCache();
 
 		std::unique_ptr<ResourceStream> getResource(std::string realm_name, std::string resource_path);
+		bool checkResourceExists(std::string realm_name, std::string resource_path);
 	};
 }
 

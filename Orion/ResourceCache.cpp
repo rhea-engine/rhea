@@ -11,4 +11,9 @@ namespace Orion
 	{
 		return nullptr;
 	}
+
+	bool ResourceCache::checkResourceExists(std::string realm_name, std::string resource_path)
+	{
+		return false;
+	}
 }

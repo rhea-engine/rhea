@@ -21,6 +21,7 @@ public:
 	void setup();
 	void setScene(bool mark_preferrences = true);
 	void showScene(Rhea::Scene* scene);
+	bool checkLocalScene(std::string realm_name, std::string path);
 	void loadMainGUI();
 	void setHomeScene(string scene);
 	bool onFrameEnd();

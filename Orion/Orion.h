@@ -36,6 +36,9 @@ namespace Orion
 		// get by cache
 		std::unique_ptr<ResourceStream> getResourceFromCache(const string realm_name, const string resource_path);
 
+		// check in cache
+		bool checkResourceFromCache(const string realm_name, const string resource_path);
+
 		// force closing a request
 		void close(ResourceRequest* req);
 

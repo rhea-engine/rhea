@@ -15,6 +15,8 @@ namespace Orion
 
 		std::unique_ptr<ResourceStream> getResource(std::string realm_name, std::string resource_path);
 
+		bool checkResourceExists(std::string realm_name, std::string resource_path);
+
 	protected:
 		std::string m_path;
 		bool m_is_local;

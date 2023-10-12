@@ -22,3 +22,15 @@ std::unique_ptr<Orion::ResourceStream> Orion::ResolveLocal::getResource(std::str
 
 	return nullptr;
 }
+
+bool Orion::ResolveLocal::checkResourceExists(std::string realm_name, std::string resource_path)
+{
+	std::string path;
+
+	if (!m_is_local)
+		path = m_path + "/" + realm_name + resource_path;
+	else
+		path = m_path + resource_path;
+
+	return Fs::fileExists(path);
+}

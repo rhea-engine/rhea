@@ -164,7 +164,7 @@ namespace Psio
 		m_sock = std::move(new_sock);
 		m_next_state = HTTP_TERMINALCHECK;
 		m_echo = false;
-		m_onrequest_handler = onrequest_handler;
+		m_onrequest_handler = onrequest_handler;		
 
 		m_inbuf = std::make_unique<Psio::IOBuffer>(64 * 1024);
 		m_outbuf = std::make_unique<Psio::IOBuffer>(64 * 1024);
@@ -173,31 +173,30 @@ namespace Psio
 		return DoLoop(0);
 	}
 
-	void Http::Write(const char* buf, size_t buflen, bool send)
+	int Http::Write(const char* buf, size_t buflen, bool no_buffering)
 	{
+		if (m_res_end)
+			return -1;
+
 		m_outbuf->Write(buf, buflen);
-		// only send if no buffering requested and no send callback is pending
-		if (send && m_send_state == HTTP_SEND_PENDING)
-			DoWrite(0);
+		if (!no_buffering)
+			return -1;
+		
+		// call send loop
+		return DoSendLoop((int)m_outbuf->Remaining());
 	}
 
-	int Http::End()
+	int Http::ResponseEnd()
 	{
-		// flush all remaining data to recipient
-		m_res_end = true;
-		return DoSendLoop(m_outbuf->Remaining());
-	}
-
-	int Http::DoEnd(int result)
-	{
-		// prepare state machine for next request
-		m_send_state = HTTP_SEND_FINISHED;
-		m_next_send_state = HTTP_SEND_FINISHED;
-		m_state = HTTP_NONE;
-		m_response.reset();
-		m_request.reset();
-
-		return result;
+		if (!m_res_end) {
+			// flush all remaining data to recipient
+			m_res_end = true;
+			return DoSendLoop((int)m_outbuf->Remaining());
+		}
+		else
+		{
+			return -1;
+		}
 	}
 
 	void Http::CallSendLoop(int result)
@@ -213,9 +212,15 @@ namespace Psio
 		do
 		{
 			m_send_state = m_next_send_state;
-			m_next_send_state = HTTP_SEND_PENDING;
+			m_next_send_state = HTTP_SEND_NONE;
+
+			//LOG(LOG_DEBUG) << "DoSendLoop(" << result << ") - state: " << m_send_state;
 
 			switch (m_send_state) {
+			case HTTP_SEND_PENDING:
+				result = Network::Err::IO_PENDING;
+				m_next_send_state = HTTP_SEND_PENDING;
+				break;
 			case HTTP_SEND:
 				result = DoWrite(result);
 				break;
@@ -225,15 +230,20 @@ namespace Psio
 			case HTTP_SEND_FINISHED:
 				result = DoEnd(result);
 			}
-		} while (result != Network::Err::IO_PENDING &&
-			m_send_state != HTTP_SEND_FINISHED && m_send_state != HTTP_SEND_PENDING);
+		} while (result != Network::Err::IO_PENDING && m_send_state != HTTP_SEND_NONE);
 		return result;
 	}
 
 	int Http::DoWrite(int result)
 	{
-		if (!m_outbuf->Remaining())
+		if (!result) {
+			m_next_send_state = HTTP_SEND_COMPLETED;
+			return result;
+		}
+		if (!m_outbuf->Remaining()) {
+			m_next_send_state = HTTP_SEND;
 			return Network::Err::IO_PENDING;
+		}
 
 		m_next_send_state = HTTP_SEND_COMPLETED;
 		return m_sock->Write(m_outbuf.get(), [&](int result) {
@@ -245,23 +255,62 @@ namespace Psio
 	{
 		m_next_send_state = HTTP_SEND_FINISHED;
 		if (result < 0) {
-			LOG(LOG_ERROR) << "Error sending response: " << result;
+			if (result != Network::Err::IO_PENDING) {
+				LOG(LOG_ERROR) << "Error sending response: " << result;
+			}
+			else {
+				m_next_send_state = HTTP_SEND;
+			}
 			return result;
 		}
 		if (m_outbuf->Remaining() > 0) {
 			// still data to send - restart sending
 			m_next_send_state = HTTP_SEND;
-			return 0;
+			return (int)m_outbuf->Remaining();
 		}
 		// no more data
 		if (!m_res_end) {
-			m_next_send_state = HTTP_SEND_PENDING;
+			m_next_send_state = HTTP_SEND;
 			return Network::Err::IO_PENDING;
 		}
 		else {
 			m_next_send_state = HTTP_SEND_FINISHED;
 			return result;
 		}
+	}
+
+	int Http::DoEnd(int result)
+	{
+		// prepare state machine for next request
+		m_send_state = HTTP_SEND_FINISHED;
+		m_next_send_state = HTTP_SEND_NONE;
+		m_state = HTTP_NONE;
+
+		// log the response
+		std::time_t now = std::time(nullptr);
+		struct std::tm* timeinfo = std::localtime(&now);
+
+		char buffer[80];
+		std::strftime(buffer, 80, "%d/%b/%Y:%H:%M:%S %z", timeinfo);
+
+		LOG(LOG_INFO) << "[" << buffer << "] \"" << m_request->headers.GetMethod() << " " << m_request->headers.GetUrl() << "\" " << m_response->getResponseCode() << " " << m_response->getContentLength();
+
+		// Note: precondition is that request and response are handled entirely
+		m_response.reset();
+		m_request.reset();
+
+		// close the connection
+
+		// keep-alive?
+		bool keep_alive = false;
+		if (!keep_alive) {
+
+			if (m_onclose_handler)
+				m_onclose_handler(0);
+			return Network::Err::IO_PENDING;
+		}
+
+		return result;
 	}
 
 	void Http::echo(unsigned char* buf, size_t len)
@@ -280,6 +329,8 @@ namespace Psio
 		{
 			m_state = m_next_state;
 			m_next_state = HTTP_NONE;
+
+			// LOG(LOG_DEBUG) << "DoLoop(" << result << ") - state: " << m_state;
 
 			switch (m_state) {
 			case HTTP_TERMINALCHECK:
@@ -301,7 +352,11 @@ namespace Psio
 				result = DoHeadersCompleted(result);
 				break;
 			case HTTP_BODY:
-				break;
+				result = DoBody(result);
+				break;			
+			case HTTP_BODY_COMPLETED:
+				result = DoBodyCompleted(result);
+				break;			
 			}
 
 		} while (result != Network::IO_PENDING && m_state != HTTP_NONE);
@@ -456,26 +511,86 @@ namespace Psio
 		// create Response object
 		m_response = std::make_unique<HttpResponse>(this);
 		m_send_state = HTTP_SEND_PENDING;
+		m_next_send_state = HTTP_SEND_PENDING;
+
+#ifdef _DEBUG_HTTP
+		std::vector<std::string> headers;
+		headers = m_headers->GetHeaderList();
+		for (auto it = headers.begin(); it != headers.end(); ++it)
+			LOG(LOG_DEBUG) << "["  << *it << "] " << (*m_headers)[(*it)];
+#endif
 
 		// call handler for onRequest
-		// this may destroy |this|
+		// the handler should setup handlers for request and response
 		int ret = m_onrequest_handler(m_request.get(), m_response.get());
 
-		if (ret != Network::Err::IO_PENDING) {
-			delete this;
-			return Network::Err::IO_PENDING;			
-		}
-
-		if (m_has_body) {
+		// determine if we have a body
+		// only a body if we have content-length
+		if (m_headers->HasHeader("content-length")) {
+			m_has_body = true;			
+			m_body_len = std::stoi((*m_headers)["content-length"]);
+			m_body_read = 0;
 			m_next_state = HTTP_BODY;
 		}
 		else {
-			m_next_state = HTTP_NONE;
+			m_has_body = false;
+			m_next_state = HTTP_BODY_COMPLETED;
 		}
-		if (m_inbuf->Remaining() > 0)
+
+
+		if (m_inbuf->Remaining() > 0) {
+			if (!m_has_body)
+				LOG(LOG_ERROR) << "No Request Body but still bytes remaining: " << m_inbuf->Remaining();
 			return (int)m_inbuf->Remaining();
+		}
 		else
-			return Network::Err::IO_PENDING;
+			return 0;
+	}
+
+	int Http::DoBody(int result)
+	{
+		char* chunk = m_inbuf->reader();
+		size_t chunk_len = m_inbuf->Remaining();
+
+		// if we have still data in the buffer handle it as chunk
+		if (chunk_len > 0) {
+			m_request->SendData(m_inbuf.get());
+			// how many bytes where consumed by the onData handler?
+			chunk_len -= m_inbuf->Remaining();
+			m_body_read += chunk_len;
+		}
+		// already read the whole body?
+		if (m_body_read + m_inbuf->Remaining() >= m_body_len) {
+			m_next_state = HTTP_BODY_COMPLETED;
+			return (int)m_inbuf->Remaining();
+		}
+
+		// wait for more data of body
+		m_next_state = HTTP_BODY;
+		int err = m_sock->Read(m_inbuf.get(), [&](int err) {
+			CallDoLoop(err);
+			});
+		return err;
+	}
+
+	int Http::DoBodyCompleted(int result)
+	{
+		m_next_state = HTTP_NONE;
+
+		// request finished - sending data is possible
+		m_next_send_state = HTTP_SEND;
+
+		// response already completly sent to send buffer?
+		if (m_res_end) {
+			DoSendLoop((int)m_outbuf->Remaining());
+		}
+		else {
+			// send 'end' event	
+			m_request->End(m_inbuf.get());
+		}
+
+		// exit the main loop
+		return Network::Err::IO_PENDING;
 	}
 
 	int Http::DoResponse(int result)

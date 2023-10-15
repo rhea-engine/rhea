@@ -18,7 +18,10 @@ namespace Psio
 			m_connect_state(ConnectState::CONNECT_STATE_UNSET),
 			m_next_connect_state(ConnectState::CONNECT_STATE_UNSET),
 			m_isConnected(false)
-		{}
+		{
+			if (sock != BAD_SOCKET)
+				m_isConnected = true;
+		}
 		TCPSocket(Network* net) :
 			TCPSocket(net, BAD_SOCKET)
 		{}

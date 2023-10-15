@@ -231,6 +231,9 @@ namespace Psio
 							Write(buf, handler);
 							return;
 						}
+						else {							
+							handler(m_net->SysErr(err));
+						}
 					}
 					else if (ret > 0)
 						buf->Consume(ret);
@@ -242,9 +245,10 @@ namespace Psio
 				return m_net->SysErr(err);
 			}
 		}
-		else if (ret > 0) {
+		else if (ret > 0 && handler) {
 			buf->Consume(ret);
 			handler(ret);
+			return Network::Err::IO_PENDING;
 		}
 		return ret;
 	}
@@ -271,6 +275,9 @@ namespace Psio
 							Read(buf, handler);
 							return;
 						}
+						else {							
+							handler(m_net->SysErr(err));
+						}
 					}
 					if (ret>0)
 						buf->Produce(ret);
@@ -282,9 +289,10 @@ namespace Psio
 				return m_net->SysErr(err);
 			}
 		}
-		else if (ret > 0) {
+		else if (ret > 0 && handler) {
 			buf->Produce(ret);
 			handler(ret);
+			return Network::Err::IO_PENDING;
 		}
 		return ret;
 	}

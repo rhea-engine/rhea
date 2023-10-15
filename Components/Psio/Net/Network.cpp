@@ -21,6 +21,15 @@ namespace Psio
 		if (rc) {
 			LOG(LOG_FATAL) << "Network Win32: could not start: " << rc;
 		}
+#else
+		struct sigaction sa;
+		sa.sa_handler = SIG_IGN;
+		sa.sa_flags = 0;
+		if (sigemptyset(&sa.sa_mask) == -1 || sigaction(SIGPIPE, &sa, 0) == -1) {
+			perror("failed to ignore SIGPIPE; sigaction");
+			exit(EXIT_FAILURE);
+
+		}
 #endif // WIN32
 	}
 

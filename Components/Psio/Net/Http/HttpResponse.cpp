@@ -1,5 +1,6 @@
 #include "HttpResponse.h"
 #include "Http.h"
+#include <cstring>
 
 namespace Psio
 {
@@ -11,6 +12,7 @@ namespace Psio
 		// set default headers
 		m_headers["Server"] = "Hermes/1.0";
 		m_headers["Content-type"] = "text/plain";
+		m_response_code = 200;
 	}
 
 	void HttpResponse::setHeader(std::string key, std::string value)
@@ -20,8 +22,10 @@ namespace Psio
 
 	void HttpResponse::writeHeaders()
 	{
-		char* status = "HTTP/1.1 200 OK\r\n";
+		char status[128];
 		unsigned char hdr[8192];
+
+		sprintf(status, "HTTP/1.1 %d %s\r\n", m_response_code, getStatusMessage());
 
 		// write status line
 		m_stream->Write(status, strlen(status), false);
@@ -41,19 +45,32 @@ namespace Psio
 		m_headers_sent = true;
 	}
 
-	void HttpResponse::Write(const char* buf, size_t buflen)
+	int HttpResponse::Write(const char* buf, size_t buflen)
 	{
 		if (!m_headers_sent)
 			writeHeaders();
 
-		m_stream->Write(buf, buflen);
+		return m_stream->Write(buf, buflen);
 	}
 
 	int HttpResponse::sendError(int error_code)
 	{
 		unsigned char* error_message;
 
-		switch (error_code) {
+		m_response_code = error_code;
+		error_message = getStatusMessage();
+
+		return sendErrorMessage(error_code, error_message, strlen((const char*)error_message));
+	}
+
+	unsigned char* HttpResponse::getStatusMessage()
+	{
+		unsigned char* error_message;
+
+		switch (m_response_code) {
+		case 200:
+			error_message = (unsigned char*)"OK";
+			break;
 		case 400:
 			error_message = (unsigned char*)"Bad Request";
 			break;
@@ -72,22 +89,19 @@ namespace Psio
 		default:
 			error_message = (unsigned char*)"Request could not be handled";
 		}
-		m_headers_sent = true;
-
-		return sendErrorMessage(error_code, error_message);
+		return error_message;
 	}
 
-	int HttpResponse::sendErrorMessage(int error_code, unsigned char* error_message)
+	int HttpResponse::sendErrorMessage(int error_code, unsigned char* error_message, size_t msglen)
 	{
-		unsigned char msg[256];
-
-		snprintf((char*)msg, 255, "HTTP/1.1 %d %s\r\n\r\n", error_code, error_message);
-		m_stream->Write((char*)msg, strlen((char*)msg));
-		return m_stream->End();
+		m_response_code = error_code;
+		setContentLength(msglen);
+		Write((const char*)error_message, msglen);
+		return end();
 	}
 
 	int HttpResponse::end()
 	{
-		return m_stream->End();
+		return m_stream->ResponseEnd();
 	}
 }

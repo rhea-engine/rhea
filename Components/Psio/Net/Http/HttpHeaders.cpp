@@ -1,4 +1,5 @@
 #include "HttpHeaders.h"
+#include "HttpHeaders.h"
 #include "../../Util.h"
 
 namespace Psio
@@ -57,6 +58,16 @@ namespace Psio
 			m_headers[key_low] = { key, std::string("") };
 			return m_headers[key_low].value;
 		}
+	}
+
+	std::vector<std::string> HttpHeaders::GetHeaderList()
+	{
+		std::vector<std::string> headers;
+
+		for (auto it = m_headers.begin(); it != m_headers.end(); ++it) {
+			headers.push_back(it->second.key);
+		}
+		return headers;
 	}
 
 	std::string HttpHeaders::ToString()

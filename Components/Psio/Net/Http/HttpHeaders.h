@@ -71,8 +71,15 @@ namespace Psio
 
 		static std::unordered_map<int, std::string> Codes;		
 
+		// do we have a header?
+		bool HasHeader(const std::string key) { return m_headers.find(key) != m_headers.end(); }
+
 		// access header value for header with name key
 		std::string& operator[](const std::string key);
+
+		// get header list
+		std::vector<std::string> GetHeaderList();
+		
 
 	protected:
 		std::unordered_map<std::string, HttpHeaderPair> m_headers;

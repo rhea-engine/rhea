@@ -28,11 +28,13 @@ namespace Psio
 			HTTP_HEADER,
 			HTTP_HEADER_COMPLETED,
 			HTTP_BODY,
+			HTTP_BODY_COMPLETED,			
 			HTTP_FINISHED
 		};
 
 		enum HTTP_SEND_STATE {
-			HTTP_SEND_PENDING,
+			HTTP_SEND_NONE,
+			HTTP_SEND_PENDING, // sending is pending, until request is reveived fully
 			HTTP_SEND,
 			HTTP_SEND_COMPLETED,
 			HTTP_SEND_FINISHED
@@ -54,17 +56,18 @@ namespace Psio
 
 		typedef std::function<int(HttpRequest*, HttpResponse*)> RequestHandler;
 		void OnData(Network::CompletionHandler data_handler);
+		void OnClose(Network::CompletionHandler onclose_handler) { m_onclose_handler = onclose_handler; }
 		
 		// call Protocol on request with the response object
 		int OnRequest(std::unique_ptr<Psio::StreamSocket> new_sock, RequestHandler onrequest_handler);
 
 		// send chunk of data
-		void Write(const char* buf, size_t buflen, bool send = true);
+		int Write(const char* buf, size_t buflen, bool no_buffering = true);
 
 		// end response
 		// returns IO_PENDING or bytes sent with last write
 		// if it is not io_pending the request has been sent synchronously
-		int End();
+		int ResponseEnd();
 
 	protected:
 		// parse the request line
@@ -84,6 +87,7 @@ namespace Psio
 
 		RequestHandler m_onrequest_handler;
 		Network::CompletionHandler m_ondata_handler;
+		Network::CompletionHandler m_onclose_handler;
 
 		int DoLoop(int result);
 		void CallDoLoop(int result);
@@ -93,6 +97,8 @@ namespace Psio
 		int DoRequestLineCompleted(int result);
 		int DoHeaders(int result);
 		int DoHeadersCompleted(int result);
+		int DoBody(int result);
+		int DoBodyCompleted(int result);		
 		int DoResponse(int result);
 
 		HTTP_STATE m_state;
@@ -104,6 +110,7 @@ namespace Psio
 		bool m_echo;
 		bool m_has_body = false;
 		size_t m_body_len = 0;
+		size_t m_body_read = 0;
 
 		bool m_res_end;
 

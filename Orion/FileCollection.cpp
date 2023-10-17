@@ -5,7 +5,7 @@ namespace Orion
 	FileCollection::FileCollection(std::string path) :
 		m_end(false)
 	{
-		m_handle.reset(Fs::openDirectory(path));
+		m_handle.reset(Psio::Fs::openDirectory(path));
 	}
 
 	FileCollection::~FileCollection()
@@ -16,13 +16,13 @@ namespace Orion
 	{
 		if (m_handle && !m_end) {
 			Entry* entry = nullptr;
-			Fs::FileAttributes attributes;
-			int ret = Fs::readEntry(m_handle.get(), &attributes);
+			Psio::Fs::FileAttributes attributes;
+			int ret = Psio::Fs::readEntry(m_handle.get(), &attributes);
 			if (!ret) {
 				entry = new Entry();
 				entry->name = attributes.name;
 				entry->length = attributes.size;
-				if (!Fs::nextEntry(m_handle.get())) {
+				if (!Psio::Fs::nextEntry(m_handle.get())) {
 					m_end = true;
 					m_handle.reset();
 				}

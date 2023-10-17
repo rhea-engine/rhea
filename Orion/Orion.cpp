@@ -11,7 +11,8 @@ namespace Orion
 	Orion::Orion(Psio::Engine* engine, string appname)
 	{
 		m_appname = appname;
-		m_fs = new Fs(appname);
+		m_fs = engine->getFs();
+		m_fs->setAppName(appname);
 		m_engine = engine;
 
 		std::string search_dir;

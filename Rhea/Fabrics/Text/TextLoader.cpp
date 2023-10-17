@@ -1,5 +1,5 @@
 #include <Orion/ResourceStream.h>
-#include <Orion/os/Fs.h>
+#include <Psio/Fs/Fs.h>
 
 #include "TextLoader.h"
 #include "Resources/TextResource.h"

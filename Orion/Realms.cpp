@@ -18,7 +18,7 @@ namespace Orion
 		// get from realms.conf
 		string path = m_orion->getFs()->getInstallDataDir();
 		path += string("/Meworla/Core/realms.conf");
-		if (Fs::fileExists(path))
+		if (Psio::Fs::fileExists(path))
 		{
 			FileResourceStream* res = new FileResourceStream(path);
 			res->Open();
@@ -129,10 +129,10 @@ namespace Orion
 		// get lookup info from iris.conf
 		std::string path = m_orion->getFs()->getInstallDataDir();
 		path += std::string("/Meworla/iris.conf");
-		if (Fs::fileExists(path))
+		if (Psio::Fs::fileExists(path))
 		{
 			FileResourceStream* res = new FileResourceStream(path);
-			res->SetMode(Fs::READ);
+			res->SetMode(Psio::Fs::READ);
 			res->Open();
 			while (!res->eof()) {
 				std::string s = res->getLine();

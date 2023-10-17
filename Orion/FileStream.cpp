@@ -1,4 +1,4 @@
-#include "os/Fs.h"
+#include <Psio/Fs/Fs.h>
 #include "FileStream.h"
 #include "FileCollection.h"
 
@@ -64,11 +64,11 @@ namespace Orion
 
 	void FileResourceStream::SetMode(int mode)
 	{
-		if (mode & Fs::READ)
+		if (mode & Psio::Fs::READ)
 			read = true;
 		else
 			read = false;
-		if (mode & Fs::WRITE)
+		if (mode & Psio::Fs::WRITE)
 			write = true;
 		else
 			write = false;
@@ -77,7 +77,7 @@ namespace Orion
 
 	void FileResourceStream::Open()
 	{
-		status = Fs::fileOpen(&f, m_path, m_mode);
+		status = Psio::Fs::fileOpen(&f, m_path, m_mode);
 		if (!status)
 			m_isOpen = true;
 		// TODO: else?
@@ -128,7 +128,7 @@ namespace Orion
 
 		if (!m_isOpen) {
 			// open for reading
-			m_mode |= Orion::Fs::READ;
+			m_mode |= Psio::Fs::READ;
 			read = true;
 			Open();
 		}
@@ -167,7 +167,7 @@ namespace Orion
 		// check if file is open for reading
 		if (!m_isOpen) {
 			// open for reading
-			m_mode |= Orion::Fs::READ;
+			m_mode |= Psio::Fs::READ;
 			read = true;
 			Open();
 		}

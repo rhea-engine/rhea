@@ -170,7 +170,7 @@ void Ceto::setScene(bool mark_preferrences)
 
 		std::string s = m_userprefs.toJSON();
 		std::unique_ptr<Orion::FileResourceStream> stream = std::make_unique<Orion::FileResourceStream>(m_userpref_path);
-		stream->SetMode(Orion::Fs::WRITE);
+		stream->SetMode(Psio::Fs::WRITE);
 		stream->Open();
 		stream->Write(s.c_str(), s.size());
 		stream->Close();

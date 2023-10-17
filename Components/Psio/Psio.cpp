@@ -7,6 +7,7 @@
 #include "Timer.h"
 #include "Net/Network.h"
 #include "IPC/IO.h"
+#include "Fs/Fs.h"
 
 namespace Psio
 {
@@ -19,6 +20,7 @@ namespace Psio
 		m_net = new Network(this);
 		m_net->Init();
 		m_io = new IO(this);
+		m_fs = new Fs("");
 	}
 
 	void Engine::setNetwork(Network* network)

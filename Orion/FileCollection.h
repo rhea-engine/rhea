@@ -3,7 +3,7 @@
 
 #include <memory>
 
-#include "os/Fs.h"
+#include <Psio/Fs/Fs.h>
 #include "Collection.h"
 
 namespace Orion
@@ -48,7 +48,7 @@ namespace Orion
 		void SetMode(int mode) { m_mode = mode; }
 
 	protected:
-		std::unique_ptr<Fs::DirectoryHandle> m_handle;
+		std::unique_ptr<Psio::Fs::DirectoryHandle> m_handle;
 		bool m_end;
 	};
 }

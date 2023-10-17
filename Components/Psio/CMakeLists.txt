@@ -14,7 +14,7 @@ add_library(Psio STATIC Psio.cpp  Window.cpp "InputEvent.cpp"  "Net/UrlRequest/U
 if (WIN32)
 	target_sources(Psio PRIVATE 
 	"Win32/Win32Window.cpp" "Win32/InputImpl.cpp" "Win32/KeyboardImpl.cpp" "Win32/Timer.cpp" 
-	"Net/Socket/TCPSocketWin.cpp" "Net/Socket/SocketWin.cpp")
+	"Net/Socket/TCPSocketWin.cpp" "Net/Socket/SocketWin.cpp" "Fs/FsWin.cpp")
 	target_link_libraries(Psio PRIVATE Winmm wsock32 ws2_32)
 elseif(UNIX)
 	target_sources(Psio PRIVATE 

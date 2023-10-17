@@ -1,5 +1,5 @@
 #include "ResolveLocal.h"
-#include "os/Fs.h"
+#include <Psio/Fs/Fs.h>
 #include "FileStream.h"
 
 std::unique_ptr<Orion::ResourceStream> Orion::ResolveLocal::getResource(std::string realm_name, std::string resource_path)
@@ -12,7 +12,7 @@ std::unique_ptr<Orion::ResourceStream> Orion::ResolveLocal::getResource(std::str
 	else
 		path = m_path + resource_path;
 
-	if (Fs::fileExists(path))
+	if (Psio::Fs::fileExists(path))
 	{
 		// file exists
 		// create file resource and return it
@@ -32,5 +32,5 @@ bool Orion::ResolveLocal::checkResourceExists(std::string realm_name, std::strin
 	else
 		path = m_path + resource_path;
 
-	return Fs::fileExists(path);
+	return Psio::Fs::fileExists(path);
 }

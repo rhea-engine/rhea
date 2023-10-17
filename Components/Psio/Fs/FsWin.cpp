@@ -13,7 +13,7 @@
 
 using std::string;
 
-namespace Orion
+namespace Psio
 {
     static bool widePathToString(string& dest, const WCHAR* wpath)
     {
@@ -135,6 +135,11 @@ namespace Orion
             accessMode = "wb";
         else if (mode == (Fs::READ | Fs::WRITE | Fs::BINARY))
             accessMode = "rb+";
+        else if (mode == Fs::APPEND)
+            accessMode = "a+";
+        else if (mode == (Fs::APPEND | Fs::BINARY))
+            accessMode = "ab+";
+
         else {
             printf("Fs::fileOpen: Unknown mode\n");
         }
@@ -150,6 +155,16 @@ namespace Orion
     bool Fs::fileExists(const string& path)
     {
         return _access(path.c_str(), 04) == 0;
+    }
+
+    bool Fs::createDirectory(const std::string& path)
+    {
+        int check = _mkdir(path.c_str());
+        if (check) {
+            LOG(LOG_ERROR) << "could not create folder: " << errno;
+            return false;
+        }
+        return true;
     }
 
     class WinDirectoryHandle : public Fs::DirectoryHandle

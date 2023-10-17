@@ -1,10 +1,10 @@
-#ifndef ORION_OS_FS_H
-#define ORION_OS_FS_H
+#ifndef PSIO_FS_H
+#define PSIO_FS_H
 
 #include <string>
 #include <stdio.h>
 
-namespace Orion
+namespace Psio
 {
 	class Fs
 	{
@@ -17,6 +17,11 @@ namespace Orion
 		Fs(std::string appname) : 
 			m_appname(appname)
 		{}
+
+		// set the appname
+		void setAppName(std::string appname) {
+			m_appname = appname;
+		}
 
 		// get the app data dir 
 		// this is the directory where we store user preferences
@@ -45,9 +50,12 @@ namespace Orion
 		// Test if the given file exists
 		static bool fileExists(const std::string& path);
 
+		static bool createDirectory(const std::string& path);
+
 		static const int READ = 1;
 		static const int WRITE = 2;
 		static const int BINARY = 4;
+		static const int APPEND = 8;
 
 		// directory functions
 		struct FileAttributes
@@ -69,4 +77,4 @@ namespace Orion
 	};
 }
 
-#endif // !ORION_OS_FS_H
+#endif // !PSIO_FS_H

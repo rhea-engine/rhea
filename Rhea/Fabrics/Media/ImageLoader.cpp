@@ -1,5 +1,5 @@
 #include <Orion/ResourceStream.h>
-#include <Orion/os/Fs.h>
+#include <Psio/Fs/Fs.h>
 #include <Psio/Net/IOBuffer.h>
 
 #include "ImageLoader.h"
@@ -13,7 +13,7 @@ namespace Rhea
 
 			Psio::IOBuffer* buf = new Psio::IOBuffer(64 * 1024);
 			Psio::Stream* rs = req->getStream();
-			rs->SetMode(Orion::Fs::READ | Orion::Fs::BINARY);
+			rs->SetMode(Psio::Fs::READ | Psio::Fs::BINARY);
 			rs->onEnd([name, app, buf, handler](size_t bytes_read) {
 				ImageResource* img = new ImageResource(name, "//meworla/image");
 				char* dest = (char*)malloc(buf->Remaining());

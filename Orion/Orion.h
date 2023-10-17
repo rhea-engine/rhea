@@ -8,7 +8,7 @@
 using std::string;
 
 #include "Collection.h"
-#include "os/Fs.h"
+#include <Psio/Fs/Fs.h>
 #include "Realms.h"
 #include <Psio/Psio.h>
 #include "ResolverInterface.h"
@@ -45,7 +45,7 @@ namespace Orion
 		// callback for resolved resource
 		int resolve(string rid, ResourceRequest** resourceId);		
 		// Fs getter
-		Fs* getFs() { return m_fs; }
+		Psio::Fs* getFs() { return m_fs; }
 
 		// psio getter
 		Psio::Engine* getIO() { return m_engine; }
@@ -70,7 +70,7 @@ namespace Orion
 		std::vector<std::unique_ptr<ResolverInterface>> m_caches;
 
 		// pointer to the OS Fs
-		Fs* m_fs;
+		Psio::Fs* m_fs;
 
 		// the appname is used for default paths
 		string m_appname;

@@ -11,6 +11,7 @@ namespace Psio
 	class Window;
 	class Network;
 	class IO;
+	class Fs;
 
 	class Engine
 	{
@@ -38,6 +39,9 @@ namespace Psio
 		// set alternative network handler
 		void setNetwork(Network* network);
 
+		// get FS subsystem
+		Fs* getFs() { return m_fs; }
+
 		// Returns the system time, in microseconds
 		uint64_t getTicks();
 
@@ -45,6 +49,7 @@ namespace Psio
 		Input* m_input;
 		Network* m_net;
 		IO* m_io;
+		Fs* m_fs;
 	};
 }
 #endif // !PSIO_H

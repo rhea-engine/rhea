@@ -33,6 +33,10 @@ const int LOCAL_NOTCONNECTED_ERROR = WSAENOTCONN;
 const int LOCAL_TIMEOUT_ERROR = WSAETIMEDOUT;
 const SOCKET BAD_SOCKET = (SOCKET)-1;
 
+// PIPE definitions
+typedef HANDLE PIPE_HANDLE;
+#define HANDLE_PIPE_INVALID (PIPE_HANDLE)-1
+
 #elif defined(SunOS) || defined(SUNNEW) || defined(IRIX64)
 
 #include <sys/types.h>
@@ -62,6 +66,12 @@ const long LOCAL_NONBLOCK = 1;
 const long LOCAL_FL_SET = FIONBIO;
 const int LOCAL_BLOCKING_ERROR = EAGAIN;
 const int LOCAL_CONNECT_BLOCKING = EINPROGRESS;
+
+// PIPE definitions
+
+typedef int PIPE_HANDLE;
+#define HANDLE_PIPE_INVALID -1
+
 
 #elif defined(__linux__) || defined(IS_LINUX) || defined(IS_OSX) || defined(IS_FREEBSD)
 /*
@@ -96,6 +106,11 @@ const long LOCAL_NONBLOCK = 1;
 // const long LOCAL_FL_SET = FIONBIO;
 const int LOCAL_BLOCKING_ERROR = EAGAIN;
 const int LOCAL_CONNECT_BLOCKING = EINPROGRESS;
+
+// PIPE definitions
+
+typedef int PIPE_HANDLE;
+#define HANDLE_PIPE_INVALID -1
 
 #else
 No Host Type defined !!

@@ -10,6 +10,7 @@ namespace Psio
 	class InputEvent;
 	class Window;
 	class Network;
+	class IO;
 
 	class Engine
 	{
@@ -31,6 +32,9 @@ namespace Psio
 		// get network handler
 		Network* getNet() { return m_net; }
 
+		// get IO subsys
+		IO* getIO() { return m_io; }
+
 		// set alternative network handler
 		void setNetwork(Network* network);
 
@@ -40,6 +44,7 @@ namespace Psio
 	protected:
 		Input* m_input;
 		Network* m_net;
+		IO* m_io;
 	};
 }
 #endif // !PSIO_H

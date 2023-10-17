@@ -9,7 +9,8 @@ add_library(Psio STATIC Psio.cpp  Window.cpp "InputEvent.cpp"  "Net/UrlRequest/U
 "Net/Http/Http.cpp" "Net/Http/HttpResponse.cpp"
 "Util.cpp" "Net/UrlRequest/Url.h" "Net/UrlRequest/Url.cpp" "Net/Http/HttpRequest.h" "Net/Network.cpp" "Log.h" "Log.cpp" 
 "Net/Socket/ConnectorFactory.cpp" "Net/Socket/TCPConnector.h"  "Net/Socket/TCPConnector.cpp" "Net/Socket/StreamSocket.h"
-"Image/Image.h" "Image/Image.cpp" "IPC/BaseIPC.h" "IPC/BaseIPC.cpp" "IPC/Fork.h" "IPC/Fork.cpp")
+"Image/Image.h" "Image/Image.cpp" "IPC/NamedPipe.h" "IPC/NamedPipe.cpp" "IPC/Process.h" "IPC/Process.cpp" "IPC/Pipe.h" "IPC/Pipe.cpp" "IPC/IO.h" "IPC/IO.cpp" "Fs/Fs.h" "Fs/Fs.cpp")
+
 if (WIN32)
 	target_sources(Psio PRIVATE 
 	"Win32/Win32Window.cpp" "Win32/InputImpl.cpp" "Win32/KeyboardImpl.cpp" "Win32/Timer.cpp" 

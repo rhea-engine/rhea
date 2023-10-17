@@ -6,6 +6,7 @@
 #include "Keyboard.h"
 #include "Timer.h"
 #include "Net/Network.h"
+#include "IPC/IO.h"
 
 namespace Psio
 {
@@ -17,6 +18,7 @@ namespace Psio
 #endif
 		m_net = new Network(this);
 		m_net->Init();
+		m_io = new IO(this);
 	}
 
 	void Engine::setNetwork(Network* network)
@@ -36,6 +38,7 @@ namespace Psio
 	void Engine::RunNet()
 	{
 		m_net->RunLoop();
+		m_io->RunLoop();
 	}
 
 	uint64_t Engine::getTicks()

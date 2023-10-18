@@ -23,6 +23,13 @@ Log::Log()
     m_level = 0;
 }
 
+Log::~Log()
+{
+    if (m_log_stream && m_log_stream.is_open()) {
+        m_log_stream.close();     
+    }
+}
+
 void Log::print(int level, char* msg)
 {
     if (level < m_level) {
@@ -34,7 +41,25 @@ void Log::print(int level, char* msg)
 
 void Log::print(std::string s)
 {
-    ::printf("%s", s.c_str());
+#if LOG_USE_STREAM
+	if (m_log_stream && m_log_stream.is_open()) {
+		m_log_stream << s;
+		m_log_stream.flush();
+	}
+#else
+    if (!m_logfile.empty()) {
+        m_log_stream = std::ofstream(m_logfile, std::ios_base::app);
+		if (!m_log_stream.is_open()) {
+            ::printf("%s", s.c_str()); 
+            return;
+		}
+		m_log_stream << s;
+        m_log_stream.close();
+    }
+#endif
+    else {
+        ::printf("%s", s.c_str());
+    }
 }
 
 void Log::printf(int level, const char* format, ...)
@@ -66,6 +91,20 @@ void Log::printf(int level, const char* format, ...)
 void Log::set(int key, char* value)
 {
     m_token[key] = value;
+}
+
+void Log::setLogFile(std::string logfile)
+{
+	m_logfile = logfile;
+    // open the logfile
+    m_log_stream = std::ofstream(logfile, std::ios_base::app);
+    if (!m_log_stream.is_open()) {
+        ::printf("Could not open logfile %s\n", logfile.c_str());
+		m_logfile.clear();
+    }
+#if !LOG_USE_STREAM
+	m_log_stream.close();
+#endif
 }
 
 Log& Log::logger()

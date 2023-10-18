@@ -287,13 +287,7 @@ namespace Psio
 		m_state = HTTP_NONE;
 
 		// log the response
-		std::time_t now = std::time(nullptr);
-		struct std::tm* timeinfo = std::localtime(&now);
-
-		char buffer[80];
-		std::strftime(buffer, 80, "%d/%b/%Y:%H:%M:%S %z", timeinfo);
-
-		LOG(LOG_INFO) << "[" << buffer << "] \"" << m_request->headers.GetMethod() << " " << m_request->headers.GetUrl() << "\" " << m_response->getResponseCode() << " " << m_response->getContentLength();
+		LOG(LOG_INFO) << m_request->headers.GetMethod() << " " << m_request->headers.GetUrl() << "\" " << m_response->getResponseCode() << " " << m_response->getContentLength();
 
 		// Note: precondition is that request and response are handled entirely
 		m_response.reset();

@@ -16,6 +16,16 @@ namespace Meworla
 		if (w) {
 			w->show();
 		}
+		else {
+			LOG(LOG_ERROR) << "No avatar widget defined.";
+			return false;
+		}
+
+		// if network is not defined this is an configuration error
+		if (!m_net) {
+			LOG(LOG_ERROR) << "No network defined.";
+			return false;
+		}
 
 		// fill list?
 		Rhea::ListWidget* list = doCast<Rhea::ListWidget>(m_app->getUnitTree()->find(m_values["avatarlist"], m_attributes["basepath"], false));
@@ -30,6 +40,10 @@ namespace Meworla
 					return true;
 					});
 			}
+		}
+		else {
+			LOG(LOG_ERROR) << "No avatar list defined.";
+			return false;
 		}
 		return false;
 	}
@@ -46,7 +60,7 @@ namespace Meworla
 		Rhea::Widget* w = doCast<Rhea::Widget>(m_app->getUnitTree()->find(m_values["avatarwidget"], m_attributes["basepath"], false));
 		if (w) {
 			w->hide();
-		}
+		}		
 		ev->stopPropagation();
 
 		Unit* target = ev->getTarget();
@@ -68,11 +82,17 @@ namespace Meworla
 							enterWithAvatar(entryscene, avatar_name);
 						}
 						else {
-							LOG(LOG_ERROR) << "The entrypoint was not found in the scene.";
+							if (m_values.find("entrypoint") == m_values.end())
+								LOG(LOG_ERROR) << "The entrypoint was not defined in the avatar configuration.";
+							else
+								LOG(LOG_ERROR) << "The entrypoint was not found in the scene.";
 						}
 					}
 					else {
-						LOG(LOG_ERROR) << "Could not open scene.";
+						if (m_values.find("entryscene") == m_values.end()) 
+							LOG(LOG_ERROR) << "The entryscene was not defined in the avatar configuration.";						
+						else
+							LOG(LOG_ERROR) << "Could not open scene.";
 					}
 					});
 			}

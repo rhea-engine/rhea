@@ -32,8 +32,12 @@ namespace Meworla
 
 	void ClientConnect::doConnect()
 	{
-		if (!m_net)
+		if (!m_net) {
+			m_values["info"] = "No network defined!";
+			if (m_info_w)
+				m_info_w->show();
 			return;
+		}
 
 		m_connection_state = 1;
 		m_values["info"] = "Connecting";
@@ -67,6 +71,12 @@ namespace Meworla
 						}
 						return false;
 						});
+				}
+				else {
+					if (m_values.find("onAvatarSelectScene") == m_values.end())
+						m_values["info"] = "Configuration error: \nNo onAvatarSelectScene defined in ClientConnect";
+					else
+						m_values["info"] = std::string("Configuration error: \nonAvatarSelectScene '" + (std::string)getValue("onAvatarSelectScene") + "' not found in ClientConnect");
 				}
 				client->registerEventHandler("login_failure", this, [&](Rhea::Event* ev, Rhea::Unit* t)->bool {
 					m_connection_state = 0;

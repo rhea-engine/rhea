@@ -2,6 +2,7 @@
 #define LOG_H
 
 #include <sstream>
+#include <fstream>
 
 // LOG Macros
 
@@ -77,14 +78,20 @@ public:
     // set the token key to the value
     void set(int key, char* value);
 
+    // set log file 
+    void setLogFile(std::string logfile);
+
     // Singleton
     static Log& logger();
 
 protected:
     Log();
+    ~Log();
 
     char* m_token[3];
     int m_level;
+    std::string m_logfile;
+    std::ofstream m_log_stream;
 };
 
 #endif // !LOG_H

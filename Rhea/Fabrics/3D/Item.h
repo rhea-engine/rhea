@@ -74,8 +74,8 @@ namespace Rhea
 		virtual void setLookAt(Math::Vector3 look_at);
 
 		// movement
-		void setMovement(Math::Vector3 move);
-		void setTurn(float turn);
+		virtual void setMovement(Math::Vector3 move);
+		virtual void setTurn(float turn);
 		Math::Vector3 getMovement() { return m_movement; }
 		float getTurn() { return m_turn; }
 		virtual void jump() {}

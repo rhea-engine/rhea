@@ -26,7 +26,7 @@ public:
 	Rhea::Scene* getScene() { return m_scene; }
 
 	// get user info by username
-	Rhea::Unit* getUserInfo(std::string username);
+	virtual Rhea::Unit* getUserInfo(std::string username);
 
 	// ready event
 	void ready();

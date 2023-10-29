@@ -14,6 +14,7 @@ namespace Hermes
 			Message(0)
 		{}
 		Message(uint16_t opcode);
+		virtual ~Message() {}
 
 		virtual void serialize(Psio::IOBuffer* buf);
 

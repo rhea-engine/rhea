@@ -279,6 +279,7 @@ int ClientConnection::DoMessage(int result)
 	if (result < 0)
 		return result;
 
+	// onMessage callback handler is called for each message received
 	int ret = m_hermes->onMessage([&](std::unique_ptr<Hermes::Message> msg, int err) {
 		if (!err) {
 			switch (msg->base.opcode) {
@@ -298,14 +299,11 @@ int ClientConnection::DoMessage(int result)
 			}
 			break;
 			}
-			m_next_state = CONN_MESSAGE;
-			DoLoop(0);
 		}
 		else {
 			// call error handler - this could destroy |this|
 			m_state = CONN_CLOSE;			
 			m_error_handler(err);
-			return;
 		}
 		});
 	return ret;
@@ -319,4 +317,12 @@ int ClientConnection::DoMessageCompleted(int result)
 int ClientConnection::DoClose(int result)
 {
 	return 0;
+}
+
+// helper for testing
+void ClientConnection::StartEstablishedConnection(Rhea::Item* player)
+{
+	m_player = player;
+	m_next_state = CONN_MESSAGE;
+	DoLoop(0);
 }

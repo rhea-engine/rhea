@@ -14,10 +14,12 @@ namespace Hermes
 			m_sock(std::move(sock)),
 			m_msg_factory(msg_factory)
 		{}
+		virtual ~Stream() = default;
+
 		typedef std::function<void(std::unique_ptr<Message>, int)> MessageHandler;
 		typedef std::function<void(int)> CompletionHandler;
 
-		int sendMessage(Message* message, CompletionHandler handler);
+		virtual int sendMessage(Message* message, CompletionHandler handler);
 
 		virtual int onMessage(MessageHandler handler) = 0;
 

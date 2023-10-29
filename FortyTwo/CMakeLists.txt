@@ -6,3 +6,12 @@ endif()
 
 add_executable (fortytwo "FortyTwo.cpp" "World.h" "World.cpp" "ServerService.h" "ServerService.cpp" "ClientConnection.h" "ClientConnection.cpp" "FortyTwo.h")
 target_link_libraries(fortytwo Psio Rhea Hermes)
+
+# Tests
+
+add_executable(f42_test "World.test.cpp" "World.cpp" "ServerService.cpp" "ClientConnection.cpp" "ClientConnection.test.cpp")
+target_link_libraries(f42_test Psio Rhea Hermes gtest_main gmock_main)
+if(WIN32)
+	target_link_libraries(f42_test Winmm wsock32 Ws2_32.lib)
+endif()
+add_test(f42_test ${CMAKE_CURRENT_BINARY_DIR}/f42_test)

@@ -44,7 +44,7 @@ public:
 
 	// broadcast message
 	// is source is set it is not sent there
-	void broadcast(Hermes::Message* msg, ClientConnection* source);
+	virtual void broadcast(Hermes::Message* msg, ClientConnection* source);
 
 protected:
 	// disconnect an item

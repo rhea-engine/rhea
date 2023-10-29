@@ -15,8 +15,8 @@ namespace Hermes
 		{}
 		typedef std::function<void(std::unique_ptr<Message>, int)> MessageHandler;
 
-		int onLogin(MessageHandler handler);
-		int onMessage(MessageHandler handler);
+		virtual int onLogin(MessageHandler handler);
+		virtual int onMessage(MessageHandler handler);
 
 	protected:
 		// state Handling

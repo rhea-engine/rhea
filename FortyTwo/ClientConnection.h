@@ -27,6 +27,9 @@ public:
 	// return the item this connection is responsible for
 	Rhea::Item* getAuthItem() { return m_player; }
 
+	// start with an already connected player
+	void StartEstablishedConnection(Rhea::Item* player);
+
 protected:
 	
 	Rhea::Application* m_app;

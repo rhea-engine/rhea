@@ -10,6 +10,7 @@ namespace Hermes
 	{
 	public:
 		MessageEnterFailed() :
+			reason(0),
 			Message(HERMES_MSG_ENTER_FAILED)
 		{}
 

@@ -233,6 +233,7 @@ namespace Psio
 						}
 						else {							
 							handler(m_net->SysErr(err));
+							return;
 						}
 					}
 					else if (ret > 0)
@@ -277,6 +278,7 @@ namespace Psio
 						}
 						else {							
 							handler(m_net->SysErr(err));
+							return;
 						}
 					}
 					if (ret>0)

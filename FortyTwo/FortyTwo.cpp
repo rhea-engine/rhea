@@ -31,6 +31,15 @@ void FortyTwo::setServer(std::string scene)
 	m_server_name = scene;
 }
 
+void FortyTwo::setPort(std::string port)
+{
+	uint16_t port_i = (uint16_t)atoi(port.c_str());
+	if (port_i) {
+		m_port = port_i;
+	}
+}
+
+
 void FortyTwo::setup()
 {
 	Rhea::Application::setup();
@@ -66,6 +75,7 @@ void FortyTwo::setup()
 				}
 				Rhea::Scene* scene = world->getScene();
 				if (scene) {
+					m_server_service->setPort(m_port);
 					m_server_service->setScene(scene);
 					m_services["server"] = m_server_service;
 					m_server_service->ready();
@@ -115,6 +125,14 @@ int main(int argc, char* argv[])
 		else if (!strcmp(argv[argi], "-d")) {
 			argi++;
 			f42->setAppDir(argv[argi]);
+		}
+		else if (!strcmp(argv[argi], "-p")) {
+			argi++;
+			f42->setPort(argv[argi]);
+		}
+		else if (!strcmp(argv[argi], "-log")) {
+			argi++;
+			Log::logger().setLogFile(argv[argi]);
 		}
 		else {
 			f42->setServer(argv[argi]);

@@ -23,7 +23,7 @@ public:
 		m_network(nullptr),
 		m_scene(nullptr),
 		nuid(1),
-		port(4242),
+		m_port(4242),
 		Rhea::Service(name, type)
 	{}
 
@@ -33,6 +33,9 @@ public:
 	void ready();
 
 	void setNetwork(Psio::Network* network) { m_network = network; }
+
+	// set port
+	void setPort(uint16_t port) { m_port = port; }
 
 	// set the scene we control
 	void setScene(Rhea::Scene* scene) { m_scene = scene; }
@@ -48,7 +51,7 @@ public:
 
 protected:
 	// disconnect an item
-	void disconnect(Rhea::Item* item);
+	void disconnect(ClientConnection* stream);
 	
 	std::unique_ptr<Psio::TCPSocket> m_server_sock;
 	Psio::Network* m_network;
@@ -56,7 +59,7 @@ protected:
 	Rhea::Scene* m_scene;
 	std::vector<ClientConnection*> m_connections;
 	std::string ip;
-	uint16_t port;
+	uint16_t m_port;
 
 	int nuid;
 };

@@ -14,12 +14,12 @@ void ServerService::setup(Rhea::Application* app, std::unordered_map<std::string
 	Service::setup(app, attributes, values);
 
 	ip = "127.0.0.1";
-	port = 4242;
+	m_port = 4242;
 
 	if (m_values.find("ip") != m_values.end())
 		ip = m_values["ip"];
 	if (m_values.find("port") != m_values.end())
-		port = (int)m_values["port"];
+		m_port = (int)m_values["port"];
 
 	// get network from services
 	m_network = static_cast<Rhea::PlatformService*>(m_app->getService("platform"))->getEngine()->getNet();
@@ -33,8 +33,8 @@ void ServerService::ready()
 	}
 	m_server_sock = std::make_unique<Psio::TCPSocket>(m_network);
 
-	int err = m_server_sock->Server(ip, port);
-	LOG(LOG_INFO) << "Started Server. Listening on " << ip << ":" << port;
+	int err = m_server_sock->Server(ip, m_port);
+	LOG(LOG_INFO) << "Started Server. Listening on " << ip << ":" << m_port;
 
 	// fill message factory
 	m_msg_factory = std::make_unique<Hermes::MessageFactory>();
@@ -56,7 +56,7 @@ void ServerService::ready()
 				if (err < -1) {
 					DLOG(LOG_DEBUG) << "Connection error: " << err;
 					// for now simply close the connection
-					disconnect(conn->getAuthItem());
+					disconnect(conn);
 				}
 				});
 			
@@ -92,7 +92,7 @@ bool ServerService::onFrameEnd()
 					int ret = stream->sendMessage(&msg);
 					if (ret < -1) {
 						// network error - stop the player
-						disconnect(stream->getAuthItem()); 
+						disconnect(stream); 
 					}
 				}
 				net_com->clear();
@@ -112,13 +112,16 @@ void ServerService::broadcast(Hermes::Message* msg, ClientConnection* source)
 		int ret = stream->sendMessage(msg);
 		if (ret < -1) {
 			// network error - stop the player
-			disconnect(stream->getAuthItem());
+			disconnect(stream);
 		}
 	}
 }
 
-void ServerService::disconnect(Rhea::Item* item)
+void ServerService::disconnect(ClientConnection* stream)
 {
+	Rhea::Item* item = stream->getAuthItem();
+
+	// remove item from scene
 	if (item) {
 		LOG(LOG_INFO) << "Disconnecting avatar: " << item->getPathName();
 		// cancel all movement
@@ -142,4 +145,9 @@ void ServerService::disconnect(Rhea::Item* item)
 		}
 		delete item;
 	}
+
+	// remove from list
+	m_connections.erase(std::remove(m_connections.begin(), m_connections.end(), stream), m_connections.end());
+	// delete connection
+	delete stream;
 }

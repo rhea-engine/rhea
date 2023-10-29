@@ -8,10 +8,13 @@ class FortyTwo : public Rhea::Application
 {
 public:
 	FortyTwo() : 
-		m_server_service(nullptr)
+		m_server_service(nullptr),
+		m_port(4242)
 	{}
 	void init();
 	void setServer(std::string scene);
+
+	void setPort(std::string port);
 
 	// start the setup process
 	void setup();
@@ -24,7 +27,7 @@ public:
 protected:
 	std::string m_server_name;
 	ServerService* m_server_service;
-	
+	uint16_t m_port;
 };
 
 #endif // !FORTYTWO_H

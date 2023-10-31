@@ -12,6 +12,7 @@
 #include <Psio/Log.h>
 #include "ServerService.h"
 #include <Hermes/Messages/MessageEnterFailed.h>
+#include "Accounts/AccountService.h"
 
 int ClientConnection::Start(Psio::Network::CompletionHandler err_handler)
 {
@@ -71,6 +72,10 @@ int ClientConnection::DoLoop(int result)
 			break;
 		case CONN_CLOSE:
 			result = DoClose(result);
+			break;
+		case CONN_CLOSE_COMPLETED:
+			result = DoCloseCompleted(result);
+			break;
 		}
 
 	} while (result != Psio::Network::IO_PENDING && m_state != CONN_NONE);
@@ -91,10 +96,47 @@ int ClientConnection::DoLogin(int result)
 	if (result < 0)
 		return result;
 
+	m_next_state = CONN_LOGIN_COMPLETED;
+
 	int ret = m_hermes->onLogin([&](std::unique_ptr<Hermes::Message> msg, int err) {
-		{
-			m_next_state = CONN_LOGIN_COMPLETED;
-			DoLoop(err);
+		if (err < 0) {
+			CallDoLoop(err);
+		}
+
+		// login message received - try to log the user in
+		m_world = (World*)m_app->getUnitTree()->findByType("//meworla/world");
+		if (m_world) {
+			m_username = "anonymous";
+			AccountService* acc_srv = doCast<AccountService>(m_app->getService("accounts"));
+			if (acc_srv)
+				m_user = acc_srv->getUser(m_username);
+			if (!m_user) {
+				LOG(LOG_ERROR) << "User " << m_username << " is not registered";
+				// Send auth failure
+				Hermes::Message msg_auth(HERMES_MSG_AUTH_FAILED);
+				m_next_state = CONN_CLOSE;
+				m_hermes->sendMessage(&msg_auth, [&](int result) {
+					CallDoLoop(result);
+					});
+				return;
+			}
+
+			// login succesful, send avatar list (which may be empty)
+				
+			// fill the avatars in the avatarlist message
+			Hermes::MessageAvatarList msg_al;
+			m_user->Avatars([&msg_al](Rhea::Avatar* avatar)->bool {
+				std::string name = avatar->getPathName();
+				std::string model = avatar->getValue("model");
+				msg_al.addAvatar(name, model);
+				return true;
+				});
+			m_hermes->sendMessage(&msg_al, [&](int result) {
+				CallDoLoop(result);
+				});
+		}
+		else {
+			LOG(LOG_ERROR) << "Configuration error: World not found";
 		}
 		});
 	return ret;
@@ -105,34 +147,8 @@ int ClientConnection::DoLoginCompleted(int result)
 	if (result < 0)
 		return result;
 
-	// login succesful, send avatar list (which may be empty)
-	m_world = (World*)m_app->getUnitTree()->findByType("//meworla/world");
-	if (m_world) {
-		m_username = "anonymous";
-		Rhea::Unit* user_info = ((World*)m_world)->getUserInfo(m_username);
-		if (!user_info) {
-			LOG(LOG_ERROR) << "User " << m_username << " is not registered";
-			// TODO Send auth failure
-			return 0;
-		}
-		Hermes::MessageAvatarList msg_al;
-		user_info->children([&msg_al](std::string& name, Rhea::Unit* avatar_unit)->bool {
-			if (avatar_unit->getTypeName() == "//meworla/avatar") {
-				Rhea::Avatar* avatar = (Rhea::Avatar*)avatar_unit;
-				std::string name = avatar->getPathName();
-				std::string model = avatar->getValue("model");
-				msg_al.addAvatar(name, model);
-			}
-		return true;
-			});
-		m_hermes->sendMessage(&msg_al, nullptr);
-		m_next_state = CONN_AVATAR;
-		return 0;
-	}
-	else {
-		LOG(LOG_ERROR) << "Configuration error: World not found";
-		return 0;
-	}	
+	m_next_state = CONN_AVATAR;
+	return result;
 }
 
 int ClientConnection::DoAvatar(int result)
@@ -153,11 +169,10 @@ int ClientConnection::DoAvatar(int result)
 
 				// get the avatar with that name
 				Rhea::Avatar* avatar = nullptr;
-				Rhea::Unit* user_info = ((World*)m_world)->getUserInfo(m_username);
-				if (user_info) {
-					avatar = (Rhea::Avatar*)user_info->getChild(msgc->avatar);
+				if (m_user) {
+					avatar = m_user->getAvatar(msgc->avatar);
 				}
-				if (!avatar || avatar->getTypeName() != "//meworla/avatar") {
+				if (!avatar) {
 					LOG(LOG_ERROR) << "Avatar " << msgc->avatar << " not found";
 					// send error message
 					Hermes::MessageEnterFailed errmsg;
@@ -181,7 +196,7 @@ int ClientConnection::DoAvatar(int result)
 					msgc->avatar = basename + std::string("-") + std::to_string(++i);
 				}
 				m_player = player_model->instance(msgc->avatar);
-				Math::Vector3 position = { 128.0f, 0.0f, 10.0f };
+				Math::Vector3 position = { 128.0f, 0.0f, 10.0f }; // default position
 				position = avatar->getPosition();
 				m_scene->addChild(m_player);
 				m_player->setPosition(position);
@@ -302,8 +317,8 @@ int ClientConnection::DoMessage(int result)
 		}
 		else {
 			// call error handler - this could destroy |this|
-			m_state = CONN_CLOSE;			
-			m_error_handler(err);
+			m_next_state = CONN_CLOSE_COMPLETED;			
+			CallDoLoop(err);
 		}
 		});
 	return ret;
@@ -316,7 +331,25 @@ int ClientConnection::DoMessageCompleted(int result)
 
 int ClientConnection::DoClose(int result)
 {
-	return 0;
+	if (result < 0)
+		return result;
+
+	// close the stream
+	m_next_state = CONN_CLOSE_COMPLETED;
+	m_hermes.reset();
+
+	return result;
+}
+
+int ClientConnection::DoCloseCompleted(int result)
+{
+	m_next_state = CONN_NONE;
+	if (result >= 0 && m_error_handler) {
+		m_error_handler(result);
+		// this may destroy |this|
+		return -1;
+	}
+	return result;
 }
 
 // helper for testing

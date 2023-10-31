@@ -5,6 +5,7 @@
 #include <Hermes/ServerStream.h>
 #include <Rhea/Application.h>
 #include <Rhea/Fabrics/Core/Scene.h>
+#include <FortyTwo/Accounts/User.h>
 #include "World.h"
 
 class ClientConnection
@@ -16,7 +17,8 @@ public:
 		m_player(nullptr),
 		m_world(nullptr),
 		m_state(CONN_NONE),
-		m_next_state(CONN_NONE)
+		m_next_state(CONN_NONE),
+		m_user(nullptr)
 	{
 		m_hermes = std::move(hermes);
 	}
@@ -37,6 +39,7 @@ protected:
 	Rhea::Item* m_player;
 	Rhea::Unit* m_world;
 	std::string m_username;
+	User* m_user;
 
 	std::unique_ptr<Hermes::ServerStream> m_hermes;
 	Psio::Network::CompletionHandler m_error_handler;
@@ -49,7 +52,8 @@ protected:
 		CONN_AVATAR_COMPLETED,
 		CONN_MESSAGE,
 		CONN_MESSAGE_COMPLETED,
-		CONN_CLOSE
+		CONN_CLOSE,
+		CONN_CLOSE_COMPLETED
 	};
 
 	CONN_STATE m_state;
@@ -64,6 +68,7 @@ protected:
 	int DoMessage(int result);
 	int DoMessageCompleted(int result);
 	int DoClose(int result);
+	int DoCloseCompleted(int result);
 };
 
 #endif // !FORTYTWO_CLIENTCONN_H

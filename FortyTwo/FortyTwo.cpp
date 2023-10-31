@@ -5,6 +5,7 @@
 #include <Psio/Log.h>
 #include <Rhea/UnitTree.h>
 #include <Rhea/Fabrics/Core/Avatar.h>
+#include <FortyTwo/Accounts/AccountService.h>
 
 void FortyTwo::init()
 {
@@ -15,7 +16,7 @@ void FortyTwo::init()
 	SimpleParser::Type::registerTypeName<Rhea::Unit>("//meworla/spectator");
 
 	// user and avatar types
-	SimpleParser::Type::registerTypeName<Rhea::Unit>("//meworla/user");
+	AccountService::RegisterAccountFabrics(this);
 	SimpleParser::Type::registerType<Rhea::Avatar>("//meworla/avatar");
 
 	// add world server item
@@ -54,6 +55,7 @@ void FortyTwo::setup()
 		Rhea::Scene* world_scene = doCast<Rhea::Scene>(scene_unit);
 		if (world_scene && err == ReqError::OK) {
 
+			// get the server service
 			m_server_service = world_scene->findByType<ServerService>();
 			if (!m_server_service) {
 
@@ -67,25 +69,44 @@ void FortyTwo::setup()
 				LOG(LOG_FATAL) << "no server service defined";
 				exit(1);
 			}
-			else {
-				World* world = world_scene->findByType<World>();
-				if (!world) {
-					LOG(LOG_FATAL) << "world not defined";
-					exit(1);
-				}
-				Rhea::Scene* scene = world->getScene();
-				if (scene) {
-					m_server_service->setPort(m_port);
-					m_server_service->setScene(scene);
-					m_services["server"] = m_server_service;
-					m_server_service->ready();
-					LOG(LOG_INFO) << "server started.";
-				}
-				else {
-					LOG(LOG_FATAL) << "scene not found";
-					exit(1);
-				}
+
+			// Check setup
+			// not configured services will use basic internal version
+
+			// get the account service
+			AccountService* account_service = world_scene->findByType<AccountService>();
+			if (!account_service) {
+				/* TODO: Check if there is a sensible action 
+				account_service = (AccountService*)SimpleParser::Type::create("AccountService", "//meworla/accountservice");
+				m_services["account"] = account_service;
+				account_service->setup(this);
+				LOG(LOG_INFO) << "No account service defined. Use default.";
+				*/
+				LOG(LOG_INFO) << "No account service defined. Exiting.";
+				exit(1);
 			}
+			else {
+				m_services["accounts"] = account_service;
+			}
+
+			World* world = world_scene->findByType<World>();
+			if (!world) {
+				LOG(LOG_FATAL) << "world not defined";
+				exit(1);
+			}
+			Rhea::Scene* scene = world->getScene();
+			if (scene) {
+				m_server_service->setPort(m_port);
+				m_server_service->setScene(scene);
+				m_services["server"] = m_server_service;
+				m_server_service->ready();
+				LOG(LOG_INFO) << "server started.";
+			}
+			else {
+				LOG(LOG_FATAL) << "scene not found";
+				exit(1);
+			}
+
 			// set physics cache
 			m_physics = (Rhea::PhysicsService*)m_services["physics"];
 		}

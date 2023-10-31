@@ -55,9 +55,11 @@ void ServerService::ready()
 			int ret = conn->Start([&,conn](int err) {
 				if (err < -1) {
 					DLOG(LOG_DEBUG) << "Connection error: " << err;
-					// for now simply close the connection
-					disconnect(conn);
 				}
+				else
+					DLOG(LOG_DEBUG) << "Connection closed";
+				// for now simply close the connection
+				disconnect(conn);
 				});
 			
 			if (ret < -1) {

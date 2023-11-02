@@ -51,6 +51,8 @@ namespace SimpleParser
 		template <class T>
 		static void registerType(std::string URI)
 		{
+			if (m_types.find(URI) != m_types.end())
+				return;
 			Type* type = Type::Register(URI, T::createType);
 			T::staticType(type);
 			T::initializeType(type);

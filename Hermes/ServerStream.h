@@ -14,9 +14,12 @@ namespace Hermes
 			Stream(std::move(sock), msg_factory)
 		{}
 		typedef std::function<void(std::unique_ptr<Message>, int)> MessageHandler;
+		typedef std::function<void(std::string username, int)> LoginHandler;
 
-		virtual int onLogin(MessageHandler handler);
+		virtual int onLogin(LoginHandler handler);
 		virtual int onMessage(MessageHandler handler);
+
+		void AuthFailure(CompletionHandler handler);
 
 	protected:
 		// state Handling
@@ -38,6 +41,8 @@ namespace Hermes
 		int DoReadLoginCompleted(int result);
 		int DoReadMessage(int result);
 		int DoReadMessageCompleted(int result);
+
+		LoginHandler m_login_handler;
 	};
 }
 

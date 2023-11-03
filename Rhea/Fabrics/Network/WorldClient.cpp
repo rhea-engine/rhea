@@ -22,7 +22,7 @@ namespace Rhea
 
 	void WorldClient::start()
 	{
-		m_hermes->login([&](int err) {
+		m_hermes->login("anonymous", [&](int err) {
 			if (err >= 0) {
 				DLOG(LOG_DEBUG) << "login succeeded";
 

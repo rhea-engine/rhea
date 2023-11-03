@@ -12,6 +12,7 @@
 #include <Psio/Log.h>
 #include "ServerService.h"
 #include <Hermes/Messages/MessageEnterFailed.h>
+#include <Hermes/Messages/MessageLogin.h>
 #include "Accounts/AccountService.h"
 
 int ClientConnection::Start(Psio::Network::CompletionHandler err_handler)
@@ -98,7 +99,7 @@ int ClientConnection::DoLogin(int result)
 
 	m_next_state = CONN_LOGIN_COMPLETED;
 
-	int ret = m_hermes->onLogin([&](std::unique_ptr<Hermes::Message> msg, int err) {
+	int ret = m_hermes->onLogin([&](std::string username, int err) {
 		if (err < 0) {
 			CallDoLoop(err);
 		}
@@ -106,16 +107,15 @@ int ClientConnection::DoLogin(int result)
 		// login message received - try to log the user in
 		m_world = (World*)m_app->getUnitTree()->findByType("//meworla/world");
 		if (m_world) {
-			m_username = "anonymous";
+			m_username = username;
 			AccountService* acc_srv = doCast<AccountService>(m_app->getService("accounts"));
 			if (acc_srv)
 				m_user = acc_srv->getUser(m_username);
 			if (!m_user) {
 				LOG(LOG_ERROR) << "User " << m_username << " is not registered";
 				// Send auth failure
-				Hermes::Message msg_auth(HERMES_MSG_AUTH_FAILED);
 				m_next_state = CONN_CLOSE;
-				m_hermes->sendMessage(&msg_auth, [&](int result) {
+				m_hermes->AuthFailure([&](int result) {
 					CallDoLoop(result);
 					});
 				return;

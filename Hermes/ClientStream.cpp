@@ -1,6 +1,7 @@
 #include "ClientStream.h"
 #include <Psio/Log.h>
 #include <Opcode.h>
+#include <Messages/MessageLogin.h>
 
 namespace Hermes
 {
@@ -13,12 +14,13 @@ namespace Hermes
 		return 0;
 	}
 
-	void ClientStream::login(LoginHandler handler)
+	void ClientStream::login(std::string user_name, LoginHandler handler)
 	{
 		m_login_handler = handler;
-		Hermes::Message msg(HERMES_MSG_LOGIN);
+		Hermes::MessageLogin msg;
+		msg.user_name = user_name;
 
-		int ret = sendMessage(&msg, handler);
+		int ret = sendMessage((Message*)&msg, handler);
 		if (ret >= msg.getSize()) {
 			handler(ret);
 		}

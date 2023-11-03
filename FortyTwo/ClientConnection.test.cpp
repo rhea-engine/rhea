@@ -48,7 +48,7 @@ public:
 	{}
 	~HermesServerMock() { }
 
-	MOCK_METHOD(int, onLogin, (ServerStream::MessageHandler handler));
+	MOCK_METHOD(int, onLogin, (ServerStream::LoginHandler handler));
 	MOCK_METHOD(int, onMessage, (ServerStream::MessageHandler handler));
 	MOCK_METHOD(int, sendMessage, (Hermes::Message*, Hermes::Stream::CompletionHandler));
 };
@@ -182,7 +182,7 @@ TEST_F(ClientConnectionTest, StartTestLoginCompleted)
 		.Times(1)
 		.WillOnce(
 			testing::DoAll(
-				testing::InvokeArgument<0>(nullptr, 0),
+				testing::InvokeArgument<0>("anonymous", 0),
 				testing::Return(0)
 			)
 		);
@@ -224,7 +224,7 @@ TEST_F(ClientConnectionTest, LoginCompletedSendAvatarlist)
 		.Times(1)
 		.WillOnce(
 			testing::DoAll(
-				testing::InvokeArgument<0>(nullptr, 0),
+				testing::InvokeArgument<0>("anonymous", 0),
 				testing::Return(0)
 			)
 		);
@@ -263,7 +263,7 @@ TEST_F(ClientConnectionTest, LoginCompletedUnknownUser)
 		.Times(1)
 		.WillOnce(
 			testing::DoAll(
-				testing::InvokeArgument<0>(nullptr, 0),
+				testing::InvokeArgument<0>("anonymous", 0),
 				testing::Return(0)
 			)
 		);
@@ -310,7 +310,7 @@ TEST_F(ClientConnectionTest, OnAvatarNotExistingB)
 		.Times(1)
 		.WillOnce(
 			testing::DoAll(
-				testing::InvokeArgument<0>(nullptr, 0),
+				testing::InvokeArgument<0>("anonymous", 0),
 				testing::Return(0)
 			)
 		);
@@ -376,7 +376,7 @@ TEST_F(ClientConnectionTest, OnAvatarSucess)
 		.Times(1)
 		.WillOnce(
 			testing::DoAll(
-				testing::InvokeArgument<0>(nullptr, 0),
+				testing::InvokeArgument<0>("anonymous", 0),
 				testing::Return(0)
 			)
 		);

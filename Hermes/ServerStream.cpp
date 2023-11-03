@@ -3,15 +3,16 @@
 #include "ServerStream.h"
 #include <Opcode.h>
 #include <Psio/Log.h>
+#include <Hermes/Messages/MessageLogin.h>
 
 using Psio::Network;
 using Psio::IOBuffer;
 
 namespace Hermes
 {
-	int ServerStream::onLogin(MessageHandler handler)
+	int ServerStream::onLogin(LoginHandler handler)
 	{
-		m_message_handler = handler;
+		m_login_handler = handler;
 
 		m_inbuf = std::make_unique<Psio::IOBuffer>(64 * 1024);
 		m_outbuf = std::make_unique<Psio::IOBuffer>(64 * 1024);
@@ -32,6 +33,14 @@ namespace Hermes
 		int ret = DoLoop(0);
 
 		return ret;
+	}
+
+	void ServerStream::AuthFailure(CompletionHandler handler)
+	{
+		Hermes::Message msg_auth(HERMES_MSG_AUTH_FAILED);
+		sendMessage(&msg_auth, [&](int result) {
+			handler(result);
+			});
 	}
 
 	int ServerStream::DoLoop(int result)
@@ -94,15 +103,30 @@ namespace Hermes
 		msg.reset(m_msg_factory->getMessage(m_inbuf.get()));
 		if (msg) {
 			if (msg->getOpcode() != HERMES_MSG_LOGIN) {
-				// wrong message					
-				// note this will probably destroy the stream
-				m_message_handler(nullptr, HERMES_ERR_GENERAL);
+				// wrong message									
+				Message msg(HERMES_ERR_GENERAL);
+				sendMessage(&msg, [&](int err) {
+					// note this will probably destroy |this|
+					m_login_handler("", -HERMES_ERR_GENERAL);
+					});
 				return Network::IO_PENDING;
 			}
-			else {
-				m_message_handler(std::move(msg), 0);
+			MessageLogin* msg_login = static_cast<MessageLogin*>(msg.get());
+			if (msg_login->protocol_version != HERMES_PROTOCOL_VERSION) {
+				// wrong protocol									
+				Message msg(HERMES_ERR_GENERAL);
+				sendMessage(&msg, [&](int err) {
+					// note this will probably destroy |this|
+					m_login_handler("", -HERMES_ERR_PROTOCOL_VERSION);
+					});				
 				return Network::IO_PENDING;
 			}
+		
+			// login message received
+			m_login_handler(msg_login->user_name, 0);
+			m_login_handler = nullptr;
+			return Network::IO_PENDING;
+
 		}
 		else {
 			m_next_state = HERMES_STATE::HERMES_LOGIN_PENDING;
@@ -143,7 +167,7 @@ namespace Hermes
 			m_message_handler(std::move(msg), 0);
 			if (m_inbuf->Remaining()) {
 				m_next_state = HERMES_STATE::HERMES_READMESSAGE_COMPLETED;
-				return m_inbuf->Remaining();
+				return (int)m_inbuf->Remaining();
 			}
 			else {
 				m_next_state = HERMES_STATE::HERMES_READMESSAGE;

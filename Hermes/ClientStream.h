@@ -17,7 +17,7 @@ namespace Hermes
 		int connect(CompletionHandler handler);
 
 		typedef std::function<void(int)> LoginHandler;
-		void login(LoginHandler handler);
+		void login(std::string user_name, LoginHandler handler);
 
 		int onMessage(MessageHandler handler);
 

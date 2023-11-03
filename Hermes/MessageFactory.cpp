@@ -10,6 +10,7 @@
 #include "Messages/MessageEnterWorld.h"
 #include "Messages/MessageEnterFailed.h"
 #include "Messages/MessageAvatarList.h"
+#include "Messages/MessageLogin.h"
 
 namespace Hermes
 {
@@ -49,6 +50,7 @@ namespace Hermes
 	{
 		registerMessageType(HERMES_MSG_CREATE, MessageCreate::create);
 		registerMessageType(HERMES_MSG_DESTROY, MessageDestroy::create);
+		registerMessageType(HERMES_MSG_LOGIN, MessageLogin::create);
 		registerMessageType(HERMES_MSG_POSITION, MessagePosition::create);
 		registerMessageType(HERMES_MSG_MOVE, MessageMove::create);
 		registerMessageType(HERMES_MSG_TURN, MessageTurn::create);

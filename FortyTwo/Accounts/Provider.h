@@ -14,7 +14,11 @@ public:
 
 	virtual std::vector<Rhea::Unit::Export> getReferences() = 0;
 
+	// get the user with the given user name
 	virtual User* getUser(std::string user_name) = 0;
+
+	// add a user to the storage
+	virtual void addUser(User* user) = 0;
 };
 
 #endif // !FORTYTWO_ACCOUNTS_PROVIDER_H

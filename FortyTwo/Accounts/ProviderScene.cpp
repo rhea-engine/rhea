@@ -36,3 +36,15 @@ User* ProviderScene::getUser(std::string user_name)
 	}
 	return nullptr;
 }
+
+void ProviderScene::addUser(User* user)
+{
+	// add user to user list
+	// this does not add the user to the storage yet
+	if (!m_user_list && !m_avatarlist_scene.empty()) {
+		// find the user list
+		m_user_list = m_app->getUnitTree()->find(m_avatarlist_scene);
+	}
+	if (m_user_list)
+		m_user_list->addChild(user);
+}

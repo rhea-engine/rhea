@@ -18,6 +18,8 @@ public:
 
 	User* getUser(std::string user_name);
 
+	void addUser(User* user);
+
 protected:
 	Rhea::Application* m_app;
 	std::string m_avatarlist_scene;

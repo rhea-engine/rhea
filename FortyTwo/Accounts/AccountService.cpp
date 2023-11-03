@@ -1,6 +1,7 @@
 #include "AccountService.h"
 #include "User.h"
 #include "ProviderScene.h"
+#include "ProviderMemory.h"
 
 void AccountService::setup(Rhea::Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 {
@@ -17,6 +18,9 @@ void AccountService::setup(Rhea::Application* app, std::unordered_map<std::strin
 		m_provider_type = m_values["provider"];
 		if (m_provider_type == "scene") {
 			m_provider = std::make_unique<ProviderScene>();
+		}
+		else if (m_provider_type == "memory") {
+			m_provider = std::make_unique<ProviderMemory>();
 		}
 		if (m_provider) {
 			m_provider->Setup(app, m_values);

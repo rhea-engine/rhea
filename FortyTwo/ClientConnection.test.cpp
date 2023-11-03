@@ -15,6 +15,7 @@
 #include "ServerService.h"
 #include "Accounts/Provider.h"
 #include "Accounts/AccountService.h"
+#include "Accounts/ProviderMemory.h"
 
 using ::testing::_;
 
@@ -65,29 +66,6 @@ public:
 	MOCK_METHOD(void, setTurn, (float));
 };
 
-class ProviderFake : public Provider
-{
-public:
-	void Setup(Rhea::Application* app, std::unordered_map<std::string, Variant>& values) {}
-
-	std::vector<Rhea::Unit::Export> getReferences() {
-		std::vector<Rhea::Unit::Export> refs;
-		return refs;
-	}
-
-	User* getUser(std::string user_name) {
-		if (m_user && m_user->getPathName() == user_name)
-			return m_user;
-		else
-			return nullptr;
-	}
-
-	void setUser(User* user) { m_user = user; }
-
-protected:
-	User* m_user = nullptr;
-};
-
 class ServerServiceMock : public ServerService
 {
 	MECLASS(ServerServiceMock, ServerService)
@@ -99,7 +77,6 @@ public:
 
 	MOCK_METHOD(void, broadcast, (Hermes::Message*, ClientConnection*));
 };
-
 
 class ClientConnectionTest : public ::testing::Test {
 protected:
@@ -139,7 +116,7 @@ protected:
 
 		acc_srv = std::make_unique<AccountService>("accountservice", "//meworla/accountservice");
 		app->registerService("accounts", acc_srv.get());
-		std::unique_ptr<ProviderFake> provider = std::make_unique<ProviderFake>();
+		std::unique_ptr<ProviderMemory> provider = std::make_unique<ProviderMemory>();
 		acc_srv->setProvider(std::move(provider));
 	}
 
@@ -241,7 +218,7 @@ TEST_F(ClientConnectionTest, LoginCompletedSendAvatarlist)
 	WorldMock world("testworld", "//meworla/world");
 	app->getUnitTree()->addChild(&world);
 	User user_info("anonymous", "//meworla/user");
-	((ProviderFake*)acc_srv->getProvider())->setUser(&user_info);
+	((ProviderMemory*)acc_srv->getProvider())->addUser(&user_info);
 
 	EXPECT_CALL(*hermes_ref, onLogin)
 		.Times(1)
@@ -280,7 +257,7 @@ TEST_F(ClientConnectionTest, LoginCompletedUnknownUser)
 	WorldMock world("testworld", "//meworla/world");
 	app->getUnitTree()->addChild(&world);
 	User user_info("nouser", "//meworla/user");
-	((ProviderFake*)acc_srv->getProvider())->setUser(&user_info);
+	((ProviderMemory*)acc_srv->getProvider())->addUser(&user_info);
 
 	EXPECT_CALL(*hermes_ref, onLogin)
 		.Times(1)
@@ -323,7 +300,7 @@ TEST_F(ClientConnectionTest, OnAvatarNotExistingB)
 	WorldMock world("testworld", "//meworla/world");
 	app->getUnitTree()->addChild(&world);
 	User user_info("anonymous", "//meworla/user");
-	((ProviderFake*)acc_srv->getProvider())->setUser(&user_info);
+	((ProviderMemory*)acc_srv->getProvider())->addUser(&user_info);
 
 	// Define variables to capture callback arguments
 	Hermes::Message* capturedMessage = nullptr;
@@ -387,7 +364,7 @@ TEST_F(ClientConnectionTest, OnAvatarSucess)
 	avatar->setValue("model", "//avatar_model");	
 	user_info.addChild(avatar);
 	Rhea::Item* avatar_model = new Rhea::Item("avatar_model", "//meworla/item");
-	((ProviderFake*)acc_srv->getProvider())->setUser(&user_info);
+	((ProviderMemory*)acc_srv->getProvider())->addUser(&user_info);
 
 	app->getUnitTree()->addChild(avatar_model);
 

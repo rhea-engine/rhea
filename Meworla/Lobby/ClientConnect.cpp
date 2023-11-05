@@ -51,8 +51,7 @@ namespace Meworla
 				m_net->addChild(client);
 				m_connection_state = 2;
 				m_values["info"] = "Sending login information";
-				DLOG(LOG_DEBUG) << "connected to server";
-				client->setAuth("anonymous");
+				DLOG(LOG_DEBUG) << "connected to server";				
 				Rhea::Scene* avatar_select_scene = doCast<Rhea::Scene>(m_app->getUnitTree()->find(getValue("onAvatarSelectScene"), m_attributes["basepath"], false));
 				if (avatar_select_scene) {
 					client->registerEventHandler("avatarlist", this, [&, avatar_select_scene](Rhea::Event* ev, Rhea::Unit* t)->bool {

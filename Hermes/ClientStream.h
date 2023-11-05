@@ -17,7 +17,7 @@ namespace Hermes
 		int connect(CompletionHandler handler);
 
 		typedef std::function<void(int)> LoginHandler;
-		void login(std::string user_name, LoginHandler handler);
+		void login(std::string world_name, std::string user_name, LoginHandler handler);
 
 		int onMessage(MessageHandler handler);
 
@@ -25,7 +25,9 @@ namespace Hermes
 		// state Handling
 		enum HERMES_STATE {
 			HERMES_NONE,
+			HERMES_HANDSHAKE,
 			HERMES_LOGIN_PENDING,
+			HERMES_LOGIN_COMPLETED,
 			HERMES_SEND_SETUP,
 			HERMES_SEND_SETUP_COMPLETED,
 			HERMES_READMESSAGE,
@@ -36,6 +38,8 @@ namespace Hermes
 		HERMES_STATE m_next_state;
 		int DoLoop(int result);
 		void CallDoLoop(int result);
+		int DoLoginPending(int result);
+		int DoLoginCompleted(int result);
 		int DoReadMessage(int result);
 		int DoReadMessageCompleted(int result);
 

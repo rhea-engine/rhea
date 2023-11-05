@@ -146,15 +146,7 @@ TEST_F(ClientConnectionTest, StartTest)
 				//testing::InvokeArgument<0>, // not for Login test (only ttest if handler gets called)
 				testing::Return(0)
 			)
-		);
-
-	EXPECT_CALL(*hermes_ref, onMessage)
-		.Times(1)
-		.WillOnce(
-			testing::DoAll(
-				testing::Return(-1)
-			)
-		);
+		);	
 
 	ClientConnection conn(app, scene, std::move(hermes));
 
@@ -187,7 +179,7 @@ TEST_F(ClientConnectionTest, StartTestLoginCompleted)
 			)
 		);
 
-	EXPECT_CALL(*hermes_ref, sendMessage(MsgEq(HERMES_MSG_AUTH_FAILED), _))
+	EXPECT_CALL(*hermes_ref, sendMessage(MsgEq(HERMES_MSG_LOGIN_FAILED), _))
 		.Times(1)
 		.WillOnce(
 			testing::DoAll(
@@ -208,9 +200,8 @@ TEST_F(ClientConnectionTest, StartTestLoginCompleted)
 }
 
 // Check if Start calls onLoginComplete of hermes
-// and send an avatar list message back
-// then wait for the next message
-TEST_F(ClientConnectionTest, LoginCompletedSendAvatarlist)
+// and send an auth success mesage back
+TEST_F(ClientConnectionTest, LoginCompletedSendOK)
 {
 	HermesServerMock* hermes_ref = hermes.get();
 	ASSERT_TRUE(hermes_ref != nullptr);
@@ -229,15 +220,13 @@ TEST_F(ClientConnectionTest, LoginCompletedSendAvatarlist)
 			)
 		);
 
-	EXPECT_CALL(*hermes_ref, sendMessage(MsgEq(HERMES_MSG_AVATARLIST),_))
+	EXPECT_CALL(*hermes_ref, sendMessage(MsgEq(HERMES_MSG_LOGIN_SUCCEEDED),_))
 		.Times(1);
 
 	EXPECT_CALL(*hermes_ref, onMessage)
 		.Times(1)
 		.WillOnce(
-			testing::DoAll(
-				testing::Return(-1)
-			)
+			testing::Return(-1)
 		);
 
 	ClientConnection conn(app, scene, std::move(hermes));
@@ -268,7 +257,7 @@ TEST_F(ClientConnectionTest, LoginCompletedUnknownUser)
 			)
 		);
 
-	EXPECT_CALL(*hermes_ref, sendMessage(MsgEq(HERMES_MSG_AUTH_FAILED), _))
+	EXPECT_CALL(*hermes_ref, sendMessage(MsgEq(HERMES_MSG_LOGIN_FAILED), _))
 		.Times(1)
 		.WillOnce(
 			testing::DoAll(
@@ -292,7 +281,7 @@ TEST_F(ClientConnectionTest, LoginCompletedUnknownUser)
 
 // test if after login an avatar is sent
 // the avatar does not exist -> expect failed message
-TEST_F(ClientConnectionTest, OnAvatarNotExistingB)
+TEST_F(ClientConnectionTest, OnAvatarNotExisting)
 {
 	HermesServerMock* hermes_ref = hermes.get();
 	ASSERT_TRUE(hermes_ref != nullptr);
@@ -302,25 +291,11 @@ TEST_F(ClientConnectionTest, OnAvatarNotExistingB)
 	User user_info("anonymous", "//meworla/user");
 	((ProviderMemory*)acc_srv->getProvider())->addUser(&user_info);
 
-	// Define variables to capture callback arguments
-	Hermes::Message* capturedMessage = nullptr;
-	int capturedError = -1;
-
-	EXPECT_CALL(*hermes_ref, onLogin)
+	EXPECT_CALL(*hermes_ref, sendMessage(MsgEq(HERMES_MSG_ENTER_FAILED), _))
 		.Times(1)
 		.WillOnce(
 			testing::DoAll(
-				testing::InvokeArgument<0>("anonymous", 0),
-				testing::Return(0)
-			)
-		);
-
-	EXPECT_CALL(*hermes_ref, sendMessage)
-		.Times(2)
-		.WillRepeatedly(
-			testing::DoAll(
-				testing::SaveArg<0>(&capturedMessage),
-				testing::Return(0)
+				testing::Return(-1)
 			)
 		);
 
@@ -333,20 +308,17 @@ TEST_F(ClientConnectionTest, OnAvatarNotExistingB)
 					msg->avatar = "avatar";
 					h(std::move(msg), 0);
 					}),
-				testing::Return(0)
+				testing::Return(-1)
 			)
 		);
+
+	
 
 	ClientConnection conn(app, scene, std::move(hermes));
 
 	testing::MockFunction<void(int err)> mock_handler;
 
-	int ret = conn.Start(mock_handler.AsStdFunction());
-	// synchronous call
-	EXPECT_EQ(ret, 0);
-
-	ASSERT_NE(capturedMessage, nullptr);
-	EXPECT_EQ(capturedMessage->base.opcode, HERMES_MSG_ENTER_FAILED);
+	conn.StartConnectedUser(&user_info);
 }
 
 // test if after login an avatar is sent
@@ -372,21 +344,11 @@ TEST_F(ClientConnectionTest, OnAvatarSucess)
 	Hermes::Message* capturedMessage = nullptr;
 	int capturedError = -1;
 
-	EXPECT_CALL(*hermes_ref, onLogin)
+	EXPECT_CALL(*hermes_ref, sendMessage(MsgEq(HERMES_MSG_CREATE), _))
 		.Times(1)
 		.WillOnce(
 			testing::DoAll(
-				testing::InvokeArgument<0>("anonymous", 0),
-				testing::Return(0)
-			)
-		);
-
-	EXPECT_CALL(*hermes_ref, sendMessage)
-		.Times(2)
-		.WillRepeatedly(
-			testing::DoAll(
-				testing::SaveArg<0>(&capturedMessage),
-				testing::Return(0)
+				testing::Return(-1)
 			)
 		);
 
@@ -399,11 +361,11 @@ TEST_F(ClientConnectionTest, OnAvatarSucess)
 					msg->avatar = "avatar";
 					h(std::move(msg), 0);
 					}),
-				testing::Return(0)
+				testing::Return(-1)
 			)
 		)
 		.WillRepeatedly(
-			testing::Return(0)
+			testing::Return(-1)
 		);
 
 	ServerServiceMock* server_ref = server.get();
@@ -414,13 +376,7 @@ TEST_F(ClientConnectionTest, OnAvatarSucess)
 
 	testing::MockFunction<void(int err)> mock_handler;
 
-	int ret = conn.Start(mock_handler.AsStdFunction());
-	// synchronous call
-	EXPECT_EQ(ret, 0);
-
-	// Expect we get a message create as answer
-	ASSERT_NE(capturedMessage, nullptr);
-	EXPECT_EQ(capturedMessage->base.opcode, HERMES_MSG_CREATE);
+	conn.StartConnectedUser(&user_info);
 }
 
 

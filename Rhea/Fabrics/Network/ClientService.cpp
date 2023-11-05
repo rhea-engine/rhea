@@ -13,6 +13,8 @@ namespace Rhea
 	{
 		Rhea::PlatformService* psio = static_cast<Rhea::PlatformService*>(m_app->getService("platform"));
 		m_network = psio->getEngine()->getNet();
+		m_worldname = getValue("world", "");			
+		m_username = getValue("username", "");
 	}
 
 	void ClientService::connect(std::string host, ConnectionHandler handler)
@@ -32,6 +34,7 @@ namespace Rhea
 				std::unique_ptr<Hermes::ClientStream> hermes = std::make_unique<Hermes::ClientStream>(std::move(sock), m_msg_factory.get());
 				hermes->connect(nullptr);
 				WorldClient* client = new WorldClient();
+				client->setAuth(m_worldname, m_username);
 				client->setStream(std::move(hermes));
 				client->setup(m_app);
 				handler(client, 0);

@@ -19,6 +19,7 @@ namespace Hermes
 		virtual int onLogin(LoginHandler handler);
 		virtual int onMessage(MessageHandler handler);
 
+		void AuthSucess(CompletionHandler handler);
 		void AuthFailure(CompletionHandler handler);
 
 	protected:

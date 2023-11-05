@@ -36,6 +36,8 @@ namespace Rhea
 	protected:
 		Psio::Network* m_network;
 		std::unique_ptr<Hermes::MessageFactory> m_msg_factory;
+		std::string m_worldname;
+		std::string m_username;
 	};
 
 }

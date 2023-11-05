@@ -29,6 +29,8 @@ public:
 	// return the item this connection is responsible for
 	Rhea::Item* getAuthItem() { return m_player; }
 
+	// start with a connected user
+	void StartConnectedUser(User* user);
 	// start with an already connected player
 	void StartEstablishedConnection(Rhea::Item* player);
 
@@ -48,6 +50,7 @@ protected:
 		CONN_NONE,
 		CONN_LOGIN,
 		CONN_LOGIN_COMPLETED,
+		CONN_LOBBY,
 		CONN_AVATAR,
 		CONN_AVATAR_COMPLETED,
 		CONN_MESSAGE,
@@ -63,12 +66,15 @@ protected:
 	void CallDoLoop(int result);
 	int DoLogin(int result);
 	int DoLoginCompleted(int result);
+	int DoLobby(int result);
 	int DoAvatar(int result);
 	int DoAvatarCompleted(int result);
 	int DoMessage(int result);
 	int DoMessageCompleted(int result);
 	int DoClose(int result);
 	int DoCloseCompleted(int result);
+
+	std::unique_ptr<Hermes::Message> m_cur_msg;
 };
 
 #endif // !FORTYTWO_CLIENTCONN_H

@@ -20,6 +20,7 @@ namespace Hermes
 		static Message* create(uint16_t opcode, uint16_t size, Psio::IOBuffer* buf);
 
 		uint32_t protocol_version;
+		std::string world_name;
 		std::string user_name;
 	};
 }

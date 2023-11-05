@@ -59,6 +59,9 @@ int ClientConnection::DoLoop(int result)
 		case CONN_LOGIN_COMPLETED:
 			result = DoLoginCompleted(result);
 			break;
+		case CONN_LOBBY:
+			result = DoLobby(result);
+			break;
 		case CONN_AVATAR:
 			result = DoAvatar(result);
 			break;
@@ -97,11 +100,11 @@ int ClientConnection::DoLogin(int result)
 	if (result < 0)
 		return result;
 
-	m_next_state = CONN_LOGIN_COMPLETED;
-
 	int ret = m_hermes->onLogin([&](std::string username, int err) {
 		if (err < 0) {
 			CallDoLoop(err);
+			// may destroy |this|
+			return;
 		}
 
 		// login message received - try to log the user in
@@ -121,19 +124,14 @@ int ClientConnection::DoLogin(int result)
 				return;
 			}
 
-			// login succesful, send avatar list (which may be empty)
-				
-			// fill the avatars in the avatarlist message
-			Hermes::MessageAvatarList msg_al;
-			m_user->Avatars([&msg_al](Rhea::Avatar* avatar)->bool {
-				std::string name = avatar->getPathName();
-				std::string model = avatar->getValue("model");
-				msg_al.addAvatar(name, model);
-				return true;
-				});
-			m_hermes->sendMessage(&msg_al, [&](int result) {
+			// login succesful - send auth succcess
+			m_next_state = CONN_LOBBY;
+			m_hermes->AuthSucess([&](int result) {
 				CallDoLoop(result);
 				});
+			return;
+
+			
 		}
 		else {
 			LOG(LOG_ERROR) << "Configuration error: World not found";
@@ -151,141 +149,172 @@ int ClientConnection::DoLoginCompleted(int result)
 	return result;
 }
 
+int ClientConnection::DoLobby(int result)
+{
+	m_next_state = CONN_LOBBY;
+	int ret = m_hermes->onMessage([&](std::unique_ptr<Hermes::Message> msg, int err) {
+		if (err < 0) {
+			return;
+		}
+		switch (msg->getOpcode()) {
+		case HERMES_MSG_GET_AVATARLIST:
+			m_next_state = CONN_AVATAR;
+			CallDoLoop(err);
+			break;
+		case HERMES_MSG_ENTERWORLD:
+			m_cur_msg = std::move(msg);
+			m_next_state = CONN_AVATAR_COMPLETED;
+			CallDoLoop(err);
+			break;
+		default:
+			LOG(LOG_DEBUG) << "Wrong message in DoLobby: " << msg->getOpcode();
+		}
+		});
+	return ret;
+}
+
 int ClientConnection::DoAvatar(int result)
 {
-	if (result < 0)
-		return result;
+	// send avatar list (which may be empty)
 
-	int ret = m_hermes->onMessage([&](std::unique_ptr<Hermes::Message> msg, int err) {
-		if (err >= 0) {
-			// check if avatar was sent
-			if (msg->getOpcode() != HERMES_MSG_ENTERWORLD) {
-				if (m_error_handler)
-					m_error_handler(-2); // Protocol error
-			}
-			else {
-				// add avatar to scene
-				Hermes::MessageEnterWorld* msgc = (Hermes::MessageEnterWorld*)msg.get();
-
-				// get the avatar with that name
-				Rhea::Avatar* avatar = nullptr;
-				if (m_user) {
-					avatar = m_user->getAvatar(msgc->avatar);
-				}
-				if (!avatar) {
-					LOG(LOG_ERROR) << "Avatar " << msgc->avatar << " not found";
-					// send error message
-					Hermes::MessageEnterFailed errmsg;
-					errmsg.reason = 1;
-					m_hermes->sendMessage((Hermes::Message*)&errmsg, nullptr);
-					return;
-				}
-				LOG(LOG_INFO) << "Avatar " << msgc->avatar << " entered scene";
-
-				// instancing the player
-				Rhea::Item* player_model = (Rhea::Item*)m_app->getUnitTree()->find(avatar->getValue("model"));
-				if (!player_model) {
-					LOG(LOG_ERROR) << " could not open avatar " << msgc->avatar;
-					return;
-				}
-
-				int i = 0;
-				std::string basename = msgc->avatar;
-				while (m_scene->find(msgc->avatar)) {
-					// make sure no items with the same name exist
-					msgc->avatar = basename + std::string("-") + std::to_string(++i);
-				}
-				m_player = player_model->instance(msgc->avatar);
-				Math::Vector3 position = { 128.0f, 0.0f, 10.0f }; // default position
-				position = avatar->getPosition();
-				m_scene->addChild(m_player);
-				m_player->setPosition(position);
-				m_player->setValue("avatar", avatar);
-
-				// add a network controller
-				ServerService* server_srv = (ServerService*)m_app->getService("server");
-				int id = server_srv->getUID();
-				std::unique_ptr<Rhea::NetworkComponent> net_com = std::make_unique<Rhea::NetworkComponent>(m_player, id, NET_ROLE_SERVER);
-				m_player->setNetworkComponent(std::move(net_com));
-
-				m_scene->addItem(m_player);
-
-				m_player->ready();
-				DLOG(LOG_DEBUG) << "player ready";
-
-				Rhea::Service* phy_srv = m_app->getService("physics");
-				// add to physics					
-				if (phy_srv) {
-					((Rhea::PhysicsService*)phy_srv)->initializeItem(m_player);
-				}
-
-				// inform connector
-				Hermes::MessageCreate msg;
-				Math::Vector3 pos = m_player->getTransform()->get_position()->get_worldspace();
-				msg.path = msgc->avatar;
-				msg.type_name = avatar->getValue("model");
-				msg.NUID = m_player->getNetworkComponent()->NUID();
-				msg.pos[0] = pos.x;
-				msg.pos[1] = pos.y;
-				msg.pos[2] = pos.z;
-				Math::Quaternion q = m_player->getTransform()->get_position()->get_rotation();
-				msg.transform[0] = q.w;
-				msg.transform[1] = q.x;
-				msg.transform[2] = q.y;
-				msg.transform[3] = q.z;
-				msg.is_player = true;
-				m_hermes->sendMessage((Hermes::Message*)&msg, nullptr);
-
-				// send all items with network component
-				std::vector<Rhea::Item*> items = m_scene->getItems();
-				for (auto item_it = items.begin(); item_it != items.end(); ++item_it) {
-					if (*item_it == m_player)
-						continue;
-					Rhea::NetworkComponent* net_com = (*item_it)->getNetworkComponent();
-					if (net_com) {
-						Hermes::MessageCreate item_msg;
-						Math::Vector3 pos = (*item_it)->getTransform()->get_position()->get_worldspace();
-						item_msg.path = (*item_it)->getPathName();
-						avatar = (Rhea::Avatar*)(Variant*)(*item_it)->getValue("avatar");						
-						if (avatar) {
-							item_msg.type_name = avatar->getValue("model");
-						}
-						else {
-							// no avatar -> TODO: check can there be normal items without avatar?
-							continue;
-						}
-						item_msg.NUID = (*item_it)->getNetworkComponent()->NUID();
-						item_msg.pos[0] = pos.x;
-						item_msg.pos[1] = pos.y;
-						item_msg.pos[2] = pos.z;
-						Math::Quaternion q = (*item_it)->getTransform()->get_position()->get_rotation();
-						item_msg.transform[0] = q.w;
-						item_msg.transform[1] = q.x;
-						item_msg.transform[2] = q.y;
-						item_msg.transform[3] = q.z;
-						item_msg.is_player = false;
-						m_hermes->sendMessage((Hermes::Message*)&item_msg, nullptr);
-					}
-				}
-				// inform all other connectors
-				msg.is_player = false;
-				server_srv->broadcast((Hermes::Message*)&msg, this);
-
-				// enter normal state
-				m_next_state = CONN_MESSAGE;
-				DoLoop(0);
-			}
-		}
-		else {
-			m_next_state = CONN_CLOSE;
-			DoLoop(err);
-		}
+	// fill the avatars in the avatarlist message
+	Hermes::MessageAvatarList msg_al;
+	m_user->Avatars([&msg_al](Rhea::Avatar* avatar)->bool {
+		std::string name = avatar->getPathName();
+		std::string model = avatar->getValue("model");
+		msg_al.addAvatar(name, model);
+		return true;
+		});
+	int ret = m_hermes->sendMessage(&msg_al, [&](int result) {
+		m_next_state = CONN_LOBBY;
+		CallDoLoop(result);
 		});
 	return ret;
 }
 
 int ClientConnection::DoAvatarCompleted(int result)
 {
+	if (result < 0)
+		return result;
+
+	// add avatar to scene
+	Hermes::MessageEnterWorld* msgc = (Hermes::MessageEnterWorld*)m_cur_msg.get();
+
+	// get the avatar with that name
+	Rhea::Avatar* avatar = nullptr;
+	if (m_user) {
+		avatar = m_user->getAvatar(msgc->avatar);
+	}
+	if (!avatar) {
+		LOG(LOG_ERROR) << "Avatar " << msgc->avatar << " not found";
+		// send error message
+		Hermes::MessageEnterFailed errmsg;
+		errmsg.reason = 1;
+		m_next_state = CONN_LOBBY;
+		return m_hermes->sendMessage((Hermes::Message*)&errmsg, [&](int err) {
+			CallDoLoop(err);
+			});
+	}
+
+	// instancing the player
+	Rhea::Item* player_model = (Rhea::Item*)m_app->getUnitTree()->find(avatar->getValue("model"));
+	if (!player_model) {
+		LOG(LOG_ERROR) << " could not open avatar model " << msgc->avatar;
+		// send error message
+		Hermes::MessageEnterFailed errmsg;
+		errmsg.reason = 2;
+		return m_hermes->sendMessage((Hermes::Message*)&errmsg, [&](int err) {
+			CallDoLoop(err);
+			});
+	}
+
+	LOG(LOG_INFO) << "Avatar " << msgc->avatar << " entered scene";
+
+	int i = 0;
+	std::string basename = msgc->avatar;
+	while (m_scene->find(msgc->avatar)) {
+		// make sure no items with the same name exist
+		msgc->avatar = basename + std::string("-") + std::to_string(++i);
+	}
+	m_player = player_model->instance(msgc->avatar);
+	Math::Vector3 position = { 128.0f, 0.0f, 10.0f }; // default position
+	position = avatar->getPosition();
+	m_scene->addChild(m_player);
+	m_player->setPosition(position);
+	m_player->setValue("avatar", avatar);
+
+	// add a network controller
+	ServerService* server_srv = (ServerService*)m_app->getService("server");
+	int id = server_srv->getUID();
+	std::unique_ptr<Rhea::NetworkComponent> net_com = std::make_unique<Rhea::NetworkComponent>(m_player, id, NET_ROLE_SERVER);
+	m_player->setNetworkComponent(std::move(net_com));
+
+	m_scene->addItem(m_player);
+
+	m_player->ready();
+	DLOG(LOG_DEBUG) << "player ready";
+
+	Rhea::Service* phy_srv = m_app->getService("physics");
+	// add to physics					
+	if (phy_srv) {
+		((Rhea::PhysicsService*)phy_srv)->initializeItem(m_player);
+	}
+
+	// inform connector
+	Hermes::MessageCreate msg;
+	Math::Vector3 pos = m_player->getTransform()->get_position()->get_worldspace();
+	msg.path = msgc->avatar;
+	msg.type_name = avatar->getValue("model");
+	msg.NUID = m_player->getNetworkComponent()->NUID();
+	msg.pos[0] = pos.x;
+	msg.pos[1] = pos.y;
+	msg.pos[2] = pos.z;
+	Math::Quaternion q = m_player->getTransform()->get_position()->get_rotation();
+	msg.transform[0] = q.w;
+	msg.transform[1] = q.x;
+	msg.transform[2] = q.y;
+	msg.transform[3] = q.z;
+	msg.is_player = true;
+	m_hermes->sendMessage((Hermes::Message*)&msg, nullptr);
+
+	// send all items with network component
+	std::vector<Rhea::Item*> items = m_scene->getItems();
+	for (auto item_it = items.begin(); item_it != items.end(); ++item_it) {
+		if (*item_it == m_player)
+			continue;
+		Rhea::NetworkComponent* net_com = (*item_it)->getNetworkComponent();
+		if (net_com) {
+			Hermes::MessageCreate item_msg;
+			Math::Vector3 pos = (*item_it)->getTransform()->get_position()->get_worldspace();
+			item_msg.path = (*item_it)->getPathName();
+			avatar = (Rhea::Avatar*)(Variant*)(*item_it)->getValue("avatar");
+			if (avatar) {
+				item_msg.type_name = avatar->getValue("model");
+			}
+			else {
+				// no avatar -> TODO: check can there be normal items without avatar?
+				continue;
+			}
+			item_msg.NUID = (*item_it)->getNetworkComponent()->NUID();
+			item_msg.pos[0] = pos.x;
+			item_msg.pos[1] = pos.y;
+			item_msg.pos[2] = pos.z;
+			Math::Quaternion q = (*item_it)->getTransform()->get_position()->get_rotation();
+			item_msg.transform[0] = q.w;
+			item_msg.transform[1] = q.x;
+			item_msg.transform[2] = q.y;
+			item_msg.transform[3] = q.z;
+			item_msg.is_player = false;
+			m_hermes->sendMessage((Hermes::Message*)&item_msg, nullptr);
+		}
+	}
+	// inform all other connectors
+	msg.is_player = false;
+	server_srv->broadcast((Hermes::Message*)&msg, this);
+
+	// enter normal state
+	m_next_state = CONN_MESSAGE;	
+		
 	return 0;
 }
 
@@ -350,6 +379,13 @@ int ClientConnection::DoCloseCompleted(int result)
 		return -1;
 	}
 	return result;
+}
+
+void ClientConnection::StartConnectedUser(User* user)
+{
+	m_user = user;
+	m_next_state = CONN_LOBBY;
+	DoLoop(0);
 }
 
 // helper for testing

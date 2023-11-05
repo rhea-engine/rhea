@@ -15,16 +15,33 @@
 
 namespace Rhea
 {
-	void WorldClient::setAuth(std::string avatar)
+	void WorldClient::setAuth(std::string world, std::string username)
 	{
-		m_avatar = avatar;
+		m_username = username;
+		m_world = world;
 	}
 
 	void WorldClient::start()
 	{
-		m_hermes->login("anonymous", [&](int err) {
-			if (err >= 0) {
+		if (m_world.empty() || m_username.empty()) {
+			LOG(LOG_ERROR) << "WorldClient: world name or user name is empty";
+			Event ev("login_failure", this);
+			sendEvent("login_failure", &ev);
+			return;
+		}
+		m_hermes->login(m_world, m_username, [&](int err) {
+			if (err != 0) {
+				// handle login failure
+				DLOG(LOG_DEBUG) << "login failed " << err;
+				Event ev("login_failure", this);
+				sendEvent("login_failure", &ev);
+			}
+			else {
 				DLOG(LOG_DEBUG) << "login succeeded";
+
+				// if this world uses avatars get the current list
+				Hermes::Message msg_get_avatar_list(HERMES_MSG_GET_AVATARLIST);
+				m_hermes->sendMessage(&msg_get_avatar_list, nullptr);
 
 				m_hermes->onMessage([&](std::unique_ptr<Hermes::Message> msg, int err) {
 					if (!err) {
@@ -143,13 +160,7 @@ namespace Rhea
 						sendEvent("connection_failure", &ev);
 					}
 					});
-			}
-			else {
-				// TODO handle login failure
-				DLOG(LOG_DEBUG) << "login failed " << err;
-				Event ev("login_failure", this);
-				sendEvent("login_failure", &ev);
-			}
+			}			
 			});
 	}
 	

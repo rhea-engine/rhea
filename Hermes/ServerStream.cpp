@@ -35,9 +35,17 @@ namespace Hermes
 		return ret;
 	}
 
+	void ServerStream::AuthSucess(CompletionHandler handler)
+	{
+		Hermes::Message msg_auth(HERMES_MSG_LOGIN_SUCCEEDED);
+		sendMessage(&msg_auth, [&](int result) {
+			handler(result);
+			});
+	}
+
 	void ServerStream::AuthFailure(CompletionHandler handler)
 	{
-		Hermes::Message msg_auth(HERMES_MSG_AUTH_FAILED);
+		Hermes::Message msg_auth(HERMES_MSG_LOGIN_FAILED);
 		sendMessage(&msg_auth, [&](int result) {
 			handler(result);
 			});
@@ -123,8 +131,8 @@ namespace Hermes
 			}
 		
 			// login message received
+			// on failure may destroy |this|
 			m_login_handler(msg_login->user_name, 0);
-			m_login_handler = nullptr;
 			return Network::IO_PENDING;
 
 		}

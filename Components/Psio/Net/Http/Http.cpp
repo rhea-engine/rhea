@@ -287,7 +287,7 @@ namespace Psio
 		m_state = HTTP_NONE;
 
 		// log the response
-		LOG(LOG_INFO) << m_request->headers.GetMethod() << " " << m_request->headers.GetUrl() << "\" " << m_response->getResponseCode() << " " << m_response->getContentLength();
+		LOG(LOG_INFO) << m_request->headers.GetMethod() << " \"" << m_request->headers.GetUrl() << "\" " << m_response->getResponseCode() << " " << m_response->getContentLength();
 
 		// Note: precondition is that request and response are handled entirely
 		m_response.reset();

@@ -193,6 +193,8 @@ namespace Psio
 			return Err::NO_SOCKET;
 		case WSAENOTCONN:
 			return Err::NOT_CONNECTED;
+		case WSAECONNABORTED:
+			return Err::ABORTED;
 		case WSAECONNRESET:
 			return Err::CONN_RESET;
 #else
@@ -204,6 +206,8 @@ namespace Psio
 			return Err::NO_SOCKET;
 		case ENOTCONN:
 			return Err::NOT_CONNECTED;
+		case ECONNABORTED:
+			return Err::ABORTED;
 		case ECONNRESET:
 			return Err::CONN_RESET;
 #endif

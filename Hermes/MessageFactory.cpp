@@ -11,6 +11,8 @@
 #include "Messages/MessageEnterFailed.h"
 #include "Messages/MessageAvatarList.h"
 #include "Messages/MessageLogin.h"
+#include "Messages/MessageLoginFailed.h"
+#include "Messages/MessageConnect.h"
 
 namespace Hermes
 {
@@ -48,15 +50,25 @@ namespace Hermes
 	
 	void MessageFactory::registerCoreMessages()
 	{
+		// connection messages
+		registerMessageType(HERMES_MSG_CONNECT, MessageConnect::create);
+
+		// auth messages
+		registerMessageType(HERMES_MSG_LOGIN, MessageLogin::create);
+		registerMessageType(HERMES_MSG_LOGIN_FAILED, MessageLoginFailed::create);
+
+		// lobby messages
+		registerMessageType(HERMES_MSG_ENTERWORLD, MessageEnterWorld::create);
+		registerMessageType(HERMES_MSG_ENTER_FAILED, MessageEnterFailed::create);
+		registerMessageType(HERMES_MSG_AVATARLIST, MessageAvatarList::create);
+
+		// world messages
 		registerMessageType(HERMES_MSG_CREATE, MessageCreate::create);
 		registerMessageType(HERMES_MSG_DESTROY, MessageDestroy::create);
-		registerMessageType(HERMES_MSG_LOGIN, MessageLogin::create);
+		
 		registerMessageType(HERMES_MSG_POSITION, MessagePosition::create);
 		registerMessageType(HERMES_MSG_MOVE, MessageMove::create);
 		registerMessageType(HERMES_MSG_TURN, MessageTurn::create);
 		registerMessageType(HERMES_MSG_JUMP, MessageJump::create);
-		registerMessageType(HERMES_MSG_ENTERWORLD, MessageEnterWorld::create);
-		registerMessageType(HERMES_MSG_ENTER_FAILED, MessageEnterFailed::create);
-		registerMessageType(HERMES_MSG_AVATARLIST, MessageAvatarList::create);
 	}
 }

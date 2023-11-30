@@ -2,6 +2,7 @@
 #include "User.h"
 #include "ProviderScene.h"
 #include "ProviderMemory.h"
+#include <Psio/Log.h>
 
 void AccountService::setup(Rhea::Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 {
@@ -26,6 +27,18 @@ void AccountService::setup(Rhea::Application* app, std::unordered_map<std::strin
 			m_provider->Setup(app, m_values);
 		}
 	}
+	if (m_values.find("methods") != m_values.end()) {
+		Variant methods = m_values["methods"];
+		for (int i = 0; i < methods.size(); i++) {
+			m_methods.push_back((std::string)methods[i]);
+		}
+	}
+	if (m_values.find("anonymous") != m_values.end()) {
+		m_anonymous = m_values["anonymous"];
+		if (m_anonymous) {
+			m_methods.push_back("anonymous");
+		}
+	}
 }
 
 void AccountService::setProvider(std::unique_ptr<Provider> provider)
@@ -33,10 +46,10 @@ void AccountService::setProvider(std::unique_ptr<Provider> provider)
 	m_provider = std::move(provider);
 }
 
-User* AccountService::getUser(std::string name)
+User* AccountService::getUser(std::string method, std::string username, std::vector<std::string> secrets)
 {
 	if (m_provider)
-		return m_provider->getUser(name);
+		return m_provider->getUser(username);
 	else
 		return nullptr;
 }

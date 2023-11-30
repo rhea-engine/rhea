@@ -11,7 +11,7 @@ namespace Hermes
 		if (lastopcode != message->base.opcode) {
 			DLOG(LOG_DEBUG) << "Sending msg " << message->base.opcode << ". Size=" << m_outbuf->Remaining();
 			if (repeat)
-				DLOG(LOG_DEBUG) << "repated " << repeat << " times";
+				DLOG(LOG_DEBUG) << "repeated " << repeat << " times";
 			lastopcode = message->base.opcode;
 			repeat = 0;
 		}

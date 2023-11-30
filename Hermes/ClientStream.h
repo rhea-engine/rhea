@@ -14,18 +14,21 @@ namespace Hermes
 			Stream(std::move(sock), msg_factory)
 		{}
 
-		int connect(CompletionHandler handler);
+		int Connect(std::string world_name, CompletionHandler handler);
 
 		typedef std::function<void(int)> LoginHandler;
-		void login(std::string world_name, std::string user_name, LoginHandler handler);
+		void Login(std::string method, std::string username, std::vector<std::string> secrets, LoginHandler handler);
 
 		int onMessage(MessageHandler handler);
+
+		void onError(CompletionHandler handler);
 
 	protected:
 		// state Handling
 		enum HERMES_STATE {
 			HERMES_NONE,
-			HERMES_HANDSHAKE,
+			HERMES_CONNECT_PENDING,
+			HERMES_CONNECT_COMPLETED,
 			HERMES_LOGIN_PENDING,
 			HERMES_LOGIN_COMPLETED,
 			HERMES_SEND_SETUP,
@@ -38,6 +41,8 @@ namespace Hermes
 		HERMES_STATE m_next_state;
 		int DoLoop(int result);
 		void CallDoLoop(int result);
+		int DoConnectPending(int result);
+		int DoConnectCompleted(int result);
 		int DoLoginPending(int result);
 		int DoLoginCompleted(int result);
 		int DoReadMessage(int result);
@@ -45,6 +50,7 @@ namespace Hermes
 
 		CompletionHandler m_oncompletion_handler;
 		LoginHandler m_login_handler;
+		CompletionHandler m_err_handler;
 	};
 }
 

@@ -100,12 +100,7 @@ int ClientConnection::DoLogin(int result)
 	if (result < 0)
 		return result;
 
-	int ret = m_hermes->onLogin([&](std::string username, int err) {
-		if (err < 0) {
-			CallDoLoop(err);
-			// may destroy |this|
-			return;
-		}
+	int ret = m_hermes->onLogin([&](std::string method, std::string username, std::vector<std::string> secrets) {
 
 		// login message received - try to log the user in
 		m_world = (World*)m_app->getUnitTree()->findByType("//meworla/world");
@@ -113,14 +108,15 @@ int ClientConnection::DoLogin(int result)
 			m_username = username;
 			AccountService* acc_srv = doCast<AccountService>(m_app->getService("accounts"));
 			if (acc_srv)
-				m_user = acc_srv->getUser(m_username);
+				m_user = acc_srv->getUser(method, m_username, secrets);
 			if (!m_user) {
 				LOG(LOG_ERROR) << "User " << m_username << " is not registered";
 				// Send auth failure
-				m_next_state = CONN_CLOSE;
+				m_next_state = CONN_LOGIN;
 				m_hermes->AuthFailure([&](int result) {
-					CallDoLoop(result);
-					});
+					m_hermes->LoginRetry();
+					},
+					acc_srv->getMethods());
 				return;
 			}
 
@@ -136,6 +132,13 @@ int ClientConnection::DoLogin(int result)
 		else {
 			LOG(LOG_ERROR) << "Configuration error: World not found";
 		}
+		},
+		[&](int err) {
+			if (err < 0) {
+				CallDoLoop(err);
+				// may destroy |this|
+				return;
+			}
 		});
 	return ret;
 }

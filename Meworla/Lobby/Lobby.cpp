@@ -1,6 +1,7 @@
 #include "Lobby.h"
 #include "ClientConnect.h"
 #include "Avatars.h"
+#include <CredentialsService.h>
 
 namespace Meworla
 {
@@ -15,5 +16,6 @@ namespace Meworla
 		SimpleParser::Type::registerType<Lobby>("//meworla/lobby");
 		SimpleParser::Type::registerType<ClientConnect>("//meworla/lobby/connect");
 		SimpleParser::Type::registerType<Avatars>("//meworla/lobby/avatars");
+		SimpleParser::Type::registerType<CredentialsService>("//meworla/lobby/credentials");
 	}
 }

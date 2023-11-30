@@ -2,25 +2,48 @@
 #include <Psio/Log.h>
 #include <Opcode.h>
 #include <Messages/MessageLogin.h>
+#include <Messages/MessageConnect.h>
 
 namespace Hermes
 {
 
-	int ClientStream::connect(CompletionHandler handler)
+	int ClientStream::Connect(std::string world_name, CompletionHandler handler)
 	{
 		m_inbuf = std::make_unique<Psio::IOBuffer>(64 * 1024);
 		m_outbuf = std::make_unique<Psio::IOBuffer>(64 * 1024);
 
-		return 0;
+		m_oncompletion_handler = handler;
+
+		Hermes::MessageConnect msg;
+		msg.world_name = world_name;
+		m_next_state = HERMES_CONNECT_PENDING;
+
+		int ret = sendMessage((Message*)&msg, [&](int err) {
+			LOG(LOG_DEBUG) << "ClientStream::Connect:sendMessage " << err;
+			CallDoLoop(err);
+			});
+		if (ret >= msg.getSize()) {
+			// synchronous sending - enter loop
+			//ret = DoLoop(ret);
+			DLOG(LOG_DEBUG) << "sync sendMessage";
+		}
+
+		return ret;
 	}
 
-	void ClientStream::login(std::string world_name, std::string user_name, LoginHandler handler)
+	void ClientStream::Login(std::string method, std::string username, std::vector<std::string> secrets, LoginHandler handler)
 	{
 		m_login_handler = handler;
 
+		if (!handler) {
+			LOG(LOG_ERROR) << "ClientStream::Login: No login handler provided";
+			return;
+		}
+
 		Hermes::MessageLogin msg;
-		msg.world_name = world_name;
-		msg.user_name = user_name;
+		msg.auth_method = method;
+		msg.user_name = username;
+		msg.secrets = secrets;
 		m_next_state = HERMES_LOGIN_PENDING;
 
 		int ret = sendMessage((Message*)&msg, [&](int err) {
@@ -42,6 +65,11 @@ namespace Hermes
 
 		return ret;
 	}
+
+	void ClientStream::onError(CompletionHandler handler)
+	{
+		m_err_handler = handler;
+	}
 	
 	int ClientStream::DoLoop(int result)
 	{
@@ -52,6 +80,12 @@ namespace Hermes
 
 			switch (m_state)
 			{
+			case HERMES_CONNECT_PENDING:
+				result = DoConnectPending(result);
+				break;
+			case HERMES_CONNECT_COMPLETED:
+				result = DoConnectCompleted(result);
+				break;
 			case HERMES_LOGIN_PENDING:
 				result = DoLoginPending(result);
 				break;
@@ -73,8 +107,50 @@ namespace Hermes
 	void ClientStream::CallDoLoop(int result)
 	{
 		int res = DoLoop(result);
+		if (res != Psio::Network::Err::IO_PENDING)
+			DLOG(LOG_DEBUG) << "ClientStream::CallDoLoop: " << res;
 		//	if ((res != Network::Err::IO_PENDING) && (m_message_handler != NULL))
 		//		m_message_handler(res, result);
+	}
+
+	int ClientStream::DoConnectPending(int result)
+	{
+		if (result < 0)
+			return result;
+
+		m_next_state = HERMES_STATE::HERMES_CONNECT_COMPLETED;
+
+		return m_sock->Read(m_inbuf.get(), [&](int result) -> int {
+			CallDoLoop(result);
+			return -1;
+			});
+	}
+
+	int ClientStream::DoConnectCompleted(int result)
+	{
+		if (result < 0)
+			return result;
+
+		// check if message is received completely
+		std::unique_ptr<Message> msg;
+		msg.reset(m_msg_factory->getMessage(m_inbuf.get()));
+		if (!msg) {
+			m_next_state = HERMES_CONNECT_PENDING;
+			return result;
+		}
+
+		// message received - what is it
+		switch (msg->base.opcode) {
+		case HERMES_ERR_GENERAL:
+		case HERMES_ERR_PROTOCOL_VERSION:
+			m_oncompletion_handler(msg->base.opcode);
+			break;
+		case HERMES_MSG_CONNECTED:
+			m_oncompletion_handler(0);
+			break;
+		}
+		// exit DoLoop - wait for next instruction
+		return -1;
 	}
 
 	int ClientStream::DoLoginPending(int result)
@@ -107,11 +183,18 @@ namespace Hermes
 		switch (msg->base.opcode) {
 		case HERMES_ERR_GENERAL:
 		case HERMES_PROTOCOL_VERSION:
+			if (m_err_handler)
+				m_err_handler(msg->base.opcode);
+			else
+				m_login_handler(msg->base.opcode);
+			break;
 		case HERMES_MSG_LOGIN_FAILED:
-			m_login_handler(msg->base.opcode);
+			if (m_login_handler)
+				m_login_handler(msg->base.opcode);
 			break;
 		case HERMES_MSG_LOGIN_SUCCEEDED:
-			m_login_handler(0);
+			if (m_login_handler)
+				m_login_handler(0);
 			break;
 		}
 		// exit DoLoop - wait for next instruction

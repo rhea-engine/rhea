@@ -14,18 +14,21 @@ namespace Hermes
 			Stream(std::move(sock), msg_factory)
 		{}
 		typedef std::function<void(std::unique_ptr<Message>, int)> MessageHandler;
-		typedef std::function<void(std::string username, int)> LoginHandler;
+		typedef std::function<void(std::string method, std::string username, std::vector<std::string> secrets)> LoginHandler;
 
-		virtual int onLogin(LoginHandler handler);
+		virtual int onLogin(LoginHandler handler, CompletionHandler err_handler);
 		virtual int onMessage(MessageHandler handler);
+		int LoginRetry();
 
 		void AuthSucess(CompletionHandler handler);
-		void AuthFailure(CompletionHandler handler);
+		void AuthFailure(CompletionHandler handler, std::vector<std::string> methods);
 
 	protected:
 		// state Handling
 		enum HERMES_STATE {
 			HERMES_NONE,
+			HERMES_CONNECT_PENDING,
+			HERMES_CONNECT_COMPLETED,
 			HERMES_LOGIN_PENDING,
 			HERMES_LOGIN_COMPLETED,
 			HERMES_SEND_SETUP,
@@ -38,12 +41,15 @@ namespace Hermes
 		HERMES_STATE m_next_state;
 		int DoLoop(int result);
 		void CallDoLoop(int result);
+		int DoConnectPending(int result);
+		int DoConnectCompleted(int result);
 		int DoLoginPending(int result);
 		int DoReadLoginCompleted(int result);
 		int DoReadMessage(int result);
 		int DoReadMessageCompleted(int result);
 
 		LoginHandler m_login_handler;
+		CompletionHandler m_err_handler;
 	};
 }
 

@@ -3,6 +3,7 @@
 
 #include <Hermes/Message.h>
 #include <Hermes/Opcode.h>
+#include <vector>
 
 namespace Hermes
 {
@@ -10,7 +11,6 @@ namespace Hermes
 	{
 	public:
 		MessageLogin() :
-			protocol_version(HERMES_PROTOCOL_VERSION),
 			Message(HERMES_MSG_LOGIN)
 		{}
 
@@ -19,9 +19,9 @@ namespace Hermes
 
 		static Message* create(uint16_t opcode, uint16_t size, Psio::IOBuffer* buf);
 
-		uint32_t protocol_version;
-		std::string world_name;
+		std::string auth_method;
 		std::string user_name;
+		std::vector<std::string> secrets;
 	};
 }
 

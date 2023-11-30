@@ -5,9 +5,10 @@
 #include <Rhea/Fabrics/Network/ClientService.h>
 #include <Rhea/Fabrics/GUI/Widget.h>
 
-
 namespace Meworla
 {
+	class CredentialsService;
+
 	class ClientConnect : public Rhea::Unit
 	{
 		MECLASS(ClientConnect, Unit)
@@ -18,6 +19,7 @@ namespace Meworla
 			m_net(nullptr),
 			m_info_w(nullptr),
 			m_error_w(nullptr),
+			m_cred_srv(nullptr),
 			Rhea::Unit(path_name, type_name)
 		{}
 
@@ -34,6 +36,7 @@ namespace Meworla
 		void doConnect();
 		void doError();
 		void ready();
+		void doLogin();
 
 	protected:
 		int m_connection_state;
@@ -41,6 +44,8 @@ namespace Meworla
 		Rhea::ClientService* m_net;
 		Rhea::Widget* m_info_w;
 		Rhea::Widget* m_error_w;
+		std::unique_ptr<Rhea::WorldClient> m_client;
+		CredentialsService* m_cred_srv;
 	};
 }
 

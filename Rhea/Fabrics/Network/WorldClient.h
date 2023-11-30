@@ -28,7 +28,7 @@ namespace Rhea
 		}
 
 		// login credentials
-		void setAuth(std::string world, std::string username);
+		void setAuth(std::string method, std::string username, std::vector<std::string> secrets);
 
 		// startup
 		void start();
@@ -48,8 +48,9 @@ namespace Rhea
 		std::unique_ptr<Hermes::ClientStream> m_hermes;
 		Rhea::Scene* m_scene;
 		std::string m_avatar;
-		std::string m_world;
+		std::string m_method;
 		std::string m_username;
+		std::vector<std::string> m_secrets;
 		std::map<int,Rhea::Item*> m_net_items;
 		bool m_player_set;
 	};

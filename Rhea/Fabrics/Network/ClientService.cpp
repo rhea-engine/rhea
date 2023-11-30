@@ -13,11 +13,10 @@ namespace Rhea
 	{
 		Rhea::PlatformService* psio = static_cast<Rhea::PlatformService*>(m_app->getService("platform"));
 		m_network = psio->getEngine()->getNet();
-		m_worldname = getValue("world", "");			
-		m_username = getValue("username", "");
+		m_worldname = getValue("world", "");
 	}
 
-	void ClientService::connect(std::string host, ConnectionHandler handler)
+	void ClientService::Connect(std::string host, ConnectionHandler handler)
 	{
 		Psio::StreamSocket* m_sock = m_network->CreateTCPSocket();
 		Psio::SocketAddress addr;
@@ -26,24 +25,53 @@ namespace Rhea
 		// fill message factory
 		m_msg_factory = std::make_unique<Hermes::MessageFactory>();
 		m_msg_factory->registerCoreMessages();
+		m_handler = handler;
 
-		m_sock->Connect(addr, false, [&,m_sock,handler](int err) {
+		int ret = m_sock->Connect(addr, false, [&,m_sock](int err) {
 			if (!err) {
-				std::unique_ptr<Psio::StreamSocket> sock;
-				sock.reset(m_sock);
-				std::unique_ptr<Hermes::ClientStream> hermes = std::make_unique<Hermes::ClientStream>(std::move(sock), m_msg_factory.get());
-				hermes->connect(nullptr);
-				WorldClient* client = new WorldClient();
-				client->setAuth(m_worldname, m_username);
-				client->setStream(std::move(hermes));
-				client->setup(m_app);
-				handler(client, 0);
+				OnTCPConnect(m_sock);				
 			}
 			else {
 				LOG(LOG_ERROR) << "Connection failed: " << err;
-				handler(nullptr, err);
+				m_handler(nullptr, err);
 				delete m_sock;
 			}
 			});
+		if (ret < -1) 
+		{
+			LOG(LOG_ERROR) << "Connection failed: " << ret;
+			handler(nullptr, ret);
+			delete m_sock;
+		}
+	}
+
+	void ClientService::OnTCPConnect(Psio::StreamSocket* sock)
+	{
+		std::unique_ptr<Psio::StreamSocket> new_sock;
+		new_sock.reset(sock);
+		m_hermes = std::make_unique<Hermes::ClientStream>(std::move(new_sock), m_msg_factory.get());
+		int ret = m_hermes->Connect(m_worldname, [&](int err) {
+			if (!err) {
+				OnConnect();
+			}
+			else {
+				LOG(LOG_ERROR) << "Connection failed(2): " << err;
+				m_hermes.reset();
+				m_handler(nullptr, err);
+			}
+			});
+		if (ret < -1) {
+			LOG(LOG_ERROR) << "Connection failed: " << ret;
+			m_hermes.reset();
+			m_handler(nullptr, ret);
+		}
+	}
+
+	void ClientService::OnConnect()
+	{
+		WorldClient* client = new WorldClient();
+		client->setStream(std::move(m_hermes));
+		client->setup(m_app);
+		m_handler(client, 0);
 	}
 }

@@ -3,6 +3,7 @@
 #include <Rhea/UnitTree.h>
 #include <Rhea/Fabrics/GUI/Widget.h>
 #include <Rhea/Fabrics/Network/ClientService.h>
+#include <CredentialsService.h>
 
 namespace Meworla
 {
@@ -45,9 +46,10 @@ namespace Meworla
 		if (m_info_w)
 			m_info_w->show();
 
-		m_net->connect(m_values["server"], [&](Rhea::WorldClient* client, int err) {
+		m_net->Connect(m_values["server"], [&](Rhea::WorldClient* client, int err) {
 			if (!err)
 			{
+				m_client.reset(client);
 				m_net->addChild(client);
 				m_connection_state = 2;
 				m_values["info"] = "Sending login information";
@@ -78,6 +80,10 @@ namespace Meworla
 						m_values["info"] = std::string("Configuration error: \nonAvatarSelectScene '" + (std::string)getValue("onAvatarSelectScene") + "' not found in ClientConnect");
 				}
 				client->registerEventHandler("login_failure", this, [&](Rhea::Event* ev, Rhea::Unit* t)->bool {
+
+					// do we have more methods?
+
+
 					m_connection_state = 0;
 					m_error = 2;
 					doError();
@@ -90,7 +96,10 @@ namespace Meworla
 					return false;
 					});
 
-				client->start();
+				
+
+				doLogin();
+
 			}
 			else {
 				m_connection_state = 0;
@@ -98,6 +107,36 @@ namespace Meworla
 				doError();
 			}
 			});
+	}
+
+	void ClientConnect::doLogin()
+	{
+		if (!m_cred_srv) {
+			m_cred_srv = doCast<CredentialsService>(findByType("//meworla/lobby/credentials"));
+			if (!m_cred_srv) {
+				m_cred_srv = new CredentialsService("credentials", "//meworla/lobby/credentials");
+				m_cred_srv->setup(m_app);
+				addChild(m_cred_srv);
+			}
+		}
+
+		// get credentials
+		std::string world = m_app->getUnitTree()->getChild("engine")->getValue("origin");
+		std::vector<std::string> methods;
+		methods.push_back("password");
+		methods.push_back("trust");
+		methods.push_back("anonymous");
+		CredentialsService::Credential* credential = m_cred_srv->getCredential(world, methods);
+		if (credential) {
+			m_client->setAuth(credential->method, credential->username, credential->secrets);
+			delete credential;
+			m_client->start();
+		}
+		else {
+			// try to use anonymous
+			m_client->setAuth("trust", "anonymous", std::vector<std::string>());
+			m_client->start();
+		}
 	}
 
 	void ClientConnect::doError()

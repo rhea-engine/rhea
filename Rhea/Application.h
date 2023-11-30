@@ -68,6 +68,9 @@ namespace Rhea
 		// log some info
 		virtual void log(std::string message);
 
+		// get fs
+		Orion::Orion* getFS() { return m_fs; }
+
 	protected:
 		Orion::Orion* m_fs = 0;
 		std::string m_appname = "";

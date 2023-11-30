@@ -15,21 +15,22 @@
 
 namespace Rhea
 {
-	void WorldClient::setAuth(std::string world, std::string username)
+	void WorldClient::setAuth(std::string method, std::string username, std::vector<std::string> secrets)
 	{
+		m_method = method;
 		m_username = username;
-		m_world = world;
+		m_secrets = secrets;
 	}
 
 	void WorldClient::start()
 	{
-		if (m_world.empty() || m_username.empty()) {
-			LOG(LOG_ERROR) << "WorldClient: world name or user name is empty";
+		if (m_username.empty()) {
+			LOG(LOG_ERROR) << "WorldClient: user name is empty";
 			Event ev("login_failure", this);
 			sendEvent("login_failure", &ev);
 			return;
 		}
-		m_hermes->login(m_world, m_username, [&](int err) {
+		m_hermes->Login(m_method, m_username, m_secrets, [&](int err) {
 			if (err != 0) {
 				// handle login failure
 				DLOG(LOG_DEBUG) << "login failed " << err;

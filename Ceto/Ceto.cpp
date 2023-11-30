@@ -180,6 +180,9 @@ void Ceto::setScene(bool mark_preferrences)
 		Rhea::Scene* scene = doCast<Rhea::Scene>(scene_unit);
 		if (scene && err == ReqError::OK) {
 
+			// set origin info
+			m_unit_tree->getChild("engine")->setValue("origin", m_home_scene);
+
 			// hide GUI background
 			SimpleParser::CssParser::PropertyMap properties;
 			properties["background-image"] = { "none" };

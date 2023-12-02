@@ -14,6 +14,9 @@ namespace Rhea
 		Rhea::PlatformService* psio = static_cast<Rhea::PlatformService*>(m_app->getService("platform"));
 		m_network = psio->getEngine()->getNet();
 		m_worldname = getValue("world", "");
+		m_app->registerService("hermesclient", this);
+		m_msg_factory = std::make_unique<Hermes::MessageFactory>();
+		m_msg_factory->registerCoreMessages();
 	}
 
 	void ClientService::Connect(std::string host, ConnectionHandler handler)
@@ -23,8 +26,6 @@ namespace Rhea
 		addr.SetHost("127.0.0.1", 4242);
 
 		// fill message factory
-		m_msg_factory = std::make_unique<Hermes::MessageFactory>();
-		m_msg_factory->registerCoreMessages();
 		m_handler = handler;
 
 		int ret = m_sock->Connect(addr, false, [&,m_sock](int err) {
@@ -49,24 +50,25 @@ namespace Rhea
 	{
 		std::unique_ptr<Psio::StreamSocket> new_sock;
 		new_sock.reset(sock);
-		m_hermes = std::make_unique<Hermes::ClientStream>(std::move(new_sock), m_msg_factory.get());
-		int ret = m_hermes->Connect(m_worldname, [&](int err) {
+		Hermes::ClientStream* hermes = new Hermes::ClientStream(std::move(new_sock), m_msg_factory.get());
+		int ret = hermes->Connect(m_worldname, [&, hermes](int err) {
 			if (!err) {
-				OnConnect();
+				m_handler(hermes, 0);
 			}
 			else {
 				LOG(LOG_ERROR) << "Connection failed(2): " << err;
-				m_hermes.reset();
+				delete hermes;
 				m_handler(nullptr, err);
 			}
 			});
 		if (ret < -1) {
 			LOG(LOG_ERROR) << "Connection failed: " << ret;
-			m_hermes.reset();
+			delete hermes;
 			m_handler(nullptr, ret);
 		}
 	}
 
+	/*
 	void ClientService::OnConnect()
 	{
 		WorldClient* client = new WorldClient();
@@ -74,4 +76,5 @@ namespace Rhea
 		client->setup(m_app);
 		m_handler(client, 0);
 	}
+	*/
 }

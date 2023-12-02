@@ -12,6 +12,7 @@
 #include <Rhea/Fabrics/Core/Avatar.h>
 #include <Hermes/Messages/MessageEnterWorld.h>
 #include <Application.h>
+#include "ClientService.h"
 
 namespace Rhea
 {
@@ -20,6 +21,32 @@ namespace Rhea
 		m_method = method;
 		m_username = username;
 		m_secrets = secrets;
+	}
+
+	void WorldClient::Open(std::string worldname)
+	{
+		Rhea::ClientService* service = doCast<ClientService>(m_app->getService("hermesclient"));
+		if (!service) {
+			LOG(LOG_ERROR) << "Configuration error: no hermesclient service defined";
+			m_values["error"] = 1;
+			Event ev("error", this);
+			sendEvent("error", &ev);
+			return;
+		}
+
+		service->Connect(worldname, [&, service](Hermes::ClientStream* stream, int err) {
+			if (!err) {
+				service->addChild(this);
+				m_hermes.reset(stream);
+				Event ev("connected", this);
+				sendEvent("connected", &ev);
+			}
+			else {
+				m_values["error"] = err;
+				Event ev("error", this);
+				sendEvent("error", &ev);
+			}
+			});
 	}
 
 	void WorldClient::start()

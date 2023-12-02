@@ -22,6 +22,8 @@ namespace Rhea
 			WorldClient("worldclient", "//meworla/worldclient")
 		{}
 
+		typedef std::function<void(int err)> CompletionHandler;
+
 		// set hermes
 		void setStream(std::unique_ptr<Hermes::ClientStream> hermes) {
 			m_hermes = std::move(hermes);
@@ -31,6 +33,7 @@ namespace Rhea
 		void setAuth(std::string method, std::string username, std::vector<std::string> secrets);
 
 		// startup
+		void Open(std::string worldname);
 		void start();
 		void setScene(Rhea::Scene* scene) { m_scene = scene; }
 

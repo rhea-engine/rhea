@@ -49,78 +49,65 @@ namespace Meworla
 	}
 
 	void ClientConnect::doConnect()
-	{
-		if (!m_net) {
-			m_values["info"] = "No network defined!";
-			if (m_info_w)
-				m_info_w->show();
-			return;
-		}
-
+	{		
 		m_connection_state = 1;
 		m_values["info"] = "Connecting";
 
 		if (m_info_w)
 			m_info_w->show();
 
-		m_net->Connect(m_values["server"], [&](Rhea::WorldClient* client, int err) {
-			if (!err)
-			{
-				m_client.reset(client);
-				m_net->addChild(client);
-				m_connection_state = 2;
-				m_values["info"] = "Sending login information";
-				DLOG(LOG_DEBUG) << "connected to server";				
-				Rhea::Scene* avatar_select_scene = doCast<Rhea::Scene>(m_app->getUnitTree()->find(getValue("onAvatarSelectScene"), m_attributes["basepath"], false));
-				if (avatar_select_scene) {
-					client->registerEventHandler("avatarlist", this, [&, avatar_select_scene](Rhea::Event* ev, Rhea::Unit* t)->bool {
-						if ((int)t->getValue("nofAvatars", 0) > 0) {
-							// goto scene avatar_select_scene
-							m_values["info"] = "select avatar";
-							if (m_info_w)
-								m_info_w->hide();
-							if (doCast<Rhea::Scene>(m_parent))
-								static_cast<Rhea::Scene*>(m_parent)->hide();
-							avatar_select_scene->show();
-						}
-						else {
-							// goto new avatar scene
-							m_values["info"] = "no avatar defined";
-						}
-						return false;
-						});
+		m_client = std::make_unique<Rhea::WorldClient>();
+		m_client->setup(m_app);
+
+		m_client->registerEventHandler("error", this, [&](Rhea::Event* ev, Rhea::Unit* t)->bool {
+			m_error = (int)t->getValue("error", 0);
+			doError();
+			return false;
+			});
+
+		m_client->registerEventHandler("connected", this, [&](Rhea::Event* ev, Rhea::Unit* t)->bool {
+			m_connection_state = 2;
+			m_values["info"] = "Sending login information";
+			DLOG(LOG_DEBUG) << "connected to server";
+			doLogin(); // calls start
+			return false;
+			});
+
+		m_client->registerEventHandler("login_failure", this, [&](Rhea::Event* ev, Rhea::Unit* t)->bool {
+			// do we have more methods?
+			// if we get here we have no stored credentials that match -> offer all methods for new login
+			OfferAuthMethods();
+			return false;
+			});
+
+		Rhea::Scene* avatar_select_scene = doCast<Rhea::Scene>(m_app->getUnitTree()->find(getValue("onAvatarSelectScene"), m_attributes["basepath"], false));
+		if (avatar_select_scene) {
+			m_client->registerEventHandler("avatarlist", this, [&, avatar_select_scene](Rhea::Event* ev, Rhea::Unit* t)->bool {
+				if ((int)t->getValue("nofAvatars", 0) > 0) {
+					// goto scene avatar_select_scene
+					m_values["info"] = "select avatar";
+					if (m_info_w)
+						m_info_w->hide();
+					if (doCast<Rhea::Scene>(m_parent))
+						static_cast<Rhea::Scene*>(m_parent)->hide();
+					avatar_select_scene->show();
 				}
 				else {
-					if (m_values.find("onAvatarSelectScene") == m_values.end())
-						m_values["info"] = "Configuration error: \nNo onAvatarSelectScene defined in ClientConnect";
-					else
-						m_values["info"] = std::string("Configuration error: \nonAvatarSelectScene '" + (std::string)getValue("onAvatarSelectScene") + "' not found in ClientConnect");
+					// goto new avatar scene
+					m_values["info"] = "no avatar defined";
 				}
-				client->registerEventHandler("login_failure", this, [&](Rhea::Event* ev, Rhea::Unit* t)->bool {
+				return false;
+				});
+		}
+		else {
+			if (m_values.find("onAvatarSelectScene") == m_values.end())
+				m_values["info"] = "Configuration error: \nNo onAvatarSelectScene defined in ClientConnect";
+			else
+				m_values["info"] = std::string("Configuration error: \nonAvatarSelectScene '" + (std::string)getValue("onAvatarSelectScene") + "' not found in ClientConnect");
+		}
 
-					// do we have more methods?
-					// if we get here we have no stored credentials that match -> offer all methods for new login
-					OfferAuthMethods();
-					return false;
-					});
-				client->registerEventHandler("connection_failure", this, [&](Rhea::Event* ev, Rhea::Unit* t)->bool {
-					m_connection_state = 0;
-					m_error = 1;
-					doError();
-					return false;
-					});
-
-				
-
-				doLogin();
-
-			}
-			else {
-				m_connection_state = 0;
-				m_error = 1;
-				doError();
-			}
-			});
+		// start the client
+		m_client->Open(m_values["server"]);
 	}
 
 	void ClientConnect::doLogin()
@@ -185,7 +172,7 @@ namespace Meworla
 	void ClientConnect::ready()
 	{
 		// preapre my references
-		m_net = isCast<Rhea::ClientService>(m_app->getUnitTree()->find(m_values["netManager"], m_attributes["basepath"], false));
+		m_net = doCast<Rhea::ClientService>(m_app->getService("hermesclient"));
 		m_info_w = doCast<Rhea::Widget>(m_app->getUnitTree()->find(m_values["infowidget"], m_attributes["basepath"], false));
 		m_error_w = doCast<Rhea::Widget>(m_app->getUnitTree()->find(m_values["errorwidget"], m_attributes["basepath"], false));
 		m_trust_w = doCast<Rhea::Widget>(m_app->getUnitTree()->find(m_values["logintrustwidget"], m_attributes["basepath"], false));

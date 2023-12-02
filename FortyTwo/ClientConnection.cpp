@@ -14,6 +14,7 @@
 #include <Hermes/Messages/MessageEnterFailed.h>
 #include <Hermes/Messages/MessageLogin.h>
 #include "Accounts/AccountService.h"
+#include "Authorization/AuthorizationService.h"
 
 int ClientConnection::Start(Psio::Network::CompletionHandler err_handler)
 {
@@ -106,17 +107,41 @@ int ClientConnection::DoLogin(int result)
 		m_world = (World*)m_app->getUnitTree()->findByType("//meworla/world");
 		if (m_world) {
 			m_username = username;
-			AccountService* acc_srv = doCast<AccountService>(m_app->getService("accounts"));
-			if (acc_srv)
-				m_user = acc_srv->getUser(method, m_username, secrets);
-			if (!m_user) {
+			AuthorizationService* auth_srv = doCast<AuthorizationService>(m_app->getService("authorization"));
+			if (!auth_srv) {
+				LOG(LOG_ERROR) << "Configuration error: Authorization service not found";
+				// Send auth failure
+				m_next_state = CONN_LOGIN;
+				m_hermes->AuthFailure([&](int result) {
+					m_hermes->LoginRetry();
+					},
+					std::vector<std::string>());
+				return;
+			}
+			std::string user_id = auth_srv->getUserId(method, m_username, secrets);
+			if (user_id=="") {
 				LOG(LOG_ERROR) << "User " << m_username << " is not registered";
 				// Send auth failure
 				m_next_state = CONN_LOGIN;
 				m_hermes->AuthFailure([&](int result) {
 					m_hermes->LoginRetry();
 					},
-					acc_srv->getMethods());
+					auth_srv->getMethods());
+				return;
+			}
+			AccountService* acc_srv = doCast<AccountService>(m_app->getService("accounts"));
+			if (acc_srv) {
+				LOG(LOG_ERROR) << "Configuration error: Account service not found";
+				m_user = acc_srv->getUser(user_id);
+			}
+			if (!m_user) {
+				LOG(LOG_ERROR) << "User with id " << user_id << " is not registered";
+				// Send auth failure
+				m_next_state = CONN_LOGIN;
+				m_hermes->AuthFailure([&](int result) {
+					m_hermes->LoginRetry();
+					},
+					auth_srv->getMethods());
 				return;
 			}
 

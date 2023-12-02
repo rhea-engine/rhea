@@ -26,19 +26,7 @@ void AccountService::setup(Rhea::Application* app, std::unordered_map<std::strin
 		if (m_provider) {
 			m_provider->Setup(app, m_values);
 		}
-	}
-	if (m_values.find("methods") != m_values.end()) {
-		Variant methods = m_values["methods"];
-		for (int i = 0; i < methods.size(); i++) {
-			m_methods.push_back((std::string)methods[i]);
-		}
-	}
-	if (m_values.find("anonymous") != m_values.end()) {
-		m_anonymous = m_values["anonymous"];
-		if (m_anonymous) {
-			m_methods.push_back("anonymous");
-		}
-	}
+	}	
 }
 
 void AccountService::setProvider(std::unique_ptr<Provider> provider)
@@ -46,10 +34,10 @@ void AccountService::setProvider(std::unique_ptr<Provider> provider)
 	m_provider = std::move(provider);
 }
 
-User* AccountService::getUser(std::string method, std::string username, std::vector<std::string> secrets)
+User* AccountService::getUser(std::string user_id)
 {
 	if (m_provider)
-		return m_provider->getUser(username);
+		return m_provider->getUser(user_id);
 	else
 		return nullptr;
 }
@@ -62,7 +50,7 @@ std::vector<Rhea::Unit::Export> AccountService::getReferences()
 	return refs;
 }
 
-void AccountService::RegisterAccountFabrics(Rhea::Application* app)
+void AccountService::RegisterFabrics(Rhea::Application* app)
 {
 	// register types
 	SimpleParser::Type::registerType<User>("//meworla/user");

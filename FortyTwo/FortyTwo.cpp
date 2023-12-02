@@ -6,6 +6,7 @@
 #include <Rhea/UnitTree.h>
 #include <Rhea/Fabrics/Core/Avatar.h>
 #include <FortyTwo/Accounts/AccountService.h>
+#include "Authorization/AuthorizationService.h"
 
 void FortyTwo::init()
 {
@@ -16,7 +17,8 @@ void FortyTwo::init()
 	SimpleParser::Type::registerTypeName<Rhea::Unit>("//meworla/spectator");
 
 	// user and avatar types
-	AccountService::RegisterAccountFabrics(this);
+	AccountService::RegisterFabrics(this);
+	AuthorizationService::RegisterFabrics(this);
 	SimpleParser::Type::registerType<Rhea::Avatar>("//meworla/avatar");
 
 	// add world server item

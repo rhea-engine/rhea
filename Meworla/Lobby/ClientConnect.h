@@ -32,6 +32,11 @@ namespace Meworla
 		// retry connection
 		bool onRetry(Rhea::Event* ev, Rhea::Unit* unit);
 
+		// login
+		bool onLoginTrust(Rhea::Event* ev, Rhea::Unit* unit);
+
+		bool onSetUsername(Rhea::Event* ev, Rhea::Unit* unit);
+
 
 		void doConnect();
 		void doError();
@@ -39,13 +44,17 @@ namespace Meworla
 		void doLogin();
 
 	protected:
+		void OfferAuthMethods();
+
 		int m_connection_state;
 		int m_error;
 		Rhea::ClientService* m_net;
 		Rhea::Widget* m_info_w;
 		Rhea::Widget* m_error_w;
+		Rhea::Widget* m_trust_w;
 		std::unique_ptr<Rhea::WorldClient> m_client;
 		CredentialsService* m_cred_srv;
+		std::string m_username;
 	};
 }
 

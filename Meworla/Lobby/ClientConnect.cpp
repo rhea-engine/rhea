@@ -31,6 +31,23 @@ namespace Meworla
 		return false;
 	}
 
+	bool ClientConnect::onLoginTrust(Rhea::Event* ev, Rhea::Unit* unit)
+	{
+		if (m_username != "") {
+			m_trust_w->hide();
+			m_info_w->show();
+			m_client->setAuth("trust", m_username, std::vector<std::string>());
+			m_client->start();
+			return false;
+		}
+	}
+
+	bool ClientConnect::onSetUsername(Rhea::Event* ev, Rhea::Unit* unit)
+	{
+		m_username = ev->getTarget()->getValue("text", "");
+		return false;
+	}
+
 	void ClientConnect::doConnect()
 	{
 		if (!m_net) {
@@ -82,11 +99,8 @@ namespace Meworla
 				client->registerEventHandler("login_failure", this, [&](Rhea::Event* ev, Rhea::Unit* t)->bool {
 
 					// do we have more methods?
-
-
-					m_connection_state = 0;
-					m_error = 2;
-					doError();
+					// if we get here we have no stored credentials that match -> offer all methods for new login
+					OfferAuthMethods();
 					return false;
 					});
 				client->registerEventHandler("connection_failure", this, [&](Rhea::Event* ev, Rhea::Unit* t)->bool {
@@ -139,6 +153,17 @@ namespace Meworla
 		}
 	}
 
+	void ClientConnect::OfferAuthMethods()
+	{
+		m_info_w->hide();
+		if (!m_trust_w) {
+			LOG(LOG_ERROR) << "no trust widget defined";
+			return;
+		}
+		m_username = "";
+		m_trust_w->show();
+	}
+
 	void ClientConnect::doError()
 	{
 		if (m_info_w)
@@ -163,11 +188,14 @@ namespace Meworla
 		m_net = isCast<Rhea::ClientService>(m_app->getUnitTree()->find(m_values["netManager"], m_attributes["basepath"], false));
 		m_info_w = doCast<Rhea::Widget>(m_app->getUnitTree()->find(m_values["infowidget"], m_attributes["basepath"], false));
 		m_error_w = doCast<Rhea::Widget>(m_app->getUnitTree()->find(m_values["errorwidget"], m_attributes["basepath"], false));
+		m_trust_w = doCast<Rhea::Widget>(m_app->getUnitTree()->find(m_values["logintrustwidget"], m_attributes["basepath"], false));
 
 		// register event handlers
 
 		registerEventHandler("scene_show", this, std::bind(&ClientConnect::onDisplay, this, std::placeholders::_1, std::placeholders::_2));
 		registerEventHandler("abort", this, std::bind(&ClientConnect::onAbort, this, std::placeholders::_1, std::placeholders::_2));
 		registerEventHandler("retry", this, std::bind(&ClientConnect::onRetry, this, std::placeholders::_1, std::placeholders::_2));
+		registerEventHandler("login", this, std::bind(&ClientConnect::onLoginTrust, this, std::placeholders::_1, std::placeholders::_2));
+		registerEventHandler("setUsername", this, std::bind(&ClientConnect::onSetUsername, this, std::placeholders::_1, std::placeholders::_2));
 	}
 }

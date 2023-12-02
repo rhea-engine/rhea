@@ -27,6 +27,7 @@ namespace Rhea
 			m_alignment = std::make_unique<Alignment>(Alignment::Horizontal::CENTER, Alignment::Vertical::CENTER);
 
 		registerEventHandler("mouse_btn_down", this, std::bind(&Button::onMouseClick, this, std::placeholders::_1, std::placeholders::_2));
+		registerEventHandler("mouse_btn_up", this, std::bind(&Button::onMouseClicked, this, std::placeholders::_1, std::placeholders::_2));
 	}
 
 	void Button::setText(std::string text)
@@ -46,6 +47,25 @@ namespace Rhea
 		if (m_values["onClick"] != Variant()) {
 			sendBoundEvent(m_values["onClick"], ev);
 		}
+		return false;
+	}
+
+	bool Button::onMouseClicked(Event* ev, Unit* unit)
+	{
+		// consume the mouse event
+		ev->stopPropagation();
+
+		// send clicked event
+		Event my_ev = Event("clicked", this);
+		
+		if (m_values["action"] != Variant()) {
+			bubbleEvent(m_values["action"], &my_ev);
+		}
+		if (m_values["onClicked"] != Variant()) {
+			sendBoundEvent(m_values["onClick"], ev);
+		}
+
+
 		return false;
 	}
 

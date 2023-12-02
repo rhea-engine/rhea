@@ -243,6 +243,16 @@ namespace Rhea
 			}
 			break;
 
+		case Psio::InputEventId::MOUSE_BTN_RELEASED:
+			DLOG(LOG_DEBUG) << "Mouse clicked";
+
+			// call currently targeted widget
+			// if none - ignore
+			if (m_target) {
+				e->setTarget(m_target);
+				m_target->bubbleEvent("mouse_btn_up", e);
+			}
+
 		case Psio::InputEventId::KEY_PRESSED:
 			// text input
 			if (m_target) {

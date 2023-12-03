@@ -2,6 +2,7 @@
 #define FORTYTWO_ACCOUNTS_PROVIDER_H
 
 #include <Rhea/Application.h>
+#include <FortyTwo/Authorization/AuthInfo.h>
 
 class User;
 
@@ -14,11 +15,12 @@ public:
 
 	virtual std::vector<Rhea::Unit::Export> getReferences() = 0;
 
-	// get the user with the given user name
-	virtual User* getUser(std::string user_name) = 0;
+	// get the account with the given user name
+	// if user account not exists create one
+	virtual void GetAccount(AuthInfo &auth_info, std::function<void(User*, int)> handler) = 0;
 
 	// add a user to the storage
-	virtual void addUser(User* user) = 0;
+	virtual void CreateAccount(std::string user_id, std::string name, std::function<void(User*, int)> handler) = 0;
 };
 
 #endif // !FORTYTWO_ACCOUNTS_PROVIDER_H

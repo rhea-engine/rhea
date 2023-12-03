@@ -118,41 +118,41 @@ int ClientConnection::DoLogin(int result)
 					std::vector<std::string>());
 				return;
 			}
-			std::string user_id = auth_srv->getUserId(method, m_username, secrets);
-			if (user_id=="") {
-				LOG(LOG_ERROR) << "User " << m_username << " is not registered";
-				// Send auth failure
-				m_next_state = CONN_LOGIN;
-				m_hermes->AuthFailure([&](int result) {
-					m_hermes->LoginRetry();
-					},
-					auth_srv->getMethods());
-				return;
-			}
-			AccountService* acc_srv = doCast<AccountService>(m_app->getService("accounts"));
-			if (acc_srv) {
-				LOG(LOG_ERROR) << "Configuration error: Account service not found";
-				m_user = acc_srv->getUser(user_id);
-			}
-			if (!m_user) {
-				LOG(LOG_ERROR) << "User with id " << user_id << " is not registered";
-				// Send auth failure
-				m_next_state = CONN_LOGIN;
-				m_hermes->AuthFailure([&](int result) {
-					m_hermes->LoginRetry();
-					},
-					auth_srv->getMethods());
-				return;
-			}
+			auth_srv->getUserId(method, m_username, secrets, [&](AuthInfo auth_info) {
 
-			// login succesful - send auth succcess
-			m_next_state = CONN_LOBBY;
-			m_hermes->AuthSucess([&](int result) {
-				CallDoLoop(result);
+				if (auth_info.user_id == "") {
+					LOG(LOG_ERROR) << "User " << m_username << " is not registered";
+					// Send auth failure
+					m_next_state = CONN_LOGIN;
+					m_hermes->AuthFailure([&](int result) {
+						m_hermes->LoginRetry();
+						},
+						auth_srv->getMethods());
+					return;
+				}
+				AccountService* acc_srv = doCast<AccountService>(m_app->getService("accounts"));
+				if (acc_srv) {
+					LOG(LOG_ERROR) << "Configuration error: Account service not found";
+					m_user = acc_srv->getUser(auth_info);
+				}
+				if (!m_user) {
+					LOG(LOG_ERROR) << "User with id " << auth_info.user_id << " is not registered and could not be created.";
+					// Send auth failure
+					m_next_state = CONN_LOGIN;
+					m_hermes->AuthFailure([&](int result) {
+						m_hermes->LoginRetry();
+						},
+						auth_srv->getMethods());
+					return;
+				}
+
+				// login succesful - send auth succcess
+				m_next_state = CONN_LOBBY;
+				m_hermes->AuthSucess([&](int result) {
+					CallDoLoop(result);
+					});
+				return;
 				});
-			return;
-
-			
 		}
 		else {
 			LOG(LOG_ERROR) << "Configuration error: World not found";

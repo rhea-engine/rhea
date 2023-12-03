@@ -31,11 +31,23 @@ public:
 	// act on all avatars
 	virtual void Avatars(std::function<bool(Rhea::Avatar*)> handler);
 
+	// get the display name
+	std::string getDisplayName() const { return m_display_name; }
+
+	// set the display name
+	void setDisplayName(std::string name) { m_display_name = name; }
+
 	// get the last login time
-	time_t getLastLogin() const { return m_last_login; }
+	time_t getLastLoginTime() const { return m_last_login; }
+
+	// set the last login time
+	void setLastLoginTime(time_t time) { m_last_login = time; }
 
 	// get the time the login was created
 	time_t getCreationTime() const { return m_creation_time; }
+
+	// set the creation time
+	void setCreationTime(time_t time) { m_creation_time = time; }
 
 	// get the global name tag of the user
 	std::string getGlobalTag() const { return m_global_tag; }
@@ -46,6 +58,7 @@ public:
 protected:
 
 	// info about the user
+	std::string m_display_name;
 	time_t m_last_login;
 	time_t m_creation_time;
 	std::string m_global_tag;

@@ -24,20 +24,23 @@ std::vector<Rhea::Unit::Export> ProviderScene::getReferences()
 	return refs;
 }
 
-User* ProviderScene::getUser(std::string user_name)
+void ProviderScene::GetAccount(AuthInfo& auth_info, std::function<void(User*, int)> handler)
 {
 	if (!m_user_list && !m_avatarlist_scene.empty()) {
 		// find the user list
 		m_user_list = m_app->getUnitTree()->find(m_avatarlist_scene);
 	}
 	if (m_user_list) {
-		User* user_info = doCast<User>(m_user_list->getChild(user_name));
-		return user_info;
+		User* user_info = doCast<User>(m_user_list->getChild(auth_info.user_id));
+		if (user_info) {
+			handler(user_info, 0);
+			return;
+		}
 	}
-	return nullptr;
+	handler(nullptr, -1);
 }
 
-void ProviderScene::addUser(User* user)
+void ProviderScene::CreateAccount(std::string user_id, std::string name, std::function<void(User*, int)> handler)
 {
 	// add user to user list
 	// this does not add the user to the storage yet
@@ -45,6 +48,17 @@ void ProviderScene::addUser(User* user)
 		// find the user list
 		m_user_list = m_app->getUnitTree()->find(m_avatarlist_scene);
 	}
-	if (m_user_list)
+	if (m_user_list) {
+		User* user = new User(user_id);
+		user->setDisplayName(name);
+		user->setCreationTime(time(0));
+		user->setLastLoginTime(time(0));
 		m_user_list->addChild(user);
+
+		// TODO save the current state
+
+		handler(user, 0);
+		return;
+	}
+	handler(nullptr, -1);
 }

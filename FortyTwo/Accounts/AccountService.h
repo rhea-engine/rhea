@@ -4,6 +4,7 @@
 #include <memory>
 #include <Rhea/Service.h>
 #include "Provider.h"
+#include <FortyTwo/Authorization/AuthInfo.h>
 
 class User;
 
@@ -12,7 +13,6 @@ class AccountService : public Rhea::Service
 	MECLASS(AccountService, Rhea::Service)
 public:
 	AccountService(std::string name, std::string type) :
-		
 		Rhea::Service(name, type)
 	{}
 
@@ -23,7 +23,10 @@ public:
 	// get provider to act on it
 	Provider* getProvider() { return m_provider.get(); }
 
-	User* getUser(std::string user_id);
+	void GetAccount(AuthInfo& auth_info, std::function<void(User*, int)> handler);
+
+	// create a new account
+	void CreateAccount(AuthInfo& auth_info, std::function<void(User*, int)> handler);
 
 	// setup
 
@@ -33,7 +36,7 @@ public:
 
 protected:
 	std::unique_ptr<Provider> m_provider;
-	std::string m_provider_type;	
+	std::string m_provider_type;
 };
 
 #endif // !FORTYTWO_ACCOUNTSERVICE_H

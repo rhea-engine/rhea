@@ -16,10 +16,10 @@ public:
 	
 	std::vector<Rhea::Unit::Export> getReferences();
 
-	User* getUser(std::string user_name);
+	virtual void GetAccount(AuthInfo& auth_info, std::function<void(User*, int)> handler) override;
 
-	void addUser(User* user);
-
+	virtual void CreateAccount(std::string user_id, std::string name, std::function<void(User*, int)> handler) override; 
+	
 protected:
 	Rhea::Application* m_app;
 	std::string m_avatarlist_scene;

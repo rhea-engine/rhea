@@ -14,9 +14,10 @@ public:
 		return std::vector<Rhea::Unit::Export>();
 	}
 
-	User* getUser(std::string user_name);
+	virtual void GetAccount(AuthInfo& auth_info, std::function<void(User*, int)> handler) override;
 
-	void addUser(User* user);
+	virtual void CreateAccount(std::string user_id, std::string name, std::function<void(User*, int)> handler) override;
+
 
 protected:
 	std::unordered_map<std::string, User*> m_users;

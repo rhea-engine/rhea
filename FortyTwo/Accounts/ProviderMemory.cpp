@@ -1,15 +1,21 @@
 #include "ProviderMemory.h"
 #include "User.h"
 
-User* ProviderMemory::getUser(std::string user_name)
+void ProviderMemory::GetAccount(AuthInfo& auth_info, std::function<void(User*, int)> handler)
 {
-	if (m_users.find(user_name) != m_users.end())
-		return m_users[user_name];
+	if (m_users.find(auth_info.user_id) != m_users.end())
+		handler(m_users[auth_info.user_id], 0);
 	else
-		return nullptr;
+		handler(nullptr, -1);
 }
 
-void ProviderMemory::addUser(User* user)
+void ProviderMemory::CreateAccount(std::string user_id, std::string name, std::function<void(User*, int)> handler)
 {
-	m_users[user->getPathName()] = user;
+	User* user = new User(user_id);
+	user->setDisplayName(name);
+	user->setCreationTime(time(0));
+	user->setLastLoginTime(time(0));
+	m_users[user_id] = user;
+
+	handler(user, 0);
 }

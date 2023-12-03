@@ -6,10 +6,9 @@
 class AuthorizationTrust : public Authorization
 {
 public:
-
 	std::string getCode();
 
-	std::string getUserID(std::string username, std::vector<std::string> secrets);
+	void getUserID(std::string username, std::vector<std::string> secrets, LookupHandler handler);
 };
 
 #endif // !FORTYTWO_AUHORIZATIONTRUST_H

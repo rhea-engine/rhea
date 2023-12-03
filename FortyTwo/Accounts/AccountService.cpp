@@ -26,7 +26,7 @@ void AccountService::setup(Rhea::Application* app, std::unordered_map<std::strin
 		if (m_provider) {
 			m_provider->Setup(app, m_values);
 		}
-	}	
+	}
 }
 
 void AccountService::setProvider(std::unique_ptr<Provider> provider)
@@ -34,12 +34,23 @@ void AccountService::setProvider(std::unique_ptr<Provider> provider)
 	m_provider = std::move(provider);
 }
 
-User* AccountService::getUser(std::string user_id)
+void AccountService::GetAccount(AuthInfo& auth_info, std::function<void(User*, int)> handler)
 {
 	if (m_provider)
-		return m_provider->getUser(user_id);
-	else
-		return nullptr;
+		m_provider->GetAccount(auth_info, [&, handler, auth_info](User* user, int err) {
+		if (!err) {
+			handler(user, 0);
+		}
+		else {
+			// try to create the account
+			m_provider->CreateAccount(auth_info.user_id, auth_info.name, handler);
+		}
+			});
+}
+
+void AccountService::CreateAccount(AuthInfo& auth_info, std::function<void(User*, int)> handler)
+{
+	m_provider->CreateAccount(auth_info.user_id, auth_info.name, handler);
 }
 
 std::vector<Rhea::Unit::Export> AccountService::getReferences()

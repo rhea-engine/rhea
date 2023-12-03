@@ -30,7 +30,7 @@ protected:
         static bool initialized = false;
 
         if (!initialized) {
-            AccountService::RegisterAccountFabrics(app.get());
+            AccountService::RegisterFabrics(app.get());
             initialized = true;
         }
     }
@@ -104,7 +104,10 @@ TEST_F(ProviderSceneTest, GetUser)
 
     EXPECT_TRUE(refs[0].value == "//avatarlist");
 
-    User* user = provider.getUser("someone");
+    AuthInfo auth_info;
+	auth_info.user_id = "someone";
+
+    User* user = provider.getUser(auth_info);
     EXPECT_EQ(user, user_someone);
     delete user_someone;
 }
@@ -129,7 +132,10 @@ TEST_F(ProviderSceneTest, GetUserNoUser)
 
     EXPECT_TRUE(refs[0].value == "//avatarlist");
 
-    User* user = provider.getUser("nouser");
+	AuthInfo auth_info;
+	auth_info.user_id = "nouser";
+
+    User* user = provider.getUser(auth_info);
     EXPECT_EQ(user, nullptr);
     delete user_someone;
 }

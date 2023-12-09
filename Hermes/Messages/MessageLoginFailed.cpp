@@ -9,7 +9,7 @@ namespace Hermes
 			for (size_t i = 0; i < methods.size(); i++)
 			{
 				base.size += sizeof(uint16_t);
-				base.size += methods[i].length();
+				base.size += (uint16_t)methods[i].length();
 			}
 		}
 		if (buf->FreeBufSize() < base.size) {

@@ -56,12 +56,14 @@ namespace Hermes
 		// auth messages
 		registerMessageType(HERMES_MSG_LOGIN, MessageLogin::create);
 		registerMessageType(HERMES_MSG_LOGIN_FAILED, MessageLoginFailed::create);
+		registerMessageType(HERMES_MSG_CREATE_USER, MessageLogin::create);
+		registerMessageType(HERMES_MSG_CREATE_USER_FAILED, MessageLoginFailed::create);
 
 		// lobby messages
 		registerMessageType(HERMES_MSG_ENTERWORLD, MessageEnterWorld::create);
 		registerMessageType(HERMES_MSG_ENTER_FAILED, MessageEnterFailed::create);
 		registerMessageType(HERMES_MSG_AVATARLIST, MessageAvatarList::create);
-
+	
 		// world messages
 		registerMessageType(HERMES_MSG_CREATE, MessageCreate::create);
 		registerMessageType(HERMES_MSG_DESTROY, MessageDestroy::create);

@@ -205,6 +205,14 @@ namespace Hermes
 		std::unique_ptr<Message> msg;
 		msg.reset(m_msg_factory->getMessage(m_inbuf.get()));
 		if (msg) {
+			// if create is allowed check for that message
+			if (m_create_handler && msg->getOpcode() == HERMES_MSG_CREATE_USER)
+			{
+				MessageLogin* msg_create = static_cast<MessageLogin*>(msg.get());
+				m_create_handler(msg_create->auth_method, msg_create->user_name, msg_create->secrets);
+				return Network::IO_PENDING;
+			}
+			// if not a login message this is a protocol error
 			if (msg->getOpcode() != HERMES_MSG_LOGIN) {
 				// wrong message									
 				Message msg(HERMES_ERR_GENERAL);

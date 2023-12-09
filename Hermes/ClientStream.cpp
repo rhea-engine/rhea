@@ -232,7 +232,7 @@ namespace Hermes
 			m_message_handler(std::move(msg), 0);
 			if (m_inbuf->Remaining()) {
 				m_next_state = HERMES_STATE::HERMES_READMESSAGE_COMPLETED;
-				return m_inbuf->Remaining();
+				return (int)m_inbuf->Remaining();
 			}
 			else {
 				m_next_state = HERMES_STATE::HERMES_READMESSAGE;

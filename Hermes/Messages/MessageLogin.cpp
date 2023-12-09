@@ -9,7 +9,7 @@ namespace Hermes
 			for (size_t i = 0; i < secrets.size(); i++)
 			{
 				base.size += sizeof(uint16_t);
-				base.size += secrets[i].length();
+				base.size += (uint16_t)secrets[i].length();
 			}
 		}
 		if (buf->FreeBufSize() < base.size) {
@@ -44,7 +44,7 @@ namespace Hermes
 	Message* MessageLogin::create(uint16_t opcode, uint16_t size, Psio::IOBuffer* buf)
 	{
 		MessageLogin* msg;
-		msg = new MessageLogin();
+		msg = new MessageLogin(opcode);
 
 		msg->base.size = size;
 		msg->unserialize(buf);

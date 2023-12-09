@@ -4,7 +4,7 @@ namespace Hermes {
 	void MessageEnterWorld::serialize(Psio::IOBuffer* buf)
 	{
 
-		base.size = sizeof(BaseMessage) + sizeof(uint32_t) * 1 + avatar.length();
+		base.size = sizeof(BaseMessage) + sizeof(uint32_t) * 1 + (uint16_t)avatar.length();
 		if (buf->FreeBufSize() < base.size) {
 			buf->Grow(base.size);
 		}

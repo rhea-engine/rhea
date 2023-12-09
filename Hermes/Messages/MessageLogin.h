@@ -11,7 +11,10 @@ namespace Hermes
 	{
 	public:
 		MessageLogin() :
-			Message(HERMES_MSG_LOGIN)
+			MessageLogin(HERMES_MSG_LOGIN)
+		{}
+		MessageLogin(uint16_t opcode) :
+			Message(opcode)
 		{}
 
 		void serialize(Psio::IOBuffer* buf);

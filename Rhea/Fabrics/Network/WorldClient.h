@@ -36,6 +36,10 @@ namespace Rhea
 		void Open(std::string worldname);
 		void start();
 		void setScene(Rhea::Scene* scene) { m_scene = scene; }
+		void Register(std::string method, std::string username, std::string name, std::string ext_id, std::vector<std::string> secrets);
+
+		// handle messages
+		void onLogin();
 
 		// stop the connection
 		void stop();

@@ -85,7 +85,6 @@ int ClientConnection::DoLoop(int result)
 
 	} while (result != Psio::Network::IO_PENDING && m_state != CONN_NONE);
 
-
 	return result;
 }
 
@@ -101,62 +100,59 @@ int ClientConnection::DoLogin(int result)
 	if (result < 0)
 		return result;
 
-	int ret = m_hermes->onLogin([&](std::string method, std::string username, std::vector<std::string> secrets) {
-
-		// login message received - try to log the user in
-		m_world = (World*)m_app->getUnitTree()->findByType("//meworla/world");
-		if (m_world) {
-			m_username = username;
-			AuthorizationService* auth_srv = doCast<AuthorizationService>(m_app->getService("authorization"));
-			if (!auth_srv) {
-				LOG(LOG_ERROR) << "Configuration error: Authorization service not found";
+	m_hermes->onCreateUser([&](std::string method, std::string username, std::string name, std::string ext_id, std::vector<std::string> secrets) {
+		AuthorizationService* auth_srv = doCast<AuthorizationService>(m_app->getService("authorization"));
+		if (!auth_srv) {
+			LOG(LOG_ERROR) << "Configuration error: Authorization service not found";
+			// Send auth failure
+			m_next_state = CONN_LOGIN;
+			m_hermes->AuthFailure([&](int result) {
+				m_hermes->LoginRetry();
+				},
+				std::vector<std::string>());
+			return;
+		}
+		UserInfo user_info;
+		user_info.username = username;
+		user_info.user_id = "";
+		if (name != "")
+			user_info.name = name;
+		else
+			user_info.name = username;
+		user_info.ext_id = ext_id;
+		auth_srv->CreateUser(method, user_info, secrets, [&, user_info, secrets](std::string user_id, int err) {
+			if (!err) {
+				// success
+				
+				// create the account for the user
+				AccountService* acc_srv = doCast<AccountService>(m_app->getService("accounts"));
+				if (!acc_srv) {
+					LOG(LOG_ERROR) << "Configuration error: Account service not found";
+					// Send auth failure
+					m_next_state = CONN_LOGIN;
+					m_hermes->AuthFailure([&](int result) {
+						m_hermes->LoginRetry();
+						},
+						std::vector<std::string>());
+					return;
+				}
+				
+				// log the user in
+				Login(method, user_info.username, secrets);
+			}
+			else {
 				// Send auth failure
 				m_next_state = CONN_LOGIN;
 				m_hermes->AuthFailure([&](int result) {
 					m_hermes->LoginRetry();
 					},
 					std::vector<std::string>());
-				return;
 			}
-			auth_srv->getUserId(method, m_username, secrets, [&](AuthInfo auth_info) {
+			});
+		});
 
-				if (auth_info.user_id == "") {
-					LOG(LOG_ERROR) << "User " << m_username << " is not registered";
-					// Send auth failure
-					m_next_state = CONN_LOGIN;
-					m_hermes->AuthFailure([&](int result) {
-						m_hermes->LoginRetry();
-						},
-						auth_srv->getMethods());
-					return;
-				}
-				AccountService* acc_srv = doCast<AccountService>(m_app->getService("accounts"));
-				if (acc_srv) {
-					LOG(LOG_ERROR) << "Configuration error: Account service not found";
-					m_user = acc_srv->getUser(auth_info);
-				}
-				if (!m_user) {
-					LOG(LOG_ERROR) << "User with id " << auth_info.user_id << " is not registered and could not be created.";
-					// Send auth failure
-					m_next_state = CONN_LOGIN;
-					m_hermes->AuthFailure([&](int result) {
-						m_hermes->LoginRetry();
-						},
-						auth_srv->getMethods());
-					return;
-				}
-
-				// login succesful - send auth succcess
-				m_next_state = CONN_LOBBY;
-				m_hermes->AuthSucess([&](int result) {
-					CallDoLoop(result);
-					});
-				return;
-				});
-		}
-		else {
-			LOG(LOG_ERROR) << "Configuration error: World not found";
-		}
+	int ret = m_hermes->onLogin([&](std::string method, std::string username, std::vector<std::string> secrets) {
+		Login(method, username, secrets);
 		},
 		[&](int err) {
 			if (err < 0) {
@@ -166,6 +162,69 @@ int ClientConnection::DoLogin(int result)
 			}
 		});
 	return ret;
+}
+
+void ClientConnection::Login(std::string method, std::string username, std::vector<std::string> secrets) {
+	
+	// login message received - try to log the user in
+	m_world = (World*)m_app->getUnitTree()->findByType("//meworla/world");
+	if (m_world) {
+		m_username = username;
+		AuthorizationService* auth_srv = doCast<AuthorizationService>(m_app->getService("authorization"));
+		if (!auth_srv) {
+			LOG(LOG_ERROR) << "Configuration error: Authorization service not found";
+			// Send auth failure
+			m_next_state = CONN_LOGIN;
+			m_hermes->AuthFailure([&](int result) {
+				m_hermes->LoginRetry();
+				},
+				std::vector<std::string>());
+			return;
+		}
+		auth_srv->getUserId(method, m_username, secrets, [&](AuthInfo auth_info) {
+
+			if (auth_info.user_id == "") {
+				LOG(LOG_ERROR) << "User " << m_username << " is not registered";
+				// Send auth failure
+				m_next_state = CONN_LOGIN;
+				m_hermes->AuthFailure([&](int result) {
+					m_hermes->LoginRetry();
+					},
+					auth_srv->getMethods());
+				return;
+			}
+			AccountService* acc_srv = doCast<AccountService>(m_app->getService("accounts"));
+			if (!acc_srv) {
+				LOG(LOG_ERROR) << "Configuration error: Account service not found";
+				m_user = nullptr;
+			}
+			else {
+				// get the user
+				acc_srv->GetAccount(auth_info, [&](User* user, int err) {
+					if (!err && user) {
+						m_user = user;
+						// login succesful - send auth succcess
+						m_next_state = CONN_LOBBY;
+						m_hermes->AuthSuccess([&](int result) {
+							CallDoLoop(result);
+							});
+					}
+					else {
+						LOG(LOG_ERROR) << "User with id " << auth_info.user_id << " is not registered and could not be created.";
+						// Send auth failure
+						m_next_state = CONN_LOGIN;
+						m_hermes->AuthFailure([&](int result) {
+							m_hermes->LoginRetry();
+							},
+							auth_srv->getMethods());
+					}
+					});
+			}
+			});
+	}
+	else {
+		LOG(LOG_ERROR) << "Configuration error: World not found";
+	}
 }
 
 int ClientConnection::DoLoginCompleted(int result)

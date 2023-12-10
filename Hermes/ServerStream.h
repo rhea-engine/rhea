@@ -14,14 +14,15 @@ namespace Hermes
 			Stream(std::move(sock), msg_factory)
 		{}
 		typedef std::function<void(std::unique_ptr<Message>, int)> MessageHandler;
+		typedef std::function<void(std::string method, std::string username, std::string name, std::string ext_id, std::vector<std::string> secrets)> CreateHandler;
 		typedef std::function<void(std::string method, std::string username, std::vector<std::string> secrets)> LoginHandler;
 
 		virtual int onLogin(LoginHandler handler, CompletionHandler err_handler);
-		virtual void onCreateUser(LoginHandler handler) { m_create_handler = handler; }
+		virtual void onCreateUser(CreateHandler handler) { m_create_handler = handler; }
 		virtual int onMessage(MessageHandler handler);
 		int LoginRetry();
 
-		void AuthSucess(CompletionHandler handler);
+		void AuthSuccess(CompletionHandler handler);
 		void AuthFailure(CompletionHandler handler, std::vector<std::string> methods);
 
 	protected:
@@ -50,7 +51,7 @@ namespace Hermes
 		int DoReadMessageCompleted(int result);
 
 		LoginHandler m_login_handler;
-		LoginHandler m_create_handler;
+		CreateHandler m_create_handler;
 		CompletionHandler m_err_handler;
 	};
 }

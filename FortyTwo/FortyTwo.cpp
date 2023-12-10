@@ -79,18 +79,12 @@ void FortyTwo::setup()
 			AccountService* account_service = world_scene->findByType<AccountService>();
 			if (!account_service) {
 				account_service = (AccountService*)SimpleParser::Type::create("AccountService", "//meworla/accountservice");
-				m_services["account"] = account_service;
+				m_services["accounts"] = account_service;
 				std::unordered_map<std::string, std::string> attributes;
 				std::unordered_map<std::string, Variant> values;
 				values["provider"] = "memory";
 				account_service->setup(this, attributes, values);
-				// add anonymous user
-				Provider* provider = account_service->getProvider();
-				if (provider) {
-					User* user = (User*)SimpleParser::Type::create("anonymous", "//meworla/user");
-					provider->addUser(user);
-				}
-				LOG(LOG_INFO) << "No account service defined. Use memory provider with anonymous user.";
+				LOG(LOG_INFO) << "No account service defined. Using memory provider.";
 			}
 			else {
 				m_services["accounts"] = account_service;

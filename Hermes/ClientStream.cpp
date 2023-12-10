@@ -3,6 +3,7 @@
 #include <Opcode.h>
 #include <Messages/MessageLogin.h>
 #include <Messages/MessageConnect.h>
+#include <Messages/MessageCreateUser.h>
 
 namespace Hermes
 {
@@ -43,6 +44,35 @@ namespace Hermes
 		Hermes::MessageLogin msg;
 		msg.auth_method = method;
 		msg.user_name = username;
+		msg.secrets = secrets;
+		m_next_state = HERMES_LOGIN_PENDING;
+
+		int ret = sendMessage((Message*)&msg, [&](int err) {
+			CallDoLoop(err);
+			});
+		if (ret >= msg.getSize()) {
+			// synchronous sending - enter loop
+			DoLoop(ret);
+		}
+	}
+
+	void ClientStream::Register(std::string method, std::string username, std::string name, std::string ext_id, std::vector<std::string> secrets, LoginHandler handler)
+	{
+		m_login_handler = handler;
+
+		if (!handler) {
+			LOG(LOG_ERROR) << "ClientStream::Login: No login handler provided";
+			return;
+		}
+
+		Hermes::MessageCreateUser msg(HERMES_MSG_CREATE_USER);
+		msg.auth_method = method;
+		msg.user_name = username;
+		if (name != "")
+			msg.name = name;
+		else
+			msg.name = username;
+		msg.ext_id = ext_id;
 		msg.secrets = secrets;
 		m_next_state = HERMES_LOGIN_PENDING;
 
@@ -139,6 +169,8 @@ namespace Hermes
 			return result;
 		}
 
+		LOG(LOG_DEBUG) << "Message received: " << msg->base.opcode << " size=" << msg->base.size;
+
 		// message received - what is it
 		switch (msg->base.opcode) {
 		case HERMES_ERR_GENERAL:
@@ -179,6 +211,8 @@ namespace Hermes
 			return result;
 		}
 
+		LOG(LOG_DEBUG) << "Message received: " << msg->base.opcode << " size=" << msg->base.size;
+
 		// message received - what is it
 		switch (msg->base.opcode) {
 		case HERMES_ERR_GENERAL:
@@ -189,6 +223,7 @@ namespace Hermes
 				m_login_handler(msg->base.opcode);
 			break;
 		case HERMES_MSG_LOGIN_FAILED:
+		case HERMES_MSG_CREATE_USER_FAILED:
 			if (m_login_handler)
 				m_login_handler(msg->base.opcode);
 			break;

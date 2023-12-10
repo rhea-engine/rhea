@@ -6,6 +6,7 @@
 #include <Hermes/Messages/MessageLogin.h>
 #include <Messages/MessageConnect.h>
 #include <Hermes/Messages/MessageLoginFailed.h>
+#include <Messages/MessageCreateUser.h>
 
 using Psio::Network;
 using Psio::IOBuffer;
@@ -44,7 +45,7 @@ namespace Hermes
 		return DoLoop(0);
 	}
 
-	void ServerStream::AuthSucess(CompletionHandler handler)
+	void ServerStream::AuthSuccess(CompletionHandler handler)
 	{
 		Hermes::Message msg_auth(HERMES_MSG_LOGIN_SUCCEEDED);
 		sendMessage(&msg_auth, [&](int result) {
@@ -127,6 +128,8 @@ namespace Hermes
 		std::unique_ptr<Message> msg;
 		msg.reset(m_msg_factory->getMessage(m_inbuf.get()));
 		if (msg) {
+			LOG(LOG_DEBUG) << "Message received: " << msg->base.opcode << " size=" << msg->base.size;
+
 			// check if connect message received
 			if (msg->getOpcode() != HERMES_MSG_CONNECT) {
 				// wrong message									
@@ -205,11 +208,13 @@ namespace Hermes
 		std::unique_ptr<Message> msg;
 		msg.reset(m_msg_factory->getMessage(m_inbuf.get()));
 		if (msg) {
+			LOG(LOG_DEBUG) << "Message received: " << msg->base.opcode << " size=" << msg->base.size;
+
 			// if create is allowed check for that message
 			if (m_create_handler && msg->getOpcode() == HERMES_MSG_CREATE_USER)
 			{
-				MessageLogin* msg_create = static_cast<MessageLogin*>(msg.get());
-				m_create_handler(msg_create->auth_method, msg_create->user_name, msg_create->secrets);
+				MessageCreateUser* msg_create = static_cast<MessageCreateUser*>(msg.get());
+				m_create_handler(msg_create->auth_method, msg_create->user_name, msg_create->name, msg_create->ext_id, msg_create->secrets);
 				return Network::IO_PENDING;
 			}
 			// if not a login message this is a protocol error
@@ -264,7 +269,8 @@ namespace Hermes
 		std::unique_ptr<Message> msg;
 		msg.reset(m_msg_factory->getMessage(m_inbuf.get()));
 		if (msg) {
-			DLOG(LOG_DEBUG) << "Received message: " << msg->base.opcode;
+			LOG(LOG_DEBUG) << "Message received: " << msg->base.opcode << " size=" << msg->base.size;
+
 			m_message_handler(std::move(msg), 0);
 			if (m_inbuf->Remaining()) {
 				m_next_state = HERMES_STATE::HERMES_READMESSAGE_COMPLETED;

@@ -55,6 +55,8 @@ public:
 	// is the account allowed to login?
 	bool isAllowedToLogin() const { return m_allowed_to_login; }
 
+	void ready() override;
+
 protected:
 
 	// info about the user

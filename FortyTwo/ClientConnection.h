@@ -65,6 +65,7 @@ protected:
 	int DoLoop(int result);
 	void CallDoLoop(int result);
 	int DoLogin(int result);
+	void Login(std::string method, std::string username, std::vector<std::string> secrets);
 	int DoLoginCompleted(int result);
 	int DoLobby(int result);
 	int DoAvatar(int result);

@@ -38,8 +38,34 @@ namespace Meworla
 			m_info_w->show();
 			m_client->setAuth("trust", m_username, std::vector<std::string>());
 			m_client->start();
-			return false;
 		}
+		return false;
+	}
+
+	bool ClientConnect::onRegister(Rhea::Event* ev, Rhea::Unit* unit)
+	{
+		if (m_username != "") {
+			m_register_w->hide();
+			m_info_w->show();
+			if (m_name == "")
+				m_name = m_username;
+			m_client->Register("trust", m_username, m_name, "", std::vector<std::string>());
+		}
+		return false;
+	}
+
+	bool ClientConnect::onRegisterFailed(Rhea::Event* ev, Rhea::Unit* unit)
+	{
+		m_values["info"] = "Registering user failed";
+		return false;
+	}
+
+	bool ClientConnect::onCallRegister(Rhea::Event* ev, Rhea::Unit* unit)
+	{
+		m_info_w->hide();
+		m_trust_w->hide();
+		m_register_w->show();
+		return false;
 	}
 
 	bool ClientConnect::onSetUsername(Rhea::Event* ev, Rhea::Unit* unit)
@@ -79,6 +105,10 @@ namespace Meworla
 			OfferAuthMethods();
 			return false;
 			});
+
+		if (m_register_w) {
+			m_client->registerEventHandler("register_failure", this, std::bind(&ClientConnect::onRegisterFailed, this, std::placeholders::_1, std::placeholders::_2));
+		}
 
 		Rhea::Scene* avatar_select_scene = doCast<Rhea::Scene>(m_app->getUnitTree()->find(getValue("onAvatarSelectScene"), m_attributes["basepath"], false));
 		if (avatar_select_scene) {
@@ -176,6 +206,7 @@ namespace Meworla
 		m_info_w = doCast<Rhea::Widget>(m_app->getUnitTree()->find(m_values["infowidget"], m_attributes["basepath"], false));
 		m_error_w = doCast<Rhea::Widget>(m_app->getUnitTree()->find(m_values["errorwidget"], m_attributes["basepath"], false));
 		m_trust_w = doCast<Rhea::Widget>(m_app->getUnitTree()->find(m_values["logintrustwidget"], m_attributes["basepath"], false));
+		m_register_w = doCast<Rhea::Widget>(m_app->getUnitTree()->find(m_values["registerwidget"], m_attributes["basepath"], false));
 
 		// register event handlers
 
@@ -183,6 +214,10 @@ namespace Meworla
 		registerEventHandler("abort", this, std::bind(&ClientConnect::onAbort, this, std::placeholders::_1, std::placeholders::_2));
 		registerEventHandler("retry", this, std::bind(&ClientConnect::onRetry, this, std::placeholders::_1, std::placeholders::_2));
 		registerEventHandler("login", this, std::bind(&ClientConnect::onLoginTrust, this, std::placeholders::_1, std::placeholders::_2));
+		if (m_register_w) {
+			registerEventHandler("show_register", this, std::bind(&ClientConnect::onCallRegister, this, std::placeholders::_1, std::placeholders::_2));
+			registerEventHandler("register", this, std::bind(&ClientConnect::onRegister, this, std::placeholders::_1, std::placeholders::_2));
+		}
 		registerEventHandler("setUsername", this, std::bind(&ClientConnect::onSetUsername, this, std::placeholders::_1, std::placeholders::_2));
 	}
 }

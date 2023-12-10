@@ -16,3 +16,9 @@ void User::Avatars(std::function<bool(Rhea::Avatar*)> handler)
 			return true;
 		});
 }
+
+void User::ready()
+{
+	if (m_values["name"] != Variant())
+		m_display_name = m_values["name"];
+}

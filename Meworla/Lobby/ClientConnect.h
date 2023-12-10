@@ -20,6 +20,8 @@ namespace Meworla
 			m_info_w(nullptr),
 			m_error_w(nullptr),
 			m_cred_srv(nullptr),
+			m_trust_w(nullptr),
+			m_register_w(nullptr),
 			Rhea::Unit(path_name, type_name)
 		{}
 
@@ -34,6 +36,9 @@ namespace Meworla
 
 		// login
 		bool onLoginTrust(Rhea::Event* ev, Rhea::Unit* unit);
+		bool onRegister(Rhea::Event* ev, Rhea::Unit* unit);
+		bool onRegisterFailed(Rhea::Event* ev, Rhea::Unit* unit);
+		bool onCallRegister(Rhea::Event* ev, Rhea::Unit* unit);
 
 		bool onSetUsername(Rhea::Event* ev, Rhea::Unit* unit);
 
@@ -52,9 +57,11 @@ namespace Meworla
 		Rhea::Widget* m_info_w;
 		Rhea::Widget* m_error_w;
 		Rhea::Widget* m_trust_w;
+		Rhea::Widget* m_register_w;
 		std::unique_ptr<Rhea::WorldClient> m_client;
 		CredentialsService* m_cred_srv;
 		std::string m_username;
+		std::string m_name;
 	};
 }
 

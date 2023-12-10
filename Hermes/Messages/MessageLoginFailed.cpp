@@ -8,7 +8,7 @@ namespace Hermes
 		if (methods.size() > 0) {
 			for (size_t i = 0; i < methods.size(); i++)
 			{
-				base.size += sizeof(uint16_t);
+				base.size += sizeof(uint32_t);
 				base.size += (uint16_t)methods[i].length();
 			}
 		}

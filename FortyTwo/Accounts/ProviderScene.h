@@ -24,6 +24,9 @@ protected:
 	Rhea::Application* m_app;
 	std::string m_avatarlist_scene;
 	Rhea::Unit* m_user_list;
+
+	// store the user list
+	void Save(std::function<void(int)> handler);
 };
 
 #endif // !FORTYTWO_ACCOUNTS_PROVIDER_SCENE_H

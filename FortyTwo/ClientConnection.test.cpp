@@ -110,7 +110,7 @@ protected:
 		// user mgmt
 		static bool initialized = false;
 		if (!initialized) {
-			AccountService::RegisterAccountFabrics(app);
+			AccountService::RegisterFabrics(app);
 			initialized = true;
 		}
 
@@ -324,7 +324,7 @@ TEST_F(ClientConnectionTest, OnAvatarNotExisting)
 // test if after login an avatar is sent
 // the avatar does exist -> expect adding to world 
 // and information of all other users
-TEST_F(ClientConnectionTest, OnAvatarSucess)
+TEST_F(ClientConnectionTest, OnAvatarSuccess)
 {
 	HermesServerMock* hermes_ref = hermes.get();
 	ASSERT_TRUE(hermes_ref != nullptr);

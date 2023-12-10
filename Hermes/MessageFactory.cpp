@@ -13,6 +13,7 @@
 #include "Messages/MessageLogin.h"
 #include "Messages/MessageLoginFailed.h"
 #include "Messages/MessageConnect.h"
+#include "Messages/MessageCreateUser.h"
 
 namespace Hermes
 {
@@ -56,7 +57,7 @@ namespace Hermes
 		// auth messages
 		registerMessageType(HERMES_MSG_LOGIN, MessageLogin::create);
 		registerMessageType(HERMES_MSG_LOGIN_FAILED, MessageLoginFailed::create);
-		registerMessageType(HERMES_MSG_CREATE_USER, MessageLogin::create);
+		registerMessageType(HERMES_MSG_CREATE_USER, MessageCreateUser::create);
 		registerMessageType(HERMES_MSG_CREATE_USER_FAILED, MessageLoginFailed::create);
 
 		// lobby messages

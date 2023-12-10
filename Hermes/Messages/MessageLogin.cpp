@@ -8,7 +8,7 @@ namespace Hermes
 		if (secrets.size() > 0) {
 			for (size_t i = 0; i < secrets.size(); i++)
 			{
-				base.size += sizeof(uint16_t);
+				base.size += sizeof(uint32_t);
 				base.size += (uint16_t)secrets[i].length();
 			}
 		}

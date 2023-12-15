@@ -4,6 +4,7 @@
 #include <Messages/MessageLogin.h>
 #include <Messages/MessageConnect.h>
 #include <Messages/MessageCreateUser.h>
+#include <Messages/MessageCreateAvatar.h>
 
 namespace Hermes
 {
@@ -83,6 +84,17 @@ namespace Hermes
 			// synchronous sending - enter loop
 			DoLoop(ret);
 		}
+	}
+
+	void ClientStream::CreateAvatar(std::string name, std::string type_name)
+	{
+		Hermes::MessageCreateAvatar msg(HERMES_MSG_CREATEAVATAR);
+		msg.avatar.name = name;
+		msg.avatar.type_name = type_name;
+
+		m_next_state = HERMES_READMESSAGE;
+
+		int ret = sendMessage((Message*)&msg, nullptr);
 	}
 
 	int ClientStream::onMessage(MessageHandler handler)

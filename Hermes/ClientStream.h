@@ -20,6 +20,8 @@ namespace Hermes
 		void Login(std::string method, std::string username, std::vector<std::string> secrets, LoginHandler handler);
 		void Register(std::string method, std::string username, std::string name, std::string ext_id, std::vector<std::string> secrets, LoginHandler handler);
 
+		void CreateAvatar(std::string name, std::string type_name);
+
 		int onMessage(MessageHandler handler);
 
 		void onError(CompletionHandler handler);

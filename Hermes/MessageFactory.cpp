@@ -14,6 +14,7 @@
 #include "Messages/MessageLoginFailed.h"
 #include "Messages/MessageConnect.h"
 #include "Messages/MessageCreateUser.h"
+#include "Messages/MessageCreateAvatar.h"
 
 namespace Hermes
 {
@@ -64,6 +65,8 @@ namespace Hermes
 		registerMessageType(HERMES_MSG_ENTERWORLD, MessageEnterWorld::create);
 		registerMessageType(HERMES_MSG_ENTER_FAILED, MessageEnterFailed::create);
 		registerMessageType(HERMES_MSG_AVATARLIST, MessageAvatarList::create);
+		registerMessageType(HERMES_MSG_CREATEAVATAR, MessageCreateAvatar::create);
+		registerMessageType(HERMES_MSG_CREATEAVATAR_FAILED, MessageEnterFailed::create);
 	
 		// world messages
 		registerMessageType(HERMES_MSG_CREATE, MessageCreate::create);

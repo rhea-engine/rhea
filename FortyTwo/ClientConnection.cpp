@@ -15,6 +15,7 @@
 #include <Hermes/Messages/MessageLogin.h>
 #include "Accounts/AccountService.h"
 #include "Authorization/AuthorizationService.h"
+#include <Hermes/Messages/MessageCreateAvatar.h>
 
 int ClientConnection::Start(Psio::Network::CompletionHandler err_handler)
 {
@@ -239,14 +240,43 @@ int ClientConnection::DoLoginCompleted(int result)
 int ClientConnection::DoLobby(int result)
 {
 	m_next_state = CONN_LOBBY;
+
 	int ret = m_hermes->onMessage([&](std::unique_ptr<Hermes::Message> msg, int err) {
 		if (err < 0) {
 			return;
 		}
+		Math::Vector3 position = { 128.0f, 0.0f, 10.0f }; // default position
+		AccountService* acc_srv;
+		Hermes::MessageCreateAvatar* msg_avatar;
+		Rhea::Avatar* avatar;
+
 		switch (msg->getOpcode()) {
 		case HERMES_MSG_GET_AVATARLIST:
 			m_next_state = CONN_AVATAR;
 			CallDoLoop(err);
+			break;
+		case HERMES_MSG_CREATEAVATAR:
+			acc_srv = doCast<AccountService>(m_app->getService("accounts"));
+			msg_avatar = static_cast<Hermes::MessageCreateAvatar*>(msg.get());
+			avatar = new Rhea::Avatar(msg_avatar->avatar.name, "//meworla/avatar");
+			avatar->setModel(msg_avatar->avatar.type_name);			
+			avatar->setPosition(position);
+			acc_srv->CreateAvatar(m_user, avatar, [&, avatar](int err) {
+				if (!err) {
+					// enter the world with this avatar
+					return EnterWorld(avatar);
+				}
+				else {
+					// avatar could not be added - delete it
+					delete avatar;
+					Hermes::MessageEnterFailed errmsg(HERMES_MSG_CREATEAVATAR_FAILED);
+					errmsg.reason = err;
+					m_next_state = CONN_LOBBY;
+					return m_hermes->sendMessage((Hermes::Message*)&errmsg, [&](int err) {
+						CallDoLoop(err);
+						});
+				}
+				});
 			break;
 		case HERMES_MSG_ENTERWORLD:
 			m_cur_msg = std::move(msg);
@@ -303,10 +333,15 @@ int ClientConnection::DoAvatarCompleted(int result)
 			});
 	}
 
+	return EnterWorld(avatar);
+}
+
+int ClientConnection::EnterWorld(Rhea::Avatar* avatar)
+{
 	// instancing the player
 	Rhea::Item* player_model = (Rhea::Item*)m_app->getUnitTree()->find(avatar->getValue("model"));
 	if (!player_model) {
-		LOG(LOG_ERROR) << " could not open avatar model " << msgc->avatar;
+		LOG(LOG_ERROR) << " could not open avatar model " << avatar->getModel();
 		// send error message
 		Hermes::MessageEnterFailed errmsg;
 		errmsg.reason = 2;
@@ -315,15 +350,17 @@ int ClientConnection::DoAvatarCompleted(int result)
 			});
 	}
 
-	LOG(LOG_INFO) << "Avatar " << msgc->avatar << " entered scene";
+	std::string avatar_name = avatar->getPathName();
+
+	LOG(LOG_INFO) << "Avatar " << avatar_name << " entered scene";
 
 	int i = 0;
-	std::string basename = msgc->avatar;
-	while (m_scene->find(msgc->avatar)) {
+	std::string internal_name = avatar_name;
+	while (m_scene->find(internal_name)) {
 		// make sure no items with the same name exist
-		msgc->avatar = basename + std::string("-") + std::to_string(++i);
+		internal_name = avatar_name + std::string("-") + std::to_string(++i);
 	}
-	m_player = player_model->instance(msgc->avatar);
+	m_player = player_model->instance(internal_name);
 	Math::Vector3 position = { 128.0f, 0.0f, 10.0f }; // default position
 	position = avatar->getPosition();
 	m_scene->addChild(m_player);
@@ -350,7 +387,7 @@ int ClientConnection::DoAvatarCompleted(int result)
 	// inform connector
 	Hermes::MessageCreate msg;
 	Math::Vector3 pos = m_player->getTransform()->get_position()->get_worldspace();
-	msg.path = msgc->avatar;
+	msg.path = internal_name;
 	msg.type_name = avatar->getValue("model");
 	msg.NUID = m_player->getNetworkComponent()->NUID();
 	msg.pos[0] = pos.x;

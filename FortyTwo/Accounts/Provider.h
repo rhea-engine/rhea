@@ -3,6 +3,7 @@
 
 #include <Rhea/Application.h>
 #include <FortyTwo/Authorization/AuthInfo.h>
+#include <Rhea/Fabrics/Core/Avatar.h>
 
 class User;
 
@@ -21,6 +22,9 @@ public:
 
 	// add a user to the storage
 	virtual void CreateAccount(std::string user_id, std::string name, std::function<void(User*, int)> handler) = 0;
+
+	// add an avatar to the user account and store ist
+	virtual void CreateAvatar(User* user, Rhea::Avatar* avatar, std::function<void(int)> handler) = 0;
 };
 
 #endif // !FORTYTWO_ACCOUNTS_PROVIDER_H

@@ -67,14 +67,4 @@ namespace Rhea
 			m_handler(nullptr, ret);
 		}
 	}
-
-	/*
-	void ClientService::OnConnect()
-	{
-		WorldClient* client = new WorldClient();
-		client->setStream(std::move(m_hermes));
-		client->setup(m_app);
-		m_handler(client, 0);
-	}
-	*/
 }

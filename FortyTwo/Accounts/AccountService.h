@@ -25,6 +25,8 @@ public:
 
 	void GetAccount(AuthInfo& auth_info, std::function<void(User*, int)> handler);
 
+	void CreateAvatar(User* user, Rhea::Avatar* avatar, std::function<void(int)> handler);
+
 	// create a new account
 	void CreateAccount(AuthInfo& auth_info, std::function<void(User*, int)> handler);
 

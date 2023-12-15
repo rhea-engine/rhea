@@ -34,6 +34,8 @@ public:
 	// start with an already connected player
 	void StartEstablishedConnection(Rhea::Item* player);
 
+	int EnterWorld(Rhea::Avatar* avatar);
+
 protected:
 	
 	Rhea::Application* m_app;

@@ -37,9 +37,12 @@ namespace Rhea
 		void start();
 		void setScene(Rhea::Scene* scene) { m_scene = scene; }
 		void Register(std::string method, std::string username, std::string name, std::string ext_id, std::vector<std::string> secrets);
+		void CreateAvatar(std::string name, std::string type_name);
 
 		// handle messages
 		void onLogin();
+
+		void MessageLoop();
 
 		// stop the connection
 		void stop();

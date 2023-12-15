@@ -113,19 +113,13 @@ namespace Meworla
 		Rhea::Scene* avatar_select_scene = doCast<Rhea::Scene>(m_app->getUnitTree()->find(getValue("onAvatarSelectScene"), m_attributes["basepath"], false));
 		if (avatar_select_scene) {
 			m_client->registerEventHandler("avatarlist", this, [&, avatar_select_scene](Rhea::Event* ev, Rhea::Unit* t)->bool {
-				if ((int)t->getValue("nofAvatars", 0) > 0) {
-					// goto scene avatar_select_scene
-					m_values["info"] = "select avatar";
-					if (m_info_w)
-						m_info_w->hide();
-					if (doCast<Rhea::Scene>(m_parent))
-						static_cast<Rhea::Scene*>(m_parent)->hide();
-					avatar_select_scene->show();
-				}
-				else {
-					// goto new avatar scene
-					m_values["info"] = "no avatar defined";
-				}
+				// goto scene avatar_select_scene
+				m_values["info"] = "select avatar";
+				if (m_info_w)
+					m_info_w->hide();
+				if (doCast<Rhea::Scene>(m_parent))
+					static_cast<Rhea::Scene*>(m_parent)->hide();
+				avatar_select_scene->show();
 				return false;
 				});
 		}
@@ -207,7 +201,7 @@ namespace Meworla
 		m_error_w = doCast<Rhea::Widget>(m_app->getUnitTree()->find(m_values["errorwidget"], m_attributes["basepath"], false));
 		m_trust_w = doCast<Rhea::Widget>(m_app->getUnitTree()->find(m_values["logintrustwidget"], m_attributes["basepath"], false));
 		m_register_w = doCast<Rhea::Widget>(m_app->getUnitTree()->find(m_values["registerwidget"], m_attributes["basepath"], false));
-
+		
 		// register event handlers
 
 		registerEventHandler("scene_show", this, std::bind(&ClientConnect::onDisplay, this, std::placeholders::_1, std::placeholders::_2));
@@ -219,5 +213,6 @@ namespace Meworla
 			registerEventHandler("register", this, std::bind(&ClientConnect::onRegister, this, std::placeholders::_1, std::placeholders::_2));
 		}
 		registerEventHandler("setUsername", this, std::bind(&ClientConnect::onSetUsername, this, std::placeholders::_1, std::placeholders::_2));
+		
 	}
 }

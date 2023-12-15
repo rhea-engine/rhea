@@ -68,6 +68,24 @@ void ProviderScene::CreateAccount(std::string user_id, std::string name, std::fu
 	handler(nullptr, -1);
 }
 
+void ProviderScene::CreateAvatar(User* user, Rhea::Avatar* avatar, std::function<void(int)> handler)
+{
+	// check for uniqueness
+	if (!m_user_list && !m_avatarlist_scene.empty()) {
+		// find the user list
+		m_user_list = m_app->getUnitTree()->find(m_avatarlist_scene);
+		if (!m_user_list) {
+			return handler(2);
+		}
+	}
+	Rhea::Avatar* check = doCast<Rhea::Avatar>(m_user_list->find(avatar->getPathName()));
+	if (check)
+		return handler(1);
+	// does not exist yet
+	user->addChild(avatar);
+	Save(handler);
+}
+
 void ProviderScene::Save(std::function<void(int)> handler)
 {
 	Orion::Orion* fs = m_app->getFS();
@@ -76,7 +94,7 @@ void ProviderScene::Save(std::function<void(int)> handler)
 	resource->resolve([&, handler](Orion::ResourceRequest* req, int err) {
 		if (err) {
 			LOG(LOG_ERROR) << "ProviderScene: failed to resolve avatarlist scene";	
-			handler(-1);
+			handler(2);
 		}
 		else {
 			Psio::IOBuffer* buf = new Psio::IOBuffer(64 * 1024 * 1024);

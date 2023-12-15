@@ -48,6 +48,11 @@ void AccountService::GetAccount(AuthInfo& auth_info, std::function<void(User*, i
 			});
 }
 
+void AccountService::CreateAvatar(User* user, Rhea::Avatar* avatar, std::function<void(int)> handler)
+{
+	m_provider->CreateAvatar(user, avatar, handler);
+}
+
 void AccountService::CreateAccount(AuthInfo& auth_info, std::function<void(User*, int)> handler)
 {
 	m_provider->CreateAccount(auth_info.user_id, auth_info.name, handler);

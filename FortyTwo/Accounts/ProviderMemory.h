@@ -18,8 +18,13 @@ public:
 
 	virtual void CreateAccount(std::string user_id, std::string name, std::function<void(User*, int)> handler) override;
 
+	virtual void CreateAvatar(User* user, Rhea::Avatar* avatar, std::function<void(int)> handler) override;
+
 
 protected:
+
+
+
 	std::unordered_map<std::string, User*> m_users;
 };
 

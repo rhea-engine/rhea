@@ -91,27 +91,39 @@ namespace Rhea
 			});
 	}
 
+	void WorldClient::CreateAvatar(std::string name, std::string type_name)
+	{
+		m_hermes->CreateAvatar(name, type_name);
+
+		MessageLoop();
+	}
+
 	void WorldClient::onLogin() {
 
-		DLOG(LOG_DEBUG) << "login succeeded";
+		DLOG(LOG_DEBUG) << "login sent";
 
 		// if this world uses avatars get the current list
 		Hermes::Message msg_get_avatar_list(HERMES_MSG_GET_AVATARLIST);
 		m_hermes->sendMessage(&msg_get_avatar_list, nullptr);
 
+		MessageLoop();
+	}
+	
+	void WorldClient::MessageLoop()
+	{
 		m_hermes->onMessage([&](std::unique_ptr<Hermes::Message> msg, int err) {
 			if (!err) {
 				if (msg->base.opcode == HERMES_MSG_AVATARLIST) {
 					Hermes::MessageAvatarList* msgc = (Hermes::MessageAvatarList*)msg.get();
-					if (msgc->avatars.size()) {
 
-						// fill up avatar list of scene
-						Rhea::Unit* avatar_list = getChild("avatarlist");
-						if (!avatar_list) {
-							avatar_list = new Rhea::Unit("avatarlist", "//meworla/avatarlist");
-							avatar_list->setup(m_app);
-							addChild(avatar_list);
-						}
+					// fill up avatar list of scene
+					Rhea::Unit* avatar_list = getChild("avatarlist");
+					if (!avatar_list) {
+						avatar_list = new Rhea::Unit("avatarlist", "//meworla/avatarlist");
+						avatar_list->setup(m_app);
+						addChild(avatar_list);
+					}
+					if (msgc->avatars.size()) {
 						for (auto it = msgc->avatars.begin(); it != msgc->avatars.end(); it++) {
 							Rhea::Avatar* avatar = (Rhea::Avatar*)m_app->getUnitTree()->createUnit((*it).avatar, "//meworla/avatar");
 							avatar->setModel((*it).type_name);
@@ -121,6 +133,13 @@ namespace Rhea
 					m_values["nofAvatars"] = (int)msgc->avatars.size();
 					Event ev("avatarlist", this);
 					sendEvent("avatarlist", &ev);
+				}
+				else if (msg->base.opcode == HERMES_MSG_CREATEAVATAR_FAILED) {
+					// avatar entering failed
+					// inform user
+					Event ev("create_avatar_failed", this);
+					sendEvent("create_avatar_failed", &ev);
+					return;
 				}
 				else if (msg->base.opcode == HERMES_MSG_ENTER_FAILED) {
 					// avatar entering failed

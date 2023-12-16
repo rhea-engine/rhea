@@ -74,7 +74,7 @@ namespace Rhea
 
 		size_t pos = binding_desc.find(".");
 		if (pos != std::string::npos && pos) {
-			if (basepath != "")
+			if (basepath != "" && (binding_desc.size() < 2 || (binding_desc[0] != '/' && binding_desc[1] != '/')))
 				binding.target = find(basepath + "/" + binding_desc.substr(0, pos));
 			else
 				binding.target = find(binding_desc.substr(0, pos));

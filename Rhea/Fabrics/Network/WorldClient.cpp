@@ -102,11 +102,14 @@ namespace Rhea
 
 		DLOG(LOG_DEBUG) << "login sent";
 
+		// register handler
+		MessageLoop();
+
 		// if this world uses avatars get the current list
 		Hermes::Message msg_get_avatar_list(HERMES_MSG_GET_AVATARLIST);
 		m_hermes->sendMessage(&msg_get_avatar_list, nullptr);
 
-		MessageLoop();
+		m_hermes->Loop();
 	}
 	
 	void WorldClient::MessageLoop()

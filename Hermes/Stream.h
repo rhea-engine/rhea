@@ -12,24 +12,61 @@ namespace Hermes
 	public:
 		Stream(std::unique_ptr<Psio::StreamSocket> sock, MessageFactory* msg_factory) :
 			m_sock(std::move(sock)),
-			m_msg_factory(msg_factory)
+			m_state(HERMES_NONE),
+			m_next_state(HERMES_NONE),
+			m_msg_factory(msg_factory),
+			m_inbuf(std::make_unique<Psio::IOBuffer>(64 * 1024)),
+			m_outbuf(std::make_unique<Psio::IOBuffer>(64 * 1024))
 		{}
 		virtual ~Stream() = default;
 
-		typedef std::function<void(std::unique_ptr<Message>, int)> MessageHandler;
+		typedef std::function<void(Message*)> MessageHandler;
 		typedef std::function<void(int)> CompletionHandler;
 
+		// send a message
 		virtual int sendMessage(Message* message, CompletionHandler handler);
 
-		virtual int onMessage(MessageHandler handler) = 0;
+		// start the message reading loop
+		int Start();
+		int Restart();
+
+		// close the stream
+		void Close();
+
+		// event handling functions
+
+		void onMessage(MessageHandler handler) { m_message_handler = handler; }
+		void onConnectionError(CompletionHandler error_handler) { m_err_handler = error_handler; }
+		void onClosed(CompletionHandler closed_handler) { m_closed_handler = closed_handler; }
 
 	protected:
+		enum HERMES_STATE
+		{
+			HERMES_NONE,
+			HERMES_READMESSAGE,
+			HERMES_READMESSAGE_COMPLETED,
+			HERMES_CLOSE
+		};
+
 		std::unique_ptr<Psio::StreamSocket> m_sock;
+		std::string m_id;
 		std::unique_ptr<Psio::IOBuffer> m_inbuf;
 		std::unique_ptr<Psio::IOBuffer> m_outbuf;
 
-		MessageHandler m_message_handler;
 		MessageFactory* m_msg_factory;
+
+		MessageHandler m_message_handler;
+		CompletionHandler m_err_handler;
+		CompletionHandler m_closed_handler;
+
+		int DoLoop(int result);
+		void CallDoLoop(int result);
+		int DoReadMessage(int result);
+		int DoReadMessageCompleted(int result);
+		int DoClose(int result);
+
+		HERMES_STATE m_state;
+		HERMES_STATE m_next_state;
 	};
 }
 

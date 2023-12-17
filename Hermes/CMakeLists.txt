@@ -15,7 +15,7 @@ add_subdirectory(tests)
 # GTest
 
 file(GLOB_RECURSE test_sources
-    ${CMAKE_CURRENT_SOURCE_DIR}/*_test.cpp)
+    ${CMAKE_CURRENT_SOURCE_DIR}/*.test.cpp)
 add_executable(hermes_test ${test_sources} "Messages/MessageLogin.h" "Messages/MessageLogin.cpp" "Messages/MessageConnect.h" "Messages/MessageConnect.cpp" "Messages/MessageLoginFailed.h" "Messages/MessageLoginFailed.cpp" "Messages/MessageCreateUser.h" "Messages/MessageCreateUser.cpp" "Messages/MessageCreateAvatar.h" "Messages/MessageCreateAvatar.cpp")
 target_link_libraries(hermes_test gtest_main gmock_main Hermes Psio)
 if(WIN32)

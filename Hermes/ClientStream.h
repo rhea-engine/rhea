@@ -5,28 +5,46 @@
 
 namespace Hermes
 {
-	class ClientStream : public Stream
+	class ClientStream
 	{
 	public:
 		ClientStream(std::unique_ptr<Psio::StreamSocket> sock, MessageFactory* msg_factory) :
+			ClientStream(std::make_unique<Stream>(std::move(sock), msg_factory))
+		{}
+		ClientStream(std::unique_ptr<Stream> stream) :
 			m_state(HERMES_NONE),
 			m_next_state(HERMES_NONE),
-			Stream(std::move(sock), msg_factory)
+			m_stream(std::move(stream))
 		{}
 
-		int Connect(std::string world_name, CompletionHandler handler);
+		// state handling
+		int Connect(std::string world_name, Stream::CompletionHandler handler);
+		int Loop();
 
 		typedef std::function<void(int)> LoginHandler;
-		void Login(std::string method, std::string username, std::vector<std::string> secrets, LoginHandler handler);
-		void Register(std::string method, std::string username, std::string name, std::string ext_id, std::vector<std::string> secrets, LoginHandler handler);
+		typedef std::function<void(std::unique_ptr<Message>, int)> MessageHandler;
+		typedef std::function<void(int)> CompletionHandler;
 
-		void CreateAvatar(std::string name, std::string type_name);
+		// send requests
 
-		int onMessage(MessageHandler handler);
+		int Login(std::string method, std::string username, std::vector<std::string> secrets, LoginHandler handler);
+		int Register(std::string method, std::string username, std::string name, std::string ext_id, std::vector<std::string> secrets, LoginHandler handler);
+
+		int CreateAvatar(std::string name, std::string type_name);
+
+		virtual int sendMessage(Message* message, Stream::CompletionHandler handler);
+		void Close();
+
+		// event handlers
+
+		void onMessage(MessageHandler handler);
 
 		void onError(CompletionHandler handler);
 
 	protected:
+		std::unique_ptr<Stream> m_stream;
+		std::unique_ptr<Message> m_msg;
+
 		// state Handling
 		enum HERMES_STATE {
 			HERMES_NONE,
@@ -51,6 +69,7 @@ namespace Hermes
 		int DoReadMessage(int result);
 		int DoReadMessageCompleted(int result);
 
+		MessageHandler m_message_handler;
 		CompletionHandler m_oncompletion_handler;
 		LoginHandler m_login_handler;
 		CompletionHandler m_err_handler;

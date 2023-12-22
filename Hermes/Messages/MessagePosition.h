@@ -1,5 +1,5 @@
 #ifndef HERMES_MESSAGEPOSITION_H
-#define HERMES_MESSAGE_POSITION_H
+#define HERMES_MESSAGEPOSITION_H
 
 #include "../Message.h"
 #include "../Opcode.h"
@@ -31,4 +31,4 @@ namespace Hermes
 	};
 }
 
-#endif // !HERMES_MESSAGE_CREATE_H
+#endif // !HERMES_MESSAGEPOSITION_H

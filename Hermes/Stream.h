@@ -14,28 +14,29 @@ namespace Hermes
 			m_sock(std::move(sock)),
 			m_state(HERMES_NONE),
 			m_next_state(HERMES_NONE),
-			m_msg_factory(msg_factory),
+			m_msg_factory(*msg_factory),
 			m_inbuf(std::make_unique<Psio::IOBuffer>(64 * 1024)),
 			m_outbuf(std::make_unique<Psio::IOBuffer>(64 * 1024))
 		{}
 		virtual ~Stream() = default;
 
-		typedef std::function<void(Message*)> MessageHandler;
+		MessageFactory* getMessageFactory() { return &m_msg_factory; }
+
 		typedef std::function<void(int)> CompletionHandler;
 
 		// send a message
 		virtual int sendMessage(Message* message, CompletionHandler handler);
 
 		// start the message reading loop
-		int Start();
+		virtual int Start();
 		int Restart();
 
 		// close the stream
-		void Close();
+		virtual void Close();
 
 		// event handling functions
 
-		void onMessage(MessageHandler handler) { m_message_handler = handler; }
+		// error handler
 		void onConnectionError(CompletionHandler error_handler) { m_err_handler = error_handler; }
 		void onClosed(CompletionHandler closed_handler) { m_closed_handler = closed_handler; }
 
@@ -53,9 +54,8 @@ namespace Hermes
 		std::unique_ptr<Psio::IOBuffer> m_inbuf;
 		std::unique_ptr<Psio::IOBuffer> m_outbuf;
 
-		MessageFactory* m_msg_factory;
+		MessageFactory m_msg_factory;
 
-		MessageHandler m_message_handler;
 		CompletionHandler m_err_handler;
 		CompletionHandler m_closed_handler;
 

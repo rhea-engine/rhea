@@ -1,8 +1,8 @@
 #ifndef HERMES_MESSAGE_CONNECT
 #define HERMES_MESSAGE_CONNECT
 
-#include "Message.h"
-#include <Opcode.h>
+#include <Hermes/Message.h>
+#include <Hermes/Opcode.h>
 
 namespace Hermes
 {

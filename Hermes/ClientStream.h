@@ -2,6 +2,7 @@
 #define HERMES_CLIENTSTREAM_H
 
 #include "Stream.h"
+#include <Hermes/Messages/MessageLoginFailed.h>
 
 namespace Hermes
 {
@@ -13,7 +14,6 @@ namespace Hermes
 		{}
 		ClientStream(std::unique_ptr<Stream> stream) :
 			m_state(HERMES_NONE),
-			m_next_state(HERMES_NONE),
 			m_stream(std::move(stream))
 		{}
 
@@ -22,7 +22,6 @@ namespace Hermes
 		int Loop();
 
 		typedef std::function<void(int)> LoginHandler;
-		typedef std::function<void(std::unique_ptr<Message>, int)> MessageHandler;
 		typedef std::function<void(int)> CompletionHandler;
 
 		// send requests
@@ -37,9 +36,9 @@ namespace Hermes
 
 		// event handlers
 
-		void onMessage(MessageHandler handler);
-
 		void onError(CompletionHandler handler);
+
+		MessageFactory* getMessageFactory() { return m_stream->getMessageFactory(); }
 
 	protected:
 		std::unique_ptr<Stream> m_stream;
@@ -49,27 +48,24 @@ namespace Hermes
 		enum HERMES_STATE {
 			HERMES_NONE,
 			HERMES_CONNECT_PENDING,
-			HERMES_CONNECT_COMPLETED,
 			HERMES_LOGIN_PENDING,
-			HERMES_LOGIN_COMPLETED,
 			HERMES_SEND_SETUP,
-			HERMES_SEND_SETUP_COMPLETED,
 			HERMES_READMESSAGE,
-			HERMES_READMESSAGE_COMPLETED
 		};
 
 		HERMES_STATE m_state;
-		HERMES_STATE m_next_state;
-		int DoLoop(int result);
-		void CallDoLoop(int result);
-		int DoConnectPending(int result);
-		int DoConnectCompleted(int result);
-		int DoLoginPending(int result);
-		int DoLoginCompleted(int result);
-		int DoReadMessage(int result);
-		int DoReadMessageCompleted(int result);
 
-		MessageHandler m_message_handler;
+		// connection message
+		void onConnectedMessage(Message* msg);
+
+		void onLoginMessage(Message* msg);
+
+		// login messages
+		void onLoginFailureMessage(MessageLoginFailed* msg);
+
+		// error message
+		void onErrorMessage(Message* msg);
+
 		CompletionHandler m_oncompletion_handler;
 		LoginHandler m_login_handler;
 		CompletionHandler m_err_handler;

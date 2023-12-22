@@ -6,6 +6,10 @@
 #include <Rhea/Fabrics/Core/Scene.h>
 #include "NetworkDelegate.h"
 #include <Math/Vector3.h>
+#include <Hermes/Messages/MessageAvatarList.h>
+#include <Hermes/Messages/MessageCreate.h>
+#include <Hermes/Messages/MessagePosition.h>
+#include <Hermes/Messages/MessageDestroy.h>
 
 namespace Rhea
 {
@@ -16,6 +20,7 @@ namespace Rhea
 		WorldClient(std::string name, std::string type_name) :
 			m_scene(nullptr),
 			m_player_set(false),
+			m_in_world(false),
 			Unit(name, type_name)
 		{}
 		WorldClient() :
@@ -34,15 +39,10 @@ namespace Rhea
 
 		// startup
 		void Open(std::string worldname);
-		void start();
+		void Start();
 		void setScene(Rhea::Scene* scene) { m_scene = scene; }
 		void Register(std::string method, std::string username, std::string name, std::string ext_id, std::vector<std::string> secrets);
 		void CreateAvatar(std::string name, std::string type_name);
-
-		// handle messages
-		void onLogin();
-
-		void MessageLoop();
 
 		// stop the connection
 		void stop();
@@ -63,6 +63,16 @@ namespace Rhea
 		std::vector<std::string> m_secrets;
 		std::map<int,Rhea::Item*> m_net_items;
 		bool m_player_set;
+		bool m_in_world;
+
+		// handle messages
+		void onLogin();
+		void onAvatarlistMessage(Hermes::MessageAvatarList* msg);
+		void onCreateAvatarFailedMessage(Hermes::Message* msg);
+		void onEnterWorldFailedMessage(Hermes::Message* msg);
+		void onCreateMessage(Hermes::MessageCreate* msg);
+		void onPositionMessage(Hermes::MessagePosition* msg);
+		void onDestroyMessage(Hermes::MessageDestroy* msg);
 	};
 }
 

@@ -7,6 +7,10 @@
 #include <Rhea/Fabrics/Core/Scene.h>
 #include <FortyTwo/Accounts/User.h>
 #include "World.h"
+#include <Hermes/Messages/MessageEnterWorld.h>
+#include <Hermes/Messages/MessageMove.h>
+#include <Hermes/Messages/MessageTurn.h>
+#include <Hermes/Messages/MessageCreateAvatar.h>
 
 class ClientConnection
 {
@@ -17,7 +21,6 @@ public:
 		m_player(nullptr),
 		m_world(nullptr),
 		m_state(CONN_NONE),
-		m_next_state(CONN_NONE),
 		m_user(nullptr)
 	{
 		m_hermes = std::move(hermes);
@@ -25,6 +28,7 @@ public:
 
 	int Start(Psio::Network::CompletionHandler err_handler);
 	int sendMessage(Hermes::Message* msg);
+	void Close();
 
 	// return the item this connection is responsible for
 	Rhea::Item* getAuthItem() { return m_player; }
@@ -50,34 +54,22 @@ protected:
 
 	enum CONN_STATE {
 		CONN_NONE,
-		CONN_LOGIN,
-		CONN_LOGIN_COMPLETED,
+		CONN_LOGIN,		
 		CONN_LOBBY,
-		CONN_AVATAR,
-		CONN_AVATAR_COMPLETED,
-		CONN_MESSAGE,
-		CONN_MESSAGE_COMPLETED,
-		CONN_CLOSE,
-		CONN_CLOSE_COMPLETED
+		CONN_IN_WORLD,
+		CONN_CLOSE
 	};
 
 	CONN_STATE m_state;
-	CONN_STATE m_next_state;
 
-	int DoLoop(int result);
-	void CallDoLoop(int result);
-	int DoLogin(int result);
+	void onGetAvatarListMessage(Hermes::Message* msg);
+	void onCreateAvatarMessage(Hermes::MessageCreateAvatar* msg);
+	void onEnterWorldMessage(Hermes::MessageEnterWorld* msg);
+	void onMoveMessage(Hermes::MessageMove* msg);
+	void onTurnMessage(Hermes::MessageTurn* msg);
+
+	void CreateUser(std::string method, std::string username, std::string name, std::string ext_id, std::vector<std::string> secrets);
 	void Login(std::string method, std::string username, std::vector<std::string> secrets);
-	int DoLoginCompleted(int result);
-	int DoLobby(int result);
-	int DoAvatar(int result);
-	int DoAvatarCompleted(int result);
-	int DoMessage(int result);
-	int DoMessageCompleted(int result);
-	int DoClose(int result);
-	int DoCloseCompleted(int result);
-
-	std::unique_ptr<Hermes::Message> m_cur_msg;
 };
 
 #endif // !FORTYTWO_CLIENTCONN_H

@@ -19,158 +19,143 @@
 
 int ClientConnection::Start(Psio::Network::CompletionHandler err_handler)
 {
-	m_hermes->onClosed([&](int err) {
-		m_hermes.reset(nullptr);
-		});
-
-	// start the connection - wait for login
 	m_error_handler = err_handler;
-	m_next_state = CONN_LOGIN;
-	return DoLoop(0);
-}
 
-int ClientConnection::sendMessage(Hermes::Message* msg)
-{
-	if (m_state == CONN_MESSAGE) {
-		int ret = m_hermes->sendMessage(msg, [&](int err) {
-			if (err < 0) {
-				m_state = CONN_CLOSE;
-				m_hermes->Close();
-				m_error_handler(err);
-			}
-			});
-		if (ret < -1) {
-			m_state = CONN_CLOSE;
-			m_hermes->Close();
-			DLOG(LOG_DEBUG) << "Connection: sendMessage failed: " << ret;
-		}
-		return ret;
+	Hermes::MessageFactory* factory = m_hermes->getMessageFactory();
+	if (!factory) {
+		LOG(LOG_ERROR) << "No message factory found";
+		return -2;
 	}
-	return 0;
-}
 
-int ClientConnection::DoLoop(int result)
-{
-	do
-	{
-		m_state = m_next_state;
-		m_next_state = CONN_NONE;
-
-		switch (m_state) {
-		case CONN_NONE:
-			break;
-		case CONN_LOGIN:
-			result = DoLogin(result);
-			break;
-		case CONN_LOGIN_COMPLETED:
-			result = DoLoginCompleted(result);
-			break;
-		case CONN_LOBBY:
-			result = DoLobby(result);
-			break;
-		case CONN_AVATAR:
-			result = DoAvatar(result);
-			break;
-		case CONN_AVATAR_COMPLETED:
-			result = DoAvatarCompleted(result);
-			break;
-		case CONN_MESSAGE:
-			result = DoMessage(result);
-			break;
-		case CONN_MESSAGE_COMPLETED:
-			result = DoMessageCompleted(result);
-			break;
-		case CONN_CLOSE:
-			result = DoClose(result);
-			break;
-		case CONN_CLOSE_COMPLETED:
-			result = DoCloseCompleted(result);
-			break;
-		}
-
-	} while (result != Psio::Network::IO_PENDING && m_state != CONN_NONE);
-
-	return result;
-}
-
-void ClientConnection::CallDoLoop(int result)
-{
-	int res = DoLoop(result);
-	if ((res < 0) && (res != Psio::Network::Err::IO_PENDING) && (m_error_handler != NULL))
-		m_error_handler(res);
-}
-
-int ClientConnection::DoLogin(int result)
-{
-	if (result < 0)
-		return result;
-
-	m_hermes->onConnectionError([&](int err) {
-		if (err <= 0) {
-			CallDoLoop(err);
-			// may destroy |this|
-			return;
-		}
-		});
-
-	m_hermes->onCreateUser([&](std::string method, std::string username, std::string name, std::string ext_id, std::vector<std::string> secrets) {
-		AuthorizationService* auth_srv = doCast<AuthorizationService>(m_app->getService("authorization"));
-		if (!auth_srv) {
-			LOG(LOG_ERROR) << "Configuration error: Authorization service not found";
-			// Send auth failure
-			m_next_state = CONN_LOGIN;
-			m_hermes->AuthFailure([&](int result) {
-				m_hermes->LoginRetry();
-				},
-				std::vector<std::string>());
-			return;
-		}
-		UserInfo user_info;
-		user_info.username = username;
-		user_info.user_id = "";
-		if (name != "")
-			user_info.name = name;
-		else
-			user_info.name = username;
-		user_info.ext_id = ext_id;
-		auth_srv->CreateUser(method, user_info, secrets, [&, user_info, secrets](std::string user_id, int err) {
-			if (!err) {
-				// success
-				
-				// create the account for the user
-				AccountService* acc_srv = doCast<AccountService>(m_app->getService("accounts"));
-				if (!acc_srv) {
-					LOG(LOG_ERROR) << "Configuration error: Account service not found";
-					// Send auth failure
-					m_next_state = CONN_LOGIN;
-					m_hermes->AuthFailure([&](int result) {
-						m_hermes->LoginRetry();
-						},
-						std::vector<std::string>());
-					return;
-				}
-				
-				// log the user in
-				Login(method, user_info.username, secrets);
-			}
-			else {
-				// Send auth failure
-				m_next_state = CONN_LOGIN;
-				m_hermes->AuthFailure([&](int result) {
-					m_hermes->LoginRetry();
-					},
-					std::vector<std::string>());
-			}
-			});
-		});
-
+	// auth state
 	m_hermes->onLogin([&](std::string method, std::string username, std::vector<std::string> secrets) {
 		Login(method, username, secrets);
 		});
 
-	int ret = m_hermes->Connect();
+	m_hermes->onCreateUser(std::bind(&ClientConnection::CreateUser, this, 
+		std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, std::placeholders::_4, std::placeholders::_5));
 
-	return ret;
+	// connection established
+
+	// lobby
+
+	factory->registerMessageHandler<Hermes::Message>(HERMES_MSG_GET_AVATARLIST,
+		[&](uint16_t opcode)->bool {
+			return m_state == CONN_LOBBY;
+		},
+		std::bind(&ClientConnection::onGetAvatarListMessage, this, std::placeholders::_1)
+	);
+
+	factory->registerMessageHandler<Hermes::MessageCreateAvatar>(HERMES_MSG_CREATEAVATAR,
+		[&](uint16_t opcode)->bool {
+			return m_state == CONN_LOBBY;
+		},
+		std::bind(&ClientConnection::onCreateAvatarMessage, this, std::placeholders::_1)
+	);
+	
+	// world messages
+
+	factory->registerMessageHandler<Hermes::MessageEnterWorld>(HERMES_MSG_ENTERWORLD,
+		[&](uint16_t opcode)->bool {
+			return m_state == CONN_LOBBY;
+		},
+		std::bind(&ClientConnection::onEnterWorldMessage, this, std::placeholders::_1)
+	);
+
+	factory->registerMessageHandler<Hermes::MessageMove>(HERMES_MSG_MOVE,
+		[&](uint16_t opcode)->bool {
+			return m_state == CONN_IN_WORLD;
+		},
+		std::bind(&ClientConnection::onMoveMessage, this, std::placeholders::_1)
+	);
+
+	factory->registerMessageHandler<Hermes::MessageTurn>(HERMES_MSG_TURN,
+		[&](uint16_t opcode)->bool {
+			return m_state == CONN_IN_WORLD;
+		},
+		std::bind(&ClientConnection::onTurnMessage, this, std::placeholders::_1)
+	);
+
+	// error handling
+
+	m_hermes->onClosed([&](int err) {
+		m_hermes.reset(nullptr);
+		});
+
+	// start the connection - wait for login	
+	m_state = CONN_LOGIN;
+	return m_hermes->Connect();
+}
+
+int ClientConnection::sendMessage(Hermes::Message* msg)
+{
+	// forward to stream
+	return m_hermes->sendMessage(msg, [&](int err) {
+		if (err < -1) {
+			m_state = CONN_CLOSE;
+			m_hermes->Close();
+			if (m_error_handler)
+				m_error_handler(err);
+		}
+		});
+}
+
+void ClientConnection::Close()
+{
+	m_state = CONN_CLOSE;
+	m_hermes->Close();
+}
+
+void ClientConnection::CreateUser(std::string method, std::string username, std::string name, std::string ext_id, std::vector<std::string> secrets)
+{
+	AuthorizationService* auth_srv = doCast<AuthorizationService>(m_app->getService("authorization"));
+	if (!auth_srv) {
+		LOG(LOG_ERROR) << "Configuration error: Authorization service not found";
+		// Send auth failure
+		m_state = CONN_LOGIN;
+		m_hermes->AuthFailure([&](int result) {
+			m_hermes->LoginRetry();
+			},
+			std::vector<std::string>());
+		return;
+	}
+	UserInfo user_info;
+	user_info.username = username;
+	user_info.user_id = "";
+	if (name != "")
+		user_info.name = name;
+	else
+		user_info.name = username;
+	user_info.ext_id = ext_id;
+	auth_srv->CreateUser(method, user_info, secrets, [&, user_info, secrets](std::string user_id, int err) {
+		if (!err) {
+			// success
+
+			// create the account for the user
+			AccountService* acc_srv = doCast<AccountService>(m_app->getService("accounts"));
+			if (!acc_srv) {
+				LOG(LOG_ERROR) << "Configuration error: Account service not found";
+				// Send auth failure
+				m_state = CONN_LOGIN;
+				m_hermes->AuthFailure([&](int result) {
+					m_hermes->LoginRetry();
+					},
+					std::vector<std::string>());
+				return;
+			}
+
+			// log the user in
+			Login(method, user_info.username, secrets);
+		}
+		else {
+			// Send auth failure
+			m_state = CONN_LOGIN;
+			m_hermes->AuthFailure([&](int result) {
+				m_hermes->LoginRetry();
+				},
+				std::vector<std::string>());
+		}
+		});
 }
 
 void ClientConnection::Login(std::string method, std::string username, std::vector<std::string> secrets) {
@@ -183,7 +168,7 @@ void ClientConnection::Login(std::string method, std::string username, std::vect
 		if (!auth_srv) {
 			LOG(LOG_ERROR) << "Configuration error: Authorization service not found";
 			// Send auth failure
-			m_next_state = CONN_LOGIN;
+			m_state = CONN_LOGIN;
 			m_hermes->AuthFailure([&](int result) {
 				m_hermes->LoginRetry();
 				},
@@ -195,7 +180,7 @@ void ClientConnection::Login(std::string method, std::string username, std::vect
 			if (auth_info.user_id == "") {
 				LOG(LOG_ERROR) << "User " << m_username << " is not registered";
 				// Send auth failure
-				m_next_state = CONN_LOGIN;
+				m_state = CONN_LOGIN;
 				m_hermes->AuthFailure([&](int result) {
 					m_hermes->LoginRetry();
 					},
@@ -213,15 +198,16 @@ void ClientConnection::Login(std::string method, std::string username, std::vect
 					if (!err && user) {
 						m_user = user;
 						// login succesful - send auth succcess
-						m_next_state = CONN_LOBBY;
+						m_state = CONN_LOBBY;
 						m_hermes->AuthSuccess([&](int result) {
-							CallDoLoop(result);
+							if (result < -1 && m_error_handler)
+								m_error_handler(result);
 							});
 					}
 					else {
 						LOG(LOG_ERROR) << "User with id " << auth_info.user_id << " is not registered and could not be created.";
 						// Send auth failure
-						m_next_state = CONN_LOGIN;
+						m_state = CONN_LOGIN;
 						m_hermes->AuthFailure([&](int result) {
 							m_hermes->LoginRetry();
 							},
@@ -236,74 +222,7 @@ void ClientConnection::Login(std::string method, std::string username, std::vect
 	}
 }
 
-int ClientConnection::DoLoginCompleted(int result)
-{
-	if (result < 0)
-		return result;
-
-	m_next_state = CONN_AVATAR;
-	return result;
-}
-
-int ClientConnection::DoLobby(int result)
-{
-	m_next_state = CONN_LOBBY;
-
-	if (result <= 0) {
-		// call error handler - this could destroy |this|
-		if (m_error_handler)
-			m_error_handler(result);
-		return -1;
-	}
-
-	m_hermes->onMessage([&](std::unique_ptr<Hermes::Message> msg) {
-		
-		Math::Vector3 position = { 128.0f, 0.0f, 10.0f }; // default position
-		AccountService* acc_srv;
-		Hermes::MessageCreateAvatar* msg_avatar;
-		Rhea::Avatar* avatar;
-
-		switch (msg->getOpcode()) {
-		case HERMES_MSG_GET_AVATARLIST:
-			m_next_state = CONN_AVATAR;
-			CallDoLoop(1);
-			break;
-		case HERMES_MSG_CREATEAVATAR:
-			acc_srv = doCast<AccountService>(m_app->getService("accounts"));
-			msg_avatar = static_cast<Hermes::MessageCreateAvatar*>(msg.get());
-			avatar = new Rhea::Avatar(msg_avatar->avatar.name, "//meworla/avatar");
-			avatar->setModel(msg_avatar->avatar.type_name);			
-			avatar->setPosition(position);
-			acc_srv->CreateAvatar(m_user, avatar, [&, avatar](int err) {
-				if (!err) {
-					// enter the world with this avatar
-					return EnterWorld(avatar);
-				}
-				else {
-					// avatar could not be added - delete it
-					delete avatar;
-					Hermes::MessageEnterFailed errmsg(HERMES_MSG_CREATEAVATAR_FAILED);
-					errmsg.reason = err;
-					m_next_state = CONN_LOBBY;
-					return m_hermes->sendMessage((Hermes::Message*)&errmsg, [&](int err) {
-						CallDoLoop(err);
-						});
-				}
-				});
-			break;
-		case HERMES_MSG_ENTERWORLD:
-			m_cur_msg = std::move(msg);
-			m_next_state = CONN_AVATAR_COMPLETED;
-			CallDoLoop(1);
-			break;
-		default:
-			LOG(LOG_DEBUG) << "Wrong message in DoLobby: " << msg->getOpcode();
-		}
-		});
-	return -1;
-}
-
-int ClientConnection::DoAvatar(int result)
+void ClientConnection::onGetAvatarListMessage(Hermes::Message* msg)
 {
 	// send avatar list (which may be empty)
 
@@ -315,38 +234,75 @@ int ClientConnection::DoAvatar(int result)
 		msg_al.addAvatar(name, model);
 		return true;
 		});
-	int ret = m_hermes->sendMessage(&msg_al, [&](int result) {
-		m_next_state = CONN_LOBBY;
-		CallDoLoop(result);
-		});
-	return ret;
+
+	m_state = CONN_LOBBY;
+	m_hermes->sendMessage(&msg_al, [&](int err) {
+		if (err <0 && m_error_handler)
+			m_error_handler(err);
+	});
 }
 
-int ClientConnection::DoAvatarCompleted(int result)
+void ClientConnection::onCreateAvatarMessage(Hermes::MessageCreateAvatar* msg_avatar)
 {
-	if (result <= 0)
-		return result;
+	Math::Vector3 position = { 128.0f, 0.0f, 10.0f }; // default position
+	AccountService* acc_srv;
+	Rhea::Avatar* avatar;
 
-	// add avatar to scene
-	Hermes::MessageEnterWorld* msgc = (Hermes::MessageEnterWorld*)m_cur_msg.get();
+	acc_srv = doCast<AccountService>(m_app->getService("accounts"));
+	avatar = new Rhea::Avatar(msg_avatar->avatar.name, "//meworla/avatar");
+	avatar->setModel(msg_avatar->avatar.type_name);
+	avatar->setPosition(position);
+	acc_srv->CreateAvatar(m_user, avatar, [&, avatar](int err) {
+		if (!err) {
+			// enter the world with this avatar
+			return EnterWorld(avatar);
+		}
+		else {
+			// avatar could not be added - delete it
+			delete avatar;
+			Hermes::MessageEnterFailed errmsg(HERMES_MSG_CREATEAVATAR_FAILED);
+			errmsg.reason = err;
+			m_state = CONN_LOBBY;
+			return m_hermes->sendMessage((Hermes::Message*)&errmsg, [&](int err) {
+				if (err < -1 && m_error_handler)
+					m_error_handler(err);
+				});
+		}
+		});
+}
 
+void ClientConnection::onEnterWorldMessage(Hermes::MessageEnterWorld* msg)
+{
 	// get the avatar with that name
 	Rhea::Avatar* avatar = nullptr;
 	if (m_user) {
-		avatar = m_user->getAvatar(msgc->avatar);
+		avatar = m_user->getAvatar(msg->avatar);
 	}
 	if (!avatar) {
-		LOG(LOG_ERROR) << "Avatar " << msgc->avatar << " not found";
+		LOG(LOG_ERROR) << "Avatar " << msg->avatar << " not found";
 		// send error message
 		Hermes::MessageEnterFailed errmsg;
 		errmsg.reason = 1;
-		m_next_state = CONN_LOBBY;
-		return m_hermes->sendMessage((Hermes::Message*)&errmsg, [&](int err) {
-			CallDoLoop(err);
+		m_state = CONN_LOBBY;
+		m_hermes->sendMessage((Hermes::Message*)&errmsg, [&](int err) {
+			if (err < 0 && m_error_handler)
+				m_error_handler(err);
 			});
 	}
 
-	return EnterWorld(avatar);
+	EnterWorld(avatar);
+}
+
+void ClientConnection::onMoveMessage(Hermes::MessageMove* move_msg)
+{
+	m_player->setMovement(Math::Vector3(move_msg->move[0], move_msg->move[1], move_msg->move[2]));
+	DLOG(LOG_DEBUG) << "MoveMsg received: " << move_msg->move[0] << ", " << move_msg->move[1] << ", " << move_msg->move[2];
+}
+
+void ClientConnection::onTurnMessage(Hermes::MessageTurn* turn_msg)
+{
+	m_player->setTurn(turn_msg->turn);
+	DLOG(LOG_DEBUG) << "TurnMsg received: " << turn_msg->turn;
 }
 
 int ClientConnection::EnterWorld(Rhea::Avatar* avatar)
@@ -359,7 +315,8 @@ int ClientConnection::EnterWorld(Rhea::Avatar* avatar)
 		Hermes::MessageEnterFailed errmsg;
 		errmsg.reason = 2;
 		return m_hermes->sendMessage((Hermes::Message*)&errmsg, [&](int err) {
-			CallDoLoop(err);
+			if (err < 0 && m_error_handler)
+				m_error_handler(err);
 			});
 	}
 
@@ -450,78 +407,20 @@ int ClientConnection::EnterWorld(Rhea::Avatar* avatar)
 	server_srv->broadcast((Hermes::Message*)&msg, this);
 
 	// enter normal state
-	m_next_state = CONN_MESSAGE;	
+	m_state = CONN_IN_WORLD;	
 		
 	return 0;
-}
-
-int ClientConnection::DoMessage(int result)
-{
-	if (result < 0)
-		return result;
-
-	// onMessage callback handler is called for each message received
-	m_hermes->onMessage([&](std::unique_ptr<Hermes::Message> msg) {		
-			switch (msg->base.opcode) {
-			case HERMES_MSG_MOVE:
-			{
-				Hermes::MessageMove* move_msg = (Hermes::MessageMove*)(msg.get());
-				m_player->setMovement(Math::Vector3(move_msg->move[0], move_msg->move[1], move_msg->move[2]));
-				DLOG(LOG_DEBUG) << "MoveMsg received: " << move_msg->move[0] << ", " << move_msg->move[1] << ", " << move_msg->move[2];
-				
-			}
-			break;
-			case HERMES_MSG_TURN:
-			{
-				Hermes::MessageTurn* turn_msg = (Hermes::MessageTurn*)(msg.get());
-				m_player->setTurn(turn_msg->turn);
-				DLOG(LOG_DEBUG) << "TurnMsg received: " << turn_msg->turn;
-			}
-			break;
-			}
-		});
-	return -1;
-}
-
-int ClientConnection::DoMessageCompleted(int result)
-{
-	return 0;
-}
-
-int ClientConnection::DoClose(int result)
-{
-	if (result < 0)
-		return result;
-
-	// close the stream
-	m_next_state = CONN_CLOSE_COMPLETED;
-	m_hermes.reset();
-
-	return result;
-}
-
-int ClientConnection::DoCloseCompleted(int result)
-{
-	m_next_state = CONN_NONE;
-	if (result >= 0 && m_error_handler) {
-		m_error_handler(result);
-		// this may destroy |this|
-		return -1;
-	}
-	return result;
 }
 
 void ClientConnection::StartConnectedUser(User* user)
 {
 	m_user = user;
-	m_next_state = CONN_LOBBY;
-	DoLoop(0);
+	m_state = CONN_LOBBY;
 }
 
 // helper for testing
 void ClientConnection::StartEstablishedConnection(Rhea::Item* player)
 {
 	m_player = player;
-	m_next_state = CONN_MESSAGE;
-	DoLoop(0);
+	m_state = CONN_IN_WORLD;
 }

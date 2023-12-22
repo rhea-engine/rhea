@@ -9,7 +9,7 @@ namespace Hermes
 		static uint16_t lastopcode = 0;
 		static uint16_t repeat = 0;
 		if (lastopcode != message->base.opcode) {
-			DLOG(LOG_DEBUG) << "[" << m_id << "] Sending msg " << message->base.opcode << ". Size=" << m_outbuf->Remaining();
+			DLOG(LOG_DEBUG) << "[" << m_id << "] Sending msg " << message->base.opcode << " (" << m_msg_factory.getMessageName(message->getOpcode()) << "). Size=" << m_outbuf->Remaining();
 			if (repeat)
 				DLOG(LOG_DEBUG) << "[" << m_id << "] repeated " << repeat << " times";
 			lastopcode = message->base.opcode;
@@ -100,16 +100,16 @@ namespace Hermes
 	{
 		if (result <= 0) {
 			// call handler with error code - this could destroy |this|			
-			if (result != -1)
+			if (result != -1 && m_err_handler)
 				m_err_handler(result);
 			return -1;
 		}
 
 		// check if message is received completely
-		Message* msg;
-		msg = m_msg_factory->getMessage(m_inbuf.get());
+		std::unique_ptr<Message> msg;
+		msg.reset(m_msg_factory.getMessage(m_inbuf.get()));
 		if (msg) {
-			LOG(LOG_DEBUG) << "[" << m_id << "] Message received: " << msg->base.opcode << " size=" << msg->base.size;
+			LOG(LOG_DEBUG) << "[" << m_id << "] Message received: " << msg->getOpcode() << " (" << m_msg_factory.getMessageName(msg->getOpcode()) << ") size=" << msg->base.size;
 			int res = 0;
 			if (m_inbuf->Remaining()) {
 				m_next_state = HERMES_STATE::HERMES_READMESSAGE_COMPLETED;
@@ -119,9 +119,17 @@ namespace Hermes
 				m_next_state = HERMES_STATE::HERMES_READMESSAGE;
 				res = 0;
 			}
-			// the message handler must not destroy |this|
-			// it may set next state to 'close' though
-			m_message_handler(msg);
+			// filter message
+			if (m_msg_factory.filter(msg->getOpcode()))
+			{
+				// the message handler must not destroy |this|
+				// it may set next state to 'close' though
+				if (!m_msg_factory.handle(msg.get()))
+					LOG(LOG_ERROR) << "Unhandled message with id " << msg->getOpcode() << " (" << m_msg_factory.getMessageName(msg->getOpcode()) << ") received.";
+			}
+			else {
+				LOG(LOG_ERROR) << "Message was filtered";
+			}
 			return res;
 		}
 		else {

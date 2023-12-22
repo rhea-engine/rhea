@@ -15,32 +15,68 @@ namespace Hermes
 
 		Hermes::MessageConnect msg;
 		msg.world_name = world_name;
-		m_next_state = HERMES_CONNECT_PENDING;
+		m_state = HERMES_CONNECT_PENDING;
 
-		m_stream->onMessage([&](Message* msg) {
-			m_msg.reset(msg);
-			CallDoLoop(1);
-			});
-
-		int ret = m_stream->sendMessage((Message*)&msg, [&](int err) {
-			if (err < 0) {
-				LOG(LOG_ERROR) << "ClientStream::Connect:sendMessage error=" << err;
-			}
-			CallDoLoop(err);
-			});
-		if (ret >= msg.getSize()) {
-			// synchronous sending - enter loop
-			//ret = DoLoop(ret);
-			DLOG(LOG_DEBUG) << "sync sendMessage";
+		MessageFactory* factory = m_stream->getMessageFactory();
+		if (!factory) {
+			LOG(LOG_ERROR) << "No message factory found";
+			return -2;
 		}
+		
+		factory->registerMessageHandler<MessageConnect>(HERMES_MSG_CONNECTED,
+			[&](uint16_t opcode)->bool {
+				return m_state == HERMES_CONNECT_PENDING;
+			},
+			std::bind(&ClientStream::onConnectedMessage, this, std::placeholders::_1)
+		);
 
-		return ret;
+		// login handling
+		factory->registerMessageHandler<Message>(HERMES_MSG_LOGIN_SUCCEEDED,
+			[&](uint16_t opcode)->bool {
+				return m_state == HERMES_LOGIN_PENDING;
+			},
+			std::bind(&ClientStream::onLoginMessage, this, std::placeholders::_1)
+		);
+
+		factory->registerMessageHandler<MessageLoginFailed>(HERMES_MSG_LOGIN_FAILED,
+			[&](uint16_t opcode)->bool {
+				return m_state == HERMES_LOGIN_PENDING;
+			},
+			std::bind(&ClientStream::onLoginFailureMessage, this, std::placeholders::_1)
+		); 
+			
+		factory->registerMessageHandler<MessageLoginFailed>(HERMES_MSG_CREATE_USER_FAILED,
+				[&](uint16_t opcode)->bool {
+					return m_state == HERMES_LOGIN_PENDING;
+				},
+				std::bind(&ClientStream::onLoginFailureMessage, this, std::placeholders::_1)
+			);
+		// error handling
+		factory->registerMessageHandler<Message>(HERMES_ERR_GENERAL,
+			nullptr,
+			std::bind(&ClientStream::onErrorMessage, this, std::placeholders::_1)
+		);
+		factory->registerMessageHandler<Message>(HERMES_ERR_PROTOCOL_VERSION,
+			nullptr,
+			std::bind(&ClientStream::onErrorMessage, this, std::placeholders::_1)
+		);
+
+		// start the stream message loop		
+
+		m_stream->Start();
+
+		return m_stream->sendMessage((Message*)&msg, [&](int err) {
+			if (err < 0 && m_err_handler) {
+				LOG(LOG_ERROR) << "ClientStream::Connect:sendMessage error=" << err;
+				m_err_handler(err);
+			}
+			});
 	}
 
 	int ClientStream::Loop()
 	{
-		m_next_state = HERMES_READMESSAGE;
-		return DoLoop(1);
+		m_state = HERMES_READMESSAGE;
+		return -1;
 	}
 
 	int ClientStream::Login(std::string method, std::string username, std::vector<std::string> secrets, LoginHandler handler)
@@ -56,16 +92,12 @@ namespace Hermes
 		msg.auth_method = method;
 		msg.user_name = username;
 		msg.secrets = secrets;
-		m_next_state = HERMES_LOGIN_PENDING;
+		m_state = HERMES_LOGIN_PENDING;
 
-		int ret = m_stream->sendMessage((Message*)&msg, [&](int err) {
-			CallDoLoop(err);
+		return m_stream->sendMessage((Message*)&msg, [&](int err) {
+			if (err < -1 && m_err_handler)
+				m_err_handler(err);
 			});
-		if (ret >= msg.getSize()) {
-			// synchronous sending - enter loop
-			ret = DoLoop(ret);
-		}
-		return ret;
 	}
 
 	int ClientStream::Register(std::string method, std::string username, std::string name, std::string ext_id, std::vector<std::string> secrets, LoginHandler handler)
@@ -86,17 +118,12 @@ namespace Hermes
 			msg.name = username;
 		msg.ext_id = ext_id;
 		msg.secrets = secrets;
-		m_next_state = HERMES_LOGIN_PENDING;
+		m_state = HERMES_LOGIN_PENDING;
 
-		int ret = m_stream->sendMessage((Message*)&msg, [&](int err) {
-			CallDoLoop(err);
+		return m_stream->sendMessage((Message*)&msg, [&](int err) {
+			if (err < -1 && m_err_handler)
+				m_err_handler(err);
 			});
-		if (ret >= msg.getSize()) {
-			// synchronous sending - enter loop
-			ret = DoLoop(ret);
-		}
-
-		return ret;
 	}
 
 	int ClientStream::CreateAvatar(std::string name, std::string type_name)
@@ -105,9 +132,12 @@ namespace Hermes
 		msg.avatar.name = name;
 		msg.avatar.type_name = type_name;
 
-		m_next_state = HERMES_READMESSAGE;
+		m_state = HERMES_READMESSAGE;
 
-		return m_stream->sendMessage((Message*)&msg, nullptr);
+		return m_stream->sendMessage((Message*)&msg, [&](int err) {
+			if (err < -1 && m_err_handler)
+				m_err_handler(err);
+			});
 	}
 
 	int ClientStream::sendMessage(Message* message, Stream::CompletionHandler handler)
@@ -121,171 +151,41 @@ namespace Hermes
 		m_stream->Close();
 	}
 
-	void ClientStream::onMessage(MessageHandler handler)
-	{
-		m_message_handler = handler;
-	}
-
 	void ClientStream::onError(CompletionHandler handler)
 	{
 		m_err_handler = handler;
 	}
 	
-	int ClientStream::DoLoop(int result)
+	void ClientStream::onConnectedMessage(Message* msg)
 	{
-		do
-		{
-			m_state = m_next_state;
-			m_next_state = HERMES_NONE;
-
-			switch (m_state)
-			{
-			case HERMES_CONNECT_PENDING:
-				result = DoConnectPending(result);
-				break;
-			case HERMES_CONNECT_COMPLETED:
-				result = DoConnectCompleted(result);
-				break;
-			case HERMES_LOGIN_PENDING:
-				result = DoLoginPending(result);
-				break;
-			case HERMES_LOGIN_COMPLETED:
-				result = DoLoginCompleted(result);
-				break;
-			case HERMES_READMESSAGE:
-				result = DoReadMessage(result);
-				break;
-			case HERMES_READMESSAGE_COMPLETED:
-				result = DoReadMessageCompleted(result);
-			}
-
-		} while (result != Psio::Network::IO_PENDING && m_state != HERMES_NONE);
-
-		return result;
+		m_oncompletion_handler(0);
 	}
 
-	void ClientStream::CallDoLoop(int result)
+	void ClientStream::onLoginMessage(Message* msg)
 	{
-		int res = DoLoop(result);
-		if (res != Psio::Network::Err::IO_PENDING)
-			DLOG(LOG_DEBUG) << "ClientStream::CallDoLoop: " << res;
-		//	if ((res != Network::Err::IO_PENDING) && (m_message_handler != NULL))
-		//		m_message_handler(res, result);
+		m_state = HERMES_READMESSAGE;
+		if (m_login_handler)
+			m_login_handler(0);
 	}
 
-	int ClientStream::DoConnectPending(int result)
+	void ClientStream::onLoginFailureMessage(MessageLoginFailed* msg)
 	{
-		if (result < 0)
-			return result;
-
-		m_next_state = HERMES_STATE::HERMES_CONNECT_COMPLETED;
-
-		return m_stream->Start();
+		if (m_login_handler)
+			m_login_handler(msg->base.opcode);
 	}
 
-	int ClientStream::DoConnectCompleted(int result)
+	void ClientStream::onErrorMessage(Message* msg)
 	{
-		if (result < 0)
-			return result;
-
-		// check if message is received completely
-		if (!m_msg) {
-			m_next_state = HERMES_CONNECT_PENDING;
-			return result;
-		}
-		std::unique_ptr<Message> msg(std::move(m_msg));
-
-		// message received - what is it
-		switch (msg->base.opcode) {
-		case HERMES_ERR_GENERAL:
-		case HERMES_ERR_PROTOCOL_VERSION:
+		switch (m_state) {
+		case HERMES_CONNECT_PENDING:
 			m_oncompletion_handler(msg->base.opcode);
 			break;
-		case HERMES_MSG_CONNECTED:
-			m_oncompletion_handler(0);
-			break;
-		}
-		// exit DoLoop - wait for next instruction
-		return -1;
-	}
-
-	int ClientStream::DoLoginPending(int result)
-	{
-		if (result < 0)
-			return result;
-
-		m_next_state = HERMES_STATE::HERMES_LOGIN_COMPLETED;
-
-		return -1;
-	}
-
-	int ClientStream::DoLoginCompleted(int result)
-	{
-		if (result < 0)
-			return result;
-
-		// check if message is received completely
-		if (!m_msg) {
-			m_next_state = HERMES_LOGIN_PENDING;
-			return result;
-		}
-		std::unique_ptr<Message> msg(std::move(m_msg));
-
-		// message received - what is it
-		switch (msg->base.opcode) {
-		case HERMES_ERR_GENERAL:
-		case HERMES_PROTOCOL_VERSION:
+		case HERMES_LOGIN_PENDING:
 			if (m_err_handler)
 				m_err_handler(msg->base.opcode);
 			else
 				m_login_handler(msg->base.opcode);
 			break;
-		case HERMES_MSG_LOGIN_FAILED:
-		case HERMES_MSG_CREATE_USER_FAILED:
-			if (m_login_handler)
-				m_login_handler(msg->base.opcode);
-			break;
-		case HERMES_MSG_LOGIN_SUCCEEDED:
-			if (m_login_handler)
-				m_login_handler(0);
-			break;
-		}
-		// exit DoLoop - wait for next instruction
-		return -1;
-	}
-
-	int ClientStream::DoReadMessage(int result)
-	{
-		if (result < 0)
-			return result;
-
-		m_next_state = HERMES_STATE::HERMES_READMESSAGE_COMPLETED;
-
-		return -1;
-	}
-
-	int ClientStream::DoReadMessageCompleted(int result)
-	{
-		if (result < 0) {
-			// this could destroy |this|
-			m_message_handler(nullptr, result);
-			return -1;
-		}
-
-		// check if message is received completely
-		if (m_msg) {
-			std::unique_ptr<Message> msg(std::move(m_msg));
-
-			m_next_state = HERMES_STATE::HERMES_READMESSAGE;
-			
-			// the message handler must not destroy |this|
-			// it may set next state to 'close' though
-			m_message_handler(std::move(msg), 0);
-			return 0;
-		}
-		else {
-			m_next_state = HERMES_STATE::HERMES_READMESSAGE;
-			return 0;
 		}
 	}
 }

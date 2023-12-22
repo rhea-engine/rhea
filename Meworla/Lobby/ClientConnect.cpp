@@ -37,7 +37,7 @@ namespace Meworla
 			m_trust_w->hide();
 			m_info_w->show();
 			m_client->setAuth("trust", m_username, std::vector<std::string>());
-			m_client->start();
+			m_client->Start();
 		}
 		return false;
 	}
@@ -155,12 +155,12 @@ namespace Meworla
 		if (credential) {
 			m_client->setAuth(credential->method, credential->username, credential->secrets);
 			delete credential;
-			m_client->start();
+			m_client->Start();
 		}
 		else {
 			// try to use anonymous
 			m_client->setAuth("trust", "anonymous", std::vector<std::string>());
-			m_client->start();
+			m_client->Start();
 		}
 	}
 

@@ -10,6 +10,7 @@
 #include <Psio/Log.h>
 #include <Opcode.h>
 #include <MessageFactory.h>
+#include <Messages/MessageConnect.h>
 
 // test Hermes server and client stream
 
@@ -107,6 +108,7 @@ namespace Hermes
 			m_network = std::make_unique<Network>(nullptr);
 			m_network->Init();
 			m_factory = std::make_unique<Hermes::MessageFactory>();
+			m_factory->registerCoreMessages();
 		}
 
 		~StreamTest()
@@ -129,7 +131,8 @@ namespace Hermes
 		std::unique_ptr<Psio::StreamSocket> m_sock;
 	};
 
-	// test the fake server
+	// tests
+
 	TEST_F(StreamTest, SendSimpleMessage) {
 		MemorySocket* sock = new MemorySocket();
 		m_sock.reset(sock);
@@ -150,22 +153,24 @@ namespace Hermes
 		EXPECT_EQ(buf->Remaining(), 4);
 	}
 
-	TEST_F(StreamTest, ReadOneSimpleMessage) {
+	TEST_F(StreamTest, ReadConnectMessage) {
 		MemorySocket* sock = new MemorySocket();
 		m_sock.reset(sock);
 
 		m_stream = std::make_unique<Hermes::Stream>(std::move(m_sock), m_factory.get());
 
-		std::unique_ptr<Hermes::Message> msg = std::make_unique<Hermes::Message>(1);
+		std::unique_ptr<Hermes::MessageConnect> msg = std::make_unique<Hermes::MessageConnect>();
+		
+		testing::MockFunction<void(Hermes::MessageConnect* msg)> mock_connect_handler;
 
-		testing::MockFunction<void(Hermes::Message* msg)> mock_handler;
-
-		EXPECT_CALL(mock_handler, Call(_))
+		EXPECT_CALL(mock_connect_handler, Call(_))
 			.Times(1);
 
 		int send_ret = m_stream->sendMessage(msg.get(), nullptr);
 
-		m_stream->onMessage(mock_handler.AsStdFunction());
+		m_stream->getMessageFactory()->registerMessageHandler<Hermes::MessageConnect>(HERMES_MSG_CONNECT, 
+			nullptr,
+			mock_connect_handler.AsStdFunction());
 
 		int ret = m_stream->Start();
 		EXPECT_EQ(ret, -1);
@@ -179,18 +184,14 @@ namespace Hermes
 
 		std::unique_ptr<Hermes::Message> msg = std::make_unique<Hermes::Message>(1);
 
-		testing::MockFunction<void(Hermes::Message* msg)> mock_handler;
 		testing::MockFunction<void(int err)> mock_error_handler;
 
-		EXPECT_CALL(mock_handler, Call(_))
-			.Times(0);
 		EXPECT_CALL(mock_error_handler, Call(_))
 			.Times(1);
 
 		// force an error
 		sock->m_error = -7;
 
-		m_stream->onMessage(mock_handler.AsStdFunction());
 		m_stream->onConnectionError(mock_error_handler.AsStdFunction());
 
 		int ret = m_stream->Start();
@@ -205,12 +206,9 @@ namespace Hermes
 
 		std::unique_ptr<Hermes::Message> msg = std::make_unique<Hermes::Message>(1);
 
-		testing::MockFunction<void(Hermes::Message* msg)> mock_handler;
 		testing::MockFunction<void(int err)> mock_error_handler;
 		testing::MockFunction<void(int err)> mock_closed_handler;
 
-		EXPECT_CALL(mock_handler, Call(_))
-			.Times(0);
 		EXPECT_CALL(mock_error_handler, Call(_))
 			.Times(1);
 		EXPECT_CALL(mock_closed_handler, Call(_))
@@ -219,7 +217,6 @@ namespace Hermes
 		// force an error
 		sock->m_error = 0;
 
-		m_stream->onMessage(mock_handler.AsStdFunction());
 		m_stream->onConnectionError(mock_error_handler.AsStdFunction());
 		m_stream->onClosed(mock_closed_handler.AsStdFunction());
 		

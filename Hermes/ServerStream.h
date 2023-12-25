@@ -6,28 +6,29 @@
 #include "Messages/MessageLogin.h"
 #include "Messages/MessageCreateUser.h"
 
+
 namespace Hermes
 {
-	class ServerStream
+	class ServerStream 
 	{
 	public:
-		ServerStream(std::unique_ptr<Psio::StreamSocket> sock, MessageFactory* msg_factory) :
-			ServerStream(std::make_unique<Stream>(std::move(sock), msg_factory))
-		{}
-		ServerStream(std::unique_ptr<Stream> stream) :
+		ServerStream(Stream* stream) :
 			m_state(HERMES_NONE),
-			m_stream(std::move(stream))
+			m_stream(stream)
 		{}
 
 		typedef std::function<void(std::string method, std::string username, std::string name, std::string ext_id, std::vector<std::string> secrets)> CreateHandler;
 		typedef std::function<void(std::string method, std::string username, std::vector<std::string> secrets)> LoginHandler;
 		typedef std::function<void(std::string name, std::string type_name)> AvatarCreateHandler;
 
+		// initialization
+		void Initialize();
+
 		// state handling
 
-		int Connect();
+		void Start() { m_state = HERMES_CONNECT_PENDING; };
+		void Stop() { m_state = HERMES_NONE; }
 		int LoginRetry();
-		void Close();
 
 		// sending messages
 		// send a message
@@ -47,7 +48,7 @@ namespace Hermes
 		MessageFactory* getMessageFactory() { return m_stream->getMessageFactory(); }
 
 	protected:
-		std::unique_ptr<Stream> m_stream;
+		Stream* m_stream;
 		std::unique_ptr<Message> m_msg;
 
 		// state Handling

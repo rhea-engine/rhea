@@ -9,27 +9,14 @@
 namespace Hermes
 {
 
-	int ClientStream::Connect(std::string world_name, CompletionHandler handler)
+	void ClientStream::Initialize()
 	{
-		m_oncompletion_handler = handler;
-
-		Hermes::MessageConnect msg;
-		msg.world_name = world_name;
-		m_state = HERMES_CONNECT_PENDING;
-
 		MessageFactory* factory = m_stream->getMessageFactory();
 		if (!factory) {
 			LOG(LOG_ERROR) << "No message factory found";
-			return -2;
+			return;
 		}
 		
-		factory->registerMessageHandler<MessageConnect>(HERMES_MSG_CONNECTED,
-			[&](uint16_t opcode)->bool {
-				return m_state == HERMES_CONNECT_PENDING;
-			},
-			std::bind(&ClientStream::onConnectedMessage, this, std::placeholders::_1)
-		);
-
 		// login handling
 		factory->registerMessageHandler<Message>(HERMES_MSG_LOGIN_SUCCEEDED,
 			[&](uint16_t opcode)->bool {
@@ -51,26 +38,6 @@ namespace Hermes
 				},
 				std::bind(&ClientStream::onLoginFailureMessage, this, std::placeholders::_1)
 			);
-		// error handling
-		factory->registerMessageHandler<Message>(HERMES_ERR_GENERAL,
-			nullptr,
-			std::bind(&ClientStream::onErrorMessage, this, std::placeholders::_1)
-		);
-		factory->registerMessageHandler<Message>(HERMES_ERR_PROTOCOL_VERSION,
-			nullptr,
-			std::bind(&ClientStream::onErrorMessage, this, std::placeholders::_1)
-		);
-
-		// start the stream message loop		
-
-		m_stream->Start();
-
-		return m_stream->sendMessage((Message*)&msg, [&](int err) {
-			if (err < 0 && m_err_handler) {
-				LOG(LOG_ERROR) << "ClientStream::Connect:sendMessage error=" << err;
-				m_err_handler(err);
-			}
-			});
 	}
 
 	int ClientStream::Loop()
@@ -125,21 +92,7 @@ namespace Hermes
 				m_err_handler(err);
 			});
 	}
-
-	int ClientStream::CreateAvatar(std::string name, std::string type_name)
-	{
-		Hermes::MessageCreateAvatar msg(HERMES_MSG_CREATEAVATAR);
-		msg.avatar.name = name;
-		msg.avatar.type_name = type_name;
-
-		m_state = HERMES_READMESSAGE;
-
-		return m_stream->sendMessage((Message*)&msg, [&](int err) {
-			if (err < -1 && m_err_handler)
-				m_err_handler(err);
-			});
-	}
-
+	
 	int ClientStream::sendMessage(Message* message, Stream::CompletionHandler handler)
 	{
 		// forward to stream
@@ -172,20 +125,5 @@ namespace Hermes
 	{
 		if (m_login_handler)
 			m_login_handler(msg->base.opcode);
-	}
-
-	void ClientStream::onErrorMessage(Message* msg)
-	{
-		switch (m_state) {
-		case HERMES_CONNECT_PENDING:
-			m_oncompletion_handler(msg->base.opcode);
-			break;
-		case HERMES_LOGIN_PENDING:
-			if (m_err_handler)
-				m_err_handler(msg->base.opcode);
-			else
-				m_login_handler(msg->base.opcode);
-			break;
-		}
 	}
 }

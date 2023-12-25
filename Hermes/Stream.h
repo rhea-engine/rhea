@@ -15,6 +15,7 @@ namespace Hermes
 			m_state(HERMES_NONE),
 			m_next_state(HERMES_NONE),
 			m_msg_factory(*msg_factory),
+			m_connected(false),
 			m_inbuf(std::make_unique<Psio::IOBuffer>(64 * 1024)),
 			m_outbuf(std::make_unique<Psio::IOBuffer>(64 * 1024))
 		{}
@@ -30,6 +31,7 @@ namespace Hermes
 		// start the message reading loop
 		virtual int Start();
 		int Restart();
+		int Connect(std::string world_name, Stream::CompletionHandler handler);
 
 		// close the stream
 		virtual void Close();
@@ -58,6 +60,7 @@ namespace Hermes
 
 		CompletionHandler m_err_handler;
 		CompletionHandler m_closed_handler;
+		CompletionHandler m_oncompletion_handler;
 
 		int DoLoop(int result);
 		void CallDoLoop(int result);
@@ -65,8 +68,14 @@ namespace Hermes
 		int DoReadMessageCompleted(int result);
 		int DoClose(int result);
 
+		void onConnectedMessage(Message* msg);
+		// protocol error message
+		void onErrorMessage(Message* msg);
+
 		HERMES_STATE m_state;
 		HERMES_STATE m_next_state;
+
+		bool m_connected;
 	};
 }
 

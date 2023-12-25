@@ -9,17 +9,17 @@ namespace Hermes
 	class ClientStream
 	{
 	public:
-		ClientStream(std::unique_ptr<Psio::StreamSocket> sock, MessageFactory* msg_factory) :
-			ClientStream(std::make_unique<Stream>(std::move(sock), msg_factory))
-		{}
-		ClientStream(std::unique_ptr<Stream> stream) :
+		ClientStream(Stream* stream) :
 			m_state(HERMES_NONE),
-			m_stream(std::move(stream))
+			m_stream(stream)
 		{}
 
 		// state handling
-		int Connect(std::string world_name, Stream::CompletionHandler handler);
+		void Initialize();
 		int Loop();
+
+		void Start() { m_state = HERMES_LOGIN_PENDING; }
+		void Stop() { m_state = HERMES_NONE; }
 
 		typedef std::function<void(int)> LoginHandler;
 		typedef std::function<void(int)> CompletionHandler;
@@ -28,8 +28,6 @@ namespace Hermes
 
 		int Login(std::string method, std::string username, std::vector<std::string> secrets, LoginHandler handler);
 		int Register(std::string method, std::string username, std::string name, std::string ext_id, std::vector<std::string> secrets, LoginHandler handler);
-
-		int CreateAvatar(std::string name, std::string type_name);
 
 		virtual int sendMessage(Message* message, Stream::CompletionHandler handler);
 		void Close();
@@ -41,13 +39,12 @@ namespace Hermes
 		MessageFactory* getMessageFactory() { return m_stream->getMessageFactory(); }
 
 	protected:
-		std::unique_ptr<Stream> m_stream;
+		Stream* m_stream;
 		std::unique_ptr<Message> m_msg;
 
 		// state Handling
 		enum HERMES_STATE {
 			HERMES_NONE,
-			HERMES_CONNECT_PENDING,
 			HERMES_LOGIN_PENDING,
 			HERMES_SEND_SETUP,
 			HERMES_READMESSAGE,
@@ -62,9 +59,6 @@ namespace Hermes
 
 		// login messages
 		void onLoginFailureMessage(MessageLoginFailed* msg);
-
-		// error message
-		void onErrorMessage(Message* msg);
 
 		CompletionHandler m_oncompletion_handler;
 		LoginHandler m_login_handler;

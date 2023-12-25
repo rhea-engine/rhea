@@ -1,5 +1,6 @@
 #include "Stream.h"
 #include <Psio/Log.h>
+#include <Hermes/Messages/MessageConnect.h>
 
 namespace Hermes
 {
@@ -9,9 +10,9 @@ namespace Hermes
 		static uint16_t lastopcode = 0;
 		static uint16_t repeat = 0;
 		if (lastopcode != message->base.opcode) {
-			DLOG(LOG_DEBUG) << "[" << m_id << "] Sending msg " << message->base.opcode << " (" << m_msg_factory.getMessageName(message->getOpcode()) << "). Size=" << m_outbuf->Remaining();
 			if (repeat)
-				DLOG(LOG_DEBUG) << "[" << m_id << "] repeated " << repeat << " times";
+				DLOG(LOG_DEBUG) << "[" << m_id << "] Msg " << lastopcode << " repeated " << repeat << " times";
+			DLOG(LOG_DEBUG) << "[" << m_id << "] Sending msg " << message->base.opcode << " (" << m_msg_factory.getMessageName(message->getOpcode()) << "). Size=" << m_outbuf->Remaining();
 			lastopcode = message->base.opcode;
 			repeat = 0;
 		}
@@ -42,6 +43,49 @@ namespace Hermes
 	int Stream::Restart()
 	{
 		return DoLoop(1);
+	}
+
+	int Stream::Connect(std::string world_name, CompletionHandler handler)
+	{
+		m_oncompletion_handler = handler;
+
+		m_msg_factory.registerMessageHandler<Message>(HERMES_MSG_CONNECTED,
+			[&](uint16_t opcode)->bool {
+				return !m_connected;
+			},
+			std::bind(&Stream::onConnectedMessage, this, std::placeholders::_1)
+		);
+		// error handling
+		m_msg_factory.registerMessageHandler<Message>(HERMES_ERR_GENERAL,
+			nullptr,
+			std::bind(&Stream::onErrorMessage, this, std::placeholders::_1)
+		);
+		m_msg_factory.registerMessageHandler<Message>(HERMES_ERR_PROTOCOL_VERSION,
+			nullptr,
+			std::bind(&Stream::onErrorMessage, this, std::placeholders::_1)
+		);
+
+		Hermes::MessageConnect msg;
+		msg.world_name = world_name;
+
+		m_next_state = HERMES_READMESSAGE;
+
+		Psio::SocketAddress* addr = m_sock->getRemoteAddress();
+		if (addr)
+			m_id = addr->GetHost() + ":" + std::to_string(addr->GetPort());
+		else
+			m_id = "remote";
+
+		int ret = sendMessage((Message*)&msg, [&](int err) {
+			if (err < 0 && m_err_handler) {
+				LOG(LOG_ERROR) << "ClientStream::Connect:sendMessage error=" << err;
+				m_err_handler(err);
+			}
+			});
+		if (ret > -2) {
+			ret = DoLoop(1);
+		}
+		return ret;
 	}
 
 	void Stream::Close()
@@ -141,9 +185,22 @@ namespace Hermes
 	int Stream::DoClose(int result)
 	{
 		m_next_state = HERMES_NONE;
+		m_connected = false;
 		// this may destroy |this|
 		if (m_closed_handler)
-			m_closed_handler(0);
+			m_closed_handler(0);	
 		return Psio::Network::IO_PENDING;
+	}
+
+	void Stream::onConnectedMessage(Message* msg)
+	{
+		m_next_state = HERMES_READMESSAGE;
+		m_connected = true;
+		m_oncompletion_handler(0);
+	}
+
+	void Stream::onErrorMessage(Message* msg)
+	{
+		m_oncompletion_handler(msg->base.opcode);
 	}
 }

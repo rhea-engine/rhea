@@ -43,8 +43,7 @@ public:
 		m_factory->registerCoreMessages();
 
 		m_stream = std::make_unique<StreamMock>(m_factory.get());
-		stream_ptr = m_stream.get();
-		m_hermes = std::make_unique<Hermes::ServerStream>(std::move(m_stream));
+		m_hermes = std::make_unique<Hermes::ServerStream>(m_stream.get());
 	}
 
 	void SetUp() override
@@ -57,14 +56,14 @@ public:
 	}
 
 	std::unique_ptr<StreamMock> m_stream;
-	StreamMock* stream_ptr;
 	std::unique_ptr<Hermes::MessageFactory> m_factory;
 	std::unique_ptr<Hermes::ServerStream> m_hermes;
 };
 
 TEST_F(ServerStreamTest, Connect) {
 
-	m_hermes->Connect();
+	m_hermes->Initialize();
+	m_hermes->Start();
 
 	// client connects
 	Hermes::MessageConnect connect;
@@ -74,13 +73,14 @@ TEST_F(ServerStreamTest, Connect) {
 	m_hermes->getMessageFactory()->handle(&connect);
 
 	// first message should be the HERMES_MSG_CONNECTED message
-	EXPECT_EQ(stream_ptr->messages.size(), 1);
-	EXPECT_EQ(stream_ptr->messages[0].base.opcode, HERMES_MSG_CONNECTED);
+	EXPECT_EQ(m_stream->messages.size(), 1);
+	EXPECT_EQ(m_stream->messages[0].base.opcode, HERMES_MSG_CONNECTED);
 }
 
 TEST_F(ServerStreamTest, ConnectAndLogin) {
 
-	m_hermes->Connect();
+	m_hermes->Initialize();
+	m_hermes->Start();
 
 	// client connects
 	Hermes::MessageConnect connect;
@@ -103,15 +103,16 @@ TEST_F(ServerStreamTest, ConnectAndLogin) {
 	m_hermes->AuthSuccess(nullptr);
 
 	// first message should be the HERMES_MSG_CONNECTED message
-	EXPECT_EQ(stream_ptr->messages.size(), 3);
-	EXPECT_EQ(stream_ptr->messages[0].base.opcode, HERMES_MSG_CONNECTED);
-	EXPECT_EQ(stream_ptr->messages[1].base.opcode, HERMES_MSG_LOGIN_FAILED);
-	EXPECT_EQ(stream_ptr->messages[2].base.opcode, HERMES_MSG_LOGIN_SUCCEEDED);
+	EXPECT_EQ(m_stream->messages.size(), 3);
+	EXPECT_EQ(m_stream->messages[0].base.opcode, HERMES_MSG_CONNECTED);
+	EXPECT_EQ(m_stream->messages[1].base.opcode, HERMES_MSG_LOGIN_FAILED);
+	EXPECT_EQ(m_stream->messages[2].base.opcode, HERMES_MSG_LOGIN_SUCCEEDED);
 }
 
 TEST_F(ServerStreamTest, ConnectAndCreateUser) {
 
-	m_hermes->Connect();
+	m_hermes->Initialize();
+	m_hermes->Start();
 
 	// client connects
 	Hermes::MessageConnect connect;
@@ -136,15 +137,16 @@ TEST_F(ServerStreamTest, ConnectAndCreateUser) {
 	m_hermes->AuthSuccess(nullptr);
 
 	// first message should be the HERMES_MSG_CONNECTED message
-	EXPECT_EQ(stream_ptr->messages.size(), 3);
-	EXPECT_EQ(stream_ptr->messages[0].base.opcode, HERMES_MSG_CONNECTED);
-	EXPECT_EQ(stream_ptr->messages[1].base.opcode, HERMES_MSG_LOGIN_FAILED);
-	EXPECT_EQ(stream_ptr->messages[2].base.opcode, HERMES_MSG_LOGIN_SUCCEEDED);
+	EXPECT_EQ(m_stream->messages.size(), 3);
+	EXPECT_EQ(m_stream->messages[0].base.opcode, HERMES_MSG_CONNECTED);
+	EXPECT_EQ(m_stream->messages[1].base.opcode, HERMES_MSG_LOGIN_FAILED);
+	EXPECT_EQ(m_stream->messages[2].base.opcode, HERMES_MSG_LOGIN_SUCCEEDED);
 }
 
 TEST_F(ServerStreamTest, FailLoginBeforeConnect) {
 
-	m_hermes->Connect();
+	m_hermes->Initialize();
+	m_hermes->Start();
 
 	// client connects
 	Hermes::MessageConnect connect;
@@ -174,7 +176,7 @@ TEST_F(ServerStreamTest, FailLoginBeforeConnect) {
 		m_hermes->getMessageFactory()->handle(&connect);
 
 	// first message should be the HERMES_MSG_CONNECTED message - the others are ignored
-	EXPECT_EQ(stream_ptr->messages.size(), 1);
-	EXPECT_EQ(stream_ptr->messages[0].base.opcode, HERMES_MSG_CONNECTED);
+	EXPECT_EQ(m_stream->messages.size(), 1);
+	EXPECT_EQ(m_stream->messages[0].base.opcode, HERMES_MSG_CONNECTED);
 }
 

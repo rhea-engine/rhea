@@ -12,12 +12,12 @@ using Psio::Network;
 
 namespace Hermes
 {
-	int ServerStream::Connect()
+	void ServerStream::Initialize()
 	{
 		MessageFactory* factory = m_stream->getMessageFactory();
 		if (!factory) {
 			LOG(LOG_ERROR) << "No message factory found";
-			return -2;
+			return;
 		}
 
 		// connect handler
@@ -55,19 +55,13 @@ namespace Hermes
 				m_stream->Close();
 			});
 
-		m_state = HERMES_CONNECT_PENDING;
-		return m_stream->Start();
+		m_state = HERMES_CONNECT_PENDING;		
 	}
 
 	int ServerStream::sendMessage(Message* message, Stream::CompletionHandler handler)
 	{
 		// forward to stream
 		return m_stream->sendMessage(message, handler);
-	}
-
-	void ServerStream::Close()
-	{
-		m_stream->Close();
 	}
 
 	int ServerStream::AuthSuccess(Stream::CompletionHandler handler)

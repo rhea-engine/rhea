@@ -1,22 +1,22 @@
 #ifndef HERMES_OPCODE_H
 #define HERMES_OPCODE_H
 
-#define HERMES_PROTOCOL_VERSION 0x04
+#define HERMES_PROTOCOL_VERSION 0x01
 
-// connection messages
+// connection messages - service 0
 #define HERMES_MSG_NONE 0x00
 #define HERMES_MSG_CONNECT 0x01
 #define HERMES_MSG_CONNECTED 0x02
 #define HERMES_MSG_CLOSE 0x0A
 
-// auth messages
+// auth messages - service 1
 #define HERMES_MSG_LOGIN 0x10
 #define HERMES_MSG_LOGIN_SUCCEEDED 0x11
 #define HERMES_MSG_LOGIN_FAILED 0x12
 #define HERMES_MSG_CREATE_USER 0x13
 #define HERMES_MSG_CREATE_USER_FAILED 0x14
 
-// lobby messages
+// lobby messages - service 2
 #define HERMES_MSG_GET_AVATARLIST 0x20
 #define HERMES_MSG_AVATARLIST 0x21
 #define HERMES_MSG_CREATEAVATAR 0x22
@@ -26,7 +26,7 @@
 #define HERMES_MSG_ENTERWORLD 0x25
 #define HERMES_MSG_ENTER_FAILED 0x26
 
-// world messages
+// world messages - service 3
 #define HERMES_MSG_CREATE 0x30
 #define HERMES_MSG_DESTROY 0x31
 
@@ -35,7 +35,7 @@
 #define HERMES_MSG_TURN 0x34
 #define HERMES_MSG_JUMP 0x35
 
-// error messages
+// error messages - service 15
 #define HERMES_ERR_GENERAL 0xF0
 #define HERMES_ERR_PROTOCOL_VERSION 0xF1
 

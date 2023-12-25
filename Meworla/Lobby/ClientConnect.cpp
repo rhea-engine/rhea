@@ -165,6 +165,7 @@ namespace Meworla
 		m_world_client->Initialize();
 
 		m_world_client->onWorldEnter([&](int err) {
+			m_in_world = true;
 			Rhea::Event ev("world_enter", this);
 			sendEvent("world_enter", &ev);
 			});
@@ -283,6 +284,17 @@ namespace Meworla
 
 	void ClientConnect::doError()
 	{
+		if (m_in_world) {
+			// we are in the world 
+			// we must open the connect scene
+			m_connection_state = 1;
+			m_values["info"] = "Connecting";
+			m_error = 1;
+
+			if (doCast<Rhea::Scene>(m_parent))
+				static_cast<Rhea::Scene*>(m_parent)->show();
+		}
+
 		if (m_info_w)
 			m_info_w->hide();
 		m_values["info"] = "No Connection.";

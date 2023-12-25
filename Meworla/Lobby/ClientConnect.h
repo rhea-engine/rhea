@@ -24,6 +24,7 @@ namespace Meworla
 			m_cred_srv(nullptr),
 			m_trust_w(nullptr),
 			m_register_w(nullptr),
+			m_in_world(false),
 			Rhea::Unit(path_name, type_name)
 		{}
 
@@ -64,6 +65,8 @@ namespace Meworla
 		Rhea::Widget* m_error_w;
 		Rhea::Widget* m_trust_w;
 		Rhea::Widget* m_register_w;
+
+		bool m_in_world;
 
 		void onConnected();
 		void onLogin();

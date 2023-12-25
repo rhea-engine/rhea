@@ -13,57 +13,43 @@
 
 namespace Rhea
 {
-	class WorldClient : public Rhea::Unit, public Rhea::NetworkDelegate
+	class WorldClient : public Rhea::NetworkDelegate
 	{
-		MECLASS(WorldClient, Rhea::Unit)
 	public:
-		WorldClient(std::string name, std::string type_name) :
+		WorldClient(Rhea::Application* app, Hermes::Stream* stream) :
 			m_scene(nullptr),
 			m_player_set(false),
 			m_in_world(false),
-			Unit(name, type_name)
-		{}
-		WorldClient() :
-			WorldClient("worldclient", "//meworla/worldclient")
+			m_stream(stream),
+			m_app(app)
 		{}
 
 		typedef std::function<void(int err)> CompletionHandler;
 
-		// set hermes
-		void setStream(std::unique_ptr<Hermes::ClientStream> hermes) {
-			m_hermes = std::move(hermes);
-		}
-
-		// login credentials
-		void setAuth(std::string method, std::string username, std::vector<std::string> secrets);
-
 		// startup
-		void Open(std::string worldname);
-		void Start();
+		void Initialize();
 		void setScene(Rhea::Scene* scene) { m_scene = scene; }
-		void Register(std::string method, std::string username, std::string name, std::string ext_id, std::vector<std::string> secrets);
-		void CreateAvatar(std::string name, std::string type_name);
+		
+		// event handling
+		void onWorldEnter(CompletionHandler handler) { m_on_enter_world = handler; }
 
-		// stop the connection
-		void stop();
-
-		// special messages
-		void enterWorld(std::string avatar_name);
+		// start/stop the world state
+		void Start() { m_in_world = true; }
+		void Stop();
 
 		// NetworkDelegate functions
 		void changeMovement(int nuid, Math::Vector3 move);
 		void changeTurn(int nuid, float turn);
 
 	protected:
-		std::unique_ptr<Hermes::ClientStream> m_hermes;
+		Hermes::Stream* m_stream;
 		Rhea::Scene* m_scene;
 		std::string m_avatar;
-		std::string m_method;
-		std::string m_username;
-		std::vector<std::string> m_secrets;
 		std::map<int,Rhea::Item*> m_net_items;
 		bool m_player_set;
 		bool m_in_world;
+		CompletionHandler m_on_enter_world;
+		Rhea::Application* m_app;
 
 		// handle messages
 		void onLogin();

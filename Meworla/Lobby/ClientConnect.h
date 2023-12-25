@@ -4,6 +4,8 @@
 #include <Rhea/Application.h>
 #include <Rhea/Fabrics/Network/ClientService.h>
 #include <Rhea/Fabrics/GUI/Widget.h>
+#include <Rhea/Fabrics/Network/LobbyClient.h>
+#include <Hermes/ClientStream.h>
 
 namespace Meworla
 {
@@ -34,6 +36,11 @@ namespace Meworla
 		// retry connection
 		bool onRetry(Rhea::Event* ev, Rhea::Unit* unit);
 
+		// state transition
+		void setScene(Rhea::Scene* scene) { if (m_world_client) m_world_client->setScene(scene); }
+		void CreateAvatar(std::string name, std::string type_name);
+		void EnterWorld(std::string avatar_name);
+
 		// login
 		bool onLoginTrust(Rhea::Event* ev, Rhea::Unit* unit);
 		bool onRegister(Rhea::Event* ev, Rhea::Unit* unit);
@@ -58,7 +65,16 @@ namespace Meworla
 		Rhea::Widget* m_trust_w;
 		Rhea::Widget* m_register_w;
 
-		std::unique_ptr<Rhea::WorldClient> m_client;
+		void onConnected();
+		void onLogin();
+
+		// protocol handlers
+		std::unique_ptr<Hermes::Stream> m_stream;
+		std::unique_ptr<Hermes::ClientStream> m_auth_client;
+		std::unique_ptr<Rhea::WorldClient> m_world_client;
+		std::unique_ptr<Rhea::LobbyClient> m_lobby_client;
+
+		// credentials
 		CredentialsService* m_cred_srv;
 		std::string m_username;
 		std::string m_name;

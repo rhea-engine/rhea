@@ -4,6 +4,7 @@
 #include <Rhea/Application.h>
 #include <Rhea/Fabrics/Network/ClientService.h>
 #include <Rhea/Fabrics/GUI/Widget.h>
+#include <ClientConnect.h>
 
 namespace Meworla
 {
@@ -13,7 +14,7 @@ namespace Meworla
 	public:
 		Avatars(std::string path_name, std::string type_name) :
 			m_net(nullptr),
-			m_client(nullptr),
+			m_connector(nullptr),
 			m_avatar_w(nullptr),
 			m_newavatar_w(nullptr),
 			Rhea::Unit(path_name, type_name)
@@ -39,14 +40,13 @@ namespace Meworla
 
 	protected:
 		Rhea::ClientService* m_net;
+		Meworla::ClientConnect* m_connector;
 
 		Rhea::Widget* m_avatar_w;
 		Rhea::Widget* m_newavatar_w;
 
 		std::string m_avatar_name;
 		std::string m_avatar_type;
-
-		Rhea::WorldClient* m_client;
 	};
 }
 

@@ -16,68 +16,14 @@
 
 namespace Rhea
 {
-	void WorldClient::setAuth(std::string method, std::string username, std::vector<std::string> secrets)
+	void WorldClient::Initialize()
 	{
-		m_method = method;
-		m_username = username;
-		m_secrets = secrets;
-	}
-
-	void WorldClient::Open(std::string worldname)
-	{
-		Rhea::ClientService* service = doCast<ClientService>(m_app->getService("hermesclient"));
-		if (!service) {
-			LOG(LOG_ERROR) << "Configuration error: no hermesclient service defined";
-			m_values["error"] = 1;
-			Event ev("error", this);
-			sendEvent("error", &ev);
-			return;
-		}
-
-		service->Connect(worldname, [&, service](Hermes::ClientStream* stream, int err) {
-			if (!err) {
-				service->addChild(this);
-				m_hermes.reset(stream);
-				Event ev("connected", this);
-				sendEvent("connected", &ev);
-			}
-			else {
-				m_values["error"] = err;
-				Event ev("error", this);
-				sendEvent("error", &ev);
-			}
-			});
-	}
-
-	void WorldClient::Start()
-	{
-		Hermes::MessageFactory* factory = m_hermes->getMessageFactory();
+		Hermes::MessageFactory* factory = m_stream->getMessageFactory();
 		if (!factory) {
 			LOG(LOG_ERROR) << "No message factory found";
 			return;
 		}
-
-		factory->registerMessageHandler<Hermes::MessageAvatarList>(HERMES_MSG_AVATARLIST,
-			[&](uint16_t opcode)->bool {
-				return !m_in_world;
-			},
-			std::bind(&WorldClient::onAvatarlistMessage, this, std::placeholders::_1)
-		);
-
-		factory->registerMessageHandler<Hermes::Message>(HERMES_MSG_CREATEAVATAR_FAILED,
-			[&](uint16_t opcode)->bool {
-				return !m_in_world;
-			},
-			std::bind(&WorldClient::onCreateAvatarFailedMessage, this, std::placeholders::_1)
-		);
-
-		factory->registerMessageHandler<Hermes::Message>(HERMES_MSG_ENTER_FAILED,
-			[&](uint16_t opcode)->bool {
-				return m_in_world;
-			},
-			std::bind(&WorldClient::onEnterWorldFailedMessage, this, std::placeholders::_1)
-		);
-
+		
 		factory->registerMessageHandler<Hermes::MessageCreate>(HERMES_MSG_CREATE,
 			[&](uint16_t opcode)->bool {
 				return m_in_world;
@@ -99,104 +45,6 @@ namespace Rhea
 			},
 			std::bind(&WorldClient::onPositionMessage , this, std::placeholders::_1)
 		);
-
-		if (m_username.empty()) {
-			LOG(LOG_ERROR) << "WorldClient: user name is empty";
-			Event ev("login_failure", this);
-			sendEvent("login_failure", &ev);
-			return;
-		}
-
-		// start with Login
-		m_hermes->Login(m_method, m_username, m_secrets, [&](int err) {
-			if (err != 0) {
-				// handle login failure
-				DLOG(LOG_DEBUG) << "login failed " << err;
-				Event ev("login_failure", this);
-				sendEvent("login_failure", &ev);
-			}
-			else {
-				onLogin();
-			}
-			});
-	}
-
-	void WorldClient::Register(std::string method, std::string username, std::string name, std::string ext_id, std::vector<std::string> secrets)
-	{
-		if (username.empty()) {
-			LOG(LOG_ERROR) << "WorldClient: user name is empty";
-			Event ev("login_failure", this);
-			sendEvent("login_failure", &ev);
-			return;
-		}
-		m_hermes->Register(m_method, username, name, ext_id, m_secrets, [&](int err) {
-			if (err && err != HERMES_MSG_LOGIN_SUCCEEDED) {
-				// handle login failure
-				DLOG(LOG_DEBUG) << "register failed " << err;
-				Event ev("register_failure", this);
-				sendEvent("register_failure", &ev);
-			}
-			else {
-				onLogin();
-			}
-			});
-	}
-
-	void WorldClient::CreateAvatar(std::string name, std::string type_name)
-	{
-		m_hermes->CreateAvatar(name, type_name);
-	}
-
-	void WorldClient::onLogin() {
-
-		DLOG(LOG_DEBUG) << "login sent";
-
-		// if this world uses avatars get the current list
-		Hermes::Message msg_get_avatar_list(HERMES_MSG_GET_AVATARLIST);
-		m_hermes->sendMessage(&msg_get_avatar_list, nullptr);
-
-		m_hermes->Loop();
-	}
-	
-	void WorldClient::onAvatarlistMessage(Hermes::MessageAvatarList*msg)
-	{
-		// fill up avatar list of scene
-		Rhea::Unit* avatar_list = getChild("avatarlist");
-		if (!avatar_list) {
-			avatar_list = new Rhea::Unit("avatarlist", "//meworla/avatarlist");
-			avatar_list->setup(m_app);
-			addChild(avatar_list);
-		}
-		if (msg->avatars.size()) {
-			for (auto it = msg->avatars.begin(); it != msg->avatars.end(); it++) {
-				Rhea::Avatar* avatar = (Rhea::Avatar*)m_app->getUnitTree()->createUnit((*it).avatar, "//meworla/avatar");
-				avatar->setModel((*it).type_name);
-				avatar_list->addChild(avatar);
-			}
-		}
-		m_values["nofAvatars"] = (int)msg->avatars.size();
-		Event ev("avatarlist", this);
-		sendEvent("avatarlist", &ev);
-	}
-
-	void WorldClient::onCreateAvatarFailedMessage(Hermes::Message* msg)
-	{
-		// avatar entering failed
-		m_in_world = false;
-		
-		// inform user
-		Event ev("create_avatar_failed", this);
-		sendEvent("create_avatar_failed", &ev);
-	}
-
-	void WorldClient::onEnterWorldFailedMessage(Hermes::Message* msg)
-	{
-		// avatar entering failed
-		m_in_world = false;
-
-		// inform user
-		Event ev("entering_failed", this);
-		sendEvent("entering_failed", &ev);
 	}
 
 	void WorldClient::onCreateMessage(Hermes::MessageCreate* msg)
@@ -232,8 +80,8 @@ namespace Rhea
 			player->ready();
 
 			if (msg->is_player) {
-				Event ev("world_enter", this);
-				sendEvent("world_enter", &ev);
+				if (m_on_enter_world)
+					m_on_enter_world(0);
 			}
 		}
 		else {
@@ -273,20 +121,11 @@ namespace Rhea
 		// Note if not found we ignore it
 	}
 
-	void WorldClient::stop()
+	void WorldClient::Stop()
 	{
-		m_hermes.reset();
+		m_in_world = false;
 	}
-
-	void WorldClient::enterWorld(std::string avatar_name)
-	{
-		// send enter with the given avatar name
-		Hermes::MessageEnterWorld msg_enter;
-		msg_enter.avatar = avatar_name;
-		m_in_world = true;
-		m_hermes->sendMessage(&msg_enter, nullptr);
-	}
-
+	
 	void WorldClient::changeMovement(int nuid, Math::Vector3 move)
 	{
 		Hermes::MessageMove move_msg;
@@ -295,7 +134,7 @@ namespace Rhea
 		move_msg.move[1] = move.y;
 		move_msg.move[2] = move.z;
 
-		m_hermes->sendMessage(&move_msg, nullptr);
+		m_stream->sendMessage(&move_msg, nullptr);
 	}
 
 	void WorldClient::changeTurn(int nuid, float turn)
@@ -304,6 +143,6 @@ namespace Rhea
 		turn_msg.NUID = nuid;
 		turn_msg.turn = turn;
 
-		m_hermes->sendMessage(&turn_msg, nullptr);
+		m_stream->sendMessage(&turn_msg, nullptr);
 	}
 }

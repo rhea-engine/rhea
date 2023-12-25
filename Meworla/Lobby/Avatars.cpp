@@ -18,15 +18,15 @@ namespace Meworla
 		}
 
 		static bool initialized = false;
-		if (!initialized) {
-			m_client = isCast<Rhea::WorldClient>(m_net->getChild("worldclient"));
-			if (!m_client) {
-				LOG(LOG_ERROR) << "No world client defined.";
+		if (!initialized) {			
+			m_connector = isCast<Meworla::ClientConnect>(m_app->getUnitTree()->find(m_values["connector"],m_attributes["basepath"], false));
+			if (!m_connector) {
+				LOG(LOG_ERROR) << "No connector defined.";
 				return false;
 			}
 
-			m_client->registerEventHandler("world_enter", this, std::bind(&Avatars::onWorldEnter, this, std::placeholders::_1, std::placeholders::_2));
-			m_client->registerEventHandler("create_avatar_failed", this, std::bind(&Avatars::onCreateFailed, this, std::placeholders::_1, std::placeholders::_2));
+			m_connector->registerEventHandler("world_enter", this, std::bind(&Avatars::onWorldEnter, this, std::placeholders::_1, std::placeholders::_2));
+			m_connector->registerEventHandler("create_avatar_failed", this, std::bind(&Avatars::onCreateFailed, this, std::placeholders::_1, std::placeholders::_2));
 
 			// avatar select			
 			registerEventHandler("open", this, std::bind(&Avatars::onOpen, this, std::placeholders::_1, std::placeholders::_2));
@@ -43,7 +43,7 @@ namespace Meworla
 		}
 
 		// fill list?
-		Rhea::Unit* avatar_list = m_net->find("worldclient/avatarlist");
+		Rhea::Unit* avatar_list = m_connector->find("avatarlist");
 		std::vector<Variant> avatars_arr;		
 		if (avatar_list) {
 			avatar_list->children([&avatars_arr](std::string& name, Rhea::Unit* unit)->bool {
@@ -115,8 +115,8 @@ namespace Meworla
 			// scene already loaded?
 			Rhea::Scene* entry_scene = doCast<Rhea::Scene>(m_app->getUnitTree()->find(m_values["entrypoint"]));
 			if (entry_scene) {
-				m_client->setScene(entry_scene);
-				m_client->CreateAvatar(m_avatar_name, m_avatar_type);
+				m_connector->setScene(entry_scene);
+				m_connector->CreateAvatar(m_avatar_name, m_avatar_type);
 			}
 			else {
 				// scene must be loaded first
@@ -128,8 +128,8 @@ namespace Meworla
 							LOG(LOG_ERROR) << "No entrypoint defined.";
 							return;
 						}
-						m_client->setScene(entry_scene);
-						m_client->CreateAvatar(m_avatar_name, m_avatar_type);
+						m_connector->setScene(entry_scene);
+						m_connector->CreateAvatar(m_avatar_name, m_avatar_type);
 					}
 					});
 			}			
@@ -168,8 +168,8 @@ namespace Meworla
 					LOG(LOG_ERROR) << "No entrypoint defined.";
 					return;
 				}
-				m_client->setScene(entry_scene);
-				m_client->enterWorld(avatar_name);
+				m_connector->setScene(entry_scene);
+				m_connector->EnterWorld(avatar_name);
 			}
 			});
 

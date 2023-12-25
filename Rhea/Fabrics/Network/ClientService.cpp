@@ -50,20 +50,20 @@ namespace Rhea
 	{
 		std::unique_ptr<Psio::StreamSocket> new_sock;
 		new_sock.reset(sock);
-		Hermes::ClientStream* hermes = new Hermes::ClientStream(std::move(new_sock), m_msg_factory.get());
-		int ret = hermes->Connect(m_worldname, [&, hermes](int err) {
+		Hermes::Stream* stream = new Hermes::Stream(std::move(new_sock), m_msg_factory.get());
+		int ret = stream->Connect(m_worldname, [&, stream](int err) {
 			if (!err) {
-				m_handler(hermes, 0);
+				m_handler(stream, 0);
 			}
 			else {
 				LOG(LOG_ERROR) << "Connection failed(2): " << err;
-				delete hermes;
+				delete stream;
 				m_handler(nullptr, err);
 			}
 			});
 		if (ret < -1) {
 			LOG(LOG_ERROR) << "Connection failed: " << ret;
-			delete hermes;
+			delete stream;
 			m_handler(nullptr, ret);
 		}
 	}

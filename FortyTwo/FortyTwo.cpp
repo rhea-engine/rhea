@@ -7,6 +7,9 @@
 #include <Rhea/Fabrics/Core/Avatar.h>
 #include <FortyTwo/Accounts/AccountService.h>
 #include "Authorization/AuthorizationService.h"
+#include <Rhea/Fabrics/Network/ServerService.h>
+#include "ConnectionHandler.h"
+#include "AuthHandler.h"
 
 void FortyTwo::init()
 {
@@ -25,7 +28,7 @@ void FortyTwo::init()
 	SimpleParser::Type::registerType<World>("//meworla/world");
 
 	// setup network server
-	SimpleParser::Type::registerType<ServerService>("//meworla/serverservice");
+	SimpleParser::Type::registerType<Rhea::ServerService>("//meworla/serverservice");
 
 }
 
@@ -58,7 +61,7 @@ void FortyTwo::setup()
 		if (world_scene && err == ReqError::OK) {
 
 			// get the server service
-			m_server_service = world_scene->findByType<ServerService>();
+			m_server_service = world_scene->findByType<Rhea::ServerService>();
 			if (!m_server_service) {
 
 				/* TODO: if not defined in config add one?
@@ -100,6 +103,13 @@ void FortyTwo::setup()
 				m_server_service->setPort(m_port);
 				m_server_service->setScene(scene);
 				m_services["server"] = m_server_service;
+				m_server_service->onConnection([&, scene](Rhea::ClientConnection* connection) {
+					LOG(LOG_INFO) << "client connected";
+					//  add protocols
+					std::unique_ptr<ConnectionHandler> data = std::make_unique<ConnectionHandler>(this, scene);
+					data->Initialize(connection);
+					connection->setConnectionData(std::move(data));
+					});
 				m_server_service->ready();
 				LOG(LOG_INFO) << "server started.";
 			}

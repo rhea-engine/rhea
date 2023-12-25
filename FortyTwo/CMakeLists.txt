@@ -4,22 +4,21 @@ if (OPENSSL_FOUND)
 	INCLUDE_DIRECTORIES( ${OPENSSL_INCLUDE_DIR} )
 endif()
 
-add_executable (fortytwo "FortyTwo.cpp" "World.h" "World.cpp" "ServerService.h" "ServerService.cpp" "ClientConnection.h" 
-"ClientConnection.cpp" "FortyTwo.h" "Accounts/User.cpp" "Accounts/AccountService.h" "Accounts/AccountService.cpp" 
+add_executable (fortytwo "FortyTwo.cpp" "World.h" "World.cpp" "FortyTwo.h" "Accounts/User.cpp" "Accounts/AccountService.h" "Accounts/AccountService.cpp" 
 "Accounts/Provider.h" "Accounts/ProviderScene.h" "Accounts/ProviderScene.cpp" "Accounts/ProviderMemory.h" "Accounts/ProviderMemory.cpp"
 "Authorization/Authorization.h" "Authorization/AuthorizationService.cpp" "Authorization/AuthorizationService.h" "Authorization/AuthorizationTrust.h"
 "Authorization/AuthorizationTrust.cpp" "Authorization/AuthInfo.h" "Authorization/AuthorizationSession.h" "Authorization/AuthorizationSession.cpp"
-"Authorization/AuthBackend.h" "Authorization/AuthBackendFile.h" "Authorization/AuthBackendFile.cpp")
+"Authorization/AuthBackend.h" "Authorization/AuthBackendFile.h" "Authorization/AuthBackendFile.cpp" "AuthHandler.cpp" "AuthHandler.h" "ConnectionHandler.h" "ConnectionHandler.cpp")
 target_link_libraries(fortytwo Psio Rhea Hermes)
 
 # Tests
 
-add_executable(f42_test "World.test.cpp" "World.cpp" "ServerService.cpp" "ClientConnection.cpp" "ClientConnection.test.cpp" 
+add_executable(f42_test "World.test.cpp" "World.cpp"
 "Accounts/User.cpp" "Accounts/AccountService.h" "Accounts/AccountService.cpp" "Accounts/Provider.h" "Accounts/ProviderScene.h"
 "Accounts/ProviderScene.cpp" "Accounts/ProviderScene.test.cpp" "Accounts/ProviderMemory.h" "Accounts/ProviderMemory.cpp"
 "Authorization/Authorization.h" "Authorization/AuthorizationService.cpp" "Authorization/AuthorizationService.h" "Authorization/AuthorizationTrust.h" 
 "Authorization/AuthorizationTrust.cpp" "Authorization/AuthInfo.h" "Authorization/AuthorizationSession.h" "Authorization/AuthorizationSession.cpp"
-"Authorization/AuthBackend.h" "Authorization/AuthBackendFile.h" "Authorization/AuthBackendFile.cpp")
+"Authorization/AuthBackend.h" "Authorization/AuthBackendFile.h" "Authorization/AuthBackendFile.cpp" "AuthHandler.cpp" "AuthHandler.h" "ConnectionHandler.h" "ConnectionHandler.cpp")
 target_link_libraries(f42_test Psio Rhea Hermes gtest_main gmock_main)
 if(WIN32)
 	target_link_libraries(f42_test Winmm wsock32 Ws2_32.lib)

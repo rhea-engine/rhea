@@ -4,7 +4,6 @@
 #include <Messages/MessageLogin.h>
 #include <Messages/MessageConnect.h>
 #include <Messages/MessageCreateUser.h>
-#include <Messages/MessageCreateAvatar.h>
 
 namespace Hermes
 {
@@ -61,10 +60,7 @@ namespace Hermes
 		msg.secrets = secrets;
 		m_state = HERMES_LOGIN_PENDING;
 
-		return m_stream->sendMessage((Message*)&msg, [&](int err) {
-			if (err < -1 && m_err_handler)
-				m_err_handler(err);
-			});
+		return m_stream->sendMessage((Message*)&msg, nullptr);
 	}
 
 	int ClientStream::Register(std::string method, std::string username, std::string name, std::string ext_id, std::vector<std::string> secrets, LoginHandler handler)
@@ -87,31 +83,7 @@ namespace Hermes
 		msg.secrets = secrets;
 		m_state = HERMES_LOGIN_PENDING;
 
-		return m_stream->sendMessage((Message*)&msg, [&](int err) {
-			if (err < -1 && m_err_handler)
-				m_err_handler(err);
-			});
-	}
-	
-	int ClientStream::sendMessage(Message* message, Stream::CompletionHandler handler)
-	{
-		// forward to stream
-		return m_stream->sendMessage(message, handler);
-	}
-
-	void ClientStream::Close()
-	{
-		m_stream->Close();
-	}
-
-	void ClientStream::onError(CompletionHandler handler)
-	{
-		m_err_handler = handler;
-	}
-	
-	void ClientStream::onConnectedMessage(Message* msg)
-	{
-		m_oncompletion_handler(0);
+		return m_stream->sendMessage((Message*)&msg, nullptr);
 	}
 
 	void ClientStream::onLoginMessage(Message* msg)

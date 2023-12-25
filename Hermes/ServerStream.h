@@ -19,20 +19,17 @@ namespace Hermes
 
 		typedef std::function<void(std::string method, std::string username, std::string name, std::string ext_id, std::vector<std::string> secrets)> CreateHandler;
 		typedef std::function<void(std::string method, std::string username, std::vector<std::string> secrets)> LoginHandler;
-		typedef std::function<void(std::string name, std::string type_name)> AvatarCreateHandler;
 
 		// initialization
 		void Initialize();
 
 		// state handling
 
-		void Start() { m_state = HERMES_CONNECT_PENDING; };
+		void Start() { m_state = HERMES_LOGIN_PENDING; };
 		void Stop() { m_state = HERMES_NONE; }
 		int LoginRetry();
 
 		// sending messages
-		// send a message
-		virtual int sendMessage(Message* message, Stream::CompletionHandler handler);
 		int AuthSuccess(Stream::CompletionHandler handler);
 		int AuthFailure(Stream::CompletionHandler handler, std::vector<std::string> methods);
 
@@ -40,12 +37,6 @@ namespace Hermes
 
 		virtual void onLogin(LoginHandler handler) { m_login_handler = handler; }
 		virtual void onCreateUser(CreateHandler handler) { m_create_handler = handler; }
-		virtual void onAvatarCreate(AvatarCreateHandler handler) { m_avatar_create_handler = handler; }
-		virtual void onConnectionError(Stream::CompletionHandler error_handler) { m_err_handler = error_handler; }
-		virtual void onClosed(Stream::CompletionHandler handler) { m_closed_handler = handler; }
-		
-		// stream functions
-		MessageFactory* getMessageFactory() { return m_stream->getMessageFactory(); }
 
 	protected:
 		Stream* m_stream;
@@ -54,7 +45,6 @@ namespace Hermes
 		// state Handling
 		enum HERMES_STATE {
 			HERMES_NONE,
-			HERMES_CONNECT_PENDING,
 			HERMES_LOGIN_PENDING,
 			HERMES_SEND_SETUP,
 			HERMES_READMESSAGE,
@@ -62,18 +52,12 @@ namespace Hermes
 
 		HERMES_STATE m_state;
 
-		// connection message
-		void onConnect(MessageConnect* msg);
-
 		// login messages
 		void onLoginMessage(MessageLogin* msg);
 		void onCreateMessage(MessageCreateUser* msg);
 
 		LoginHandler m_login_handler;
 		CreateHandler m_create_handler;
-		Stream::CompletionHandler m_err_handler;
-		Stream::CompletionHandler m_closed_handler;
-		AvatarCreateHandler m_avatar_create_handler;
 	};
 }
 

@@ -18,16 +18,29 @@ namespace Hermes
 		}
 		else
 			repeat++;
-		return m_sock->Write(m_outbuf.get(), [handler](int err) {
+		int ret = m_sock->Write(m_outbuf.get(), [&, handler](int err) {
+			if (err < -1 && m_err_handler)
+				m_err_handler(err);
 			if (handler) {
 				handler(err);
 			}
 			});
+		if (ret < -1 && m_err_handler)
+			m_err_handler(ret);
+		return ret;
 	}
 
 	int Stream::Start()
 	{
 		m_next_state = HERMES_READMESSAGE;
+
+		// connect handler
+		m_msg_factory.registerMessageHandler<MessageConnect>(HERMES_MSG_CONNECT,
+			[&](uint16_t opcode)->bool {
+				return !m_connected;
+			},
+			std::bind(&Stream::onConnect, this, std::placeholders::_1)
+		);
 
 		Psio::SocketAddress* addr = m_sock->getRemoteAddress();
 		if (addr)
@@ -47,7 +60,7 @@ namespace Hermes
 
 	int Stream::Connect(std::string world_name, CompletionHandler handler)
 	{
-		m_oncompletion_handler = handler;
+		m_on_connection_handler = handler;
 
 		m_msg_factory.registerMessageHandler<Message>(HERMES_MSG_CONNECTED,
 			[&](uint16_t opcode)->bool {
@@ -192,15 +205,38 @@ namespace Hermes
 		return Psio::Network::IO_PENDING;
 	}
 
+	void Stream::onConnect(MessageConnect* msg)
+	{
+		// check if protocol version is available
+		if (msg->protocol_version != HERMES_PROTOCOL_VERSION) {
+			// wrong protocol version
+			Message res_msg(HERMES_ERR_PROTOCOL_VERSION);
+			sendMessage(&res_msg, [&](int err) {
+				// note this will probably destroy |this|
+				m_err_handler(-HERMES_ERR_PROTOCOL_VERSION);
+				});
+			return;
+		}
+		m_connected = true;
+		if (m_on_connection_handler)
+			m_on_connection_handler(0);
+
+		// connection established
+		Message res_msg(HERMES_MSG_CONNECTED);
+		sendMessage(&res_msg, nullptr);
+	}
+
 	void Stream::onConnectedMessage(Message* msg)
 	{
 		m_next_state = HERMES_READMESSAGE;
 		m_connected = true;
-		m_oncompletion_handler(0);
+		if (m_on_connection_handler)
+			m_on_connection_handler(0);
 	}
 
 	void Stream::onErrorMessage(Message* msg)
 	{
-		m_oncompletion_handler(msg->base.opcode);
+		if (m_err_handler)
+			m_err_handler(msg->base.opcode);
 	}
 }

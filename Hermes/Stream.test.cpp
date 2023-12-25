@@ -153,6 +153,32 @@ namespace Hermes
 		EXPECT_EQ(buf->Remaining(), 4);
 	}
 
+	
+	TEST_F(StreamTest, Connect) {
+
+		MemorySocket* sock = new MemorySocket();
+		m_sock.reset(sock);
+		m_stream = std::make_unique<Hermes::Stream>(std::move(m_sock), m_factory.get());
+
+		// client send connect
+		Hermes::MessageConnect connect;
+		connect.world_name = "testworld";
+		connect.protocol_version = HERMES_PROTOCOL_VERSION;
+
+		// start as server
+		m_stream->Start();
+
+		// emulate receiving connect message
+		m_stream->getMessageFactory()->handle(&connect);
+
+		// first message should be the HERMES_MSG_CONNECTED message
+		Psio::IOBuffer* buf = sock->my_buffer.get();
+		EXPECT_EQ(buf->Remaining(), 4);
+		Hermes::Message* msg = m_stream->getMessageFactory()->getMessage(buf);
+		ASSERT_NE(msg, nullptr);
+		EXPECT_EQ(msg->base.opcode, HERMES_MSG_CONNECTED);
+	}
+
 	TEST_F(StreamTest, ReadConnectMessage) {
 		MemorySocket* sock = new MemorySocket();
 		m_sock.reset(sock);
@@ -161,16 +187,14 @@ namespace Hermes
 
 		std::unique_ptr<Hermes::MessageConnect> msg = std::make_unique<Hermes::MessageConnect>();
 		
-		testing::MockFunction<void(Hermes::MessageConnect* msg)> mock_connect_handler;
+		testing::MockFunction<void(int err)> mock_connect_handler;
 
 		EXPECT_CALL(mock_connect_handler, Call(_))
 			.Times(1);
 
-		int send_ret = m_stream->sendMessage(msg.get(), nullptr);
+		m_stream->onConnection(mock_connect_handler.AsStdFunction());
 
-		m_stream->getMessageFactory()->registerMessageHandler<Hermes::MessageConnect>(HERMES_MSG_CONNECT, 
-			nullptr,
-			mock_connect_handler.AsStdFunction());
+		int send_ret = m_stream->sendMessage(msg.get(), nullptr);
 
 		int ret = m_stream->Start();
 		EXPECT_EQ(ret, -1);

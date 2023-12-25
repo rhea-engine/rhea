@@ -2,15 +2,13 @@ cmake_minimum_required (VERSION 3.9.2)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ ${CMAKE_SOURCE_DIR})
 
-add_library (Hermes "Core.cpp"  "Server.cpp" "ServerStream.h" "ServerStream.cpp" "ClientStream.h" "ClientStream.cpp" "Message.cpp" "Opcode.h" "Stream.h" "Stream.cpp"
+add_library (Hermes "ServerStream.h" "ServerStream.cpp" "ClientStream.h" "ClientStream.cpp" "Message.cpp" "Opcode.h" "Stream.h" "Stream.cpp"
 "MessageFactory.h" "MessageFactory.cpp" "Messages/MessageCreate.h" "Messages/MessageCreate.cpp" "Messages/MessageMove.h" "Messages/MessageMove.cpp" 
 "Messages/MessageTurn.h" "Messages/MessageTurn.cpp" "Messages/MessageJump.h" "Messages/MessageJump.cpp" "Messages/MessagePosition.h" "Messages/MessagePosition.cpp"
 "Messages/MessageEnterWorld.h" "Messages/MessageEnterWorld.cpp" "Messages/MessageAvatarList.h" "Messages/MessageAvatarList.cpp" "Messages/MessageDestroy.h" 
 "Messages/MessageDestroy.cpp" "Messages/MessageEnterFailed.h" "Messages/MessageEnterFailed.cpp" "Messages/MessageLogin.h" "Messages/MessageLogin.cpp" 
 "Messages/MessageConnect.h" "Messages/MessageConnect.cpp" "Messages/MessageLoginFailed.h" "Messages/MessageLoginFailed.cpp" "Messages/MessageCreateUser.h" 
 "Messages/MessageCreateUser.cpp" "Messages/MessageCreateAvatar.h" "Messages/MessageCreateAvatar.cpp" )
-
-add_subdirectory(tests)
 
 # GTest
 

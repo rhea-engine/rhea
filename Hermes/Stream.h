@@ -4,6 +4,7 @@
 #include <Psio/Net/Socket/StreamSocket.h>
 #include "Message.h"
 #include "MessageFactory.h"
+#include "Messages/MessageConnect.h"
 
 namespace Hermes
 {
@@ -37,6 +38,7 @@ namespace Hermes
 		virtual void Close();
 
 		// event handling functions
+		void onConnection(CompletionHandler on_connection_handler) { m_on_connection_handler = on_connection_handler; }
 
 		// error handler
 		void onConnectionError(CompletionHandler error_handler) { m_err_handler = error_handler; }
@@ -60,7 +62,7 @@ namespace Hermes
 
 		CompletionHandler m_err_handler;
 		CompletionHandler m_closed_handler;
-		CompletionHandler m_oncompletion_handler;
+		CompletionHandler m_on_connection_handler;
 
 		int DoLoop(int result);
 		void CallDoLoop(int result);
@@ -68,6 +70,9 @@ namespace Hermes
 		int DoReadMessageCompleted(int result);
 		int DoClose(int result);
 
+		// connection message - server
+		void onConnect(MessageConnect* msg);
+		// connection message - client
 		void onConnectedMessage(Message* msg);
 		// protocol error message
 		void onErrorMessage(Message* msg);

@@ -22,21 +22,11 @@ namespace Hermes
 		void Stop() { m_state = HERMES_NONE; }
 
 		typedef std::function<void(int)> LoginHandler;
-		typedef std::function<void(int)> CompletionHandler;
 
 		// send requests
 
 		int Login(std::string method, std::string username, std::vector<std::string> secrets, LoginHandler handler);
 		int Register(std::string method, std::string username, std::string name, std::string ext_id, std::vector<std::string> secrets, LoginHandler handler);
-
-		virtual int sendMessage(Message* message, Stream::CompletionHandler handler);
-		void Close();
-
-		// event handlers
-
-		void onError(CompletionHandler handler);
-
-		MessageFactory* getMessageFactory() { return m_stream->getMessageFactory(); }
 
 	protected:
 		Stream* m_stream;
@@ -52,17 +42,11 @@ namespace Hermes
 
 		HERMES_STATE m_state;
 
-		// connection message
-		void onConnectedMessage(Message* msg);
-
-		void onLoginMessage(Message* msg);
-
 		// login messages
+		void onLoginMessage(Message* msg);
 		void onLoginFailureMessage(MessageLoginFailed* msg);
 
-		CompletionHandler m_oncompletion_handler;
 		LoginHandler m_login_handler;
-		CompletionHandler m_err_handler;
 	};
 }
 

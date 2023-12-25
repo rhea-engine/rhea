@@ -19,14 +19,6 @@ namespace Hermes
 			LOG(LOG_ERROR) << "No message factory found";
 			return;
 		}
-
-		// connect handler
-		factory->registerMessageHandler<MessageConnect>(HERMES_MSG_CONNECT,
-			[&](uint16_t opcode)->bool {
-				return m_state == HERMES_CONNECT_PENDING;
-			},
-			std::bind(&ServerStream::onConnect, this, std::placeholders::_1)
-		);
 		
 		factory->registerMessageHandler<MessageLogin>(HERMES_MSG_LOGIN,
 			[&](uint16_t opcode)->bool {
@@ -42,26 +34,7 @@ namespace Hermes
 			std::bind(&ServerStream::onCreateMessage, this, std::placeholders::_1)
 		);
 
-		// error handling
-		m_stream->onClosed([&](int err) {
-			if (m_closed_handler)
-				m_closed_handler(err);
-			});
-
-		m_stream->onConnectionError([&](int err) {
-			if (m_err_handler)
-				m_err_handler(err);
-			else
-				m_stream->Close();
-			});
-
-		m_state = HERMES_CONNECT_PENDING;		
-	}
-
-	int ServerStream::sendMessage(Message* message, Stream::CompletionHandler handler)
-	{
-		// forward to stream
-		return m_stream->sendMessage(message, handler);
+		m_state = HERMES_LOGIN_PENDING;
 	}
 
 	int ServerStream::AuthSuccess(Stream::CompletionHandler handler)
@@ -88,29 +61,6 @@ namespace Hermes
 		return m_stream->sendMessage(&msg_auth, [&, handler](int result) {
 			if (handler)
 				handler(result);
-			});
-	}
-
-	void ServerStream::onConnect(MessageConnect* msg)
-	{
-		// check if protocol version is available
-		if (msg->protocol_version != HERMES_PROTOCOL_VERSION) {
-			// wrong protocol version
-			m_state = HERMES_STATE::HERMES_CONNECT_PENDING;
-			Message res_msg(HERMES_ERR_PROTOCOL_VERSION);
-			m_stream->sendMessage(&res_msg, [&](int err) {
-				// note this will probably destroy |this|
-				m_err_handler(-HERMES_ERR_PROTOCOL_VERSION);
-				});
-			return;
-		}
-
-		// connection established
-		Message res_msg(HERMES_MSG_CONNECTED);
-		m_stream->sendMessage(&res_msg, [&](int result) -> int {
-			// switch to pending state
-			m_state = HERMES_STATE::HERMES_LOGIN_PENDING;
-			return -1;
 			});
 	}
 

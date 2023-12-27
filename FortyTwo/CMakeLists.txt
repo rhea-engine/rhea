@@ -1,7 +1,9 @@
 cmake_minimum_required(VERSION 3.18)
 
 if (OPENSSL_FOUND)
-	INCLUDE_DIRECTORIES( ${OPENSSL_INCLUDE_DIR} )
+	INCLUDE_DIRECTORIES( ${OPENSSL_INCLUDE_DIR} ${PROJECT_SOURCE_DIR} ${PROJECT_SOURCE_DIR}/Components)
+else()
+	INCLUDE_DIRECTORIES( ${PROJECT_SOURCE_DIR} ${PROJECT_SOURCE_DIR}/Components)
 endif()
 
 add_executable (fortytwo "FortyTwo.cpp" "World.h" "World.cpp" "FortyTwo.h" "Accounts/User.cpp" "Accounts/AccountService.h" "Accounts/AccountService.cpp" 

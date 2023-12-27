@@ -1,11 +1,3 @@
-#include "D3D11Renderer.h"
-#include "D3D11Renderer.h"
-#include "D3D11Renderer.h"
-#include "D3D11Renderer.h"
-#include "D3D11Renderer.h"
-#include "D3D11Renderer.h"
-#include "D3D11Renderer.h"
-#include "D3D11Renderer.h"
 #include <d3d11shader.h>
 #include <d3dcompiler.h>
 #include <wrl/client.h>
@@ -23,9 +15,9 @@ using namespace std;
 #include "D3D11VertexBuffer.h"
 #include "D3D11IndexBuffer.h"
 #include "D3D11GraphicsBuffer.h"
-#include "Texture.h"
+#include "../Texture.h"
 #include "D3D11Texture.h"
-#include "Components/Psio/Window.h"
+#include <Psio/Window.h>
 #include "D3D11StencilState.h"
 
 #pragma comment (lib, "d3d11.lib")

@@ -3,7 +3,7 @@
 
 #include <d3d11.h>
 
-#include "Hippios/Window.h"
+#include <Hippios/Window.h>
 #include "ComPtr.h"
 #include "Components/Psio/Window.h"
 #include "Hippios/RenderListener.h"

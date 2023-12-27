@@ -1,4 +1,5 @@
-#include "Widget.h"
+#include <cassert>
+#include <Psio/Log.h>
 
 #include "Widget.h"
 #include "WidgetEvent.h"
@@ -10,7 +11,6 @@
 #include "Resources/TextResource.h"
 
 #include "../Canvas/Item2D.h"
-#include <Psio/Log.h>
 
 #include "Modifier/FillSize.h"
 #include "Modifier/Offset.h"

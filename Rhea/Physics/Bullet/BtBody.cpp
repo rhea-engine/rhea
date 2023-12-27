@@ -4,7 +4,7 @@
 #include "Fabrics/Terrain/Terrain.h"
 #include <Psio/Log.h>
 
-#include "btBulletDynamicsCommon.h"
+#include <bullet/src/btBulletDynamicsCommon.h>
 
 using Math::Vector3;
 

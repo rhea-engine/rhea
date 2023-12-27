@@ -3,6 +3,8 @@
 #include "Application.h"
 #include <Psio/Log.h>
 
+#include <cassert>
+
 namespace Rhea {
 	
 	ResourceList::~ResourceList()

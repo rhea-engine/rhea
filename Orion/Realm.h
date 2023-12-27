@@ -2,6 +2,7 @@
 #define ORION_REALM_H
 
 #include <string>
+#include <ctime>
 
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;

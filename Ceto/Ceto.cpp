@@ -151,8 +151,26 @@ void Ceto::setup()
 		if (!shader) {
 			shader = get_core()->createShader("shader_vp");
 			shader->setVertexType(0);
-			if (shader->loadFromFile("Data\\Rhea\\shaders\\shader_vp.hlsl", "VShader", "PShader"))
-				exit(-1);
+			Orion::ResourceRequest* req = m_fs->getResourceByRid("//Rhea/shaders/shader_vp.hlsl");
+			int ret = req->resolve([&](Orion::ResourceRequest* req, int err) {
+				if (!err) {					
+					Psio::IOBuffer* buf = new Psio::IOBuffer(64 * 1024);
+					size_t length = ((Orion::FileResourceStream*)req->getStream())->Read(buf);
+					if (length) {
+						shader->loadFromBuffer((unsigned char*)buf->reader(), length, "VShader", "PShader");
+					}
+					else {
+						LOG(LOG_ERROR) << "Failed to read shader file //Rhea/shaders/shader_vp.hlsl";
+						exit(-1);
+					}
+					delete buf;
+				}
+				delete req;
+				});
+			if (ret == -1) {
+				// async reading of shader not allowed. 
+				printf("Asynchronous reading of shader not allowed. Check your installlation\n");
+			}
 		}
 		material->setShader(shader);
 		get_core()->registerMaterial("color", material);
@@ -399,7 +417,13 @@ int main(int argc, char* argv[])
 	}
 	app->loadMainGUI();
 		
-	//app->setScene();
+	if (scene_set) {
+		Rhea::Widget* w = doCast<Rhea::Widget>(app->getUnitTree()->find("//local/cetogui/gui/realms"));
+		if (w) {
+			w->hide();
+		}
+		app->setScene();
+	}
 
 	app->loop();	
 

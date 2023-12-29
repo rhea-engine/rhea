@@ -15,6 +15,13 @@ namespace Orion
 	{
 		std::vector<Realm*>::iterator it;
 
+		// check if realm is installed locally
+		if (m_orion->checkResourceFromCache(name, "")) {
+			Realm* r = new Realm(name);
+			m_realms.push_back(r);
+			return r;
+		}
+
 		// get from realms.conf
 		string path = m_orion->getFs()->getInstallDataDir();
 		path += string("/Meworla/Core/realms.conf");

@@ -291,7 +291,7 @@ namespace Psio
 				return m_net->SysErr(err);
 			}
 		}
-		else if (ret > 0 && handler) {
+		else if (ret >= 0 && handler) {
 			buf->Produce(ret);
 			handler(ret);
 			return Network::Err::IO_PENDING;

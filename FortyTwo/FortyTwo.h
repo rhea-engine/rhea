@@ -2,7 +2,7 @@
 #define FORTYTWO_H
 
 #include <Rhea/Application.h>
-#include "ServerService.h"
+#include <Rhea/Fabrics/Network/ServerService.h>
 
 class FortyTwo : public Rhea::Application
 {
@@ -26,7 +26,7 @@ public:
 
 protected:
 	std::string m_server_name;
-	ServerService* m_server_service;
+	Rhea::ServerService* m_server_service;
 	uint16_t m_port;
 };
 

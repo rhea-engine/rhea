@@ -1,113 +1,101 @@
 #include "ClientStream.h"
 #include <Psio/Log.h>
 #include <Opcode.h>
+#include <Messages/MessageLogin.h>
+#include <Messages/MessageConnect.h>
+#include <Messages/MessageCreateUser.h>
 
 namespace Hermes
 {
 
-	int ClientStream::connect(CompletionHandler handler)
+	void ClientStream::Initialize()
 	{
-		m_inbuf = std::make_unique<Psio::IOBuffer>(64 * 1024);
-		m_outbuf = std::make_unique<Psio::IOBuffer>(64 * 1024);
+		MessageFactory* factory = m_stream->getMessageFactory();
+		if (!factory) {
+			LOG(LOG_ERROR) << "No message factory found";
+			return;
+		}
+		
+		// login handling
+		factory->registerMessageHandler<Message>(HERMES_MSG_LOGIN_SUCCEEDED,
+			[&](uint16_t opcode)->bool {
+				return m_state == HERMES_LOGIN_PENDING;
+			},
+			std::bind(&ClientStream::onLoginMessage, this, std::placeholders::_1)
+		);
 
-		return 0;
+		factory->registerMessageHandler<MessageLoginFailed>(HERMES_MSG_LOGIN_FAILED,
+			[&](uint16_t opcode)->bool {
+				return m_state == HERMES_LOGIN_PENDING;
+			},
+			std::bind(&ClientStream::onLoginFailureMessage, this, std::placeholders::_1)
+		); 
+			
+		factory->registerMessageHandler<MessageLoginFailed>(HERMES_MSG_CREATE_USER_FAILED,
+				[&](uint16_t opcode)->bool {
+					return m_state == HERMES_LOGIN_PENDING;
+				},
+				std::bind(&ClientStream::onLoginFailureMessage, this, std::placeholders::_1)
+			);
 	}
 
-	void ClientStream::login(LoginHandler handler)
+	int ClientStream::Loop()
+	{
+		m_state = HERMES_READMESSAGE;
+		return -1;
+	}
+
+	int ClientStream::Login(std::string method, std::string username, std::vector<std::string> secrets, LoginHandler handler)
 	{
 		m_login_handler = handler;
-		Hermes::Message msg(HERMES_MSG_LOGIN);
 
-		int ret = sendMessage(&msg, handler);
-		if (ret >= msg.getSize()) {
-			handler(ret);
-		}
-	}
-
-	int ClientStream::onMessage(MessageHandler handler)
-	{
-
-		m_message_handler = handler;
-
-		m_next_state = HERMES_READMESSAGE;
-
-		int ret = DoLoop(0);
-
-		return ret;
-	}
-	
-	int ClientStream::DoLoop(int result)
-	{
-		do
-		{
-			m_state = m_next_state;
-			m_next_state = HERMES_NONE;
-
-			switch (m_state)
-			{
-			case HERMES_LOGIN_PENDING:
-				result = -1;// DoLoginPending(result);
-				break;
-			case HERMES_READMESSAGE:
-				result = DoReadMessage(result);
-				break;
-			case HERMES_READMESSAGE_COMPLETED:
-				result = DoReadMessageCompleted(result);
-			}
-
-		} while (result != Psio::Network::IO_PENDING && m_state != HERMES_NONE);
-
-		return result;
-	}
-
-	void ClientStream::CallDoLoop(int result)
-	{
-		int res = DoLoop(result);
-		//	if ((res != Network::Err::IO_PENDING) && (m_message_handler != NULL))
-		//		m_message_handler(res, result);
-	}
-
-	int ClientStream::DoReadMessage(int result)
-	{
-		if (result < 0)
-			return result;
-
-		m_next_state = HERMES_STATE::HERMES_READMESSAGE_COMPLETED;
-
-		return m_sock->Read(m_inbuf.get(), [&](int result) -> int {
-			{
-				CallDoLoop(result);
-				return -1;
-			}
-			});
-	}
-
-	int ClientStream::DoReadMessageCompleted(int result)
-	{
-		if (result < 0) {
-			// this could destroy |this|
-			m_message_handler(nullptr, result);
-			return -1;
+		if (!handler) {
+			LOG(LOG_ERROR) << "ClientStream::Login: No login handler provided";
+			return -2;
 		}
 
-		// check if message is received completely
-		std::unique_ptr<Message> msg;
-		msg.reset(m_msg_factory->getMessage(m_inbuf.get()));
-		if (msg) {
-			DLOG(LOG_DEBUG) << "received message with opcode=" << msg->getOpcode();
-			m_message_handler(std::move(msg), 0);
-			if (m_inbuf->Remaining()) {
-				m_next_state = HERMES_STATE::HERMES_READMESSAGE_COMPLETED;
-				return m_inbuf->Remaining();
-			}
-			else {
-				m_next_state = HERMES_STATE::HERMES_READMESSAGE;
-				return 0;
-			}
+		Hermes::MessageLogin msg;
+		msg.auth_method = method;
+		msg.user_name = username;
+		msg.secrets = secrets;
+		m_state = HERMES_LOGIN_PENDING;
+
+		return m_stream->sendMessage((Message*)&msg, nullptr);
+	}
+
+	int ClientStream::Register(std::string method, std::string username, std::string name, std::string ext_id, std::vector<std::string> secrets, LoginHandler handler)
+	{
+		m_login_handler = handler;
+
+		if (!handler) {
+			LOG(LOG_ERROR) << "ClientStream::Login: No login handler provided";
+			return -2;
 		}
-		else {
-			m_next_state = HERMES_STATE::HERMES_READMESSAGE;
-			return 0;
-		}
+
+		Hermes::MessageCreateUser msg(HERMES_MSG_CREATE_USER);
+		msg.auth_method = method;
+		msg.user_name = username;
+		if (name != "")
+			msg.name = name;
+		else
+			msg.name = username;
+		msg.ext_id = ext_id;
+		msg.secrets = secrets;
+		m_state = HERMES_LOGIN_PENDING;
+
+		return m_stream->sendMessage((Message*)&msg, nullptr);
+	}
+
+	void ClientStream::onLoginMessage(Message* msg)
+	{
+		m_state = HERMES_READMESSAGE;
+		if (m_login_handler)
+			m_login_handler(0);
+	}
+
+	void ClientStream::onLoginFailureMessage(MessageLoginFailed* msg)
+	{
+		if (m_login_handler)
+			m_login_handler(msg->base.opcode);
 	}
 }

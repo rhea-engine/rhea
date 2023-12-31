@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include "btBulletDynamicsCommon.h"
+#include <ThirdParty/bullet/src/btBulletDynamicsCommon.h>
 #include <Math/Vector3.h>
 #include <Poseidon/Renderable.h>
 #include <Poseidon/Mesh.h>

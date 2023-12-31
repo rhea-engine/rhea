@@ -3,8 +3,8 @@
 #include "BtGhost.h"
 #include "Fabrics/3D/Item.h"
 
-#include "btBulletDynamicsCommon.h"
-#include "BulletCollision/CollisionDispatch/btGhostObject.h"
+#include <bullet/src/btBulletDynamicsCommon.h>
+#include <bullet/src/BulletCollision/CollisionDispatch/btGhostObject.h>
 
 using Math::Vector3;
 

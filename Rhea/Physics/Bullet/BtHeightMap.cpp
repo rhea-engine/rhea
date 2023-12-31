@@ -6,8 +6,8 @@
 #include "Graphics/Texture.h"
 #include <Poseidon/Texture.h>
 
-#include "btBulletDynamicsCommon.h"
-#include "BulletCollision/CollisionShapes/btHeightfieldTerrainShape.h"
+#include <bullet/src/btBulletDynamicsCommon.h>
+#include <bullet/src/BulletCollision/CollisionShapes/btHeightfieldTerrainShape.h>
 
 #include <algorithm>
 #undef min

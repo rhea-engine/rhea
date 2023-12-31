@@ -1,6 +1,8 @@
 #include "StyleSheet.h"
 #include "Application.h"
 
+#include <algorithm>
+
 namespace Rhea
 {
 	void StyleSheet::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
@@ -21,7 +23,7 @@ namespace Rhea
 		for (auto it = m_entries.begin(); it != m_entries.end(); ++it) {
 			
 			std::string type = (*it).selector.name;
-			transform(type.begin(), type.end(), type.begin(), ::tolower);
+			std::transform(type.begin(), type.end(), type.begin(), ::tolower);
 			if (!std::string("//meworla/gui/" + type).compare(w->getTypeName())) {
 				w->setStyle((*it).properties);
 			}

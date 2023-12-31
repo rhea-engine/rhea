@@ -1,0 +1,32 @@
+#ifndef HERMES_MESSAGE_CREATEAVATAR_H
+#define HERMES_MESSAGE_CREATEAVATAR_H
+
+#include "../Message.h"
+#include "../Opcode.h"
+
+namespace Hermes
+{
+	class MessageCreateAvatar : public Message
+	{
+	public:
+		MessageCreateAvatar() :
+			MessageCreateAvatar(HERMES_MSG_CREATEAVATAR)
+		{}
+		MessageCreateAvatar(uint16_t opcode) :
+			Message(opcode)
+		{}
+
+		void serialize(Psio::IOBuffer* buf);
+		void unserialize(Psio::IOBuffer* buf);
+
+		static Message* create(uint16_t opcode, uint16_t size, Psio::IOBuffer* buf);
+
+		typedef struct {
+			std::string name;
+			std::string type_name;
+		} avatardef;
+		avatardef avatar;
+	};
+}
+
+#endif // !HERMES_MESSAGE_CREATEAVATAR_H

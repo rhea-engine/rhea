@@ -7,12 +7,7 @@ namespace Rhea
 {
 	void Rhea::ListWidget::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{
-		Widget::setup(app, attributes, values);
-
-		Variant data_binding = getValue("data");
-		if (data_binding != Variant()) {
-			m_data_binding = m_app->getUnitTree()->getBinding(data_binding, m_attributes["base_path"]);
-		}
+		Widget::setup(app, attributes, values);		
 	}
 
 	void ListWidget::addItem(std::string text, std::string value)
@@ -39,8 +34,15 @@ namespace Rhea
 	{
 		Widget::ready();
 
-		// fill the list once
-		pollData();
+		// check if we have a data binding
+		if (m_values["data"] != Variant()) {
+			m_data_binding = m_app->getUnitTree()->getBinding(m_values["data"], m_attributes["basepath"]);
+
+			// fill the list once
+			if (m_data_binding.target) {
+				pollData();
+			}
+		}
 	}
 
 	void ListWidget::onFrame(float delta)

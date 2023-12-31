@@ -47,7 +47,7 @@ if(WIN32)
 #  set(CMAKE_EXE_LINKER_FLAGS -static)
 endif()
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ ${CMAKE_SOURCE_DIR}/Components/ ${json_SOURCE_DIR}/include ${CMAKE_SOURCE_DIR}/ThirdParty/)
+include_directories(${PROJECT_SOURCE_DIR} ${PROJECT_SOURCE_DIR}/Components/ ${json_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/ThirdParty/ ${PROJECT_SOURCE_DIR}/ThirdParty/bullet/src)
 
 # Cross-Compiling works only for some projects
 set(targetdirs Components FortyTwo)
@@ -59,6 +59,8 @@ endif()
 foreach (TARGET ${targetdirs})
 	add_subdirectory(${TARGET})	
 endforeach ()
+
+target_include_directories(Orion PUBLIC ${json_SOURCE_DIR}/include)
 
 # Setup samples
 add_subdirectory(Samples)

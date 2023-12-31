@@ -2,6 +2,7 @@
 #define RHEA_GUI_TEXTINPUT
 
 #include "Widget.h"
+#include <Rhea/UnitTree.h>
 
 namespace Rhea
 {
@@ -26,7 +27,9 @@ namespace Rhea
 			m_cursor_timer(0.0f),
 			m_has_focus(false),
 			m_offset_x(0.0f)
-		{}
+		{
+			event_binding.target = nullptr;
+		}
 
 		virtual void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
 
@@ -58,7 +61,7 @@ namespace Rhea
 
 	protected:
 
-		void updateText();
+		void updateText(bool isEvent);
 
 		Label* m_label_item;
 		Label* m_cursor_item;
@@ -88,6 +91,9 @@ namespace Rhea
 
 		// do we have focus
 		bool m_has_focus;
+
+		// event handling
+		UnitTree::Binding event_binding;
 	};
 }
 

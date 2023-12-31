@@ -3,157 +3,82 @@
 #include "ServerStream.h"
 #include <Opcode.h>
 #include <Psio/Log.h>
+#include <Hermes/Messages/MessageLogin.h>
+#include <Messages/MessageConnect.h>
+#include <Hermes/Messages/MessageLoginFailed.h>
+#include <Messages/MessageCreateUser.h>
 
 using Psio::Network;
-using Psio::IOBuffer;
 
 namespace Hermes
 {
-	int ServerStream::onLogin(MessageHandler handler)
+	void ServerStream::Initialize()
 	{
-		m_message_handler = handler;
-
-		m_inbuf = std::make_unique<Psio::IOBuffer>(64 * 1024);
-		m_outbuf = std::make_unique<Psio::IOBuffer>(64 * 1024);
-
-		m_next_state = HERMES_LOGIN_PENDING;
-
-		int ret = DoLoop(0);
-
-		return ret;
-	}
-
-	int ServerStream::onMessage(MessageHandler handler)
-	{
-		m_message_handler = handler;
-
-		m_next_state = HERMES_READMESSAGE_COMPLETED;
-
-		int ret = DoLoop(0);
-
-		return ret;
-	}
-
-	int ServerStream::DoLoop(int result)
-	{
-		do
-		{
-			m_state = m_next_state;
-			m_next_state = HERMES_NONE;
-
-			switch (m_state)
-			{
-			case HERMES_LOGIN_PENDING:
-				result = DoLoginPending(result);
-				break;
-			case HERMES_LOGIN_COMPLETED:
-				result = DoReadLoginCompleted(result);
-				break;
-			case HERMES_READMESSAGE:
-				result = DoReadMessage(result);
-				break;
-			case HERMES_READMESSAGE_COMPLETED:
-				result = DoReadMessageCompleted(result);
-				break;
-			}
-
-		} while (result != Network::IO_PENDING && m_state != HERMES_NONE);
-
-		return result;
-	}
-
-	void ServerStream::CallDoLoop(int result)
-	{
-		int res = DoLoop(result);
-	//	if ((res != Network::Err::IO_PENDING) && (m_message_handler != NULL))
-	//		m_message_handler(res, result);
-	}
-
-	int ServerStream::DoLoginPending(int result)
-	{
-		if (result < 0)
-			return result;
-
-		m_next_state = HERMES_STATE::HERMES_LOGIN_COMPLETED;
-
-		return m_sock->Read(m_inbuf.get(), [&](int result) -> int {
-			{
-				CallDoLoop(result);
-				return -1;
-			}
-			});
-	}
-
-	int ServerStream::DoReadLoginCompleted(int result)
-	{
-		if (result < 0)
-			return result;
+		MessageFactory* factory = m_stream->getMessageFactory();
+		if (!factory) {
+			LOG(LOG_ERROR) << "No message factory found";
+			return;
+		}
 		
-		// check if message is received completely
-		std::unique_ptr<Message> msg;
-		msg.reset(m_msg_factory->getMessage(m_inbuf.get()));
-		if (msg) {
-			if (msg->getOpcode() != HERMES_MSG_LOGIN) {
-				// wrong message					
-				// note this will probably destroy the stream
-				m_message_handler(nullptr, HERMES_ERR_GENERAL);
-				return Network::IO_PENDING;
-			}
-			else {
-				m_message_handler(std::move(msg), 0);
-				return Network::IO_PENDING;
-			}
-		}
-		else {
-			m_next_state = HERMES_STATE::HERMES_LOGIN_PENDING;
-			return 0;
-		}
+		factory->registerMessageHandler<MessageLogin>(HERMES_MSG_LOGIN,
+			[&](uint16_t opcode)->bool {
+				return m_state == HERMES_LOGIN_PENDING;
+			},
+			std::bind(&ServerStream::onLoginMessage, this, std::placeholders::_1)
+		);
+
+		factory->registerMessageHandler<MessageCreateUser>(HERMES_MSG_CREATE_USER,
+			[&](uint16_t opcode)->bool {
+				return m_state == HERMES_LOGIN_PENDING;
+			},
+			std::bind(&ServerStream::onCreateMessage, this, std::placeholders::_1)
+		);
+
+		m_state = HERMES_LOGIN_PENDING;
 	}
 
-	int ServerStream::DoReadMessage(int result)
+	int ServerStream::AuthSuccess(Stream::CompletionHandler handler)
 	{
+		Hermes::Message msg_auth(HERMES_MSG_LOGIN_SUCCEEDED);
+		m_state = HERMES_READMESSAGE;
 
-		if (result < 0)
-			return result;
+		int ret = m_stream->sendMessage(&msg_auth, [&, handler](int result) {
+			if (handler)
+				handler(result);
+			});
 
-		m_next_state = HERMES_STATE::HERMES_READMESSAGE_COMPLETED;
+		if (ret > -2)
+			ret = 1;
 
-		return m_sock->Read(m_inbuf.get(), [&](int result) -> int {
-			{
-				m_next_state = HERMES_STATE::HERMES_READMESSAGE_COMPLETED;
-				CallDoLoop(result);
-				return -1;
-			}
+		return ret;
+	}
+
+	int ServerStream::AuthFailure(Stream::CompletionHandler handler, std::vector<std::string> methods)
+	{
+		Hermes::MessageLoginFailed msg_auth;
+		msg_auth.methods = methods;
+
+		return m_stream->sendMessage(&msg_auth, [&, handler](int result) {
+			if (handler)
+				handler(result);
 			});
 	}
 
-	int ServerStream::DoReadMessageCompleted(int result)
+	void ServerStream::onLoginMessage(MessageLogin* msg)
 	{
-		if (result < 0) {
-			// call handler with error code - this could destroy |this|
-			m_message_handler(nullptr, result);
-			return -1;
-		}
-
-		// check if message is received completely
-		std::unique_ptr<Message> msg;
-		msg.reset(m_msg_factory->getMessage(m_inbuf.get()));
-		if (msg) {
-			DLOG(LOG_DEBUG) << "Received message: " << msg->base.opcode;
-			m_message_handler(std::move(msg), 0);
-			if (m_inbuf->Remaining()) {
-				m_next_state = HERMES_STATE::HERMES_READMESSAGE_COMPLETED;
-				return m_inbuf->Remaining();
-			}
-			else {
-				m_next_state = HERMES_STATE::HERMES_READMESSAGE;
-				return 0;
-			}			
-		}	
-		else {
-			m_next_state = HERMES_STATE::HERMES_READMESSAGE;
-			return 0;
-		}
+		if (m_login_handler)
+			m_login_handler(msg->auth_method, msg->user_name, msg->secrets);
 	}
 
+	void ServerStream::onCreateMessage(MessageCreateUser* msg)
+	{
+		if (m_create_handler)
+			m_create_handler(msg->auth_method, msg->user_name, msg->name, msg->ext_id, msg->secrets);
+	}
+
+	int ServerStream::LoginRetry()
+	{
+		m_state = HERMES_LOGIN_PENDING;
+		return -1;
+	}
 }

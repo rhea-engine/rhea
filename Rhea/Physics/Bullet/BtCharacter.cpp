@@ -3,9 +3,9 @@
 #include "Fabrics/Terrain/Terrain.h"
 #include "BtGhost.h"
 
-#include "btBulletDynamicsCommon.h"
-#include <BulletCollision/CollisionDispatch/btGhostObject.h>
-#include "BulletCollision/NarrowPhaseCollision/btRaycastCallback.h"
+#include <bullet/src/btBulletDynamicsCommon.h>
+#include <bullet/src/BulletCollision/CollisionDispatch/btGhostObject.h>
+#include <bullet/src/BulletCollision/NarrowPhaseCollision/btRaycastCallback.h>
 
 using Math::Vector3;
 

@@ -1,0 +1,34 @@
+#ifndef HERMES_MESSAGE_CREATEUSER_H
+#define HERMES_MESSAGE_CREATEUSER_H
+
+#include <Hermes/Message.h>
+#include <Hermes/Opcode.h>
+#include <vector>
+
+namespace Hermes
+{
+	class MessageCreateUser : public Message
+	{
+	public:
+		MessageCreateUser() :
+			MessageCreateUser(HERMES_MSG_CREATE_USER)
+		{}
+		MessageCreateUser(uint16_t opcode) :
+			Message(opcode)
+		{}
+
+		void serialize(Psio::IOBuffer* buf);
+		void unserialize(Psio::IOBuffer* buf);
+
+		static Message* create(uint16_t opcode, uint16_t size, Psio::IOBuffer* buf);
+
+		std::string auth_method;
+		std::string user_name;
+		std::string name;
+		std::string ext_id;
+		std::vector<std::string> secrets;
+	};
+}
+
+
+#endif // !HERMES_MESSAGE_CREATEUSER_H

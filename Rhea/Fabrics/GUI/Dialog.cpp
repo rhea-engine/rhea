@@ -11,8 +11,20 @@ namespace Rhea
 	{
 		Widget::ready();
 
-		registerEventHandler("close", this, [&](Event* e, Unit* u)->bool {
+		registerEventHandler("close", this, [&](Event* ev, Unit* u)->bool {
 			hide();
+			return false;
+			});
+		registerEventHandler("submit", this, [&](Event* ev, Unit* u)->bool {
+			if (m_values["onSubmit"] != Variant()) {
+				sendBoundEvent(m_values["onSubmit"], ev);
+			}
+			return false;
+			});
+		registerEventHandler("cancel", this, [&](Event* ev, Unit* u)->bool {
+			if (m_values["onCancel"] != Variant()) {
+				sendBoundEvent(m_values["onCancel"], ev);
+			}
 			return false;
 			});
 	}

@@ -74,7 +74,7 @@ namespace Rhea
 		m_text = text;		
 		m_pos = m_text.size();
 		m_length = m_pos;
-		updateText();
+		updateText(false);
 	}
 
 	void TextInput::onFrame(float delta)
@@ -188,7 +188,7 @@ namespace Rhea
 				m_text = m_text.substr(0, m_pos - 1) + m_text.substr(m_pos);
 				m_pos--;
 				m_length--;
-				updateText();
+				updateText(true);
 				updateCursor();
 			}
 			ev->stopPropagation();
@@ -198,7 +198,7 @@ namespace Rhea
 				m_text += '\n';
 				m_pos++;
 				m_length++;
-				updateText();
+				updateText(true);
 				updateCursor();
 			}
 			else {
@@ -220,7 +220,7 @@ namespace Rhea
 			m_text = new_text;
 			m_pos++;
 			m_length++;
-			updateText();
+			updateText(true);
 			updateCursor();
 			ev->stopPropagation();
 
@@ -257,7 +257,7 @@ namespace Rhea
 		}
 	}
 
-	void TextInput::updateText()
+	void TextInput::updateText(bool isEvent)
 	{
 		if (!m_textwidget)
 			return;
@@ -274,5 +274,18 @@ namespace Rhea
 			m_textwidget->setMesh();
 		}
 		
+		if (isEvent)
+		{
+			if (!event_binding.target) {
+				// event binding?
+				if (m_values["onChange"] != Variant())
+					event_binding = m_app->getUnitTree()->getBinding(m_values["onChange"], m_attributes["basepath"]);
+			}
+			// send change event
+			if (event_binding.target) {
+				Event my_ev = Event("change", this);
+				event_binding.target->sendEvent(event_binding.value, &my_ev);
+			}
+		}
 	}
 }

@@ -91,6 +91,17 @@ namespace Psio
         if (Fs::fileExists(res))
             return res;
 
+        // try to get path to executable
+		char buf[MAX_PATH];
+        if (GetModuleFileNameA(NULL, buf, MAX_PATH) > 0) {
+			// store buf in res
+			res = buf;
+			res = res.substr(0, res.find_last_of("\\/"));
+			res += string("/Data");
+			if (Fs::fileExists(res))
+				return res;
+        }
+
         return "";
     }
 

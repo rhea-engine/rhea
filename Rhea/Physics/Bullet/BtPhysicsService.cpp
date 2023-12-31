@@ -16,10 +16,12 @@
 #include <Poseidon/Shader.h>
 #include <Poseidon/RenderContext.h>
 
-#include "btBulletDynamicsCommon.h"
+#include <bullet/src/btBulletDynamicsCommon.h>
 #include <Psio/Log.h>
 #include "Application.h"
 #include "UnitTree.h"
+
+#include <assert.h>
 
 namespace Rhea
 {

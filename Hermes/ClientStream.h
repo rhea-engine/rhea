@@ -2,44 +2,50 @@
 #define HERMES_CLIENTSTREAM_H
 
 #include "Stream.h"
+#include <Hermes/Messages/MessageLoginFailed.h>
 
 namespace Hermes
 {
-	class ClientStream : public Stream
+	class ClientStream
 	{
 	public:
-		ClientStream(std::unique_ptr<Psio::StreamSocket> sock, MessageFactory* msg_factory) :
+		ClientStream(Stream* stream) :
 			m_state(HERMES_NONE),
-			m_next_state(HERMES_NONE),
-			Stream(std::move(sock), msg_factory)
+			m_stream(stream)
 		{}
 
-		int connect(CompletionHandler handler);
+		// state handling
+		void Initialize();
+		int Loop();
+
+		void Start() { m_state = HERMES_LOGIN_PENDING; }
+		void Stop() { m_state = HERMES_NONE; }
 
 		typedef std::function<void(int)> LoginHandler;
-		void login(LoginHandler handler);
 
-		int onMessage(MessageHandler handler);
+		// send requests
+
+		int Login(std::string method, std::string username, std::vector<std::string> secrets, LoginHandler handler);
+		int Register(std::string method, std::string username, std::string name, std::string ext_id, std::vector<std::string> secrets, LoginHandler handler);
 
 	protected:
+		Stream* m_stream;
+		std::unique_ptr<Message> m_msg;
+
 		// state Handling
 		enum HERMES_STATE {
 			HERMES_NONE,
 			HERMES_LOGIN_PENDING,
 			HERMES_SEND_SETUP,
-			HERMES_SEND_SETUP_COMPLETED,
 			HERMES_READMESSAGE,
-			HERMES_READMESSAGE_COMPLETED
 		};
 
 		HERMES_STATE m_state;
-		HERMES_STATE m_next_state;
-		int DoLoop(int result);
-		void CallDoLoop(int result);
-		int DoReadMessage(int result);
-		int DoReadMessageCompleted(int result);
 
-		CompletionHandler m_oncompletion_handler;
+		// login messages
+		void onLoginMessage(Message* msg);
+		void onLoginFailureMessage(MessageLoginFailed* msg);
+
 		LoginHandler m_login_handler;
 	};
 }

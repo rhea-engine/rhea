@@ -2,7 +2,7 @@
 #include <Psio/Log.h>
 #include <Rhea/Physics/PhysicsService.h>
 #include <Rhea/Physics/PhysicsManager.h>
-#include "ServerService.h"
+#include <Rhea/Fabrics/Network/ServerService.h>
 #include <Rhea/Platform/PlatformService.h>
 #include <Rhea/Resources/ResourceList.h>
 #include <Rhea/UnitTree.h>
@@ -20,9 +20,7 @@ void World::setup(Rhea::Application* app, std::unordered_map<std::string, std::s
 std::vector<Unit::Export> World::getReferences()
 {
 	std::vector<Export> refs = Unit::getReferences();
-	if (m_values.find("avatarlist") != m_values.end()) {
-		refs.push_back({ "avatarlist", "//meworla/avatarlist", m_values["avatarlist"] });
-	}
+
 	if (m_values.find("scene") != m_values.end()) {
 		refs.push_back({ "scene", "//meworla/scene", m_values["scene"] });
 	}
@@ -30,20 +28,6 @@ std::vector<Unit::Export> World::getReferences()
 		LOG(LOG_ERROR) << "No scene defined. Exiting.";
 	}
 	return refs;
-}
-
-
-Rhea::Unit* World::getUserInfo(std::string username)
-{
-	if (!m_a_list && m_values.find("avatarlist")!=m_values.end()) {
-		m_a_list = m_app->getUnitTree()->find(m_values["avatarlist"]);
-	}
-	if (m_a_list) {
-		Rhea::Unit* user_info = m_a_list->getChild(username);
-		return user_info;
-	}
-	else
-		return nullptr;
 }
 
 void World::ready()

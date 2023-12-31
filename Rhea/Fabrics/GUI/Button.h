@@ -24,6 +24,7 @@ namespace Rhea
 
 		// input handling
 		bool onMouseClick(Event* ev, Unit* unit);
+		bool onMouseClicked(Event* ev, Unit* unit);
 
 		// sizing
 		void onSetPosition();

@@ -10,8 +10,11 @@ namespace Hermes
 	{
 	public:
 		MessageEnterFailed() :
+			MessageEnterFailed(HERMES_MSG_ENTER_FAILED)
+		{}
+		MessageEnterFailed(uint16_t opcode) :
 			reason(0),
-			Message(HERMES_MSG_ENTER_FAILED)
+			Message(opcode)
 		{}
 
 		void serialize(Psio::IOBuffer* buf);

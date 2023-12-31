@@ -23,9 +23,9 @@ namespace Orion
 		search_dir = m_fs->getAppDataDir();
 		if (search_dir != "")
 			m_caches.push_back(std::make_unique<ResolveLocal>(search_dir));
-		search_dir = m_fs->getHomeDir();
+		search_dir = m_fs->getHomeDir();		
 		if (search_dir != "")
-			m_caches.push_back(std::make_unique<ResolveLocal>(search_dir, true));
+			m_caches.push_back(std::make_unique<ResolveLocal>(search_dir));
 	}
 
 	bool Orion::poll()

@@ -17,10 +17,12 @@ namespace Rhea
 			Material(name, "//meworla/material")
 		{}
 		Material(std::string name, std::string type_name) :
-			m_app(nullptr),
 			m_shader(nullptr),
 			Unit(name, type_name)
 		{}
+		std::vector<Unit::Export> getReferences();
+
+		void ready() override;
 
 		// get textures
 		std::vector<ImageResource*>& getTextures() { return m_textures; }
@@ -34,13 +36,17 @@ namespace Rhea
 		// get shader resource
 		TextResource* getShader() { return m_shader; }
 
+		// stencil testing
+		void setStencilTestDefault(std::string test_name);
+		void setStencilTest(std::string test_name) { setValue("stencil_test", test_name); }
+		std::string getStencilTest() { return getValue("stencil_test", "default"); }
+
 		// alpha blending
 		bool getAlphaBlending();
 
 	protected:
-		Application* m_app;
 		TextResource* m_shader;
-		std::vector<ImageResource*> m_textures;		
+		std::vector<ImageResource*> m_textures;	
 	};
 }
 		

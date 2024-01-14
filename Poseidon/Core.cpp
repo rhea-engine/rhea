@@ -8,6 +8,7 @@
 #include "Entity.h"
 #include "SceneManager.h"
 #include "Window.h"
+#include "Cubemap.h"
 
 #include "Core.h"
 
@@ -16,7 +17,7 @@ namespace Poseidon
 {
 	Core::Core()
 	{
-		m_psio = nullptr;
+		m_psio = nullptr;	
 	}
 
 	void Core::init(Psio::Engine* psio)
@@ -75,33 +76,69 @@ namespace Poseidon
 			return 0;
 	}
 
-	Texture* Core::createTexture(const std::string& file_name)
+	Hippios::PipelineStateObject* Core::CreateOrGetPso(PipelineProperties& props)
 	{
-		Poseidon::Texture* texture = new Poseidon::Texture();
-		texture->bind(m_renderer);
-		if (texture->load(file_name))
-			return texture;
-		else {
-			delete texture;
-			return NULL;
+		// Check if a PSO already exists for the given material
+		auto it = m_pso_list.find(props);
+
+		if (it == m_pso_list.end()) {
+			// Create a new PSO
+			Hippios::PipelineStateObjectDesc pso_desc;	
+
+			// stencil state
+			pso_desc.depthStencilState.name = props.stencil_test;
+
+			// blend state
+			if (props.alpha_blending) {
+				pso_desc.blendState.renderTarget[0].blend_enable = true;
+				pso_desc.blendState.renderTarget[0].src_blend = Hippios::BlendFactor::BLEND_ONE;
+				pso_desc.blendState.renderTarget[0].dest_blend = Hippios::BlendFactor::BLEND_INV_SRC_ALPHA;
+				pso_desc.blendState.renderTarget[0].blend_op = Hippios::BlendOp::BLEND_ADD;
+				pso_desc.blendState.renderTarget[0].src_blend_alpha = Hippios::BlendFactor::BLEND_ONE;
+				pso_desc.blendState.renderTarget[0].dest_blend_alpha = Hippios::BlendFactor::BLEND_ZERO;
+				pso_desc.blendState.renderTarget[0].blend_op_alpha = Hippios::BlendOp::BLEND_ADD;
+				pso_desc.blendState.renderTarget[0].render_target_write_mask = 0x0f;
+			}
+			else {
+				pso_desc.blendState.renderTarget[0].blend_enable = false;
+				pso_desc.blendState.renderTarget[0].src_blend = Hippios::BlendFactor::BLEND_ONE;
+				pso_desc.blendState.renderTarget[0].dest_blend = Hippios::BlendFactor::BLEND_INV_SRC_ALPHA;
+				pso_desc.blendState.renderTarget[0].blend_op = Hippios::BlendOp::BLEND_ADD;
+				pso_desc.blendState.renderTarget[0].src_blend_alpha = Hippios::BlendFactor::BLEND_ONE;
+				pso_desc.blendState.renderTarget[0].dest_blend_alpha = Hippios::BlendFactor::BLEND_ZERO;
+				pso_desc.blendState.renderTarget[0].blend_op_alpha = Hippios::BlendOp::BLEND_ADD;
+				pso_desc.blendState.renderTarget[0].render_target_write_mask = 0x0f;
+			}
+
+			// shader programs
+			pso_desc.shaderProgram.vertex_shader = props.shader->getVShader();
+			pso_desc.shaderProgram.pixel_shader = props.shader->getPShader();
+
+			// layout
+			pso_desc.vertexLayout.topology = props.topology;
+
+			Hippios::PipelineStateObject* pso = m_renderer->getRenderer()->createPipelineState(&pso_desc);
+			m_pso_list[props].reset(pso);
 		}
+		return m_pso_list[props].get();
 	}
 
-	Texture* Core::createTexture(unsigned char* buf, size_t buflen)
+	Texture* Core::createTexture(int type, int num_images)
 	{
-		Poseidon::Texture* texture = new Poseidon::Texture();
-		texture->bind(m_renderer);
-		if (texture->load(buf, buflen))
-			return texture;
+		Poseidon::Texture* texture;
+		if (type==0)
+			texture = new Poseidon::Texture();
 		else {
-			delete texture;
-			return NULL;
+			texture = new Poseidon::Cubemap();
+			texture->setNumImages(num_images);
 		}
+		texture->bind(m_renderer);
+		return texture;
 	}
 
 	Material* Core::createMaterial()
 	{
-		return new Material(this->m_renderer->getRenderer());
+		return new Material(this);
 	}
 
 	void Core::registerMaterial(std::string name, Material* material)

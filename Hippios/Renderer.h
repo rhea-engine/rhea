@@ -4,6 +4,9 @@
 #include <string>
 
 #include "RenderListener.h"
+#include "TextureDesc.h"
+#include "PipelineState.h"
+#include "BlendState.h"
 
 namespace Psio {
 	class Engine;
@@ -27,12 +30,17 @@ namespace Hippios
 		virtual VertexBuffer* createVertexBuffer(size_t vertexSize, size_t numVertices, bool dynamic) = 0;
 		virtual IndexBuffer* createIndexBuffer(size_t vertex_size, size_t num_faces, bool dynamic) = 0;
 		virtual GraphicsBuffer* createGraphicsBuffer(size_t size_in_bytes) = 0;
-		virtual Texture* createTexture() = 0;
+		virtual Texture* createTexture(TextureDesc& desc) = 0;
 		virtual void clearPass() = 0;
 		virtual int presentPass() = 0;
-		virtual void setAlphaBlend(bool enable) = 0;
 		virtual GPUProgram* addMaterial(std::string filename, char* shader_type, char* entry_point, int vertex_type) = 0;
 		virtual GPUProgram* addMaterial(unsigned char* buf, int buflen, char* shader_type, char* entry_point, int vertex_type) = 0;
+
+		// add a pipleline state object
+		virtual PipelineStateObject* createPipelineState(PipelineStateObjectDesc* desc) = 0;
+
+		// set the active pipeline state
+		virtual void setPipelineState(PipelineStateObject* pso) = 0;
 		
 		// bind the current vertex and index buffer
 		virtual void bindBuffers(VertexBuffer* vb, IndexBuffer* ib) = 0;
@@ -50,8 +58,17 @@ namespace Hippios
 		// draw index with current buffers
 		virtual void drawIndexed(int size, int start_idx, int start_vtx) = 0;
 
-		// set the stencil state to state with id
-		virtual void setStencilState(int state_id) = 0;
+		// set the blend state with the given blend factor and mask
+		virtual void setBlendState(BlendState* state, float blend_factor[4], unsigned int mask) = 0;
+
+		// set the stencil state to state with ref value
+		virtual void setStencilState(StencilState* state, int stencil_ref) = 0;
+
+		// get the stencil state with the given name
+		virtual StencilState* getStencilState(std::string name) = 0;
+
+		// create a new stencil state
+		virtual StencilState* createStencilState(std::string name, DepthStencilStateDesc& desc) = 0;
 
 		// set gpu parameters
 

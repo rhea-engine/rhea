@@ -11,18 +11,20 @@ namespace Rhea
 {
 	void Item2D::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{
-		Item::setup(app, attributes, values);		
+		Item::setup(app, attributes, values);
+
+		// rendering options
+		if (m_values.find("stencil_test") == m_values.end())
+			m_values["stencil_test"] = "disabled";
 
 		m_position.x = values["x"];
-		m_position.y = values["y"];		
+		m_position.y = values["y"];
 		m_size.x = values["w"];
 		m_size.y = values["h"];
 
-		if (m_values.find("texture") != m_values.end()) {
-			if (m_values.find("shader") == m_values.end()) {
-				// set a default
-				m_values["shader"] = "//rhea/shaders/widget.hlsl";
-			}
+		if (m_values.find("shader") == m_values.end()) {
+			// set a default
+			m_values["shader"] = "//rhea/shaders/widget.hlsl";
 		}
 	}
 
@@ -53,6 +55,9 @@ namespace Rhea
 				m_material->setup(m_app);
 				m_material->addTexture(static_cast<ImageResource*>(tex));
 				m_material->setValue("shader", "widget");
+				if (m_values.find("stencil_test") != m_values.end()) {
+					m_material->setStencilTest(m_values["stencil_test"]);
+				}
 
 				// get the shader
 				Unit* shader_res = m_app->getUnitTree()->find(m_values["shader"], m_attributes["basepath"], false);

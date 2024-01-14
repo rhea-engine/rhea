@@ -9,19 +9,22 @@ namespace Hippios
 	class D3D11StencilState : public StencilState
 	{
 	public:
-		D3D11StencilState(ID3D11Device* device, ID3D11DeviceContext* device_context);
+		D3D11StencilState(ID3D11Device* device, ID3D11DeviceContext* device_context, DepthStencilStateDesc* desc);
 		~D3D11StencilState();
 
 		void initialize();
 
 		// activate the state
-		void setState();
+		void setState(unsigned int ref);
 
 	protected:
 		D3D11_DEPTH_STENCIL_DESC m_depth_stencil_desc;
 		ID3D11DepthStencilState* m_depth_stencil_state;
 		ID3D11Device* m_device;
 		ID3D11DeviceContext* m_device_context;
+
+		D3D11_STENCIL_OP op(StencilOp op);
+		D3D11_COMPARISON_FUNC func(ComparisonFunction func);
 	};
 }
 

@@ -19,20 +19,15 @@ using namespace std;
 #include "D3D11Texture.h"
 #include <Psio/Window.h>
 #include "D3D11StencilState.h"
+#include "D3D11PipelineState.h"
 
 #pragma comment (lib, "d3d11.lib")
 
 namespace Hippios {
 
-	D3D11Renderer::D3D11Renderer()
+	D3D11Renderer::D3D11Renderer() :
+		D3D11Renderer(nullptr, nullptr)
 	{
-		mMinRequestedFeatureLevel = D3D_FEATURE_LEVEL_9_1;
-		mMaxRequestedFeatureLevel = D3D_FEATURE_LEVEL_11_1;
-		mDriverType = D3D_DRIVER_TYPE_HARDWARE;
-		mFeatureLevel = D3D_FEATURE_LEVEL_11_1;
-		m_alpha_enable_blending_state = nullptr;
-		m_alpha_disable_blending_state = nullptr;
-		m_current_texture = nullptr;
 	}
 
 	D3D11Renderer::D3D11Renderer(ID3D11Device* device, ID3D11DeviceContext* device_context) :
@@ -42,9 +37,9 @@ namespace Hippios {
 		mMaxRequestedFeatureLevel = D3D_FEATURE_LEVEL_11_1;
 		mDriverType = D3D_DRIVER_TYPE_HARDWARE;
 		mFeatureLevel = D3D_FEATURE_LEVEL_11_1;
-		m_alpha_enable_blending_state = nullptr;
-		m_alpha_disable_blending_state = nullptr;
 		m_current_texture = nullptr;
+		m_current_pso = nullptr;
+		m_current_stencil_state = nullptr;
 	}
 
 	void D3D11Renderer::init()
@@ -151,40 +146,6 @@ namespace Hippios {
 			return hr;
 		}
 
-		// add alpha blend state
-			
-		// Clear the blend state description.
-		D3D11_BLEND_DESC blend_state_description;
-		ZeroMemory(&blend_state_description, sizeof(D3D11_BLEND_DESC));
-		
-		// Create an alpha enabled blend state description.
-		blend_state_description.RenderTarget[0].BlendEnable = TRUE;
-		blend_state_description.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
-		blend_state_description.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
-		blend_state_description.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-		blend_state_description.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
-		blend_state_description.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
-		blend_state_description.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-		blend_state_description.RenderTarget[0].RenderTargetWriteMask = 0x0f;
-
-		// Create the blend state using the description.
-		hr = m_device->CreateBlendState(&blend_state_description, &m_alpha_enable_blending_state);
-		if (FAILED(hr))
-		{
-			cout << "could not create d3d11 blend state";
-			return hr;
-		}
-		// Modify the description to create an alpha disabled blend state description.
-		blend_state_description.RenderTarget[0].BlendEnable = FALSE;
-
-		// Create the blend state using the description.
-		hr = m_device->CreateBlendState(&blend_state_description, &m_alpha_disable_blending_state);
-		if (FAILED(hr))
-		{
-			cout << "could not create d3d11 blend state";
-			return hr;
-		}
-
 		// Store pointers to the Direct3D 11.1 API device
 		return hr;
 	}
@@ -238,9 +199,11 @@ namespace Hippios {
 		m_depth_buffer = new D3D11DepthBuffer(m_device, 24, m_win->getWindow()->GetWidth(), m_win->getWindow()->GetHeight());
 
 		// create the default stencil states
-		m_stencil_std = new D3D11StencilState(m_device, m_device_context);
-		m_stencil_disabled = new D3D11StencilState(m_device, m_device_context);
-		m_stencil_disabled->initialize();
+		DepthStencilStateDesc desc;
+		D3D11StencilState* stencil_std = new D3D11StencilState(m_device, m_device_context, nullptr);
+		D3D11StencilState* stencil_disabled = new D3D11StencilState(m_device, m_device_context, &desc);
+		m_stencil_states["default"].reset(stencil_std);
+		m_stencil_states["disabled"].reset(stencil_disabled);
 
 		// set the render target as the back buffer
 		m_device_context->OMSetRenderTargets(1, &mBackbuffer, m_depth_buffer->get_view());
@@ -349,27 +312,6 @@ namespace Hippios {
 		}
 	}
 
-	void D3D11Renderer::setAlphaBlend(bool enable)
-	{
-		float blend_factor[4];
-
-		// Setup the blend factor.
-		blend_factor[0] = 0.0f;
-		blend_factor[1] = 0.0f;
-		blend_factor[2] = 0.0f;
-		blend_factor[3] = 0.0f;
-
-		if (enable) {
-			// Turn on the alpha blending.
-			m_device_context->OMSetBlendState(m_alpha_enable_blending_state, blend_factor, 0xffffffff);
-		}
-		else {
-			m_device_context->OMSetBlendState(m_alpha_disable_blending_state, blend_factor, 0xffffffff);
-		}
-
-		return;
-	}
-
 	void D3D11Renderer::bindBuffers(VertexBuffer* vb, IndexBuffer* ib)
 	{
 		if (m_vb != vb) {
@@ -437,14 +379,21 @@ namespace Hippios {
 		return 0;
 	}
 	
-	void D3D11Renderer::setStencilState(int state_id)
+	void D3D11Renderer::setStencilState(StencilState* state, int stencil_ref)
 	{
-		if (!state_id)
-			m_stencil_std->setState();
-		else
-			m_stencil_disabled->setState();
+		if (state != m_current_stencil_state) {
+			m_current_stencil_state = static_cast<D3D11StencilState*>(state);
+			m_current_stencil_state->setState(stencil_ref);
+		}
 	}
 
+	void D3D11Renderer::setRasterizerState(ID3D11RasterizerState* state)
+	{
+		if (state != m_current_raster_state) {
+			m_current_raster_state = state;
+			m_device_context->RSSetState(m_current_raster_state);
+		}
+	}
 
 	VertexBuffer* D3D11Renderer::createVertexBuffer(size_t vertexSize, size_t numVertices, bool dynamic)
 	{
@@ -485,9 +434,9 @@ namespace Hippios {
 		m_device_context->Release();
 	}
 
-	Texture* D3D11Renderer::createTexture()
+	Texture* D3D11Renderer::createTexture(TextureDesc& desc)
 	{
-		D3D11Texture* texture = new D3D11Texture(this);
+		D3D11Texture* texture = new D3D11Texture(desc, this);
 		return texture;
 	}
 
@@ -551,6 +500,26 @@ namespace Hippios {
 		}
 	}
 
+	void D3D11Renderer::setBlendState(BlendState* state, float* blend_factor, unsigned int mask)
+	{
+		m_device_context->OMSetBlendState(static_cast<D3D11BlendState*>(state)->getBlendState(), blend_factor, mask);
+	}
+
+	PipelineStateObject* D3D11Renderer::createPipelineState(PipelineStateObjectDesc* desc)
+	{
+		D3D11PipelineStateObject* pso = new D3D11PipelineStateObject(this, desc);
+		return pso;
+	}
+
+	void D3D11Renderer::setPipelineState(PipelineStateObject* pso)
+	{
+		if (m_current_pso != pso)
+		{
+			m_current_pso = pso;
+			pso->SetState();
+		}
+	}
+
 	void D3D11Renderer::setVertexShader(GPUProgram* material, int topology)
 	{
 		mVShader = static_cast<D3D11HLSL*>(material);
@@ -567,6 +536,27 @@ namespace Hippios {
 		mPShader = static_cast<D3D11HLSL*>(material);
 		m_device_context->PSSetShader(mPShader->getPixelShader(), 0, 0);
 		
+	}
+
+	StencilState* D3D11Renderer::getStencilState(std::string name)
+	{
+		auto state = m_stencil_states.find(name);
+		if (state != m_stencil_states.end()) {
+			return state->second.get();
+		}
+		else {
+			return nullptr;
+		}
+	}
+
+	StencilState* D3D11Renderer::createStencilState(std::string name, DepthStencilStateDesc& desc)
+	{
+		D3D11StencilState* state = new D3D11StencilState(m_device, m_device_context, &desc);
+		if (state) {
+			m_stencil_states[name].reset(state);
+			return m_stencil_states[name].get();
+		}
+		return nullptr;
 	}
 
 	void D3D11Renderer::setTexture(Texture* texture, int slot)

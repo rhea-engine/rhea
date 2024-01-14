@@ -60,6 +60,13 @@ namespace Rhea
 			item->m_material->setShader(shader);
 		}
 
+		// set stencil testing
+		std::string mst = material_res->getStencilTest();
+		item->m_material->setStencilTest(mst);
+
+		// compute the material
+		item->m_material->finalize();
+
 		// now add the textures
 		std::vector<ImageResource*> textures = material_res->getTextures();
 		for (auto it = textures.begin(); it != textures.end(); ++it) {

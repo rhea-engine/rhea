@@ -1,0 +1,13 @@
+#ifndef HIPPIOS_BLENDSTATE_H
+#define HIPPIOS_BLENDSTATE_H
+
+namespace Hippios
+{
+	class BlendState
+	{
+	public:
+		virtual ~BlendState() = default;
+	};
+}
+
+#endif //HIPPIOS_BLENDSTATE_H

@@ -1,14 +1,17 @@
 #include "Material.h"
 #include "Shader.h"
 #include <cassert>
+#include <Core.h>
 
 namespace Poseidon
 {
-	Material::Material(Hippios::Renderer* renderer) :
-		m_renderer(renderer),
+	Material::Material(Core* graphics_core) :
+		m_grahpics_core(graphics_core),
 		m_shader(nullptr),
 		m_topology(4),
-		m_alpha_blending(false)
+		m_alpha_blending(false),
+		m_pso(nullptr),
+		m_stencil_test("default")
 	{}
 
 	Material::~Material()
@@ -17,14 +20,22 @@ namespace Poseidon
 			delete m_shader;
 	}
 
+	void Material::finalize()
+	{
+		if (!m_pso) {
+			Core::PipelineProperties props;
+			props.topology = m_topology;
+			props.alpha_blending = m_alpha_blending;
+			props.shader = m_shader;
+			props.stencil_test = m_stencil_test;
+			m_pso = m_grahpics_core->CreateOrGetPso(props);
+		}
+	}
+
 	void Material::activate()
 	{		
-		assert(m_shader != nullptr);
-		if (!m_shader)
-			return;
-		m_renderer->setAlphaBlend(m_alpha_blending);
-		m_renderer->setVertexShader(m_shader->getVShader(), m_topology);
-		m_renderer->setPixelShader(m_shader->getPShader());
+		assert(m_pso != nullptr);
+		m_grahpics_core->get_renderer()->setPipelineState(m_pso);
 	}
 
 	void Material::addTexture(Texture* texture)

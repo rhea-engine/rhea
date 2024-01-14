@@ -5,6 +5,8 @@
 #include <d3d11shader.h>
 #include <d3dcompiler.h>
 #include <string>
+#include <unordered_map>
+#include <memory>
 
 #include "Hippios/Engine.h"
 #include "Hippios/Renderer.h"
@@ -47,9 +49,7 @@ namespace Hippios
 		ID3D11RenderTargetView* mBackbuffer = 0;    // the pointer to our back buffer
 		D3D11DepthBuffer* m_depth_buffer = 0;
 		ID3D11SamplerState* m_sampler_state = 0;
-		ID3D11Buffer* m_cb_per_object_buffer = 0;
-		ID3D11BlendState* m_alpha_enable_blending_state;
-		ID3D11BlendState* m_alpha_disable_blending_state;
+		ID3D11Buffer* m_cb_per_object_buffer = 0;	
 
 		void createSwapChain();
 		void setRenderTarget();
@@ -78,7 +78,7 @@ namespace Hippios
 		ID3D11SamplerState* get_default_samplerstate() {
 			return m_sampler_state;
 		}
-
+		
 		// create and use objects
 
 		HippiosWindow* createWindow(Psio::Engine *psio);
@@ -87,18 +87,31 @@ namespace Hippios
 		IndexBuffer* createIndexBuffer(size_t vertex_size, size_t num_faces, bool dynamic = false);
 		GraphicsBuffer* createGraphicsBuffer(size_t size_in_bytes);
 		bool drawBuffer(VertexBuffer* v_buffer, IndexBuffer* i_buffer = 0, Texture* texture = 0);
-		Texture* createTexture();
+		Texture* createTexture(TextureDesc& desc);
 		GPUProgram* addMaterial(std::string filename, char* shader_type, char* entry_point, int vertex_type);
 		GPUProgram* addMaterial(unsigned char* buf, int buflen, char* shader_type, char* entry_point, int vertex_type);
+
+		void setBlendState(BlendState* state, float* blend_factor, unsigned int mask) override;
+
+		virtual PipelineStateObject* createPipelineState(PipelineStateObjectDesc* desc) override;
+		void setPipelineState(PipelineStateObject* pso) override;
 
 		// set current material
 		void setVertexShader(GPUProgram* material, int topology);
 		void setPixelShader(GPUProgram* material);
 
+		// stencil states
+		StencilState* getStencilState(std::string name);
+		StencilState* createStencilState(std::string name, DepthStencilStateDesc& desc);
+		void setStencilState(StencilState* state, int stencil_ref);
+		
+		// rasterizer state
+		void setRasterizerState(ID3D11RasterizerState* state);
+
 		// current texture 
 		void setTexture(Texture* texture, int slot = 0);
 
-		void draw(int size, int start_vtx);
+		void draw(int size, int start_vtx);  
 		void drawIndexed(int size, int start_idx, int start_vtx);
 
 		// graphics param buffer
@@ -116,18 +129,17 @@ namespace Hippios
 
 		// render passes
 		void update();
-		void setAlphaBlend(bool enable);
 		void bindBuffers(VertexBuffer* vb, IndexBuffer* ib);
 		void clearPass();
 		int presentPass();
 		int render();
 
-		void setStencilState(int state_id);
-
 	protected:
-		Texture* m_current_texture;
-		D3D11StencilState* m_stencil_std, * m_stencil_disabled;
-
+		Texture* m_current_texture;		
+		PipelineStateObject* m_current_pso;
+		std::unordered_map<std::string, std::unique_ptr<D3D11StencilState>> m_stencil_states;
+		D3D11StencilState* m_current_stencil_state;
+		ID3D11RasterizerState* m_current_raster_state;
 	};
 }
 #endif // !HIPPIOS_D3D11RENDERER_H

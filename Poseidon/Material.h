@@ -7,13 +7,14 @@
 
 namespace Poseidon
 {
+	class Core;
 	class Shader;
 	class Texture;
 
 	class Material
 	{
 	public:		
-		Material::Material(Hippios::Renderer* renderer);
+		Material::Material(Core* grahpics_core);
 		~Material();
 		
 		// set the shader
@@ -27,6 +28,11 @@ namespace Poseidon
 
 		// set alpha blending
 		void setAlphaBlending(bool enable) { m_alpha_blending = enable; }
+
+		// set stencil testing to stencil test with given name
+		void setStencilTest(std::string test_name) { m_stencil_test = test_name; }
+
+		void finalize();
 
 		// set the current material as active material
 		void activate();
@@ -42,11 +48,13 @@ namespace Poseidon
 		Hippios::GPUProgram* getVShader();
 		Hippios::GPUProgram* getPShader();
 	protected:
-		Hippios::Renderer* m_renderer;
+		Core* m_grahpics_core;
 		Shader* m_shader;
 		int m_topology;
 		std::vector<Texture*> m_textures;
 		bool m_alpha_blending;
+		Hippios::PipelineStateObject* m_pso;
+		std::string m_stencil_test;
 	};
 }
 

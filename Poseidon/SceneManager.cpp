@@ -87,7 +87,6 @@ namespace Poseidon
 				Camera* camera = context->get_camera();
 				if (!camera)
 					continue;
-				m_renderer->setStencilState(context->getStencilState());
 
 				// fill per frame buffer
 				per_frame_buf.v = camera->getViewMatrix();
@@ -112,7 +111,7 @@ namespace Poseidon
 						Rhea::GraphicsMaterial* gmat = (Rhea::GraphicsMaterial*)rmat->getElement("graphics");
 						if (gmat)
 							mat = gmat->m_material;
-					}
+					}					
 					if (mat != m_current_material && mat) {
 						m_current_material = mat;
 						mat->activate();

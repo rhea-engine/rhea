@@ -301,6 +301,8 @@ namespace Rhea
 						m_material->setup(m_app);
 						m_material->addTexture(static_cast<ImageResource*>(tex));
 						m_material->setValue("shader", "widget");
+						if (m_values.find("stencil_test") != m_values.end())
+							m_material->setStencilTest(m_values["stencil_test"]);
 
 						// get the shader						
 						if (m_values.find("shader") == m_values.end()) {

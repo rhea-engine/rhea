@@ -8,7 +8,7 @@
 #include "UnitTree.h"
 #include "Fabrics/Core/Scene.h"
 #include "Fabrics/Media/ImageResource.h"
-#include "Resources/TextResource.h"
+#include <Rhea/Fabrics/Core/Shader.h>
 
 #include "../Canvas/Item2D.h"
 
@@ -300,19 +300,16 @@ namespace Rhea
 						m_material = new Material(m_path + "_material");
 						m_material->setup(m_app);
 						m_material->addTexture(static_cast<ImageResource*>(tex));
-						m_material->setValue("shader", "widget");
-						if (m_values.find("stencil_test") != m_values.end())
-							m_material->setStencilTest(m_values["stencil_test"]);
+						m_material->setValue("shader", "widget");						
 
 						// get the shader						
 						if (m_values.find("shader") == m_values.end()) {
 							// set a default
-							m_values["shader"] = "//rhea/shaders/widget.hlsl";
+							m_values["shader"] = "//rhea/shaders/widget";
 						}
-
 						Unit* shader_res = m_app->getUnitTree()->find(m_values["shader"]);
 						if (shader_res) {
-							m_material->setShader(static_cast<TextResource*>(shader_res));
+							m_material->setShaderRes(doCast<Shader>(shader_res));
 						}
 						else {
 							LOG(LOG_ERROR) << "item2d::ready(): Shader '" << (std::string)m_values["shader"] << "' for " << m_pathname << " not found";

@@ -8,10 +8,7 @@ namespace Poseidon
 	Material::Material(Core* graphics_core) :
 		m_grahpics_core(graphics_core),
 		m_shader(nullptr),
-		m_topology(4),
-		m_alpha_blending(false),
-		m_pso(nullptr),
-		m_stencil_test("default")
+		m_topology(4)
 	{}
 
 	Material::~Material()
@@ -20,22 +17,13 @@ namespace Poseidon
 			delete m_shader;
 	}
 
-	void Material::finalize()
-	{
-		if (!m_pso) {
-			Core::PipelineProperties props;
-			props.topology = m_topology;
-			props.alpha_blending = m_alpha_blending;
-			props.shader = m_shader;
-			props.stencil_test = m_stencil_test;
-			m_pso = m_grahpics_core->CreateOrGetPso(props);
-		}
-	}
-
 	void Material::activate()
 	{		
-		assert(m_pso != nullptr);
-		m_grahpics_core->get_renderer()->setPipelineState(m_pso);
+		// set the shader
+		m_shader->activate();
+
+		// TODO set shader options
+		m_grahpics_core->get_renderer()->setInputLayout(m_topology);
 	}
 
 	void Material::addTexture(Texture* texture)

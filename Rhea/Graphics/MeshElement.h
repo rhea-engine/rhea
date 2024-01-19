@@ -2,7 +2,8 @@
 #define RHEA_GRAPHICS_MESH_MGR_H
 
 #include <vector>
-#include "../Element.h"
+#include <Poseidon/Mesh.h>
+#include <Rhea/Element.h>
 
 namespace Rhea
 {

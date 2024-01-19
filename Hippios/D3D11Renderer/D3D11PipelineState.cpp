@@ -66,7 +66,7 @@ namespace Hippios
 		m_renderer->setStencilState(m_stencil_state, 1);
 		m_renderer->setRasterizerState(m_raster_state);
 		m_renderer->setBlendState(m_blend_state.get(), blend_factor, blend_mask);
-		m_renderer->setVertexShader(m_vertex_shader, m_topology);
+		m_renderer->setVertexShader(m_vertex_shader);
 		m_renderer->setPixelShader(m_pixel_shader);
 	}
 }

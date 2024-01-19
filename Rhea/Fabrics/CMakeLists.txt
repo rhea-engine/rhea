@@ -19,6 +19,6 @@ add_library (RheaFabrics "Character/Character.cpp" "Character/KinematicCharacter
 "GUI/Modifier/Modifier.h"  "GUI/Modifier/Size.h" "GUI/Modifier/Offset.h" "GUI/Modifier/FillWidth.h" 
 "GUI/Modifier/FillSize.h" "GUI/Modifier/Padding.h" "GUI/Column.h" "GUI/Column.cpp" "GUI/Row.h" "GUI/Row.cpp"
 "GUI/Modifier/SizeWidth.h" "GUI/Modifier/SizeHeight.h" 
-"GUI/Layout/Alignment.h" )
+"GUI/Layout/Alignment.h"   "Core/Shader.h"   "Core/Shader.cpp")
 
 target_link_libraries(RheaFabrics RheaFabricsNet)

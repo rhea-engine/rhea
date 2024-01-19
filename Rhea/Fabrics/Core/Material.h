@@ -8,6 +8,7 @@ namespace Rhea
 	class Application;
 	class ImageResource;
 	class TextResource;
+	class Shader;
 
 	class Material : public Unit
 	{
@@ -18,6 +19,7 @@ namespace Rhea
 		{}
 		Material(std::string name, std::string type_name) :
 			m_shader(nullptr),
+			m_shader_res(nullptr),
 			Unit(name, type_name)
 		{}
 		std::vector<Unit::Export> getReferences();
@@ -36,16 +38,15 @@ namespace Rhea
 		// get shader resource
 		TextResource* getShader() { return m_shader; }
 
-		// stencil testing
-		void setStencilTestDefault(std::string test_name);
-		void setStencilTest(std::string test_name) { setValue("stencil_test", test_name); }
-		std::string getStencilTest() { return getValue("stencil_test", "default"); }
+		// set shader resource
+		void setShaderRes(Shader* shader) { m_shader_res = shader; }
 
-		// alpha blending
-		bool getAlphaBlending();
+		// get shader resource
+		Shader* getShaderRes() { return m_shader_res; }		
 
 	protected:
 		TextResource* m_shader;
+		Shader* m_shader_res;
 		std::vector<ImageResource*> m_textures;	
 	};
 }

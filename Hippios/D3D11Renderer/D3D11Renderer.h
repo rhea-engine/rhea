@@ -96,8 +96,10 @@ namespace Hippios
 		virtual PipelineStateObject* createPipelineState(PipelineStateObjectDesc* desc) override;
 		void setPipelineState(PipelineStateObject* pso) override;
 
+		virtual void setInputLayout(int topology) override;
+
 		// set current material
-		void setVertexShader(GPUProgram* material, int topology);
+		void setVertexShader(GPUProgram* material);
 		void setPixelShader(GPUProgram* material);
 
 		// stencil states

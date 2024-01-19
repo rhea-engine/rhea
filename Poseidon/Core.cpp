@@ -145,7 +145,7 @@ namespace Poseidon
 	{
 		m_materials[name] = material;
 
-		// the first material or the one with the name default becomes the default 
+		// the first material or the one with the name "default" becomes the default 
 		if (!m_default_material || (name == "default"))
 			m_default_material = material;		
 	}
@@ -169,7 +169,7 @@ namespace Poseidon
 
 	Shader* Core::createShader(std::string name)
 	{
-		Shader* shader = new Shader(this->m_renderer->getRenderer());
+		Shader* shader = new Shader(this);
 		m_shaders[name] = shader;
 		return shader;
 	}

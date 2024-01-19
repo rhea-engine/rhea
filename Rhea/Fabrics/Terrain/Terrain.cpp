@@ -8,7 +8,7 @@
 #include <Poseidon/SceneManager.h>
 #include <Poseidon/Shader.h>
 #include "Fabrics/Core/Material.h"
-#include "Resources/TextResource.h"
+#include <Rhea/Fabrics/Core/Shader.h>
 #include <Psio/Log.h>
 
 namespace Rhea
@@ -17,7 +17,7 @@ namespace Rhea
 	{
 		Item::setup(app, attributes, values);
 
-		m_values["shader"] = "//rhea/shaders/terrain.hlsl";		
+		m_values["shader"] = "//rhea/shaders/terrain";		
 	}
 
 	std::vector<Unit::Export> Terrain::getReferences()
@@ -210,11 +210,13 @@ namespace Rhea
 				Material* material = m_mesh->getMaterial();
 
 				// add shader
-				Unit* shader = m_app->getUnitTree()->find(m_values["shader"], m_attributes["basepath"], false);
-				if (shader)
-					material->setShader(static_cast<TextResource*>(shader));
-				else
-					LOG(LOG_ERROR) << "Terrain: shader not found";
+				Unit* shader_res = m_app->getUnitTree()->find(m_values["shader"], m_attributes["basepath"], false);
+				if (shader_res) {
+					material->setShaderRes(doCast<Shader>(shader_res));
+				}
+				else {
+					LOG(LOG_ERROR) << "Terrain::ready(): Shader '" << (std::string)m_values["shader"] << "' for " << m_pathname << " not found";
+				}				
 
 				// add textures
 				Unit* texture;

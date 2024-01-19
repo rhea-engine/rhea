@@ -94,6 +94,8 @@ namespace Poseidon
 
 		Hippios::GraphicsBuffer* m_frame_buffer;
 		Hippios::GraphicsBuffer* m_object_buffer;
+		Hippios::GraphicsBuffer* m_object_buffer_wvp;
+
 	};
 }
 #endif // !POSEIDON_SCENEMANAGER_H

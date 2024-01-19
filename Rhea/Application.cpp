@@ -48,6 +48,7 @@
 #include <Fabrics/3D/ObjLoader.h>
 #include <Resources/Resources.h>
 #include <Resources/Collection.h>
+#include <Fabrics/Core/Shader.h>
 
 #undef min
 
@@ -103,9 +104,11 @@ namespace Rhea
 		SimpleParser::Type::registerType<Transform>("//meworla/transform");
 		SimpleParser::Type::registerType<Item>("//meworla/item");
 		SimpleParser::Type::registerType<Mesh>("//meworla/mesh");
+		SimpleParser::Type::registerType<Shader>("//meworla/shader");
+		Orion::MIME::RegisterExtenstion("application/vnd.meworla.scene", "shader");
 		SimpleParser::Type::registerType<Material>("//meworla/material");
 		SimpleParser::Type::registerType<Avatar>("//meworla/avatar");
-		MediaFabrics::Register(this);		
+		MediaFabrics::Register(this);
 		SimpleParser::Type::registerType<Camera>("//meworla/camera");
 		SimpleParser::Type::registerTypeName<ImageResource>("//meworla/heightmap");
 		SimpleParser::Type::registerType<Terrain>("//meworla/terrain");

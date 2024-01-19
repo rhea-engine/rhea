@@ -1,13 +1,20 @@
 #include "Shader.h"
+#include <cassert>
 
 namespace Poseidon
 {
-	Shader::Shader(Hippios::Renderer* renderer) :
-		m_renderer(renderer),
+	Shader::Shader(Core* core) :
+		m_grahpics_core(core),
 		m_vshader(nullptr),
 		m_pshader(nullptr),
-		m_vertex_type(1)
+		m_vertex_type(1),
+		m_alpha_blending(false),
+		m_pso(nullptr),
+		m_stencil_test("default"),
+		m_topology_type(0),
+		m_cull_mode(true)
 	{
+		m_renderer = m_grahpics_core->get_renderer();
 	}
 
 	Shader::~Shader()
@@ -33,4 +40,24 @@ namespace Poseidon
 
 		return (m_pshader == nullptr || m_vshader == nullptr);
 	}
+
+	void Shader::finalize()
+	{
+		if (!m_pso) {
+			Core::PipelineProperties props;
+			props.topology = m_topology_type;
+			props.alpha_blending = m_alpha_blending;
+			props.shader = this;
+			props.stencil_test = m_stencil_test;
+			props.cull_face_mode = m_cull_mode;
+			m_pso = m_grahpics_core->CreateOrGetPso(props);
+		}
+	}
+
+	void Shader::activate()
+	{
+		assert(m_pso != nullptr);
+		m_grahpics_core->get_renderer()->setPipelineState(m_pso);
+	}
+
 }

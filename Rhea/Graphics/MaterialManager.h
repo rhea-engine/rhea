@@ -9,7 +9,7 @@ namespace Rhea
 	class GraphicsMaterial : public Element
 	{
 	public:
-		Poseidon::Material* m_material;
+		Poseidon::Material* m_material{};
 	};
 
 	class GraphicsMaterialManager : public GraphicsManager

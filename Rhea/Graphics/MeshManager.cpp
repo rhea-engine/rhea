@@ -4,6 +4,8 @@
 #include <Poseidon/Mesh.h>
 #include <Poseidon/SceneManager.h>
 #include <Psio/Log.h>
+#include <Rhea/Fabrics/Core/Material.h>
+#include "GraphicsService.h"
 
 namespace Rhea
 {
@@ -13,7 +15,7 @@ namespace Rhea
 		Element* el = unit->getElement("graphics");
 		if (el)
 			return el;
-
+		
 		// create the element
 		Mesh* mesh_res = doCast<Mesh>(unit);
 		if (!mesh_res) {
@@ -28,6 +30,25 @@ namespace Rhea
 		mesh->setViewport(scene_mgr
 			->getViewport());
 		mesh_el->m_mesh = mesh;
+
+		// make sure we have a material
+		Rhea::Material* material = mesh_res->getMaterial();
+		if (!material) {
+			LOG(LOG_ERROR) << unit->getPath() + ": item has no material";
+			delete el;
+			return nullptr;
+		}
+		// make sure material has graphics element
+		if (!material->getElement("graphics")) {
+			if (!m_service->addElement(material)) {
+				LOG(LOG_ERROR) << "GraphicsItemManager::createElement: could not create element for material";
+				delete el;
+				return nullptr;
+			}
+		}
+
+		// set the material in core
+		setMaterial(core, material);
 
 		unit->addElement("graphics", mesh_el);
 

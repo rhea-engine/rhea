@@ -12,6 +12,7 @@
 #include <Hippios/Renderer.h>
 #include <Hippios/GraphicsBuffer.h>
 #include <Rhea/Fabrics/Core/Material.h>
+#include <Rhea/Fabrics/Core/Shader.h>
 #include <Rhea/Graphics/MaterialManager.h>
 #include <Rhea/Graphics/MeshElement.h>
 #include <Rhea/Fabrics/3D/Mesh.h>
@@ -33,6 +34,8 @@ namespace Poseidon
 			delete m_frame_buffer;
 		if (m_object_buffer)
 			delete m_object_buffer;
+		if (m_object_buffer_wvp)
+			delete m_object_buffer_wvp;
 	}
 
 	Node* SceneManager::get_root()
@@ -51,7 +54,6 @@ namespace Poseidon
 		m_frame_buffer = m_renderer->createGraphicsBuffer(sizeof(cbPerFrame));
 		m_renderer->bindGPUBuffer(m_frame_buffer, 0, "VS");
 		m_object_buffer = m_renderer->createGraphicsBuffer(sizeof(cbPerObject));
-		m_renderer->bindGPUBuffer(m_object_buffer, 1, "VS");
 	}
 
 	Node* SceneManager::createNode()
@@ -98,14 +100,16 @@ namespace Poseidon
 				Item* renderable = m_rend_queue->first();
 				for (Item* renderable = m_rend_queue->first(); renderable != NULL; renderable = m_rend_queue->next()) {
 
-					Rhea::RenderComponent* r_comp = renderable->getGraphicsComponent();
+					Rhea::RenderComponent* r_comp = renderable->getRenderComponent();
+					if (!r_comp)
+						continue;
 
 					// material
 					Rhea::Mesh* rmesh = r_comp->getMesh();
 					if (!rmesh)
 						continue;
 					Rhea::Material* rmat = rmesh->getMaterial();
-					//Rhea::Material* rmat = r_comp->getMaterial(); //rmesh->getMaterial();					
+					
 					Material* mat = nullptr;
 					if (rmat) {
 						Rhea::GraphicsMaterial* gmat = (Rhea::GraphicsMaterial*)rmat->getElement("graphics");
@@ -132,6 +136,7 @@ namespace Poseidon
 						Math::Matrix3x4 model_wtm = position->getWorldTransform();
 						per_obj_buf.model = model_wtm;
 						m_object_buffer->update((void*)&per_obj_buf);
+						m_renderer->bindGPUBuffer(m_object_buffer, 1, "VS");
 					}
 
 					// set texture(s)

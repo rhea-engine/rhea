@@ -45,8 +45,11 @@ namespace Hippios
 		// bind the current vertex and index buffer
 		virtual void bindBuffers(VertexBuffer* vb, IndexBuffer* ib) = 0;
 
+		// set current input layout
+		virtual void setInputLayout(int topology) = 0;
+
 		// set the current Material
-		virtual void setVertexShader(GPUProgram* material, int topology) = 0;
+		virtual void setVertexShader(GPUProgram* material) = 0;
 		virtual void setPixelShader(GPUProgram* material) = 0;
 
 		// set current Texture

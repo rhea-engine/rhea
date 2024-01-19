@@ -520,13 +520,17 @@ namespace Hippios {
 		}
 	}
 
-	void D3D11Renderer::setVertexShader(GPUProgram* material, int topology)
+	void D3D11Renderer::setInputLayout(int topology)
 	{
-		mVShader = static_cast<D3D11HLSL*>(material);
-		if (topology==4)
+		if (topology == 4)
 			m_device_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 		else
 			m_device_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+	}
+
+	void D3D11Renderer::setVertexShader(GPUProgram* material)
+	{
+		mVShader = static_cast<D3D11HLSL*>(material);		
 		m_device_context->IASetInputLayout(mVShader->GetInputLayout());
 		m_device_context->VSSetShader(mVShader->getVertexShader(), 0, 0);
 	}

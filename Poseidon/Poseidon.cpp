@@ -10,6 +10,9 @@
 #include <Rhea/Fabrics/Network/ClientService.h>
 #include <Rhea/Platform/PlatformService.h>
 #include <Meworla/meworlafabrics.h>
+#include <Rhea/UnitTree.h>
+#include <Rhea/Resources/ResourceList.h>
+#include <Rhea/Resources/ResourceService.h>
 
 using Rhea::GraphicsService;
 using Rhea::Service;
@@ -27,7 +30,6 @@ namespace Poseidon
 		// register services
 		SimpleParser::Type::registerType<GraphicsService>("//meworla/graphicsservice");
 
-
 		SimpleParser::Type::registerType<BasicController>("//meworla/controller");
 		SimpleParser::Type::registerType<SpectatorController>("//meworla/spectator");
 		SimpleParser::Type::registerType<ClientService>("//meworla/clientservice");
@@ -41,8 +43,32 @@ namespace Poseidon
 		g_service->setPlatform(psio);
 		core = g_service->getEngine();
 
+		// create a representation for the engine
+		std::unordered_map<std::string, std::string> attributes;
+		std::unordered_map<std::string, Variant> values;
+		
+		Rhea::Unit* engine = m_unit_tree->createUnit("engine", "//core/types/unit", attributes, values);
+		m_unit_tree->addChild(engine);
+
 		// register meworla fabrics
 		MeworlaFabrics::registerFabrics(this);
+	}
+
+	void Application::setup()
+	{
+		Rhea::Application::setup();
+
+		// load core resources
+		Rhea::ResourceList res_list(this);
+
+		// load shaders
+		res_list.push("standard_shader", "//rhea/shaders/standard.shader", "//meworla/shader");
+		res_list.push("widget_shader", "//rhea/shaders/widget.shader", "//meworla/shader");
+		res_list.push("text_shader", "//rhea/shaders/text.shader", "//meworla/shader");
+		res_list.push("terrain_shader", "//rhea/shaders/terrain.shader", "//meworla/shader");
+
+		// note: for locally installed resources this is actually synchronous
+		static_cast<Rhea::ResourceService*>(getService("resources"))->loadAsync(res_list, nullptr);
 	}
 
 	void Application::onScene(Rhea::Scene* scene)
@@ -54,7 +80,7 @@ namespace Poseidon
 		m_phys_debug = scene->getValue("debug_physics");
 
 		if (m_phys_debug) {
-			Rhea::BulletPhysicsService* ps = (Rhea::BulletPhysicsService*)getService("physics");
+			Rhea::BulletPhysicsService* ps = doCast<Rhea::BulletPhysicsService>(getService("physics"));
 			if (ps)
 				m_debug_draw = new Rhea::BulletDebugDraw(this, ps->getWorld());
 		}

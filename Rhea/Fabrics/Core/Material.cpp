@@ -6,11 +6,6 @@
 
 namespace Rhea 
 {
-	bool Material::getAlphaBlending()
-	{
-		return getValue("alpha_blending", false);
-	}	
-
 	std::vector<Unit::Export> Material::getReferences()
 	{
 		std::vector<Export> refs;		
@@ -34,13 +29,6 @@ namespace Rhea
 		}
 		else {
 			LOG(LOG_ERROR) << "shader not found: " << (std::string)m_values["shaderpath"];
-		}
-	}
-
-	void Material::setStencilTestDefault(std::string test_name)
-	{
-		if (m_values.find("stencil_test") != m_values.end()) {
-			setValue("stencil_test", test_name);
 		}
 	}
 }

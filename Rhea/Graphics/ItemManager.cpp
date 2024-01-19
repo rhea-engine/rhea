@@ -40,22 +40,7 @@ namespace Rhea
 			DLOG(LOG_DEBUG) << "GraphicsItemManager::createElement: getMesh returned nullptr";
 			delete elem;
 			return nullptr;
-		}
-		
-		// make sure we have a material
-		Rhea::Material* material = item_mesh->getMaterial();
-		if (!material) {
-			LOG(LOG_ERROR) << unit->getPath() + ": item has no material";
-			delete elem;
-			return nullptr;
-		}
-		if (!material->getElement("graphics")) {
-			if (!m_service->addElement(material)) {
-				LOG(LOG_ERROR) << "GraphicsItemManager::createElement: could not create element for material";
-				delete elem;
-				return nullptr;
-			}
-		}
+		}		
 
 		// check if mesh element already defined
 		GraphicsMesh* mesh_el = static_cast<GraphicsMesh*>(item_mesh->getElement("graphics"));
@@ -66,9 +51,6 @@ namespace Rhea
 
 		// create the element		
 		Poseidon::Renderable* entity = static_cast<Poseidon::Renderable*>(createRenderable(elem, core, unit, "default", item_mesh->isDynamic()));
-
-		// set the material
-		setMaterial(core, material);
 
 		// attach to unit
 		unit->addElement("graphics", elem);
@@ -89,7 +71,12 @@ namespace Rhea
 		GraphicsRenderElement* elem = static_cast<GraphicsRenderElement*>(item->getElement("graphics"));
 
 		// possible material change - check if material has element
-		if (Material* mat = item->getGraphicsComponent()->getMaterial()) {
+		//Mesh* mesh = item->getGraphicsComponent()->getMesh();
+		Mesh* mesh = item->getMesh();
+		if (!mesh)
+			return false;
+
+		if (Material* mat = mesh->getMaterial()) {
 			if (!mat->getElement("graphics")) {
 				// create the element for the new material
 				GraphicsManager* mgr = m_service->getManager(mat->getTypeName());

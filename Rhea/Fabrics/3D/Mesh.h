@@ -27,6 +27,17 @@ namespace Rhea
 		struct vertex {
 			float x, y, z, u, v;
 
+			vertex() :
+				x(0), y(0), z(0), u(0), v(0)
+			{}
+			vertex(float _x, float _y, float _z, float _u, float _v) :
+				x(_x),
+				y(_y),
+				z(_z),
+				u(_u),
+				v(_v)
+			{}
+
 			bool operator==(const vertex& other) const
 			{
 				return (x == other.x

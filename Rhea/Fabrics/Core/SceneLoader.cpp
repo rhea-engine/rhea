@@ -27,7 +27,13 @@ namespace Rhea
 			int entries = parser->parse(buf->reader(), buflen, sections);
 
 			// initialize the scene
-			Scene* scene = static_cast<Scene*>(tree->createUnit(name, "//meworla/scene"));
+			std::string type_name = "//meworla/scene";
+			if (sections.size() > 0 && sections[0].section_name == "scene") {
+				if (sections[0].values["type"].length()) {
+					type_name = sections[0].values["type"];
+				}
+			}
+			Unit* scene = tree->createUnit(name, type_name);
 			if (sections.size() > 0 && sections[0].section_name == "scene") {
 				if (sections[0].values["name"].length())
 					scene->setName(sections[0].values["name"]);
@@ -43,6 +49,19 @@ namespace Rhea
 			}
 
 			ResourceList res_list(app);
+
+			// add here because scene is skipped below
+			std::vector<Unit::Export> references = scene->getReferences();
+			for (auto ref_it = references.begin(); ref_it != references.end(); ++ref_it) {
+				std::string id = ref_it->value;
+				// if absolute path or base path it is a resource not satified by this scene file
+				if (id.size() > 1 && id[0] == '/') {
+					if (id[1] == '/')
+						res_list.push("scene_" + id, id, ref_it->type);
+					else
+						res_list.push("scene_" + id, scene_root + id, ref_it->type);
+				}
+			}
 
 			// setup all resources
 			for (std::vector<SimpleParser::IniFileParser::Section>::iterator it = sections.begin(); it != sections.end(); ++it) {

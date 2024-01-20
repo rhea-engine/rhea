@@ -1,9 +1,8 @@
 #ifndef RHEA_RESOURCESERVICE_H
 #define RHEA_RESOURCESERVICE_H
 
-#include "Service.h"
-#include "ResourceList.h"
-
+#include <Rhea/Service.h>
+#include <Rhea/Resources/ResourceList.h>
 #include <queue>
 
 namespace Rhea

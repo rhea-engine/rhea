@@ -19,7 +19,7 @@ namespace Hippios
 		m_vertex_size = vertex_size;
 		m_num_faces = num_faces;
 
-		m_buffer = new D3D11GraphicsBuffer(m_device, m_device_context, D3D11_BIND_INDEX_BUFFER, m_size_in_bytes, dynamic);
+		m_buffer = std::make_unique<D3D11GraphicsBuffer>(m_device, m_device_context, D3D11_BIND_INDEX_BUFFER, m_size_in_bytes, dynamic);
 	}
 
 	void* D3D11IndexBuffer::Lock(size_t offset, size_t length)

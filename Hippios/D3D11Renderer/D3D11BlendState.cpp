@@ -32,7 +32,8 @@ namespace Hippios
 
 	D3D11BlendState::~D3D11BlendState()
 	{
-		m_state->Release();
+		if (m_state)
+			m_state->Release();
 	}
 
 	D3D11_BLEND D3D11BlendState::blend(BlendFactor factor)

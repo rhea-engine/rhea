@@ -83,7 +83,11 @@ namespace Hippios
 				shaderBlob->Release();
 
 			return hr;
-		}		
+		}	
+		else if (errorBlob) {
+			errorBlob->Release();
+		}
+
 		// encapsulate shaders into shader objects
 		// and set the shader objects
 		// encapsulate shaders into shader objects
@@ -98,7 +102,7 @@ namespace Hippios
 			try {
 				m_d3dDevice->CreatePixelShader(shaderBlob->GetBufferPointer(), shaderBlob->GetBufferSize(), NULL, &pPS);
 				if (FAILED(hr)) {
-					printf("could not load pixel shader");
+					printf("could not load pixel shader\n");
 				}
 			}
 			catch (_com_error & e) {
@@ -131,6 +135,8 @@ namespace Hippios
 		{
 			if (errorBlob)
 			{
+				const char* errorMsg = (const char*)errorBlob->GetBufferPointer();
+				printf("%s\n", errorMsg);
 				OutputDebugStringA((char*)errorBlob->GetBufferPointer());
 				errorBlob->Release();
 			}
@@ -140,6 +146,11 @@ namespace Hippios
 
 			return hr;
 		}
+		else if (errorBlob)
+		{
+			errorBlob->Release();
+		}
+
 		// encapsulate shaders into shader objects
 		// and set the shader objects
 		// encapsulate shaders into shader objects
@@ -295,7 +306,7 @@ namespace Hippios
 				HR = m_d3dDevice->CreateInputLayout(ied, 2, shaderBlob->GetBufferPointer(), shaderBlob->GetBufferSize(), &mInputLayout);
 			}
 			if (FAILED(HR)) {
-				printf("D3D11HLSL::GetInputLayout(): could not create input layout");
+				printf("D3D11HLSL::GetInputLayout(): could not create input layout\n");
 			}
 		}
 		return mInputLayout;

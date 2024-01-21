@@ -46,7 +46,7 @@ namespace Rhea
 
 		auto mesh_it = m_values.find("mesh");
 		if (!m_mesh && mesh_it != m_values.end()) {			
-			m_mesh = static_cast<Mesh*>(m_app->getUnitTree()->find(mesh_it->second, m_attributes["basepath"], false));
+			m_mesh = doCast<Mesh>(m_app->getUnitTree()->find(mesh_it->second, m_attributes["basepath"], false));
 			if (m_mesh) {
 				m_mesh->ready();
 				m_render_component->setMesh(m_mesh);

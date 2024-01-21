@@ -31,7 +31,7 @@ namespace Poseidon
 	class Core
 	{
 	protected:
-		Hippios::Engine* m_renderer = 0;
+		std::unique_ptr<Hippios::Engine> m_renderer;
 		int quit = 0;	
 		Hippios::HippiosWindow* m_win = 0;
 		Window* m_window = 0;
@@ -44,6 +44,7 @@ namespace Poseidon
 		Material* m_default_material = 0;
 	public:
 		Core();
+		~Core();
 		void init(Psio::Engine* psio);
 		SceneManager* get_scene_manager() { return m_scene_manager; }
 		// handle one frame
@@ -55,7 +56,7 @@ namespace Poseidon
 		Psio::Engine* getPsio() { return m_psio; }
 
 		Hippios::Renderer* get_renderer() { return m_renderer->getRenderer(); }
-		Hippios::Engine* get_engine() { return m_renderer; }
+		Hippios::Engine* get_engine() { return m_renderer.get(); }
 
 		// create various items
 
@@ -67,7 +68,7 @@ namespace Poseidon
 			bool depth_write = true;
 			bool cull_face = true;
 			int cull_face_mode = 0;
-			int topology = 4;
+			int topology = 4;			
 			std::string stencil_test;
 		};
 

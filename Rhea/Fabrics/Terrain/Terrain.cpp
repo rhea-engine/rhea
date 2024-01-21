@@ -13,6 +13,12 @@
 
 namespace Rhea
 {
+	Terrain::~Terrain()
+	{
+		if (m_heights)
+			delete m_heights;
+	}
+
 	void Terrain::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{
 		Item::setup(app, attributes, values);
@@ -117,8 +123,7 @@ namespace Rhea
 		if (m_values.find("heightmap") != m_values.end()) {
 			Unit* map = m_app->getUnitTree()->find(m_values["heightmap"], m_attributes["basepath"], false);
 			if (map) {
-				addChild(map);
-
+				
 				unsigned char* buf;
 				size_t buflen;
 				bool flipZ = true;
@@ -135,7 +140,7 @@ namespace Rhea
 					m_mesh = static_cast<Mesh*>(m_app->getUnitTree()->createUnit(m_pathname + "_mesh", "//meworla/mesh", attributes, values));
 
 					// build vertex/index buffers from image
-					m_heightmap = new Poseidon::Image();
+					m_heightmap = std::make_unique<Poseidon::Image>();
 					if (static_cast<Resource*>(map)->getRaw((char**)&buf, &buflen)) {
 						m_heightmap->load(buf, buflen);
 						m_width = m_heightmap->getWidth();

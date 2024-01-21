@@ -26,6 +26,8 @@ namespace Poseidon
 			RenderContext* context = *it;
 			delete context;
 		}
+		if (m_win)
+			delete m_win;
 	}
 
 	void Viewport::initRenderTarget(Hippios::Engine* engine)

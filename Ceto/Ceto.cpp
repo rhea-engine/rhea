@@ -27,7 +27,7 @@ bool Ceto::onQuit(Rhea::Event* ev, Rhea::Unit* unit)
 {
 	ev->stopPropagation();
 
-	exit(0);
+	m_exiting = true;
 
 	return false;
 }
@@ -370,7 +370,7 @@ bool Ceto::onFrameEnd()
 		m_debug_text->setText(debug);
 	}
 
-	return false;
+	return m_exiting;
 }
 
 int main(int argc, char* argv[])
@@ -428,6 +428,8 @@ int main(int argc, char* argv[])
 	app->loop();	
 
 	app->close();
+
+	delete app;
 
 	return 0;
 }

@@ -42,8 +42,7 @@ namespace Rhea
 			m_render_component(nullptr),
 			Unit(name, type_name)
 		{}
-		virtual ~Item() = default;
-
+		
 		// setup from strings
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
 

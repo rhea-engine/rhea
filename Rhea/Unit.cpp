@@ -377,8 +377,11 @@ namespace Rhea
 
 	Unit::~Unit()
 	{
-		Event* del_event = new Event("DELETE", this);
-		sendEvent("delete", del_event);
+		// iterate over children and delete them
+		for (auto it = m_children.begin(); it != m_children.end(); ++it) {
+			delete it->second;
+		}
+		m_elements.clear();
 	}
 
 	void Unit::logMe()

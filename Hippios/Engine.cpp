@@ -8,14 +8,16 @@ namespace Hippios
 {
 	void Engine::startup()
 	{
-		m_renderer = (Renderer *)new D3D11Renderer();		
+		m_renderer = std::make_unique<D3D11Renderer>();		
 	}	
 
 	HippiosWindow* Engine::createWindow()
 	{
 		// creates OS and render window
-		m_window = m_renderer->createWindow(m_psio);
-		return m_window;
+		HippiosWindow* win = m_renderer->createWindow(m_psio);
+		if (!m_main_window)
+			m_main_window = win; // set main window for first window
+		return win;
 	}
 
 	bool Engine::render()
@@ -29,8 +31,8 @@ namespace Hippios
 		m_renderer->bindBuffers(vb, ib);
 	}
 
-	void Engine::setRenderer(Renderer* renderer)
+	void Engine::setRenderer(std::unique_ptr<Renderer> renderer)
 	{
-		m_renderer = renderer;
+		m_renderer = std::move(renderer);
 	}
 }

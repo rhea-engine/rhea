@@ -17,16 +17,15 @@ namespace Rhea
 	{
 		MECLASS(Terrain, Item)
 	public:
-		Terrain(std::string name, std::string type_name) :
-			m_texture(nullptr),
+		Terrain(std::string name, std::string type_name) :			
 			m_width(0),
 			m_length(0),
 			m_max_height(256.0f),
 			m_min_height(0.0f),
-			m_heightmap(nullptr),
 			m_heights(nullptr),
 			Item(name, type_name)
 		{}
+		~Terrain();
 
 		// setup from strings
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);		
@@ -43,17 +42,15 @@ namespace Rhea
 
 		// load terrain
 		void ready();
-
-		ImageResource* getTexture() { return m_texture; }		
+		
 		Math::Vector3 calculateNormal(int x, int y);
 
 	protected:
-		ImageResource* m_texture;		
 		int m_width;
 		int m_length;
 		float m_min_height;
 		float m_max_height;
-		Poseidon::Image* m_heightmap;
+		std::unique_ptr<Poseidon::Image> m_heightmap;
 		float* m_heights;
 		
 		static float barryCentric(Math::Vector3 p1, Math::Vector3 p2, Math::Vector3 p3, float x, float z);			

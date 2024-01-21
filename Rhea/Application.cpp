@@ -48,6 +48,7 @@
 #include <Fabrics/3D/ObjLoader.h>
 #include <Resources/Resources.h>
 #include <Resources/Collection.h>
+#include <Fabrics/3D/Skybox.h>
 #include <Fabrics/Core/Shader.h>
 
 #undef min
@@ -55,6 +56,16 @@
 
 namespace Rhea
 {
+	Application::~Application()
+	{
+		m_unit_tree.reset();
+		for (auto it = m_services.begin(); it != m_services.end(); ++it)
+		{
+			delete it->second;
+		}
+		m_services.clear();
+	}
+
 	void Application::init()
 	{		
 		// set log severity
@@ -85,7 +96,7 @@ namespace Rhea
 		m_services["physics_mgr"] = phy_mgr;
 
 		m_fs = new Orion::Orion(static_cast<PlatformService*>(psio)->getEngine(), m_appname);
-		m_unit_tree = (UnitTree*)SimpleParser::Type::create("/", "//core/unittree");
+		m_unit_tree.reset((UnitTree*)SimpleParser::Type::create("/", "//core/unittree"));
 		m_unit_tree->setup(this);
 
 		Service* res_service = (Service*)SimpleParser::Type::create("ResourceService", "//meworla/resourceservice");
@@ -108,6 +119,7 @@ namespace Rhea
 		Orion::MIME::RegisterExtenstion("application/vnd.meworla.scene", "shader");
 		SimpleParser::Type::registerType<Material>("//meworla/material");
 		SimpleParser::Type::registerType<Avatar>("//meworla/avatar");
+		SimpleParser::Type::registerType<Skybox>("//meworla/skybox"); 
 		MediaFabrics::Register(this);
 		SimpleParser::Type::registerType<Camera>("//meworla/camera");
 		SimpleParser::Type::registerTypeName<ImageResource>("//meworla/heightmap");
@@ -146,6 +158,11 @@ namespace Rhea
 	void Application::registerService(std::string name, Service* service)
 	{
 		m_services[name] = service;
+	}
+
+	void Application::unregisterService(std::string name)
+	{
+		m_services.erase(name);
 	}
 
 	void Application::setup()

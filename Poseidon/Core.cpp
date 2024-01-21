@@ -20,18 +20,28 @@ namespace Poseidon
 		m_psio = nullptr;	
 	}
 
+	Core::~Core()
+	{
+		// delete all shaders
+		for (auto it = m_shaders.begin(); it != m_shaders.end(); ++it)
+		{
+			delete it->second;
+		}
+		m_shaders.clear();
+	}
+
 	void Core::init(Psio::Engine* psio)
 	{
 		// initialize the psio subsystem
 		m_psio = psio;
 
 		// initialize render sub system
-		m_renderer = new Hippios::Engine(m_psio);
+		m_renderer = std::make_unique<Hippios::Engine>(m_psio);
 		m_renderer->startup();		
 
 		// add a root window which is also the root viewport
 		m_window = new Window();		
-		m_window->initRenderTarget(m_renderer);
+		m_window->initRenderTarget(m_renderer.get());
 
 		// add a scene manager 
 		m_scene_manager = new SceneManager();
@@ -110,6 +120,10 @@ namespace Poseidon
 				pso_desc.blendState.renderTarget[0].render_target_write_mask = 0x0f;
 			}
 
+			// cull mode
+			if (!props.cull_face_mode)
+				pso_desc.cull_mode = Hippios::CullMode::NONE;
+
 			// shader programs
 			pso_desc.shaderProgram.vertex_shader = props.shader->getVShader();
 			pso_desc.shaderProgram.pixel_shader = props.shader->getPShader();
@@ -132,7 +146,7 @@ namespace Poseidon
 			texture = new Poseidon::Cubemap();
 			texture->setNumImages(num_images);
 		}
-		texture->bind(m_renderer);
+		texture->bind(m_renderer.get());
 		return texture;
 	}
 

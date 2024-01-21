@@ -24,6 +24,7 @@ namespace Hippios
 	class Renderer
 	{
 	public:
+		virtual ~Renderer() {}
 		virtual HippiosWindow* createWindow(Psio::Engine *psio) = 0;
 		virtual int render() = 0;
 		virtual bool drawBuffer(VertexBuffer* v_buffer, IndexBuffer* i_buffer, Texture* texture) = 0;

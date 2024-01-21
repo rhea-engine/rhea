@@ -14,6 +14,7 @@ namespace Hippios
 			m_bit_depth(bit_depth),
 			m_width(width),
 			m_height(height) {};
+		virtual ~DepthBuffer() {}
 	};
 }
 

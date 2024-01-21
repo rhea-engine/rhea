@@ -23,7 +23,8 @@ namespace Rhea
 	KinematicCharacter::~KinematicCharacter()
 	{
 		Service* phy_srv = m_app->getService("physics");
-		phy_srv->unregisterEventHandler("pre_physics", this);
+		if (phy_srv)
+			phy_srv->unregisterEventHandler("pre_physics", this);
 	}
 
 	bool KinematicCharacter::doPhysics(Event* ev, Unit* unit)

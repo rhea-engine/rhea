@@ -29,6 +29,7 @@ namespace Rhea
 	class Application
 	{
 	public:
+		~Application();
 		// load and prepare all subsystems - calls setup at  
 		void init();
 		// set the applications name to appname
@@ -37,6 +38,7 @@ namespace Rhea
 		Service* getService(std::string name);
 		// register a service
 		void registerService(std::string name, Service* service);
+		void unregisterService(std::string name);
 		// load and set up the resources of the application
 		virtual void setup();
 		// onScene Event
@@ -60,7 +62,7 @@ namespace Rhea
 		ResourceLoader* getResourceLoader() { return &m_resource_loader; }
 
 		// return the resource tree
-		UnitTree* getUnitTree() { return m_unit_tree; }
+		UnitTree* getUnitTree() { return m_unit_tree.get(); }
 		// get the action dispatcher
 		Dispatcher* getDispatcher() { return m_dispatcher; }
 		// set the directory for /local/
@@ -74,7 +76,7 @@ namespace Rhea
 	protected:
 		Orion::Orion* m_fs = 0;
 		std::string m_appname = "";
-		UnitTree* m_unit_tree = 0;
+		std::unique_ptr<UnitTree> m_unit_tree = 0;
 		InputMap* m_input_map = 0;
 		Dispatcher* m_dispatcher = 0;
 		Controller* m_focused_controller = 0;

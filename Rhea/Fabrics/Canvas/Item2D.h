@@ -20,6 +20,7 @@ namespace Rhea
 		Item2D(std::string name, std::string type_name) :
 			m_size(0.0f, 0.0f),
 			m_position(0.0f, 0.0f),
+			m_material(nullptr),
 			Item(name, type_name)
 		{}
 
@@ -50,6 +51,8 @@ namespace Rhea
 		Vector2 m_position;
 		// current  width in pixel
 		Vector2 m_size;
+
+		Material* m_material;
 	};
 }
 

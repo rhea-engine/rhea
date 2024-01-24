@@ -118,7 +118,7 @@ namespace Rhea
 
 	void Terrain::ready()
 	{
-		Unit::ready();
+		Item::ready();
 
 		if (m_values.find("heightmap") != m_values.end()) {
 			Unit* map = m_app->getUnitTree()->find(m_values["heightmap"], m_attributes["basepath"], false);
@@ -132,12 +132,17 @@ namespace Rhea
 				if (max_height)
 					m_max_height = max_height;
 
+				if (!m_render_component) {
+					m_render_component = new RenderComponent("renderer", "//meworla/rendercomponent");
+					addChild(m_render_component);
+				}
+
 				// if not overwritten by mesh build from heightmap
-				if (!m_mesh) {
+				if (!m_render_component->getMesh()) {
 
 					std::unordered_map<std::string, std::string> attributes;
 					std::unordered_map<std::string, Variant> values;
-					m_mesh = static_cast<Mesh*>(m_app->getUnitTree()->createUnit(m_pathname + "_mesh", "//meworla/mesh", attributes, values));
+					Mesh* mesh = static_cast<Mesh*>(m_app->getUnitTree()->createUnit(m_pathname + "_mesh", "//meworla/mesh", attributes, values));
 
 					// build vertex/index buffers from image
 					m_heightmap = std::make_unique<Poseidon::Image>();
@@ -200,8 +205,7 @@ namespace Rhea
 								}
 							}
 						}
-						m_mesh->setBuffers(vertices, indices);
-						m_render_component->setMesh(m_mesh);
+						mesh->setBuffers(vertices, indices);
 					}
 
 					// prepare shaders	
@@ -209,10 +213,12 @@ namespace Rhea
 					material->setup(m_app);
 					material->setValue("shader", std::string("terrain"));
 
-					m_mesh->setMaterial(material);
+					mesh->setMaterial(material);
+					m_render_component->setMesh(mesh);
+					addChild(mesh);
 				}
 
-				Material* material = m_mesh->getMaterial();
+				Material* material = m_render_component->getMesh()->getMaterial();
 
 				// add shader
 				Unit* shader_res = m_app->getUnitTree()->find(m_values["shader"], m_attributes["basepath"], false);

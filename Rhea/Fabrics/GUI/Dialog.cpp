@@ -27,6 +27,9 @@ namespace Rhea
 			}
 			return false;
 			});
+
+		// dialogs are not visible by default and must be "opened"
+		makeInvisble();
 	}
 
 	void Dialog::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
@@ -35,9 +38,6 @@ namespace Rhea
 
 		std::unordered_map<std::string, std::string> attr;
 		std::unordered_map<std::string, Variant> val;
-
-		// dialogs are not visible by default and must be "opened"
-		m_visible = false;
 	}
 
 	// a dialog centers itself in the parents width 

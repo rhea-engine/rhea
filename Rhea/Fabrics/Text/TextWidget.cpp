@@ -57,21 +57,26 @@ namespace Rhea
 
 		if (m_font) {
 			m_font->ready();
-			m_material = m_font->getMaterial();
+			Material* font_material = m_font->getMaterial();
+
+			if (!m_render_component) {
+				m_render_component = new RenderComponent("renderer", "//meworla/rendercomponent");
+				addChild(m_render_component);
+			}
 
 			// add the mesh
-			if (!m_mesh) {
+			if (!m_render_component->getMesh()) {
 
 				std::unordered_map<std::string, std::string> attributes;
 				std::unordered_map<std::string, Variant> values;
-				m_mesh = static_cast<Mesh*>(m_app->getUnitTree()->createUnit(m_pathname + "_mesh", "//meworla/mesh", attributes, values));
-				m_mesh->setMaterial(m_material);
+				Mesh* mesh = static_cast<Mesh*>(m_app->getUnitTree()->createUnit(m_pathname + "_mesh", "//meworla/mesh", attributes, values));
+				mesh->setMaterial(font_material);
 				// text is dynamic
-				m_mesh->setDynamic(true);
+				mesh->setDynamic(true);
+				addChild(mesh);
+				m_render_component->setMesh(mesh);				
 
 				setMesh();
-
-				m_render_component->setMesh(m_mesh);
 			}
 
 		}
@@ -180,12 +185,11 @@ namespace Rhea
 		}
 
 		if (!v_indices.size()) {
-			m_render_component->hide();
+			hide();
 			return;
 		} else {
-			m_render_component->show();
+			show();
 		}
-
 
 		// fill up the buffer with zeros
 		size_t v_len = vertices.size();
@@ -198,8 +202,10 @@ namespace Rhea
 			m_vertex_size = v_len;
 		}
 
-		m_mesh->setBuffers(vertices, v_indices);
-		m_mesh->sendEvent("update", nullptr);
+		if (m_render_component && m_render_component->getMesh()) {
+			m_render_component->getMesh()->setBuffers(vertices, v_indices);
+			m_render_component->getMesh()->sendEvent("update", nullptr);
+		}
 	}
 
 	Vector2 TextWidget::getCursorPosition(size_t pos)
@@ -298,7 +304,7 @@ namespace Rhea
 	void TextWidget::setText(std::string text)
 	{
 		m_text = text;
-		if (m_mesh)
+		if (m_render_component && m_render_component->getMesh())
 			setMesh();
 	}
 

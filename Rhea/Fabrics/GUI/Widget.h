@@ -23,8 +23,7 @@ namespace Rhea
 		{}
 		Widget(std::string path_name, std::string type_name) :
 			Item2D(path_name, type_name),
-			m_top_window(false),
-			m_visible(true),
+			m_top_window(false),			
 			m_handle_input(false),
 			m_user_ptr(nullptr),
 			m_base_size(0.0f, 0.0f),
@@ -83,9 +82,7 @@ namespace Rhea
 		// hide the widget
 		void hide();
 		// hide the widget but dont send event
-		void makeInvisble();
-
-		bool isVisible() { return m_visible; }
+		void makeInvisble();		
 
 		// find lowest widget at position
 		Widget* capture(int x, int y);
@@ -107,10 +104,7 @@ namespace Rhea
 
 		// wheter this is a top window
 		bool m_top_window;
-
-		// is widget visible
-		bool m_visible;
-
+		
 		// does widget handle input events
 		bool m_handle_input;
 

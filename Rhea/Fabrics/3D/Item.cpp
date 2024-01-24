@@ -24,11 +24,6 @@ namespace Rhea
 			}
 			m_transform.get_position()->setPosition(x, y, z);
 		}
-
-		m_render_component = std::make_unique<RenderComponent>(this);
-
-		if (m_values.find("fabric") != m_values.end())
-			m_render_component->hide();
 	}
 
 	std::vector<Unit::Export> Item::getReferences()
@@ -45,16 +40,23 @@ namespace Rhea
 		Unit::ready();
 
 		auto mesh_it = m_values.find("mesh");
-		if (!m_mesh && mesh_it != m_values.end()) {			
-			m_mesh = doCast<Mesh>(m_app->getUnitTree()->find(mesh_it->second, m_attributes["basepath"], false));
-			if (m_mesh) {
-				m_mesh->ready();
-				m_render_component->setMesh(m_mesh);
+		if (mesh_it != m_values.end()) {
+			if (!m_render_component) {
+				m_render_component = new RenderComponent("renderer", "//meworla/rendercomponent");
+				addChild(m_render_component);
+			}
+			Mesh* mesh = doCast<Mesh>(m_app->getUnitTree()->find(mesh_it->second, m_attributes["basepath"], false));
+			if (mesh) {
+				mesh->ready();
+				m_render_component->setMesh(mesh);
 			}
 			else {
 				LOG(LOG_ERROR) << "No mesh defined for item";
 			}
-		}		
+		}	
+
+		if (m_render_component && m_values.find("fabric") != m_values.end())
+			m_render_component->hide();
 	}
 
 	bool Item::getGraphicsItem()
@@ -82,12 +84,10 @@ namespace Rhea
 
 		new_item->Unit::setup(m_app, attr, values);
 
-		// copy item values
-		new_item->m_render_component = std::make_unique<RenderComponent>(new_item);
-		new_item->m_mesh = m_mesh;
-		new_item->m_render_component->setMesh(m_mesh);
-		new_item->m_material = m_material;
-		new_item->m_render_component->setMaterial(m_material); //TODO check!
+		// copy item values and components
+		new_item->m_render_component = new RenderComponent("renderer", "//meworla/rendercomponent");
+		new_item->m_render_component->setMesh(m_render_component->getMesh());
+		new_item->addChild(new_item->m_render_component);
 
 		return new_item;
 	}

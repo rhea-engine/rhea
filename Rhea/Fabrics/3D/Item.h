@@ -24,6 +24,10 @@ namespace Rhea
 	class PhysicsBody;
 	class Material;
 
+	/** 
+	* Item is the base class for all units that can be placed in the scene with a 3D location.
+	* For adding behahviour or visual representation add components as childs
+	*/
 	class Item : public Unit
 	{
 		MECLASS(Item, Unit)
@@ -33,11 +37,9 @@ namespace Rhea
 			Item(name, "//meworla/item")
 		{}
 		Item(std::string name, std::string type_name) :
-			m_mesh(nullptr),
 			m_graphics_item(nullptr),
 			m_physics_body(nullptr),
-			m_turn(0.0f),
-			m_material(nullptr),
+			m_turn(0.0f),			
 			m_transform(this),
 			m_render_component(nullptr),
 			Unit(name, type_name)
@@ -50,17 +52,14 @@ namespace Rhea
 		void ready();
 
 		// get dependent data
-		Mesh* getMesh() { return m_mesh; }
-
-		// material
-		Material* getMaterial() { return m_material; }
+		Mesh* getMesh() { if (m_render_component) return m_render_component->getMesh(); else return nullptr; }
 
 		std::vector<Export> getReferences();
 
 		// instancing
 		virtual Item* instance(std::string name);
 
-		// positionig
+		// positioning
 		Transform* getTransform() { return &m_transform; }
 
 		// update on frame
@@ -80,7 +79,12 @@ namespace Rhea
 		virtual void jump() {}
 
 		// graphics
-		RenderComponent* getGraphicsComponent() { return m_render_component.get();}
+		RenderComponent* getRenderComponent() { return m_render_component; }
+
+		// visibility
+		virtual void hide() { if (m_render_component) m_render_component->hide(); }
+		virtual void show() { if (m_render_component) m_render_component->show(); }
+		bool isVisible() { if (m_render_component) return m_render_component->isVisible(); else return false; }
 
 		// networking
 		void setNetworkComponent(std::unique_ptr<NetworkComponent> component) { m_net_component = std::move(component); }
@@ -90,14 +94,12 @@ namespace Rhea
 		PhysicsBody* getPhysicsBody();
 
 	protected:
-		Mesh* m_mesh;
 		GraphicsRenderElement* m_graphics_item;
-		std::unique_ptr<RenderComponent> m_render_component;
 		PhysicsBody* m_physics_body;
 		std::unique_ptr<NetworkComponent> m_net_component;
 		Math::Vector3 m_movement;
 		float m_turn;
-		Material* m_material;
+		RenderComponent* m_render_component;
 
 		bool getGraphicsItem();
 

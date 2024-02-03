@@ -27,6 +27,7 @@ namespace Rhea
 
 		// every frame
 		virtual bool onFrame(float delta) { return false; };
+		virtual bool onFrameFinal(float delta) { return false; };
 
 	protected:
 		

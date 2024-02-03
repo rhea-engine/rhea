@@ -50,6 +50,7 @@
 #include <Resources/Collection.h>
 #include <Fabrics/3D/Skybox.h>
 #include <Fabrics/Core/Shader.h>
+#include <Fabrics/Core/WorldService.h>
 
 #undef min
 
@@ -85,7 +86,12 @@ namespace Rhea
 		SimpleParser::Type::registerType<Service>("//meworla/service");
 		SimpleParser::Type::registerType<PlatformService>("//meworla/platformservice");
 		SimpleParser::Type::registerType<PhysicsManagerService>("//meworla/physicsmanagerservice");
+		SimpleParser::Type::registerType<WorldService>("//meworla/worldservice");
 		SimpleParser::Type::registerType<ResourceService>("//meworla/resourceservice");
+
+		Service* world = (WorldService*)SimpleParser::Type::create("WorldService", "//meworla/worldservice");
+		world->setup(this);
+		m_services["world"] = world;
 
 		Service* psio = (PlatformService*)SimpleParser::Type::create("PlatformService", "//meworla/platformservice");
 		psio->setup(this);
@@ -319,11 +325,16 @@ namespace Rhea
 			
 			// idle(elapsed_s)
 
-			// render
+			// on Frame - normally used for physics etc.
 			for (auto it = m_services.begin(); it != m_services.end(); ++it) {
 				if (it->second->onFrame(elapsed_s))
 					ret = true;
 			}			
+			// on Frame final - physics etc. are already done
+			for (auto it = m_services.begin(); it != m_services.end(); ++it) {
+				if (it->second->onFrameFinal(elapsed_s))
+					ret = true;
+			}
 
 			frames++;
 

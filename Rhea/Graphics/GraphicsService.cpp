@@ -1,6 +1,4 @@
 #include "GraphicsService.h"
-#include "GraphicsService.h"
-#include "GraphicsService.h"
 #include <functional>
 
 #include "../Platform/PlatformService.h"
@@ -39,6 +37,8 @@ namespace Rhea
 		m_platform(nullptr),
 		m_viewport_width(0),
 		m_viewport_height(0),
+		m_mx(0),
+		m_my(0),
 		Service(name, type_name)	
 	{
 		m_core = std::make_unique<Poseidon::Core>();
@@ -48,8 +48,18 @@ namespace Rhea
 		m_managers["//meworla/mesh"] = new GraphicsMeshManager(this);
 		m_managers["//meworla/character"] = m_managers["//meworla/item"];
 		m_managers["//meworla/terrain"] = m_managers["//meworla/item"];
+		m_managers["//meworla/skybox"] = m_managers["//meworla/item"];
 		m_managers["//meworla/material"] = new GraphicsMaterialManager(this);
 		m_managers["//meworla/camera"] = new GraphicsCameraManager(this);
+	}
+
+	GraphicsService::~GraphicsService()
+	{
+		delete m_managers["//meworla/scene"];
+		delete m_managers["//meworla/item"];
+		delete m_managers["//meworla/mesh"];
+		delete m_managers["//meworla/material"];
+		delete m_managers["//meworla/camera"];
 	}
 
 	GraphicsManager* GraphicsService::getManager(std::string type_name)
@@ -174,7 +184,7 @@ namespace Rhea
 			});
 	}
 	
-	bool GraphicsService::onFrame(float delta)
+	bool GraphicsService::onFrameFinal(float delta)
 	{
 		// update items
 		for (auto it=m_scenes.begin(); it<m_scenes.end(); ++it) {

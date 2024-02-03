@@ -25,6 +25,7 @@ namespace Rhea
 		MECLASS(GraphicsService, Service)
 	public:
 		GraphicsService(std::string name, std::string type_name);
+		~GraphicsService();
 
 		// set the platform service
 		void setPlatform(Service* platform_service);
@@ -47,7 +48,7 @@ namespace Rhea
 
 		void onInit();
 
-		bool onFrame(float delta) override;
+		bool onFrameFinal(float delta) override;
 		
 		bool onInput(Event* ev, Unit* unit);
 		bool onAddItem(Event* ev, Unit* unit);

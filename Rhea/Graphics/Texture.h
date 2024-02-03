@@ -5,6 +5,7 @@
 
 #include <Psio/Image/Image.h>
 #include <Poseidon/Core.h>
+#include <Rhea/Fabrics/Media/ImageResource.h>
 
 #include "../Element.h"
 
@@ -15,13 +16,13 @@ namespace Rhea
 	class GraphicsTexture : public Element
 	{
 	public:
-		GraphicsTexture(Poseidon::Core *core) :
-			m_core(core),
-			m_img(nullptr)
-		{}
+		GraphicsTexture(Poseidon::Core* core, ImageResource::TextureType texture_type, int num_textures);
 
 		// create a texture from buffer
-		Poseidon::Texture* createTexture(unsigned char* buf, size_t buflen);
+		Poseidon::Texture* createTexture(int index, unsigned char* buf, size_t buflen);
+
+		// create a texture from a texture array
+		Poseidon::Texture* createTexture(int index, GraphicsTexture* texture);
 
 		// get the Poseidon Texture
 		Poseidon::Texture* get() { return m_img; }
@@ -31,6 +32,7 @@ namespace Rhea
 	protected:
 		Poseidon::Core* m_core;
 		Poseidon::Texture* m_img;
+		ImageResource::TextureType m_type;
 	};
 }
 

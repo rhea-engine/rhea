@@ -13,7 +13,7 @@ namespace Rhea
 	void Item::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{
 		Unit::setup(app, attributes, values);
-
+		
 		Variant pos_sit = getValue("position");
 		if (pos_sit != Variant()) {
 			float x = pos_sit[0];
@@ -94,8 +94,6 @@ namespace Rhea
 
 	void Item::onFrame(float delta)
 	{
-		// update myself
-		m_transform.update();		
 	}
 
 	void Item::setPosition(Rhea::Position& position)

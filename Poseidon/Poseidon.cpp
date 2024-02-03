@@ -67,6 +67,15 @@ namespace Poseidon
 		res_list.push("text_shader", "//rhea/shaders/text.shader", "//meworla/shader");
 		res_list.push("terrain_shader", "//rhea/shaders/terrain.shader", "//meworla/shader");
 
+		// skybox		
+		Hippios::DepthStencilStateDesc dss;
+		ZeroMemory(&dss, sizeof(dss));
+		dss.depth_enable = true;
+		dss.depth_write_mask = Hippios::DepthWriteMask::DEPTH_WRITE_ALL;
+		dss.depth_func = Hippios::ComparisonFunction::COMPARE_LESS_EQUAL;
+		doCast<GraphicsService>(getService("graphics"))->getEngine()->get_renderer()->createStencilState("skybox", dss);
+		res_list.push("skybox_shader", "//rhea/shaders/skybox.shader", "//meworla/shader");
+
 		// note: for locally installed resources this is actually synchronous
 		static_cast<Rhea::ResourceService*>(getService("resources"))->loadAsync(res_list, nullptr);
 	}

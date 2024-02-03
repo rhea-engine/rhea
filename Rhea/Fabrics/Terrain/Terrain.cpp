@@ -207,19 +207,17 @@ namespace Rhea
 						}
 						mesh->setBuffers(vertices, indices);
 					}
-
-					// prepare shaders	
-					Material* material = new Material("terrain");
-					material->setup(m_app);
-					material->setValue("shader", std::string("terrain"));
-
-					mesh->setMaterial(material);
 					m_render_component->setMesh(mesh);
-					addChild(mesh);
+					addChild(mesh);					
 				}
 
-				Material* material = m_render_component->getMesh()->getMaterial();
+				Material* material = new Material("terrain");
+				material->setup(m_app);
+				material->setValue("shader", std::string("terrain"));
+				addChild(material);
 
+				m_render_component->getMesh()->setMaterial(material);
+				
 				// add shader
 				Unit* shader_res = m_app->getUnitTree()->find(m_values["shader"], m_attributes["basepath"], false);
 				if (shader_res) {

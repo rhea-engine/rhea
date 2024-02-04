@@ -27,15 +27,14 @@ namespace Hippios
 		virtual ~Renderer() {}
 		virtual HippiosWindow* createWindow(Psio::Engine *psio) = 0;
 		virtual int render() = 0;
-		virtual bool drawBuffer(VertexBuffer* v_buffer, IndexBuffer* i_buffer, Texture* texture) = 0;
 		virtual VertexBuffer* createVertexBuffer(size_t vertexSize, size_t numVertices, bool dynamic) = 0;
 		virtual IndexBuffer* createIndexBuffer(size_t vertex_size, size_t num_faces, bool dynamic) = 0;
 		virtual GraphicsBuffer* createGraphicsBuffer(size_t size_in_bytes) = 0;
 		virtual Texture* createTexture(TextureDesc& desc) = 0;
 		virtual void clearPass() = 0;
 		virtual int presentPass() = 0;
-		virtual GPUProgram* addMaterial(std::string filename, char* shader_type, char* entry_point, int vertex_type) = 0;
-		virtual GPUProgram* addMaterial(unsigned char* buf, int buflen, char* shader_type, char* entry_point, int vertex_type) = 0;
+		virtual GPUProgram* addMaterial(std::string filename, char* shader_type, char* entry_point) = 0;
+		virtual GPUProgram* addMaterial(unsigned char* buf, int buflen, char* shader_type, char* entry_point) = 0;
 
 		// add a pipleline state object
 		virtual PipelineStateObject* createPipelineState(PipelineStateObjectDesc* desc) = 0;
@@ -45,9 +44,6 @@ namespace Hippios
 		
 		// bind the current vertex and index buffer
 		virtual void bindBuffers(VertexBuffer* vb, IndexBuffer* ib) = 0;
-
-		// set current input layout
-		virtual void setInputLayout(int topology) = 0;
 
 		// set the current Material
 		virtual void setVertexShader(GPUProgram* material) = 0;

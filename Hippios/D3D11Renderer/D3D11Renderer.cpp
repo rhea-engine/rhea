@@ -256,43 +256,6 @@ namespace Hippios {
 		m_win = (D3D11Window*)win;
 	}
 
-	bool D3D11Renderer::drawBuffer(VertexBuffer* v_buffer, IndexBuffer* i_buffer, Texture* texture)
-	{
-		// do 3D rendering on the back buffer
-		//v_buffer->Draw(i_buffer);
-
-		// set the vertex buffer to display
-		UINT stride = (UINT)v_buffer->get_vertex_size();
-		UINT offset = 0;
-
-		ID3D11Buffer* buffer = ((D3D11VertexBuffer*)v_buffer)->get_buffer();
-		m_device_context->IASetVertexBuffers(0, 1, &buffer, &stride, &offset);
-		
-		// set index buffer
-		if (i_buffer) {
-			buffer = ((D3D11IndexBuffer*)i_buffer)->get_buffer();
-			m_device_context->IASetIndexBuffer(buffer, DXGI_FORMAT_R32_UINT, 0);
-		}
-
-		// select which primtive type we are using
-		
-		m_device_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-
-		// textures and shader
-		if (texture) {
-			ID3D11ShaderResourceView* srv = ((D3D11Texture*)texture)->get();
-			m_device_context->PSSetShaderResources(0, 1, &srv);
-		}
-
-		// draw the vertex buffer to the back buffer
-		if (!i_buffer)
-			m_device_context->Draw((UINT)v_buffer->get_vertex_count(), 0);
-		else
-			m_device_context->DrawIndexed((UINT)i_buffer->get_index_count(), 0, 0);
-
-		return false;
-	}
-
 	/// called before drawing anything
 	void D3D11Renderer::update()
 	{
@@ -428,8 +391,18 @@ namespace Hippios {
 		m_pDXGISwapChain->SetFullscreenState(FALSE, NULL);    // switch to windowed mode to allow D3D11 to close
 
 		// close and release all existing COM objects
+
+		// release input layouts
+		m_device_context->IASetInputLayout(NULL);
+		for (auto it = m_input_layouts.begin(); it != m_input_layouts.end(); ++it)
+			(*it)->Release();
+
+		// release the swap chain
 		m_pDXGISwapChain->Release();
+
+		// release the back buffer
 		mBackbuffer->Release();
+
 		m_device->Release();
 		m_device_context->Release();
 	}
@@ -440,7 +413,7 @@ namespace Hippios {
 		return texture;
 	}
 
-	GPUProgram* D3D11Renderer::addMaterial(std::string filename, char* shader_type, char* entry_point, int vertex_type)
+	GPUProgram* D3D11Renderer::addMaterial(std::string filename, char* shader_type, char* entry_point)
 	{
 		if (!strcmp(shader_type, "vs")) {
 			mVShader = new D3D11HLSL(m_device, m_device_context);
@@ -451,10 +424,6 @@ namespace Hippios {
 				printf("Failed compiling vertex shader %08X\n", hr);
 				return nullptr;
 			}
-			// set the input layout
-			mVShader->setVertexType(vertex_type);
-			m_device_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-			m_device_context->IASetInputLayout(mVShader->GetInputLayout());
 			return mVShader;
 		}
 		else {
@@ -470,7 +439,7 @@ namespace Hippios {
 		}		
 	}
 
-	GPUProgram* D3D11Renderer::addMaterial(unsigned char* buf, int buflen, char* shader_type, char* entry_point, int vertex_type)
+	GPUProgram* D3D11Renderer::addMaterial(unsigned char* buf, int buflen, char* shader_type, char* entry_point)
 	{
 		if (!strcmp(shader_type, "vs")) {
 			mVShader = new D3D11HLSL(m_device, m_device_context);
@@ -481,10 +450,6 @@ namespace Hippios {
 				printf("Failed compiling vertex shader %08X\n", hr);
 				return nullptr;
 			}
-			// set the input layout
-			mVShader->setVertexType(vertex_type);
-			m_device_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-			m_device_context->IASetInputLayout(mVShader->GetInputLayout());
 			return mVShader;
 		}
 		else {
@@ -520,18 +485,9 @@ namespace Hippios {
 		}
 	}
 
-	void D3D11Renderer::setInputLayout(int topology)
-	{
-		if (topology == 4)
-			m_device_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-		else
-			m_device_context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
-	}
-
 	void D3D11Renderer::setVertexShader(GPUProgram* material)
 	{
 		mVShader = static_cast<D3D11HLSL*>(material);		
-		m_device_context->IASetInputLayout(mVShader->GetInputLayout());
 		m_device_context->VSSetShader(mVShader->getVertexShader(), 0, 0);
 	}
 

@@ -86,17 +86,14 @@ namespace Hippios
 		VertexBuffer* createVertexBuffer(size_t vertexSize, size_t numVertices, bool dynamic = false);
 		IndexBuffer* createIndexBuffer(size_t vertex_size, size_t num_faces, bool dynamic = false);
 		GraphicsBuffer* createGraphicsBuffer(size_t size_in_bytes);
-		bool drawBuffer(VertexBuffer* v_buffer, IndexBuffer* i_buffer = 0, Texture* texture = 0);
 		Texture* createTexture(TextureDesc& desc);
-		GPUProgram* addMaterial(std::string filename, char* shader_type, char* entry_point, int vertex_type);
-		GPUProgram* addMaterial(unsigned char* buf, int buflen, char* shader_type, char* entry_point, int vertex_type);
+		GPUProgram* addMaterial(std::string filename, char* shader_type, char* entry_point);
+		GPUProgram* addMaterial(unsigned char* buf, int buflen, char* shader_type, char* entry_point);
 
 		void setBlendState(BlendState* state, float* blend_factor, unsigned int mask) override;
 
 		virtual PipelineStateObject* createPipelineState(PipelineStateObjectDesc* desc) override;
 		void setPipelineState(PipelineStateObject* pso) override;
-
-		virtual void setInputLayout(int topology) override;
 
 		// set current material
 		void setVertexShader(GPUProgram* material);
@@ -142,6 +139,7 @@ namespace Hippios
 		std::unordered_map<std::string, std::unique_ptr<D3D11StencilState>> m_stencil_states;
 		D3D11StencilState* m_current_stencil_state;
 		ID3D11RasterizerState* m_current_raster_state;
+		std::vector<ID3D11InputLayout*> m_input_layouts;
 	};
 }
 #endif // !HIPPIOS_D3D11RENDERER_H

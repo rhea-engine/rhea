@@ -19,11 +19,8 @@ namespace Poseidon
 
 	void Material::activate()
 	{		
-		// set the shader
+		// activet the shader (the pso)
 		m_shader->activate();
-
-		// TODO set shader options
-		m_grahpics_core->get_renderer()->setInputLayout(m_topology);
 	}
 
 	void Material::addTexture(Texture* texture)

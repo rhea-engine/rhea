@@ -6,6 +6,7 @@
 #include "Hippios/Renderer.h"
 #include <Hippios/GPUProgram.h>
 #include <Hippios/GraphicsBuffer.h>
+#include <Hippios/PipelineState.h>
 #include <Poseidon/Core.h>
 
 namespace Poseidon
@@ -59,7 +60,7 @@ namespace Poseidon
 		Hippios::GPUProgram* m_pshader;
 
 		bool m_alpha_blending;
-		Hippios::PipelineStateObject* m_pso;
+		std::unique_ptr<Hippios::PipelineStateObject> m_pso;
 		std::string m_stencil_test;
 		int m_topology_type;
 		bool m_cull_mode;

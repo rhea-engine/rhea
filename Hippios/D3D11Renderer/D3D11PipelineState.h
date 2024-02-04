@@ -25,9 +25,10 @@ namespace Hippios
 		// legacy
 		GPUProgram* m_vertex_shader;
 		GPUProgram* m_pixel_shader;
-		int m_topology;
+		D3D_PRIMITIVE_TOPOLOGY m_topology;
 		CullMode m_cull_mode;
 		ID3D11RasterizerState* m_raster_state;
+		ID3D11InputLayout* m_input_layout;
 	};
 }
 #endif // !HIPPIOS_D3D11_PIPELINESTATE_H

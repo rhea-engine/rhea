@@ -19,6 +19,18 @@ namespace Rhea
 		if (m_values.find("alpha_blending") != m_values.end()) {
 			m_alpha_blending = m_values["alpha_blending"];
 		}
+
+		// vertex type
+		std::string vertex_layout_name = getValue("input", "short");
+		if (vertex_layout_name == "short") {
+			m_vertex_layout.push_back({ "POSITION", VertexAttributeType::POSITION, 4, 3, 12, 0 });
+			m_vertex_layout.push_back({ "TEXCOORD",VertexAttributeType::TEXCOORD, 4, 2, 8, 12 });
+		}
+		else /* if (vertex_layout_name == "default") */ {
+			m_vertex_layout.push_back({ "POSITION", VertexAttributeType::POSITION, 4, 3, 12, 0 });
+			m_vertex_layout.push_back({ "NORMAL", VertexAttributeType::NORMAL, 4, 3, 12, 12 });
+			m_vertex_layout.push_back({ "TEXCOORD", VertexAttributeType::TEXCOORD, 4, 2, 8, 24 });
+		}
 	}
 
 	std::vector<Unit::Export> Rhea::Shader::getReferences()

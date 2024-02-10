@@ -43,12 +43,13 @@ namespace Rhea
 			Shader* shader_res = material_res->getShaderRes();
 			TextResource* shader_code;
 			if (shader_res) {
-				shader_code = shader_res->getShaderCode();
-			}
-			else
-				shader_code = material_res->getShader();
+				shader_code = shader_res->getShaderCode();			
 
-			if (shader_code) {
+				if (!shader_code) {
+					LOG(LOG_ERROR) << "Shader code not found";
+					return nullptr;
+				}
+
 				char* buf;
 				size_t buflen;
 				shader_code->getRaw(&buf, &buflen);
@@ -71,10 +72,22 @@ namespace Rhea
 					}
 				}				
 
+				// input layout
+				std::string input_layout = shader_res->getValue("input", "");
+				if (input_layout == "default") {
+					shader->setVertexType(0);
+				}
+				else if (input_layout == "short") {
+					shader->setVertexType(1);
+				}
+				else if (input_layout == "color") {
+					shader->setVertexType(2);
+				}
+
 				// compute the shader
 				shader->finalize();
 
-				gmat->m_material->setShader(shader);
+				gmat->m_material->setShader(shader);			
 			}
 			else {
 				LOG(LOG_ERROR) << "Shader " << shader_name << " not found";

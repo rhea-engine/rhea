@@ -6,6 +6,7 @@
 #include <Psio/Log.h>
 #include <Rhea/Fabrics/Core/Material.h>
 #include "GraphicsService.h"
+#include <Rhea/Resources/VertexBuffer.h>
 
 namespace Rhea
 {
@@ -71,25 +72,39 @@ namespace Rhea
 		}
 
 		// add vertex and index buffer
-
-		std::vector<Mesh::vertex> vertices;
-		std::vector<unsigned long> v_indices;
-
-		mesh->getBuffers(vertices, v_indices);
-
-		if (!vertices.size() || !v_indices.size()) {
-			printf("Vertex is empty\n");
-			return true;
+		VertexBuffer* vbuf = mesh->getVertexBuffer();
+		if (vbuf && vbuf->size()) {
+			mesh_el->m_mesh->setVertices(vbuf->getVertexSize(), vbuf->size(), vbuf->data());
+			std::vector<unsigned long> v_indices = mesh->getIndices();
+			// Check if v_indices is valid and has a multiple of 3 elements
+			if (v_indices.size() % 3 == 0) {
+				mesh_el->m_mesh->setIndices(sizeof(unsigned long), v_indices.size() / 3, v_indices.data());
+			}
+			else {
+				LOG(LOG_ERROR) << "Invalid index buffer";
+				return true;
+			}
 		}
+		else {
+			std::vector<Mesh::vertex> vertices;
+			std::vector<unsigned long> v_indices;
 
-		std::vector<Hippios::vertex_uv> hippios_vertices;
-		for (auto it = vertices.begin(); it != vertices.end(); ++it) {
-			Mesh::vertex v = *it;
-			hippios_vertices.push_back(Hippios::vertex_uv(v.x, v.y, v.z, v.u, v.v));
+			mesh->getBuffers(vertices, v_indices);
+
+			if (!vertices.size() || !v_indices.size()) {
+				printf("Vertex is empty\n");
+				return true;
+			}
+
+			std::vector<Hippios::vertex_uv> hippios_vertices;
+			for (auto it = vertices.begin(); it != vertices.end(); ++it) {
+				Mesh::vertex v = *it;
+				hippios_vertices.push_back(Hippios::vertex_uv(v.x, v.y, v.z, v.u, v.v));
+			}
+
+			mesh_el->m_mesh->setVertices(sizeof(Hippios::vertex_uv), hippios_vertices.size(), hippios_vertices.data());
+			mesh_el->m_mesh->setIndices(sizeof(unsigned long), v_indices.size() / 3, v_indices.data());
 		}
-
-		mesh_el->m_mesh->setVertices(sizeof(Hippios::vertex_uv), hippios_vertices.size(), hippios_vertices.data());
-		mesh_el->m_mesh->setIndices(sizeof(unsigned long), v_indices.size() / 3, v_indices.data());
 		return false;
 	}
 

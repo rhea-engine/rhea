@@ -71,19 +71,28 @@ namespace Poseidon
 			// layout
 
 			Hippios::InputLayoutElement elements_pos_uv[] = {
-				{ "POSITION", 0, Hippios::InputLayoutFormat::R32G32B32_FLOAT, 0 },
-				{ "TEXCOORD", 0, Hippios::InputLayoutFormat::R32G32_FLOAT, 12 }
+				{ "POSITION", 0, Hippios::InputLayoutFormat::R32G32B32_FLOAT, 0, 0 },
+				{ "TEXCOORD", 0, Hippios::InputLayoutFormat::R32G32_FLOAT, 0, 12 }
 			};
 			Hippios::InputLayoutElement elements_pos_norm_uv[] = {
-				{ "POSITION", 0, Hippios::InputLayoutFormat::R32G32B32_FLOAT, 0 },
-				{ "NORMAL", 0, Hippios::InputLayoutFormat::R32G32B32_FLOAT, 12},
-				{ "TEXCOORD", 0, Hippios::InputLayoutFormat::R32G32_FLOAT, 24 }
+				{ "POSITION", 0, Hippios::InputLayoutFormat::R32G32B32_FLOAT, 0, 0 },
+				{ "NORMAL", 0, Hippios::InputLayoutFormat::R32G32B32_FLOAT, 0, 12},
+				{ "TEXCOORD", 0, Hippios::InputLayoutFormat::R32G32_FLOAT, 0, 24 }
 			};
-			if (1) {
+			switch (m_vertex_type) {
+			case 0: // default
+				pso_desc.inputLayout.elements = &elements_pos_norm_uv[0];
+				pso_desc.inputLayout.num_elements = 3;
+				break;
+			case 1: // short (no normals)
 				pso_desc.inputLayout.elements = &elements_pos_uv[0];
 				pso_desc.inputLayout.num_elements = 2;
-			}
-			else {
+				break;
+			case 2: // color
+				// TODO
+			case 3: // custom
+				// TODO
+			default: // default
 				pso_desc.inputLayout.elements = &elements_pos_norm_uv[0];
 				pso_desc.inputLayout.num_elements = 3;
 			}

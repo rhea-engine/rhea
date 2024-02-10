@@ -46,7 +46,7 @@ namespace Poseidon
 		}		
 	}
 
-	void Entity::getRenderInput(Hippios::VertexBuffer** pvb, Hippios::IndexBuffer** pib, int& num_indices)
+	void Entity::getRenderInput(Hippios::VertexBuffer** pvb, Hippios::IndexBuffer** pib, size_t& num_indices)
 	{
 		if (m_mesh) {
 			*pvb = m_mesh->get_vbuffer();

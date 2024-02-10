@@ -3,6 +3,7 @@
 
 #include <Rhea/Unit.h>
 #include <Rhea/Resources/TextResource.h>
+#include <Rhea/Resources/VertexAttribute.h>
 
 namespace Rhea
 {
@@ -32,12 +33,17 @@ namespace Rhea
 
 		// input handling
 		bool usesWVP() { return m_wvp; }
-		void setWVP(bool value) { m_wvp = value; }
+		void setWVP(bool value) { m_wvp = value; }	
+
+		// vertex layout
+		std::vector<VertexAttribute>& getVertexLayout() { return m_vertex_layout; }
 
 	protected:
 		std::string m_stencil_test;
 		bool m_alpha_blending;
 		bool m_wvp;
+		// vertex layout as a vector of element length
+		std::vector<VertexAttribute> m_vertex_layout;
 	};
 }
 

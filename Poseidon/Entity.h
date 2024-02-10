@@ -21,7 +21,7 @@ namespace Poseidon
 		void cullPhase(RenderQueue* queue, Camera* camera);
 
 		// get render input
-		void getRenderInput(Hippios::VertexBuffer** pvb, Hippios::IndexBuffer** pib, int& num_indices);
+		void getRenderInput(Hippios::VertexBuffer** pvb, Hippios::IndexBuffer** pib, size_t& num_indices);
 
 		// get the Material
 		Material *getMaterial();
@@ -34,7 +34,7 @@ namespace Poseidon
 		void show() { m_hidden = false; }
 	
 	protected:
-		int m_vertex_size;
+		size_t m_vertex_size;
 		Material* m_material;
 		bool m_hidden;
 	};

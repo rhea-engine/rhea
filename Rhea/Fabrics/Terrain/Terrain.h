@@ -2,7 +2,7 @@
 #define RHEA_TERRAIN_H
 
 #include <vector>
-#include <Poseidon/Material.h>
+#include <Rhea/Fabrics/Core/Material.h>
 #include <Psio/Image/Image.h>
 #include <Math/Vector3.h>
 
@@ -23,6 +23,7 @@ namespace Rhea
 			m_max_height(256.0f),
 			m_min_height(0.0f),
 			m_heights(nullptr),
+			m_material(nullptr),
 			Item(name, type_name)
 		{}
 		~Terrain();
@@ -52,6 +53,7 @@ namespace Rhea
 		float m_max_height;
 		std::unique_ptr<Poseidon::Image> m_heightmap;
 		float* m_heights;
+		Material* m_material;
 		
 		static float barryCentric(Math::Vector3 p1, Math::Vector3 p2, Math::Vector3 p3, float x, float z);			
 	};

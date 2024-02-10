@@ -56,27 +56,54 @@ namespace Rhea
 				if (!mesh) {
 					return false;
 				}
-				std::vector<Mesh::vertex> vertices;
-				std::vector<unsigned long> indices;
-				mesh->getBuffers(vertices, indices);
+				VertexBuffer* vb = mesh->getVertexBuffer();
+				if (vb && vb->size()) {
+					std::vector<unsigned long> indices = mesh->getIndices();
+					btTriangleMesh* triMesh = new btTriangleMesh();
+					for (size_t i = 0; i < indices.size(); i += 3) {
+						size_t j = indices[i];
+						Math::Vector3 vertex = (Math::Vector3)(*vb)[j];
+						btVector3 v1 = btVector3(vertex.x, vertex.y, vertex.z);
+						j = indices[i + 1];
+						vertex = (Math::Vector3)(*vb)[j];
+						btVector3 v2 = btVector3(vertex.x, vertex.y, vertex.z);
+						j = indices[i + 2];
+						vertex = (Math::Vector3)(*vb)[j];
+						btVector3 v3 = btVector3(vertex.x, vertex.y, vertex.z);
+						triMesh->addTriangle(v1, v2, v3);
+					}
 
-				btTriangleMesh* triMesh = new btTriangleMesh();
-				for (int i = 0; i < indices.size(); i += 3) {
-					int j = indices[i];
-					btVector3 v1 = btVector3(vertices[j].x, vertices[j].y, vertices[j].z);
-					j = indices[i + 1];
-					btVector3 v2 = btVector3(vertices[j].x, vertices[j].y, vertices[j].z);
-					j = indices[i + 2];
-					btVector3 v3 = btVector3(vertices[j].x, vertices[j].y, vertices[j].z);
-					triMesh->addTriangle(v1, v2, v3);
-				}
-
-				if (!indices.size()) {
-					LOG(LOG_ERROR) << "BtBody: no indices for item";
-					colShape = new btBoxShape(btVector3(1, 1, 1));
+					if (!indices.size()) {
+						LOG(LOG_ERROR) << "BtBody: no indices for item";
+						colShape = new btBoxShape(btVector3(1, 1, 1));
+					}
+					else {
+						colShape = new btBvhTriangleMeshShape(triMesh, true);
+					}
 				}
 				else {
-					colShape = new btBvhTriangleMeshShape(triMesh, true);
+					std::vector<Mesh::vertex> vertices;
+					std::vector<unsigned long> indices;
+					mesh->getBuffers(vertices, indices);
+
+					btTriangleMesh* triMesh = new btTriangleMesh();
+					for (int i = 0; i < indices.size(); i += 3) {
+						int j = indices[i];
+						btVector3 v1 = btVector3(vertices[j].x, vertices[j].y, vertices[j].z);
+						j = indices[i + 1];
+						btVector3 v2 = btVector3(vertices[j].x, vertices[j].y, vertices[j].z);
+						j = indices[i + 2];
+						btVector3 v3 = btVector3(vertices[j].x, vertices[j].y, vertices[j].z);
+						triMesh->addTriangle(v1, v2, v3);
+					}
+
+					if (!indices.size()) {
+						LOG(LOG_ERROR) << "BtBody: no indices for item";
+						colShape = new btBoxShape(btVector3(1, 1, 1));
+					}
+					else {
+						colShape = new btBvhTriangleMeshShape(triMesh, true);
+					}
 				}
 			}
 			else {

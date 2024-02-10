@@ -46,6 +46,24 @@ namespace Rhea
 		return entity;
 	}
 
+	Poseidon::Node* GraphicsManager::createEntity(GraphicsRenderElement* elem, Poseidon::Core* core, Unit* item, std::string render_context_name, bool dynamic_usage)
+	{
+		Poseidon::SceneManager* scene_mgr = core->get_scene_manager();
+
+		// create an entity
+		Poseidon::Node* entity = core->createEntity(nullptr);
+		elem->SetRenderEntity(entity);
+
+		Poseidon::RenderContext* render_context = scene_mgr->getViewport()->getRenderContext(render_context_name);
+		if (!render_context) {
+			LOG(LOG_ERROR) << "GraphicsText::createText: render context '" << render_context_name << "' not found";
+			return nullptr;
+		}
+		elem->setRenderContext(render_context);
+
+		return entity;
+	}
+
 	void GraphicsManager::removeRenderable(Item* item)
 	{
 		GraphicsRenderElement* elem = (GraphicsRenderElement*)item->getElement("graphics");

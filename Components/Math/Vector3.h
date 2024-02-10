@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include "Quaternion.h"
+#include <functional>
 
 namespace Math
 {
@@ -29,7 +30,12 @@ namespace Math
 			x = _ptr->x;
 			y = _ptr->y;
 			z = _ptr->z;				
-		}	
+		}
+		Vector3(const float* f_r) {
+			x = f_r[0];
+			y = f_r[1];
+			z = f_r[2];
+		}
 
 		// special points
 		static const Vector3 ZERO;
@@ -97,6 +103,11 @@ namespace Math
 			return (x == v.x && y == v.y && z == v.z);
 		}
 		bool operator!=(const Vector3& v) const { return !(*this == v); }
+
+		// check if vector is approximately the same
+		bool equals(const Vector3& v, float epsilon = (float)1e-06) const {
+			return (fabs(x - v.x) < epsilon && fabs(y - v.y) < epsilon && fabs(z - v.z) < epsilon);
+		}
 
 		/**Gets the shortest arc quaternion to rotate this vector to the destination
 			vector.
@@ -205,6 +216,18 @@ namespace Math
 			ret.normalise();
 			return ret;
 		}		
+
+		// helper
+
+		// hashing helper
+		size_t operator()(const Vector3 & v) const {
+			// You can use a simple hash combination technique
+			size_t hash = 17;
+			hash = hash * 31 + std::hash<float>{}(v.x);
+			hash = hash * 31 + std::hash<float>{}(v.y);
+			hash = hash * 31 + std::hash<float>{}(v.z);
+			return hash;
+		}
 	};
 }
 #endif // !MATH_VECTOR3_H

@@ -10,6 +10,7 @@
 #include "Fabrics/Core/Material.h"
 #include <Rhea/Fabrics/Core/Shader.h>
 #include <Psio/Log.h>
+#include <Components/Math/Vector2.h>
 
 namespace Rhea
 {
@@ -137,12 +138,45 @@ namespace Rhea
 					addChild(m_render_component);
 				}
 
+				if (!m_material) {
+					m_material = new Material("terrain");
+					m_material->setup(m_app);
+					m_material->setValue("shader", std::string("terrain"));
+					addChild(m_material);
+
+					// add shader
+					Unit* shader_res = m_app->getUnitTree()->find(m_values["shader"], m_attributes["basepath"], false);
+					if (shader_res) {
+						m_material->setShaderRes(doCast<Shader>(shader_res));
+					}
+					else {
+						LOG(LOG_ERROR) << "Terrain::ready(): Shader '" << (std::string)m_values["shader"] << "' for " << m_pathname << " not found";
+						return;
+					}
+				}
+
 				// if not overwritten by mesh build from heightmap
 				if (!m_render_component->getMesh()) {
+
+					// vertex buffers
+					std::unordered_map<std::string, VertexBuffer> vertices;
+					vertices["POSITION"] = VertexBuffer(3 * sizeof(float));
+					vertices["NORMAL"] = VertexBuffer(3 * sizeof(float));
+					vertices["TEXCOORD"] = VertexBuffer(2 * sizeof(float));
+					// indices
+					std::vector<unsigned long> indices;
+
+					struct vertex_norm_uv {
+						Math::Vector3 position;
+						Math::Vector3 normal;
+						Math::Vector2 uv;
+					};
 
 					std::unordered_map<std::string, std::string> attributes;
 					std::unordered_map<std::string, Variant> values;
 					Mesh* mesh = static_cast<Mesh*>(m_app->getUnitTree()->createUnit(m_pathname + "_mesh", "//meworla/mesh", attributes, values));
+
+					mesh->setMaterial(m_material);
 
 					// build vertex/index buffers from image
 					m_heightmap = std::make_unique<Poseidon::Image>();
@@ -152,30 +186,34 @@ namespace Rhea
 						m_length = m_heightmap->getHeight();
 
 						// build buffers
-						std::vector<Mesh::vertex> vertices;
-						std::vector<unsigned long> indices;
-						std::vector<Math::Vector3> normals;
-						Mesh::vertex vertex;
-						m_heights = new float[(long)m_length * (long)m_width];
+						size_t vert_count = (size_t)(m_width * m_length);
+						vertices["POSITION"].reserve(vert_count);
+						vertices["NORMAL"].reserve(vert_count);
+						vertices["TEXCOORD"].reserve(vert_count);
+
+						vertex_norm_uv vertex;
+						m_heights = new float[vert_count];
 
 						for (int h = 0; h < m_length; h++) {
 							for (int w = 0; w < m_width; w++) {
-								vertex.x = (float)w / ((float)m_width - 1) * m_width;
-								vertex.y = (float)getHeightAt(w, h);
+								vertex.position.x = (float)w / ((float)m_width - 1) * m_width;
+								vertex.position.y = (float)getHeightAt(w, h);
 								if (flipZ) {
-									vertex.z = (float)(m_length - 1 - h) / ((float)m_length - 1) * m_length;
-									m_heights[h * m_width + w] = vertex.y;
+									vertex.position.z = (float)(m_length - 1 - h) / ((float)m_length - 1) * m_length;
+									m_heights[h * m_width + w] = vertex.position.y;
 								}
 								else {
-									vertex.z = (float)h / ((float)m_length - 1) * m_length;
-									m_heights[h * m_width + w] = vertex.y;
+									vertex.position.z = (float)h / ((float)m_length - 1) * m_length;
+									m_heights[h * m_width + w] = vertex.position.y;
 								}
-								normals.push_back(calculateNormal(w, h));
+								vertex.normal = calculateNormal(w, h);								
 
-								vertex.u = (float)w / ((float)m_width - 1);
-								vertex.v = (float)h / ((float)m_length - 1);
+								vertex.uv.x = (float)w / ((float)m_width - 1);
+								vertex.uv.y = (float)h / ((float)m_length - 1);
 
-								vertices.push_back(vertex);
+								vertices["POSITION"].push_back(&vertex.position.x);								
+								vertices["NORMAL"].push_back(&vertex.normal.x);
+								vertices["TEXCOORD"].push_back(&vertex.uv.x);
 							}
 						}
 
@@ -205,49 +243,33 @@ namespace Rhea
 								}
 							}
 						}
-						mesh->setBuffers(vertices, indices);
+						mesh->setBuffers(vertices, indices, vert_count);
 					}
 					m_render_component->setMesh(mesh);
 					addChild(mesh);					
-				}
-
-				Material* material = new Material("terrain");
-				material->setup(m_app);
-				material->setValue("shader", std::string("terrain"));
-				addChild(material);
-
-				m_render_component->getMesh()->setMaterial(material);
-				
-				// add shader
-				Unit* shader_res = m_app->getUnitTree()->find(m_values["shader"], m_attributes["basepath"], false);
-				if (shader_res) {
-					material->setShaderRes(doCast<Shader>(shader_res));
-				}
-				else {
-					LOG(LOG_ERROR) << "Terrain::ready(): Shader '" << (std::string)m_values["shader"] << "' for " << m_pathname << " not found";
-				}				
+				}					
 
 				// add textures
 				Unit* texture;
 				if (m_values["blendmap"] != Variant()) {
 					texture = m_app->getUnitTree()->find(m_values["blendmap"], m_attributes["basepath"], false);
-					material->addTexture(static_cast<ImageResource*>(texture));
+					m_material->addTexture(static_cast<ImageResource*>(texture));
 				}
 				if (m_values["texture1"] != Variant()) {
 					texture = m_app->getUnitTree()->find(m_values["texture1"], m_attributes["basepath"], false);
-					material->addTexture(static_cast<ImageResource*>(texture));
+					m_material->addTexture(static_cast<ImageResource*>(texture));
 				}
 				if (m_values["texture2"] != Variant()) {
 					texture = m_app->getUnitTree()->find(m_values["texture2"], m_attributes["basepath"], false);
-					material->addTexture(static_cast<ImageResource*>(texture));
+					m_material->addTexture(static_cast<ImageResource*>(texture));
 				}
 				if (m_values["texture3"] != Variant()) {
 					texture = m_app->getUnitTree()->find(m_values["texture3"], m_attributes["basepath"], false);
-					material->addTexture(static_cast<ImageResource*>(texture));
+					m_material->addTexture(static_cast<ImageResource*>(texture));
 				}
 				if (m_values["texture4"] != Variant()) {
 					texture = m_app->getUnitTree()->find(m_values["texture4"], m_attributes["basepath"], false);
-					material->addTexture(static_cast<ImageResource*>(texture));
+					m_material->addTexture(static_cast<ImageResource*>(texture));
 				}
 			}
 		}

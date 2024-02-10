@@ -107,12 +107,13 @@ namespace Hippios
 			ied[i].SemanticIndex = 0;
 			ied[i].Format = D3D11RendererGetFormat(desc->inputLayout.elements[i].format);
 			ied[i].InputSlot = 0;
-			ied[i].AlignedByteOffset = D3D11_APPEND_ALIGNED_ELEMENT;
+			ied[i].AlignedByteOffset = desc->inputLayout.elements[i].aligned_byte_offset;
 			ied[i].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 			ied[i].InstanceDataStepRate = 0;
 		}
 		HRESULT HR = m_renderer->get_device()->CreateInputLayout(ied, desc->inputLayout.num_elements, ((D3D11HLSL*)m_vertex_shader)->getBuffer(), ((D3D11HLSL*)m_vertex_shader)->getBufferSize(), &m_input_layout);
-		 
+		delete[] ied;
+
 		switch (desc->vertexLayout) {
 		case PrimitiveTopology::LineList:
 			m_topology = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;

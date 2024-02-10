@@ -51,6 +51,11 @@
 #include <Fabrics/3D/Skybox.h>
 #include <Fabrics/Core/Shader.h>
 #include <Fabrics/Core/WorldService.h>
+#include <Fabrics/3D/Light.h>
+#include <Fabrics/3D/DirectionalLight.h>
+#include <Fabrics/Core/Lighting.h>
+#include <Fabrics/3D/PointLight.h>
+#include <Fabrics/3D/SpotLight.h>
 
 #undef min
 
@@ -123,6 +128,11 @@ namespace Rhea
 		SimpleParser::Type::registerType<Mesh>("//meworla/mesh");
 		SimpleParser::Type::registerType<RenderComponent>("//meworla/rendercomponent");
 		SimpleParser::Type::registerType<Shader>("//meworla/shader");
+		SimpleParser::Type::registerType<Lighting>("//meworla/lighting");
+		SimpleParser::Type::registerType<Light>("//meworla/light");
+		SimpleParser::Type::registerType<PointLight>("//meworla/pointlight");
+		SimpleParser::Type::registerType<SpotLight>("//meworla/spotlight");
+		SimpleParser::Type::registerType<DirectionalLight>("//meworla/directionallight");
 		Orion::MIME::RegisterExtenstion("application/vnd.meworla.scene", "shader");
 		SimpleParser::Type::registerType<Material>("//meworla/material");
 		SimpleParser::Type::registerType<Avatar>("//meworla/avatar");

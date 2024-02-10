@@ -16,6 +16,9 @@
 #include <Rhea/Graphics/MaterialManager.h>
 #include <Rhea/Graphics/MeshElement.h>
 #include <Rhea/Fabrics/3D/Mesh.h>
+#include <Rhea/Fabrics/3D/DirectionalLight.h>
+#include <Rhea/Fabrics/3D/PointLight.h>
+#include <Rhea/Fabrics/3D/SpotLight.h>
 
 namespace Poseidon
 {
@@ -54,6 +57,9 @@ namespace Poseidon
 		m_frame_buffer = m_renderer->createGraphicsBuffer(sizeof(cbPerFrame));
 		m_renderer->bindGPUBuffer(m_frame_buffer, 0, "VS");
 		m_object_buffer = m_renderer->createGraphicsBuffer(sizeof(cbPerObject));
+		//m_renderer->bindGPUBuffer(m_object_buffer, 1, "VS");
+		m_light_buffer = m_renderer->createGraphicsBuffer(sizeof(cbLight));
+		m_renderer->bindGPUBuffer(m_light_buffer, 2, "PS");
 	}
 
 	Node* SceneManager::createNode()
@@ -91,11 +97,75 @@ namespace Poseidon
 					continue;
 
 				// fill per frame buffer
+				per_frame_buf = {};
 				per_frame_buf.v = camera->getViewMatrix();
 				per_frame_buf.p = camera->getProjectionMatrixRS();
 				per_frame_buf.vp = per_frame_buf.p * per_frame_buf.v;
+				if (camera->get_position())
+					per_frame_buf.cameraPos = camera->get_position()->get_worldspace();
 
 				m_frame_buffer->update((void*)&per_frame_buf);
+
+				// fill lights buffer
+				std::vector<Rhea::Light*> lights;
+				context->getLights(lights);
+				light_buf = {};
+
+				// gloabl ambient light
+				light_buf.ambient = context->getAmbient();
+
+				// iterate lights and add them to the light buffer
+				int idx = 0;
+				for (std::vector<Rhea::Light*>::iterator it = lights.begin(); it != lights.end(); ++it) {
+					if (idx >= MAX_LIGHTS) {
+						break;
+					}
+					Rhea::Light* light = doCast<Rhea::Light>(*it);
+					if (light) {
+						light_buf.lights[idx].specular = light->getSpecular();
+						light_buf.lights[idx].diffuse = light->getDiffuse();
+						light_buf.lights[idx].lightColor = light->getColor();
+						
+						Rhea::DirectionalLight* dir_light = doCast<Rhea::DirectionalLight>(*it);
+						if (dir_light) {
+							light_buf.lights[idx].Type = 0;
+							light_buf.lights[idx].direction = dir_light->getDirection();							
+						}
+						else {
+							Rhea::PointLight* point_light = doCast<Rhea::PointLight>(*it);
+							if (point_light) {
+								light_buf.lights[idx].Type = 1;
+								Vector3 pos = point_light->getTransform()->get_position()->get_worldspace();
+								light_buf.lights[idx].position = Math::Quaternion(pos.x, pos.y, pos.z, 1.0f);
+								Math::Vector3 attenuation = point_light->getAttenuation();
+								light_buf.lights[idx].ConstantAttenuation = attenuation.x;
+								light_buf.lights[idx].LinearAttenuation = attenuation.y;
+								light_buf.lights[idx].QuadraticAttenuation = attenuation.z;
+							}
+							else
+							{
+								Rhea::SpotLight* spot_light = doCast<Rhea::SpotLight>(*it);
+								if (spot_light) {
+									light_buf.lights[idx].Type = 2;
+									Vector3 pos = point_light->getTransform()->get_position()->get_worldspace();
+									light_buf.lights[idx].position = Math::Quaternion(pos.x, pos.y, pos.z, 1.0f);
+									pos = Math::Vector3(-pos.x, -pos.y, -pos.z);
+									pos.normalise();
+									light_buf.lights[idx].direction = pos;
+									Math::Vector3 attenuation = spot_light->getAttenuation();
+									light_buf.lights[idx].ConstantAttenuation = attenuation.x;
+									light_buf.lights[idx].LinearAttenuation = attenuation.y;
+									light_buf.lights[idx].QuadraticAttenuation = attenuation.z;
+									light_buf.lights[idx].ConeAngle = spot_light->getConeAngle();
+								}
+							}
+						}
+					}					
+					idx++;
+				}
+				light_buf.num_lights = (float)idx;
+				m_light_buffer->update((void*)&light_buf);
+				m_renderer->bindGPUBuffer(m_light_buffer, 2, "PS");
 
 				Item* renderable = m_rend_queue->first();
 				for (Item* renderable = m_rend_queue->first(); renderable != NULL; renderable = m_rend_queue->next()) {
@@ -160,7 +230,7 @@ namespace Poseidon
 						continue;
 					m_elem->m_mesh->getRenderInput(&vb, &ib, num_indices);
 
-					if (m_current_material->getShader()->getVertexType() == 0) {
+					if (!m_elem->m_mesh->isIndexed()) {
 						if (vb) {
 							m_renderer->bindBuffers(vb, ib);
 							m_renderer->draw(num_indices, 0);

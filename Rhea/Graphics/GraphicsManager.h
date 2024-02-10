@@ -35,6 +35,9 @@ namespace Rhea
 		// create a renderable mesh
 		Poseidon::Node* createRenderable(GraphicsRenderElement* elem, Poseidon::Core* core, Unit* item, std::string render_context_name, bool dynamic_usage);
 		
+		// create an entity
+		Poseidon::Node* createEntity(GraphicsRenderElement* elem, Poseidon::Core* core, Unit* item, std::string render_context_name, bool dynamic_usage);
+
 		// remove renderable from engine
 		void removeRenderable(Item* elem);
 

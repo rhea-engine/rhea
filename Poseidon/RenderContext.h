@@ -6,6 +6,7 @@
 
 #include "Node.h"
 #include <Rhea/Fabrics/3D/Item.h>
+#include <Rhea/Fabrics/3D/Light.h>
 
 using Rhea::Item;
 
@@ -17,7 +18,7 @@ namespace Poseidon
 
 	/** a class that holds a render context.
 	*   a render context has its render queue and its own camera
-	*   render contexts belong to one viewport and are rendered in the sequence in which they are added to the vieport
+	*   render contexts belong to one viewport and are rendered in the sequence in which they are added to the viewport
 	*/
 	class RenderContext : public Node
 	{
@@ -31,6 +32,9 @@ namespace Poseidon
 		void setName(std::string& name) { m_name = name; }
 		std::string getName() { return m_name; }
 		bool isName(std::string& name) { return m_name == name; }
+
+		// get lights
+		void getLights(std::vector<Rhea::Light*>& lights);
 
 		// cull the visible objects
 		void cullObjects(RenderQueue* queue);
@@ -48,11 +52,16 @@ namespace Poseidon
 		void setStencilState(int state_id) { m_stencil_state = state_id; }
 		int getStencilState() { return m_stencil_state; }
 
+		// ambient light
+		void setAmbient(Math::Quaternion ambient) { m_ambient = ambient; }
+		Math::Quaternion getAmbient() { return m_ambient; }
+
 	protected:
 		std::string m_name;
 		Camera* m_camera;
 		std::vector<Item*> m_render_children;
 		int m_stencil_state;
+		Math::Quaternion m_ambient;
 	};
 }
 

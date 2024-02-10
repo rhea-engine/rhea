@@ -4,6 +4,7 @@
 #include <vector>
 
 #include <Rhea/Unit.h>
+#include <Rhea/Resources/VertexBuffer.h>
 
 namespace Rhea
 {
@@ -63,17 +64,28 @@ namespace Rhea
 
 		// do we need dynamic buffers?
 		void setDynamic(bool is_dynamic) { m_isDynamic = is_dynamic; }
-		bool isDynamic() { return m_isDynamic; }
+		bool isDynamic() { return m_isDynamic; }	
 
 		// return the buffers
 		void getBuffers(std::vector<vertex>& vertices, std::vector<unsigned long>& indices);
 		void setBuffers(std::vector<vertex>& vertices, std::vector<unsigned long>& indices);
 
+		// set buffer with map of attributes
+		void setBuffers(std::unordered_map<std::string, VertexBuffer>& vertices, std::vector<unsigned long>& indices, size_t num_vertices);
+
+		// return pointers to the buffers
+		VertexBuffer* getVertexBuffer() { return &m_vertex; }
+		const std::vector<unsigned long>& getIndices() const {
+			return m_v_indices;
+		}
+
 	protected:
 		Material* m_material;
 		std::vector<vertex> m_vertices;
 		std::vector<unsigned long> m_v_indices;
+		std::vector<unsigned long> m_v_indices2;
 		bool m_isDynamic;
+		VertexBuffer m_vertex;
 	};
 }
 

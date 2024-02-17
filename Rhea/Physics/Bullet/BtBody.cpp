@@ -58,27 +58,29 @@ namespace Rhea
 				}
 				VertexBuffer* vb = mesh->getVertexBuffer();
 				if (vb && vb->size()) {
-					std::vector<unsigned long> indices = mesh->getIndices();
-					btTriangleMesh* triMesh = new btTriangleMesh();
-					for (size_t i = 0; i < indices.size(); i += 3) {
-						size_t j = indices[i];
-						Math::Vector3 vertex = (Math::Vector3)(*vb)[j];
-						btVector3 v1 = btVector3(vertex.x, vertex.y, vertex.z);
-						j = indices[i + 1];
-						vertex = (Math::Vector3)(*vb)[j];
-						btVector3 v2 = btVector3(vertex.x, vertex.y, vertex.z);
-						j = indices[i + 2];
-						vertex = (Math::Vector3)(*vb)[j];
-						btVector3 v3 = btVector3(vertex.x, vertex.y, vertex.z);
-						triMesh->addTriangle(v1, v2, v3);
-					}
+					for (size_t idx = 0; idx < mesh->getNumSubmeshes(); idx++) {
+						std::vector<unsigned long> indices = mesh->getIndices(idx);
+						btTriangleMesh* triMesh = new btTriangleMesh();
+						for (size_t i = 0; i < indices.size(); i += 3) {
+							size_t j = indices[i];
+							Math::Vector3 vertex = (Math::Vector3)(*vb)[j];
+							btVector3 v1 = btVector3(vertex.x, vertex.y, vertex.z);
+							j = indices[i + 1];
+							vertex = (Math::Vector3)(*vb)[j];
+							btVector3 v2 = btVector3(vertex.x, vertex.y, vertex.z);
+							j = indices[i + 2];
+							vertex = (Math::Vector3)(*vb)[j];
+							btVector3 v3 = btVector3(vertex.x, vertex.y, vertex.z);
+							triMesh->addTriangle(v1, v2, v3);
+						}
 
-					if (!indices.size()) {
-						LOG(LOG_ERROR) << "BtBody: no indices for item";
-						colShape = new btBoxShape(btVector3(1, 1, 1));
-					}
-					else {
-						colShape = new btBvhTriangleMeshShape(triMesh, true);
+						if (!indices.size()) {
+							LOG(LOG_ERROR) << "BtBody: no indices for item";
+							colShape = new btBoxShape(btVector3(1, 1, 1));
+						}
+						else {
+							colShape = new btBvhTriangleMeshShape(triMesh, true);
+						}
 					}
 				}
 				else {

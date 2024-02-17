@@ -58,6 +58,9 @@ namespace Rhea
 				if (m_values.find("shadername") != m_values.end()) {
 					LOG(LOG_DEBUG) << "shadername set: " << (std::string)m_values["shadername"];
 				}
+				if (m_submeshes.size() > 0) {
+					m_submeshes[0].material = m_material;
+				}
 
 				// get the shader				
 				Unit* shader_res = m_app->getUnitTree()->find(m_values["shader"], m_attributes["basepath"], false);
@@ -74,56 +77,46 @@ namespace Rhea
 			m_material = doCast<Material>(m_app->getUnitTree()->find(m_values["material"], m_attributes["basepath"], false));
 		}
 
-		// load using geometry
+		// load using geometry (import from extrenal 3d file)
 		if (m_values.find("geometry") != m_values.end()) {
 			Geometry* geometry = (Geometry*)m_app->getUnitTree()->find(m_values["geometry"], m_attributes["basepath"], false);
-			if (geometry) {
-				if (!m_material) {
-					// no material - use some standard input vertex info
-					// create dummy material
-					m_material = new Material(m_path + "_material");
-					m_material->setValue("shader", getValue("shadername", "standard"));
-					if (m_values.find("shadername") != m_values.end()) {
-						LOG(LOG_DEBUG) << "shadername set: " << (std::string)m_values["shadername"];
-					}
-					// get the shader
-					Unit* shader_res = m_app->getUnitTree()->find(m_values["shader"], m_attributes["basepath"], false);
-					if (shader_res) {
-						m_material->setShaderRes(doCast<Shader>(shader_res));
-					}
-					else {
-						LOG(LOG_ERROR) << "Could not find shader resource: " << (std::string)m_values["shader"];
-						return;
-					}
-				}
-				geometry->get(m_material->getShaderRes()->getVertexLayout(), m_vertex, m_v_indices);
+			if (geometry) {				
+				geometry->load(this);
 			}
 		}
+	}
 
+	void Mesh::setMaterial(Material* material)
+	{
+		m_material = material;
+		if (!m_submeshes.size())
+			m_submeshes.resize(1);
+		m_submeshes[0].material = material;
 	}
 
 	void Mesh::getBuffers(std::vector<vertex>& vertices, std::vector<unsigned long>& indices)
 	{
 		vertices = m_vertices;
-		indices = Rhea::Mesh::m_v_indices;
+		//		indices = Rhea::Mesh::m_v_indices;
+		if (m_submeshes.size())
+			indices = m_submeshes[0].indices;
 	}
 
 	void Mesh::setBuffers(std::vector<vertex>& vertices, std::vector<unsigned long>& indices)
 	{
 		m_vertices = vertices;
-		m_v_indices = indices;
+		if (!m_submeshes.size()) {
+			addSubmesh(m_material, indices);
+		}
+		else {
+			m_submeshes[0].indices = indices;
+			m_submeshes[0].material = m_material;
+		}
 	}
 
-	void Mesh::setBuffers(std::unordered_map<std::string, VertexBuffer>& vertices, std::vector<unsigned long>& indices, size_t num_vertices)
+	void Mesh::setVertexBuffer(std::vector<VertexAttribute>& layout, std::unordered_map<std::string, VertexBuffer>& vertices, size_t num_vertices)
 	{
-		// store indices
-		m_v_indices = indices;
-
-		if (!m_material || !m_material->getShaderRes())
-		{
-			return;
-		}
-		std::vector<VertexAttribute>& layout = m_material->getShaderRes()->getVertexLayout();
+		//		std::vector<VertexAttribute>& layout = m_material->getShaderRes()->getVertexLayout();
 
 		// get vertex sizes
 		int vertex_size = 0;
@@ -154,5 +147,33 @@ namespace Rhea
 			m_vertex.push_back(raw_vertex);			
 		}
 		delete[] raw_vertex;
+	}
+
+	void Mesh::setBuffers(std::unordered_map<std::string, VertexBuffer>& vertices, std::vector<unsigned long>& indices, size_t num_vertices)
+	{
+		if (!m_material) {
+			LOG(LOG_ERROR) << "No main material assigned to mesh";
+			return;
+		}
+		std::vector<VertexAttribute>& layout = m_material->getShaderRes()->getVertexLayout();
+		setVertexBuffer(layout, vertices, num_vertices);
+		if (!m_submeshes.size())
+			addSubmesh(m_material, indices);
+		else
+			m_submeshes[0].indices = indices;
+	}
+
+	void Mesh::addSubmesh(Material* material, std::vector<unsigned long>& indices)
+	{
+		//m_v_indices = indices;
+		m_submeshes.push_back({indices, material});
+	}
+
+	void Mesh::setSubmesh(size_t idx, Material* material, std::vector<unsigned long>& indices)
+	{
+		if (idx >= m_submeshes.size())
+			m_submeshes.push_back({ indices, material });
+		else
+			m_submeshes[idx] = { indices, material };
 	}
 }

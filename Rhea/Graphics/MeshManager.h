@@ -25,6 +25,8 @@ namespace Rhea
 
 	protected:
 		std::vector<GraphicsMesh*> m_elements;
+
+		bool ensureMaterialElement(Material* material);
 	};
 }
 

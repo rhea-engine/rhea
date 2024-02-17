@@ -14,8 +14,8 @@ namespace Rhea
 	public:
 		Geometry(std::string path_name, std::string type_name) :
 			Unit(path_name, type_name)
-		{}
-		virtual bool get(std::vector<VertexAttribute>& layout, VertexBuffer& vertices, std::vector<unsigned long>& indices) = 0;		
+		{}		
+		virtual bool load(Mesh* mesh) = 0;
 	};
 }
 

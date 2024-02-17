@@ -7,6 +7,7 @@
 #include <Rhea/Fabrics/Core/Material.h>
 #include "GraphicsService.h"
 #include <Rhea/Resources/VertexBuffer.h>
+#include "MaterialManager.h"
 
 namespace Rhea
 {
@@ -32,24 +33,24 @@ namespace Rhea
 			->getViewport());
 		mesh_el->m_mesh = mesh;
 
-		// make sure we have a material
-		Rhea::Material* material = mesh_res->getMaterial();
-		if (!material) {
-			LOG(LOG_ERROR) << unit->getPath() + ": item has no material";
-			delete el;
-			return nullptr;
-		}
-		// make sure material has graphics element
-		if (!material->getElement("graphics")) {
-			if (!m_service->addElement(material)) {
-				LOG(LOG_ERROR) << "GraphicsItemManager::createElement: could not create element for material";
+		// make sure the materials of all submeshes have a graphics element
+		for (size_t i = 0; i < mesh_res->getNumSubmeshes(); i++) {
+			Material* material = mesh_res->getMaterial(i);
+			if (!material) {
+				LOG(LOG_ERROR) << "GraphicsMeshManager::createElement: No material for submesh " << i;
 				delete el;
 				return nullptr;
 			}
-		}
-
-		// set the material in core
-		setMaterial(core, material);
+			if (!material->getElement("graphics")) {
+				if (!m_service->addElement(material)) {
+					LOG(LOG_ERROR) << "GraphicsItemManager::createElement: could not create element for material";
+					delete el;
+					return nullptr;
+				}
+			}
+			// set the material in core
+			setMaterial(core, material);
+		}		
 
 		unit->addElement("graphics", mesh_el);
 
@@ -60,6 +61,22 @@ namespace Rhea
 		unit->registerEventHandler("delete", this, std::bind(&GraphicsMeshManager::onDelete, this, std::placeholders::_1, std::placeholders::_2));
 
 		return mesh_el;
+	}
+
+	bool GraphicsMeshManager::ensureMaterialElement(Material* material)
+	{
+		if (material) {
+			if (!material->getElement("graphics")) {
+				if (!m_service->addElement(material)) {
+					LOG(LOG_ERROR) << "GraphicsMeshManager::ensureMaterialElement: could not create element for material";
+					return false;
+				}
+				setMaterial(m_service->getEngine(), material);
+			}
+			return true;
+		}
+		else
+			return false;
 	}
 
 	bool GraphicsMeshManager::onUpdate(Event* ev, Unit* unit)
@@ -75,14 +92,16 @@ namespace Rhea
 		VertexBuffer* vbuf = mesh->getVertexBuffer();
 		if (vbuf && vbuf->size()) {
 			mesh_el->m_mesh->setVertices(vbuf->getVertexSize(), vbuf->size(), vbuf->data());
-			std::vector<unsigned long> v_indices = mesh->getIndices();
-			// Check if v_indices is valid and has a multiple of 3 elements
-			if (v_indices.size() % 3 == 0) {
-				mesh_el->m_mesh->setIndices(sizeof(unsigned long), v_indices.size() / 3, v_indices.data());
-			}
-			else {
-				LOG(LOG_ERROR) << "Invalid index buffer";
-				return true;
+			for (size_t idx = 0; idx < mesh->getNumSubmeshes(); idx++) {
+				std::vector<unsigned long> v_indices = mesh->getIndices(idx);
+				// Check if v_indices is valid and has a multiple of 3 elements
+				if (v_indices.size() && v_indices.size() % 3 == 0) {
+					mesh_el->m_mesh->setMesh(idx, sizeof(unsigned long), v_indices.size() / 3, v_indices.data(), ((GraphicsMaterial*)(mesh->getMaterial(idx)->getElement("graphics")))->m_material);
+				}
+				else {
+					LOG(LOG_ERROR) << "Invalid index buffer";
+					return true;
+				}
 			}
 		}
 		else {
@@ -103,7 +122,8 @@ namespace Rhea
 			}
 
 			mesh_el->m_mesh->setVertices(sizeof(Hippios::vertex_uv), hippios_vertices.size(), hippios_vertices.data());
-			mesh_el->m_mesh->setIndices(sizeof(unsigned long), v_indices.size() / 3, v_indices.data());
+			ensureMaterialElement(mesh->getMaterial());
+			mesh_el->m_mesh->setMesh(0, sizeof(unsigned long), v_indices.size() / 3, v_indices.data(), ((GraphicsMaterial*)(mesh->getMaterial(0)->getElement("graphics")))->m_material);
 		}
 		return false;
 	}

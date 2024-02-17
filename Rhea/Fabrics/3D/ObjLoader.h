@@ -17,9 +17,8 @@ namespace Rhea
 	public:	
 		ObjLoader(std::string path_name, std::string type_name) :
 			Geometry(path_name, type_name)
-		{}
-		bool load(std::string objbuf, std::string mtlbuf, std::vector<VertexAttribute>& layout, VertexBuffer& vertices, std::vector<unsigned long>& indices);
-		bool get(std::vector<VertexAttribute>& layout, VertexBuffer& vertices, std::vector<unsigned long>& indices);		
+		{}		
+		bool load(Rhea::Mesh* mesh);
 
 		std::vector<Unit::Export> getReferences();
 	

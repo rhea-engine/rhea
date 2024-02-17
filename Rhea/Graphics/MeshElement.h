@@ -10,7 +10,7 @@ namespace Rhea
 	class GraphicsMesh : public Element
 	{
 	public:
-		Poseidon::Mesh* m_mesh;
+		Poseidon::Mesh* m_mesh = nullptr;
 	};	
 }
 

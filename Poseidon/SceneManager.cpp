@@ -26,7 +26,9 @@ namespace Poseidon
 		m_renderer(nullptr),
 		m_current_material(nullptr),
 		m_frame_buffer(nullptr),
-		m_object_buffer(nullptr)
+		m_object_buffer(nullptr),
+		m_light_buffer(nullptr),
+		m_object_buffer_wvp(nullptr)
 	{
 		m_rend_queue = new RenderQueue();
 	}
@@ -39,6 +41,10 @@ namespace Poseidon
 			delete m_object_buffer;
 		if (m_object_buffer_wvp)
 			delete m_object_buffer_wvp;
+		if (m_light_buffer)
+			delete m_light_buffer;
+		if (m_object_buffer)
+			delete m_object_buffer;
 	}
 
 	Node* SceneManager::get_root()
@@ -125,11 +131,11 @@ namespace Poseidon
 						light_buf.lights[idx].specular = light->getSpecular();
 						light_buf.lights[idx].diffuse = light->getDiffuse();
 						light_buf.lights[idx].lightColor = light->getColor();
-						
+
 						Rhea::DirectionalLight* dir_light = doCast<Rhea::DirectionalLight>(*it);
 						if (dir_light) {
 							light_buf.lights[idx].Type = 0;
-							light_buf.lights[idx].direction = dir_light->getDirection();							
+							light_buf.lights[idx].direction = dir_light->getDirection();
 						}
 						else {
 							Rhea::PointLight* point_light = doCast<Rhea::PointLight>(*it);
@@ -160,7 +166,7 @@ namespace Poseidon
 								}
 							}
 						}
-					}					
+					}
 					idx++;
 				}
 				light_buf.num_lights = (float)idx;
@@ -174,72 +180,90 @@ namespace Poseidon
 					if (!r_comp)
 						continue;
 
-					// material
+					// get the main mesh object
 					Rhea::Mesh* rmesh = r_comp->getMesh();
 					if (!rmesh)
 						continue;
-					Rhea::Material* rmat = rmesh->getMaterial();
-					
-					Material* mat = nullptr;
-					if (rmat) {
-						Rhea::GraphicsMaterial* gmat = (Rhea::GraphicsMaterial*)rmat->getElement("graphics");
-						if (gmat)
-							mat = gmat->m_material;
-					}					
-					if (mat != m_current_material && mat) {
-						m_current_material = mat;
-						mat->activate();
-					}
-					if (!m_current_material) {
-						printf("SceneManager::render: No shader found\n");
-						return true;
-					}
 
 					// fill per object buffer
 					Rhea::Transform* transform = renderable->getTransform();
 					Position* position = nullptr;
 					if (transform)
 						position = transform->get_derived_position();
-
 					// check if renderable has a position
 					if (position) {
+<<<<<<< HEAD
 						Math::Matrix3x4 model_wtm = position->getWorldTransform();
 						per_obj_buf.model = model_wtm;
 						m_object_buffer->update((void*)&per_obj_buf);
 						m_renderer->bindGPUBuffer(m_object_buffer, 1, "VS");
 					}
+=======
+						Math::Matrix3x4 model_wtm = position->getWorldTransform(); // model world transform matrix (also called world matrix)
 
-					// set texture(s)
+						per_obj_buf.model = model_wtm;
+>>>>>>> 2af22b8... Add submeshes, allowing multiple materials on a mesh.
 
-					std::vector<Poseidon::Texture*> texs = m_current_material->getTextures();
-					if (texs.size()) {
-						for (int i = 0; i < texs.size(); i++) {
-							m_renderer->setTexture(texs[i]->get_texture(), i);
-						}
+						// used for lighting							
+						per_obj_buf.inverse = model_wtm.linear().Inverse().Transpose();
+
+						m_object_buffer->update((void*)&per_obj_buf);
+						m_renderer->bindGPUBuffer(m_object_buffer, 1, "VS");
 					}
 
-					// draw the entity
-
-					// bind the vertex and index buffer
-					Hippios::VertexBuffer* vb;
-					Hippios::IndexBuffer* ib;
-					int num_indices;
-					
+					// get render mesh
 					Rhea::GraphicsMesh* m_elem = (Rhea::GraphicsMesh*)rmesh->getElement("graphics");
 					if (!m_elem)
 						continue;
-					m_elem->m_mesh->getRenderInput(&vb, &ib, num_indices);
+					Mesh* mesh = m_elem->m_mesh;
 
-					if (!m_elem->m_mesh->isIndexed()) {
-						if (vb) {
-							m_renderer->bindBuffers(vb, ib);
-							m_renderer->draw(num_indices, 0);
+					// iterate over submeshes
+					for (size_t i = 0; i < mesh->getMeshCount(); ++i) {
+						// access submesh i
+						Mesh::SubMesh* submesh = mesh->getSubMesh(i);
+						if (!submesh)
+							continue;
+
+						Material* mat = submesh->material;
+
+						if (mat != m_current_material && mat) {
+							m_current_material = mat;
+							mat->activate();
 						}
-					}
-					else {
-						if (vb && num_indices) {
-							m_renderer->bindBuffers(vb, ib);
-							m_renderer->drawIndexed(num_indices, 0, 0);
+						if (!m_current_material) {
+							printf("SceneManager::render: No shader found\n");
+							return true;
+						}					
+
+						// set texture(s)
+
+						std::vector<Poseidon::Texture*> texs = m_current_material->getTextures();
+						if (texs.size()) {
+							for (int i = 0; i < texs.size(); i++) {
+								m_renderer->setTexture(texs[i]->get_texture(), i);
+							}
+						}
+
+						// draw the entity
+
+						// bind the vertex and index buffer
+						Hippios::VertexBuffer* vb;
+						Hippios::IndexBuffer* ib;
+						int num_indices;
+
+						mesh->getRenderInput(i, &vb, &ib, num_indices);
+
+						if (!mesh->isIndexed()) {
+							if (vb) {
+								m_renderer->bindBuffers(vb, ib);
+								m_renderer->draw(num_indices, 0);
+							}
+						}
+						else {
+							if (vb && num_indices) {
+								m_renderer->bindBuffers(vb, ib);
+								m_renderer->drawIndexed(num_indices, 0, 0);
+							}
 						}
 					}
 				}

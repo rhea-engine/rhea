@@ -152,4 +152,19 @@ namespace Poseidon
 		Camera* camera = new Poseidon::Camera(m_renderer->getRenderer());
 		return camera;
 	}
+
+	Hippios::GraphicsBuffer* Core::getGraphicsBuffer(std::string facility, size_t size)
+	{
+		BufferDescription desc = { facility, size };
+
+		// check if buffer exists already
+		auto it = m_buffer_pool.find(desc);
+		if (it != m_buffer_pool.end())
+			return it->second;
+
+		// no such buffer in the pool, create a new one
+		Hippios::GraphicsBuffer* newBuffer = m_renderer->getRenderer()->createGraphicsBuffer(size);
+		m_buffer_pool[desc] = newBuffer;
+		return newBuffer;
+	}
 }

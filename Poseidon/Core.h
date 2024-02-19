@@ -29,19 +29,7 @@ namespace Poseidon
 		Acts as a gateway to the grahpics engine system
 	*/
 	class Core
-	{
-	protected:
-		std::unique_ptr<Hippios::Engine> m_renderer;
-		int quit = 0;	
-		Hippios::HippiosWindow* m_win = 0;
-		Window* m_window = 0;
-		SceneManager* m_scene_manager = 0;
-
-		Psio::Engine* m_psio;
-		std::unordered_map<std::string, Material*> m_materials;
-		std::unordered_map<std::string, Shader*> m_shaders;		
-
-		Material* m_default_material = 0;
+	{	
 	public:
 		Core();
 		~Core();
@@ -75,7 +63,47 @@ namespace Poseidon
 		Shader* createShader(std::string name);
 
 		Entity* createEntity(Mesh* mesh);
-		Camera* createCamera();			
+		Camera* createCamera();		
+
+		Hippios::GraphicsBuffer* getGraphicsBuffer(std::string facility, size_t size);
+
+	protected:
+		std::unique_ptr<Hippios::Engine> m_renderer;
+		int quit = 0;
+		Hippios::HippiosWindow* m_win = 0;
+		Window* m_window = 0;
+		SceneManager* m_scene_manager = 0;
+
+		Psio::Engine* m_psio;
+		std::unordered_map<std::string, Material*> m_materials;
+		std::unordered_map<std::string, Shader*> m_shaders;
+
+		Material* m_default_material = 0;
+
+		// graphics buffer pool
+		struct BufferDescription
+		{
+			std::string facility;
+			size_t size;
+		};
+		// Hash function for Element
+		struct BufferDescriptionHash {
+			std::size_t operator()(const BufferDescription& e) const {
+				// Combine hashes of name and size
+				std::hash<std::string> stringHash;
+				std::hash<size_t> sizeHash;
+				return stringHash(e.facility) ^ (sizeHash(e.size) << 1);
+			}
+		};
+
+		// Equality function for BufferDescription
+		struct BufferDescriptionEqual {
+			bool operator()(const BufferDescription& lhs, const BufferDescription& rhs) const {
+				// Compare both name and size
+				return lhs.facility == rhs.facility && lhs.size == rhs.size;
+			}
+		};
+		std::unordered_map<BufferDescription, Hippios::GraphicsBuffer*, BufferDescriptionHash, BufferDescriptionEqual> m_buffer_pool;
 	};
 }
 #endif // !POSEIDON_CORE_H

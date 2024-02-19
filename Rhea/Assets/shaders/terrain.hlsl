@@ -28,7 +28,8 @@ cbuffer cbPerFrame
 
 cbuffer cbPerObject
 {
-    float4x3 model;
+    float4x4 worldMatrix;
+    float4x4 invModel;
 };
 
 cbuffer cbLight : register(b2)
@@ -49,30 +50,15 @@ struct VS_OUTPUT
     float4 positionWS : TEXCOORD1;
 };
 
-float3x3 InverseTranspose(float4x3 M)
-{
-    float3 a = M[0].xyz;
-    float3 b = M[1].xyz;
-    float3 c = M[2].xyz;
-
-    float3x3 result;
-    result[0] = cross(b, c);
-    result[1] = cross(c, a);
-    result[2] = cross(a, b);
-
-    float det = dot(a, result[0]);
-    return transpose(result) / det;
-}
-
 VS_OUTPUT VShader(float4 position : POSITION, float3 normal : NORMAL, float2 tex : TEXCOORD)
 {
 	VS_OUTPUT output;
-
-	float3 worldPos = mul(position, model);
-    output.normal = normalize(mul(normal, (float3x3) transpose(InverseTranspose(model))));
-	output.position = mul(float4(worldPos, 1.0), VP);
+	
+    output.positionWS = mul(position, worldMatrix);
+    output.normal = normalize(mul(normal, (float3x3) transpose(invModel)));    
+    output.position = mul(output.positionWS, VP);
 	output.tex = tex;
-    output.positionWS = float4(worldPos, 1.0);
+    output.positionWS = mul(position, worldMatrix);
 
 	return output;
 }
@@ -89,7 +75,16 @@ float4 DoSpecularPhong(Light light, float3 V, float3 L, float3 N)
     float3 R = normalize(reflect(-L, N));
     float RdotV = max(0, dot(R, V));
  
-    return light.Color * pow(RdotV, 32 /*Material.SpecularPower*/);
+    return light.Color * pow(RdotV, 4 /*Material.SpecularPower*/);
+}
+
+float4 DoSpecularBlinnPhong(Light light, float3 V, float3 L, float3 N)
+{
+    // Blinn-Phong lighting
+    float3 H = normalize(L + V);
+    float NdotH = max(0, dot(N, H));
+
+    return light.Color * pow(NdotH, 4);
 }
 
 float4 DoDiffuse(Light light, float3 L, float3 N)
@@ -114,7 +109,7 @@ float DoAttenuation(Light light, float d)
 {
     float att = (light.ConstantAttenuation + light.LinearAttenuation * d + light.QuadraticAttenuation * d * d);
     if (att == 0.0f)
-        return 1.0f;
+        return 0.0f;
     return 1.0f / att;
 }
 
@@ -122,7 +117,7 @@ LightingResult DoPointLight(Light light, float3 V, float4 P, float3 N)
 {
     LightingResult result;
  
-    float3 L = normalize(light.Position - P).xyz;
+    float3 L = (light.Position - P).xyz;
     float distance = length(L);
     L = L / distance;
  
@@ -207,7 +202,7 @@ float4 PShader(VS_OUTPUT input) : SV_TARGET
 	    
     LightingResult lit = ComputeLighting(input.positionWS, input.normal);
      
-    float3 finalColor = (ambient.rgb + lit.Diffuse.rgb + lit.Specular.rgb) * totalColor.rgb;
+    float3 finalColor = (ambient.rgb + lit.Diffuse.rgb + lit.Specular.rgb) * totalColor.rgb;    
     
     return float4(finalColor, totalColor.a);
 }

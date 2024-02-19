@@ -86,7 +86,6 @@ namespace Rhea
 		return false;
 	}
 
-
 	void GraphicsService::setPlatform(Service* platform_service)
 	{
 		m_platform = platform_service;

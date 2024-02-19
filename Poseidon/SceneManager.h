@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "Camera.h"
+#include <Components/Math/Vector4.h>
 
 namespace Hippios
 {
@@ -75,14 +76,12 @@ namespace Poseidon
 			Math::Matrix4 v;
 			Math::Matrix4 p;
 			Math::Matrix4 vp;
-			Math::Vector3 cameraPos;
-			float pad1;
+			Math::Vector4 cameraPos;			
 		};
 
 		struct cbPerObject {
-			Math::Matrix3x4 model;			
-			Math::Matrix3 inverse;
-			float pad[3];
+			Math::Matrix4 world_matrix;			
+			Math::Matrix4 inverse;			
 		};
 
 		struct cbPerObjectTerrain
@@ -124,7 +123,7 @@ namespace Poseidon
 		Hippios::GraphicsBuffer* m_frame_buffer;
 		Hippios::GraphicsBuffer* m_object_buffer;
 		Hippios::GraphicsBuffer* m_object_buffer_wvp;
-		Hippios::GraphicsBuffer* m_light_buffer;
+		Hippios::GraphicsBuffer* m_light_buffer;		
 	};
 }
 #endif // !POSEIDON_SCENEMANAGER_H

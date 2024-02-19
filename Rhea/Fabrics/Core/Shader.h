@@ -14,6 +14,7 @@ namespace Rhea
 		Shader(std::string name, std::string typename) :
 			m_alpha_blending(false),
 			m_wvp(false),
+			m_num_input_slots(0),
 			Unit(name, "//meworla/shader")
 		{}
 
@@ -38,12 +39,21 @@ namespace Rhea
 		// vertex layout
 		std::vector<VertexAttribute>& getVertexLayout() { return m_vertex_layout; }
 
+		// get input slot id by name
+		int getInputSlotId(std::string name) { if (m_input_slots.find(name) != m_input_slots.end()) return m_input_slots[name]; else return -1; }
+
+		// get max input slot
+		int getNumInputSlots() { return m_num_input_slots; }
+
 	protected:
 		std::string m_stencil_test;
 		bool m_alpha_blending;
 		bool m_wvp;
 		// vertex layout as a vector of element length
 		std::vector<VertexAttribute> m_vertex_layout;
+		// material inpout slot ids
+		std::map<std::string, int> m_input_slots;
+		int m_num_input_slots;
 	};
 }
 

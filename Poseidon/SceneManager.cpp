@@ -19,6 +19,7 @@
 #include <Rhea/Fabrics/3D/DirectionalLight.h>
 #include <Rhea/Fabrics/3D/PointLight.h>
 #include <Rhea/Fabrics/3D/SpotLight.h>
+#include <Rhea/Fabrics/Terrain/Terrain.h>
 
 namespace Poseidon
 {
@@ -65,7 +66,7 @@ namespace Poseidon
 		m_object_buffer = m_renderer->createGraphicsBuffer(sizeof(cbPerObject));
 		//m_renderer->bindGPUBuffer(m_object_buffer, 1, "VS");
 		m_light_buffer = m_renderer->createGraphicsBuffer(sizeof(cbLight));
-		m_renderer->bindGPUBuffer(m_light_buffer, 2, "PS");
+		m_renderer->bindGPUBuffer(m_light_buffer, 2, "PS");		
 	}
 
 	Node* SceneManager::createNode()
@@ -179,6 +180,9 @@ namespace Poseidon
 					Rhea::RenderComponent* r_comp = renderable->getRenderComponent();
 					if (!r_comp)
 						continue;
+					if (doCast<Rhea::Terrain>(renderable)) {
+						int i = 1;
+					}
 
 					// get the main mesh object
 					Rhea::Mesh* rmesh = r_comp->getMesh();
@@ -192,20 +196,12 @@ namespace Poseidon
 						position = transform->get_derived_position();
 					// check if renderable has a position
 					if (position) {
-<<<<<<< HEAD
-						Math::Matrix3x4 model_wtm = position->getWorldTransform();
-						per_obj_buf.model = model_wtm;
-						m_object_buffer->update((void*)&per_obj_buf);
-						m_renderer->bindGPUBuffer(m_object_buffer, 1, "VS");
-					}
-=======
 						Math::Matrix3x4 model_wtm = position->getWorldTransform(); // model world transform matrix (also called world matrix)
 
-						per_obj_buf.model = model_wtm;
->>>>>>> 2af22b8... Add submeshes, allowing multiple materials on a mesh.
-
+						per_obj_buf.world_matrix = model_wtm;
+						
 						// used for lighting							
-						per_obj_buf.inverse = model_wtm.linear().Inverse().Transpose();
+						per_obj_buf.inverse = per_obj_buf.world_matrix.inverse().transpose();
 
 						m_object_buffer->update((void*)&per_obj_buf);
 						m_renderer->bindGPUBuffer(m_object_buffer, 1, "VS");
@@ -228,7 +224,7 @@ namespace Poseidon
 
 						if (mat != m_current_material && mat) {
 							m_current_material = mat;
-							mat->activate();
+							mat->activate(3);
 						}
 						if (!m_current_material) {
 							printf("SceneManager::render: No shader found\n");

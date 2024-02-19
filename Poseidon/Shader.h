@@ -50,6 +50,36 @@ namespace Poseidon
 		// set the current shader as active shader
 		void activate();
 
+		enum class MatBufferLayoutElementType
+		{
+			VECTOR3 = 0,
+			VECTOR4 = 1,
+			INT = 2,
+			FLOAT = 3
+		};
+
+		struct MatBufferLayoutElement
+		{
+			MatBufferLayoutElementType type;
+			std::string name;
+			size_t offset;
+			size_t size;
+
+			MatBufferLayoutElement(MatBufferLayoutElementType type, std::string name, size_t offset, size_t size) : type(type), name(name), offset(offset), size(size) {}
+		};
+
+		// get the layout for the material buffer
+		std::vector<MatBufferLayoutElement>* getMatBufLayout() { return &m_matbuf_layout; }
+		// add element for material buffer layoout
+		void addMatBufLayoutElement(MatBufferLayoutElementType type, std::string name, size_t offset, size_t size) {
+			m_matbuf_layout.push_back(MatBufferLayoutElement( type, name, offset, size ));
+			m_matbuf_size = offset + size;
+			m_matbuf_layout_map[name] = (int)m_matbuf_layout.size() - 1;
+		}
+		void setMatBufLayout(std::vector<MatBufferLayoutElement>& layout);
+		size_t getMatBufSize() { return m_matbuf_size; }
+		int getMatBufLayoutMap(std::string name) { if (m_matbuf_layout_map.find(name) != m_matbuf_layout_map.end()) return m_matbuf_layout_map[name]; else return -1; }
+
 	protected:
 		Core* m_grahpics_core;
 
@@ -64,6 +94,11 @@ namespace Poseidon
 		std::string m_stencil_test;
 		int m_topology_type;
 		bool m_cull_mode;
+
+		std::vector<MatBufferLayoutElement> m_matbuf_layout;
+		size_t m_matbuf_size;
+		std::unordered_map<std::string, int> m_matbuf_layout_map;
+		Hippios::GraphicsBuffer* m_material_buffer;
 	};
 }
 

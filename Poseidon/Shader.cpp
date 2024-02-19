@@ -12,7 +12,11 @@ namespace Poseidon
 		m_pso(nullptr),
 		m_stencil_test("default"),
 		m_topology_type(0),
-		m_cull_mode(true)
+		m_cull_mode(true),
+		m_matbuf_size(0),
+		m_material_buffer(nullptr),
+		m_matbuf_layout(),
+		m_renderer(nullptr)
 	{
 		m_renderer = m_grahpics_core->get_renderer();
 	}
@@ -106,6 +110,16 @@ namespace Poseidon
 
 			// create the state
 			m_pso.reset(m_renderer->createPipelineState(&pso_desc));
+		}
+	}
+
+	void Shader::setMatBufLayout(std::vector<MatBufferLayoutElement>& layout)
+	{
+		m_matbuf_layout = layout; 
+		m_matbuf_size = 0; 
+		for (int i = 0; i < m_matbuf_layout.size(); i++) {
+			m_matbuf_size += layout[i].size;
+			m_matbuf_layout_map[layout[i].name] = i;
 		}
 	}
 

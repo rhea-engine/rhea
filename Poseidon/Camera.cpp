@@ -162,8 +162,7 @@ namespace Poseidon
 
 		// Get the inverse of the view matrix.
 		Matrix4 _vp = (getProjectionMatrixRS() * getViewMatrix());
-		Matrix4 _vp_inv;
-		_vp.inverse(_vp_inv);
+		Matrix4 _vp_inv = _vp.inverse();		
 		 
 		// Move the screen cursor coordinates into the -1 to +1 range.
 		direction.x = ((2.0f * (float)scr_x) / (float)viewport_width) - 1.0f;

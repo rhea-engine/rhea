@@ -1,8 +1,10 @@
 #include "Material.h"
+#include "Material.h"
 #include <Rhea/Application.h>
 #include <Rhea/UnitTree.h>
 #include <Psio/Log.h>
 #include "Resources/TextResource.h"
+#include <Rhea/Fabrics/Core/Shader.h>
 
 namespace Rhea 
 {
@@ -29,6 +31,19 @@ namespace Rhea
 		}
 		else {
 			LOG(LOG_ERROR) << "shader not found: " << (std::string)m_values["shaderpath"];
+		}
+	}
+
+	void Rhea::Material::setShaderRes(Shader* shader)
+	{
+		m_shader_res = shader; 
+
+		// fill slots for properties
+		if (m_shader_res) {
+			int num_slots = m_shader_res->getNumInputSlots();
+			m_colors.resize(num_slots);
+			m_floats.resize(num_slots);
+			m_ints.resize(num_slots);
 		}
 	}
 }

@@ -110,11 +110,27 @@ namespace Rhea
         std::vector<Material*> unit_materials;
 
         // create the materials
+        int ambient_id = shader_res->getInputSlotId("AMBIENT");
+		int diffuse_id = shader_res->getInputSlotId("DIFFUSE");
+		int specular_id = shader_res->getInputSlotId("SPECULAR");
+		int emmission_id = shader_res->getInputSlotId("EMISSIVE");
+
         for (int slot = 0; slot < materials.size(); slot++) {
 			Material* mat = new Material(materials[slot].name);
 			// set shader
             mat->setShaderRes(shader_res);
             mat->setValue("shader", getValue("shadername", "standard"));
+            
+            // set material values
+			mat->setColor(ambient_id, Math::Vector3(materials[slot].ambient[0], materials[slot].ambient[1], materials[slot].ambient[2]));
+			mat->setColor(diffuse_id, Math::Vector3(materials[slot].diffuse[0], materials[slot].diffuse[1], materials[slot].diffuse[2]));
+			mat->setColor(specular_id, Math::Vector3(materials[slot].specular[0], materials[slot].specular[1], materials[slot].specular[2]));
+			mat->setColor(emmission_id, Math::Vector3(materials[slot].emission[0], materials[slot].emission[1], materials[slot].emission[2]));
+
+            int shining_id = shader_res->getInputSlotId("SHININESS");
+			// set shininess - map for Phong [0..1000.0] -> [0...128.0]
+            float shininess = materials[0].shininess * 0.128f;
+            mat->setFloat(shining_id, shininess);
 
 			// set texture
             if (diffuse_maps.size() > slot && diffuse_maps[slot])

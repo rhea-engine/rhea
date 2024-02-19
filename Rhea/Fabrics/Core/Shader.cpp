@@ -31,6 +31,17 @@ namespace Rhea
 			m_vertex_layout.push_back({ "NORMAL", VertexAttributeType::NORMAL, 4, 3, 12, 12 });
 			m_vertex_layout.push_back({ "TEXCOORD", VertexAttributeType::TEXCOORD, 4, 2, 8, 24 });
 		}
+
+		// setup material input slots
+		std::string light_type = getValue("light_type", "none");
+		if (light_type == "vertex") {
+			m_input_slots["AMBIENT"] = 0;
+			m_input_slots["DIFFUSE"] = 1;
+			m_input_slots["SPECULAR"] = 2;
+			m_input_slots["SHININESS"] = 3;
+			m_input_slots["EMISSIVE"] = 4;
+			m_num_input_slots = 5;
+		}
 	}
 
 	std::vector<Unit::Export> Rhea::Shader::getReferences()

@@ -18,15 +18,15 @@ struct Light
     float QuadraticAttenuation;
 };
 
-cbuffer cbPerFrame
+cbuffer cbPerFrame : register(b0)
 {
     float4x4 V;
     float4x4 P;
     float4x4 VP;
-    float3 cameraPosition;
+    float4 cameraPosition;
 };
 
-cbuffer cbPerObject
+cbuffer cbPerObject : register(b1)
 {
     float4x4 worldMatrix;
     float4x4 invModel;
@@ -54,11 +54,11 @@ VS_OUTPUT VShader(float4 position : POSITION, float3 normal : NORMAL, float2 tex
 {
 	VS_OUTPUT output;
 	
-    output.positionWS = mul(position, worldMatrix);
-    output.normal = normalize(mul(normal, (float3x3) transpose(invModel)));    
-    output.position = mul(output.positionWS, VP);
-	output.tex = tex;
-    output.positionWS = mul(position, worldMatrix);
+    float3 worldPos = mul(position, worldMatrix);
+    output.normal = normalize(mul(normal, (float3x3) transpose(invModel)));
+    output.position = mul(float4(worldPos, 1.0), VP);
+    output.tex = tex;
+    output.positionWS = float4(worldPos, 1.0);
 
 	return output;
 }
@@ -155,14 +155,14 @@ LightingResult DoSpotLight(Light light, float3 V, float4 P, float3 N)
 }
 
 LightingResult ComputeLighting(float4 P, float3 N)
-{
-    LightingResult single_result = { { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };
+{ 
     LightingResult result = { { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };
     
-    float3 View = normalize(cameraPosition - P.xyz);
+    float3 View = normalize(cameraPosition - P).xyz;
     
     for (int i = 0; i < lightCount; i++)
     {
+        LightingResult single_result = { { 0, 0, 0, 0 }, { 0, 0, 0, 0 } };
         
         switch (lights[i].Type)
         {

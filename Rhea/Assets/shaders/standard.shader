@@ -2,5 +2,6 @@
 type="//meworla/shader"
 name="standard"
 code="//rhea/shaders/standard.hlsl"
-input="default"
+input="standard"
 light_type="vertex"
+texture_type="standard"

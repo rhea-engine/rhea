@@ -44,6 +44,8 @@ namespace Rhea
 			m_colors.resize(num_slots);
 			m_floats.resize(num_slots);
 			m_ints.resize(num_slots);
+
+			m_textures.resize(m_shader_res->getNumTextureSlots());
 		}
 	}
 }

@@ -26,6 +26,12 @@ namespace Rhea
 			m_vertex_layout.push_back({ "POSITION", VertexAttributeType::POSITION, 4, 3, 12, 0 });
 			m_vertex_layout.push_back({ "TEXCOORD",VertexAttributeType::TEXCOORD, 4, 2, 8, 12 });
 		}
+		else if (vertex_layout_name == "standard") {
+			m_vertex_layout.push_back({ "POSITION", VertexAttributeType::POSITION, 4, 3, 12, 0 });
+			m_vertex_layout.push_back({ "NORMAL", VertexAttributeType::NORMAL, 4, 3, 12, 12 });
+			m_vertex_layout.push_back({ "TEXCOORD", VertexAttributeType::TEXCOORD, 4, 2, 8, 24 });
+			m_vertex_layout.push_back({ "TANGENT", VertexAttributeType::TEXCOORD, 4, 2, 12, 32 });
+		}
 		else /* if (vertex_layout_name == "default") */ {
 			m_vertex_layout.push_back({ "POSITION", VertexAttributeType::POSITION, 4, 3, 12, 0 });
 			m_vertex_layout.push_back({ "NORMAL", VertexAttributeType::NORMAL, 4, 3, 12, 12 });
@@ -42,6 +48,18 @@ namespace Rhea
 			m_input_slots["EMISSIVE"] = 4;
 			m_num_input_slots = 5;
 		}
+
+		// setup texture slots
+		std::string texture_type = getValue("texture_type", "none");
+		if (texture_type == "standard") {
+			m_texture_slots["BASECOLOR"] = 0;
+			m_texture_slots["NORMAL"] = 1;
+		}
+		else {
+			// default has at least the base color
+			m_texture_slots["BASECOLOR"] = 0;
+		}
+		m_num_texture_slots = (int)m_texture_slots.size();
 	}
 
 	std::vector<Unit::Export> Rhea::Shader::getReferences()

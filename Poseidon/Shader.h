@@ -21,7 +21,7 @@ namespace Poseidon
 		void setVertexType(int type) { m_vertex_type = type; }
 
 		// get the vertex type
-		int getVertexType() { return m_vertex_type; }
+		int getVertexType() const { return m_vertex_type; }
 
 		// load a shader from file returns true on success
 		bool loadFromFile(std::string filename, char* vs_entry_point, char* ps_entry_point);
@@ -77,7 +77,7 @@ namespace Poseidon
 			m_matbuf_layout_map[name] = (int)m_matbuf_layout.size() - 1;
 		}
 		void setMatBufLayout(std::vector<MatBufferLayoutElement>& layout);
-		size_t getMatBufSize() { return m_matbuf_size; }
+		size_t getMatBufSize() const { return m_matbuf_size; }
 		int getMatBufLayoutMap(std::string name) { if (m_matbuf_layout_map.find(name) != m_matbuf_layout_map.end()) return m_matbuf_layout_map[name]; else return -1; }
 
 	protected:

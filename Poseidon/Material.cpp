@@ -63,14 +63,16 @@ namespace Poseidon
 			// setup the material buffer			
 			m_material_buffer = m_grahpics_core->getGraphicsBuffer("material_buffer", m_mat_buffer_size);
 
-			m_mat_buffer = (float*)malloc(m_mat_buffer_size);
-			if (m_mat_buffer) memset(m_mat_buffer, 0, m_mat_buffer_size);
+		//	m_mat_buffer = (float*)malloc(m_mat_buffer_size);
+		//	if (m_mat_buffer) memset(m_mat_buffer, 0, m_mat_buffer_size);
 		}
 	}
 
 	void Material::addTexture(Texture* texture)
 	{
 		m_textures.push_back(texture);
+		if (m_textures.size() > 1)
+			per_mat_buf.has_normal_map = 1.0f;
 	}
 
 	Hippios::GPUProgram* Material::getVShader()
@@ -107,7 +109,7 @@ namespace Poseidon
 		//if (m_mat_buffer && (*m_layout).size() > slot && (*m_layout)[slot].offset + sizeof(Math::Vector4) < m_mat_buffer_size)
 		//	memcpy(m_mat_buffer + (*m_layout)[slot].offset, &color, sizeof(Math::Vector4));
 	}
-
+	
 	void Material::SetFloat(int slot, float value)
 	{
 		switch (slot) {
@@ -121,7 +123,7 @@ namespace Poseidon
 
 	void Material::SetInt(int slot, int value)
 	{
-		if (m_mat_buffer)
-			memcpy(m_mat_buffer + (*m_layout)[slot].offset, &value, sizeof(int));
+	//	if (m_mat_buffer)
+	//		memcpy(m_mat_buffer + (*m_layout)[slot].offset, &value, sizeof(int));
 	}
 }

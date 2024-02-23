@@ -309,7 +309,6 @@ namespace Rhea
 						// create dummy material
 						m_material = new Material(m_path + "_material");
 						m_material->setup(m_app);
-						m_material->addTexture(static_cast<ImageResource*>(tex));
 						m_material->setValue("shader", "widget");						
 
 						// get the shader						
@@ -323,7 +322,9 @@ namespace Rhea
 						}
 						else {
 							LOG(LOG_ERROR) << "item2d::ready(): Shader '" << (std::string)m_values["shader"] << "' for " << m_pathname << " not found";
+							return;
 						}
+						m_material->setTexture(0, static_cast<ImageResource*>(tex));
 
 						if (!m_render_component) {
 							m_render_component = new RenderComponent("renderer", "//meworla/rendercomponent");

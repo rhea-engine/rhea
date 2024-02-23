@@ -125,7 +125,7 @@ namespace Rhea
 			Unit* map = m_app->getUnitTree()->find(m_values["heightmap"], m_attributes["basepath"], false);
 			if (map) {
 				
-				unsigned char* buf;
+				unsigned char* buf = nullptr;
 				size_t buflen;
 				bool flipZ = true;
 
@@ -253,23 +253,23 @@ namespace Rhea
 				Unit* texture;
 				if (m_values["blendmap"] != Variant()) {
 					texture = m_app->getUnitTree()->find(m_values["blendmap"], m_attributes["basepath"], false);
-					m_material->addTexture(static_cast<ImageResource*>(texture));
+					m_material->setTexture(0, static_cast<ImageResource*>(texture));
 				}
 				if (m_values["texture1"] != Variant()) {
 					texture = m_app->getUnitTree()->find(m_values["texture1"], m_attributes["basepath"], false);
-					m_material->addTexture(static_cast<ImageResource*>(texture));
+					m_material->setTexture(1, static_cast<ImageResource*>(texture));
 				}
 				if (m_values["texture2"] != Variant()) {
 					texture = m_app->getUnitTree()->find(m_values["texture2"], m_attributes["basepath"], false);
-					m_material->addTexture(static_cast<ImageResource*>(texture));
+					m_material->setTexture(2, static_cast<ImageResource*>(texture));
 				}
 				if (m_values["texture3"] != Variant()) {
 					texture = m_app->getUnitTree()->find(m_values["texture3"], m_attributes["basepath"], false);
-					m_material->addTexture(static_cast<ImageResource*>(texture));
+					m_material->setTexture(3, static_cast<ImageResource*>(texture));
 				}
 				if (m_values["texture4"] != Variant()) {
 					texture = m_app->getUnitTree()->find(m_values["texture4"], m_attributes["basepath"], false);
-					m_material->addTexture(static_cast<ImageResource*>(texture));
+					m_material->setTexture(4, static_cast<ImageResource*>(texture));
 				}
 			}
 		}

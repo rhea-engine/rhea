@@ -15,6 +15,7 @@ namespace Rhea
 			m_alpha_blending(false),
 			m_wvp(false),
 			m_num_input_slots(0),
+			m_num_texture_slots(0),
 			Unit(name, "//meworla/shader")
 		{}
 
@@ -32,10 +33,6 @@ namespace Rhea
 		bool getAlphaBlending() { return m_alpha_blending; }
 		void setAlphaBlending(bool value) { m_alpha_blending = value; }
 
-		// input handling
-		bool usesWVP() { return m_wvp; }
-		void setWVP(bool value) { m_wvp = value; }	
-
 		// vertex layout
 		std::vector<VertexAttribute>& getVertexLayout() { return m_vertex_layout; }
 
@@ -43,7 +40,13 @@ namespace Rhea
 		int getInputSlotId(std::string name) { if (m_input_slots.find(name) != m_input_slots.end()) return m_input_slots[name]; else return -1; }
 
 		// get max input slot
-		int getNumInputSlots() { return m_num_input_slots; }
+		int getNumInputSlots() const { return m_num_input_slots; }
+
+		// get texture input slot id by name
+		int getTextureSlotId(std::string name) { if (m_texture_slots.find(name) != m_texture_slots.end()) return m_texture_slots[name]; else return -1; }
+
+		// get max texture input slot
+		int getNumTextureSlots() const { return m_num_texture_slots; }
 
 	protected:
 		std::string m_stencil_test;
@@ -54,6 +57,9 @@ namespace Rhea
 		// material inpout slot ids
 		std::map<std::string, int> m_input_slots;
 		int m_num_input_slots;
+		// texture input slots
+		std::map<std::string, int> m_texture_slots;
+		int m_num_texture_slots;
 	};
 }
 

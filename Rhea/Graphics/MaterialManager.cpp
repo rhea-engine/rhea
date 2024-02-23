@@ -80,6 +80,9 @@ namespace Rhea
 			if (input_layout == "default") {
 				shader->setVertexType(0);
 			}
+			else if (input_layout == "standard") {
+				shader->setVertexType(3);
+			}
 			else if (input_layout == "short") {
 				shader->setVertexType(1);
 			}
@@ -137,6 +140,8 @@ namespace Rhea
 		// now add the textures
 		std::vector<ImageResource*> textures = material_res->getTextures();
 		for (auto it = textures.begin(); it != textures.end(); ++it) {
+			if (!*it)
+				continue;
 			Element* comp = GraphicsTexture::createElement(core, (Unit*)*it);
 			if (comp) {
 				Poseidon::Image* tex = ((GraphicsTexture*)comp)->get();

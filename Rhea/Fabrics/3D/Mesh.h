@@ -90,6 +90,7 @@ namespace Rhea
 
 		// return pointers to the buffers
 		VertexBuffer* getVertexBuffer() { return &m_vertex; }
+		VertexBuffer& getVertexBufferRef() { return m_vertex; }
 		const std::vector<unsigned long>& getIndices(size_t mesh_idx) const {			
 			if (mesh_idx >= m_submeshes.size())
 				mesh_idx = 0;

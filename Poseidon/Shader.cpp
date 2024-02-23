@@ -83,6 +83,12 @@ namespace Poseidon
 				{ "NORMAL", 0, Hippios::InputLayoutFormat::R32G32B32_FLOAT, 0, 12},
 				{ "TEXCOORD", 0, Hippios::InputLayoutFormat::R32G32_FLOAT, 0, 24 }
 			};
+			Hippios::InputLayoutElement elements_pos_norm_uv_tangent[] = {
+				{ "POSITION", 0, Hippios::InputLayoutFormat::R32G32B32_FLOAT, 0, 0 },
+				{ "NORMAL", 0, Hippios::InputLayoutFormat::R32G32B32_FLOAT, 0, 12},
+				{ "TEXCOORD", 0, Hippios::InputLayoutFormat::R32G32_FLOAT, 0, 24 },
+				{ "TANGENT", 0, Hippios::InputLayoutFormat::R32G32B32_FLOAT, 0, 32 }
+			};
 			switch (m_vertex_type) {
 			case 0: // default
 				pso_desc.inputLayout.elements = &elements_pos_norm_uv[0];
@@ -94,7 +100,11 @@ namespace Poseidon
 				break;
 			case 2: // color
 				// TODO
-			case 3: // custom
+			case 3:
+				pso_desc.inputLayout.elements = &elements_pos_norm_uv_tangent[0];
+				pso_desc.inputLayout.num_elements = 4;
+				break;
+			case 4: // custom
 				// TODO
 			default: // default
 				pso_desc.inputLayout.elements = &elements_pos_norm_uv[0];

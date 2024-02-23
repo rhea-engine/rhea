@@ -53,7 +53,7 @@ namespace Rhea
 					m_material = new Material(m_path + "_material");
 				}
 				m_material->setup(m_app);
-				m_material->addTexture(static_cast<ImageResource*>(tex));
+				m_material->setTexture(0, static_cast<ImageResource*>(tex));
 				m_material->setValue("shader", getValue("shadername", "standard"));
 				if (m_values.find("shadername") != m_values.end()) {
 					LOG(LOG_DEBUG) << "shadername set: " << (std::string)m_values["shadername"];

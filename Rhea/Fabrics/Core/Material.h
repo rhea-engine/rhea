@@ -30,8 +30,8 @@ namespace Rhea
 		// get textures
 		std::vector<ImageResource*>& getTextures() { return m_textures; }
 
-		// add a texture
-		void addTexture(ImageResource* res) { m_textures.push_back(res); }
+		// set texture to specific slot
+		void setTexture(int slot, ImageResource* res) { if (slot >= m_textures.size()) m_textures.resize(slot + 1); m_textures[slot] = res; }
 
 		// set shader resource
 		void setShader(TextResource* shader) { m_shader = shader; }

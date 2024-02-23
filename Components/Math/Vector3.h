@@ -72,7 +72,7 @@ namespace Math
 			return *this;
 		}
 		
-		Vector3& operator*(float s)
+		Vector3 operator*(float s)
 		{
 			Vector3 ret = this;
 			ret.x *= s;

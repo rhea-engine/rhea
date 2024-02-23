@@ -55,7 +55,6 @@ namespace Rhea
 				// create dummy material
 				m_material = new Material(m_path + "_material");
 				m_material->setup(m_app);
-				m_material->addTexture(static_cast<ImageResource*>(tex));			
 
 				// get the shader
 				Unit* shader_res = m_app->getUnitTree()->find(m_values["shader"], m_attributes["basepath"], false);
@@ -64,7 +63,9 @@ namespace Rhea
 				}
 				else {
 					LOG(LOG_ERROR) << "BitmapFont::ready(): Shader '" << (std::string)m_values["shader"] << "' for " << m_pathname << " not found";
+					return;
 				}
+				m_material->setTexture(0, static_cast<ImageResource*>(tex));
 			}
 			else {
 				LOG(LOG_ERROR) << "BitmapFont::ready(): texture for " << m_pathname << " not found";

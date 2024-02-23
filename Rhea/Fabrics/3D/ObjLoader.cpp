@@ -11,6 +11,7 @@
 #include <Rhea/Fabrics/Core/Shader.h>
 #include <Rhea/Fabrics/Core/Material.h>
 #include <Rhea/Fabrics/Media/ImageResource.h>
+#include <Resources/VertexBufferStandard.h>
 
 namespace Rhea
 {
@@ -106,6 +107,15 @@ namespace Rhea
 				diffuse_maps.push_back(tex);
             }
         }
+		// prepare normal maps
+		std::vector<ImageResource*> normal_maps;
+		if (m_values.find("normal_tex") != m_values.end()) {
+			Variant normal_tex = getValue("normal_tex");
+			for (int i = 0; i < normal_tex.size(); i++) {
+				ImageResource* tex = doCast<ImageResource>(m_app->getUnitTree()->find(normal_tex[i], m_attributes["basepath"], false));
+				normal_maps.push_back(tex);
+			}
+		}
 
         std::vector<Material*> unit_materials;
 
@@ -114,6 +124,9 @@ namespace Rhea
 		int diffuse_id = shader_res->getInputSlotId("DIFFUSE");
 		int specular_id = shader_res->getInputSlotId("SPECULAR");
 		int emmission_id = shader_res->getInputSlotId("EMISSIVE");
+
+		int basecolor_id = shader_res->getTextureSlotId("BASECOLOR");
+		int normal_id = shader_res->getTextureSlotId("NORMAL");
 
         for (int slot = 0; slot < materials.size(); slot++) {
 			Material* mat = new Material(materials[slot].name);
@@ -134,7 +147,12 @@ namespace Rhea
 
 			// set texture
             if (diffuse_maps.size() > slot && diffuse_maps[slot])
-                mat->addTexture(diffuse_maps[slot]);
+                mat->setTexture(basecolor_id, diffuse_maps[slot]);
+
+			// set normal map
+            if (normal_id != -1 && normal_maps.size() > slot) {
+                mat->setTexture(normal_id, normal_maps[slot]);
+            }
 			
             // finalize
             mesh->addChild(mat);
@@ -219,31 +237,45 @@ namespace Rhea
                         unique_vertices[vertex] = static_cast<unsigned long>(vertices->size());
                         // iterate iver vertex attributes and add to vertex buffer
                         size_t idx = 0;
-                        for (auto& attribute : layout) {
-                            switch (attribute.type) {
-                            case VertexAttributeType::POSITION:
-                                raw_vertex[idx++] = vertex.position.x;
-                                raw_vertex[idx++] = vertex.position.y;
-                                raw_vertex[idx++] = vertex.position.z;
-                                break;
-                            case VertexAttributeType::NORMAL:
-                                raw_vertex[idx++] = vertex.normal.x;
-                                raw_vertex[idx++] = vertex.normal.y;
-                                raw_vertex[idx++] = vertex.normal.z;
-                                break;
-                            case VertexAttributeType::TEXCOORD:
-                                raw_vertex[idx++] = vertex.uv.x;
-                                raw_vertex[idx++] = vertex.uv.y;
-                                break;
-                            case VertexAttributeType::COLOR:
-                                raw_vertex[idx++] = vertex.color.x;
-                                raw_vertex[idx++] = vertex.color.y;
-                                raw_vertex[idx++] = vertex.color.z;
-                                break;
-                            }
-                        }
+                        if (shader_res->getValue("input", "") == "standard") {
+                            VertexBufferStandard::VertexStandard v;
+                            v.position = vertex.position;
+                            v.normal = vertex.normal;
+                            v.texcoord = vertex.uv;
+                            v.tangent = { 0.0f, 0.0f, 0.0f };
 
-                        vertices->push_back(raw_vertex);
+							((VertexBufferStandard*)vertices)->push_back(v);
+
+                            /*
+
+
+                            for (auto& attribute : layout) {
+                                switch (attribute.type) {
+                                case VertexAttributeType::POSITION:
+                                    raw_vertex[idx++] = vertex.position.x;
+                                    raw_vertex[idx++] = vertex.position.y;
+                                    raw_vertex[idx++] = vertex.position.z;
+                                    break;
+                                case VertexAttributeType::NORMAL:
+                                    raw_vertex[idx++] = vertex.normal.x;
+                                    raw_vertex[idx++] = vertex.normal.y;
+                                    raw_vertex[idx++] = vertex.normal.z;
+                                    break;
+                                case VertexAttributeType::TEXCOORD:
+                                    raw_vertex[idx++] = vertex.uv.x;
+                                    raw_vertex[idx++] = vertex.uv.y;
+                                    break;
+                                case VertexAttributeType::COLOR:
+                                    raw_vertex[idx++] = vertex.color.x;
+                                    raw_vertex[idx++] = vertex.color.y;
+                                    raw_vertex[idx++] = vertex.color.z;
+                                    break;
+                                }
+                            }
+
+                            vertices->push_back(raw_vertex);
+                            */                        
+                        }
                     }
 
                     indices[shape.mesh.material_ids[f]].push_back(unique_vertices[vertex]);
@@ -259,6 +291,45 @@ namespace Rhea
                     for (size_t i = 0; i < indices[m].size(); i += 3) {
                         std::swap(indices[m][i + 1], indices[m][i + 2]);
                     }
+            }
+
+            if (shader_res->getValue("input", "") == "standard") {
+
+				// compute tangents
+                for (size_t i = 0; i < materials.size(); i++)
+                {
+                    // iterate over faces
+                    for (size_t face = 0; face < indices[i].size(); face += 3)
+                    {
+                        size_t idx1 = indices[i][face];
+                        size_t idx2 = indices[i][face + 1];
+                        size_t idx3 = indices[i][face + 2];
+
+                        VertexBufferStandard::VertexStandard* v1 = (*(VertexBufferStandard*)vertices)[idx1];
+						VertexBufferStandard::VertexStandard* v2 = (*(VertexBufferStandard*)vertices)[idx2];
+						VertexBufferStandard::VertexStandard* v3 = (*(VertexBufferStandard*)vertices)[idx3];
+
+                        Math::Vector3 edge1 = v2->position - v1->position;
+                        Math::Vector3 edge2 = v3->position - v1->position;
+                        Math::Vector2 deltaUV1 = v2->texcoord - v1->texcoord;
+                        Math::Vector2 deltaUV2 = v3->texcoord - v1->texcoord;
+
+                        float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
+
+                        Math::Vector3 tangent;
+
+                        tangent = (edge1 * deltaUV2.y - edge2 * deltaUV1.y) * f;
+
+						v1->tangent += tangent;
+						v2->tangent += tangent;
+						v3->tangent += tangent;
+                    }
+                }
+
+                for (unsigned int idx = 0; idx < vertices->size(); idx++) {
+                    VertexBufferStandard::VertexStandard* v = (*(VertexBufferStandard*)vertices)[idx];
+                    v->tangent.normalise();
+                }
             }
 
             // store submeshes

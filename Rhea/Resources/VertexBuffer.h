@@ -19,7 +19,7 @@ namespace Rhea
 			m_buf_size(0)
 		{}
 
-		~VertexBuffer();
+		virtual ~VertexBuffer();
 
 		VertexBuffer(const VertexBuffer&) = delete;
 		VertexBuffer& operator=(const VertexBuffer&) = delete;
@@ -32,7 +32,7 @@ namespace Rhea
 		// get vertex size in bytes
 		size_t getVertexSize() const { return m_vertex_size; }
 		// get number of vertices
-		size_t size() { return m_vertex_count; }
+		size_t size() const { return m_vertex_count; }
 
 		// set dimension
 		void setVertexSize(size_t size) { m_vertex_size = size; }

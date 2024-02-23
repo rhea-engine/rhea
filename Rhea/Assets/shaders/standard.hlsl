@@ -46,9 +46,11 @@ cbuffer cbMaterial : register(b3)
     float4 mat_specular;
     float4 mat_emissive;
     float mat_shininess;
+    float has_normal_map;
 }
 
-Texture2D ObjTexture;
+Texture2D BaseColorTexture;
+Texture2D NormalMap;
 SamplerState ObjSamplerState;
 
 struct VS_OUTPUT
@@ -57,9 +59,11 @@ struct VS_OUTPUT
     float3 normal : NORMAL;
 	float2 tex : TEXCOORD;
     float4 positionWS : TEXCOORD1;
+    float3 tangent : TANGENT;
+    float3 bitangent : BITANGENT;
 };
 
-VS_OUTPUT VShader(float4 position : POSITION, float3 normal: NORMAL, float2 tex : TEXCOORD)
+VS_OUTPUT VShader(float4 position : POSITION, float3 normal: NORMAL, float2 tex : TEXCOORD, float3 tangent : TANGENT)
 {
 	VS_OUTPUT output;
 
@@ -68,7 +72,11 @@ VS_OUTPUT VShader(float4 position : POSITION, float3 normal: NORMAL, float2 tex 
 	output.position = mul(float4(worldPos, 1.0), VP);
 	output.tex = tex;
     output.positionWS = float4(worldPos, 1.0);
-
+    
+    output.tangent = normalize(mul(tangent, (float3x3) worldMatrix)).xyz;
+    // Compute binormal (cross product of normal and tangent)
+    output.bitangent = normalize(cross(output.tangent, output.normal));
+    
 	return output;
 }
 
@@ -197,11 +205,27 @@ LightingResult ComputeLighting(float4 P, float3 N)
 }
 
 float4 PShader(VS_OUTPUT input) : SV_TARGET
-{        
-    LightingResult lit = ComputeLighting(input.positionWS, input.normal);
- 
-    float4 diffuseSample = ObjTexture.Sample(ObjSamplerState, input.tex);
+{
+    float3 finalNormal = input.normal;
+    
+    float4 diffuseSample = BaseColorTexture.Sample(ObjSamplerState, input.tex);
+    
+    if (has_normal_map > 0.0f)
+    {
+       // Sample normal map
+        float3 normalMapSample = NormalMap.Sample(ObjSamplerState, input.tex).xyz * 2.0f - 1.0f;
+
+        // Transform normal map sample to tangent space
+        float3x3 TBN = float3x3(input.tangent, input.bitangent, input.normal);
+        float3 normalMapSampleTangentSpace = mul(normalMapSample, TBN);
+
+        // Apply normal map to interpolated normal
+        finalNormal = normalize(normalMapSampleTangentSpace);
+    }
+    
+    LightingResult lit = ComputeLighting(input.positionWS, finalNormal);   
+    
     float3 finalColor = (mat_emissive.rgb + mat_ambient.rgb * ambient.rgb + mat_diffuse.rgb * lit.Diffuse.rgb + mat_specular.rgb * lit.Specular.rgb) * diffuseSample.rgb;
- 
+    
     return float4(finalColor, diffuseSample.a);
 }

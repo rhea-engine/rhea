@@ -72,6 +72,12 @@ namespace Math
 
 		// get as rotation matrix
 		Matrix3 RotationMatrix() const;
+
+		// get as angle/axis
+		void getAsAngleAxis(float& angle, Vector3& axis) const;
+
+		// get as vector axes
+		void toAxes(Vector3& x_axis, Vector3& y_axis, Vector3& z_axis) const;
 	};
 }
 #endif // !MATH_QUATERNION_H

@@ -1,1 +1,1 @@
-add_library(PoseidonMath "Quaternion.cpp" "Vector3.cpp" "Vector2.h" "Matrix3.cpp" "Matrix4.cpp" "Matrix3x4.cpp")
+add_library(PoseidonMath "Quaternion.cpp" "Vector3.cpp" "Vector2.h" "Matrix3.cpp" "Matrix4.cpp" "Matrix3x4.cpp" "Vector4.h")

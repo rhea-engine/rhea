@@ -22,6 +22,7 @@
 #include <Orion/FileStream.h>
 #include <Rhea/Fabrics/Core/Avatar.h>
 #include <Rhea/Resources/Collection.h>
+#include <Components/Math/Math.h>
 
 bool Ceto::onQuit(Rhea::Event* ev, Rhea::Unit* unit)
 {
@@ -361,11 +362,18 @@ bool Ceto::onFrameEnd()
 		elapsed_s += elapsed_d_s;
 
 		std::string debug = "";
-		debug += "debugging: sec=" + std::to_string(elapsed_s) +"; fps = " + std::to_string(fps);
+		debug += "debugging: sec=" + std::to_string(elapsed_s) +"; fps = " + std::to_string(floor(fps*100)/100.0f);
 		m_focused_controller = doCast<Rhea::BasicController>(m_unit_tree->find("//local/scene1/maincamera"));
 		if (m_focused_controller) {
 			Math::Vector3 pos = static_cast<Rhea::BasicController*>(m_focused_controller)->getPosition();
+			Math::Quaternion rot = static_cast<Rhea::BasicController*>(m_focused_controller)->getOrientation();
+			float angle;
+			Math::Vector3 axis;
+			rot.getAsAngleAxis(angle, axis);
 			debug += "\nPosition: " + std::to_string(pos.x) + " / " + std::to_string(pos.y) + " / " + std::to_string(pos.z);
+			debug += "\nRotation angle=" + std::to_string(angle * Math::M_RADTODEG);
+			// (vector is always 0,1,0) 
+			//debug += "\nRotation: Angle=" + std::to_string(angle * Math::M_RADTODEG) + "\nAxes: " + std::to_string(axis.x) + " / " + std::to_string(axis.y) + " / " + std::to_string(axis.z);
 		}
 		m_debug_text->setText(debug);
 	}

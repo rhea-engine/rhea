@@ -7,6 +7,7 @@
 #include "Graphics/RenderElement.h"
 #include "Physics/Body.h"
 #include <Psio/Log.h>
+#include <Math/Math.h>
 
 namespace Rhea
 {
@@ -23,6 +24,20 @@ namespace Rhea
 				z = pos_sit[2];
 			}
 			m_transform.get_position()->setPosition(x, y, z);
+		}
+		Variant rot_sit = getValue("rotation");
+		if (rot_sit != Variant() && rot_sit.size()==3) {
+			float x = rot_sit[0];
+			float y = rot_sit[1];
+			float z = rot_sit[2];
+			Math::Quaternion rot;
+			if (x != 0.0f)
+				rot.fromAngleAxis(x * Math::M_DEGTORAD, Math::Vector3(1.0f, 0.0f, 0.0f));
+			if (y != 0.0f)
+				rot.fromAngleAxis(y * Math::M_DEGTORAD, Math::Vector3(0.0f, 1.0f, 0.0f));
+			if (z != 0.0f)
+				rot.fromAngleAxis(z * Math::M_DEGTORAD, Math::Vector3(0.0f, 0.0f, 1.0f));
+			m_transform.get_position()->setOrientation(rot);
 		}
 	}
 

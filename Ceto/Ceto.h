@@ -16,7 +16,8 @@ public:
 	Ceto() :
 		m_gui(nullptr),
 		m_view(nullptr),
-		m_debug_text(nullptr)
+		m_debug_text(nullptr),
+		m_exiting(false)
 	{}
 	void setup();
 	void setScene(bool mark_preferrences = true);
@@ -30,6 +31,7 @@ protected:
 	string m_home_scene;
 	Rhea::Camera* m_view;
 	Rhea::Label* m_debug_text;
+	bool m_exiting;
 
 	// event functions
 	bool onQuit(Rhea::Event* ev, Rhea::Unit* unit);

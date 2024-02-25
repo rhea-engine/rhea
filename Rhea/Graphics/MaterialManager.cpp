@@ -10,6 +10,7 @@
 #include "MaterialManager.h"
 #include "./Texture.h"
 #include <Psio/Log.h>
+#include <Rhea/Fabrics/Core/Shader.h>
 
 namespace Rhea
 {
@@ -27,47 +28,125 @@ namespace Rhea
 		}
 
 		// create the element
-		GraphicsMaterial* item = new GraphicsMaterial();		
-		item->m_material = core->createMaterial();
+		GraphicsMaterial* gmat = new GraphicsMaterial();		
+		gmat->m_material = core->createMaterial();
 		std::string mat_name = material_res->getPathName();
 
-		core->registerMaterial(mat_name, item->m_material);
-
-		// set transparency
-		item->m_material->setAlphaBlending(material_res->getAlphaBlending());
+		core->registerMaterial(mat_name, gmat->m_material);
 
 		// add the shader
+		Shader* shader_res = material_res->getShaderRes();
+		if (!shader_res) {
+			LOG(LOG_ERROR) << "GraphicsMaterialManager::createElement: no shader.";
+			return nullptr;
+		}
 		std::string shader_name = material_res->getValue("shader");
 		Poseidon::Shader* shader = core->getShader(shader_name);
 		if (!shader) {
 
-			// shader not yet defined in core - search from resources
-			TextResource* shader_res = material_res->getShader();
+			// shader not yet defined in core - search from resources and create the shader			
+			TextResource* shader_code;
+			shader_code = shader_res->getShaderCode();
+
+			if (!shader_code) {
+				LOG(LOG_ERROR) << "Shader code not found";
+				return nullptr;
+			}
+
+			char* buf;
+			size_t buflen;
+			shader_code->getRaw(&buf, &buflen);
+			shader = core->createShader(shader_name);
+			if (shader->loadFromBuffer((unsigned char*)buf, buflen, "VShader", "PShader"))
+				exit(-1);
+
+			// set transparency
+			if (shader_res)
+				shader->setAlphaBlending(shader_res->getAlphaBlending());
+
+			// set stencil testing
 			if (shader_res) {
-				char* buf;
-				size_t buflen;
-				shader_res->getRaw(&buf, &buflen);
-				shader = core->createShader(shader_name);
-				if (shader->loadFromBuffer((unsigned char*)buf, buflen, "VShader", "PShader"))
-					exit(-1);
-				item->m_material->setShader(shader);
+				shader->setStencilTest(shader_res->getStencilTest());
+
+				// cull mode
+				std::string cull_mode = shader_res->getValue("cull_mode", "back");
+				if (cull_mode == "none") {
+					shader->setCullMode(false);
+				}
 			}
-			else {
-				LOG(LOG_ERROR) << "Shader " << shader_name << " not found";
+
+			// input layout
+			std::string input_layout = shader_res->getValue("input", "");
+			if (input_layout == "default") {
+				shader->setVertexType(0);
 			}
+			else if (input_layout == "standard") {
+				shader->setVertexType(3);
+			}
+			else if (input_layout == "short") {
+				shader->setVertexType(1);
+			}
+			else if (input_layout == "color") {
+				shader->setVertexType(2);
+			}
+
+			// material buffer layout
+			std::string light_type = shader_res->getValue("light_type", "none");
+			if (light_type == "vertex") {
+				// for now only the default layout is supported
+				std::vector<Poseidon::Shader::MatBufferLayoutElement> elements;
+				elements = {
+					{ Poseidon::Shader::MatBufferLayoutElementType::VECTOR4, "AMBIENT", 0, sizeof(Math::Vector4) },
+					{ Poseidon::Shader::MatBufferLayoutElementType::VECTOR4, "DIFFUSE", 16, sizeof(Math::Vector4) },
+					{ Poseidon::Shader::MatBufferLayoutElementType::VECTOR4, "SPECULAR", 32, sizeof(Math::Vector4) },
+					{ Poseidon::Shader::MatBufferLayoutElementType::VECTOR4, "EMISSIVE", 48, sizeof(Math::Vector4) },
+					{ Poseidon::Shader::MatBufferLayoutElementType::FLOAT, "SHININESS", 64, sizeof(float) }
+				};
+
+				shader->setMatBufLayout(elements);				
+			}
+
+			// compute the shader
+			shader->finalize();
+
+			gmat->m_material->setShader(shader);
 		}
 		else {
-			item->m_material->setShader(shader);
+			gmat->m_material->setShader(shader);
+		}
+
+		// now add the material properties
+		std::string light_type = shader_res->getValue("light_type", "none");
+		if (light_type == "vertex") {
+			std::vector<std::string> props = { "AMBIENT", "DIFFUSE", "SPECULAR", "EMMISSIVE" };
+			for (auto it = props.begin(); it != props.end(); ++it) {
+				Math::Vector4 color;
+				int slot_res = shader_res->getInputSlotId(*it);
+				if (slot_res < 0)
+					continue;
+				color = material_res->getColor(slot_res);
+				int slot = gmat->m_material->getShader()->getMatBufLayoutMap(*it);
+				if (slot != -1)
+					gmat->m_material->SetColor(slot, color);
+			}
+			int slot_res = shader_res->getInputSlotId("SHININESS");
+			if (slot_res >= 0) {
+				int slot = gmat->m_material->getShader()->getMatBufLayoutMap("SHININESS");
+				if (slot != -1)
+					gmat->m_material->SetFloat(slot, material_res->getFloat(slot_res));
+			}
 		}
 
 		// now add the textures
 		std::vector<ImageResource*> textures = material_res->getTextures();
 		for (auto it = textures.begin(); it != textures.end(); ++it) {
+			if (!*it)
+				continue;
 			Element* comp = GraphicsTexture::createElement(core, (Unit*)*it);
 			if (comp) {
 				Poseidon::Image* tex = ((GraphicsTexture*)comp)->get();
 				if (tex) {
-					item->m_material->addTexture((Poseidon::Texture*)tex);
+					gmat->m_material->addTexture((Poseidon::Texture*)tex);
 				}
 				else {
 					DLOG(LOG_DEBUG) << "GraphicsMaterialManager::createElement: empty texture";
@@ -77,16 +156,16 @@ namespace Rhea
 		}
 
 		// register to resource
-		material_res->addElement("graphics", item);
+		material_res->addElement("graphics", gmat);
 
 		// register handlers
 		unit->registerEventHandler("delete", this, std::bind(&GraphicsMaterialManager::onItemDelete, this, std::placeholders::_1, std::placeholders::_2));
-		//unit->registerEventHandler("update", std::bind(&GraphicsMaterialManager::onUpdate, item, std::placeholders::_1, std::placeholders::_2));
+		//unit->registerEventHandler("update", std::bind(&GraphicsMaterialManager::onUpdate, gmat, std::placeholders::_1, std::placeholders::_2));
 
 		// add to my list
-		//m_elements.push_back(item);
+		//m_elements.push_back(gmat);
 
-		return static_cast<Element*>(item);
+		return static_cast<Element*>(gmat);
 	}
 	
 	bool GraphicsMaterialManager::onItemDelete(Event* ev, Unit* unit)

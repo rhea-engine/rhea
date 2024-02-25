@@ -8,6 +8,7 @@
 #include "Entity.h"
 #include "SceneManager.h"
 #include "Window.h"
+#include "Cubemap.h"
 
 #include "Core.h"
 
@@ -16,7 +17,17 @@ namespace Poseidon
 {
 	Core::Core()
 	{
-		m_psio = nullptr;
+		m_psio = nullptr;	
+	}
+
+	Core::~Core()
+	{
+		// delete all shaders
+		for (auto it = m_shaders.begin(); it != m_shaders.end(); ++it)
+		{
+			delete it->second;
+		}
+		m_shaders.clear();
 	}
 
 	void Core::init(Psio::Engine* psio)
@@ -25,12 +36,12 @@ namespace Poseidon
 		m_psio = psio;
 
 		// initialize render sub system
-		m_renderer = new Hippios::Engine(m_psio);
+		m_renderer = std::make_unique<Hippios::Engine>(m_psio);
 		m_renderer->startup();		
 
 		// add a root window which is also the root viewport
 		m_window = new Window();		
-		m_window->initRenderTarget(m_renderer);
+		m_window->initRenderTarget(m_renderer.get());
 
 		// add a scene manager 
 		m_scene_manager = new SceneManager();
@@ -75,40 +86,29 @@ namespace Poseidon
 			return 0;
 	}
 
-	Texture* Core::createTexture(const std::string& file_name)
+	Texture* Core::createTexture(int type, int num_images)
 	{
-		Poseidon::Texture* texture = new Poseidon::Texture();
-		texture->bind(m_renderer);
-		if (texture->load(file_name))
-			return texture;
+		Poseidon::Texture* texture;
+		if (type==0)
+			texture = new Poseidon::Texture();
 		else {
-			delete texture;
-			return NULL;
+			texture = new Poseidon::Cubemap();
+			texture->setNumImages(num_images);
 		}
-	}
-
-	Texture* Core::createTexture(unsigned char* buf, size_t buflen)
-	{
-		Poseidon::Texture* texture = new Poseidon::Texture();
-		texture->bind(m_renderer);
-		if (texture->load(buf, buflen))
-			return texture;
-		else {
-			delete texture;
-			return NULL;
-		}
+		texture->bind(m_renderer.get());
+		return texture;
 	}
 
 	Material* Core::createMaterial()
 	{
-		return new Material(this->m_renderer->getRenderer());
+		return new Material(this);
 	}
 
 	void Core::registerMaterial(std::string name, Material* material)
 	{
 		m_materials[name] = material;
 
-		// the first material or the one with the name default becomes the default 
+		// the first material or the one with the name "default" becomes the default 
 		if (!m_default_material || (name == "default"))
 			m_default_material = material;		
 	}
@@ -132,7 +132,7 @@ namespace Poseidon
 
 	Shader* Core::createShader(std::string name)
 	{
-		Shader* shader = new Shader(this->m_renderer->getRenderer());
+		Shader* shader = new Shader(this);
 		m_shaders[name] = shader;
 		return shader;
 	}
@@ -151,5 +151,20 @@ namespace Poseidon
 	{
 		Camera* camera = new Poseidon::Camera(m_renderer->getRenderer());
 		return camera;
+	}
+
+	Hippios::GraphicsBuffer* Core::getGraphicsBuffer(std::string facility, size_t size)
+	{
+		BufferDescription desc = { facility, size };
+
+		// check if buffer exists already
+		auto it = m_buffer_pool.find(desc);
+		if (it != m_buffer_pool.end())
+			return it->second;
+
+		// no such buffer in the pool, create a new one
+		Hippios::GraphicsBuffer* newBuffer = m_renderer->getRenderer()->createGraphicsBuffer(size);
+		m_buffer_pool[desc] = newBuffer;
+		return newBuffer;
 	}
 }

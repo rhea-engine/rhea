@@ -61,8 +61,8 @@ namespace Rhea
 		if (m_values["action"] != Variant()) {
 			bubbleEvent(m_values["action"], &my_ev);
 		}
-		if (m_values["onClick"] != Variant()) {
-			sendBoundEvent(m_values["onClick"], ev);
+		if (m_values["onClicked"] != Variant()) {
+			sendBoundEvent(m_values["onClicked"], ev);
 		}
 
 

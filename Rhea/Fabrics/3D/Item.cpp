@@ -7,13 +7,14 @@
 #include "Graphics/RenderElement.h"
 #include "Physics/Body.h"
 #include <Psio/Log.h>
+#include <Math/Math.h>
 
 namespace Rhea
 {
 	void Item::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{
 		Unit::setup(app, attributes, values);
-
+		
 		Variant pos_sit = getValue("position");
 		if (pos_sit != Variant()) {
 			float x = pos_sit[0];
@@ -24,11 +25,20 @@ namespace Rhea
 			}
 			m_transform.get_position()->setPosition(x, y, z);
 		}
-
-		m_render_component = std::make_unique<RenderComponent>(this);
-
-		if (m_values.find("fabric") != m_values.end())
-			m_render_component->hide();
+		Variant rot_sit = getValue("rotation");
+		if (rot_sit != Variant() && rot_sit.size()==3) {
+			float x = rot_sit[0];
+			float y = rot_sit[1];
+			float z = rot_sit[2];
+			Math::Quaternion rot;
+			if (x != 0.0f)
+				rot.fromAngleAxis(x * Math::M_DEGTORAD, Math::Vector3(1.0f, 0.0f, 0.0f));
+			if (y != 0.0f)
+				rot.fromAngleAxis(y * Math::M_DEGTORAD, Math::Vector3(0.0f, 1.0f, 0.0f));
+			if (z != 0.0f)
+				rot.fromAngleAxis(z * Math::M_DEGTORAD, Math::Vector3(0.0f, 0.0f, 1.0f));
+			m_transform.get_position()->setOrientation(rot);
+		}
 	}
 
 	std::vector<Unit::Export> Item::getReferences()
@@ -45,16 +55,23 @@ namespace Rhea
 		Unit::ready();
 
 		auto mesh_it = m_values.find("mesh");
-		if (!m_mesh && mesh_it != m_values.end()) {			
-			m_mesh = static_cast<Mesh*>(m_app->getUnitTree()->find(mesh_it->second, m_attributes["basepath"], false));
-			if (m_mesh) {
-				m_mesh->ready();
-				m_render_component->setMesh(m_mesh);
+		if (mesh_it != m_values.end()) {
+			if (!m_render_component) {
+				m_render_component = new RenderComponent("renderer", "//meworla/rendercomponent");
+				addChild(m_render_component);
+			}
+			Mesh* mesh = doCast<Mesh>(m_app->getUnitTree()->find(mesh_it->second, m_attributes["basepath"], false));
+			if (mesh) {
+				mesh->ready();
+				m_render_component->setMesh(mesh);
 			}
 			else {
 				LOG(LOG_ERROR) << "No mesh defined for item";
 			}
-		}		
+		}	
+
+		if (m_render_component && m_values.find("fabric") != m_values.end())
+			m_render_component->hide();
 	}
 
 	bool Item::getGraphicsItem()
@@ -82,20 +99,16 @@ namespace Rhea
 
 		new_item->Unit::setup(m_app, attr, values);
 
-		// copy item values
-		new_item->m_render_component = std::make_unique<RenderComponent>(new_item);
-		new_item->m_mesh = m_mesh;
-		new_item->m_render_component->setMesh(m_mesh);
-		new_item->m_material = m_material;
-		new_item->m_render_component->setMaterial(m_material); //TODO check!
+		// copy item values and components
+		new_item->m_render_component = new RenderComponent("renderer", "//meworla/rendercomponent");
+		new_item->m_render_component->setMesh(m_render_component->getMesh());
+		new_item->addChild(new_item->m_render_component);
 
 		return new_item;
 	}
 
 	void Item::onFrame(float delta)
 	{
-		// update myself
-		m_transform.update();		
 	}
 
 	void Item::setPosition(Rhea::Position& position)

@@ -14,6 +14,9 @@ namespace Poseidon
 		void init();
 
 		// setup
+		void setup();
+
+		// scene is loaded
 		void onScene(Rhea::Scene *scene);
 
 		// get the core

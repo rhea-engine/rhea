@@ -7,7 +7,7 @@ cbuffer cbPerFrame
 
 cbuffer cbPerObject
 {
-    float4x3 model;
+    float4x4 model;
 };
 
 struct VS_OUTPUT

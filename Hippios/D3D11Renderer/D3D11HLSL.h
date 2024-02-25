@@ -20,17 +20,19 @@ namespace Hippios
 		ID3D11VertexShader* pVS = 0;    // the vertex shader
 		ID3D11PixelShader* pPS = 0;     // the pixel shader
 
-		int m_vertex_type = 0;
-
 	public:
 		D3D11HLSL::D3D11HLSL(ID3D11Device* d3dDevice, ID3D11DeviceContext* d3dDeviceContext);
+		~D3D11HLSL();
 		HRESULT LoadFromFile(std::string filename, LPCSTR entrypoint, LPCSTR shaderType, LPCSTR shaderTypeId);
 		HRESULT LoadFromBuffer(unsigned char* buf, size_t buflen, LPCSTR entrypoint, LPCSTR shaderType, LPCSTR shaderTypeId);
 		HRESULT D3D11HLSL::defaultShader(LPCSTR entryPoint, LPCSTR shaderType, LPCSTR shaderTypeId);
-		ID3D11InputLayout* GetInputLayout();
-		void setVertexType(int type);
 		ID3DBlob* get_code() { return shaderBlob; };
 		ID3D11VertexShader* getVertexShader() { return pVS; }
 		ID3D11PixelShader* getPixelShader() { return pPS; }
+
+		// return buffer of shader blob
+		void* getBuffer() { return shaderBlob->GetBufferPointer(); }
+		// return buffer size
+		size_t getBufferSize() { return shaderBlob->GetBufferSize(); }
 	};
 }

@@ -41,6 +41,11 @@ namespace Hippios
 		}
 	}
 
+	D3D11GraphicsBuffer::~D3D11GraphicsBuffer()
+	{
+		if (m_buffer) m_buffer->Release();
+	}
+
 	void* D3D11GraphicsBuffer::Lock(size_t offset, size_t length)
 	{
 		if (m_is_locked) printf("Buffer already locked!");

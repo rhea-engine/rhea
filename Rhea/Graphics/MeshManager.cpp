@@ -4,6 +4,10 @@
 #include <Poseidon/Mesh.h>
 #include <Poseidon/SceneManager.h>
 #include <Psio/Log.h>
+#include <Rhea/Fabrics/Core/Material.h>
+#include "GraphicsService.h"
+#include <Rhea/Resources/VertexBuffer.h>
+#include "MaterialManager.h"
 
 namespace Rhea
 {
@@ -13,7 +17,7 @@ namespace Rhea
 		Element* el = unit->getElement("graphics");
 		if (el)
 			return el;
-
+		
 		// create the element
 		Mesh* mesh_res = doCast<Mesh>(unit);
 		if (!mesh_res) {
@@ -29,6 +33,25 @@ namespace Rhea
 			->getViewport());
 		mesh_el->m_mesh = mesh;
 
+		// make sure the materials of all submeshes have a graphics element
+		for (size_t i = 0; i < mesh_res->getNumSubmeshes(); i++) {
+			Material* material = mesh_res->getMaterial(i);
+			if (!material) {
+				LOG(LOG_ERROR) << "GraphicsMeshManager::createElement: No material for submesh " << i;
+				delete el;
+				return nullptr;
+			}
+			if (!material->getElement("graphics")) {
+				if (!m_service->addElement(material)) {
+					LOG(LOG_ERROR) << "GraphicsItemManager::createElement: could not create element for material";
+					delete el;
+					return nullptr;
+				}
+			}
+			// set the material in core
+			setMaterial(core, material);
+		}		
+
 		unit->addElement("graphics", mesh_el);
 
 		// initial initialization
@@ -38,6 +61,22 @@ namespace Rhea
 		unit->registerEventHandler("delete", this, std::bind(&GraphicsMeshManager::onDelete, this, std::placeholders::_1, std::placeholders::_2));
 
 		return mesh_el;
+	}
+
+	bool GraphicsMeshManager::ensureMaterialElement(Material* material)
+	{
+		if (material) {
+			if (!material->getElement("graphics")) {
+				if (!m_service->addElement(material)) {
+					LOG(LOG_ERROR) << "GraphicsMeshManager::ensureMaterialElement: could not create element for material";
+					return false;
+				}
+				setMaterial(m_service->getEngine(), material);
+			}
+			return true;
+		}
+		else
+			return false;
 	}
 
 	bool GraphicsMeshManager::onUpdate(Event* ev, Unit* unit)
@@ -50,25 +89,42 @@ namespace Rhea
 		}
 
 		// add vertex and index buffer
-
-		std::vector<Mesh::vertex> vertices;
-		std::vector<unsigned long> v_indices;
-
-		mesh->getBuffers(vertices, v_indices);
-
-		if (!vertices.size() || !v_indices.size()) {
-			printf("Vertex is empty\n");
-			return true;
+		VertexBuffer* vbuf = mesh->getVertexBuffer();
+		if (vbuf && vbuf->size()) {
+			mesh_el->m_mesh->setVertices(vbuf->getVertexSize(), vbuf->size(), vbuf->data());
+			for (size_t idx = 0; idx < mesh->getNumSubmeshes(); idx++) {
+				std::vector<unsigned long> v_indices = mesh->getIndices(idx);
+				// Check if v_indices is valid and has a multiple of 3 elements
+				if (v_indices.size() && v_indices.size() % 3 == 0) {
+					mesh_el->m_mesh->setMesh(idx, sizeof(unsigned long), v_indices.size() / 3, v_indices.data(), ((GraphicsMaterial*)(mesh->getMaterial(idx)->getElement("graphics")))->m_material);
+				}
+				else {
+					LOG(LOG_ERROR) << "Invalid index buffer";
+					return true;
+				}
+			}
 		}
+		else {
+			std::vector<Mesh::vertex> vertices;
+			std::vector<unsigned long> v_indices;
 
-		std::vector<Hippios::vertex_uv> hippios_vertices;
-		for (auto it = vertices.begin(); it != vertices.end(); ++it) {
-			Mesh::vertex v = *it;
-			hippios_vertices.push_back(Hippios::vertex_uv(v.x, v.y, v.z, v.u, v.v));
+			mesh->getBuffers(vertices, v_indices);
+
+			if (!vertices.size() || !v_indices.size()) {
+				printf("Vertex is empty\n");
+				return true;
+			}
+
+			std::vector<Hippios::vertex_uv> hippios_vertices;
+			for (auto it = vertices.begin(); it != vertices.end(); ++it) {
+				Mesh::vertex v = *it;
+				hippios_vertices.push_back(Hippios::vertex_uv(v.x, v.y, v.z, v.u, v.v));
+			}
+
+			mesh_el->m_mesh->setVertices(sizeof(Hippios::vertex_uv), hippios_vertices.size(), hippios_vertices.data());
+			ensureMaterialElement(mesh->getMaterial());
+			mesh_el->m_mesh->setMesh(0, sizeof(unsigned long), v_indices.size() / 3, v_indices.data(), ((GraphicsMaterial*)(mesh->getMaterial(0)->getElement("graphics")))->m_material);
 		}
-
-		mesh_el->m_mesh->setVertices(sizeof(Hippios::vertex_uv), hippios_vertices.size(), hippios_vertices.data());
-		mesh_el->m_mesh->setIndices(sizeof(unsigned long), v_indices.size() / 3, v_indices.data());
 		return false;
 	}
 

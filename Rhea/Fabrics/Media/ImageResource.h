@@ -14,6 +14,13 @@ namespace Rhea
 		{}
 		~ImageResource();
 
+		enum TextureType
+		{
+			TEXTURE_2D = 0,
+			TEXTURE_3D = 1,
+			TEXTURE_CUBE = 2
+		};
+
 		void setup(Application* app) { Unit::setup(app); }
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
 
@@ -21,6 +28,12 @@ namespace Rhea
 
 		// handle ready event
 		void ready();
+
+		virtual TextureType getTextureType() { return TEXTURE_2D; }
+
+		virtual int getNumImages() { return 1; }
+
+		virtual Resource* getImage(int index) { if (!index) return this; else return nullptr; }
 	};
 }
 

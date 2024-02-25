@@ -12,6 +12,7 @@
 #include "Fabrics/Canvas/Item2D.h"
 #include "GraphicsService.h"
 #include <Psio/Log.h>
+#include <Fabrics/Core/Lighting.h>
 
 namespace Rhea
 {
@@ -52,6 +53,13 @@ namespace Rhea
 		else if (doCast<Item>(item)) {
 			mgr = m_service->getManager("//meworla/item");
 			mgr->createElement(m_core, item);
+		}
+		else if (doCast<Lighting>(item)) {
+			Poseidon::SceneManager* scene_mgr = m_core->get_scene_manager();
+			if (scene_mgr) {
+				std::string render_context = "default";
+				scene_mgr->getViewport()->getRenderContext(render_context)->setAmbient(doCast<Lighting>(item)->getAmbient());
+			}		
 		}
 	}
 

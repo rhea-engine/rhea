@@ -2,6 +2,7 @@
 #define MATH_MATRIX4_H
 
 #include "Matrix3.h"
+#include "Matrix3x4.h"
 
 namespace Math
 {
@@ -29,6 +30,13 @@ namespace Math
 				{ matrix[1][0], matrix[1][1], matrix[1][2], matrix[1][3]},
 				{ matrix[2][0], matrix[2][1], matrix[2][2], matrix[2][3]},
 				{ matrix[3][0], matrix[3][1], matrix[3][2], matrix[3][3]}}
+		{}
+		Matrix4(const Matrix3x4& matrix) :
+			m{
+				{ matrix[0][0], matrix[0][1], matrix[0][2], matrix[0][3]},
+				{ matrix[1][0], matrix[1][1], matrix[1][2], matrix[1][3]},
+				{ matrix[2][0], matrix[2][1], matrix[2][2], matrix[2][3]},
+				{ 0.0f, 0.0f, 0.0f, 1.0f } }
 		{}
 
 		// construct from values
@@ -78,7 +86,7 @@ namespace Math
 
 		Matrix4 transpose() const;
 
-		bool inverse(Matrix4& out);
+		Matrix4 inverse() const;
 	};
 
 	inline Matrix4 Matrix4::transpose() const
@@ -115,8 +123,10 @@ namespace Math
 		return r;
 	}
 
-	inline bool Matrix4::inverse(Matrix4 &out)
+	inline Matrix4 Matrix4::inverse() const
 	{
+		Matrix4 out;
+
 		float s[6];
 		float c[6];
 		s[0] = m[0][0] * m[1][1] - m[1][0] * m[0][1];
@@ -136,7 +146,7 @@ namespace Math
 		/* is it invertible ? */
 		float id = s[0] * c[5] - s[1] * c[4] + s[2] * c[3] + s[3] * c[2] - s[4] * c[1] + s[5] * c[0];
 		if (id == 0.0f)
-			return false;
+			return out;
 		float idet = 1.0f / id ;
 
 		out.m[0][0] = (m[1][1] * c[5] - m[1][2] * c[4] + m[1][3] * c[3]) * idet;
@@ -159,7 +169,7 @@ namespace Math
 		out.m[3][2] = (-m[3][0] * s[3] + m[3][1] * s[1] - m[3][2] * s[0]) * idet;
 		out.m[3][3] = (m[2][0] * s[3] - m[2][1] * s[1] + m[2][2] * s[0]) * idet;
 
-		return true;
+		return out;
 	}
 
 	inline Vector3 operator*(const Matrix4& m, const Vector3& v)

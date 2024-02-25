@@ -17,11 +17,14 @@
 #include "GraphicsService.h"
 
 #include <Psio/Log.h>
+#include <Rhea/Fabrics/3D/Light.h>
 
 namespace Rhea
 {
 	Element* GraphicsItemManager::createElement(Poseidon::Core* core, Unit* unit)	
 	{
+		GraphicsRenderElement* elem = nullptr;
+
 		// check if already created
 		Element* item_el = unit->getElement("graphics");
 		if (item_el)
@@ -31,44 +34,40 @@ namespace Rhea
 		if (!item)
 			return nullptr;
 
+		// is this a light?
+		Light* light = doCast<Light>(item);
+		if (light) {			
+			DLOG(LOG_DEBUG) << "GraphicsItemManager::createElement: light";
+			elem = new GraphicsRenderElement(core);
+			Poseidon::Renderable* light_entity = static_cast<Poseidon::Renderable*>(createEntity(elem, core, unit, "default", false));
+			// attach to unit
+			unit->addElement("graphics", elem);
+		}
+
 		// prepare basic elements
-		GraphicsRenderElement* elem = new GraphicsRenderElement(core);		
-		Mesh* item_mesh = item->getMesh();
-
-		// safety check
-		if (!item_mesh) {
-			DLOG(LOG_DEBUG) << "GraphicsItemManager::createElement: getMesh returned nullptr";
-			delete elem;
-			return nullptr;
-		}
 		
-		// make sure we have a material
-		Rhea::Material* material = item_mesh->getMaterial();
-		if (!material) {
-			LOG(LOG_ERROR) << unit->getPath() + ": item has no material";
-			delete elem;
+		Mesh* item_mesh = item->getMesh();
+		if (!light && !item_mesh) {
+			DLOG(LOG_DEBUG) << "GraphicsItemManager::createElement: getMesh returned nullptr";	
 			return nullptr;
 		}
-		if (!material->getElement("graphics")) {
-			if (!m_service->addElement(material)) {
-				LOG(LOG_ERROR) << "GraphicsItemManager::createElement: could not create element for material";
-				delete elem;
-				return nullptr;
+		elem = new GraphicsRenderElement(core);
+
+		if (item_mesh) {
+
+			// check if mesh element already defined
+			GraphicsMesh* mesh_el = static_cast<GraphicsMesh*>(item_mesh->getElement("graphics"));
+			if (!mesh_el) {
+				// create using mesh manager
+				mesh_el = (GraphicsMesh*)m_service->getManager("//meworla/mesh")->createElement(core, item_mesh);
 			}
+
+			// create the element		
+			Poseidon::Renderable* entity = static_cast<Poseidon::Renderable*>(createRenderable(elem, core, unit, "default", item_mesh->isDynamic()));
 		}
-
-		// check if mesh element already defined
-		GraphicsMesh* mesh_el = static_cast<GraphicsMesh*>(item_mesh->getElement("graphics"));
-		if (!mesh_el) {
-			// create using mesh manager
-			mesh_el = (GraphicsMesh*)m_service->getManager("//meworla/mesh")->createElement(core, item_mesh);
+		else {
+			Poseidon::Renderable* entity = static_cast<Poseidon::Renderable*>(createEntity(elem, core, unit, "default", false));
 		}
-
-		// create the element		
-		Poseidon::Renderable* entity = static_cast<Poseidon::Renderable*>(createRenderable(elem, core, unit, "default", item_mesh->isDynamic()));
-
-		// set the material
-		setMaterial(core, material);
 
 		// attach to unit
 		unit->addElement("graphics", elem);
@@ -89,7 +88,12 @@ namespace Rhea
 		GraphicsRenderElement* elem = static_cast<GraphicsRenderElement*>(item->getElement("graphics"));
 
 		// possible material change - check if material has element
-		if (Material* mat = item->getGraphicsComponent()->getMaterial()) {
+		//Mesh* mesh = item->getGraphicsComponent()->getMesh();
+		Mesh* mesh = item->getMesh();
+		if (!mesh)
+			return false;
+
+		if (Material* mat = mesh->getMaterial()) {
 			if (!mat->getElement("graphics")) {
 				// create the element for the new material
 				GraphicsManager* mgr = m_service->getManager(mat->getTypeName());

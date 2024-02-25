@@ -54,4 +54,30 @@ namespace Math
 		}
 		return dest;
 	}
+
+	Matrix3 Matrix3::Inverse() const {
+		Matrix3 result;
+
+		float det = Determinant();
+		if (std::abs(det) < std::numeric_limits<float>::epsilon()) {
+			// Matrix is singular, cannot invert			
+			return result;
+		}
+
+		float invDet = 1.0f / det;
+
+		result.m[0][0] = (m[1][1] * m[2][2] - m[1][2] * m[2][1]) * invDet;
+		result.m[0][1] = (m[0][2] * m[2][1] - m[0][1] * m[2][2]) * invDet;
+		result.m[0][2] = (m[0][1] * m[1][2] - m[0][2] * m[1][1]) * invDet;
+
+		result.m[1][0] = (m[1][2] * m[2][0] - m[1][0] * m[2][2]) * invDet;
+		result.m[1][1] = (m[0][0] * m[2][2] - m[0][2] * m[2][0]) * invDet;
+		result.m[1][2] = (m[0][2] * m[1][0] - m[0][0] * m[1][2]) * invDet;
+
+		result.m[2][0] = (m[1][0] * m[2][1] - m[1][1] * m[2][0]) * invDet;
+		result.m[2][1] = (m[0][1] * m[2][0] - m[0][0] * m[2][1]) * invDet;
+		result.m[2][2] = (m[0][0] * m[1][1] - m[0][1] * m[1][0]) * invDet;
+
+		return result;
+	}
 }

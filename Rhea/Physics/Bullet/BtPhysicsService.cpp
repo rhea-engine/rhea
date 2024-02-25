@@ -155,6 +155,8 @@ namespace Rhea
 			return;
 		else if (item->getTypeName() == "//meworla/textwidget")
 			return;
+		else if (item->getTypeName() == "//meworla/skybox")
+			return;
 		else {
 			BulletPhysicsBody* body = new BulletPhysicsBody(m_world, item);
 			if (body->init()) {

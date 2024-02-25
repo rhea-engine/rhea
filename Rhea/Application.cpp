@@ -48,12 +48,30 @@
 #include <Fabrics/3D/ObjLoader.h>
 #include <Resources/Resources.h>
 #include <Resources/Collection.h>
+#include <Fabrics/3D/Skybox.h>
+#include <Fabrics/Core/Shader.h>
+#include <Fabrics/Core/WorldService.h>
+#include <Fabrics/3D/Light.h>
+#include <Fabrics/3D/DirectionalLight.h>
+#include <Fabrics/Core/Lighting.h>
+#include <Fabrics/3D/PointLight.h>
+#include <Fabrics/3D/SpotLight.h>
 
 #undef min
 
 
 namespace Rhea
 {
+	Application::~Application()
+	{
+		m_unit_tree.reset();
+		for (auto it = m_services.begin(); it != m_services.end(); ++it)
+		{
+			delete it->second;
+		}
+		m_services.clear();
+	}
+
 	void Application::init()
 	{		
 		// set log severity
@@ -73,7 +91,12 @@ namespace Rhea
 		SimpleParser::Type::registerType<Service>("//meworla/service");
 		SimpleParser::Type::registerType<PlatformService>("//meworla/platformservice");
 		SimpleParser::Type::registerType<PhysicsManagerService>("//meworla/physicsmanagerservice");
+		SimpleParser::Type::registerType<WorldService>("//meworla/worldservice");
 		SimpleParser::Type::registerType<ResourceService>("//meworla/resourceservice");
+
+		Service* world = (WorldService*)SimpleParser::Type::create("WorldService", "//meworla/worldservice");
+		world->setup(this);
+		m_services["world"] = world;
 
 		Service* psio = (PlatformService*)SimpleParser::Type::create("PlatformService", "//meworla/platformservice");
 		psio->setup(this);
@@ -84,7 +107,7 @@ namespace Rhea
 		m_services["physics_mgr"] = phy_mgr;
 
 		m_fs = new Orion::Orion(static_cast<PlatformService*>(psio)->getEngine(), m_appname);
-		m_unit_tree = (UnitTree*)SimpleParser::Type::create("/", "//core/unittree");
+		m_unit_tree.reset((UnitTree*)SimpleParser::Type::create("/", "//core/unittree"));
 		m_unit_tree->setup(this);
 
 		Service* res_service = (Service*)SimpleParser::Type::create("ResourceService", "//meworla/resourceservice");
@@ -103,9 +126,18 @@ namespace Rhea
 		SimpleParser::Type::registerType<Transform>("//meworla/transform");
 		SimpleParser::Type::registerType<Item>("//meworla/item");
 		SimpleParser::Type::registerType<Mesh>("//meworla/mesh");
+		SimpleParser::Type::registerType<RenderComponent>("//meworla/rendercomponent");
+		SimpleParser::Type::registerType<Shader>("//meworla/shader");
+		SimpleParser::Type::registerType<Lighting>("//meworla/lighting");
+		SimpleParser::Type::registerType<Light>("//meworla/light");
+		SimpleParser::Type::registerType<PointLight>("//meworla/pointlight");
+		SimpleParser::Type::registerType<SpotLight>("//meworla/spotlight");
+		SimpleParser::Type::registerType<DirectionalLight>("//meworla/directionallight");
+		Orion::MIME::RegisterExtenstion("application/vnd.meworla.scene", "shader");
 		SimpleParser::Type::registerType<Material>("//meworla/material");
 		SimpleParser::Type::registerType<Avatar>("//meworla/avatar");
-		MediaFabrics::Register(this);		
+		SimpleParser::Type::registerType<Skybox>("//meworla/skybox"); 
+		MediaFabrics::Register(this);
 		SimpleParser::Type::registerType<Camera>("//meworla/camera");
 		SimpleParser::Type::registerTypeName<ImageResource>("//meworla/heightmap");
 		SimpleParser::Type::registerType<Terrain>("//meworla/terrain");
@@ -143,6 +175,11 @@ namespace Rhea
 	void Application::registerService(std::string name, Service* service)
 	{
 		m_services[name] = service;
+	}
+
+	void Application::unregisterService(std::string name)
+	{
+		m_services.erase(name);
 	}
 
 	void Application::setup()
@@ -298,11 +335,16 @@ namespace Rhea
 			
 			// idle(elapsed_s)
 
-			// render
+			// on Frame - normally used for physics etc.
 			for (auto it = m_services.begin(); it != m_services.end(); ++it) {
 				if (it->second->onFrame(elapsed_s))
 					ret = true;
 			}			
+			// on Frame final - physics etc. are already done
+			for (auto it = m_services.begin(); it != m_services.end(); ++it) {
+				if (it->second->onFrameFinal(elapsed_s))
+					ret = true;
+			}
 
 			frames++;
 

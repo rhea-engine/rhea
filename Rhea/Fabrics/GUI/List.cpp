@@ -20,8 +20,9 @@ namespace Rhea
 		values["value"] = value;
 		values["fillwidth"] = true;
 
-		Widget* item = (Widget*)m_app->getUnitTree()->createUnit("child_" + std::to_string(1 + m_children.size()), "//meworla/gui/listitem", attributes, values);
+		ListWidgetItem* item = (ListWidgetItem*)m_app->getUnitTree()->createUnit("child_" + std::to_string(1 + m_list_items.size()), "//meworla/gui/listitem", attributes, values);
 		addChild(item);
+		m_list_items.push_back(item);
 		item->ready();
 
 		Event e("scene_enter", item);
@@ -63,10 +64,11 @@ namespace Rhea
 		if (items != Variant()) {
 			// changed?
 			bool changed = false;
-			if (m_children.size()) {
-				if (m_children.size() == items.length()) {
+
+			if (m_list_items.size()) {
+				if (m_list_items.size() == items.length()) {
 					for (int i = 0; i < items.length(); i++) {
-						if (std::string(m_ordered_children[i]->getValue("value")).compare(items[i]))
+						if (std::string(m_list_items[i]->getValue("value")).compare(items[i]))
 							changed = true;
 					}
 				}
@@ -74,11 +76,16 @@ namespace Rhea
 					changed = true;
 				if (changed) {
 
-					for (int i = 0; i < m_ordered_children.size(); i++) {
-						delete m_ordered_children[i];
+					// iterate over children and delete all listwidgetitems
+					for (auto it = m_children.begin(); it != m_children.end(); ++it) {
+						ListWidgetItem* w = doCast<ListWidgetItem>(it->second);
+						if (w) {
+							removeChild(w);
+							delete w;
+						}
 					}
-					m_ordered_children.clear();
-					m_children.clear();
+					// clear list
+					m_list_items.clear();					
 				}
 			}
 			else
@@ -105,8 +112,8 @@ namespace Rhea
 		m_cur_position = m_position;
 
 		Vector2 child_position = m_position;
-		for (auto it = m_children.begin(); it != m_children.end(); ++it) {
-			Widget* w = doCast<Widget>(it->second);
+		for (auto it = m_list_items.begin(); it != m_list_items.end(); ++it) {
+			Widget* w = doCast<Widget>(*it);
 			if (w) {
 				w->setPosition(child_position);
 				child_position.y += w->H();

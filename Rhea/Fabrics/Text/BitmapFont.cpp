@@ -7,10 +7,10 @@
 #include "Application.h"
 #include "UnitTree.h"
 #include "Fabrics/Media/ImageResource.h"
-#include "Resources/TextResource.h"
 #include "Orion/ResourceStream.h"
 #include <Psio/Fs/Fs.h>
 #include <Psio/Log.h>
+#include <Rhea/Fabrics/Core/Shader.h>
 
 namespace Rhea
 {
@@ -19,7 +19,7 @@ namespace Rhea
 		Unit::setup(app, attributes, values);
 
 		// dependent resources
-		m_values["shader"] = "//rhea/shaders/text.hlsl";
+		m_values["shader"] = "//rhea/shaders/text";
 
 		// default values
 		m_sz = getValue("font_size", 32.0f);
@@ -55,21 +55,20 @@ namespace Rhea
 				// create dummy material
 				m_material = new Material(m_path + "_material");
 				m_material->setup(m_app);
-				m_material->addTexture(static_cast<ImageResource*>(tex));
-				m_material->setValue("shader", "text");
-				m_material->setValue("alpha_blending", true);
 
 				// get the shader
 				Unit* shader_res = m_app->getUnitTree()->find(m_values["shader"], m_attributes["basepath"], false);
-				if (shader_res && shader_res->isA("//meworla/text")) {
-					m_material->setShader(static_cast<TextResource*>(shader_res));
+				if (shader_res) {
+					m_material->setShaderRes(doCast<Shader>(shader_res));
 				}
 				else {
-					LOG(LOG_ERROR) << "TextWidget::ready(): Shader for " << m_pathname << " not found";
+					LOG(LOG_ERROR) << "BitmapFont::ready(): Shader '" << (std::string)m_values["shader"] << "' for " << m_pathname << " not found";
+					return;
 				}
+				m_material->setTexture(0, static_cast<ImageResource*>(tex));
 			}
 			else {
-				LOG(LOG_ERROR) << "TextWidget::ready(): texture for " << m_pathname << " not found";
+				LOG(LOG_ERROR) << "BitmapFont::ready(): texture for " << m_pathname << " not found";
 			}
 		}
 

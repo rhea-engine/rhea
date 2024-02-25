@@ -164,4 +164,46 @@ namespace Math
 		rot[2][1] = f_Tyz + f_Twx;
 		rot[2][2] = 1.0f - (f_Txx + f_Tyy);
 	}
+
+	void Quaternion::getAsAngleAxis(float& angle, Vector3& axis) const
+	{
+		Quaternion q = *this;
+		q.normalise();
+	
+		angle = 2.0f * acos(q.w);
+
+		// Avoid division by zero
+		float sinHalfAngle = sqrt(1.0f - q.w * q.w);
+		if (sinHalfAngle < 0.0001f) {
+			// If the angle is close to zero, any axis will do
+			axis = Vector3(1.0f, 0.0f, 0.0f);
+		}
+		else {
+			// Compute the axis			
+			axis = Vector3(q.x, q.y, q.z) / sinHalfAngle;
+		}			
+	}
+
+	void Quaternion::toAxes(Vector3& x_axis, Vector3& y_axis, Vector3& z_axis) const
+	{
+		Matrix3 rot;
+		toRotationMatrix(rot);
+
+		x_axis.x = rot[0][0];
+		x_axis.y = rot[0][1];
+		x_axis.z = rot[0][2];
+
+		y_axis.x = rot[1][0];
+		y_axis.y = rot[1][1];
+		y_axis.z = rot[1][2];
+
+		z_axis.x = rot[2][0];
+		z_axis.y = rot[2][1];
+		z_axis.z = rot[2][2];
+
+		x_axis.normalise();
+		y_axis.normalise();
+		z_axis.normalise();
+	}
+
 }

@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "Camera.h"
+#include <Components/Math/Vector4.h>
 
 namespace Hippios
 {
@@ -75,10 +76,12 @@ namespace Poseidon
 			Math::Matrix4 v;
 			Math::Matrix4 p;
 			Math::Matrix4 vp;
+			Math::Vector4 cameraPos;			
 		};
 
 		struct cbPerObject {
-			Math::Matrix3x4 model;
+			Math::Matrix4 world_matrix;			
+			Math::Matrix4 inverse;			
 		};
 
 		struct cbPerObjectTerrain
@@ -87,13 +90,40 @@ namespace Poseidon
 			Math::Matrix4 vp;
 		};
 
+		struct Light {
+			Math::Vector3 direction;
+			float Type;
+			Math::Quaternion position;
+			Math::Vector3 lightColor;
+			float pad2;
+			Math::Quaternion diffuse;
+			Math::Quaternion specular;
+
+			float ConeAngle;
+			float ConstantAttenuation;
+			float LinearAttenuation;
+			float QuadraticAttenuation;
+		};
+
+#define MAX_LIGHTS 8 
+
+		struct cbLight {		
+			Light lights[MAX_LIGHTS];
+			Math::Quaternion ambient;
+			float num_lights = 0.0f;
+			float pad2[3] = { 0.0f, 0.0f };
+		};
+
 	protected:
 		cbPerFrame per_frame_buf;
 		cbPerObject per_obj_buf;
 		cbPerObjectTerrain cbPerObjTerrain;
+		cbLight light_buf;
 
 		Hippios::GraphicsBuffer* m_frame_buffer;
 		Hippios::GraphicsBuffer* m_object_buffer;
+		Hippios::GraphicsBuffer* m_object_buffer_wvp;
+		Hippios::GraphicsBuffer* m_light_buffer;		
 	};
 }
 #endif // !POSEIDON_SCENEMANAGER_H

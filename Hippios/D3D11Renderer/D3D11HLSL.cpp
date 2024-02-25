@@ -29,6 +29,18 @@ namespace Hippios
 		m_d3dDeviceContext = d3dDeviceContext;
 	}
 
+	D3D11HLSL::~D3D11HLSL()
+	{
+		if (shaderBlob)
+			shaderBlob->Release();
+		if (errorBlob)
+			errorBlob->Release();
+		if (pVS)
+			pVS->Release();
+		if (pPS)
+			pPS->Release();
+	}
+
 	HRESULT D3D11HLSL::LoadFromFile(std::string filename, LPCSTR entryPoint, LPCSTR shaderType, LPCSTR shaderTypeId)
 	{	
 		UINT compileFlags = D3DCOMPILE_ENABLE_STRICTNESS;
@@ -83,7 +95,11 @@ namespace Hippios
 				shaderBlob->Release();
 
 			return hr;
-		}		
+		}	
+		else if (errorBlob) {
+			errorBlob->Release();
+		}
+
 		// encapsulate shaders into shader objects
 		// and set the shader objects
 		// encapsulate shaders into shader objects
@@ -98,7 +114,7 @@ namespace Hippios
 			try {
 				m_d3dDevice->CreatePixelShader(shaderBlob->GetBufferPointer(), shaderBlob->GetBufferSize(), NULL, &pPS);
 				if (FAILED(hr)) {
-					printf("could not load pixel shader");
+					printf("could not load pixel shader\n");
 				}
 			}
 			catch (_com_error & e) {
@@ -131,6 +147,8 @@ namespace Hippios
 		{
 			if (errorBlob)
 			{
+				const char* errorMsg = (const char*)errorBlob->GetBufferPointer();
+				printf("%s\n", errorMsg);
 				OutputDebugStringA((char*)errorBlob->GetBufferPointer());
 				errorBlob->Release();
 			}
@@ -140,6 +158,11 @@ namespace Hippios
 
 			return hr;
 		}
+		else if (errorBlob)
+		{
+			errorBlob->Release();
+		}
+
 		// encapsulate shaders into shader objects
 		// and set the shader objects
 		// encapsulate shaders into shader objects
@@ -263,41 +286,5 @@ namespace Hippios
 			m_d3dDeviceContext->PSSetShader(pPS, 0, 0);
 		}
 		return hr;
-	}
-
-	void D3D11HLSL::setVertexType(int type)
-	{
-		m_vertex_type = type;
-	}
-
-	ID3D11InputLayout* D3D11HLSL::GetInputLayout()
-	{		
-		HRESULT HR;
-		if (!mInputLayout) {
-			if (!m_vertex_type) {
-				// create the input layout object
-				D3D11_INPUT_ELEMENT_DESC ied[] =
-				{
-					{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-					{"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
-				};
-
-				HR = m_d3dDevice->CreateInputLayout(ied, 2, shaderBlob->GetBufferPointer(), shaderBlob->GetBufferSize(), &mInputLayout);				
-			}
-			else {
-				// create the input layout object for uv
-				D3D11_INPUT_ELEMENT_DESC ied[] =
-				{
-					{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-					{"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
-				};
-
-				HR = m_d3dDevice->CreateInputLayout(ied, 2, shaderBlob->GetBufferPointer(), shaderBlob->GetBufferSize(), &mInputLayout);
-			}
-			if (FAILED(HR)) {
-				printf("D3D11HLSL::GetInputLayout(): could not create input layout");
-			}
-		}
-		return mInputLayout;
-	}
+	}	
 }

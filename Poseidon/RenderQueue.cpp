@@ -17,6 +17,7 @@ namespace Poseidon
 		it = m_render_items.begin();
 		if (it != m_render_items.end())
 			return *it;
+		return nullptr;
 	}
 
 	Item* RenderQueue::next()

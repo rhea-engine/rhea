@@ -23,6 +23,7 @@ namespace Hippios
 			m_buffer(buffer),
 			m_dynamic(dynamic)
 		{}
+		~D3D11GraphicsBuffer();
 		void* Lock(size_t offset, size_t length);
 		void Unlock();
 		void ReadData(size_t offset, size_t length, void* dest);

@@ -4,11 +4,15 @@
 
 #include "Application.h"
 #include "Orion/ResourceStream.h"
+#include <Psio/Log.h>
 
 namespace Rhea
 {
 	ImageResource::~ImageResource()
-	{		
+	{
+		if (m_buf)
+			free(m_buf);
+		m_buf = nullptr;
 	}
 
 	void ImageResource::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
@@ -37,9 +41,12 @@ namespace Rhea
 			ImageResource* img = static_cast<ImageResource*>(m_app->getUnitTree()->find(path_it->second, m_attributes["basepath"], false));
 			if (img && img->m_buflen) {
 				m_buf = (char*)malloc(img->m_buflen);
-				if (img->m_buf != nullptr) {
+				if (m_buf && img->m_buf != nullptr) {
 					memcpy(m_buf, img->m_buf, img->m_buflen);
 					m_buflen = img->m_buflen;
+				}
+				else {
+					LOG(LOG_ERROR) << "Failed to load image " << getPathName() << " could not allocate buffers.";
 				}
 			}
 		}		

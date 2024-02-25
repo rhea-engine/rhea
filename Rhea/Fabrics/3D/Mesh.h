@@ -4,6 +4,8 @@
 #include <vector>
 
 #include <Rhea/Unit.h>
+#include <Rhea/Resources/VertexBuffer.h>
+#include <Rhea/Resources/VertexAttribute.h>
 
 namespace Rhea
 {
@@ -27,6 +29,17 @@ namespace Rhea
 		struct vertex {
 			float x, y, z, u, v;
 
+			vertex() :
+				x(0), y(0), z(0), u(0), v(0)
+			{}
+			vertex(float _x, float _y, float _z, float _u, float _v) :
+				x(_x),
+				y(_y),
+				z(_z),
+				u(_u),
+				v(_v)
+			{}
+
 			bool operator==(const vertex& other) const
 			{
 				return (x == other.x
@@ -38,6 +51,11 @@ namespace Rhea
 			}
 		};
 
+		struct SubMesh {
+			std::vector<unsigned long> indices;
+			Material* material;
+		};
+		
 		// setup from strings
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
 
@@ -47,22 +65,50 @@ namespace Rhea
 		void ready();
 				
 		// get material
-		Material* getMaterial() { return m_material; }
-		void setMaterial(Material* material) { m_material = material; }
+		Material* getMaterial(size_t mesh_idx = 0) { if (mesh_idx < m_submeshes.size()) return m_submeshes[mesh_idx].material; else return nullptr; }
+		void setMaterial(Material* material);
 
 		// do we need dynamic buffers?
 		void setDynamic(bool is_dynamic) { m_isDynamic = is_dynamic; }
-		bool isDynamic() { return m_isDynamic; }
+		bool isDynamic() { return m_isDynamic; }	
 
-		// return the buffers
+		// return the buffers - short hand for meshes without submeshes
 		void getBuffers(std::vector<vertex>& vertices, std::vector<unsigned long>& indices);
 		void setBuffers(std::vector<vertex>& vertices, std::vector<unsigned long>& indices);
+
+		// set buffer with map of attributes
+		void setVertexBuffer(std::vector<VertexAttribute>& layout, std::unordered_map<std::string, VertexBuffer>& vertices, size_t num_vertices);
+		// short hand for mehses with no submeshes
+		void setBuffers(std::unordered_map<std::string, VertexBuffer>& vertices, std::vector<unsigned long>& indices, size_t num_vertices);
+
+		// set submeshes with material and indices
+		void addSubmesh(Material* material, std::vector<unsigned long>& indices);
+		void setSubmesh(size_t idx, Material* material, std::vector<unsigned long>& indices);
+
+		// get number of submeshes
+		size_t getNumSubmeshes() { return m_submeshes.size(); }
+
+		// return pointers to the buffers
+		VertexBuffer* getVertexBuffer() { return &m_vertex; }
+		VertexBuffer& getVertexBufferRef() { return m_vertex; }
+		const std::vector<unsigned long>& getIndices(size_t mesh_idx) const {			
+			if (mesh_idx >= m_submeshes.size())
+				mesh_idx = 0;
+			return m_submeshes[mesh_idx].indices;
+		}
+		std::vector<unsigned long>& getIndices(size_t mesh_idx) {
+			if (mesh_idx >= m_submeshes.size())
+				mesh_idx = 0;
+			return m_submeshes[mesh_idx].indices;
+		}
 
 	protected:
 		Material* m_material;
 		std::vector<vertex> m_vertices;
-		std::vector<unsigned long> m_v_indices;
+		//std::vector<unsigned long> m_v_indices;
+		std::vector<SubMesh> m_submeshes;
 		bool m_isDynamic;
+		VertexBuffer m_vertex;
 	};
 }
 

@@ -8,7 +8,7 @@
 #include "UnitTree.h"
 #include "Fabrics/Core/Scene.h"
 #include "Fabrics/Media/ImageResource.h"
-#include "Resources/TextResource.h"
+#include <Rhea/Fabrics/Core/Shader.h>
 
 #include "../Canvas/Item2D.h"
 
@@ -116,8 +116,14 @@ namespace Rhea
 		// prepare material
 		Item2D::ready();
 
+		//  widgets always need a render component
+		if (!m_render_component) {
+			m_render_component = new RenderComponent("renderer", "//meworla/rendercomponent");
+			addChild(m_render_component);
+		}
+
 		// if we are hidden at the beggining - send the event
-		if (!m_visible) {
+		if (!m_render_component || !m_render_component->isVisible()) {
 			hide();
 		}
 	}
@@ -145,7 +151,7 @@ namespace Rhea
 
 	void Widget::setPosition(Vector2 position)
 	{
-		if (!m_visible)
+		if (!m_render_component || !m_render_component->isVisible())
 			return;
 
 		// set the screen coords
@@ -184,7 +190,7 @@ namespace Rhea
 		// constraints for children
 		Vector2 inner_size = size_constraints;
 
-		if (!m_visible)
+		if (!m_render_component || !m_render_component->isVisible())
 			return m_outer_size;
 
 		// apply modifiers
@@ -282,11 +288,15 @@ namespace Rhea
 						m_material->sendEvent("delete", nullptr);
 						delete m_material;
 						m_material = nullptr;
-						m_render_component->setMaterial(nullptr);
-						m_mesh->sendEvent("delete", nullptr);
-						delete m_mesh;
-						m_mesh = nullptr;
-						m_render_component->setMesh(nullptr);
+						if (m_render_component) {
+							Mesh* mesh = m_render_component->getMesh();
+							if (mesh) {
+								mesh->sendEvent("delete", nullptr);
+								removeChild(mesh);
+								delete mesh;
+								m_render_component->setMesh(nullptr);
+							}
+						}
 					}
 				}
 				else if (!m_material) {
@@ -299,37 +309,42 @@ namespace Rhea
 						// create dummy material
 						m_material = new Material(m_path + "_material");
 						m_material->setup(m_app);
-						m_material->addTexture(static_cast<ImageResource*>(tex));
-						m_material->setValue("shader", "widget");
+						m_material->setValue("shader", "widget");						
 
 						// get the shader						
 						if (m_values.find("shader") == m_values.end()) {
 							// set a default
-							m_values["shader"] = "//rhea/shaders/widget.hlsl";
+							m_values["shader"] = "//rhea/shaders/widget";
 						}
-
 						Unit* shader_res = m_app->getUnitTree()->find(m_values["shader"]);
 						if (shader_res) {
-							m_material->setShader(static_cast<TextResource*>(shader_res));
+							m_material->setShaderRes(doCast<Shader>(shader_res));
 						}
 						else {
 							LOG(LOG_ERROR) << "item2d::ready(): Shader '" << (std::string)m_values["shader"] << "' for " << m_pathname << " not found";
+							return;
+						}
+						m_material->setTexture(0, static_cast<ImageResource*>(tex));
+
+						if (!m_render_component) {
+							m_render_component = new RenderComponent("renderer", "//meworla/rendercomponent");
+							addChild(m_render_component);
 						}
 
 						// add the mesh
-						if (!m_mesh) {
+						if (!m_render_component->getMesh()) {
 
 							std::unordered_map<std::string, std::string> attributes;
 							std::unordered_map<std::string, Variant> values;
-							m_mesh = static_cast<Mesh*>(m_app->getUnitTree()->createUnit(m_pathname + "_mesh", "//meworla/mesh", attributes, values));
-							m_mesh->setMaterial(m_material);
+							Mesh* mesh = static_cast<Mesh*>(m_app->getUnitTree()->createUnit(m_pathname + "_mesh", "//meworla/mesh", attributes, values));
+							mesh->setMaterial(m_material);
+							addChild(mesh);
+							m_render_component->setMesh(mesh);
 
 							setMesh();
-
-							m_render_component->setMesh(m_mesh);
 						}
 						else
-							m_mesh->setMaterial(m_material);
+							m_render_component->getMesh()->setMaterial(m_material);
 						sendEvent("update", nullptr);
 					}
 				}
@@ -354,35 +369,31 @@ namespace Rhea
 
 	void Widget::show()
 	{
-		m_visible = true;
-		m_render_component->show();
+		Item::show();
 		Event e("show", this);
 		bubbleEvent("show", &e);
 	}
 
 	void Widget::makeVisble()
 	{
-		m_visible = true;
-		m_render_component->show();
+		Item::show();
 	}
 
 	void Widget::hide()
 	{
-		m_visible = false;
-		m_render_component->hide();
+		Item::hide();
 		Event e("hide", this);
 		bubbleEvent("hide", &e);
 	}
 
 	void Widget::makeInvisble()
 	{
-		m_visible = false;
-		m_render_component->hide();
+		Item::hide();
 	}
 
 	Widget* Widget::capture(int c_x, int c_y)
 	{
-		if (!m_visible)
+		if (!m_render_component || !m_render_component->isVisible())
 			return nullptr;
 
 		if (m_position.x > c_x ||

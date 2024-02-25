@@ -1,6 +1,8 @@
 #ifndef MATH_VECTOR2_H
 #define MATH_VECTOR2_H
 
+#include <functional>
+
 namespace Math
 {
 	class Vector2 {
@@ -69,6 +71,20 @@ namespace Math
 			return (x == v.x && y == v.y);
 		}
 		bool operator!=(const Vector2& v) const { return !(*this == v); }
+
+		// check if vector is approximately the same
+		bool equals(const Vector2& v, float epsilon = (float)1e-06) const {
+			return (fabs(x - v.x) < epsilon && fabs(y - v.y) < epsilon);
+		}
+
+		// helper for hashing
+		size_t operator()(const Vector2& v) const {
+			// You can use a simple hash combination technique
+			size_t hash = 17;
+			hash = hash * 31 + std::hash<float>{}(v.x);
+			hash = hash * 31 + std::hash<float>{}(v.y);
+			return hash;
+		}
 	};
 }
 #endif // !MATH_VECTOR2_H

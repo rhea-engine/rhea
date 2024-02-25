@@ -11,6 +11,7 @@ namespace Hippios
 		bool m_is_locked = false;
 		size_t m_size_in_bytes;
 	public:
+		virtual ~GraphicsBuffer() = default;
 		virtual void* Lock(size_t offset, size_t length) {
 			m_is_locked = true;
 			return 0;

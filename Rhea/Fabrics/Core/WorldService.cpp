@@ -1,0 +1,45 @@
+#include "WorldService.h"
+
+#include <Rhea/Application.h>
+#include <Rhea/UnitTree.h>
+#include <Rhea/Fabrics/3D/Item.h>
+
+namespace Rhea
+{
+	void WorldService::onInit()
+	{
+		m_app->getUnitTree()->registerEventHandler("scene_activate", this, [&](Event* ev, Unit* tree)->bool {
+			onSceneActivate(doCast<Scene>(ev->getTarget()));
+			return false;
+			});
+		m_app->getUnitTree()->registerEventHandler("scene_deactivate", this, [&](Event* ev, Unit* tree)->bool {
+			onSceneDeactivate(doCast<Scene>(ev->getTarget()));
+			return false;
+			});
+	}
+
+	bool WorldService::onFrameFinal(float delta)
+	{
+		// update items
+		for (auto it = m_scenes.begin(); it < m_scenes.end(); ++it) {
+			(*it)->traverse([delta](std::string& name, Unit* unit)->bool {
+				Item* item = doCast<Item>(unit);
+				if (item) {
+					item->onFrame(delta);
+				}
+				return true;
+				});
+		}
+		return false;
+	}
+
+	void WorldService::onSceneActivate(Scene* scene)
+	{
+		m_scenes.push_back(scene);
+	}
+
+	void WorldService::onSceneDeactivate(Scene* scene)
+	{
+		m_scenes.erase(std::remove(m_scenes.begin(), m_scenes.end(), scene), m_scenes.end());
+	}
+}

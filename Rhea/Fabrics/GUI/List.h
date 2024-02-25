@@ -3,6 +3,7 @@
 
 #include "Widget.h"
 #include "Label.h"
+#include "ListItem.h"
 #include <Rhea/UnitTree.h>
 
 namespace Rhea
@@ -40,6 +41,7 @@ namespace Rhea
 
 	protected:
 		UnitTree::Binding m_data_binding;
+		std::vector<ListWidgetItem*> m_list_items; // list item
 	};
 }
 

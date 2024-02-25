@@ -16,8 +16,10 @@ namespace Hippios
 		ID3D11Texture2D* m_texture = nullptr;
 		ID3D11ShaderResourceView* m_shader_resource_texture_view = nullptr;
 	public:
-		D3D11Texture(Renderer* renderer);
-		void loadImpl(unsigned int width, unsigned int height, unsigned char* image_data);
+		D3D11Texture(TextureDesc& desc, Renderer* renderer);
+		~D3D11Texture();
+		void loadImpl(int index, unsigned int width, unsigned int height, unsigned char* image_data) override;
+		void loadCubemapFace(int faceIndex, Texture* src_texture);
 		ID3D11ShaderResourceView* get() { return m_shader_resource_texture_view; };
 	};
 }

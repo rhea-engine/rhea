@@ -117,8 +117,8 @@ namespace Rhea
 
 		m_position = m_position + trans;
 		m_dirty_wtm = true;
-
-		return m_position;
+		
+		return m_position;		
 	}
 
 	Matrix3x4 Position::getWorldTransform()

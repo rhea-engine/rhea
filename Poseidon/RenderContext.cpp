@@ -14,6 +14,22 @@ namespace Poseidon
 	{
 	}
 
+	void RenderContext::getLights(std::vector<Rhea::Light*>& lights)
+	{
+		for (std::vector<Item*>::iterator it = m_render_children.begin(); it != m_render_children.end(); ++it)
+		{
+			Rhea::Unit* robj = doCast<Rhea::Unit>(*it);
+			if (robj) {
+				robj->traverse([&](std::string name, Rhea::Unit* uitem)->bool {
+					Rhea::Light* light = doCast<Rhea::Light>(uitem);
+					if (light)
+						lights.push_back(light);
+					return true;
+					});
+			}
+		}
+	}
+
 	void RenderContext::cullObjects(RenderQueue* queue)
 	{
 		// cull pass
@@ -26,12 +42,9 @@ namespace Poseidon
 			robj->traverse([&](std::string name, Rhea::Unit* uitem)->bool {
 				Item* item = doCast<Item>(uitem);
 				if (item) {
-					Rhea::RenderComponent* render_com = item->getGraphicsComponent();
-					if (!render_com)
-						return true;
-					if (!render_com->isVisible())
-						return false;
-					if (render_com->getMesh())
+					if (!item->isVisible())
+						return false;					
+					if (item->getMesh())
 						queue->addRenderable(item);
 					return true;
 				}

@@ -10,19 +10,7 @@ namespace Rhea
 
 	bool GuiService::onFrame(float delta)
 	{	
-		for (auto it = m_controllers.begin(); it < m_controllers.end(); it++)
-		{
-			(*it)->traverse([delta](std::string& name, Unit* unit)->bool {
-				Widget* item = doCast<Widget>(unit);
-				if (item && item->isVisible()) {
-					item->onFrame(delta);
-					return true;
-				}
-				else
-					return false;
-				});
-		}
-		
+
 		return false;
 	}
 

@@ -27,6 +27,14 @@ namespace Hippios
 		if (m_depth_stencil_buffer)
 			m_device->CreateDepthStencilView(m_depth_stencil_buffer, NULL, &m_depth_stencil_view);
 		else
-			m_depth_stencil_view = 0;
+			m_depth_stencil_view = nullptr;
+	}
+
+	D3D11DepthBuffer::~D3D11DepthBuffer()
+	{
+		if (m_depth_stencil_buffer)
+			m_depth_stencil_buffer->Release();
+		if (m_depth_stencil_view)
+			m_depth_stencil_view->Release();
 	}
 }

@@ -57,6 +57,10 @@ namespace Rhea
 
 				scene->SetModel(model);
 				delete buf;
+				// make a rhea mesh from the model?
+				Rhea::Mesh* mesh = new Rhea::Mesh("mesh");
+				scene->load(mesh);
+				scene->addChild(mesh);
 
 				handler(ReqError::OK, scene);
 				});

@@ -9,6 +9,10 @@ namespace Rhea
 {
 	bool GltfScene::load(Rhea::Mesh* mesh)
 	{
+		// instanced?
+		if (m_instance)
+			return m_instance->load(mesh);
+
 		// check if we have at least one scene
 		if (!m_model.scenes.size())
 		{
@@ -55,6 +59,9 @@ namespace Rhea
 			m_instance = doCast<GltfScene>(m_app->getUnitTree()->find(m_instance_path, m_attributes["basepath"], false));
 			if (!m_instance)
 				LOG(LOG_ERROR) << "Could not find Gltf scene at " << m_instance_path << " (basepath=" << m_attributes["basepath"] << ")";
+			else {
+				// copy the children
+			}
 		}
 	}
 

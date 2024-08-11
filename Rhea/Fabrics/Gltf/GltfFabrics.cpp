@@ -14,7 +14,7 @@ void Rhea::GltfFabrics::Register(Application* app)
 
 	// register mime for gltf
 	Orion::MIME::RegisterExtenstion("model/gltf+json", "gltf");
-	Orion::MIME::RegisterExtenstion("model/gltf+json", "glb");
+	Orion::MIME::RegisterExtenstion("model/gltf-binary", "glb");
 	
 	// the resource scene file
 	SimpleParser::Type::registerType<GltfScene>("//meworla/gltf");

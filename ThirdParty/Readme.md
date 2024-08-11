@@ -14,6 +14,11 @@ Files extracted from upstream source:
 - README.md
 - VERSION
 
+## tiny_gltf
+
+	- upstream: https://github.com/syoyo/tinygltf
+	- License: MIT
+
 #
 # Dependencies
 #

@@ -2,8 +2,6 @@ cmake_minimum_required (VERSION 3.9.2)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/Rhea/)
 
-add_subdirectory (Network)
-
 add_library (RheaFabrics "Character/Character.cpp" "Character/KinematicCharacter.cpp" "Terrain/Terrain.cpp" 
 "Canvas/Item2D.cpp" "Text/TextWidget.h" "Text/TextWidget.cpp" "Text/Font.h" "Text/BitmapFont.h" "Text/BitmapFont.cpp"
 "Media/MediaFabrics.h" "Media/MediaFabrics.cpp" "Media/ImageResource.h" "Media/ImageResource.cpp" "Media/ImageLoader.h" 
@@ -23,4 +21,10 @@ add_library (RheaFabrics "Character/Character.cpp" "Character/KinematicCharacter
 "3D/Light.h" "3D/Light.cpp" "Core/Lighting.cpp" "3D/DirectionalLight.h" "3D/DirectionalLight.cpp" "3D/PointLight.h" "3D/PointLight.cpp" 
 "Core/Lighting.h" "Core/Lighting.cpp" "3D/SpotLight.h" "3D/SpotLight.cpp")
 
+add_subdirectory (Network)
 target_link_libraries(RheaFabrics RheaFabricsNet)
+
+if(USE_RHEA_GLTF_LOADER)
+	add_subdirectory(Gltf)
+	target_link_libraries(RheaFabrics RheaFabricsGltf)
+endif()

@@ -15,6 +15,16 @@
 
 namespace Rhea
 {
+	Mesh::Mesh(const Mesh& m) :
+		Unit(m),
+		m_material(m.m_material),
+		m_vertices(m.m_vertices),
+		m_submeshes(m.m_submeshes),
+		m_isDynamic(m.m_isDynamic),
+		m_vertex(m.m_vertex)
+	{
+	}
+
 	void Mesh::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{
 		Unit::setup(app, attributes, values);

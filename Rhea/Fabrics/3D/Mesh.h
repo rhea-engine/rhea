@@ -51,6 +51,10 @@ namespace Rhea
 			}
 		};
 
+		Mesh* Clone() const override {
+			return new Mesh(*this); // Use the copy constructor
+		}
+
 		struct SubMesh {
 			std::vector<unsigned long> indices;
 			Material* material;
@@ -109,6 +113,9 @@ namespace Rhea
 		std::vector<SubMesh> m_submeshes;
 		bool m_isDynamic;
 		VertexBuffer m_vertex;
+
+		// Copy Constructor 
+		Mesh(const Mesh& m);
 	};
 }
 

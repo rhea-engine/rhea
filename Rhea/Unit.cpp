@@ -13,6 +13,24 @@ namespace Rhea
 		m_values = values;
 	}
 
+	Unit::Unit(const Unit& u)
+	{
+		m_pathname = u.m_pathname;
+		m_path = u.m_pathname;
+		m_parent = nullptr;
+		m_type = u.m_type;
+		m_app = u.m_app;
+		m_refcount = 0;
+		m_attributes = u.m_attributes;
+		m_values = u.m_values;
+		// copy the children
+		for (auto it = u.m_ordered_children.begin(); it != u.m_ordered_children.end(); it++)
+		{
+			Unit* child = (*it)->Clone();
+			addChild(child);
+		}
+	}
+
 	void Unit::addChild(Unit* child)
 	{		
 		child->m_path = m_path + "/" + child->m_pathname;

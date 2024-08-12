@@ -61,6 +61,7 @@ namespace Rhea
 				LOG(LOG_ERROR) << "Could not find Gltf scene at " << m_instance_path << " (basepath=" << m_attributes["basepath"] << ")";
 			else {
 				// copy the children
+				m_instance->Instantiate(this);
 			}
 		}
 	}
@@ -70,9 +71,17 @@ namespace Rhea
 		std::vector<Export> refs;
 		if (m_values.find("path") != m_values.end()) {
 			refs.push_back({ "path", "//meworla/gltf+json", m_values["path"] });
-			m_instance_path = m_values["path"];
 		}
 		return refs;
+	}
+
+	void GltfScene::Instantiate(Unit* owner)
+	{
+		for (auto it = m_ordered_children.begin(); it != m_ordered_children.end(); it++)
+		{
+			Unit* child = (*it)->Clone();
+			owner->addChild(child);
+		}
 	}
 
 	void GltfScene::HandleNode(tinygltf::Node& node, Mesh* u_mesh)

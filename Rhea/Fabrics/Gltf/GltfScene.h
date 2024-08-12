@@ -38,6 +38,9 @@ namespace Rhea
 
 		void SetModel(tinygltf::Model model) { m_model = model; }
 
+		// Instantiate the scenes children to the scene given
+		void Instantiate(Unit* owner);
+
 	protected:
 		// path to resource we will instance (if any)
 		std::string m_instance_path;

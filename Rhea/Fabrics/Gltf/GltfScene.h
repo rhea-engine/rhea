@@ -49,6 +49,7 @@ namespace Rhea
 
 		tinygltf::Model m_model;
 
+		std::vector<unsigned long> ExtractIndices(const tinygltf::Accessor& accessor);
 		void HandleNode(tinygltf::Node& node, Mesh* mesh);
 
 		struct Vertex {

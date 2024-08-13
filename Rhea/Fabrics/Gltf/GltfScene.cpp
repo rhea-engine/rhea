@@ -84,6 +84,49 @@ namespace Rhea
 		}
 	}
 
+	std::vector<unsigned long> GltfScene::ExtractIndices(const tinygltf::Accessor& accessor) 
+	{
+		std::vector<unsigned long> indices;
+
+		// Get the buffer view from the accessor
+		const tinygltf::BufferView& bufferView = m_model.bufferViews[accessor.bufferView];
+
+		// Get the actual buffer data
+		const tinygltf::Buffer& buffer = m_model.buffers[bufferView.buffer];
+
+		// Determine the type of indices
+		const unsigned char* dataPtr = buffer.data.data() + bufferView.byteOffset + accessor.byteOffset;
+		size_t indexCount = accessor.count;
+
+		// Fill the indices vector depending on the component type
+		switch (accessor.componentType) {
+		case TINYGLTF_PARAMETER_TYPE_UNSIGNED_BYTE: {
+			for (size_t i = 0; i < indexCount; ++i) {
+				indices.push_back(static_cast<unsigned long>(dataPtr[i]));
+			}
+			break;
+		}
+		case TINYGLTF_PARAMETER_TYPE_UNSIGNED_SHORT: {
+			const unsigned short* indicesPtr = reinterpret_cast<const unsigned short*>(dataPtr);
+			for (size_t i = 0; i < indexCount; ++i) {
+				indices.push_back(static_cast<unsigned long>(indicesPtr[i]));
+			}
+			break;
+		}
+		case TINYGLTF_PARAMETER_TYPE_UNSIGNED_INT: {
+			const unsigned int* indicesPtr = reinterpret_cast<const unsigned int*>(dataPtr);
+			for (size_t i = 0; i < indexCount; ++i) {
+				indices.push_back(static_cast<unsigned long>(indicesPtr[i]));
+			}
+			break;
+		}
+		default:
+			LOG(LOG_ERROR) << "GltfScene::ExtractIndices: Unsupported index component type.";
+		}
+
+		return indices;
+	}
+
 	void GltfScene::HandleNode(tinygltf::Node& node, Mesh* u_mesh)
 	{
 		LOG(LOG_DEBUG) << "Loading node: " << node.name;
@@ -168,16 +211,21 @@ namespace Rhea
 				}
 
 				// indices
-				const tinygltf::Accessor& index_accessor = m_model.accessors[primitive.indices];
+				if (primitive.indices >= 0) {
+					const tinygltf::Accessor& index_accessor = m_model.accessors[primitive.indices];
+
+
+					// for now only one material
+					Rhea::Material* def_mat = u_mesh->getDefaultMaterial();
+					u_mesh->addSubmesh(def_mat, ExtractIndices(index_accessor));
+
+					//u_mesh->addSubmesh(def_mat, m_model.meshes[node.mesh].primitives[0].indices);
+				}
 			}
-
-			//mesh->addSubmesh(m_model.meshes[node.mesh].primitives[0].material, m_model.meshes[node.mesh].primitives[0].indices);
-
 		}	
 
 		// Handle child nodes.
 		for (size_t i = 0; i < node.children.size(); i++) {
-			LOG(LOG_DEBUG) << "Node: " << node.children[i];
 			HandleNode(m_model.nodes[node.children[i]], u_mesh);
 		}
 	}

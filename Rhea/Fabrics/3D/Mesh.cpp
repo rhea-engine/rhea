@@ -50,6 +50,10 @@ namespace Rhea
 
 	void Mesh::ready()
 	{
+		if (m_state)
+			return;
+		m_state = 1;
+
 		Unit::ready();
 		
 		// if we have a texture we create a correspondig material
@@ -57,10 +61,17 @@ namespace Rhea
 		{
 			Unit* tex = nullptr;
 
+			// if material is set explicitly we use it
+			if (m_values.find("material") != m_values.end()) {
+				m_material = doCast<Material>(m_app->getUnitTree()->find(m_values["material"], m_attributes["basepath"], false));
+			}
+
 			tex = m_app->getUnitTree()->find(m_values["texture"], m_attributes["basepath"], false);
 			if (tex) {
 				if (!m_material) {
+					// if no material was set create one ad-hoc as child of this mesh
 					m_material = new Material(m_path + "_material");
+					addChild(m_material);
 				}
 				m_material->setup(m_app);
 				m_material->setTexture(0, static_cast<ImageResource*>(tex));
@@ -82,12 +93,8 @@ namespace Rhea
 				}
 			}
 		}	
-		// if material is set explicitly we use it
-		if (m_values.find("material") != m_values.end()) {
-			m_material = doCast<Material>(m_app->getUnitTree()->find(m_values["material"], m_attributes["basepath"], false));
-		}
-
-		// load using geometry (import from extrenal 3d file)
+		
+		// load using geometry (normally used for import from file)
 		if (m_values.find("geometry") != m_values.end()) {
 			Geometry* geometry = (Geometry*)m_app->getUnitTree()->find(m_values["geometry"], m_attributes["basepath"], false);
 			if (geometry) {				

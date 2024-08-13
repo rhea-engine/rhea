@@ -182,7 +182,7 @@ namespace Rhea
 					const tinygltf::BufferView& texcoord_bufferView = m_model.bufferViews[texcoord_accessor.bufferView];
 					const tinygltf::Buffer& texcoord_buffer = m_model.buffers[texcoord_bufferView.buffer];
 
-					const float* texcoords = reinterpret_cast<const float*>(&texcoord_buffer.data[texcoord_accessor.byteOffset]);
+					texcoords = reinterpret_cast<const float*>(&texcoord_buffer.data[texcoord_accessor.byteOffset + texcoord_bufferView.byteOffset]);
 				}
 
 				for (int j = 0; j < vertex_count; j++) {
@@ -213,7 +213,6 @@ namespace Rhea
 				// indices
 				if (primitive.indices >= 0) {
 					const tinygltf::Accessor& index_accessor = m_model.accessors[primitive.indices];
-
 
 					// for now only one material
 					Rhea::Material* def_mat = u_mesh->getDefaultMaterial();

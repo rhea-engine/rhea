@@ -16,6 +16,8 @@ namespace Rhea
 			m_wvp(false),
 			m_num_input_slots(0),
 			m_num_texture_slots(0),
+			m_vertex_size(-1),
+			m_vertex_elements(-1),
 			Unit(name, "//meworla/shader")
 		{}
 
@@ -48,6 +50,12 @@ namespace Rhea
 		// get max texture input slot
 		int getNumTextureSlots() const { return m_num_texture_slots; }
 
+		// get vertex size for input layout
+		int getVertexSize();
+
+		// get vertex element count for input layout
+		int getVertexElements();
+
 	protected:
 		std::string m_stencil_test;
 		bool m_alpha_blending;
@@ -60,6 +68,11 @@ namespace Rhea
 		// texture input slots
 		std::map<std::string, int> m_texture_slots;
 		int m_num_texture_slots;
+
+		// vertex size cache
+		int m_vertex_size;
+		// vertex element count cache
+		int m_vertex_elements;
 	};
 }
 

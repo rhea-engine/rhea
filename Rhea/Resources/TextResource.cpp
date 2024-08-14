@@ -6,8 +6,6 @@ namespace Rhea
 {
 	TextResource::~TextResource()
 	{
-		if (m_buf)
-			free(m_buf);
 	}
 
 	void TextResource::load(Orion::ResourceRequest* req, ReadyHandler handler)

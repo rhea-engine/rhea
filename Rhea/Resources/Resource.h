@@ -52,7 +52,7 @@ namespace Rhea
 		// get raw data
 		size_t getRaw(char** buf, size_t* buflen) { *buf = m_buf; *buflen = m_buflen; return m_buflen; }
 
-		// set raw data
+		// set raw data (moves the data to the resource)
 		void setRaw(size_t buflen, char* buf);
 
 		// check if resource finished loading

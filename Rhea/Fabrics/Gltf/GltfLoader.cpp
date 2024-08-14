@@ -14,9 +14,55 @@
 #include <nlohmann/json.hpp>
 #include <ThirdParty/tiny_gltf_loader/tiny_gltf.h>
 #include <Psio/Log.h>
+#include <Fabrics/Media/ImageResource.h>
 
 namespace Rhea
 {	
+	bool GltfImageLoader(tinygltf::Image* image,
+		int image_idx,
+		std::string* err,
+		std::string* warn,
+		int req_width,
+		int req_height,
+		const unsigned char* bytes,
+		int size,
+		void* user_data) {
+		
+		GltfScene* scene = (GltfScene*)user_data;
+
+		std::string name = image->name;
+		if (name == "" && image->uri != "")
+			name = image->uri;
+		if (name == "")
+			name = "image" + std::to_string(image_idx);
+
+		bool success = true;
+		ImageResource* img_res = new ImageResource(name, "//meworla/image");
+		img_res->setup(scene->getApplication());
+		char* dest = (char*)malloc(size);
+		if (!dest) {
+			success = false;
+		}
+		else {
+			memcpy(dest, bytes, size);
+			img_res->setRaw(size, dest);
+		}
+
+		if (!success) {
+			delete img_res;
+			if (err) {
+				*err = "Failed to load image.";
+			}
+			return false;
+		}
+		// add to scene
+		scene->addChild(img_res);
+		// store index
+		scene->setImage(image_idx, img_res);
+
+		return true;
+	}
+
 	void GltfLoader::load_impl(std::string name, Application* app, Orion::ResourceRequest* req, Resource::LoadedHandler handler, bool is_binary)
 	{
 		if (req) {
@@ -37,6 +83,9 @@ namespace Rhea
 
 				std::string err;
 				std::string warn;
+
+				// image loader
+				loader.SetImageLoader(GltfImageLoader, (void*)scene);
 
 				bool ret = false;
 				if (is_binary)

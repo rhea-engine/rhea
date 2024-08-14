@@ -41,6 +41,12 @@ namespace Rhea
 		// Instantiate the scenes children to the scene given
 		void Instantiate(Unit* owner);
 
+		// set image indices
+		void setImage(int idx, ImageResource* img) { m_images[idx] = img; }
+
+		// get image by index
+		ImageResource* getImage(int idx) { auto it = m_images.find(idx); if (it != m_images.end()) { return it->second; } }
+
 	protected:
 		// path to resource we will instance (if any)
 		std::string m_instance_path;
@@ -63,6 +69,9 @@ namespace Rhea
 				return position.equals(other.position)/* && normal.equals(other.normal)*/ && uv.equals(other.uv)/* && color.equals(other.color) */;
 			}
 		};
+
+		// Images
+		std::map<int, ImageResource*> m_images;
 	};
 }
 

@@ -4,6 +4,8 @@
 #include <Rhea/Application.h>
 #include <Rhea/UnitTree.h>
 #include <Resources/VertexBufferStandard.h>
+#include <Rhea/Fabrics/Media/ImageResource.h>
+#include <Rhea/Fabrics/Core/Material.h>
 
 namespace Rhea
 {
@@ -29,6 +31,76 @@ namespace Rhea
 
 		// prepare vertex buffer
 		mesh->getVertexBuffer()->setVertexSize(shader_res->getVertexSize());
+
+		// prepare materials
+		int ambient_id = shader_res->getInputSlotId("AMBIENT");
+		int diffuse_id = shader_res->getInputSlotId("DIFFUSE");
+		int specular_id = shader_res->getInputSlotId("SPECULAR");
+		int emmission_id = shader_res->getInputSlotId("EMISSIVE");
+
+		int basecolor_id = shader_res->getTextureSlotId("BASECOLOR");
+		int normal_id = shader_res->getTextureSlotId("NORMAL");
+
+		if (m_model.materials.size() > 0) {
+			if (m_app)
+				m_app = mesh->getApplication();
+
+			Variant override_materials = mesh->getValue("material");
+			// prepare diffuse maps from mesh options
+			std::vector<ImageResource*> diffuse_maps;
+			Variant diffuse_tex = mesh->getValue("diffuse_tex");
+			if (diffuse_tex.isArray()) {
+				for (int i = 0; i < diffuse_tex.size(); i++) {
+					ImageResource* tex = doCast<ImageResource>(m_app->getUnitTree()->find(diffuse_tex[i], mesh->getBasePath(), false));
+					diffuse_maps.push_back(tex);
+				}
+			}
+			if (override_materials.isArray()) {
+				// TODO make overriding of material possible
+			}
+			else {
+				// create the materials from gltf file
+				for (const auto& material : m_model.materials) {
+					Material* mat = new Material(material.name);
+					// set shader
+					mat->setShaderRes(shader_res);
+					mat->setValue("shader", shader_name);
+
+					// set material values
+					
+					// traditional shader - fill as good as possible
+					//mat->setColor(ambient_id, Math::Vector3(material.ambient[0], material.ambient[1], material.ambient[2]));
+					Vector3 diffuse(
+						(float)material.pbrMetallicRoughness.baseColorFactor[0],
+						(float)material.pbrMetallicRoughness.baseColorFactor[1],
+						(float)material.pbrMetallicRoughness.baseColorFactor[2]
+						);
+					mat->setColor(diffuse_id, diffuse);
+					//mat->setColor(specular_id, Math::Vector3(material.specular[0], material.specular[1], material.specular[2]));
+					Vector3 emmissive(
+						material.emissiveFactor[0],
+						material.emissiveFactor[1],
+						material.emissiveFactor[2]
+					);
+					mat->setColor(emmission_id, emmissive);
+
+					if (material.pbrMetallicRoughness.baseColorTexture.index >= 0) {
+						int textureIndex = material.pbrMetallicRoughness.baseColorTexture.index;
+						if (diffuse_maps.size() > textureIndex)
+							mat->setTexture(basecolor_id, diffuse_maps[textureIndex]);
+						else {
+							auto tex = m_images.find(textureIndex);
+							if (tex != m_images.end()) {
+								mat->setTexture(basecolor_id, tex->second);
+							}
+						}
+					}
+
+					addChild(mat);
+					m_materials.push_back(mat);
+				}
+			}
+		}
 
 		// if default scene is defined use it - else use first scene
 		int default_scene = m_model.defaultScene > -1 ? m_model.defaultScene : 0;
@@ -203,9 +275,13 @@ namespace Rhea
 				if (primitive.indices >= 0) {
 					const tinygltf::Accessor& index_accessor = m_model.accessors[primitive.indices];
 
-					// for now only one material
-					Rhea::Material* def_mat = u_mesh->getDefaultMaterial();
-					u_mesh->addSubmesh(def_mat, ExtractIndices(index_accessor));
+					Material* mat = nullptr;
+					if (m_materials.size() > primitive.material)
+						mat = m_materials[primitive.material];
+					else 
+						// if no material found use default
+						mat = u_mesh->getDefaultMaterial();
+					u_mesh->addSubmesh(mat, ExtractIndices(index_accessor));
 
 					//u_mesh->addSubmesh(def_mat, m_model.meshes[node.mesh].primitives[0].indices);
 				}

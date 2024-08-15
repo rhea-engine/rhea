@@ -61,6 +61,9 @@ namespace Rhea
 		// get full path for other unit
 		std::string getPath(std::string& unit_path);
 
+		// get basepath of unit
+		std::string getBasePath() { return m_attributes["basepath"]; }
+
 		// find child with given name
 		Unit* getChild(std::string name);
 

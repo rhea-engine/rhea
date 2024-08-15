@@ -84,9 +84,13 @@ namespace Rhea
 				}
 
 				// get the shader				
-				Unit* shader_res = m_app->getUnitTree()->find(m_values["shader"], m_attributes["basepath"], false);
+				Shader* shader_res = doCast<Shader>(m_app->getUnitTree()->find(m_values["shader"], m_attributes["basepath"], false));
 				if (shader_res) {
-					m_material->setShaderRes(doCast<Shader>(shader_res));
+					m_material->setShaderRes(shader_res);
+					int diffuse_id = shader_res->getInputSlotId("DIFFUSE");
+					m_material->setColor(diffuse_id, Math::Vector3(1.0f,1.0f,1.0f));
+				    int basecolor_id = shader_res->getTextureSlotId("BASECOLOR");
+					m_material->setTexture(basecolor_id, static_cast<ImageResource*>(tex));
 				}
 				else {
 					LOG(LOG_ERROR) << "Could not find shader resource: " << (std::string)m_values["shader"];
@@ -96,7 +100,7 @@ namespace Rhea
 		
 		// load using geometry (normally used for import from file)
 		if (m_values.find("geometry") != m_values.end()) {
-			Geometry* geometry = (Geometry*)m_app->getUnitTree()->find(m_values["geometry"], m_attributes["basepath"], false);
+			Geometry* geometry = doCast<Geometry>(m_app->getUnitTree()->find(m_values["geometry"], m_attributes["basepath"], false));
 			if (geometry) {				
 				geometry->load(this);
 			}

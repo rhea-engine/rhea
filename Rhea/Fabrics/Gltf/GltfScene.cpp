@@ -19,27 +19,16 @@ namespace Rhea
 			return false;
 		}
 
-		// prepare vertex buffer
-		std::vector<VertexAttribute> layout;
-
+		// get the default shader
 		std::string shader_name = mesh->getValue("shadername", "//rhea/shaders/standard");
 		Shader* shader_res = doCast<Shader>(m_app->getUnitTree()->find(shader_name, m_attributes["basepath"], false));
 		if (!shader_res) {
 			LOG(LOG_ERROR) << "Could not find shader resource: " << shader_name;
 			return false;
 		}
-		layout = shader_res->getVertexLayout();
-		VertexBuffer* vertices = mesh->getVertexBuffer();
 
-		// get vertex sizes
-		int vertex_size = 0;
-		int vertex_elements = 0;
-		for (auto& attribute : layout) {
-			vertex_size += attribute.size;
-			vertex_elements += attribute.element_count;
-		}
-
-		vertices->setVertexSize(vertex_size);
+		// prepare vertex buffer
+		mesh->getVertexBuffer()->setVertexSize(shader_res->getVertexSize());
 
 		// if default scene is defined use it - else use first scene
 		int default_scene = m_model.defaultScene > -1 ? m_model.defaultScene : 0;

@@ -41,98 +41,117 @@ namespace Rhea
 		int basecolor_id = shader_res->getTextureSlotId("BASECOLOR");
 		int normal_id = shader_res->getTextureSlotId("NORMAL");
 
-		if (m_model.materials.size() > 0) {
-			if (m_app)
-				m_app = mesh->getApplication();
+		if (m_app)
+			m_app = mesh->getApplication();
 
-			Variant override_materials = mesh->getValue("material");
-			// prepare diffuse maps from mesh options
-			std::vector<ImageResource*> diffuse_maps;
-			Variant diffuse_tex = mesh->getValue("diffuse_tex");
-			if (diffuse_tex.isArray()) {
-				for (int i = 0; i < diffuse_tex.size(); i++) {
-					ImageResource* tex = doCast<ImageResource>(m_app->getUnitTree()->find(diffuse_tex[i], mesh->getBasePath(), false));
-					diffuse_maps.push_back(tex);
-				}
+		// prepare diffuse maps (from mesh options)
+		std::vector<ImageResource*> diffuse_maps;
+		Variant diffuse_tex = mesh->getValue("diffuse_tex");
+		if (diffuse_tex.isArray()) {
+			for (int i = 0; i < diffuse_tex.size(); i++) {
+				ImageResource* tex = doCast<ImageResource>(m_app->getUnitTree()->find(diffuse_tex[i], mesh->getBasePath(), false));
+				diffuse_maps.push_back(tex);
 			}
-			// prepare normal maps
-			std::vector<ImageResource*> normal_maps;
-			Variant normal_tex = mesh->getValue("normal_tex");
-			if (normal_tex.isArray()) {				
-				for (int i = 0; i < normal_tex.size(); i++) {
-					ImageResource* tex = doCast<ImageResource>(m_app->getUnitTree()->find(normal_tex[i], m_attributes["basepath"], false));
-					normal_maps.push_back(tex);
-				}
+		}
+		// prepare normal maps (from mesh options)
+		std::vector<ImageResource*> normal_maps;
+		Variant normal_tex = mesh->getValue("normal_tex");
+		if (normal_tex.isArray()) {
+			for (int i = 0; i < normal_tex.size(); i++) {
+				ImageResource* tex = doCast<ImageResource>(m_app->getUnitTree()->find(normal_tex[i], m_attributes["basepath"], false));
+				normal_maps.push_back(tex);
 			}
-			if (override_materials.isArray()) {
-				// TODO make overriding of material possible
-				for (int i = 0; i < override_materials.size(); i++) {
-					Material* mat = doCast<Material>(m_app->getUnitTree()->find(override_materials[i], mesh->getBasePath(), false));
-					// note: if mat is null the default material will be used
-					m_materials.push_back(mat);
-				}
-			}
-			else {
-				// create the materials from gltf file
-				for (const auto& material : m_model.materials) {
-					Material* mat = new Material(material.name);
-					// set shader
-					mat->setShaderRes(shader_res);
-					mat->setValue("shader", shader_name);
+		}
+		Variant override_materials = mesh->getValue("material");
 
-					// set material values
-					
-					// traditional shader - fill as good as possible
-					// pbr to traditional ambient - not implemented
-					//mat->setColor(ambient_id, Math::Vector3(material.ambient[0], material.ambient[1], material.ambient[2]));
-					// pbr to traditional specular - not implemented
-					//mat->setColor(specular_id, Math::Vector3(material.specular[0], material.specular[1], material.specular[2]));
-					Vector3 diffuse(
-						(float)material.pbrMetallicRoughness.baseColorFactor[0],
-						(float)material.pbrMetallicRoughness.baseColorFactor[1],
-						(float)material.pbrMetallicRoughness.baseColorFactor[2]
-						);
-					mat->setColor(diffuse_id, diffuse);
-					Vector3 emmissive(
-						(float)material.emissiveFactor[0],
-						(float)material.emissiveFactor[1],
-						(float)material.emissiveFactor[2]
-					);
-					mat->setColor(emmission_id, emmissive);
+		if (override_materials.isArray()) {
+			// TODO make overriding of material possible
+			for (int i = 0; i < override_materials.size(); i++) {
+				Material* mat = doCast<Material>(m_app->getUnitTree()->find(override_materials[i], mesh->getBasePath(), false));
+				// note: if mat is null the default material will be used
+				m_materials.push_back(mat);
+			}
+		}
+		else if (m_model.materials.size() > 0) {
 
-					// file baseColor texture
-					if (material.pbrMetallicRoughness.baseColorTexture.index >= 0) {
-						int textureIndex = material.pbrMetallicRoughness.baseColorTexture.index;
-						if (textureIndex > -1) {
-							// try override
-							if (diffuse_maps.size() > textureIndex)
-								mat->setTexture(basecolor_id, diffuse_maps[textureIndex]);
-							else {
-								auto tex = m_images.find(textureIndex);
-								if (tex != m_images.end()) {
-									mat->setTexture(basecolor_id, tex->second);
-								}
-							}
-						}
-					}
-					// fill normal maps (if any)
-					int normalIndex = material.normalTexture.index;
-					if (normalIndex > -1) {
+			// create the materials from gltf file
+			for (const auto& material : m_model.materials) {
+				Material* mat = new Material(material.name);
+				// set shader
+				mat->setShaderRes(shader_res);
+				mat->setValue("shader", shader_name);
+
+				// set material values
+
+				// traditional shader - fill as good as possible
+				// pbr to traditional ambient - not implemented
+				//mat->setColor(ambient_id, Math::Vector3(material.ambient[0], material.ambient[1], material.ambient[2]));
+				// pbr to traditional specular - not implemented
+				//mat->setColor(specular_id, Math::Vector3(material.specular[0], material.specular[1], material.specular[2]));
+				Vector3 diffuse(
+					(float)material.pbrMetallicRoughness.baseColorFactor[0],
+					(float)material.pbrMetallicRoughness.baseColorFactor[1],
+					(float)material.pbrMetallicRoughness.baseColorFactor[2]
+				);
+				mat->setColor(diffuse_id, diffuse);
+				Vector3 emmissive(
+					(float)material.emissiveFactor[0],
+					(float)material.emissiveFactor[1],
+					(float)material.emissiveFactor[2]
+				);
+				mat->setColor(emmission_id, emmissive);
+
+				// file baseColor texture
+				if (material.pbrMetallicRoughness.baseColorTexture.index >= 0) {
+					int textureIndex = material.pbrMetallicRoughness.baseColorTexture.index;
+					if (textureIndex > -1) {
 						// try override
-						if (normal_maps.size() > normalIndex)
-							mat->setTexture(normal_id, normal_maps[normalIndex]);
+						if (diffuse_maps.size() > textureIndex)
+							mat->setTexture(basecolor_id, diffuse_maps[textureIndex]);
 						else {
-							auto tex = m_images.find(normalIndex);
+							auto tex = m_images.find(textureIndex);
 							if (tex != m_images.end()) {
-								mat->setTexture(normal_id, tex->second);
+								mat->setTexture(basecolor_id, tex->second);
 							}
 						}
 					}
-
-					addChild(mat);
-					m_materials.push_back(mat);
 				}
+				// fill normal maps (if any)
+				int normalIndex = material.normalTexture.index;
+				if (normalIndex > -1) {
+					// try override
+					if (normal_maps.size() > normalIndex)
+						mat->setTexture(normal_id, normal_maps[normalIndex]);
+					else {
+						auto tex = m_images.find(normalIndex);
+						if (tex != m_images.end()) {
+							mat->setTexture(normal_id, tex->second);
+						}
+					}
+				}
+
+				addChild(mat);
+				m_materials.push_back(mat);
 			}
+		}
+		else {
+			// no materials were defined - neither in gltf file nor in mesh options
+			// add a default material
+			Material* mat = new Material("default");
+			// set shader
+			mat->setShaderRes(shader_res);
+			mat->setValue("shader", shader_name);
+
+			mat->setColor(diffuse_id, Vector3(0.8f, 0.8f, 0.8f));
+			mat->setColor(emmission_id, Vector3(0.0f, 0.0f, 0.0f));
+
+			if (diffuse_maps.size() > 0)
+				mat->setTexture(basecolor_id, diffuse_maps[0]);
+			if (normal_maps.size() > 0)
+				mat->setTexture(normal_id, normal_maps[0]);
+
+			addChild(mat);
+			m_materials.push_back(mat);
 		}
 
 		// if default scene is defined use it - else use first scene
@@ -314,6 +333,10 @@ namespace Rhea
 					if (!mat)
 						// if no material found use default
 						mat = u_mesh->getDefaultMaterial();
+					if (!mat && m_materials.size() > 0)
+						// still no material - try index 0 for default material
+						mat = m_materials[0];
+
 					u_mesh->addSubmesh(mat, ExtractIndices(index_accessor));
 
 					//u_mesh->addSubmesh(def_mat, m_model.meshes[node.mesh].primitives[0].indices);

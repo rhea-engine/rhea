@@ -21,8 +21,8 @@ add_library (RheaFabrics "Character/Character.cpp" "Character/KinematicCharacter
 "3D/Light.h" "3D/Light.cpp" "Core/Lighting.cpp" "3D/DirectionalLight.h" "3D/DirectionalLight.cpp" "3D/PointLight.h" "3D/PointLight.cpp" 
 "Core/Lighting.h" "Core/Lighting.cpp" "3D/SpotLight.h" "3D/SpotLight.cpp")
 
-add_subdirectory (Network)
-target_link_libraries(RheaFabrics RheaFabricsNet)
+add_subdirectory (Network Animation)
+target_link_libraries(RheaFabrics RheaFabricsNet RheaFabricsAnimation)
 
 if(USE_RHEA_GLTF_LOADER)
 	add_subdirectory(Gltf)

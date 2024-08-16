@@ -55,8 +55,22 @@ namespace Rhea
 					diffuse_maps.push_back(tex);
 				}
 			}
+			// prepare normal maps
+			std::vector<ImageResource*> normal_maps;
+			Variant normal_tex = mesh->getValue("normal_tex");
+			if (normal_tex.isArray()) {				
+				for (int i = 0; i < normal_tex.size(); i++) {
+					ImageResource* tex = doCast<ImageResource>(m_app->getUnitTree()->find(normal_tex[i], m_attributes["basepath"], false));
+					normal_maps.push_back(tex);
+				}
+			}
 			if (override_materials.isArray()) {
 				// TODO make overriding of material possible
+				for (int i = 0; i < override_materials.size(); i++) {
+					Material* mat = doCast<Material>(m_app->getUnitTree()->find(override_materials[i], mesh->getBasePath(), false));
+					// note: if mat is null the default material will be used
+					m_materials.push_back(mat);
+				}
 			}
 			else {
 				// create the materials from gltf file
@@ -69,29 +83,48 @@ namespace Rhea
 					// set material values
 					
 					// traditional shader - fill as good as possible
+					// pbr to traditional ambient - not implemented
 					//mat->setColor(ambient_id, Math::Vector3(material.ambient[0], material.ambient[1], material.ambient[2]));
+					// pbr to traditional specular - not implemented
+					//mat->setColor(specular_id, Math::Vector3(material.specular[0], material.specular[1], material.specular[2]));
 					Vector3 diffuse(
 						(float)material.pbrMetallicRoughness.baseColorFactor[0],
 						(float)material.pbrMetallicRoughness.baseColorFactor[1],
 						(float)material.pbrMetallicRoughness.baseColorFactor[2]
 						);
 					mat->setColor(diffuse_id, diffuse);
-					//mat->setColor(specular_id, Math::Vector3(material.specular[0], material.specular[1], material.specular[2]));
 					Vector3 emmissive(
-						material.emissiveFactor[0],
-						material.emissiveFactor[1],
-						material.emissiveFactor[2]
+						(float)material.emissiveFactor[0],
+						(float)material.emissiveFactor[1],
+						(float)material.emissiveFactor[2]
 					);
 					mat->setColor(emmission_id, emmissive);
 
+					// file baseColor texture
 					if (material.pbrMetallicRoughness.baseColorTexture.index >= 0) {
 						int textureIndex = material.pbrMetallicRoughness.baseColorTexture.index;
-						if (diffuse_maps.size() > textureIndex)
-							mat->setTexture(basecolor_id, diffuse_maps[textureIndex]);
+						if (textureIndex > -1) {
+							// try override
+							if (diffuse_maps.size() > textureIndex)
+								mat->setTexture(basecolor_id, diffuse_maps[textureIndex]);
+							else {
+								auto tex = m_images.find(textureIndex);
+								if (tex != m_images.end()) {
+									mat->setTexture(basecolor_id, tex->second);
+								}
+							}
+						}
+					}
+					// fill normal maps (if any)
+					int normalIndex = material.normalTexture.index;
+					if (normalIndex > -1) {
+						// try override
+						if (normal_maps.size() > normalIndex)
+							mat->setTexture(normal_id, normal_maps[normalIndex]);
 						else {
-							auto tex = m_images.find(textureIndex);
+							auto tex = m_images.find(normalIndex);
 							if (tex != m_images.end()) {
-								mat->setTexture(basecolor_id, tex->second);
+								mat->setTexture(normal_id, tex->second);
 							}
 						}
 					}
@@ -278,7 +311,7 @@ namespace Rhea
 					Material* mat = nullptr;
 					if (m_materials.size() > primitive.material)
 						mat = m_materials[primitive.material];
-					else 
+					if (!mat)
 						// if no material found use default
 						mat = u_mesh->getDefaultMaterial();
 					u_mesh->addSubmesh(mat, ExtractIndices(index_accessor));

@@ -51,6 +51,20 @@ namespace Math
 				{ v30, v31, v32, v33 }
 		}
 		{}
+		
+		// Constructor to create an identity matrix
+		Matrix4(float diagonal) {
+			for (int i = 0; i < 4; ++i) {
+				for (int j = 0; j < 4; ++j) {
+					if (i == j) {
+						m[i][j] = diagonal;  // Set diagonal elements to 1.0f
+					}
+					else {
+						m[i][j] = 0.0f;      // Set all other elements to 0.0f
+					}
+				}
+			}
+		}
 
 		float* operator[](size_t row)
 		{

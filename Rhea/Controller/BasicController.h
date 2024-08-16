@@ -34,7 +34,10 @@ namespace Rhea
 
 		void connect(Item* target);
 
-		void logMe();		
+		void logMe();
+
+		// get the current orientation
+		Math::Quaternion getOrientation() {	return m_orientation; }
 
 	protected:
 		Position m_position;

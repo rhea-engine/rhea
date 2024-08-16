@@ -23,6 +23,10 @@
 
 namespace Poseidon
 {
+	struct BoneBuffer {
+		Math::Matrix4 boneMatrices[100];
+	};
+
 	SceneManager::SceneManager() :
 		m_renderer(nullptr),
 		m_current_material(nullptr),
@@ -67,6 +71,7 @@ namespace Poseidon
 		//m_renderer->bindGPUBuffer(m_object_buffer, 1, "VS");
 		m_light_buffer = m_renderer->createGraphicsBuffer(sizeof(cbLight));
 		m_renderer->bindGPUBuffer(m_light_buffer, 2, "PS");		
+		m_bone_buffer = m_renderer->createGraphicsBuffer(sizeof(BoneBuffer));
 	}
 
 	Node* SceneManager::createNode()
@@ -212,6 +217,22 @@ namespace Poseidon
 					if (!m_elem)
 						continue;
 					Mesh* mesh = m_elem->m_mesh;
+
+					// skeleton handling if any
+					Rhea::Skeleton* skeleton = rmesh->getSkeleton();
+					if (skeleton) {
+						// Fill the bone buffer
+						BoneBuffer boneBuffer;
+						const auto& boneMatrices = skeleton->getBoneMatrices();
+						size_t max_bones = min(boneMatrices.size(), static_cast<size_t>(100)); // Ensure we do not exceed buffer capacity.
+						for (size_t i = 0; i < max_bones; ++i) {
+							boneBuffer.boneMatrices[i] = boneMatrices[i];
+						}
+
+						// Update the bone matrix buffer
+						m_bone_buffer->update((void*)&boneBuffer);
+						m_renderer->bindGPUBuffer(m_bone_buffer, 4, "VS"); // Bind bone buffer to slot 4 for vertex shader
+					}
 
 					// iterate over submeshes
 					for (size_t i = 0; i < mesh->getMeshCount(); ++i) {

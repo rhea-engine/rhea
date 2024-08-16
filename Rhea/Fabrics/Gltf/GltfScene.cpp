@@ -4,6 +4,7 @@
 #include <Rhea/Application.h>
 #include <Rhea/UnitTree.h>
 #include <Resources/VertexBufferStandard.h>
+#include <Resources/VertexBufferSkeletal.h>
 #include <Rhea/Fabrics/Media/ImageResource.h>
 #include <Rhea/Fabrics/Core/Material.h>
 
@@ -21,9 +22,27 @@ namespace Rhea
 			return false;
 		}
 
+		m_has_skeleton = !m_model.skins.empty();
+
 		// get the default shader
-		std::string shader_name = mesh->getValue("shadername", "//rhea/shaders/standard");
-		Shader* shader_res = doCast<Shader>(m_app->getUnitTree()->find(shader_name, m_attributes["basepath"], false));
+		std::string shader_name = "";
+		Shader* shader_res = nullptr;
+		if (!m_has_skeleton) {
+			shader_name = mesh->getValue("shadername", "//rhea/shaders/standard");
+			shader_res = doCast<Shader>(m_app->getUnitTree()->find(shader_name, m_attributes["basepath"], false));
+			
+		}
+		else {
+			shader_name = mesh->getValue("shadername", "//rhea/shaders/skeletal");
+			shader_res = doCast<Shader>(m_app->getUnitTree()->find(shader_name, m_attributes["basepath"], false));
+
+			// add a default skeleton
+			Skeleton* skel = new Skeleton("default", "//meworla/skeleton");
+			Bone rootBone(0, -1, Math::Matrix4());
+			skel->addBone(rootBone);
+			addChild(skel);
+			mesh->setSkeleton(skel);
+		}
 		if (!shader_res) {
 			LOG(LOG_ERROR) << "Could not find shader resource: " << shader_name;
 			return false;
@@ -298,6 +317,20 @@ namespace Rhea
 					texcoords = reinterpret_cast<const float*>(&texcoord_buffer.data[texcoord_accessor.byteOffset + texcoord_bufferView.byteOffset]);
 				}
 
+				// Check if the primitive has skinning data
+				const tinygltf::Accessor* jointAccessor = nullptr;
+				const tinygltf::Accessor* weightAccessor = nullptr;
+
+				auto joints = primitive.attributes.find("JOINTS_0");
+				if (joints != primitive.attributes.end()) {
+					jointAccessor = &m_model.accessors[joints->second];
+				}
+
+				auto weights = primitive.attributes.find("WEIGHTS_0");
+				if (weights != primitive.attributes.end()) {
+					weightAccessor = &m_model.accessors[weights->second];
+				}
+
 				for (int j = 0; j < vertex_count; j++) {
 					vertex.position.x = positions[j * 3 + 0];
 					vertex.position.y = positions[j * 3 + 1];
@@ -314,13 +347,24 @@ namespace Rhea
 						vertex.uv.y = texcoords[j * 2 + 1];
 					}
 
-					VertexBufferStandard::VertexStandard v;
-					v.position = vertex.position;
-					v.normal = vertex.normal;
-					v.texcoord = vertex.uv;
-					v.tangent = { 0.0f, 0.0f, 0.0f };
-					//vertices->push_back((float*)&v);
-					((VertexBufferStandard*)vertices)->push_back(v);
+					if (!m_has_skeleton) {
+						VertexBufferStandard::VertexStandard v;
+						v.position = vertex.position;
+						v.normal = vertex.normal;
+						v.texcoord = vertex.uv;
+						v.tangent = { 0.0f, 0.0f, 0.0f };
+						//vertices->push_back((float*)&v);
+						((VertexBufferStandard*)vertices)->push_back(v);
+					}
+					else {
+						VertexBufferSkeletal::VertexSkeletal v;
+						v.position = vertex.position;
+						v.normal = vertex.normal;
+						v.texcoord = vertex.uv;
+						v.tangent = { 0.0f, 0.0f, 0.0f };
+						//vertices->push_back((float*)&v);
+						((VertexBufferSkeletal*)vertices)->push_back(v);
+					}
 				}
 
 				// indices

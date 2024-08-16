@@ -13,7 +13,9 @@ namespace Rhea {
 		COLOR,
 		TANGENT,
 		BITANGENT,
-		INDEX
+		INDEX,
+		JOINTS,
+		WEIGHTS
 	};
 
 	struct VertexAttribute {

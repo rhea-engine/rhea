@@ -25,6 +25,7 @@ namespace Rhea
 	public:
 		GltfScene(std::string name, std::string type_name) :
 			m_instance(nullptr),
+			m_has_skeleton(false),
 			Geometry(name, type_name)
 		{}
 
@@ -77,6 +78,8 @@ namespace Rhea
 
 		// Materials
 		std::vector<Material*> m_materials;
+
+		bool m_has_skeleton;
 	};
 }
 

@@ -66,6 +66,7 @@ namespace Poseidon
 		res_list.push("widget_shader", "//rhea/shaders/widget.shader", "//meworla/shader");
 		res_list.push("text_shader", "//rhea/shaders/text.shader", "//meworla/shader");
 		res_list.push("terrain_shader", "//rhea/shaders/terrain.shader", "//meworla/shader");
+		res_list.push("skeletal_shader", "//rhea/shaders/skeletal.shader", "//meworla/shader");
 
 		// skybox		
 		Hippios::DepthStencilStateDesc dss;

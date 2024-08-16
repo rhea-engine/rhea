@@ -6,6 +6,7 @@
 #include <Rhea/Unit.h>
 #include <Rhea/Resources/VertexBuffer.h>
 #include <Rhea/Resources/VertexAttribute.h>
+#include "Skeleton.h"
 
 namespace Rhea
 {
@@ -21,6 +22,7 @@ namespace Rhea
 			m_material(nullptr),
 			m_isDynamic(false),
 			m_state(0),
+			m_skeleton(nullptr),
 			Unit(name, type_name)
 		{}
 		Mesh(std::string name) :
@@ -110,6 +112,10 @@ namespace Rhea
 			return m_submeshes[mesh_idx].indices;
 		}
 
+		// animation
+		Skeleton* getSkeleton() { return m_skeleton; }
+		void setSkeleton(Skeleton* skeleton) { m_skeleton = skeleton; }
+
 	protected:
 		// default material if submesh does not define one
 		Material* m_material;
@@ -121,6 +127,8 @@ namespace Rhea
 		VertexBuffer m_vertex;
 
 		int m_state;
+
+		Skeleton* m_skeleton;
 
 		// Copy Constructor 
 		Mesh(const Mesh& m);

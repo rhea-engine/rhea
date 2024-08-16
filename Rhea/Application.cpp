@@ -56,6 +56,9 @@
 #include <Fabrics/Core/Lighting.h>
 #include <Fabrics/3D/PointLight.h>
 #include <Fabrics/3D/SpotLight.h>
+#ifdef USE_RHEA_GLTF_LOADER
+#include <Fabrics/Gltf/GltfFabrics.h>
+#endif
 
 #undef min
 
@@ -157,6 +160,11 @@ namespace Rhea
 
 		// register mime type for shader
 		Orion::MIME::RegisterExtenstion("text/plain", "hlsl");
+
+		// optional fabrics
+#ifdef USE_RHEA_GLTF_LOADER
+		GltfFabrics::Register(this);
+#endif
 
 		// add a default input map
 		m_input_map = new InputMap();

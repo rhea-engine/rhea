@@ -15,6 +15,16 @@
 
 namespace Rhea
 {
+	Mesh::Mesh(const Mesh& m) :
+		Unit(m),
+		m_material(m.m_material),
+		m_vertices(m.m_vertices),
+		m_submeshes(m.m_submeshes),
+		m_isDynamic(m.m_isDynamic),
+		m_vertex(m.m_vertex)
+	{
+	}
+
 	void Mesh::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{
 		Unit::setup(app, attributes, values);
@@ -40,6 +50,10 @@ namespace Rhea
 
 	void Mesh::ready()
 	{
+		if (m_state)
+			return;
+		m_state = 1;
+
 		Unit::ready();
 		
 		// if we have a texture we create a correspondig material
@@ -47,10 +61,17 @@ namespace Rhea
 		{
 			Unit* tex = nullptr;
 
+			// if material is set explicitly we use it
+			if (m_values.find("material") != m_values.end()) {
+				m_material = doCast<Material>(m_app->getUnitTree()->find(m_values["material"], m_attributes["basepath"], false));
+			}
+
 			tex = m_app->getUnitTree()->find(m_values["texture"], m_attributes["basepath"], false);
 			if (tex) {
 				if (!m_material) {
+					// if no material was set create one ad-hoc as child of this mesh
 					m_material = new Material(m_path + "_material");
+					addChild(m_material);
 				}
 				m_material->setup(m_app);
 				m_material->setTexture(0, static_cast<ImageResource*>(tex));
@@ -63,23 +84,23 @@ namespace Rhea
 				}
 
 				// get the shader				
-				Unit* shader_res = m_app->getUnitTree()->find(m_values["shader"], m_attributes["basepath"], false);
+				Shader* shader_res = doCast<Shader>(m_app->getUnitTree()->find(m_values["shader"], m_attributes["basepath"], false));
 				if (shader_res) {
-					m_material->setShaderRes(doCast<Shader>(shader_res));
+					m_material->setShaderRes(shader_res);
+					int diffuse_id = shader_res->getInputSlotId("DIFFUSE");
+					m_material->setColor(diffuse_id, Math::Vector3(1.0f,1.0f,1.0f));
+				    int basecolor_id = shader_res->getTextureSlotId("BASECOLOR");
+					m_material->setTexture(basecolor_id, static_cast<ImageResource*>(tex));
 				}
 				else {
 					LOG(LOG_ERROR) << "Could not find shader resource: " << (std::string)m_values["shader"];
 				}
 			}
 		}	
-		// if material is set explicitly we use it
-		if (m_values.find("material") != m_values.end()) {
-			m_material = doCast<Material>(m_app->getUnitTree()->find(m_values["material"], m_attributes["basepath"], false));
-		}
-
-		// load using geometry (import from extrenal 3d file)
+		
+		// load using geometry (normally used for import from file)
 		if (m_values.find("geometry") != m_values.end()) {
-			Geometry* geometry = (Geometry*)m_app->getUnitTree()->find(m_values["geometry"], m_attributes["basepath"], false);
+			Geometry* geometry = doCast<Geometry>(m_app->getUnitTree()->find(m_values["geometry"], m_attributes["basepath"], false));
 			if (geometry) {				
 				geometry->load(this);
 			}

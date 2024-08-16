@@ -20,6 +20,7 @@ namespace Rhea
 		Mesh(std::string name, std::string type_name) :
 			m_material(nullptr),
 			m_isDynamic(false),
+			m_state(0),
 			Unit(name, type_name)
 		{}
 		Mesh(std::string name) :
@@ -50,6 +51,10 @@ namespace Rhea
 					);
 			}
 		};
+
+		Mesh* Clone() const override {
+			return new Mesh(*this); // Use the copy constructor
+		}
 
 		struct SubMesh {
 			std::vector<unsigned long> indices;
@@ -88,6 +93,9 @@ namespace Rhea
 		// get number of submeshes
 		size_t getNumSubmeshes() { return m_submeshes.size(); }
 
+		// get default Material
+		Material* getDefaultMaterial() { return m_material; }
+
 		// return pointers to the buffers
 		VertexBuffer* getVertexBuffer() { return &m_vertex; }
 		VertexBuffer& getVertexBufferRef() { return m_vertex; }
@@ -103,12 +111,19 @@ namespace Rhea
 		}
 
 	protected:
+		// default material if submesh does not define one
 		Material* m_material;
+		
 		std::vector<vertex> m_vertices;
 		//std::vector<unsigned long> m_v_indices;
 		std::vector<SubMesh> m_submeshes;
 		bool m_isDynamic;
 		VertexBuffer m_vertex;
+
+		int m_state;
+
+		// Copy Constructor 
+		Mesh(const Mesh& m);
 	};
 }
 

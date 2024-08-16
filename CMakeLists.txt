@@ -17,6 +17,13 @@ message("MSVC_VERSION: ${MSVC_VERSION}")
 message("MSVC_TOOLSET_VERSION: ${MSVC_TOOLSET_VERSION}")
 include(InstallRequiredSystemLibraries)
 
+# options of fabrics
+option(USE_RHEA_GLTF_LOADER "Use the provided gltf loader" ON)
+set(USE_RHEA_GLTF_LOADER ${USE_RHEA_GLTF_LOADER} CACHE BOOL "Use the provided GLTF loader")
+if (USE_RHEA_GLTF_LOADER)
+    add_definitions(-DUSE_RHEA_GLTF_LOADER)
+endif()
+
 # add some warnings
 enable_testing()
 

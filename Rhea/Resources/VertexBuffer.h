@@ -21,7 +21,8 @@ namespace Rhea
 
 		virtual ~VertexBuffer();
 
-		VertexBuffer(const VertexBuffer&) = delete;
+		// Copy Constructor 
+		VertexBuffer(const VertexBuffer& vb);
 		VertexBuffer& operator=(const VertexBuffer&) = delete;
 
 		VertexBuffer(VertexBuffer&&) = default;

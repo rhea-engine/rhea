@@ -4,6 +4,16 @@
 
 namespace Rhea
 {
+	VertexBuffer::VertexBuffer(const VertexBuffer& vb) :
+		m_vertex_size(vb.m_vertex_size),
+		m_vertex_count(vb.m_vertex_count),
+		m_buf_size(vb.m_buf_size)
+	{
+		// copy the data
+		m_data = new float[m_buf_size];
+		memcpy(m_data, vb.m_data, m_buf_size);
+	}
+
 	VertexBuffer::~VertexBuffer()
 	{
 		if (m_data) {

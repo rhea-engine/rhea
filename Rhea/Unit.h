@@ -61,6 +61,9 @@ namespace Rhea
 		// get full path for other unit
 		std::string getPath(std::string& unit_path);
 
+		// get basepath of unit
+		std::string getBasePath() { return m_attributes["basepath"]; }
+
 		// find child with given name
 		Unit* getChild(std::string name);
 
@@ -157,6 +160,8 @@ namespace Rhea
 		// decrease reference count
 		void decRef() { m_refcount--; }
 
+		// Clone method, returns a pointer to a copy of the object
+		virtual Unit* Clone() const { return new Unit(*this); }
 		
 		// type functions
 		
@@ -190,6 +195,9 @@ namespace Rhea
 		std::unordered_map < std::string, std::unordered_map<void*, Event::EventHandler >> m_eventhandlers;
 		std::unordered_map<std::string, Element*> m_elements;
 		int m_refcount;
+
+		// copy constructor
+		Unit(const Unit&);
 	};
 }
 

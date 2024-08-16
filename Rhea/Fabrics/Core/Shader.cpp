@@ -78,5 +78,30 @@ namespace Rhea
 			return res;
 		}
 		return nullptr;
-	}	
+	}
+
+	int Shader::getVertexSize()
+	{
+		// only compute if not cached
+		if (m_vertex_size < 0)
+		{
+			m_vertex_size = 0;
+			m_vertex_elements = 0;
+			for (auto& attribute : m_vertex_layout) {
+				m_vertex_size += attribute.size;
+				m_vertex_elements += attribute.element_count;
+			}
+		}
+			
+		return m_vertex_size;
+	}
+
+	int Shader::getVertexElements()
+	{
+		// only compute if not cached
+		if (m_vertex_size < 0) {
+			int dummy = getVertexSize();
+		}
+		return m_vertex_elements;
+	}
 }

@@ -75,10 +75,10 @@ uint4 jointIndices : JOINTS, float4 jointWeights : WEIGHTS)
 	VS_OUTPUT output;
     
     // Initialize the skinning transformation matrix
-    float4x4 skinningTransform = float4x4(0.0f, 0.0f, 0.0f, 0.0f,
-                                          0.0f, 0.0f, 0.0f, 0.0f,
-                                          0.0f, 0.0f, 0.0f, 0.0f,
-                                          0.0f, 0.0f, 0.0f, 0.0f);
+    float4x4 skinningTransform = float4x4(1.0f, 0.0f, 0.0f, 0.0f,
+                                          0.0f, 1.0f, 0.0f, 0.0f,
+                                          0.0f, 0.0f, 1.0f, 0.0f,
+                                          0.0f, 0.0f, 0.0f, 1.0f);
 
     // Sum weighted bone transformations
     for (int i = 0; i < 4; ++i)

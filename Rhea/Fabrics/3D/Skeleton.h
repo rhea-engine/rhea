@@ -18,6 +18,8 @@ namespace Rhea
 
 		void addBone(Bone bone) { m_bones.push_back(bone); }
 
+		std::vector<Bone>& getBones() {	return m_bones;	}
+
 		const std::vector<Math::Matrix4>& getBoneMatrices() const;
 
 	protected:

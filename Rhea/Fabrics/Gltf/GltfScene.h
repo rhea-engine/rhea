@@ -34,6 +34,8 @@ namespace Rhea
 
 		bool load(Rhea::Mesh* mesh);
 
+		void CreateSkeleton(int idx, Skeleton* skeleton);
+
 		void ready() override;
 
 		// for loading the base

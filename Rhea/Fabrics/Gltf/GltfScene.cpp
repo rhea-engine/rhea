@@ -33,15 +33,21 @@ namespace Rhea
 			
 		}
 		else {
-			shader_name = mesh->getValue("shadername", "//rhea/shaders/skeletal");
+			shader_name = mesh->getValue("shadername", "//rhea/shaders/skeletal"););
 			shader_res = doCast<Shader>(m_app->getUnitTree()->find(shader_name, m_attributes["basepath"], false));
 
 			// add a default skeleton
-			Skeleton* skel = new Skeleton("default", "//meworla/skeleton");
-			Bone rootBone(0, -1, Math::Matrix4());
-			skel->addBone(rootBone);
+			Skeleton* skel = new Skeleton("skeleton", "//meworla/skeleton");
+			if (m_model.skins.size()) {
+				CreateSkeleton(0, skel);
+			}
+			else {
+				Bone rootBone(0, -1, Math::Matrix4());
+				skel->addBone(rootBone);
+			}
 			addChild(skel);
 			mesh->setSkeleton(skel);
+
 		}
 		if (!shader_res) {
 			LOG(LOG_ERROR) << "Could not find shader resource: " << shader_name;
@@ -183,6 +189,59 @@ namespace Rhea
 		}
 
 		return false;
+	}
+
+	void GltfScene::CreateSkeleton(int idx, Skeleton* skeleton) {
+
+		tinygltf::Skin& skin = m_model.skins[idx];
+
+		// Extract the inverse bind matrices
+		std::vector<Math::Matrix4> inverseBindMatrices;
+		if (skin.inverseBindMatrices != -1) {
+			const tinygltf::Accessor& accessor = m_model.accessors[skin.inverseBindMatrices];
+			const tinygltf::BufferView& bufferView = m_model.bufferViews[accessor.bufferView];
+			const tinygltf::Buffer& buffer = m_model.buffers[bufferView.buffer];
+			const float* data = reinterpret_cast<const float*>(buffer.data.data() + bufferView.byteOffset + accessor.byteOffset);
+
+			int matrixCount = accessor.count;
+			inverseBindMatrices.resize(matrixCount);
+			for (int i = 0; i < matrixCount; ++i) {
+				inverseBindMatrices[i] = Math::Matrix4(*(float*)(data + i * 16)); // Assumes column-major format
+			}
+		}
+
+		// Map GLTF node indices to bone indices
+		std::unordered_map<int, int> nodeIndexToBoneIndex;
+
+		// Create bones
+		for (size_t i = 0; i < skin.joints.size(); ++i) {
+			int nodeIndex = skin.joints[i];
+			tinygltf::Node& node = m_model.nodes[nodeIndex];
+			Math::Matrix4 invBindMatrix = (i < inverseBindMatrices.size()) ? inverseBindMatrices[i] : Math::Matrix4();
+
+			Bone bone(i, -1, invBindMatrix);
+			bone.name = node.name;
+
+			skeleton->addBone(bone);
+			nodeIndexToBoneIndex[nodeIndex] = i;
+		}
+
+		// Establish the parent-child relationships within the bones
+		for (size_t i = 0; i < skin.joints.size(); ++i) {
+			int nodeIndex = skin.joints[i];
+			tinygltf::Node& node = m_model.nodes[nodeIndex];
+
+			// Determine the parent relationship only if the node is in the map
+			for (int childIndex : node.children) {
+				if (nodeIndexToBoneIndex.find(childIndex) != nodeIndexToBoneIndex.end()) {
+					int childBoneIndex = nodeIndexToBoneIndex[childIndex];
+					int parentBoneIndex = nodeIndexToBoneIndex[nodeIndex];
+
+					skeleton->getBones()[childBoneIndex].parent_index = parentBoneIndex;
+					skeleton->getBones()[parentBoneIndex].addChild(childBoneIndex);
+				}
+			}
+		}
 	}
 
 	void GltfScene::ready()
@@ -362,7 +421,21 @@ namespace Rhea
 						v.normal = vertex.normal;
 						v.texcoord = vertex.uv;
 						v.tangent = { 0.0f, 0.0f, 0.0f };
-						//vertices->push_back((float*)&v);
+						// If skinning data is available, set it
+						if (jointAccessor && weightAccessor) {
+							const tinygltf::BufferView& jointView = m_model.bufferViews[jointAccessor->bufferView];
+							const tinygltf::Buffer& jointBuffer = m_model.buffers[jointView.buffer];
+							const uint16_t* jointData = reinterpret_cast<const uint16_t*>(&jointBuffer.data[jointView.byteOffset + jointAccessor->byteOffset]);
+
+							const tinygltf::BufferView& weightView = m_model.bufferViews[weightAccessor->bufferView];
+							const tinygltf::Buffer& weightBuffer = m_model.buffers[weightView.buffer];
+							const float* weightData = reinterpret_cast<const float*>(&weightBuffer.data[weightView.byteOffset + weightAccessor->byteOffset]);
+
+							for (int b = 0; b < 4; ++b) {
+								v.jointIndices[b] = jointData[4 * j + b]; // Assuming 4 bones per vertex max
+								v.weights[b] = weightData[4 * j + b]; // Assuming weights correspond to joints
+							}
+						}
 						((VertexBufferSkeletal*)vertices)->push_back(v);
 					}
 				}

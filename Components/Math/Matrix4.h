@@ -101,6 +101,32 @@ namespace Math
 		Matrix4 transpose() const;
 
 		Matrix4 inverse() const;
+
+		// Compose function
+		static Matrix4 compose(const Vector3& translation, const Quaternion& rotation, const Vector3& scale) {
+			Matrix4 result;
+
+			// Apply scale
+			result.m[0][0] = scale.x;
+			result.m[1][1] = scale.y;
+			result.m[2][2] = scale.z;
+
+			// Apply rotation using the 3x3 rotation matrix from the quaternion
+			Matrix3 rotationMatrix = rotation.RotationMatrix();
+			for (int i = 0; i < 3; ++i) {
+				for (int j = 0; j < 3; ++j) {
+					result.m[i][j] *= rotationMatrix.m[i][j]; // Incorporate the rotation
+				}
+			}
+
+			// Apply translation
+			result.m[0][3] = translation.x;
+			result.m[1][3] = translation.y;
+			result.m[2][3] = translation.z;
+
+			return result;
+		}
+
 	};
 
 	inline Matrix4 Matrix4::transpose() const

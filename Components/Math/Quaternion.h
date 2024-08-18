@@ -66,6 +66,31 @@ namespace Math
 		// Rotation of a vector by a quaternion
 		Vector3 operator* (const Vector3& r_vector) const;
 
+		// Dot product
+		float dot(const Quaternion& other) const {
+			return w * other.w + x * other.x + y * other.y + z * other.z;
+		}
+
+		// Negation
+		Quaternion operator-() const {
+			return Quaternion(-w, -x, -y, -z);
+		}
+
+		// Scalar multiplication
+		Quaternion operator*(float scalar) const {
+			return Quaternion(w * scalar, x * scalar, y * scalar, z * scalar);
+		}
+
+		// Quaternion addition operator
+		Quaternion operator+(const Quaternion& other) const {
+			return Quaternion(w + other.w, x + other.x, y + other.y, z + other.z);
+		}
+
+		// Quaternion subtraction operator
+		Quaternion operator-(const Quaternion& other) const {
+			return Quaternion(w - other.w, x - other.x, y - other.y, z - other.z);
+		}
+
 		void toRotationMatrix(Matrix3& rot) const;
 
 		// getter functions
@@ -79,5 +104,10 @@ namespace Math
 		// get as vector axes
 		void toAxes(Vector3& x_axis, Vector3& y_axis, Vector3& z_axis) const;
 	};
+
+	// Non-member function to handle float * Quaternion
+	inline Quaternion operator*(float scalar, const Quaternion& quat) {
+		return quat * scalar;
+	}
 }
 #endif // !MATH_QUATERNION_H

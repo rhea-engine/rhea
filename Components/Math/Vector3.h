@@ -74,7 +74,7 @@ namespace Math
 		
 		Vector3 operator*(float s)
 		{
-			Vector3 ret = this;
+			Vector3 ret = *this;
 			ret.x *= s;
 			ret.y *= s;
 			ret.z *= s;
@@ -83,7 +83,7 @@ namespace Math
 
 		Vector3 operator/(float s)
 		{
-			Vector3 ret = this;
+			Vector3 ret = *this;
 			ret.x /= s;
 			ret.y /= s;
 			ret.z /= s;
@@ -238,5 +238,10 @@ namespace Math
 			return hash;
 		}
 	};
+
+	// Scalar * Vector3 (non-member function)
+	inline Vector3 operator*(float s, const Vector3& v) {
+		return Vector3(v.x * s, v.y * s, v.z * s);
+	}
 }
 #endif // !MATH_VECTOR3_H

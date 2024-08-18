@@ -89,6 +89,9 @@ namespace Rhea
 			else if (input_layout == "color") {
 				shader->setVertexType(2);
 			}
+			else if (input_layout == "skeletal") {
+				shader->setVertexType(4);
+			}
 
 			// material buffer layout
 			std::string light_type = shader_res->getValue("light_type", "none");

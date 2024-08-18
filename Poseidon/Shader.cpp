@@ -89,6 +89,14 @@ namespace Poseidon
 				{ "TEXCOORD", 0, Hippios::InputLayoutFormat::R32G32_FLOAT, 0, 24 },
 				{ "TANGENT", 0, Hippios::InputLayoutFormat::R32G32B32_FLOAT, 0, 32 }
 			};
+			Hippios::InputLayoutElement elements_pos_norm_uv_tangent_skeletal[] = {
+				{ "POSITION", 0, Hippios::InputLayoutFormat::R32G32B32_FLOAT, 0, 0 },
+				{ "NORMAL", 0, Hippios::InputLayoutFormat::R32G32B32_FLOAT, 0, 12 },
+				{ "TEXCOORD", 0, Hippios::InputLayoutFormat::R32G32_FLOAT, 0, 24 },
+				{ "TANGENT", 0, Hippios::InputLayoutFormat::R32G32B32_FLOAT, 0, 32 },
+				{ "JOINTS", 0, Hippios::InputLayoutFormat::R32G32B32A32_UINT, 0, 44 }, // Bone indices
+				{ "WEIGHTS", 0, Hippios::InputLayoutFormat::R32G32B32A32_FLOAT, 0, 60 } // Bone weights
+			};
 			switch (m_vertex_type) {
 			case 0: // default
 				pso_desc.inputLayout.elements = &elements_pos_norm_uv[0];
@@ -104,7 +112,11 @@ namespace Poseidon
 				pso_desc.inputLayout.elements = &elements_pos_norm_uv_tangent[0];
 				pso_desc.inputLayout.num_elements = 4;
 				break;
-			case 4: // custom
+			case 4:
+				pso_desc.inputLayout.elements = &elements_pos_norm_uv_tangent_skeletal[0];
+				pso_desc.inputLayout.num_elements = 6;
+				break;
+			case 5: // custom
 				// TODO
 			default: // default
 				pso_desc.inputLayout.elements = &elements_pos_norm_uv[0];

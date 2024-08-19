@@ -36,6 +36,8 @@ namespace Rhea
 
 		void CreateSkeleton(int idx, Skeleton* skeleton);
 
+		void CreateAnimations(Rhea::Mesh* mesh);
+
 		void ready() override;
 
 		// for loading the base
@@ -82,6 +84,9 @@ namespace Rhea
 		std::vector<Material*> m_materials;
 
 		bool m_has_skeleton;
+
+		// Map GLTF node indices to bone indices
+		std::unordered_map<int, int> m_nodeIndexToBoneIndex;
 	};
 }
 

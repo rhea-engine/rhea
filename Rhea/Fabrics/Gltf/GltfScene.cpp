@@ -7,6 +7,10 @@
 #include <Resources/VertexBufferSkeletal.h>
 #include <Rhea/Fabrics/Media/ImageResource.h>
 #include <Rhea/Fabrics/Core/Material.h>
+#include <Rhea/Fabrics/Animation/Animation.h>
+#include <Math/Vector4.h>
+#undef max
+#include <algorithm>
 
 namespace Rhea
 {
@@ -33,10 +37,10 @@ namespace Rhea
 			
 		}
 		else {
-			shader_name = mesh->getValue("shadername", "//rhea/shaders/skeletal"););
+			shader_name = mesh->getValue("shadername", "//rhea/shaders/skeletal");
 			shader_res = doCast<Shader>(m_app->getUnitTree()->find(shader_name, m_attributes["basepath"], false));
 
-			// add a default skeleton
+			// add the skeleton
 			Skeleton* skel = new Skeleton("skeleton", "//meworla/skeleton");
 			if (m_model.skins.size()) {
 				CreateSkeleton(0, skel);
@@ -47,6 +51,9 @@ namespace Rhea
 			}
 			addChild(skel);
 			mesh->setSkeleton(skel);
+
+			// add the animations
+			CreateAnimations(mesh);
 
 		}
 		if (!shader_res) {
@@ -203,18 +210,15 @@ namespace Rhea
 			const tinygltf::Buffer& buffer = m_model.buffers[bufferView.buffer];
 			const float* data = reinterpret_cast<const float*>(buffer.data.data() + bufferView.byteOffset + accessor.byteOffset);
 
-			int matrixCount = accessor.count;
+			size_t matrixCount = accessor.count;
 			inverseBindMatrices.resize(matrixCount);
 			for (int i = 0; i < matrixCount; ++i) {
 				inverseBindMatrices[i] = Math::Matrix4(*(float*)(data + i * 16)); // Assumes column-major format
 			}
 		}
 
-		// Map GLTF node indices to bone indices
-		std::unordered_map<int, int> nodeIndexToBoneIndex;
-
 		// Create bones
-		for (size_t i = 0; i < skin.joints.size(); ++i) {
+		for (int i = 0; i < skin.joints.size(); ++i) {
 			int nodeIndex = skin.joints[i];
 			tinygltf::Node& node = m_model.nodes[nodeIndex];
 			Math::Matrix4 invBindMatrix = (i < inverseBindMatrices.size()) ? inverseBindMatrices[i] : Math::Matrix4();
@@ -223,7 +227,7 @@ namespace Rhea
 			bone.name = node.name;
 
 			skeleton->addBone(bone);
-			nodeIndexToBoneIndex[nodeIndex] = i;
+			m_nodeIndexToBoneIndex[nodeIndex] = i;
 		}
 
 		// Establish the parent-child relationships within the bones
@@ -233,15 +237,76 @@ namespace Rhea
 
 			// Determine the parent relationship only if the node is in the map
 			for (int childIndex : node.children) {
-				if (nodeIndexToBoneIndex.find(childIndex) != nodeIndexToBoneIndex.end()) {
-					int childBoneIndex = nodeIndexToBoneIndex[childIndex];
-					int parentBoneIndex = nodeIndexToBoneIndex[nodeIndex];
+				if (m_nodeIndexToBoneIndex.find(childIndex) != m_nodeIndexToBoneIndex.end()) {
+					int childBoneIndex = m_nodeIndexToBoneIndex[childIndex];
+					int parentBoneIndex = m_nodeIndexToBoneIndex[nodeIndex];
 
 					skeleton->getBones()[childBoneIndex].parent_index = parentBoneIndex;
 					skeleton->getBones()[parentBoneIndex].addChild(childBoneIndex);
 				}
 			}
 		}
+	}
+
+	void GltfScene::CreateAnimations(Rhea::Mesh* mesh)
+	{
+		std::vector<Animation*> animations;
+
+		for (const tinygltf::Animation& anim : m_model.animations) {
+			Animation* animation = new Animation(anim.name, "//meworla/animation");
+
+			for (const tinygltf::AnimationChannel& channel : anim.channels) {
+				const tinygltf::AnimationSampler& sampler = anim.samplers[channel.sampler];
+
+				Animation::AnimationChannel animChannel;
+				int target_node = channel.target_node;
+				// Check if targetNode corresponds to a bone using the mapping
+				if (m_nodeIndexToBoneIndex.find(target_node) != m_nodeIndexToBoneIndex.end()) {
+					animChannel.targetNode = m_nodeIndexToBoneIndex[target_node];
+				}
+				else {
+					// Handle non-bone nodes or log an error
+					animChannel.targetNode = -1;
+				}
+				//animChannel.targetNode = channel.target_node;
+
+				const tinygltf::Accessor& inputAccessor = m_model.accessors[sampler.input];
+				const tinygltf::Accessor& outputAccessor = m_model.accessors[sampler.output];
+
+				const tinygltf::BufferView& input_bufferView = m_model.bufferViews[inputAccessor.bufferView];
+				const tinygltf::Buffer& input_buffer = m_model.buffers[input_bufferView.buffer];
+				const tinygltf::BufferView& output_bufferView = m_model.bufferViews[outputAccessor.bufferView];
+				const tinygltf::Buffer& output_buffer = m_model.buffers[output_bufferView.buffer];
+
+				const size_t input_count = inputAccessor.count;
+				const float* inputTimes = reinterpret_cast<const float*>(&input_buffer.data[inputAccessor.byteOffset + input_bufferView.byteOffset]);
+				const Math::Vector4* outputValues = reinterpret_cast<const Math::Vector4*>(&output_buffer.data[outputAccessor.byteOffset + output_bufferView.byteOffset]);
+
+				for (size_t i = 0; i < input_count; ++i) {
+					Animation::Keyframe keyframe;
+					keyframe.time = inputTimes[i];
+					animation->duration = std::max(animation->duration, keyframe.time);
+
+					if (channel.target_path == "translation") {
+						keyframe.translation = Math::Vector3(outputValues[i].x, outputValues[i].y, outputValues[i].z);
+					}
+					else if (channel.target_path == "rotation") {
+						keyframe.rotation = Math::Quaternion(outputValues[i].x, outputValues[i].y, outputValues[i].z, outputValues[i].w);
+						keyframe.rotation.normalise();
+					}
+					else if (channel.target_path == "scale") {
+						keyframe.scale = Math::Vector3(outputValues[i].x, outputValues[i].y, outputValues[i].z);
+					}
+
+					animChannel.keyframes.push_back(keyframe);
+				}
+
+				animation->channels.push_back(animChannel);
+			}
+
+			mesh->addChild(animation);
+		}
+
 	}
 
 	void GltfScene::ready()

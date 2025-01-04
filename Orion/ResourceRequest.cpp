@@ -287,6 +287,9 @@ namespace Orion
 			string path;
 
 			path = m_realm->getResourceUrl();
+			if (path == "") {
+				return Error::DATA_INVALID;
+			}
 			if (path.back() == '/' && m_path[0] == '/')
 				path += m_path.substr(1);
 			else

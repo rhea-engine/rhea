@@ -521,6 +521,9 @@ namespace Hippios {
 
 	void D3D11Renderer::setTexture(Texture* texture, int slot)
 	{
+		assert(texture);
+		if (!texture)
+			return;
 		if (!slot) {
 			if (m_current_texture != texture)
 			{

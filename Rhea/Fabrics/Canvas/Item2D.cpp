@@ -54,6 +54,9 @@ namespace Rhea
 				m_material = new Material(m_path + "_material");
 				m_material->setup(m_app);
 				m_material->setValue("shader", "widget");
+
+				// make sure texture is ready
+				tex->ready();
 				
 				// get the shader
 				Unit* shader_res = m_app->getUnitTree()->find(m_values["shader"], m_attributes["basepath"], false);

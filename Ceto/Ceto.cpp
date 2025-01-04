@@ -23,6 +23,8 @@
 #include <Rhea/Fabrics/Core/Avatar.h>
 #include <Rhea/Resources/Collection.h>
 #include <Components/Math/Math.h>
+#include <Rhea/Fabrics/Animation/Animation.h>
+#include <Rhea/Fabrics/Animation/Animator.h>
 
 bool Ceto::onQuit(Rhea::Event* ev, Rhea::Unit* unit)
 {
@@ -61,6 +63,46 @@ bool Ceto::onInput(Rhea::EventInput* e, Rhea::Unit* unit)
 			w->show();
 		}
 		return false;
+	}	
+
+	// next frame of animation loop
+	esc.set(Psio::Key::CODE_F, 0, 0);
+	if (evt->isEvent(&esc)) {
+		Rhea::Item* gus2 = doCast<Rhea::Item>(m_unit_tree->find("//local/scene1/gus2"));
+		if (gus2)
+		{
+			Rhea::Animation* anim;
+			if (!walk_state) {
+				anim = doCast<Rhea::Animation>(gus2->getChild("mesh")->getChild("IdleAction"));
+				walk_state = 1;
+			}
+			else {
+				anim = doCast<Rhea::Animation>(gus2->getChild("mesh")->getChild("RunningAction"));
+				walk_state = 0;
+			}
+
+			Rhea::Animator* animator = doCast<Rhea::Animator>(m_unit_tree->find("//local/scene1/Animator"));
+			if (animator && anim) {
+				animator->PlayAnimation(anim);
+			}
+			/*
+			Rhea::Skeleton* skeleton = doCast<Rhea::Skeleton>(doCast<Rhea::Mesh>(gus2->getChild("mesh"))->getSkeleton());
+			if (anim && skeleton) {
+				m_current_time += 0.05f;
+				if (m_current_time > anim->duration) {
+					m_current_time = fmod(m_current_time, anim->duration);
+				}
+				anim->UpdateSkeleton(skeleton, m_current_time);
+				//anim->Dump(skeleton);
+				// add the animator to the scene
+			//	Rhea::Animator* animator = new Rhea::Animator("Animator", "//meworla/animator");
+			//		animator->setSkeleton(skeleton);
+			//	animator->PlayAnimation(anim);
+				//scene->addChild(animator);
+			
+			}
+			*/
+		}
 	}
 
 	return false;
@@ -292,8 +334,24 @@ void Ceto::showScene(Rhea::Scene* scene)
 		m_focused_controller->connect(m_view);
 		scene->addChild(m_focused_controller);
 	}
+
 	// now we are ready
 	scene->show();
+
+	Rhea::Unit* gus2 = scene->getChild("gus2");
+	if (gus2)
+	{
+		Rhea::Animation* anim = doCast<Rhea::Animation>(gus2->getChild("mesh")->getChild("RunningAction"));
+		Rhea::Skeleton* skeleton = doCast<Rhea::Skeleton>(doCast<Rhea::Mesh>(gus2->getChild("mesh"))->getSkeleton());
+		if (anim && skeleton) {
+			// add the animator to the scene
+			Rhea::Animator* animator = new Rhea::Animator("Animator", "//meworla/animator");
+			animator->setSkeleton(skeleton);
+			animator->PlayAnimation(anim);			
+			scene->addChild(animator);
+		}
+	}
+	
 }
 
 void Ceto::showAlert(std::string text)

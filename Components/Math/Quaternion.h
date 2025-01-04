@@ -55,8 +55,8 @@ namespace Math
 		// setup from axes in thre vectors
 		void fromAxes(const Vector3& x_axis, const Vector3& y_axis, const Vector3& z_axis);
 
-		// Normalises this quaternion, and returns the previous length
-		float normalise(void);
+		// Normalizes this quaternion, and returns the previous length		
+		float normalize(void);
 		
 		// operations
 

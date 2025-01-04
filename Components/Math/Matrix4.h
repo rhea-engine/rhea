@@ -66,6 +66,23 @@ namespace Math
 			}
 		}
 
+		Matrix4(const float* values) {
+			for (int col = 0; col < 4; ++col) {      // Column-major order
+				for (int row = 0; row < 4; ++row) {
+					m[row][col] = values[col * 4 + row]; // Transpose into row-major order
+				}
+			}
+		}
+
+		// Constructor from a raw pointer to 16 floats or doubles (e.g., GLTF file data)
+		explicit Matrix4(const double* values) {
+			for (int col = 0; col < 4; ++col) {
+				for (int row = 0; row < 4; ++row) {
+					m[row][col] = static_cast<float>(values[col * 4 + row]); // Transpose
+				}
+			}
+		}
+
 		float* operator[](size_t row)
 		{
 			return m[row];
@@ -104,8 +121,38 @@ namespace Math
 
 		// Compose function
 		static Matrix4 compose(const Vector3& translation, const Quaternion& rotation, const Vector3& scale) {
+			
+			// start with identity matrix
 			Matrix4 result;
 
+			// Get the 3x3 rotation matrix from the quaternion
+			Matrix3 rotationMatrix = rotation.RotationMatrix();
+
+			// Incorporate scale into the rotation matrix
+			result.m[0][0] = rotationMatrix.m[0][0] * scale.x;
+			result.m[0][1] = rotationMatrix.m[0][1] * scale.x;
+			result.m[0][2] = rotationMatrix.m[0][2] * scale.x;
+
+			result.m[1][0] = rotationMatrix.m[1][0] * scale.y;
+			result.m[1][1] = rotationMatrix.m[1][1] * scale.y;
+			result.m[1][2] = rotationMatrix.m[1][2] * scale.y;
+
+			result.m[2][0] = rotationMatrix.m[2][0] * scale.z;
+			result.m[2][1] = rotationMatrix.m[2][1] * scale.z;
+			result.m[2][2] = rotationMatrix.m[2][2] * scale.z;
+
+			// Add translation
+			result.m[0][3] = translation.x;
+			result.m[1][3] = translation.y;
+			result.m[2][3] = translation.z;
+
+			// Leave the last row as (0, 0, 0, 1) for a valid 4x4 matrix
+			result.m[3][0] = 0.0f;
+			result.m[3][1] = 0.0f;
+			result.m[3][2] = 0.0f;
+			result.m[3][3] = 1.0f;
+
+			/*
 			// Apply scale
 			result.m[0][0] = scale.x;
 			result.m[1][1] = scale.y;
@@ -123,10 +170,24 @@ namespace Math
 			result.m[0][3] = translation.x;
 			result.m[1][3] = translation.y;
 			result.m[2][3] = translation.z;
+			*/
 
 			return result;
 		}
 
+		bool isApproximatelyIdentity(float epsilon = 1e-4f) {
+			for (int i = 0; i < 4; ++i) {
+				for (int j = 0; j < 4; ++j) {
+					if (i == j) {
+						if (std::abs(m[i][j] - 1.0f) > epsilon) return false; // Diagonal should be 1
+					}
+					else {
+						if (std::abs(m[i][j]) > epsilon) return false; // Non-diagonal should be 0
+					}
+				}
+			}
+			return true;
+		}		
 	};
 
 	inline Matrix4 Matrix4::transpose() const

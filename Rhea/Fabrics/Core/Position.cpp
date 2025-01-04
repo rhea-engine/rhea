@@ -39,7 +39,7 @@ namespace Rhea
 	void Position::setDirection(const Vector3& direction, const Vector3& localDirectionVector)
 	{
 		// The direction we want the local direction point to
-		Vector3 forward = direction.normalisedCopy();
+		Vector3 forward = direction.normalizedCopy();
 		m_dirty_wtm = true;
 
 		// Calculate target orientation relative to world space
@@ -57,9 +57,9 @@ namespace Rhea
 			*/
 
 			Vector3 right = yawAxis.crossProduct(forward);
-			right.normalise();
+			right.normalize();
 			Vector3 up = forward.crossProduct(right);
-			up.normalise();			
+			up.normalize();			
 			Quaternion unitZToTarget = Quaternion(right, up, forward);
 
 			if (localDirectionVector == Vector3::NEGATIVE_UNIT_Z)

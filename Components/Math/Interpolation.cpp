@@ -19,7 +19,7 @@ namespace Math
             // If the quaternions are nearly identical, use linear interpolation
             // to avoid division by zero errors.
             Math::Quaternion result = lerp(q1, q2Corrected, t);
-            result.normalise(); // Normalize the result
+            result.normalize(); // Normalize the result
             return result;
         }
 

@@ -149,7 +149,6 @@ namespace Math
 			}
 
 			Quaternion q(b, axis.x, axis.y, axis.z);
-			//q.normalise();
 			return q;
 		}
 
@@ -202,7 +201,7 @@ namespace Math
 		*/
 		float length() const { return sqrt(squaredLength()); }
 
-		float normalise()
+		float normalize()
 		{
 			float fLength = length();
 		
@@ -217,12 +216,12 @@ namespace Math
 			return fLength;
 		}
 
-		/** As normalise, except that this vector is unaffected and the
-			normalised vector is returned as a copy. */
-		Vector3 normalisedCopy() const
+		/** As normalize, except that this vector is unaffected and the
+			normalized vector is returned as a copy. */
+		Vector3 normalizedCopy() const
 		{
 			Vector3 ret = *this;
-			ret.normalise();
+			ret.normalize();
 			return ret;
 		}		
 

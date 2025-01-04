@@ -328,7 +328,7 @@ namespace Rhea
 
                 for (unsigned int idx = 0; idx < vertices->size(); idx++) {
                     VertexBufferStandard::VertexStandard* v = (*(VertexBufferStandard*)vertices)[idx];
-                    v->tangent.normalise();
+                    v->tangent.normalize();
                 }
             }
 

@@ -177,7 +177,7 @@ namespace Poseidon
 		rayOrigin = _vp_inv * nearPoint;
 		rayTarget = _vp_inv * midPoint;
 		Vector3 rayDirection = rayTarget - rayOrigin;
-		rayDirection.normalise();
+		rayDirection.normalize();
 
 		return Ray(rayOrigin, rayDirection);
 	}

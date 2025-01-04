@@ -33,7 +33,8 @@ namespace Poseidon
 		m_frame_buffer(nullptr),
 		m_object_buffer(nullptr),
 		m_light_buffer(nullptr),
-		m_object_buffer_wvp(nullptr)
+		m_object_buffer_wvp(nullptr),
+		m_bone_buffer(nullptr)
 	{
 		m_rend_queue = new RenderQueue();
 	}
@@ -162,7 +163,7 @@ namespace Poseidon
 									Vector3 pos = point_light->getTransform()->get_position()->get_worldspace();
 									light_buf.lights[idx].position = Math::Quaternion(pos.x, pos.y, pos.z, 1.0f);
 									pos = Math::Vector3(-pos.x, -pos.y, -pos.z);
-									pos.normalise();
+									pos.normalize();
 									light_buf.lights[idx].direction = pos;
 									Math::Vector3 attenuation = spot_light->getAttenuation();
 									light_buf.lights[idx].ConstantAttenuation = attenuation.x;

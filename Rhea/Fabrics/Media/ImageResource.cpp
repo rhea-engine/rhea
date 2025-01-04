@@ -49,6 +49,10 @@ namespace Rhea
 					LOG(LOG_ERROR) << "Failed to load image " << getPathName() << " could not allocate buffers.";
 				}
 			}
+			else {
+				LOG(LOG_ERROR) << "Failed to load image " << getPathName() << " image not found or not valid";
+				//abort();
+			}
 		}		
 	}
 }

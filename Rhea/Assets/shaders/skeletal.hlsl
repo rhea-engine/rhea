@@ -75,22 +75,32 @@ uint4 jointIndices : JOINTS, float4 jointWeights : WEIGHTS)
 	VS_OUTPUT output;
     
     // Initialize the skinning transformation matrix
-    float4x4 skinningTransform = float4x4(1.0f, 0.0f, 0.0f, 0.0f,
-                                          0.0f, 1.0f, 0.0f, 0.0f,
-                                          0.0f, 0.0f, 1.0f, 0.0f,
-                                          0.0f, 0.0f, 0.0f, 1.0f);
+    float4x4 skinningTransform = float4x4(0.0f, 0.0f, 0.0f, 0.0f,
+                                          0.0f, 0.0f, 0.0f, 0.0f,
+                                          0.0f, 0.0f, 0.0f, 0.0f,
+                                          0.0f, 0.0f, 0.0f, 0.0f);
 
+    // make sure weights are correct    
+    float weightSum = jointWeights[0] + jointWeights[1] + jointWeights[2] + jointWeights[3];
+    if (weightSum > 0.0f)
+    {    
+        jointWeights[0] /= weightSum;
+        jointWeights[1] /= weightSum;
+        jointWeights[2] /= weightSum;
+        jointWeights[3] /= weightSum;
+    }    
+    
     // Sum weighted bone transformations
     for (int i = 0; i < 4; ++i)
-    {
+    {       
         skinningTransform += boneMatrices[jointIndices[i]] * jointWeights[i];
-    }
+   }
     
     // Transform position and normal using skinning transform
     float4 skinnedPosition = mul(skinningTransform, position);
     float3 skinnedNormal = mul((float3x3) skinningTransform, normal);
     float3 skinnedTangent = mul((float3x3) skinningTransform, tangent);
-
+        
     // Transform to world space
     float3 worldPos = mul(skinnedPosition, worldMatrix);
     output.position = mul(float4(worldPos, 1.0), VP);

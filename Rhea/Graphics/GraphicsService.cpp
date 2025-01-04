@@ -191,17 +191,7 @@ namespace Rhea
 				std::string type_name = unit->getTypeName();
 			if ((type_name == "//meworla/item") || (type_name == "//meworla/camera") || (type_name == "//meworla/terrain") || (type_name == "//meworla/character")) {
 				Item* item = static_cast<Item*>(unit);
-				item->getTransform()->update();
-				RenderComponent* renderComponent = item->getRenderComponent();
-				if (renderComponent) {
-					Mesh* mesh = renderComponent->getMesh();
-					if (mesh) {
-						Skeleton* skeleton = mesh->getSkeleton();
-						if (skeleton) {
-							skeleton->UpdateBoneTransforms();
-						}
-					}
-				}
+				item->getTransform()->update();				
 			}
 			return true;
 				});

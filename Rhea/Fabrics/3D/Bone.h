@@ -31,7 +31,7 @@ struct Bone {
     // Method to update the global transform (called during animation)
     void UpdateGlobalTransform(const Math::Matrix4& parentGlobalTransform) {
         global_transform = parentGlobalTransform * local_transform;
-        final_transform = global_transform * inverse_bind_matrix; // For skinning
+        final_transform = global_transform * inverse_bind_matrix; // For skinning      
     }
 };
 

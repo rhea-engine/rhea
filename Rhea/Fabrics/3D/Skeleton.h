@@ -10,7 +10,7 @@ namespace Rhea
 	{
 		MECLASS(Skeleton, Unit)
 	public:
-		Skeleton(std::string name, std::string type_name) :
+		Skeleton(std::string name, std::string type_name) :			
 			Unit(name, type_name)
 		{}
 
@@ -18,12 +18,14 @@ namespace Rhea
 
 		void addBone(Bone bone) { m_bones.push_back(bone); }
 
+		bool isValid();
+		
 		std::vector<Bone>& getBones() {	return m_bones;	}
 
 		const std::vector<Math::Matrix4>& getBoneMatrices() const;
 
 	protected:
-		std::vector<Bone> m_bones;
+		std::vector<Bone> m_bones;		
 	};
 }
 

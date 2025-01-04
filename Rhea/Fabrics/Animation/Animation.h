@@ -16,16 +16,24 @@ namespace Rhea
 			Unit(name, "//meworla/animation")
 		{}
 
-		struct Keyframe {
-			float time;
+		struct KeyframePosition {
+			float time = 0.0f;
 			Math::Vector3 translation;
+		};
+		struct KeyframeRotation {
+			float time = 0.0f;
 			Math::Quaternion rotation;
-			Math::Vector3 scale;
+		};
+		struct KeyframeScale {
+			float time = 0.0f;
+			Math::Vector3 scale = { 1.0f, 1.0f, 1.0f };
 		};
 
 		struct AnimationChannel {
 			int targetNode;  // Index of the target node (e.g., bone)
-			std::vector<Keyframe> keyframes;  // Keyframes for this channel
+			std::vector<KeyframePosition> keyframe_positions;  // Keyframes for this channel
+			std::vector<KeyframeRotation> keyframe_rotations;
+			std::vector<KeyframeScale> keyframe_scales;
 		};
 
 		float duration;
@@ -34,7 +42,15 @@ namespace Rhea
 
 		void UpdateSkeleton(Skeleton* skeleton, float currentTime);
 
-		void FindSurroundingKeyframes(const AnimationChannel& channel, float time, Keyframe& prev, Keyframe& next);
+	protected:
+
+		Math::Vector3 InterpolateTranslation(const AnimationChannel& channel, float currentTime);
+
+		Math::Quaternion InterpolateRotation(const AnimationChannel& channel, float currentTime);
+
+		Math::Vector3 InterpolateScale(const AnimationChannel& channel, float currentTime);
+
+		float NormalizeTime(float startTime, float endTime, float currentTime);		
 	};
 }
 #endif // !RHEA_ANIMATION_H

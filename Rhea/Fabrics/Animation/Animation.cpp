@@ -1,4 +1,11 @@
 #include "Animation.h"
+#include "Animation.h"
+#include "Animation.h"
+#include "Animation.h"
+#include "Animation.h"
+#include "Animation.h"
+#include "Animation.h"
+#include "Animation.h"
 #include <Math/Interpolation.h>
 #include <Psio/Log.h>
 
@@ -6,64 +13,120 @@ namespace Rhea
 {
 	void Animation::UpdateSkeleton(Skeleton* skeleton, float currentTime)
 	{
+#ifdef DEBUG_ANIMATION
 		LOG(LOG_DEBUG) << "current time: " << currentTime;
+#endif
 		for (const auto& channel : channels) {
 			if (channel.targetNode >= skeleton->getBones().size())
 				continue;
 			Bone& bone = skeleton->getBones()[channel.targetNode];
 
-			Keyframe prevKeyframe, nextKeyframe;
-			FindSurroundingKeyframes(channel, currentTime, prevKeyframe, nextKeyframe);
-			if (channel.keyframes.size()>2)
-				LOG(LOG_DEBUG) << "Target(" << channel.targetNode << ") Prev Keyframe Time: " << prevKeyframe.time << ", Next Keyframe Time: " << nextKeyframe.time;
+			// Find surrounding timestamps for translation, rotation, and scale
+			Math::Vector3 interpolatedTranslation = InterpolateTranslation(channel, currentTime);
+			Math::Quaternion interpolatedRotation = InterpolateRotation(channel, currentTime);
+			Math::Vector3 interpolatedScale = InterpolateScale(channel, currentTime);
 
-			// Normalize currentTime relative to the prevKeyframe.time and nextKeyframe.time
-			float duration = nextKeyframe.time - prevKeyframe.time;
-			float t = (duration > 0.0f) ? (currentTime - prevKeyframe.time) / duration : 0.0f;
-
-			// Interpolate translation
-			Math::Vector3 interpolatedTranslation = Math::lerp<Math::Vector3>(prevKeyframe.translation, nextKeyframe.translation, t);
-
-			// Interpolate rotation
-			Math::Quaternion interpolatedRotation = Math::slerp(prevKeyframe.rotation, nextKeyframe.rotation, t);
-
-			// Interpolate scale
-			Math::Vector3 interpolatedScale = Math::lerp<Math::Vector3>(prevKeyframe.scale, nextKeyframe.scale, t);
-
-			// Build local transform
+			// Compose the final local transform
 			bone.local_transform = Math::Matrix4::compose(interpolatedTranslation, interpolatedRotation, interpolatedScale);
-			if (channel.keyframes.size() > 2)
-			{
-				LOG(LOG_DEBUG) << "m[0][0]=" << bone.local_transform[0][0] << ",m[0][1]=" << bone.local_transform[0][1] << ",m[0][2]=" << bone.local_transform[0][2] << ",m[0][3]=" << bone.local_transform[0][3];
-				LOG(LOG_DEBUG) << "m[1][0]=" << bone.local_transform[1][0] << ",m[1][1]=" << bone.local_transform[1][1] << ",m[1][2]=" << bone.local_transform[1][2] << ",m[1][3]=" << bone.local_transform[1][3];
-				LOG(LOG_DEBUG) << "m[2][0]=" << bone.local_transform[2][0] << ",m[2][1]=" << bone.local_transform[2][1] << ",m[2][2]=" << bone.local_transform[2][2] << ",m[2][3]=" << bone.local_transform[2][3];
-				LOG(LOG_DEBUG) << "m[3][0]=" << bone.local_transform[3][0] << ",m[3][1]=" << bone.local_transform[3][1] << ",m[3][2]=" << bone.local_transform[3][2] << ",m[3][3]=" << bone.local_transform[3][3];
-			}
-		}
 
+#ifdef DEBUG_ANIMATION
+			LOG(LOG_DEBUG) << "Bone: " << bone.name;
+
+			LOG(LOG_DEBUG) << "Translation: (" << interpolatedTranslation.x << ", " << interpolatedTranslation.y << ", " << interpolatedTranslation.z << ")";
+			LOG(LOG_DEBUG) << "Rotation: (" << interpolatedRotation.w << ", " << interpolatedRotation.x << ", " << interpolatedRotation.y << ", " << interpolatedRotation.z << ")";
+			LOG(LOG_DEBUG) << "Translation: (" << interpolatedScale.x << ", " << interpolatedScale.y << ", " << interpolatedScale.z << ")";
+			LOG(LOG_DEBUG) << "Global Transform";
+			LOG(LOG_DEBUG) << "[ " << bone.global_transform[0][0] << ", " << bone.global_transform[0][1] << ", " << bone.global_transform[0][2] << ", " << bone.global_transform[0][3] << "]";
+			LOG(LOG_DEBUG) << "[ " << bone.global_transform[1][0] << ", " << bone.global_transform[1][1] << ", " << bone.global_transform[1][2] << ", " << bone.global_transform[1][3] << "]";
+			LOG(LOG_DEBUG) << "[ " << bone.global_transform[2][0] << ", " << bone.global_transform[2][1] << ", " << bone.global_transform[2][2] << ", " << bone.global_transform[2][3] << "]";
+			LOG(LOG_DEBUG) << "[ " << bone.global_transform[3][0] << ", " << bone.global_transform[3][1] << ", " << bone.global_transform[3][2] << ", " << bone.global_transform[3][3] << "]";
+			LOG(LOG_DEBUG) << "Local Transform";
+			LOG(LOG_DEBUG) << "[ " << bone.local_transform[0][0] << ", " << bone.local_transform[0][1] << ", " << bone.local_transform[0][2] << ", " << bone.local_transform[0][3] << "]";
+			LOG(LOG_DEBUG) << "[ " << bone.local_transform[1][0] << ", " << bone.local_transform[1][1] << ", " << bone.local_transform[1][2] << ", " << bone.local_transform[1][3] << "]";
+			LOG(LOG_DEBUG) << "[ " << bone.local_transform[2][0] << ", " << bone.local_transform[2][1] << ", " << bone.local_transform[2][2] << ", " << bone.local_transform[2][3] << "]";
+			LOG(LOG_DEBUG) << "[ " << bone.local_transform[3][0] << ", " << bone.local_transform[3][1] << ", " << bone.local_transform[3][2] << ", " << bone.local_transform[3][3] << "]";
+#endif			
+		}	
 		skeleton->UpdateBoneTransforms();  // Recompute global and final transforms for the skeleton
 	}
-
-	void Animation::FindSurroundingKeyframes(const AnimationChannel& channel, float time, Keyframe& prev, Keyframe& next)
+	Math::Vector3 Animation::InterpolateTranslation(const AnimationChannel& channel, float currentTime) 
 	{
-		// Handle time before the first keyframe
-		if (time <= channel.keyframes.front().time) {
-			prev = next = channel.keyframes.front();
-			return;
+		// check if only one position
+		if (channel.keyframe_positions.size() == 1)
+			return channel.keyframe_positions[0].translation;
+
+		// find the surrounding keyframes
+		int index = -1;
+		if (channel.keyframe_positions[0].time < currentTime)
+			for (index = 0; index < (int)channel.keyframe_positions.size() - 1; ++index)
+			{
+				if (currentTime >= channel.keyframe_positions[index].time && currentTime < channel.keyframe_positions[index + 1].time)
+					break;
+			}	
+		
+		// Handle edge cases (e.g., first or last keyframe)
+		if (index < 0 || index >= channel.keyframe_positions.size() - 1) {
+			return (index < 0) ? channel.keyframe_positions.front().translation : channel.keyframe_positions.back().translation;
 		}
 
-		// Handle time after the last keyframe
-		if (time >= channel.keyframes.back().time) {
-			prev = next = channel.keyframes.back();
-			return;
+		// Interpolate between the two keyframes
+		float t = NormalizeTime(channel.keyframe_positions[index].time, channel.keyframe_positions[index + 1].time, currentTime);		
+		return Math::lerp(channel.keyframe_positions[index].translation, channel.keyframe_positions[index + 1].translation, t);
+	}
+
+	Math::Quaternion Animation::InterpolateRotation(const AnimationChannel& channel, float currentTime)
+	{
+		// check if only one position
+		if (channel.keyframe_rotations.size() == 1)
+			return channel.keyframe_rotations[0].rotation;
+
+		// find the surrounding keyframes
+		int index = -1;
+		if (channel.keyframe_rotations[0].time < currentTime)
+			for (index = 0; index < (int)channel.keyframe_rotations.size() - 1; ++index)
+			{
+				if (currentTime >= channel.keyframe_rotations[index].time && currentTime < channel.keyframe_rotations[index + 1].time)
+					break;
+			}		
+
+		// Handle edge cases (e.g., first or last keyframe)
+		if (index < 0 || index >= channel.keyframe_rotations.size() - 1) {
+			return (index < 0) ? channel.keyframe_rotations.front().rotation : channel.keyframe_rotations.back().rotation;
 		}
 
-		for (size_t i = 0; i < channel.keyframes.size() - 1; ++i) {
-			if (time >= channel.keyframes[i].time && time < channel.keyframes[i + 1].time) {
-				prev = channel.keyframes[i];
-				next = channel.keyframes[i + 1];
-				return;
-			}
+		// Interpolate between the two keyframes
+		float t = NormalizeTime(channel.keyframe_rotations[index].time, channel.keyframe_rotations[index + 1].time, currentTime);		
+		return Math::slerp(channel.keyframe_rotations[index].rotation, channel.keyframe_rotations[index + 1].rotation, t);
+	}
+
+	Math::Vector3 Animation::InterpolateScale(const AnimationChannel& channel, float currentTime) 
+	{
+		// check if only one position
+		if (channel.keyframe_scales.size() == 1)
+			return channel.keyframe_scales[0].scale;
+
+		// find the surrounding keyframes
+		int index = -1;
+		if (channel.keyframe_scales[0].time < currentTime)
+			for (index = 0; index < (int)channel.keyframe_scales.size() - 1; ++index)
+			{
+				if (currentTime >= channel.keyframe_scales[index].time && currentTime < channel.keyframe_scales[index + 1].time)
+					break;
+			}		
+
+		// Handle edge cases (e.g., first or last keyframe)
+		if (index < 0 || index >= channel.keyframe_scales.size() - 1) {
+			return (index < 0) ? channel.keyframe_scales.front().scale : channel.keyframe_scales.back().scale;
 		}
+
+		// Interpolate between the two keyframes
+		float t = NormalizeTime(channel.keyframe_scales[index].time, channel.keyframe_scales[index + 1].time, currentTime);		
+		return Math::lerp(channel.keyframe_scales[index].scale, channel.keyframe_scales[index + 1].scale, t);
+	}
+
+	/* Gets normalized value for Lerp & Slerp
+	*/
+	float Animation::NormalizeTime(float startTime, float endTime, float currentTime) {
+		return (currentTime - startTime) / (endTime - startTime);
 	}
 }

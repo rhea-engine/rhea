@@ -2,7 +2,7 @@
 #define RHEA_ANIMATION_H
 
 #include <Rhea/Unit.h>
-#include <Rhea/Fabrics/3D/Skeleton.h>
+#include <Rhea/Fabrics/Animation/Skeleton.h>
 
 namespace Rhea
 {

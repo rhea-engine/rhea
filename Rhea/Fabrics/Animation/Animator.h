@@ -3,7 +3,7 @@
 
 #include <Rhea/Unit.h>
 #include <Rhea/Fabrics/3D/Item.h>
-#include <Rhea/Fabrics/3D/Skeleton.h>
+#include <Rhea/Fabrics/Animation/Skeleton.h>
 #include "Animation.h"
 
 namespace Rhea

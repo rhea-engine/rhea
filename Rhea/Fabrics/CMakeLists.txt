@@ -19,7 +19,7 @@ add_library (RheaFabrics "Character/Character.cpp" "Character/KinematicCharacter
 "GUI/Modifier/SizeWidth.h" "GUI/Modifier/SizeHeight.h" 
 "GUI/Layout/Alignment.h" "Core/WorldService.h" "Core/WorldService.cpp" 
 "3D/Light.h" "3D/Light.cpp" "Core/Lighting.cpp" "3D/DirectionalLight.h" "3D/DirectionalLight.cpp" "3D/PointLight.h" "3D/PointLight.cpp" 
-"Core/Lighting.h" "Core/Lighting.cpp" "3D/SpotLight.h" "3D/SpotLight.cpp" "3D/Skeleton.h" "3D/Bone.h" "3D/Skeleton.cpp" "Animation/Animation.h")
+"Core/Lighting.h" "Core/Lighting.cpp" "3D/SpotLight.h" "3D/SpotLight.cpp")
 
 add_subdirectory (Network)
 add_subdirectory(Animation)

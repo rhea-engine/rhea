@@ -1,6 +1,4 @@
 #include "Skeleton.h"
-#include "Skeleton.h"
-#include "Skeleton.h"
 #include <Psio/Log.h>
 #include <cassert>
 

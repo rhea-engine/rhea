@@ -10,5 +10,6 @@ namespace Rhea
 	{
 		SimpleParser::Type::registerType<Animator>("//meworla/animator");
 		SimpleParser::Type::registerType<Animation>("//meworla/animation");
+		SimpleParser::Type::registerType<Skeleton>("//meworla/skeleton");
 	}
 }

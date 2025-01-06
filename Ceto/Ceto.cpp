@@ -347,17 +347,18 @@ void Ceto::showScene(Rhea::Scene* scene)
 	if (gus2)
 	{
 		Rhea::Mesh* mesh = doCast<Rhea::Mesh>(gus2->getChild("mesh"));
-		Rhea::Animation* anim = doCast<Rhea::Animation>(mesh->getChild("RunningAction"));
-		Rhea::Skeleton* skeleton = doCast<Rhea::Skeleton>(mesh->getSkeleton());
-		if (anim && skeleton) {
-			// add the animator to the scene
-			Rhea::Animator* animator = new Rhea::Animator("Animator", "//meworla/animator");
-			animator->setSkeleton(skeleton);
-			animator->PlayAnimation(anim);			
-			scene->addChild(animator);
+		if (mesh) {
+			Rhea::Animation* anim = doCast<Rhea::Animation>(mesh->getChild("RunningAction"));
+			Rhea::Skeleton* skeleton = doCast<Rhea::Skeleton>(mesh->getSkeleton());
+			if (anim && skeleton) {
+				// add the animator to the scene
+				Rhea::Animator* animator = new Rhea::Animator("Animator", "//meworla/animator");
+				animator->setSkeleton(skeleton);
+				animator->PlayAnimation(anim);
+				scene->addChild(animator);
+			}
 		}
 	}
-	
 }
 
 void Ceto::showAlert(std::string text)

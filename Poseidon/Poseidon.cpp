@@ -30,6 +30,7 @@ namespace Poseidon
 		// register services
 		SimpleParser::Type::registerType<GraphicsService>("//meworla/graphicsservice");
 
+		SimpleParser::Type::registerType<Rhea::Controller>("//meworla/icontroller");
 		SimpleParser::Type::registerType<BasicController>("//meworla/controller");
 		SimpleParser::Type::registerType<SpectatorController>("//meworla/spectator");
 		SimpleParser::Type::registerType<ClientService>("//meworla/clientservice");

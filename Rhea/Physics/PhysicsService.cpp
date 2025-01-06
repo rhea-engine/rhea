@@ -33,7 +33,7 @@ namespace Rhea
 			Math::Quaternion q;
 			q.fromAngleAxis(turn_step, Math::Vector3(0, 1, 0));
 			Math::Quaternion m_orientation = q * m_item->getTransform()->get_position()->get_rotation(); //* m_orientation;
-			m_orientation.normalise();			
+			m_orientation.normalize();			
 			m_item->getTransform()->get_position()->setOrientation(m_orientation);
 			dirty = true;
 		}

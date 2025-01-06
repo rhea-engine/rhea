@@ -27,10 +27,28 @@ namespace Rhea
 			m_vertex_layout.push_back({ "TEXCOORD",VertexAttributeType::TEXCOORD, 4, 2, 8, 12 });
 		}
 		else if (vertex_layout_name == "standard") {
+			// POSITION: vec3 (3 floats), offset 0
 			m_vertex_layout.push_back({ "POSITION", VertexAttributeType::POSITION, 4, 3, 12, 0 });
+			// NORMAL: vec3 (3 floats), offset 12
 			m_vertex_layout.push_back({ "NORMAL", VertexAttributeType::NORMAL, 4, 3, 12, 12 });
+			// TEXCOORD: vec2 (2 floats), offset 24
 			m_vertex_layout.push_back({ "TEXCOORD", VertexAttributeType::TEXCOORD, 4, 2, 8, 24 });
+			// TANGENT: vec3 (3 floats), offset 32
 			m_vertex_layout.push_back({ "TANGENT", VertexAttributeType::TEXCOORD, 4, 2, 12, 32 });
+		}
+		else if (vertex_layout_name == "skeletal") {
+			// POSITION: vec3 (3 floats), offset 0
+			m_vertex_layout.push_back({ "POSITION", VertexAttributeType::POSITION, 4, 3, 12, 0 });
+			// NORMAL: vec3 (3 floats), offset 12
+			m_vertex_layout.push_back({ "NORMAL", VertexAttributeType::NORMAL, 4, 3, 12, 12 });
+			// TEXCOORD: vec2 (2 floats), offset 24
+			m_vertex_layout.push_back({ "TEXCOORD", VertexAttributeType::TEXCOORD, 4, 2, 8, 24 });
+			// TANGENT: vec3 (3 floats), offset 32
+			m_vertex_layout.push_back({ "TANGENT", VertexAttributeType::TANGENT, 4, 3, 12, 32 });
+			// JOINTS_0: uvec4 (4 unsigned integers for joint indices), offset 44
+			m_vertex_layout.push_back({ "JOINTS", VertexAttributeType::JOINTS, 4, 4, 16, 44 });
+			// WEIGHTS_0: vec4 (4 floats for joint weights), offset 60
+			m_vertex_layout.push_back({ "WEIGHTS", VertexAttributeType::WEIGHTS, 4, 4, 16, 60 });
 		}
 		else /* if (vertex_layout_name == "default") */ {
 			m_vertex_layout.push_back({ "POSITION", VertexAttributeType::POSITION, 4, 3, 12, 0 });

@@ -10,8 +10,13 @@ namespace Math
 	class Matrix3
 	{
 	public:
-		float m[3][3];
-		Matrix3() {};
+		float m[3][3];		
+		Matrix3() :
+			m{
+				{ 1.0f, 0.0f, 0.0f },
+				{ 0.0f, 1.0f, 0.0f },				
+				{ 0.0f, 0.0f, 1.0f } }
+		{}
 		explicit Matrix3(const float m_arr[3][3])
 		{
 			memcpy(m, m_arr, 9 * sizeof(float));

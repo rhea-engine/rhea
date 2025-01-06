@@ -6,17 +6,36 @@ namespace Math
 {
 	Matrix3 Quaternion::RotationMatrix() const
 	{
-		return Matrix3(
-			1.0f - 2.0f * y * y - 2.0f * z * z,
-			2.0f * x * y - 2.0f * w * z,
-			2.0f * x * z + 2.0f * w * y,
-			2.0f * x * y + 2.0f * w * z,
-			1.0f - 2.0f * x * x - 2.0f * z * z,
-			2.0f * y * z - 2.0f * w * x,
-			2.0f * x * z - 2.0f * w * y,
-			2.0f * y * z + 2.0f * w * x,
-			1.0f - 2.0f * x * x - 2.0f * y * y
-		);
+		Matrix3 result;
+
+		float epsilon = 1e-6f; // Threshold for floating-point precision
+
+		float xx = x * x, yy = y * y, zz = z * z;
+		float xy = x * y, xz = x * z, yz = y * z;
+		float wx = w * x, wy = w * y, wz = w * z;
+
+		result.m[0][0] = 1.0f - 2.0f * (yy + zz);
+		result.m[0][1] = 2.0f * (xy - wz);
+		result.m[0][2] = 2.0f * (xz + wy);
+
+		result.m[1][0] = 2.0f * (xy + wz);
+		result.m[1][1] = 1.0f - 2.0f * (xx + zz);
+		result.m[1][2] = 2.0f * (yz - wx);
+
+		result.m[2][0] = 2.0f * (xz - wy);
+		result.m[2][1] = 2.0f * (yz + wx);
+		result.m[2][2] = 1.0f - 2.0f * (xx + yy);
+
+		// Clamp small values to 0
+		for (int i = 0; i < 3; ++i) {
+			for (int j = 0; j < 3; ++j) {
+				if (std::abs(result.m[i][j]) < epsilon) {
+					result.m[i][j] = 0.0f;
+				}
+			}
+		}
+
+		return result;
 	}
 
 	void Quaternion::fromRotationMatrix(const Matrix3& rot)
@@ -67,7 +86,7 @@ namespace Math
 		// The quaternion representing the rotation is
 		//   q = cos(A/2)+sin(A/2)*(x*i+y*j+z*k)
 
-		float fHalfAngle(0.5 * rfAngle);
+		float fHalfAngle((float)0.5 * rfAngle);
 		float fSin = sin(fHalfAngle);
 		w = cos(fHalfAngle);
 		x = fSin * rkAxis.x;
@@ -125,16 +144,18 @@ namespace Math
 		);
 	}
 
-	float Quaternion::normalise(void)
-	{		
+	float Quaternion::normalize(void)
+	{
 		// compute old length
 		float length = std::sqrt(x * x + y * y + z * z + w * w);
-		
-		// noramlize
-		x = x / length;
-		y = y / length;
-		z = z / length;
-		w = w / length;
+
+		// normalize
+		if (length > 0.0f) {
+			x = x / length;
+			y = y / length;
+			z = z / length;
+			w = w / length;
+		}
 
 		return length;
 	}
@@ -168,7 +189,7 @@ namespace Math
 	void Quaternion::getAsAngleAxis(float& angle, Vector3& axis) const
 	{
 		Quaternion q = *this;
-		q.normalise();
+		q.normalize();
 	
 		angle = 2.0f * acos(q.w);
 
@@ -201,9 +222,9 @@ namespace Math
 		z_axis.y = rot[2][1];
 		z_axis.z = rot[2][2];
 
-		x_axis.normalise();
-		y_axis.normalise();
-		z_axis.normalise();
+		x_axis.normalize();
+		y_axis.normalize();
+		z_axis.normalize();
 	}
 
 }

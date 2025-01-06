@@ -159,9 +159,10 @@ namespace Rhea
 
 		onSetPosition();
 		if (m_material) {
-			DLOG(LOG_DEBUG) << "GUI::Widget: widget " << m_pathname <<
+		/*	DLOG(LOG_DEBUG) << "GUI::Widget: widget " << m_pathname <<
 				": screen(x,y)=(" << m_position.x << ", " << m_position.y <<
 				"); size(w,h)=(" << m_size.x << ", " << m_size.y << ")";
+				*/
 			update();
 		}
 	}

@@ -80,8 +80,8 @@ namespace Rhea
 		float fact = 1;
 		for (auto lit = m_drawer.m_lines.begin(); lit != m_drawer.m_lines.end(); lit++) {
 			Line& line = *lit;	
-			//line.p0.normalise();
-			//line.p1.normalise();
+			//line.p0.normalize();
+			//line.p1.normalize();
 			/*line.color.x = 1.0f;
 			line.color.y = 1.0f;
 			line.color.z = 1.0f;*/

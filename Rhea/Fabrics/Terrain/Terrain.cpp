@@ -92,7 +92,7 @@ namespace Rhea
 			return 0.0f;
 
 		Poseidon::Image::Color c = m_heightmap->getPixel(x, y);
-		// "normalise" to grey
+		// "normalize" to grey
 		unsigned char height = (unsigned char)(0.299 * c.r + 0.587 * c.g + 0.114 * c.b);
 		// scale to max_height
 		return (float)height / 256 * m_max_height;
@@ -112,7 +112,7 @@ namespace Rhea
 		float heightU = getHeightAt(x, y + 1);
 
 		Math::Vector3 normal(heightL - heightR, 2.0f, heightD - heightU);
-		normal.normalise();
+		normal.normalize();
 
 		return normal;
 	}

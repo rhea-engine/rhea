@@ -123,7 +123,8 @@ namespace Poseidon
 		Hippios::GraphicsBuffer* m_frame_buffer;
 		Hippios::GraphicsBuffer* m_object_buffer;
 		Hippios::GraphicsBuffer* m_object_buffer_wvp;
-		Hippios::GraphicsBuffer* m_light_buffer;		
+		Hippios::GraphicsBuffer* m_light_buffer;
+		Hippios::GraphicsBuffer* m_bone_buffer;
 	};
 }
 #endif // !POSEIDON_SCENEMANAGER_H

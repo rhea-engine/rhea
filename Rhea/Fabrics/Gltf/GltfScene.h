@@ -25,6 +25,7 @@ namespace Rhea
 	public:
 		GltfScene(std::string name, std::string type_name) :
 			m_instance(nullptr),
+			m_has_skeleton(false),
 			Geometry(name, type_name)
 		{}
 
@@ -32,6 +33,10 @@ namespace Rhea
 		{}
 
 		bool load(Rhea::Mesh* mesh);
+
+		void CreateSkeleton(int idx, Skeleton* skeleton);
+
+		void CreateAnimations(Rhea::Mesh* mesh);
 
 		void ready() override;
 
@@ -77,6 +82,11 @@ namespace Rhea
 
 		// Materials
 		std::vector<Material*> m_materials;
+
+		bool m_has_skeleton;
+
+		// Map GLTF node indices to bone indices
+		std::unordered_map<int, int> m_nodeIndexToBoneIndex;
 	};
 }
 

@@ -152,7 +152,7 @@ namespace Rhea
 					Widget* w = doCast<Widget>(it->second);
 					if (w) {
 
-						if (me->getX() > 330) {
+						if (me->getX() > 1330) {
 							captured = nullptr;
 						}
 

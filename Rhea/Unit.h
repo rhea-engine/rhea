@@ -151,6 +151,9 @@ namespace Rhea
 		// if the handler return false the traverse is stopped
 		void children(std::function<bool(std::string&, Unit*)> handler);
 
+		// set Application
+		void setApplication(Application* app) { m_app = app; }
+
 		// get Application
 		Application* getApplication() { return m_app; }
 

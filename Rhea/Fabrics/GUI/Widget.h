@@ -89,6 +89,7 @@ namespace Rhea
 
 		// find input target
 		Widget* getInputTarget();
+		void setHandleInput(bool handle) { m_handle_input = handle; }
 
 		// event sending (for gui binding)
 		void sendBoundEvent(std::string binding, Event* ev);

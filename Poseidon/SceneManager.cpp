@@ -23,13 +23,18 @@
 
 namespace Poseidon
 {
+	struct BoneBuffer {
+		Math::Matrix4 boneMatrices[100];
+	};
+
 	SceneManager::SceneManager() :
 		m_renderer(nullptr),
 		m_current_material(nullptr),
 		m_frame_buffer(nullptr),
 		m_object_buffer(nullptr),
 		m_light_buffer(nullptr),
-		m_object_buffer_wvp(nullptr)
+		m_object_buffer_wvp(nullptr),
+		m_bone_buffer(nullptr)
 	{
 		m_rend_queue = new RenderQueue();
 	}
@@ -67,6 +72,7 @@ namespace Poseidon
 		//m_renderer->bindGPUBuffer(m_object_buffer, 1, "VS");
 		m_light_buffer = m_renderer->createGraphicsBuffer(sizeof(cbLight));
 		m_renderer->bindGPUBuffer(m_light_buffer, 2, "PS");		
+		m_bone_buffer = m_renderer->createGraphicsBuffer(sizeof(BoneBuffer));
 	}
 
 	Node* SceneManager::createNode()
@@ -157,7 +163,7 @@ namespace Poseidon
 									Vector3 pos = point_light->getTransform()->get_position()->get_worldspace();
 									light_buf.lights[idx].position = Math::Quaternion(pos.x, pos.y, pos.z, 1.0f);
 									pos = Math::Vector3(-pos.x, -pos.y, -pos.z);
-									pos.normalise();
+									pos.normalize();
 									light_buf.lights[idx].direction = pos;
 									Math::Vector3 attenuation = spot_light->getAttenuation();
 									light_buf.lights[idx].ConstantAttenuation = attenuation.x;
@@ -212,6 +218,22 @@ namespace Poseidon
 					if (!m_elem)
 						continue;
 					Mesh* mesh = m_elem->m_mesh;
+
+					// skeleton handling if any
+					Rhea::Skeleton* skeleton = rmesh->getSkeleton();
+					if (skeleton) {
+						// Fill the bone buffer
+						BoneBuffer boneBuffer;
+						const auto& boneMatrices = skeleton->getBoneMatrices();
+						size_t max_bones = min(boneMatrices.size(), static_cast<size_t>(100)); // Ensure we do not exceed buffer capacity.
+						for (size_t i = 0; i < max_bones; ++i) {
+							boneBuffer.boneMatrices[i] = boneMatrices[i];
+						}
+
+						// Update the bone matrix buffer
+						m_bone_buffer->update((void*)&boneBuffer);
+						m_renderer->bindGPUBuffer(m_bone_buffer, 4, "VS"); // Bind bone buffer to slot 4 for vertex shader
+					}
 
 					// iterate over submeshes
 					for (size_t i = 0; i < mesh->getMeshCount(); ++i) {

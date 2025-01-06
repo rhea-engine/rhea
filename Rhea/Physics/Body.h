@@ -3,7 +3,7 @@
 
 #include <Rhea/Fabrics/Core/Position.h>
 
-#include "Element.h"
+#include <Rhea/Element.h>
 
 namespace Rhea
 {

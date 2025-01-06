@@ -1,7 +1,7 @@
 #ifndef RHEA_IMAGE_RESOURCE
 #define RHEA_IMAGE_RESOURCE
 
-#include "Resources/Resource.h"
+#include <Rhea/Resources/Resource.h>
 
 namespace Rhea
 {

@@ -17,7 +17,9 @@ public:
 		m_gui(nullptr),
 		m_view(nullptr),
 		m_debug_text(nullptr),
-		m_exiting(false)
+		m_exiting(false),
+		m_current_time(0.0f),
+		walk_state(0)
 	{}
 	void setup();
 	void setScene(bool mark_preferrences = true);
@@ -47,6 +49,9 @@ protected:
 
 	// cache of ceto gui scene
 	Rhea::Scene* m_gui;
+
+	float m_current_time;
+	int walk_state;
 };
 
 #endif // !CETO_H

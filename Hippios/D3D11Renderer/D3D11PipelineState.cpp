@@ -1,6 +1,8 @@
 #include "D3D11PipelineState.h"
 #include "D3D11Renderer.h"
 #include "D3D11HLSL.h"
+#include <cassert>
+#include <Psio/Log.h>
 
 namespace Hippios
 {
@@ -15,6 +17,8 @@ namespace Hippios
 			return DXGI_FORMAT_R32G32_FLOAT;
 		case InputLayoutFormat::R32_FLOAT:
 			return DXGI_FORMAT_R32_FLOAT;
+		case InputLayoutFormat::R32G32B32A32_UINT:
+			return DXGI_FORMAT_R32G32B32A32_UINT;
 		case InputLayoutFormat::R32_UINT:
 			return DXGI_FORMAT_R32_UINT;
 		case InputLayoutFormat::R32_SINT:
@@ -48,6 +52,7 @@ namespace Hippios
 		case InputLayoutFormat::R8_SINT:
 			return DXGI_FORMAT_R8_SINT;
 		default:
+			LOG(LOG_ERROR) << "Create Shader (D3D11PipelineStateObject): Warning: Unknown input element type - expect shader to fail.";
 			return DXGI_FORMAT_UNKNOWN;
 		}
 	}
@@ -102,6 +107,7 @@ namespace Hippios
 		// vertex input layout
 		D3D11_INPUT_ELEMENT_DESC* ied;
 		ied = new D3D11_INPUT_ELEMENT_DESC[desc->inputLayout.num_elements];
+		assert(desc->inputLayout.num_elements > 0);
 		for (int i = 0; i < desc->inputLayout.num_elements; i++) {
 			ied[i].SemanticName = desc->inputLayout.elements[i].semantic_name;
 			ied[i].SemanticIndex = 0;
@@ -112,6 +118,10 @@ namespace Hippios
 			ied[i].InstanceDataStepRate = 0;
 		}
 		HRESULT HR = m_renderer->get_device()->CreateInputLayout(ied, desc->inputLayout.num_elements, ((D3D11HLSL*)m_vertex_shader)->getBuffer(), ((D3D11HLSL*)m_vertex_shader)->getBufferSize(), &m_input_layout);
+		if (FAILED(HR)) {
+			LOG(LOG_DEBUG) << "CreateInputLayout: HRESULT: 0x" << std::hex << HR;
+			LOG(LOG_ERROR) << "D3D11PipelineStateObject: Could not create input layout for shader - expect shader to fail.";
+		}
 		delete[] ied;
 
 		switch (desc->vertexLayout) {

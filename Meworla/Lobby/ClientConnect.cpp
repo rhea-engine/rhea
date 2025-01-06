@@ -193,7 +193,8 @@ namespace Meworla
 		}
 
 		// get credentials
-		std::string world = m_app->getUnitTree()->getChild("engine")->getValue("origin");
+		Rhea::Unit* engine = doCast<Rhea::Unit>(m_app->getUnitTree()->getChild("engine"));
+		std::string world = engine->getValue("origin");
 		std::vector<std::string> methods;
 		methods.push_back("password");
 		methods.push_back("trust");

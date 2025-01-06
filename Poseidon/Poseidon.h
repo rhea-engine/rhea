@@ -7,7 +7,9 @@ namespace Poseidon
 	{
 	public:
 		Application() :
-			core(nullptr)
+			core(nullptr),
+			m_phys_debug(false),
+			m_debug_draw(nullptr)
 		{}
 
 		// initialize

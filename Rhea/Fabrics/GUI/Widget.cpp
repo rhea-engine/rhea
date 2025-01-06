@@ -304,7 +304,7 @@ namespace Rhea
 					std::unordered_map<std::string, std::string> attr;
 					std::unordered_map<std::string, Variant> val;
 
-					Unit* tex = m_app->getUnitTree()->find(resname);
+					Unit* tex = doCast<Unit>(m_app->getUnitTree()->find(resname));
 					if (tex) {
 
 						// create dummy material
@@ -317,9 +317,9 @@ namespace Rhea
 							// set a default
 							m_values["shader"] = "//rhea/shaders/widget";
 						}
-						Unit* shader_res = m_app->getUnitTree()->find(m_values["shader"]);
+						Shader* shader_res = doCast<Shader>(m_app->getUnitTree()->find(m_values["shader"]));
 						if (shader_res) {
-							m_material->setShaderRes(doCast<Shader>(shader_res));
+							m_material->setShaderRes(shader_res);
 						}
 						else {
 							LOG(LOG_ERROR) << "item2d::ready(): Shader '" << (std::string)m_values["shader"] << "' for " << m_pathname << " not found";

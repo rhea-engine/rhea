@@ -20,7 +20,7 @@ namespace Rhea
 
 		class Binding {
 		public:
-			Unit* target;
+			Unit* target = nullptr;
 			std::string value;
 		};
 

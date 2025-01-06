@@ -10,6 +10,7 @@
 #include "Event.h"
 #include "Element.h"
 #include "Error.h"
+#include "Component.h"
 
 using SimpleParser::Variant;
 
@@ -18,16 +19,15 @@ namespace Rhea
 	class Application;
 	class Visitor;
 
-	class Unit : public SimpleParser::Variant
+	class Unit : public Component
 	{
+		MECLASS(Unit, Component)
 	public:
 		Unit(std::string path_name, std::string type_name) :
 			m_app(NULL),
-			m_pathname(path_name),
-			m_parent(NULL),
 			m_path(path_name),
 			m_refcount(0),
-			SimpleParser::Variant(SimpleParser::Type::get(type_name))
+			Component(path_name, type_name)
 		{}		
 		virtual ~Unit();
 		virtual void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
@@ -40,20 +40,14 @@ namespace Rhea
 		virtual void ready();
 
 		// add a child resource
-		void addChild(Unit* child);
+		void addChild(Component* child);
 
 		// remove a child
-		void removeChild(Unit* child);
+		void removeChild(Component* child);
 
 		// handle on parented
 		virtual void onParented() {}
 		virtual void onRemoved() {}
-
-		// get parent - returns NULL for top
-		Unit* getParent() { return m_parent; }
-
-		// get name
-		std::string getPathName() { return m_pathname; }
 
 		// get full path
 		std::string getPath() { return m_path; }
@@ -65,20 +59,23 @@ namespace Rhea
 		std::string getBasePath() { return m_attributes["basepath"]; }
 
 		// find child with given name
-		Unit* getChild(std::string name);
+		Component* getChild(std::string name);
 
 		// find by path
-		Unit* find(std::string path, bool create = false);
-		Unit* find(std::string path, std::string basepath, bool create);
+		Component* find(std::string path, bool create = false);
+		Component* find(std::string path, std::string basepath, bool create);
 
 		// find nearest by type
 		template <class T>
 		T* findByType() {
 			if (doCast<T>(this)) return (T*)this;
 			for (auto it = m_children.begin(); it != m_children.end(); ++it) {
-				T* ret = it->second->findByType<T>();
-				if (ret)
-					return ret;
+				Unit* child = doCast<Unit>(it->second);
+				if (child) {
+					T* ret = child->findByType<T>();
+					if (ret)
+						return ret;
+				}
 			}
 			return nullptr;
 		}
@@ -105,7 +102,7 @@ namespace Rhea
 		virtual std::vector<Export> getReferences();
 
 		// rename
-		void setName(std::string name);
+		void setName(std::string name) override;
 
 		// Elements
 
@@ -145,11 +142,11 @@ namespace Rhea
 
 		// traverse subtree
 		// if the handler returns false the children will not be called
-		void traverse(std::function<bool(std::string&, Unit*)> handler);
+		void traverse(std::function<bool(std::string&, Component*)> handler);
 
 		// execute handler on all children
 		// if the handler return false the traverse is stopped
-		void children(std::function<bool(std::string&, Unit*)> handler);
+		void children(std::function<bool(std::string&, Component*)> handler);
 
 		// set Application
 		void setApplication(Application* app) { m_app = app; }
@@ -164,37 +161,17 @@ namespace Rhea
 		void decRef() { m_refcount--; }
 
 		// Clone method, returns a pointer to a copy of the object
-		virtual Unit* Clone() const { return new Unit(*this); }
-		
-		// type functions
-		
-		// create unit type
-		static Unit* createType(std::string name, std::string type_name);
-
-		// type initialization
-		static void initializeType(SimpleParser::Type* type);
-		// type helper
-		static SimpleParser::Type* staticType(SimpleParser::Type* newType = nullptr) {
-			static SimpleParser::Type* _static_type = nullptr;
-			if (newType) {
-					SimpleParser::Type* p = Variant::staticType(); 
-					newType->setParent(p);	
-					_static_type = newType; 
-			} 
-			return _static_type;
-		}
+		Unit* Clone() const override { return new Unit(*this); }
 
 		// print my info
 		virtual void logMe();
 	protected:
 		Application* m_app;
-		Unit* m_parent;
-		std::string m_pathname;
 		std::string m_path;
 		std::unordered_map<std::string, std::string> m_attributes;
 		std::unordered_map<std::string, Variant> m_values;
-		std::unordered_map<std::string, Unit*> m_children;
-		std::vector<Unit*> m_ordered_children;
+		std::unordered_map<std::string, Component*> m_children;
+		std::vector<Component*> m_ordered_children;
 		std::unordered_map < std::string, std::unordered_map<void*, Event::EventHandler >> m_eventhandlers;
 		std::unordered_map<std::string, Element*> m_elements;
 		int m_refcount;

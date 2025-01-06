@@ -47,7 +47,7 @@ namespace Rhea
 		// load and add textures
 		if (m_values.find("texture") != m_values.end())
 		{			
-			Unit* tex = m_app->getUnitTree()->find(m_values["texture"], m_attributes["basepath"], false);
+			Unit* tex = doCast<Unit>(m_app->getUnitTree()->find(m_values["texture"], m_attributes["basepath"], false));
 			if (tex) {
 
 				// create dummy material
@@ -59,9 +59,9 @@ namespace Rhea
 				tex->ready();
 				
 				// get the shader
-				Unit* shader_res = m_app->getUnitTree()->find(m_values["shader"], m_attributes["basepath"], false);
+				Shader* shader_res = doCast<Shader>(m_app->getUnitTree()->find(m_values["shader"], m_attributes["basepath"], false));
 				if (shader_res) {
-					m_material->setShaderRes(doCast<Shader>(shader_res));
+					m_material->setShaderRes(shader_res);
 				}				
 				else {
 					LOG(LOG_ERROR) << "item2d::ready(): Shader '" << (std::string)m_values["shader"] << "' for " << m_pathname << " not found";

@@ -43,10 +43,10 @@ namespace Meworla
 		}
 
 		// fill list?
-		Rhea::Unit* avatar_list = m_connector->find("avatarlist");
+		Rhea::Unit* avatar_list = doCast<Rhea::Unit>(m_connector->find("avatarlist"));
 		std::vector<Variant> avatars_arr;		
 		if (avatar_list) {
-			avatar_list->children([&avatars_arr](std::string& name, Rhea::Unit* unit)->bool {
+			avatar_list->children([&avatars_arr](std::string& name, Rhea::Component* unit)->bool {
 				Rhea::Avatar* avatar = isCast<Rhea::Avatar>(unit);
 				if (avatar) {
 					avatars_arr.push_back(name);

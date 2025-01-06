@@ -22,7 +22,7 @@ namespace Rhea
 	{
 		// update items
 		for (auto it = m_scenes.begin(); it < m_scenes.end(); ++it) {
-			(*it)->traverse([delta](std::string& name, Unit* unit)->bool {
+			(*it)->traverse([delta](std::string& name, Component* unit)->bool {
 				Item* item = doCast<Item>(unit);
 				if (item) {
 					item->onFrame(delta);

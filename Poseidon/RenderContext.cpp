@@ -20,7 +20,7 @@ namespace Poseidon
 		{
 			Rhea::Unit* robj = doCast<Rhea::Unit>(*it);
 			if (robj) {
-				robj->traverse([&](std::string name, Rhea::Unit* uitem)->bool {
+				robj->traverse([&](std::string name, Rhea::Component* uitem)->bool {
 					Rhea::Light* light = doCast<Rhea::Light>(uitem);
 					if (light)
 						lights.push_back(light);
@@ -39,7 +39,7 @@ namespace Poseidon
 			Item* robj = (Item*)*it;
 
 			// cull phase for top item robj
-			robj->traverse([&](std::string name, Rhea::Unit* uitem)->bool {
+			robj->traverse([&](std::string name, Rhea::Component* uitem)->bool {
 				Item* item = doCast<Item>(uitem);
 				if (item) {
 					if (!item->isVisible())

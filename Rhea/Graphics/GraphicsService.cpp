@@ -93,17 +93,18 @@ namespace Rhea
 
 	bool GraphicsService::onAddItem(Event* ev, Unit* unit)
 	{
-		ev->getTarget()->traverse([&](std::string& name, Unit* unit)->bool {
-			if (!unit->getElement("graphics")) {
+		ev->getTarget()->traverse([&](std::string& name, Component* unit)->bool {
+			Unit* u = doCast<Unit>(unit);
+			if (u && !u->getElement("graphics")) {
 				printf("GraphicsService::onAddItem: add typename: %s\n", unit->getTypeName().c_str());
 
 				// try manager
 				GraphicsManager* mgr = getManager(unit->getTypeName());
 				if (mgr) {
-					mgr->createElement(m_core.get(), unit);
+					mgr->createElement(m_core.get(), u);
 				}
 				else if (doCast<Item>(unit)) {
-					m_managers["//meworla/item"]->createElement(m_core.get(), unit);
+					m_managers["//meworla/item"]->createElement(m_core.get(), u);
 				}
 			}
 		return true;
@@ -119,7 +120,7 @@ namespace Rhea
 			if (context) {
 				context->addRenderChild(item);
 				// add elements
-				item->traverse([&](std::string name, Unit* u)->bool {
+				item->traverse([&](std::string name, Component* u)->bool {
 					Item* item = doCast<Item>(u);
 					if (!item)
 						return true;
@@ -187,7 +188,7 @@ namespace Rhea
 	{
 		// update items
 		for (auto it=m_scenes.begin(); it<m_scenes.end(); ++it) {
-			(*it)->traverse([](std::string& name, Unit* unit)->bool {
+			(*it)->traverse([](std::string& name, Component* unit)->bool {
 				std::string type_name = unit->getTypeName();
 			if ((type_name == "//meworla/item") || (type_name == "//meworla/camera") || (type_name == "//meworla/terrain") || (type_name == "//meworla/character")) {
 				Item* item = static_cast<Item*>(unit);
@@ -240,8 +241,10 @@ namespace Rhea
 
 		m_scenes.erase(std::remove(m_scenes.begin(), m_scenes.end(), scene));
 		scene->addElement("graphics", nullptr);
-		scene->traverse([](std::string& name, Unit* unit)->bool {
-			unit->addElement("graphics", nullptr);
+		scene->traverse([](std::string& name, Component* unit)->bool {
+			Unit* u = doCast<Unit>(unit);
+			if (u)
+				u->addElement("graphics", nullptr);
 			return true;
 			});
 	}
@@ -268,14 +271,14 @@ namespace Rhea
 
 		// scene children with other contexts
 		// handle all current subtree nodes
-		scene->traverse([scene, scene_mgr](std::string& name, Unit* unit)->bool {
+		scene->traverse([scene, scene_mgr](std::string& name, Component* unit)->bool {
 			if (scene == unit)
 				return true;
 			Item* item = doCast<Item>(unit);
 			if (!item)
 				return true;
 			// we simply assume if the rendercontext is set we must add a render child
-			std::string render_context_name = unit->getValue("rendercontext", "");
+			std::string render_context_name = item->getValue("rendercontext", "");
 			if (render_context_name != "") {
 				Poseidon::RenderContext* render_context = scene_mgr->getViewport()->getRenderContext(render_context_name);
 				if (!render_context) {
@@ -312,14 +315,14 @@ namespace Rhea
 
 		// scene children with other contexts
 		// handle all current subtree nodes
-		scene->traverse([scene, scene_mgr](std::string& name, Unit* unit)->bool {
+		scene->traverse([scene, scene_mgr](std::string& name, Component* unit)->bool {
 			if (scene == unit)
 				return true;
 			Item* item = doCast<Item>(unit);
 			if (!item)
 				return true;
 			// we simply assume if the rendercontext is set we must add a render child
-			std::string render_context_name = unit->getValue("rendercontext", "");
+			std::string render_context_name = item->getValue("rendercontext", "");
 			if (render_context_name != "") {
 				Poseidon::RenderContext* render_context = scene_mgr->getViewport()->getRenderContext(render_context_name);
 				if (!render_context) {

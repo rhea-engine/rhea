@@ -60,6 +60,7 @@
 #ifdef USE_RHEA_GLTF_LOADER
 #include <Fabrics/Gltf/GltfFabrics.h>
 #endif
+#include <Component.h>
 
 #undef min
 
@@ -87,6 +88,7 @@ namespace Rhea
 
 		
 		// register core types
+		SimpleParser::Type::registerType<Component>("//core/types/component"); 
 		SimpleParser::Type::registerType<Unit>("//core/types/unit");
 		SimpleParser::Type::registerType<UnitTree>("//core/unittree");
 		SimpleParser::Type::registerType<Collection>("//core/collection");
@@ -378,7 +380,7 @@ namespace Rhea
 
 				// get the realm parent unit (or create it if it doesn't exists) 
 				std::string realm_name = req->getRealmName();
-				Unit* realm_unit = m_unit_tree->find(realm_name, false);
+				Component* realm_unit = m_unit_tree->find(realm_name, false);
 				if (!realm_unit) {
 					// add the realm
 					realm_unit = (Unit*)new Realm(req->getRealm(), realm_name);
@@ -387,7 +389,7 @@ namespace Rhea
 
 				// find the unit parent and create the folders if necessary
 				std::string parentpath = realm_name + req->getParentPath();
-				Unit* parent_unit = m_unit_tree->find(parentpath, true);
+				Unit* parent_unit = doCast<Unit>(m_unit_tree->find(parentpath, true));
 				if (!parent_unit)
 					// should not happen
 					return handler(NULL, ReqError::PATH_NOT_FOUND);

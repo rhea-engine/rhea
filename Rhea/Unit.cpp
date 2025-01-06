@@ -13,9 +13,8 @@ namespace Rhea
 		m_values = values;
 	}
 
-	Unit::Unit(const Unit& u)
+	Unit::Unit(const Unit& u) : Component(u)
 	{
-		m_pathname = u.m_pathname;
 		m_path = u.m_pathname;
 		m_parent = nullptr;
 		m_type = u.m_type;
@@ -26,29 +25,34 @@ namespace Rhea
 		// copy the children
 		for (auto it = u.m_ordered_children.begin(); it != u.m_ordered_children.end(); it++)
 		{
-			Unit* child = (*it)->Clone();
+			Component* child = (*it)->Clone();
 			addChild(child);
 		}
 	}
 
-	void Unit::addChild(Unit* child)
+	void Unit::addChild(Component* child)
 	{		
-		child->m_path = m_path + "/" + child->m_pathname;
-		child->m_parent = this;
-		m_children[child->m_pathname] = child;
+		Unit* u_child = doCast<Unit>(child);
+		if (u_child)
+			u_child->m_path = m_path + "/" + child->getPathName();
+		child->setParent(this);
+		m_children[child->getPathName()] = child;
 		m_ordered_children.push_back(child);
-		child->onParented();
+		if (u_child)
+			u_child->onParented();
 	}
 
-	void Unit::removeChild(Unit* child)
+	void Unit::removeChild(Component* child)
 	{		
-		m_children.erase(child->m_pathname);
+		m_children.erase(child->getPathName());
 		m_ordered_children.erase(std::remove(m_ordered_children.begin(), m_ordered_children.end(), child));
-		child->m_parent = nullptr;
-		child->onRemoved();
+		child->setParent(nullptr);
+		Unit* u_child = doCast<Unit>(child);
+		if (u_child)
+			u_child->onRemoved();
 	}
 	
-	Unit* Unit::find(std::string path, bool create)
+	Component* Unit::find(std::string path, bool create)
 	{
 		// get first dir
 		std::string subpath;
@@ -97,6 +101,7 @@ namespace Rhea
 					}
 				}
 			}
+			// check children
 			subpath = path.substr(0, pos);
 			auto unit_it = m_children.find(subpath);
 			if (unit_it == m_children.end()) {
@@ -107,14 +112,19 @@ namespace Rhea
 					unit_it = m_children.find(subpath);
 				}
 				else {			
-					return NULL;
+					return nullptr;
 				}
 			}
-			return unit_it->second->find(path.substr(pos + 1, path.length()), create);
+			// if this not a unit return
+			Unit* unit = doCast<Unit>(unit_it->second);
+			if (!unit)
+				return nullptr;
+			else
+				return unit->find(path.substr(pos + 1, path.length()), create);
 		}
 	}
 
-	Unit* Unit::find(std::string path, std::string basepath, bool create)
+	Component* Unit::find(std::string path, std::string basepath, bool create)
 	{
 		if (path == "")
 			return nullptr;
@@ -140,9 +150,12 @@ namespace Rhea
 			return this;
 
 		for (auto it = m_children.begin(); it != m_children.end(); ++it) {
-			Unit* ret = it->second->findByType(type_name);
-			if (ret)
-				return ret;
+			Unit* u = doCast<Unit>(it->second);
+			if (u) {
+				Unit* ret = u->findByType(type_name);
+				if (ret)
+					return ret;
+			}
 		}
 
 		// not found
@@ -199,7 +212,7 @@ namespace Rhea
 			return "//" + unit_path;
 	}
 
-	Unit* Unit::getChild(std::string name)
+	Component* Unit::getChild(std::string name)
 	{
 		auto it = m_children.find(name);
 		if (it != m_children.end()) {
@@ -259,8 +272,9 @@ namespace Rhea
 		// call ready for all children
 		for (auto it = m_children.begin(); it != m_children.end(); ++it)
 		{
-			Unit* unit = it->second;
-			unit->ready();
+			Unit* unit = doCast<Unit>(it->second);
+			if (unit)
+				unit->ready();
 		}
 	}
 
@@ -269,8 +283,9 @@ namespace Rhea
 		// do i have this method?
 		message(method_name);
 		for (auto it = m_children.begin(); it != m_children.end(); ++it) {
-			Unit* c = it->second;
-			c->broadcast(method_name);
+			Unit* c = doCast<Unit>(it->second);
+			if (c)
+				c->broadcast(method_name);
 		}
 	}
 
@@ -296,8 +311,9 @@ namespace Rhea
 	{
 		registerEventHandler(event_name, owner, handler);
 		for (auto it = m_children.begin(); it != m_children.end(); ++it) {
-			Unit* c = it->second;
-			c->registerEventHandlerChildren(event_name, owner, handler);
+			Unit* c = doCast<Unit>(it->second);
+			if (c)
+				c->registerEventHandlerChildren(event_name, owner, handler);
 		}
 	}
 
@@ -317,8 +333,9 @@ namespace Rhea
 	{
 		sendEvent(event_name, event);
 		for (auto it = m_children.begin(); it != m_children.end(); ++it) {
-			Unit* c = it->second;
-			c->sendEventChildren(event_name, event);
+			Unit* c = doCast<Unit>(it->second);
+			if (c)
+				c->sendEventChildren(event_name, event);
 		}
 	}
 
@@ -342,18 +359,21 @@ namespace Rhea
 			m_parent->bubbleEvent(event_name, event);
 	}
 
-	void Unit::traverse(std::function<bool(std::string&, Unit*)> handler)
+	void Unit::traverse(std::function<bool(std::string&, Component*)> handler)
 	{
 		if (handler(this->m_pathname, this)) {
 			for (auto it = m_children.begin(); it != m_children.end(); ++it) {
 				std::string name = it->first;
-				//handler(name, it->second);
-				it->second->traverse(handler);
+				Unit* unit_child = doCast<Unit>(it->second);
+				if (unit_child)
+					unit_child->traverse(handler);
+				else
+					handler(it->second->getPathName(), it->second);
 			}
 		}
 	}
 
-	void Unit::children(std::function<bool(std::string&, Unit*)> handler)
+	void Unit::children(std::function<bool(std::string&, Component*)> handler)
 	{
 		for (auto it = m_children.begin(); it != m_children.end(); ++it) {
 			std::string name = it->first;
@@ -377,20 +397,6 @@ namespace Rhea
 			return it->second;
 		else
 			return nullptr;
-	}
-
-	Unit* Unit::createType(std::string name, std::string type_name)
-	{
-		Unit* ret = new Unit(name, type_name);
-		return ret;
-	}
-
-	void Unit::initializeType(Type* type)
-	{
-		type->registerMethod("setName", &Unit::setName);
-		type->registerMethod("getName", &Unit::getPathName);
-
-		type->registerProperty("path", Type::get(Type::BaseType::STRING), "setName", "getName");
 	}
 
 	Unit::~Unit()

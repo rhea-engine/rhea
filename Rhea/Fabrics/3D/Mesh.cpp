@@ -66,7 +66,7 @@ namespace Rhea
 				m_material = doCast<Material>(m_app->getUnitTree()->find(m_values["material"], m_attributes["basepath"], false));
 			}
 
-			tex = m_app->getUnitTree()->find(m_values["texture"], m_attributes["basepath"], false);
+			tex = doCast<Unit>(m_app->getUnitTree()->find(m_values["texture"], m_attributes["basepath"], false));
 			if (tex) {
 				if (!m_material) {
 					// if no material was set create one ad-hoc as child of this mesh

@@ -55,7 +55,7 @@ namespace Rhea
 		if (m_values["stylesheet"] != Variant()) {
 			StyleSheet* css = (StyleSheet*)m_app->getUnitTree()->find(m_values["stylesheet"], m_attributes["basepath"], false);
 			if (css) {
-				traverse([&, css](std::string name, Rhea::Unit* unit)->bool {
+				traverse([&, css](std::string name, Rhea::Component* unit)->bool {
 					Widget* w = doCast<Widget>(unit);
 					if (w) {
 						css->applyStyle(w);

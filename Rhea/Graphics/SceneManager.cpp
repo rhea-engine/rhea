@@ -27,10 +27,11 @@ namespace Rhea
 		}
 
 		// add my items
-		scene->traverse([&](std::string& name, Unit* unit)->bool {
+		scene->traverse([&](std::string& name, Component* unit)->bool {
 			{
-				if (unit != scene) {
-					addItem(unit);
+				Unit* u = doCast<Unit>(unit);
+				if (u && unit != scene) {
+					addItem(u);
 				}
 				return true;
 			}

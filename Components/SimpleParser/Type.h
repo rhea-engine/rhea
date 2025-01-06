@@ -149,9 +149,9 @@ static SimpleParser::Type* staticType(SimpleParser::Type* newType = nullptr) { \
 	return _static_type; \
 } \
  \
-static Unit* createType(std::string name, std::string type) \
+static Component* createType(std::string name, std::string type) \
 { \
-	Unit* ret = (Unit*)new _MeClass(name, type); \
+	Component* ret = (Component*)new _MeClass(name, type); \
 	return ret; \
 } \
  \

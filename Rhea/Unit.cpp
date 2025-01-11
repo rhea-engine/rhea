@@ -162,45 +162,6 @@ namespace Rhea
 		return nullptr;
 	}
 
-	Unit* Unit::getCommonAncestor(Unit* u2)
-	{
-		if (!u2)
-			return nullptr;
-
-		Unit* u1 = this;
-
-		if (u1 == u2)
-			return u1;
-
-		// if u1 is already anchestor u2 is the result
-		if (u1 && u1->isAncestor(u2))
-			return u2;
-
-		while (u1)
-		{
-			if (u2->isAncestor(u1))
-				break;
-
-			u1 = u1->m_parent;
-		}
-
-		return u1;
-	}
-
-	bool Unit::isAncestor(Unit* u2)
-	{
-		// if we have no parent we have no ancestor
-		if (!m_parent)
-			return false;
-
-		// check our immediate parent
-		if (m_parent == u2)
-			return true;
-
-		// not our parent - check back up the tree
-		return m_parent->isAncestor(u2);
-	}
-
 	std::string Unit::getPath(std::string& unit_path)
 	{
 		// is the string a full path?
@@ -220,23 +181,7 @@ namespace Rhea
 		}
 		return nullptr;
 	}
-
-	void Unit::setName(std::string name)
-	{
-		// update the full path
-		if (m_parent) {
-			m_path = m_parent->getPath() + "/" + name;
-			m_parent->m_children[name] = this;
-			m_parent->m_children.erase(m_pathname);
-		}
-		else {
-			m_path = name;
-		}
-
-		// update my unit name
-		m_pathname = name;
-	}
-
+	
 	Variant Unit::getValue(std::string name)
 	{
 		if (name != "") {

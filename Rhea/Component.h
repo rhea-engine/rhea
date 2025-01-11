@@ -36,11 +36,23 @@ namespace Rhea
 
         // get name
         std::string getPathName() { return m_pathname; }
-        // rename
-        virtual void setName(std::string name) { m_pathname = name; }
+        
+        // rename this component
+        // name: the new name
+        // note: 
+        // this removes the component from its parent and readds it under it new name
+        void setName(std::string name);
 
         // Clone method, returns a pointer to a copy of the object
         virtual Component* Clone() const { return new Component(*this); }
+
+        // tree/parent functions
+
+        // get common ancestor
+        Component* getCommonAncestor(Component* u2);
+
+        // is unit the ancestor
+        bool isAncestor(Component* u2);
 
         // type functions
 

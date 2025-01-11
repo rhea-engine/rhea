@@ -26,6 +26,9 @@ namespace Rhea
 				Item* item = doCast<Item>(unit);
 				if (item) {
 					item->onFrame(delta);
+					// TODO: Check if this is necessary
+					if (item->getTransform())
+						item->getTransform()->update();
 				}
 				return true;
 				});

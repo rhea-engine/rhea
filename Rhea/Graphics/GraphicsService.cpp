@@ -186,18 +186,6 @@ namespace Rhea
 	
 	bool GraphicsService::onFrameFinal(float delta)
 	{
-		// update items
-		for (auto it=m_scenes.begin(); it<m_scenes.end(); ++it) {
-			(*it)->traverse([](std::string& name, Component* unit)->bool {
-				std::string type_name = unit->getTypeName();
-			if ((type_name == "//meworla/item") || (type_name == "//meworla/camera") || (type_name == "//meworla/terrain") || (type_name == "//meworla/character")) {
-				Item* item = static_cast<Item*>(unit);
-				item->getTransform()->update();				
-			}
-			return true;
-				});
-		}
-
 		return m_core->iterate();
 	}
 	

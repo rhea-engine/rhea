@@ -1,4 +1,5 @@
 #include "WorldService.h"
+#include "WorldService.h"
 
 #include <Rhea/Application.h>
 #include <Rhea/UnitTree.h>
@@ -18,7 +19,7 @@ namespace Rhea
 			});
 	}
 
-	bool WorldService::onFrameFinal(float delta)
+	bool WorldService::onFrame(float delta)
 	{
 		// update items
 		for (auto it = m_scenes.begin(); it < m_scenes.end(); ++it) {
@@ -33,6 +34,11 @@ namespace Rhea
 				return true;
 				});
 		}
+		return false;
+	}
+
+	bool WorldService::onFrameFinal(float delta)
+	{
 		return false;
 	}
 

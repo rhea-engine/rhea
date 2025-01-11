@@ -20,7 +20,8 @@ namespace Rhea
 		virtual void onInit();
 
 		// every frame
-		virtual bool onFrameFinal(float delta);
+		bool onFrame(float delta) override;
+		bool onFrameFinal(float delta) override;
 
 	protected:
 		// prepare a scene to display

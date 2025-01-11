@@ -51,6 +51,35 @@ namespace Rhea
 		if (u_child)
 			u_child->onRemoved();
 	}
+
+	void Unit::addComponent(Component* component)
+	{
+		if (!component) return;
+
+		// Traverse the type hierarchy and register the component under each type
+		SimpleParser::Type* type = component->getType();
+		while (type) {
+			m_unique_components[type] = component;
+			type = type->getParent();
+		}
+		// add as child
+		addChild(component);
+	}
+
+	void Unit::removeComponent(Component* component)
+	{
+		if (!component) return;
+
+		// first remove child
+		removeChild(component);
+		
+		// remove from map
+		SimpleParser::Type* type = component->getType();
+		while (type) {
+			m_unique_components.erase(type);  // Remove from map
+			type = type->getParent();
+		}
+	}
 	
 	Component* Unit::find(std::string path, bool create)
 	{
@@ -160,6 +189,18 @@ namespace Rhea
 
 		// not found
 		return nullptr;
+	}
+
+	std::vector<Component*> Unit::getAllComponents() const
+	{
+		std::vector<Component*> components;
+		for (const auto& it : m_unique_components) {
+			Component* component = it.second;
+			if (std::find(components.begin(), components.end(), component) == components.end()) {
+				components.push_back(component);
+			}
+		}
+		return components;
 	}
 
 	std::string Unit::getPath(std::string& unit_path)

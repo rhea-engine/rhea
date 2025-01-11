@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include <utility>
 
 #include "SimpleParser/Variant.h"
 #include "SimpleParser/Type.h"
@@ -49,6 +50,32 @@ namespace Rhea
 		virtual void onParented() {}
 		virtual void onRemoved() {}
 
+		// add component
+		// a component is a child which is stored in the type lookup table
+		// this is allows lookup by type
+		void addComponent(Component* component);		
+
+		// create and add component
+		template <typename T, typename... Args>
+		T* addComponentUnique(Args&&... args) {
+			T* component = new T(std::forward<Args>(args)...);
+			// Register the component under its exact type and base types
+			addComponent(component);
+			return component;
+		}
+
+		// remove a component
+		void removeComponent(Component* component);
+
+		// get a component with the given type - which may be a base type
+		template <typename T>
+		T* getComponent() {
+			auto it = m_unique_components.find(T::staticType());
+			return it != m_unique_components.end() ? doCast<T>(it->second) : nullptr;
+		}					
+
+		std::vector<Component*> getAllComponents() const;
+
 		// get full path
 		std::string getPath() { return m_path; }
 
@@ -81,12 +108,6 @@ namespace Rhea
 		}
 		Unit* findByType(std::string type_name);
 
-		// get common ancestor
-		Unit* getCommonAncestor(Unit* u2);
-
-		// is unit the ancestor
-		bool isAncestor(Unit* u2);
-
 		// get value
 		Variant getValue(std::string name);
 		// get value with default
@@ -100,10 +121,7 @@ namespace Rhea
 			Variant value;
 		} Export;
 		virtual std::vector<Export> getReferences();
-
-		// rename
-		void setName(std::string name) override;
-
+		
 		// Elements
 
 		// add an element with the given name
@@ -170,8 +188,15 @@ namespace Rhea
 		std::string m_path;
 		std::unordered_map<std::string, std::string> m_attributes;
 		std::unordered_map<std::string, Variant> m_values;
+
+		// the children of the unit - this may be components
 		std::unordered_map<std::string, Component*> m_children;
+		// the children in the order of when they whre added
 		std::vector<Component*> m_ordered_children;
+		// the types of the children if added as component - per type only one component
+		std::unordered_map<SimpleParser::Type*, Component*> m_unique_components;
+
+		// event handlers for this unit
 		std::unordered_map < std::string, std::unordered_map<void*, Event::EventHandler >> m_eventhandlers;
 		std::unordered_map<std::string, Element*> m_elements;
 		int m_refcount;

@@ -183,9 +183,7 @@ namespace Poseidon
 				Item* renderable = m_rend_queue->first();
 				for (Item* renderable = m_rend_queue->first(); renderable != NULL; renderable = m_rend_queue->next()) {
 
-					Rhea::RenderComponent* r_comp = renderable->getRenderComponent();
-					if (!r_comp)
-						r_comp = renderable->getComponent<Rhea::RenderComponent>();
+					Rhea::RenderComponent* r_comp = renderable->getComponent<Rhea::RenderComponent>();
 					if (!r_comp)
 						continue;
 					if (doCast<Rhea::Terrain>(renderable)) {

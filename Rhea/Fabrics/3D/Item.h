@@ -41,7 +41,6 @@ namespace Rhea
 			m_physics_body(nullptr),
 			m_turn(0.0f),			
 			m_transform(this),
-			m_render_component(nullptr),
 			Unit(name, type_name)
 		{}
 		
@@ -52,7 +51,7 @@ namespace Rhea
 		void ready();
 
 		// get dependent data
-		Mesh* getMesh() { if (m_render_component) return m_render_component->getMesh(); else if (getComponent<RenderComponent>()) return getComponent<RenderComponent>()->getMesh(); else return nullptr; }
+		Mesh* getMesh() { if (getComponent<RenderComponent>()) return getComponent<RenderComponent>()->getMesh(); else return nullptr; }
 
 		std::vector<Export> getReferences();
 
@@ -79,12 +78,12 @@ namespace Rhea
 		virtual void jump() {}
 
 		// graphics
-		RenderComponent* getRenderComponent() {	if (m_render_component) return m_render_component; else return getComponent<RenderComponent>(); }
+		RenderComponent* getRenderComponent() {	return getComponent<RenderComponent>(); }
 
 		// visibility
-		virtual void hide() { if (m_render_component) m_render_component->hide(); else if (getComponent<RenderComponent>()) getComponent<RenderComponent>()->hide(); }
-		virtual void show() { if (m_render_component) m_render_component->show(); else if (getComponent<RenderComponent>()) getComponent<RenderComponent>()->show(); }
-		bool isVisible() { if (m_render_component) return m_render_component->isVisible(); else if (getComponent<RenderComponent>()) return getComponent<RenderComponent>()->isVisible(); else return false; }
+		virtual void hide() { if (getComponent<RenderComponent>()) getComponent<RenderComponent>()->hide(); }
+		virtual void show() { if (getComponent<RenderComponent>()) getComponent<RenderComponent>()->show(); }
+		bool isVisible() { if (getComponent<RenderComponent>()) return getComponent<RenderComponent>()->isVisible(); else return false; }
 
 		// networking
 		void setNetworkComponent(std::unique_ptr<NetworkComponent> component) { m_net_component = std::move(component); }
@@ -98,8 +97,7 @@ namespace Rhea
 		PhysicsBody* m_physics_body;
 		std::unique_ptr<NetworkComponent> m_net_component;
 		Math::Vector3 m_movement;
-		float m_turn;
-		RenderComponent* m_render_component;
+		float m_turn;		
 
 		bool getGraphicsItem();
 

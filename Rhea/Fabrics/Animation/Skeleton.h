@@ -1,17 +1,17 @@
 #ifndef RHEA_SKELETON_H
 #define RHEA_SKELETON_H
 
-#include <Rhea/Unit.h>
+#include <Rhea/Component.h>
 #include "Bone.h"
 
 namespace Rhea
 {
-	class Skeleton : public Unit
+	class Skeleton : public Component
 	{
-		MECLASS(Skeleton, Unit)
+		MECLASS(Skeleton, Component)
 	public:
 		Skeleton(std::string name, std::string type_name) :			
-			Unit(name, type_name)
+			Component(name, type_name)
 		{}
 
 		void UpdateBoneTransforms();

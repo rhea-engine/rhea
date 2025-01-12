@@ -220,7 +220,7 @@ namespace Poseidon
 					Mesh* mesh = m_elem->m_mesh;
 
 					// skeleton handling if any
-					Rhea::Skeleton* skeleton = rmesh->getSkeleton();
+					Rhea::Skeleton* skeleton = rmesh->getComponent<Rhea::Skeleton>();
 					if (skeleton) {
 						// Fill the bone buffer
 						BoneBuffer boneBuffer;

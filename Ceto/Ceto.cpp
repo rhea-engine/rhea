@@ -71,7 +71,7 @@ bool Ceto::onInput(Rhea::EventInput* e, Rhea::Unit* unit)
 		Rhea::Item* gus2 = doCast<Rhea::Item>(m_unit_tree->find("//local/scene1/gus2"));
 		if (gus2)
 		{
-			Rhea::Animation* anim;
+			Rhea::Animation* anim = nullptr;
 			Rhea::Mesh* mesh = doCast<Rhea::Mesh>(gus2->getChild("mesh"));
 			if (mesh) {
 				if (!walk_state) {
@@ -349,7 +349,7 @@ void Ceto::showScene(Rhea::Scene* scene)
 		Rhea::Mesh* mesh = doCast<Rhea::Mesh>(gus2->getChild("mesh"));
 		if (mesh) {
 			Rhea::Animation* anim = doCast<Rhea::Animation>(mesh->getChild("RunningAction"));
-			Rhea::Skeleton* skeleton = doCast<Rhea::Skeleton>(mesh->getSkeleton());
+			Rhea::Skeleton* skeleton = doCast<Rhea::Skeleton>(mesh->getComponent<Rhea::Skeleton>());
 			if (anim && skeleton) {
 				// add the animator to the scene
 				Rhea::Animator* animator = new Rhea::Animator("Animator", "//meworla/animator");

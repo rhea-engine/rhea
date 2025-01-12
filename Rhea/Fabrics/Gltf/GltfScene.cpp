@@ -54,8 +54,8 @@ namespace Rhea
 				Bone rootBone(0, -1, Math::Matrix4());
 				skel->addBone(rootBone);
 			}
-			addChild(skel);
-			mesh->setSkeleton(skel);
+			//addComponent(skel);
+			mesh->addComponent(skel);
 
 			// add the animations
 			CreateAnimations(mesh);

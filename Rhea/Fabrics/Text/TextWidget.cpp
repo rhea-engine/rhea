@@ -59,13 +59,13 @@ namespace Rhea
 			m_font->ready();
 			Material* font_material = m_font->getMaterial();
 
-			if (!m_render_component) {
-				m_render_component = new RenderComponent("renderer", "//meworla/rendercomponent");
-				addChild(m_render_component);
+			RenderComponent* render_component = getComponent<RenderComponent>();
+			if (!render_component) {
+				render_component = addComponentUnique<RenderComponent>("renderer", "//meworla/rendercomponent");				
 			}
 
 			// add the mesh
-			if (!m_render_component->getMesh()) {
+			if (!render_component->getMesh()) {
 
 				std::unordered_map<std::string, std::string> attributes;
 				std::unordered_map<std::string, Variant> values;
@@ -74,7 +74,7 @@ namespace Rhea
 				// text is dynamic
 				mesh->setDynamic(true);
 				addChild(mesh);
-				m_render_component->setMesh(mesh);				
+				render_component->setMesh(mesh);				
 
 				setMesh();
 			}
@@ -202,9 +202,10 @@ namespace Rhea
 			m_vertex_size = v_len;
 		}
 
-		if (m_render_component && m_render_component->getMesh()) {
-			m_render_component->getMesh()->setBuffers(vertices, v_indices);
-			m_render_component->getMesh()->sendEvent("update", nullptr);
+		RenderComponent* render_component = getComponent<RenderComponent>();
+		if (render_component && render_component->getMesh()) {
+			render_component->getMesh()->setBuffers(vertices, v_indices);
+			render_component->getMesh()->sendEvent("update", nullptr);
 		}
 	}
 
@@ -304,7 +305,7 @@ namespace Rhea
 	void TextWidget::setText(std::string text)
 	{
 		m_text = text;
-		if (m_render_component && m_render_component->getMesh())
+		if (getComponent<RenderComponent>() && getComponent<RenderComponent>()->getMesh())
 			setMesh();
 	}
 

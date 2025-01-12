@@ -71,7 +71,7 @@ namespace Rhea
 		template <typename T>
 		T* getComponent() {
 			auto it = m_unique_components.find(T::staticType());
-			return it != m_unique_components.end() ? doCast<T>(it->second) : nullptr;
+			return it != m_unique_components.end() ? static_cast<T*>(it->second) : nullptr;
 		}					
 
 		std::vector<Component*> getAllComponents() const;

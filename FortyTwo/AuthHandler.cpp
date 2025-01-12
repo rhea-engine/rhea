@@ -1,6 +1,6 @@
 #include "AuthHandler.h"
 #include <Rhea/UnitTree.h>
-#include <Rhea/Fabrics/3D/Item.h>
+#include <Rhea/Fabrics/Core/Item.h>
 #include <Rhea/Physics/PhysicsService.h>
 #include <Hermes/Messages/MessageCreate.h>
 #include <Hermes/Messages/MessageMove.h>

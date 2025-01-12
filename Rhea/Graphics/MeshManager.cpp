@@ -1,5 +1,5 @@
 #include "MeshManager.h"
-#include <Rhea/Fabrics/3D/Item.h>
+#include <Rhea/Fabrics/Core/Item.h>
 #include <Rhea/Fabrics/3D/Mesh.h>
 #include <Poseidon/Mesh.h>
 #include <Poseidon/SceneManager.h>

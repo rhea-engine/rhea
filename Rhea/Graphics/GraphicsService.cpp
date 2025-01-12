@@ -24,7 +24,7 @@
 #include <Rhea/Physics/PhysicsService.h>
 #include "EventInput.h"
 
-#include "Fabrics/3D/Item.h"
+#include "Fabrics/Core/Item.h"
 #include "Fabrics/3D/Mesh.h"
 #include "Poseidon/Renderable.h"
 #include "Poseidon/Entity.h"

@@ -3,7 +3,7 @@
 #include "Poseidon/Entity.h"
 #include "Poseidon/SceneManager.h"
 #include "UnitTree.h"
-#include "Mesh.h"
+#include "../3D/Mesh.h"
 #include "Graphics/RenderElement.h"
 #include "Physics/Body.h"
 #include <Psio/Log.h>

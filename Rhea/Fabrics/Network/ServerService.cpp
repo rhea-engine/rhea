@@ -3,7 +3,7 @@
 #include <Hermes/ServerStream.h>
 #include <Rhea/Application.h>
 #include <Rhea/UnitTree.h>
-#include <Rhea/Fabrics/3D/Item.h>
+#include <Rhea/Fabrics/Core/Item.h>
 #include <Hermes/Messages/MessagePosition.h>
 #include <Hermes/Messages/MessageDestroy.h>
 #include <Rhea/Physics/PhysicsService.h>

@@ -5,7 +5,7 @@
 #include <Poseidon/RenderContext.h>
 
 #include "../Unit.h"
-#include "Fabrics/3D/Item.h"
+#include "Fabrics/Core/Item.h"
 #include "Fabrics/3D/Mesh.h"
 #include "Fabrics/Core/Material.h"
 #include "../Resources/TextResource.h"

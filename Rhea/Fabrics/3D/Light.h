@@ -1,7 +1,7 @@
 #ifndef RHEA_LIGHT_H
 #define RHEA_LIGHT_H
 
-#include "Item.h"
+#include "../Core/Item.h"
 
 namespace Rhea
 {

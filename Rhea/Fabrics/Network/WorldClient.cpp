@@ -1,7 +1,7 @@
 #include "WorldClient.h"
 #include <Hermes/Opcode.h>
 #include <Rhea/UnitTree.h>
-#include <Rhea/Fabrics/3D/Item.h>
+#include <Rhea/Fabrics/Core/Item.h>
 #include <Psio/Log.h>
 #include <Hermes/Messages/MessageMove.h>
 #include <Hermes/Messages/MessageTurn.h>

@@ -14,7 +14,7 @@
 #include "Unit.h"
 #include "UnitTree.h"
 #include "Realm.h"
-#include "Fabrics/3D/Item.h"
+#include "Fabrics/Core/Item.h"
 #include "Fabrics/Core/Transform.h"
 #include "Fabrics/Core/Scene.h"
 #include "Fabrics/3D/Mesh.h"

@@ -1,9 +1,8 @@
 #include "WorldService.h"
-#include "WorldService.h"
 
 #include <Rhea/Application.h>
 #include <Rhea/UnitTree.h>
-#include <Rhea/Fabrics/3D/Item.h>
+#include <Rhea/Fabrics/Core/Item.h>
 
 namespace Rhea
 {

@@ -5,9 +5,9 @@
 
 #include <Rhea/Unit.h>
 
-#include "Rhea/Fabrics/Core/Position.h"
-#include "Math/Vector3.h"
-#include "../Core/Transform.h"
+#include <Rhea/Fabrics/Core/Position.h>
+#include <Math/Vector3.h>
+#include  <Rhea/Fabrics/Core/Transform.h>
 #include "../Network/NetworkComponent.h"
 #include <Rhea/Components/RenderComponent.h>
 
@@ -25,7 +25,7 @@ namespace Rhea
 	class Material;
 
 	/** 
-	* Item is the base class for all units that can be placed in the scene with a 3D location.
+	* Item is the base class for all units that can be placed in the scene with a location.
 	* For adding behahviour or visual representation add components as childs
 	*/
 	class Item : public Unit

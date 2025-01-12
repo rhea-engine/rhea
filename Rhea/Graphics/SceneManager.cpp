@@ -8,7 +8,7 @@
 #include "ItemManager.h"
 #include "CameraManager.h"
 #include "../Unit.h"
-#include "Fabrics/3D/Item.h"
+#include "Fabrics/Core/Item.h"
 #include "Fabrics/Canvas/Item2D.h"
 #include "GraphicsService.h"
 #include <Psio/Log.h>

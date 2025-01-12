@@ -1,6 +1,6 @@
 #include "BtPhysicsService.h"
 #include "Controller/BasicController.h"
-#include "Fabrics/3D/Item.h"
+#include "Fabrics/Core/Item.h"
 #include "Fabrics/Core/Scene.h"
 #include "BtBody.h"
 #include "BtHeightMap.h"

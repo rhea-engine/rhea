@@ -1,7 +1,7 @@
 #include "PhysicsService.h"
 #include "Body.h"
 #include "../Controller/BasicController.h"
-#include "Fabrics/3D/Item.h"
+#include "Fabrics/Core/Item.h"
 #include "../Application.h"
 #include "UnitTree.h"
 #include "PhysicsEvent.h"

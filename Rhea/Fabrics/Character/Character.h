@@ -2,8 +2,7 @@
 #define RHEA_FABRICS_CHARACTER_H
 
 #include <Rhea/Fabrics/Core/Position.h>
-
-#include "Fabrics/3D/Item.h"
+#include <Rhea/Fabrics/Core/Item.h>
 
 namespace Rhea
 {	

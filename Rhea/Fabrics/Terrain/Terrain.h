@@ -6,7 +6,7 @@
 #include <Psio/Image/Image.h>
 #include <Math/Vector3.h>
 
-#include <Rhea/Fabrics/3D/Item.h>
+#include <Rhea/Fabrics/Core/Item.h>
 
 namespace Rhea
 {

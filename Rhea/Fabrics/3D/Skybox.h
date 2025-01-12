@@ -1,7 +1,7 @@
 #ifndef RHEA_FABRICS_SKYBOX_H
 #define RHEA_FABRICS_SKYBOX_H
 
-#include "Item.h"
+#include "../Core/Item.h"
 #include "Camera.h"
 
 namespace Rhea

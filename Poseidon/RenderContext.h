@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "Node.h"
-#include <Rhea/Fabrics/3D/Item.h>
+#include <Rhea/Fabrics/Core/Item.h>
 #include <Rhea/Fabrics/3D/Light.h>
 
 using Rhea::Item;

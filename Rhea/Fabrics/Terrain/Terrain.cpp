@@ -133,9 +133,9 @@ namespace Rhea
 				if (max_height)
 					m_max_height = max_height;
 
-				if (!m_render_component) {
-					m_render_component = new RenderComponent("renderer", "//meworla/rendercomponent");
-					addChild(m_render_component);
+				RenderComponent* render_component = getComponent<RenderComponent>();
+				if (!render_component) {
+					render_component = addComponentUnique<RenderComponent>("renderer", "//meworla/rendercomponent");					
 				}
 
 				if (!m_material) {
@@ -156,7 +156,7 @@ namespace Rhea
 				}
 
 				// if not overwritten by mesh build from heightmap
-				if (!m_render_component->getMesh()) {
+				if (!render_component->getMesh()) {
 
 					// vertex buffers
 					std::unordered_map<std::string, VertexBuffer> vertices;
@@ -245,7 +245,7 @@ namespace Rhea
 						}
 						mesh->setBuffers(vertices, indices, vert_count);
 					}
-					m_render_component->setMesh(mesh);
+					render_component->setMesh(mesh);
 					addChild(mesh);					
 				}					
 

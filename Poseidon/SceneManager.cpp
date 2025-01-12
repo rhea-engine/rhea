@@ -185,6 +185,8 @@ namespace Poseidon
 
 					Rhea::RenderComponent* r_comp = renderable->getRenderComponent();
 					if (!r_comp)
+						r_comp = renderable->getComponent<Rhea::RenderComponent>();
+					if (!r_comp)
 						continue;
 					if (doCast<Rhea::Terrain>(renderable)) {
 						int i = 1;

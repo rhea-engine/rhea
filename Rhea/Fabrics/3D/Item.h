@@ -52,7 +52,7 @@ namespace Rhea
 		void ready();
 
 		// get dependent data
-		Mesh* getMesh() { if (m_render_component) return m_render_component->getMesh(); else return nullptr; }
+		Mesh* getMesh() { if (m_render_component) return m_render_component->getMesh(); else if (getComponent<RenderComponent>()) return getComponent<RenderComponent>()->getMesh(); else return nullptr; }
 
 		std::vector<Export> getReferences();
 
@@ -79,12 +79,12 @@ namespace Rhea
 		virtual void jump() {}
 
 		// graphics
-		RenderComponent* getRenderComponent() { return m_render_component; }
+		RenderComponent* getRenderComponent() {	if (m_render_component) return m_render_component; else return getComponent<RenderComponent>(); }
 
 		// visibility
-		virtual void hide() { if (m_render_component) m_render_component->hide(); }
-		virtual void show() { if (m_render_component) m_render_component->show(); }
-		bool isVisible() { if (m_render_component) return m_render_component->isVisible(); else return false; }
+		virtual void hide() { if (m_render_component) m_render_component->hide(); else if (getComponent<RenderComponent>()) getComponent<RenderComponent>()->hide(); }
+		virtual void show() { if (m_render_component) m_render_component->show(); else if (getComponent<RenderComponent>()) getComponent<RenderComponent>()->show(); }
+		bool isVisible() { if (m_render_component) return m_render_component->isVisible(); else if (getComponent<RenderComponent>()) return getComponent<RenderComponent>()->isVisible(); else return false; }
 
 		// networking
 		void setNetworkComponent(std::unique_ptr<NetworkComponent> component) { m_net_component = std::move(component); }

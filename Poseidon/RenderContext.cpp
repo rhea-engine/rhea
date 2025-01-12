@@ -42,10 +42,13 @@ namespace Poseidon
 			robj->traverse([&](std::string name, Rhea::Component* uitem)->bool {
 				Item* item = doCast<Item>(uitem);
 				if (item) {
-					if (!item->isVisible())
-						return false;					
-					if (item->getMesh())
-						queue->addRenderable(item);
+					Rhea::RenderComponent* renderer = item->getRenderComponent();
+					if (renderer) {
+						if (!renderer->isVisible())
+							return false;
+						if (renderer->getMesh())
+							queue->addRenderable(item);
+					}
 					return true;
 				}
 				else {

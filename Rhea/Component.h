@@ -41,7 +41,7 @@ namespace Rhea
         // name: the new name
         // note: 
         // this removes the component from its parent and readds it under it new name
-        void setName(std::string name);
+        virtual void setName(std::string name);
 
         // Clone method, returns a pointer to a copy of the object
         virtual Component* Clone() const { return new Component(*this); }

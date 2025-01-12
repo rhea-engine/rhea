@@ -92,6 +92,8 @@ namespace Rhea
 		Component* find(std::string path, bool create = false);
 		Component* find(std::string path, std::string basepath, bool create);
 
+		void setName(std::string name) override;
+
 		// find nearest by type
 		template <class T>
 		T* findByType() {

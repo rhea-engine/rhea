@@ -201,7 +201,7 @@ namespace Rhea
 			}
 		}
 		return components;
-	}
+	}	
 
 	std::string Unit::getPath(std::string& unit_path)
 	{
@@ -221,6 +221,12 @@ namespace Rhea
 			return it->second;
 		}
 		return nullptr;
+	}
+
+	void Unit::setName(std::string name)
+	{
+		m_path = name;
+		Component::setName(name);
 	}
 	
 	Variant Unit::getValue(std::string name)

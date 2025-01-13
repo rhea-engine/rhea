@@ -11,6 +11,7 @@
 #include "Physics/Bullet/BtGhost.h"
 #include "Physics/PhysicsCharacter.h"
 #include "../Core/Transform.h"
+#include "../Network/NetworkComponent.h"
 
 #include <algorithm>
 #include <Psio/Log.h>
@@ -122,8 +123,8 @@ namespace Rhea
 			dirty = true;
 			m_physics_body->setOrientation(m_orientation);
 		}
-		if (dirty && m_net_component)
-			m_net_component->onPositionChange();
+		if (dirty && getComponent<Rhea::NetworkComponent>())
+			getComponent<Rhea::NetworkComponent>()->onPositionChange();
 
 		return false;
 	}

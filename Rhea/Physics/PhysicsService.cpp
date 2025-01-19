@@ -10,7 +10,7 @@
 
 namespace Rhea
 {
-	void PhysicsService::step(float delta)
+	void PhysicsService::onPhysicsStep(float delta)
 	{
 		// send pre event
 		std::unique_ptr<Rhea::PhysicsEvent> ev = std::make_unique<Rhea::PhysicsEvent>("physics_pre", delta, m_terrain);

@@ -43,13 +43,70 @@ namespace Rhea
 		virtual void setup();
 		// onScene Event
 		virtual void onScene(Scene*) = 0;
-		// the app main loop
+
+		/**
+		 * Main Application Loop
+		 * ---------------------
+		 * Orchestrates the application's core systems, including input, networking, physics, and rendering.
+		 */
 		virtual int loop();
-		// handle input - return true for quit
+
+		/**
+		 * handleInput
+		 * -----------
+		 * Processes a single input event.
+		 * - Input events include player actions (e.g., key presses, mouse movement).
+		 * - Updates relevant game state based on input.
+		 * 
+		 * Parameters:
+		 * - `e`: A pointer to the `EventInput` object representing the current input event (e.g., key press, mouse movement).
+		 * - `unit`: unused
+		 * 
+		 * Returns:
+		 * - `true`: Signals that the engine should exit (e.g., user pressed a quit key or closed the window).
+		 * - `false`: Continues normal processing of the game loop.
+		 */
 		virtual bool onInput(EventInput *e, Unit* unit);
-		// onFrame Event
+
+		/**
+		 * onFrameBegin
+		 * -------------
+		 * Called at the start of each frame.
+		 * - Resets temporary state.
+		 * - Hooks for profiling or debugging.
+		 *
+		 * Returns:
+		 * - `true`: Signals that the engine should exit (e.g., user pressed a quit key or closed the window).
+		 * - `false`: Continues normal processing of the game loop.
+		 */
 		virtual bool onFrameBegin() { return false; }
+
+		/**
+		 * onFrameEnd
+		 * -----------
+		 * Called at the end of the frame, after all updates, physics simulations, and rendering have completed.
+		 *
+		 * Responsibilities:
+		 * - Perform any cleanup tasks that must occur at the very end of the frame.
+		 * - Finalize the state of services or systems for the next frame.
+		 * - Optionally trigger hooks for logging, debugging, or profiling.
+		 *
+		 * Examples of Use:
+		 * - Resetting temporary or frame-local data structures.
+		 * - Flushing rendering buffers or completing GPU operations.
+		 * - Preparing debug overlays or metrics for the next frame.
+		 *
+		 * Notes:
+		 * - `onFrameEnd()` is the last step of the game loop before it starts processing the next frame.
+		 * - It should not contain gameplay-critical logic, as the frame has already been rendered.
+		 *
+		 * Returns:
+		 * - `true`: Signals that the engine should exit (e.g., user pressed a quit key or closed the window).
+		 * - `false`: Continues normal processing of the game loop.
+
+		 */
 		virtual bool onFrameEnd() { return false; }
+
 		// close the app
 		virtual void close();
 
@@ -82,6 +139,7 @@ namespace Rhea
 		Controller* m_focused_controller = 0;
 		std::unordered_map<std::string, Service*> m_services;
 		PhysicsService* m_physics = nullptr;
+		Service* m_wold_service = nullptr;
 
 		ResourceLoader m_resource_loader;
 

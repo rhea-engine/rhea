@@ -18,7 +18,7 @@ namespace Rhea
 		BulletPhysicsService(std::string name, std::string type_name);
 
 		// process physics with delta seconds (usually 1/60)
-		void step(float delta);
+		void onPhysicsStep(float delta);
 
 		// get the physics world
 		btDynamicsWorld* getWorld() { return m_world; }

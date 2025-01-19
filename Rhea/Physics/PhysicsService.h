@@ -23,7 +23,7 @@ namespace Rhea
 		}
 
 		// process physics with delta seconds (usually 1/60)
-		virtual void step(float delta);
+		void onPhysicsStep(float delta) override;
 
 		// set scene and initialize objects in it
 		virtual void setScene(Scene* scene);

@@ -245,7 +245,25 @@ namespace Rhea
 		return false;
 	}
 
-	
+	/**
+	 * Main Application Loop
+	 * --------------
+	 * This loop drives the application by managing input, network, physics, and other subsystems.
+	 *
+	 * Key Components:
+	 * - `elapsed_s`: Time in seconds since the last frame. Used for frame-based updates.
+	 * - `frame_slice`: Fixed timestep for physics updates. Ensures stability and determinism.
+	 *
+	 * Steps:
+	 * 1. Calculate `elapsed_s` to determine the time since the last frame.
+	 * 2. Begin frame processing (e.g., resetting state, profiling hooks)
+	 * 3. Handle input events and network updates.
+	 * 4. Perform pre-physics updates (frame-based, using `elapsed_s`).
+	 * 5. Run physics simulation in fixed timesteps (`frame_slice`).
+	 * 6. Perform frame-based updates (animations, AI, etc., using `elapsed_s`).
+	 * 7. Perform final updates (e.g., rendering).
+	 * 8. Finish frame processing after all updates, physics simulations, and rendering have completed.
+	 */
 	int Application::loop()
 	{
 		// start the loop
@@ -274,6 +292,8 @@ namespace Rhea
 		while (!ret) {
 
 			// timings
+
+			// 1. Calculate elapsed time since the last frame (in seconds)
 			current_ticks = psio->getTicks();
 			elapsed_ticks = current_ticks - last_ticks;
 			float elapsed_s = static_cast<float>(elapsed_ticks) / 1000000.0f;
@@ -298,10 +318,11 @@ namespace Rhea
 			//if (physics_steps > 5)
 			//	printf("phys steps: %d ; acc: %f        \r\n", physics_steps, accumulated_time);
 
+			// 2. Begin frame processing (e.g., resetting state, profiling hooks)
 			if (onFrameBegin())
 				ret = true;
 
-			// check for window and input events
+			// 3.1 check for window and input events
 			while (evt = psio->pollInput()) {
 
 				// always handle OS quit
@@ -327,19 +348,31 @@ namespace Rhea
 				if (onInput(&e, nullptr))
 					ret = true;
 			}
+
+			// 3.2 Run network updates (e.g., sync data, process packets)
 			psio->RunNet();
+			
+			// 4. Call pre-physics updates for all services (elapsed time is frame-based)
+			for (auto it = m_services.begin(); it != m_services.end(); ++it) {
+				if (it->second->onPrePhysics(elapsed_s))
+					ret = true;
+			}
 
 			// physics
 
+			// 5. Run fixed-timestep physics simulation
 			uint64_t physics_begin = psio->getTicks();
 
-			if (m_physics) {
+			if (m_physics || m_wold_service) {
 				static int max_physics_steps = 10;
 				physics_steps = std::min(physics_steps, max_physics_steps);
 
 				for (int i = 0; i < physics_steps; i++)
 				{
-					m_physics->step(frame_slice);
+					if (m_physics)
+						m_physics->onPhysicsStep(frame_slice);
+					if (m_wold_service)
+						m_wold_service->onPhysicsStep(frame_slice);
 				}
 			}
 
@@ -348,12 +381,13 @@ namespace Rhea
 			
 			// idle(elapsed_s)
 
-			// on Frame - normally used for physics etc.
+			// 6. Call frame-based updates for all services - physics is done
 			for (auto it = m_services.begin(); it != m_services.end(); ++it) {
 				if (it->second->onFrame(elapsed_s))
 					ret = true;
 			}			
-			// on Frame final - physics etc. are already done
+
+			// 7. Perform any final updates (e.g., rendering, cleanup)
 			for (auto it = m_services.begin(); it != m_services.end(); ++it) {
 				if (it->second->onFrameFinal(elapsed_s))
 					ret = true;
@@ -361,6 +395,7 @@ namespace Rhea
 
 			frames++;
 
+			// 8. Finish the frame, after all updates, physics simulations, and rendering have completed.
 			if (onFrameEnd())
 				ret = true;
 		}

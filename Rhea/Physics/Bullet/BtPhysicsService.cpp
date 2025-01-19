@@ -32,13 +32,13 @@ namespace Rhea
 	{
 	}
 
-	void BulletPhysicsService::step(float delta)
+	void BulletPhysicsService::onPhysicsStep(float delta)
 	{
 		if (!m_world || !m_scene) {		
 			assert(false);
 			return;
 		}
-		PhysicsService::step(delta);
+		PhysicsService::onPhysicsStep(delta);
 
 		std::vector<Item*> items = m_scene->getItems();
 

@@ -5,4 +5,4 @@ add_library (RheaFabricsNet "ClientService.h" "ClientService.cpp" "WorldClient.h
 "ServerService.h" "ServerService.cpp" "ClientConnection.h" 
 "ClientConnection.cpp"
 
- "IConnectionData.h" "LobbyServer.h" "LobbyServer.cpp" "WorldServer.h" "WorldServer.cpp" "LobbyClient.h" "LobbyClient.cpp")
+ "IConnectionData.h" "LobbyServer.h" "LobbyServer.cpp" "WorldServer.h" "WorldServer.cpp" "LobbyClient.h" "LobbyClient.cpp" "NetworkFabrics.h" "NetworkFabrics.cpp")

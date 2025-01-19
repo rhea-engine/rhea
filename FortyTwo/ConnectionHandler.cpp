@@ -5,6 +5,7 @@
 #include <Psio/Log.h>
 #include <Rhea/Fabrics/Network/ServerService.h>
 #include <Hermes/Messages/MessageCreate.h>
+#include <Rhea/Fabrics/Network/NetworkComponent.h>
 
 #include "ConnectionHandler.h"
 #include "Accounts/AccountService.h"
@@ -92,8 +93,7 @@ int ConnectionHandler::EnterWorld(Rhea::Avatar* avatar)
 	// add a network controller
 	Rhea::ServerService* server_srv = (Rhea::ServerService*)m_app->getService("server");
 	int id = server_srv->getUID();
-	std::unique_ptr<Rhea::NetworkComponent> net_com = std::make_unique<Rhea::NetworkComponent>(m_player, id, NET_ROLE_SERVER);
-	m_player->setNetworkComponent(std::move(net_com));
+	m_player->addComponentUnique<Rhea::NetworkComponent>(m_player, id, NET_ROLE_SERVER);
 
 	m_scene->addItem(m_player);
 	m_connection->setAuthItem(m_player);
@@ -112,7 +112,7 @@ int ConnectionHandler::EnterWorld(Rhea::Avatar* avatar)
 	Math::Vector3 pos = m_player->getTransform()->get_position()->get_worldspace();
 	msg.path = internal_name;
 	msg.type_name = avatar->getValue("model");
-	msg.NUID = m_player->getNetworkComponent()->NUID();
+	msg.NUID = m_player->getComponent<Rhea::NetworkComponent>()->NUID();
 	msg.pos[0] = pos.x;
 	msg.pos[1] = pos.y;
 	msg.pos[2] = pos.z;
@@ -129,7 +129,7 @@ int ConnectionHandler::EnterWorld(Rhea::Avatar* avatar)
 	for (auto item_it = items.begin(); item_it != items.end(); ++item_it) {
 		if (*item_it == m_player)
 			continue;
-		Rhea::NetworkComponent* net_com = (*item_it)->getNetworkComponent();
+		Rhea::NetworkComponent* net_com = (*item_it)->getComponent<Rhea::NetworkComponent>();
 		if (net_com) {
 			Hermes::MessageCreate item_msg;
 			Math::Vector3 pos = (*item_it)->getTransform()->get_position()->get_worldspace();
@@ -142,7 +142,7 @@ int ConnectionHandler::EnterWorld(Rhea::Avatar* avatar)
 				// no avatar -> TODO: check can there be normal items without avatar?
 				continue;
 			}
-			item_msg.NUID = (*item_it)->getNetworkComponent()->NUID();
+			item_msg.NUID = (*item_it)->getComponent<Rhea::NetworkComponent>()->NUID();
 			item_msg.pos[0] = pos.x;
 			item_msg.pos[1] = pos.y;
 			item_msg.pos[2] = pos.z;

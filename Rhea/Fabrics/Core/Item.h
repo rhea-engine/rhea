@@ -8,7 +8,6 @@
 #include <Rhea/Fabrics/Core/Position.h>
 #include <Math/Vector3.h>
 #include  <Rhea/Fabrics/Core/Transform.h>
-#include "../Network/NetworkComponent.h"
 #include <Rhea/Components/RenderComponent.h>
 
 namespace Poseidon
@@ -85,17 +84,12 @@ namespace Rhea
 		virtual void show() { if (getComponent<RenderComponent>()) getComponent<RenderComponent>()->show(); }
 		bool isVisible() { if (getComponent<RenderComponent>()) return getComponent<RenderComponent>()->isVisible(); else return false; }
 
-		// networking
-		void setNetworkComponent(std::unique_ptr<NetworkComponent> component) { m_net_component = std::move(component); }
-		NetworkComponent* getNetworkComponent() { return m_net_component.get(); }
-
 		// physics
 		PhysicsBody* getPhysicsBody();
 
 	protected:
 		GraphicsRenderElement* m_graphics_item;
 		PhysicsBody* m_physics_body;
-		std::unique_ptr<NetworkComponent> m_net_component;
 		Math::Vector3 m_movement;
 		float m_turn;		
 

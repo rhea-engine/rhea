@@ -6,6 +6,7 @@
 #include "../3D/Mesh.h"
 #include "Graphics/RenderElement.h"
 #include "Physics/Body.h"
+#include "../Network/NetworkComponent.h"
 #include <Psio/Log.h>
 #include <Math/Math.h>
 #include <Physics/PhysicsComponent.h>
@@ -149,8 +150,8 @@ namespace Rhea
 	void Item::setMovement(Math::Vector3 move)
 	{
 		m_movement = move;
-		if (m_net_component)
-			m_net_component->setMovement(move);
+		if (getComponent<Rhea::NetworkComponent>())
+			getComponent<Rhea::NetworkComponent>()->setMovement(move);
 		if (!m_physics_body)
 			if (!getPhysicsBody())
 				return;
@@ -160,8 +161,8 @@ namespace Rhea
 	void Item::setTurn(float turn)
 	{
 		m_turn = turn;
-		if (m_net_component)
-			m_net_component->setTurn(turn);
+		if (getComponent<Rhea::NetworkComponent>())
+			getComponent<Rhea::NetworkComponent>()->setTurn(turn);
 		if (!m_physics_body)
 			if (!getPhysicsBody())
 				return;

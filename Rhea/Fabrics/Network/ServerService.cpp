@@ -8,6 +8,7 @@
 #include <Hermes/Messages/MessageDestroy.h>
 #include <Rhea/Physics/PhysicsService.h>
 #include <Rhea/Platform/PlatformService.h>
+#include "NetworkComponent.h"
 
 namespace Rhea
 {
@@ -93,7 +94,7 @@ namespace Rhea
 		if (m_scene) {
 			std::vector<Rhea::Item*> items = m_scene->getItems();
 			for (auto item_it = items.begin(); item_it != items.end(); ++item_it) {
-				Rhea::NetworkComponent* net_com = (*item_it)->getNetworkComponent();
+				Rhea::NetworkComponent* net_com = (*item_it)->getComponent<NetworkComponent>();
 				if (net_com && net_com->isDirty()) {
 					Hermes::MessagePosition msg;
 					msg.NUID = net_com->NUID();
@@ -147,7 +148,7 @@ namespace Rhea
 			item->setTurn(0.0f);
 			// remove item from scene?
 			// TODO make this an option
-			Rhea::NetworkComponent* net_com = item->getNetworkComponent();
+			Rhea::NetworkComponent* net_com = item->getComponent<NetworkComponent>();
 			if (net_com) {
 				Hermes::MessageDestroy msg;
 				msg.NUID = net_com->NUID();

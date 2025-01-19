@@ -7,6 +7,7 @@
 #include "PhysicsEvent.h"
 #include "PhysicsCharacter.h"
 #include <Psio/Log.h>
+#include <PhysicsComponent.h>
 
 namespace Rhea
 {
@@ -57,12 +58,12 @@ namespace Rhea
 	void PhysicsService::initializeItem(Item* item)
 	{
 		PhysicsBody* body = new PhysicsCharacter(item);
-		item->addElement("physics", body);
+		item->addComponentUnique<PhysicsComponent>(body);
 	}
 
 	void PhysicsService::removeItem(Item* item)
 	{
-		item->addElement("physics", nullptr);
+		item->deleteComponent<PhysicsComponent>();
 	}
 	
 	void PhysicsService::onInit()

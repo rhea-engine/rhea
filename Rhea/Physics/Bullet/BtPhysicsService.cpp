@@ -22,6 +22,7 @@
 #include "UnitTree.h"
 
 #include <assert.h>
+#include "../PhysicsComponent.h"
 
 namespace Rhea
 {
@@ -126,7 +127,7 @@ namespace Rhea
 
 		for (auto it = items.begin(); it != items.end(); ++it) {
 			Item* item = *it;
-			if (item->getElement("physics"))
+			if (item->getComponent<PhysicsComponent>())
 				continue;
 
 			initializeItem(item);
@@ -136,8 +137,8 @@ namespace Rhea
 	void BulletPhysicsService::initializeItem(Item* item)
 	{
 		if (item->getTypeName() == "//meworla/terrain") {
-			BulletHeightMap* hmap = new BulletHeightMap(item);
-			item->addElement("physics", hmap);
+			BulletHeightMap* hmap = new BulletHeightMap(item);			
+			item->addComponentUnique<PhysicsComponent>(hmap);
 			m_world->addRigidBody(hmap->getBody());
 			// TODO currently simply set the last terrain to active
 			m_terrain = doCast<Terrain>(item);
@@ -149,7 +150,7 @@ namespace Rhea
 		else if (item->getTypeName() == "//meworla/character") {
 			BulletPhysicsCharacter* body = new BulletPhysicsCharacter(m_world, item);
 			body->init();
-			item->addElement("physics", body);
+			item->addComponentUnique<PhysicsComponent>(body);
 		}
 		else if (item->getTypeName() == "//meworla/widget")
 			return;
@@ -160,7 +161,7 @@ namespace Rhea
 		else {
 			BulletPhysicsBody* body = new BulletPhysicsBody(m_world, item);
 			if (body->init()) {
-				item->addElement("physics", body);
+				item->addComponentUnique<PhysicsComponent>(body);
 				m_world->addRigidBody(body->getBody());
 			}
 		}
@@ -168,7 +169,7 @@ namespace Rhea
 
 	void BulletPhysicsService::removeItem(Item* item)
 	{
-		item->addElement("physics", nullptr);
+		item->deleteComponent<PhysicsComponent>();
 	}
 
 	void BulletPhysicsService::onInit()

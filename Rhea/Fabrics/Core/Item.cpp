@@ -8,6 +8,7 @@
 #include "Physics/Body.h"
 #include <Psio/Log.h>
 #include <Math/Math.h>
+#include <Physics/PhysicsComponent.h>
 
 namespace Rhea
 {
@@ -136,12 +137,13 @@ namespace Rhea
 		if (m_physics_body)
 			return m_physics_body;
 
-		auto it = m_elements.find("physics");
-		if (it != m_elements.end()) {
-			m_physics_body = static_cast<PhysicsBody*>(it->second);
+		PhysicsComponent* physics = getComponent<PhysicsComponent>();
+		if (physics) {
+			m_physics_body = physics->getBody();
 			return m_physics_body;
 		}
-		return nullptr;
+		else
+			return nullptr;		
 	}
 
 	void Item::setMovement(Math::Vector3 move)

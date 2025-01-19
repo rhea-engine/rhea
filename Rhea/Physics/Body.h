@@ -9,7 +9,7 @@ namespace Rhea
 {
 	class Item;
 
-	class PhysicsBody : public Element
+	class PhysicsBody
 	{
 	public:
 		PhysicsBody(Item* item);

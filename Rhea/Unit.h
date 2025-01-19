@@ -59,6 +59,11 @@ namespace Rhea
 		template <typename T, typename... Args>
 		T* addComponentUnique(Args&&... args) {
 			T* component = new T(std::forward<Args>(args)...);
+			Component* old_component = getComponent<T>();
+			if (old_component) {
+				removeComponent(old_component);
+				delete old_component;
+			}
 			// Register the component under its exact type and base types
 			addComponent(component);
 			return component;
@@ -66,6 +71,15 @@ namespace Rhea
 
 		// remove a component
 		void removeComponent(Component* component);
+
+		template <typename T>
+		void deleteComponent() {
+			Component* old_component = getComponent<T>();
+			if (old_component) {
+				removeComponent(old_component);
+				delete old_component;
+			}
+		}		
 
 		// get a component with the given type - which may be a base type
 		template <typename T>

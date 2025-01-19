@@ -61,6 +61,7 @@
 #include <Fabrics/Gltf/GltfFabrics.h>
 #endif
 #include <Component.h>
+#include <Physics/PhysicsComponent.h>
 
 #undef min
 
@@ -111,6 +112,7 @@ namespace Rhea
 		Service* phy_mgr = (PhysicsManagerService*)SimpleParser::Type::create("PhysicsManagerService", "//meworla/physicsmanagerservice");
 		phy_mgr->setup(this);
 		m_services["physics_mgr"] = phy_mgr;
+		SimpleParser::Type::registerType<PhysicsComponent>("//meworla/physicscomponent");
 
 		m_fs = new Orion::Orion(static_cast<PlatformService*>(psio)->getEngine(), m_appname);
 		m_unit_tree.reset((UnitTree*)SimpleParser::Type::create("/", "//core/unittree"));

@@ -374,22 +374,6 @@ namespace Rhea
 		}
 	}
 
-	void Unit::addElement(std::string name, Element* element)
-	{
-		Element* previous = getElement(name);
-		if (previous)
-			delete previous;
-		m_elements[name] = element;
-	}
-
-	Element* Unit::getElement(std::string name)
-	{
-		auto it = m_elements.find(name);
-		if (it != m_elements.end())
-			return it->second;
-		else
-			return nullptr;
-	}
 
 	Unit::~Unit()
 	{
@@ -397,7 +381,6 @@ namespace Rhea
 		for (auto it = m_children.begin(); it != m_children.end(); ++it) {
 			delete it->second;
 		}
-		m_elements.clear();
 	}
 
 	void Unit::logMe()

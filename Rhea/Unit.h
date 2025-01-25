@@ -138,14 +138,6 @@ namespace Rhea
 		} Export;
 		virtual std::vector<Export> getReferences();
 		
-		// Elements
-
-		// add an element with the given name
-		void addElement(std::string name, Element* element);
-
-		// get the element with the given name
-		Element* getElement(std::string name);
-
 		// messaging and events
 
 		// broadcast message
@@ -214,7 +206,6 @@ namespace Rhea
 
 		// event handlers for this unit
 		std::unordered_map < std::string, std::unordered_map<void*, Event::EventHandler >> m_eventhandlers;
-		std::unordered_map<std::string, Element*> m_elements;
 		int m_refcount;
 
 		// copy constructor

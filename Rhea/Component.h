@@ -65,10 +65,13 @@ namespace Rhea
         // type helper
         static SimpleParser::Type* staticType(SimpleParser::Type* newType = nullptr) {
             static SimpleParser::Type* _static_type = nullptr;
-            if (newType) {
-                SimpleParser::Type* p = Variant::staticType();
-                newType->setParent(p);
-                _static_type = newType;
+            if (!newType) {
+                
+                SimpleParser::Type* parent = nullptr;
+                newType = SimpleParser::Type::Register("Component", Component::createType);
+                newType->setParent(parent);                                    
+                _static_type = newType;                                  
+                Component::initializeType(_static_type);
             }
             return _static_type;
         }

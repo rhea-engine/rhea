@@ -6,7 +6,12 @@ namespace SimpleParser
 {
 	Type* Type::Register(std::string name, CreatorFunc factory)
 	{
-		return new Type(BaseType::OBJECT, name, factory);
+		if (m_types.find(name) != m_types.end())
+			return m_types[name];
+
+		Type* type = new Type(BaseType::OBJECT, name, factory);
+		m_types[name] = type;
+		return type;
 	}
 
 	void Type::registerProperty(std::string name, Type* unit_type, std::string setter, std::string getter)

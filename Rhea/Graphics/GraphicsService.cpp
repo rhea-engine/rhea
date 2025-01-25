@@ -29,6 +29,9 @@
 #include "Poseidon/Renderable.h"
 #include "Poseidon/Entity.h"
 
+#include <Rhea/Fabrics/Core/Material.h>
+#include <Rhea/Fabrics/3D/Camera.h>
+
 #include <Psio/Log.h>
 
 namespace Rhea
@@ -43,43 +46,35 @@ namespace Rhea
 	{
 		m_core = std::make_unique<Poseidon::Core>();
 
-		m_managers["//meworla/scene"] = new GraphicsSceneManager(this);
-		m_managers["//meworla/item"] = new GraphicsItemManager(this);
-		m_managers["//meworla/mesh"] = new GraphicsMeshManager(this);
-		m_managers["//meworla/character"] = m_managers["//meworla/item"];
-		m_managers["//meworla/terrain"] = m_managers["//meworla/item"];
-		m_managers["//meworla/skybox"] = m_managers["//meworla/item"];
-		m_managers["//meworla/material"] = new GraphicsMaterialManager(this);
-		m_managers["//meworla/camera"] = new GraphicsCameraManager(this);
+		addManager<Scene>(std::make_unique<GraphicsSceneManager>(this));
+		addManager<Item>(std::make_unique<GraphicsItemManager>(this));
+		addManager<Mesh>(std::make_unique<GraphicsMeshManager>(this));
+		addManager<Material>(std::make_unique<GraphicsMaterialManager>(this));
+		addManager<Camera>(std::make_unique<GraphicsCameraManager>(this));
 	}
 
 	GraphicsService::~GraphicsService()
-	{
-		delete m_managers["//meworla/scene"];
-		delete m_managers["//meworla/item"];
-		delete m_managers["//meworla/mesh"];
-		delete m_managers["//meworla/material"];
-		delete m_managers["//meworla/camera"];
+	{		
 	}
 
-	GraphicsManager* GraphicsService::getManager(std::string type_name)
+	GraphicsManager* GraphicsService::getManager(SimpleParser::Type* type)
 	{
 		// find manager for type name in manager list
-		auto it = m_managers.find(type_name);
+		auto it = m_managers.find(type);
 		if (it != m_managers.end()) {
-			GraphicsManager* mgr = it->second;
+			GraphicsManager* mgr = it->second.get();
 			return mgr;
-		}
-
+		}		
+		
 		return nullptr;
 	}
 
 	bool GraphicsService::addElement(Unit* unit)
 	{
 		// find manager for type name in manager list
-		auto it = m_managers.find(unit->getTypeName());
+		auto it = m_managers.find(unit->getType());
 		if (it != m_managers.end()) {
-			GraphicsManager* mgr = it->second;
+			GraphicsManager* mgr = it->second.get();
 			mgr->createElement(m_core.get(), unit);
 			return true;
 		}
@@ -99,12 +94,12 @@ namespace Rhea
 				printf("GraphicsService::onAddItem: add typename: %s\n", unit->getTypeName().c_str());
 
 				// try manager
-				GraphicsManager* mgr = getManager(unit->getTypeName());
+				GraphicsManager* mgr = getManager(unit->getType());
 				if (mgr) {
 					mgr->createElement(m_core.get(), u);
 				}
 				else if (doCast<Item>(unit)) {
-					m_managers["//meworla/item"]->createElement(m_core.get(), u);
+					getManager<Item>()->createElement(m_core.get(), u);
 				}
 			}
 		return true;
@@ -125,12 +120,12 @@ namespace Rhea
 					if (!item)
 						return true;
 				// try manager
-				GraphicsManager* mgr = getManager(item->getTypeName());
+				GraphicsManager* mgr = getManager(item->getType());
 				if (mgr) {
 					mgr->createElement(m_core.get(), item);
 				}
 				else {
-					mgr = getManager("//meworla/item");
+					mgr = getManager<Item>();
 					mgr->createElement(m_core.get(), item);
 				}
 				return true;
@@ -199,7 +194,7 @@ namespace Rhea
 		m_scenes.push_back(scene);
 
 		// try manager
-		GraphicsManager* mgr = getManager(scene->getTypeName());
+		GraphicsManager* mgr = getManager(scene->getType());
 		GraphicsElement* el = nullptr;
 		if (mgr) {
 			el = mgr->createElement(m_core.get(), scene);

@@ -147,14 +147,14 @@ namespace Rhea
 		SimpleParser::Type::registerType<Skybox>("//meworla/skybox"); 
 		MediaFabrics::Register(this);
 		SimpleParser::Type::registerType<Camera>("//meworla/camera");
-		SimpleParser::Type::registerTypeName<ImageResource>("//meworla/heightmap");
+		SimpleParser::Type::registerType<ImageResource>("//meworla/heightmap");
 		SimpleParser::Type::registerType<Terrain>("//meworla/terrain");
 		SimpleParser::Type::registerType<KinematicCharacter>("//meworla/character");		
 		SimpleParser::Type::registerType<Item2D>("//meworla/widget");
 		SimpleParser::Type::registerType<TextWidget>("//meworla/textwidget");
 		SimpleParser::Type::registerType<Font>("//meworla/font");
 		SimpleParser::Type::registerType<BitmapFont>("//meworla/bitmapfont");
-		SimpleParser::Type::registerTypeName<TextResource>("//meworla/fontinfo");
+		SimpleParser::Type::registerType<TextResource>("//meworla/fontinfo");
 		GUIController::Register(this);
 		
 		// register wavefront types

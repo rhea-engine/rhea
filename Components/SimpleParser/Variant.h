@@ -50,7 +50,7 @@ namespace SimpleParser
 		// type info
 		Type* getType() { return m_type; }
 		std::string getTypeName() const; 
-		bool isA(std::string type) { return !getTypeName().compare(type); }
+		bool isA(std::string type_name) { return Type::get(type_name) == m_type; }
 		bool isArray() { return (m_type->m_base == Type::BaseType::ARRAY); }
 
 		// factory

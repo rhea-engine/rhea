@@ -47,22 +47,14 @@ namespace SimpleParser
 		}
 		static Type* Register(std::string name, CreatorFunc factory);
 
-		// call initialize and register type by class
+		// register an additional type name for a Type
+		// Note: this is proably only useful in creation
+		//		 a search would return the real type
 		template <class T>
 		static void registerType(std::string URI)
 		{
 			if (m_types.find(URI) != m_types.end())
 				return;
-			Type* type = Type::Register(URI, T::createType);
-			T::staticType(type);
-			T::initializeType(type);
-		}
-		// register an additional type name for a Type
-		// Note: this is proably only useful in creation
-		//		 a search would return the real type
-		template <class T>
-		static void registerTypeName(std::string URI)
-		{
 			m_types[URI] = T::staticType();
 		}
 
@@ -141,10 +133,14 @@ T* doCast(SimpleParser::Variant* src)
 	public: \
 static SimpleParser::Type* staticType(SimpleParser::Type* newType = nullptr) { \
 	static SimpleParser::Type* _static_type = nullptr; \
-	if (!_static_type && newType) { \
-		SimpleParser::Type* p = _Inherit::staticType(); \
-		newType->setParent(p);	\
-		_static_type = newType; \
+	if (!_static_type) { \
+		if (!newType) {                                              \
+            SimpleParser::Type* parent = _Inherit::staticType();     \
+            newType = SimpleParser::Type::Register(#_MeClass, _MeClass::createType); \
+            newType->setParent(parent);                              \
+            _static_type = newType;                                  \
+            _MeClass::initializeType(_static_type);                  \
+        }  \
 	} \
 	return _static_type; \
 } \
@@ -161,10 +157,14 @@ private: \
 	public: \
 static SimpleParser::Type* staticType(SimpleParser::Type* newType = nullptr) { \
 	static SimpleParser::Type* _static_type = nullptr; \
-	if (!_static_type && newType) { \
-		SimpleParser::Type* p = _Inherit::staticType(); \
-		newType->setParent(p);	\
-		_static_type = newType; \
+	if (!_static_type) { \
+		if (!newType) {                                              \
+            SimpleParser::Type* parent = _Inherit::staticType();     \
+            newType = SimpleParser::Type::Register(#_MeClass, _MeClass::createType); \
+            newType->setParent(parent);                              \
+            _static_type = newType;                                  \
+            _MeClass::initializeType(_static_type);                  \
+        }  \
 	} \
 	return _static_type; \
 } \

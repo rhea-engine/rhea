@@ -316,7 +316,7 @@ void Ceto::showScene(Rhea::Scene* scene)
 		scene->addChild(m_view);
 
 		Rhea::GraphicsService* gs = static_cast<Rhea::GraphicsService*>(getService("graphics"));
-		Rhea::GraphicsManager* mgr = gs->getManager("//meworla/camera");
+		Rhea::GraphicsManager* mgr = gs->getManager<Rhea::Camera>();
 		//Rhea::GraphicsCamera::createElement(core, m_view);
 		mgr->createElement(core, m_view);
 		Variant pos = scene->getValue("start");

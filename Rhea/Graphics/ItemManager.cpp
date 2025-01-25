@@ -64,7 +64,7 @@ namespace Rhea
 			// check if mesh element already defined
 			if (!item_mesh->getComponent<GraphicsComponent>()) {
 				// create using mesh manager
-				GraphicsMesh* mesh_el = (GraphicsMesh*)m_service->getManager("//meworla/mesh")->createElement(core, item_mesh);
+				GraphicsMesh* mesh_el = (GraphicsMesh*)m_service->getManager<Mesh>()->createElement(core, item_mesh);
 			}
 
 			// create the element		
@@ -104,7 +104,7 @@ namespace Rhea
 		if (Material* mat = mesh->getMaterial()) {
 			if (!mat->getComponent<GraphicsComponent>()) {
 				// create the element for the new material
-				GraphicsManager* mgr = m_service->getManager(mat->getTypeName());
+				GraphicsManager* mgr = m_service->getManager(mat->getType());
 				mgr->createElement(m_service->getEngine(), mat);
 			}
 		}

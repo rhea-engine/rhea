@@ -102,7 +102,7 @@ namespace Rhea
 		if (!material->getComponent<GraphicsComponent>()) {
 			// create it in material manager
 			std::string mat_name = material->getPathName();
-			GraphicsMaterialManager* mat_mgr = static_cast<GraphicsMaterialManager*>(m_service->getManager("//meworla/material"));
+			GraphicsMaterialManager* mat_mgr = static_cast<GraphicsMaterialManager*>(m_service->getManager<Material>());
 			GraphicsMaterial* mat_elem = static_cast<GraphicsMaterial*>(mat_mgr->createElement(core, material));
 		}
 	}

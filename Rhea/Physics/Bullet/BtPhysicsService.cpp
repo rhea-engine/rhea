@@ -23,6 +23,12 @@
 
 #include <assert.h>
 #include "../PhysicsComponent.h"
+#include <Fabrics/3D/Camera.h>
+#include <Fabrics/Character/Character.h>
+#include <Fabrics/Canvas/Item2D.h>
+#include <Fabrics/Text/TextWidget.h>
+#include <Fabrics/3D/Skybox.h>
+#include <Fabrics/Character/KinematicCharacter.h>
 
 namespace Rhea
 {
@@ -136,27 +142,27 @@ namespace Rhea
 
 	void BulletPhysicsService::initializeItem(Item* item)
 	{
-		if (item->getTypeName() == "//meworla/terrain") {
+		if (doCast<Terrain>(item)) {
 			BulletHeightMap* hmap = new BulletHeightMap(item);			
 			item->addComponentUnique<PhysicsComponent>(hmap);
 			m_world->addRigidBody(hmap->getBody());
 			// TODO currently simply set the last terrain to active
 			m_terrain = doCast<Terrain>(item);
 		}
-		else if (item->getTypeName() == "//meworla/camera") {
+		else if (doCast<Camera>(item)) {
 			// make camera without physics	
 			m_item = item;
 		}
-		else if (item->getTypeName() == "//meworla/character") {
+		else if (doCast<KinematicCharacter>(item)) {
 			BulletPhysicsCharacter* body = new BulletPhysicsCharacter(m_world, item);
 			body->init();
 			item->addComponentUnique<PhysicsComponent>(body);
 		}
-		else if (item->getTypeName() == "//meworla/widget")
+		else if (doCast<Item2D>(item))
 			return;
-		else if (item->getTypeName() == "//meworla/textwidget")
+		else if (doCast<TextWidget>(item))
 			return;
-		else if (item->getTypeName() == "//meworla/skybox")
+		else if (doCast<Skybox>(item))
 			return;
 		else {
 			BulletPhysicsBody* body = new BulletPhysicsBody(m_world, item);

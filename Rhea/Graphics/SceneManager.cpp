@@ -47,12 +47,12 @@ namespace Rhea
 		printf("GraphicsSceneManager::addItem: %s add typename: %s\n", item->getPathName().c_str(), item->getTypeName().c_str());
 
 		// try manager
-		GraphicsManager* mgr = m_service->getManager(item->getTypeName());
+		GraphicsManager* mgr = m_service->getManager(item->getType());
 		if (mgr) {
 			mgr->createElement(m_core, item);
 		}
 		else if (doCast<Item>(item)) {
-			mgr = m_service->getManager("//meworla/item");
+			mgr = m_service->getManager<Item>();
 			mgr->createElement(m_core, item);
 		}
 		else if (doCast<Lighting>(item)) {

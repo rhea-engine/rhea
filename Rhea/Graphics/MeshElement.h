@@ -3,11 +3,11 @@
 
 #include <vector>
 #include <Poseidon/Mesh.h>
-#include <Rhea/Element.h>
+#include "GraphicsElement.h"
 
 namespace Rhea
 {
-	class GraphicsMesh : public Element
+	class GraphicsMesh : public GraphicsElement
 	{
 	public:
 		Poseidon::Mesh* m_mesh = nullptr;

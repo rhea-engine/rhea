@@ -75,17 +75,7 @@ namespace Rhea
 
 		if (render_component && m_values.find("fabric") != m_values.end())
 			render_component->hide();		
-	}
-
-	bool Item::getGraphicsItem()
-	{
-		auto it = m_elements.find("graphics");
-		if (it != m_elements.end()) {
-			m_graphics_item = static_cast<GraphicsRenderElement*>(it->second);
-			return true;
-		}
-		return false;
-	}
+	}	
 
 	Item* Item::instance(std::string name)
 	{

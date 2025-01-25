@@ -36,7 +36,6 @@ namespace Rhea
 			Item(name, "//meworla/item")
 		{}
 		Item(std::string name, std::string type_name) :
-			m_graphics_item(nullptr),
 			m_physics_body(nullptr),
 			m_turn(0.0f),			
 			m_transform(this),
@@ -88,12 +87,9 @@ namespace Rhea
 		PhysicsBody* getPhysicsBody();
 
 	protected:
-		GraphicsRenderElement* m_graphics_item;
 		PhysicsBody* m_physics_body;
 		Math::Vector3 m_movement;
-		float m_turn;		
-
-		bool getGraphicsItem();
+		float m_turn;				
 
 		Transform m_transform;
 	};

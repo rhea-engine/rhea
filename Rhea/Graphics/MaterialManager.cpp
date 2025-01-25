@@ -11,15 +11,16 @@
 #include "./Texture.h"
 #include <Psio/Log.h>
 #include <Rhea/Fabrics/Core/Shader.h>
+#include "GraphicsComponent.h"
 
 namespace Rhea
 {
-	Element* GraphicsMaterialManager::createElement(Poseidon::Core* core, Unit* unit)
+	GraphicsElement* GraphicsMaterialManager::createElement(Poseidon::Core* core, Unit* unit)
 	{
 		// check if already created
-		Element* el = unit->getElement("graphics");
+		GraphicsComponent* el = unit->getComponent<GraphicsComponent>();
 		if (el)
-			return el;
+			return el->getElement();
 
 		Material* material_res = doCast<Material>(unit);
 		if (!material_res) {
@@ -145,7 +146,7 @@ namespace Rhea
 		for (auto it = textures.begin(); it != textures.end(); ++it) {
 			if (!*it)
 				continue;
-			Element* comp = GraphicsTexture::createElement(core, (Unit*)*it);
+			GraphicsElement* comp = GraphicsTexture::createElement(core, (Unit*)*it);
 			if (comp) {
 				Poseidon::Image* tex = ((GraphicsTexture*)comp)->get();
 				if (tex) {
@@ -159,21 +160,20 @@ namespace Rhea
 		}
 
 		// register to resource
-		material_res->addElement("graphics", gmat);
+		material_res->addComponentUnique<GraphicsComponent>(gmat);
 
 		// register handlers
-		unit->registerEventHandler("delete", this, std::bind(&GraphicsMaterialManager::onItemDelete, this, std::placeholders::_1, std::placeholders::_2));
+		//unit->registerEventHandler("delete", this, std::bind(&GraphicsMaterialManager::onItemDelete, this, std::placeholders::_1, std::placeholders::_2));
 		//unit->registerEventHandler("update", std::bind(&GraphicsMaterialManager::onUpdate, gmat, std::placeholders::_1, std::placeholders::_2));
 
 		// add to my list
 		//m_elements.push_back(gmat);
 
-		return static_cast<Element*>(gmat);
+		return gmat;
 	}
 	
 	bool GraphicsMaterialManager::onItemDelete(Event* ev, Unit* unit)
-	{
-		unit->addElement("graphics", nullptr);
+	{		
 		return false;
 	}
 }

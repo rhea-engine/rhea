@@ -6,7 +6,7 @@
 
 namespace Rhea
 {
-	class GraphicsMaterial : public Element
+	class GraphicsMaterial : public GraphicsElement
 	{
 	public:
 		Poseidon::Material* m_material{};
@@ -20,7 +20,7 @@ namespace Rhea
 		{}
 
 		// create an element for this unit
-		Element* createElement(Poseidon::Core* core, Unit* unit);
+		GraphicsElement* createElement(Poseidon::Core* core, Unit* unit);
 
 		// handle frame update
 		void onFrame() {}

@@ -2,7 +2,7 @@
 #define RHEA_GRAPHICS_CAMERA_H
 
 #include "../Event.h"
-#include "../Element.h"
+#include "GraphicsElement.h"
 #include "GraphicsManager.h"
 
 namespace Poseidon
@@ -24,7 +24,7 @@ namespace Rhea
 		{}
 
 		// factory function
-		Element* createElement(Poseidon::Core* core, Unit* unit);
+		GraphicsElement* createElement(Poseidon::Core* core, Unit* unit);
 
 		// handle update event
 		bool onUpdate(Event* ev, Unit* unit);

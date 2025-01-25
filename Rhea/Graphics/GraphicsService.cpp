@@ -95,7 +95,7 @@ namespace Rhea
 	{
 		ev->getTarget()->traverse([&](std::string& name, Component* unit)->bool {
 			Unit* u = doCast<Unit>(unit);
-			if (u && !u->getElement("graphics")) {
+			if (u && !u->getComponent<GraphicsComponent>()) {
 				printf("GraphicsService::onAddItem: add typename: %s\n", unit->getTypeName().c_str());
 
 				// try manager
@@ -200,7 +200,7 @@ namespace Rhea
 
 		// try manager
 		GraphicsManager* mgr = getManager(scene->getTypeName());
-		Element* el = nullptr;
+		GraphicsElement* el = nullptr;
 		if (mgr) {
 			el = mgr->createElement(m_core.get(), scene);
 		}
@@ -228,11 +228,11 @@ namespace Rhea
 		}
 
 		m_scenes.erase(std::remove(m_scenes.begin(), m_scenes.end(), scene));
-		scene->addElement("graphics", nullptr);
+		scene->deleteComponent<GraphicsComponent>();
 		scene->traverse([](std::string& name, Component* unit)->bool {
 			Unit* u = doCast<Unit>(unit);
 			if (u)
-				u->addElement("graphics", nullptr);
+				u->deleteComponent<GraphicsComponent>();
 			return true;
 			});
 	}

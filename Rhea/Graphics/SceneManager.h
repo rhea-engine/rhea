@@ -3,8 +3,8 @@
 
 #include <Poseidon/Core.h>
 
-#include "../Element.h"
-#include "Fabrics/Core/Scene.h"
+#include "GraphicsComponent.h"
+#include <Rhea/Fabrics/Core/Scene.h>
 
 #include "GraphicsManager.h"
 
@@ -12,7 +12,7 @@ namespace Rhea
 {
 	class Item;
 
-	class GraphicsScene : public Element
+	class GraphicsScene : public GraphicsElement
 	{
 	public:
 		GraphicsScene(Scene* scene) :
@@ -44,7 +44,7 @@ namespace Rhea
 		// handle add item event
 		bool onItemAdd(Event* ev, Unit* unit);
 
-		Element* createElement(Poseidon::Core* core, Unit* unit);	
+		GraphicsElement* createElement(Poseidon::Core* core, Unit* unit);	
 
 		void onFrame() {}
 	

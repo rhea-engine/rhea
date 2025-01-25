@@ -13,6 +13,7 @@
 #include <Rhea/UnitTree.h>
 #include <Rhea/Resources/ResourceList.h>
 #include <Rhea/Resources/ResourceService.h>
+#include <Rhea/Graphics/GraphicsComponent.h>
 
 using Rhea::GraphicsService;
 using Rhea::Service;
@@ -27,6 +28,7 @@ namespace Poseidon
 
 		// register services
 		SimpleParser::Type::registerType<GraphicsService>("//meworla/graphicsservice");
+		SimpleParser::Type::registerType<Rhea::GraphicsComponent>("//meworla/graphicscomponent");
 
 		SimpleParser::Type::registerType<Rhea::Controller>("//meworla/icontroller");
 		SimpleParser::Type::registerType<BasicController>("//meworla/controller");

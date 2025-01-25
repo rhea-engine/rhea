@@ -36,7 +36,7 @@ namespace Rhea
 				return true;
 			}
 			});
-		scene->addElement("graphics", elem);
+		scene->addComponentUnique<GraphicsComponent>(elem);
 
 		// listen to add item event		
 		scene->registerEventHandler("add_item", this, std::bind(&GraphicsSceneManager::onItemAdd, this, std::placeholders::_1, std::placeholders::_2));
@@ -73,7 +73,7 @@ namespace Rhea
 		return false;
 	}
 
-	Element* GraphicsSceneManager::createElement(Poseidon::Core* core, Unit* unit)
+	GraphicsElement* GraphicsSceneManager::createElement(Poseidon::Core* core, Unit* unit)
 	{
 		Scene* scene = doCast<Scene>(unit);
 		if (!scene) {
@@ -82,9 +82,9 @@ namespace Rhea
 		}
 
 		// check if already created
-		Element* el = scene->getElement("graphics");
+		GraphicsComponent* el = scene->getComponent<GraphicsComponent>();
 		if (el)
-			return el;
+			return el->getElement();
 
 		// create it
 		GraphicsScene* scene_elem = new GraphicsScene(scene);

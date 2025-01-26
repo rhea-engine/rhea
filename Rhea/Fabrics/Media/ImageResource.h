@@ -7,7 +7,7 @@ namespace Rhea
 {
 	class ImageResource : public Resource
 	{
-		MECLASS(ImageResource, Resource)
+		RECLASS(ImageResource, Resource, "//meworla/image")
 	public:
 		ImageResource(std::string basename, std::string type_name) :
 			Resource(basename, type_name)

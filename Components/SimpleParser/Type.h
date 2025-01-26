@@ -105,7 +105,7 @@ namespace SimpleParser
 
 		// type database
 		static std::unordered_map<std::string, Type*> m_types;
-		static std::map<BaseType, Type*> m_base_types;
+		static std::map<BaseType, Type*> m_base_types;		
 	};
 }
 
@@ -129,6 +129,55 @@ T* doCast(SimpleParser::Variant* src)
 	return nullptr;
 }
 
+#define RECLASS(_MeClass, _Inherit, _URI)  \
+	public: \
+static SimpleParser::Type* staticType(SimpleParser::Type* newType = nullptr) { \
+	static SimpleParser::Type* _static_type = nullptr; \
+	if (!_static_type) { \
+		if (!newType) {                                              \
+            SimpleParser::Type* parent = _Inherit::staticType();     \
+            newType = SimpleParser::Type::Register(_URI, _MeClass::createType); \
+            newType->setParent(parent);                              \
+            _static_type = newType;                                  \
+            _MeClass::initializeType(_static_type);                  \
+        }  \
+	} \
+	return _static_type; \
+} \
+static void _register_ ## _MeClass() { _MeClass::staticType(); } \
+ \
+static Component* createType(std::string name, std::string type) \
+{ \
+	Component* ret = (Component*)new _MeClass(name, type); \
+	return ret; \
+} \
+ \
+_MeClass::_MeClass(std::string name) : \
+  _MeClass::_MeClass(name, _URI) {} \
+ \
+private: \
+
+
+#define RECLASS_VIRTUAL(_MeClass, _Inherit, _URI)  \
+	public: \
+static SimpleParser::Type* staticType(SimpleParser::Type* newType = nullptr) { \
+	static SimpleParser::Type* _static_type = nullptr; \
+	if (!_static_type) { \
+		if (!newType) {                                              \
+            SimpleParser::Type* parent = _Inherit::staticType();     \
+            newType = SimpleParser::Type::Register(_URI, _MeClass::createType); \
+            newType->setParent(parent);                              \
+            _static_type = newType;                                  \
+            _MeClass::initializeType(_static_type);                  \
+        }  \
+	} \
+	return _static_type; \
+} \
+static void _register_ ## _MeClass() { _MeClass::staticType(); } \
+ \
+private: \
+
+
 #define MECLASS(_MeClass, _Inherit)  \
 	public: \
 static SimpleParser::Type* staticType(SimpleParser::Type* newType = nullptr) { \
@@ -144,6 +193,7 @@ static SimpleParser::Type* staticType(SimpleParser::Type* newType = nullptr) { \
 	} \
 	return _static_type; \
 } \
+static void _register_ ## _MeClass() { _MeClass::staticType(); } \
  \
 static Component* createType(std::string name, std::string type) \
 { \
@@ -168,6 +218,7 @@ static SimpleParser::Type* staticType(SimpleParser::Type* newType = nullptr) { \
 	} \
 	return _static_type; \
 } \
+static void _register_ ## _MeClass() { _MeClass::staticType(); } \
  \
 private: \
 

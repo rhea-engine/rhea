@@ -7,7 +7,7 @@ namespace Rhea
 {
 	class CubeMap : public ImageResource
 	{
-		MECLASS(CubeMap, ImageResource)
+		RECLASS(CubeMap, ImageResource, "//meworla/cubemap")
 	public:
 		CubeMap(std::string name, std::string type_name) :
 			m_setup(false),

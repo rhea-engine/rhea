@@ -44,8 +44,8 @@ namespace Rhea
 		std::unordered_map<std::string, std::string> attr;
 		std::unordered_map<std::string, Variant> values;
 
-		// create the view
-		m_view = static_cast<Camera*>(m_app->getUnitTree()->createUnit("scene_view", "//meworla/camera", attr, values));
+		// create the view		
+		m_view = m_app->getUnitTree()->createUnit<Camera>("scene_view", attr, values);
 		GraphicsService* gs = static_cast<GraphicsService*>(m_app->getService("graphics"));
 		GraphicsManager* mgr = gs->getManager<Camera>();
 		//GraphicsCamera::createElement(core, m_view);

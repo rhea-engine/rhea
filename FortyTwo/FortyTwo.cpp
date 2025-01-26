@@ -16,8 +16,8 @@ void FortyTwo::init()
 	Rhea::Application::init();
 
 	// ignore controller and spectator defs
-	SimpleParser::Type::registerTypeName<Rhea::Unit>("//meworla/controller");
-	SimpleParser::Type::registerTypeName<Rhea::Unit>("//meworla/spectator");
+	SimpleParser::Type::registerType<Rhea::Unit>("//meworla/controller");
+	SimpleParser::Type::registerType<Rhea::Unit>("//meworla/spectator");
 
 	// user and avatar types
 	AccountService::RegisterFabrics(this);

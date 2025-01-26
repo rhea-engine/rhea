@@ -100,7 +100,7 @@ namespace Rhea
 
 	Unit* Terrain::getHeightmap()
 	{
-		Unit* map = m_app->getUnitTree()->find(m_values["heightmap"]);
+		Unit* map = doCast<Unit>(m_app->getUnitTree()->find(m_values["heightmap"]));
 		return map;
 	}
 
@@ -122,7 +122,7 @@ namespace Rhea
 		Item::ready();
 
 		if (m_values.find("heightmap") != m_values.end()) {
-			Unit* map = m_app->getUnitTree()->find(m_values["heightmap"], m_attributes["basepath"], false);
+			Unit* map = doCast<Unit>(m_app->getUnitTree()->find(m_values["heightmap"], m_attributes["basepath"], false));
 			if (map) {
 				
 				unsigned char* buf = nullptr;
@@ -133,9 +133,9 @@ namespace Rhea
 				if (max_height)
 					m_max_height = max_height;
 
-				if (!m_render_component) {
-					m_render_component = new RenderComponent("renderer", "//meworla/rendercomponent");
-					addChild(m_render_component);
+				RenderComponent* render_component = getComponent<RenderComponent>();
+				if (!render_component) {
+					render_component = addComponentUnique<RenderComponent>("renderer");					
 				}
 
 				if (!m_material) {
@@ -145,9 +145,9 @@ namespace Rhea
 					addChild(m_material);
 
 					// add shader
-					Unit* shader_res = m_app->getUnitTree()->find(m_values["shader"], m_attributes["basepath"], false);
+					Shader* shader_res = doCast<Shader>(m_app->getUnitTree()->find(m_values["shader"], m_attributes["basepath"], false));
 					if (shader_res) {
-						m_material->setShaderRes(doCast<Shader>(shader_res));
+						m_material->setShaderRes(shader_res);
 					}
 					else {
 						LOG(LOG_ERROR) << "Terrain::ready(): Shader '" << (std::string)m_values["shader"] << "' for " << m_pathname << " not found";
@@ -156,7 +156,7 @@ namespace Rhea
 				}
 
 				// if not overwritten by mesh build from heightmap
-				if (!m_render_component->getMesh()) {
+				if (!render_component->getMesh()) {
 
 					// vertex buffers
 					std::unordered_map<std::string, VertexBuffer> vertices;
@@ -173,8 +173,8 @@ namespace Rhea
 					};
 
 					std::unordered_map<std::string, std::string> attributes;
-					std::unordered_map<std::string, Variant> values;
-					Mesh* mesh = static_cast<Mesh*>(m_app->getUnitTree()->createUnit(m_pathname + "_mesh", "//meworla/mesh", attributes, values));
+					std::unordered_map<std::string, Variant> values;					
+					Mesh* mesh = m_app->getUnitTree()->createUnit<Mesh>(m_pathname + "_mesh", attributes, values);
 
 					mesh->setMaterial(m_material);
 
@@ -245,31 +245,36 @@ namespace Rhea
 						}
 						mesh->setBuffers(vertices, indices, vert_count);
 					}
-					m_render_component->setMesh(mesh);
+					render_component->setMesh(mesh);
 					addChild(mesh);					
 				}					
 
 				// add textures
-				Unit* texture;
+				ImageResource* texture;
 				if (m_values["blendmap"] != Variant()) {
-					texture = m_app->getUnitTree()->find(m_values["blendmap"], m_attributes["basepath"], false);
-					m_material->setTexture(0, static_cast<ImageResource*>(texture));
+					texture = doCast<ImageResource>(m_app->getUnitTree()->find(m_values["blendmap"], m_attributes["basepath"], false));
+					if (texture)
+						m_material->setTexture(0, texture);
 				}
 				if (m_values["texture1"] != Variant()) {
-					texture = m_app->getUnitTree()->find(m_values["texture1"], m_attributes["basepath"], false);
-					m_material->setTexture(1, static_cast<ImageResource*>(texture));
+					texture = doCast<ImageResource>(m_app->getUnitTree()->find(m_values["texture1"], m_attributes["basepath"], false));
+					if (texture)
+						m_material->setTexture(1, texture);
 				}
 				if (m_values["texture2"] != Variant()) {
-					texture = m_app->getUnitTree()->find(m_values["texture2"], m_attributes["basepath"], false);
-					m_material->setTexture(2, static_cast<ImageResource*>(texture));
+					texture = doCast<ImageResource>(m_app->getUnitTree()->find(m_values["texture2"], m_attributes["basepath"], false));
+					if (texture)
+						m_material->setTexture(2, texture);
 				}
 				if (m_values["texture3"] != Variant()) {
-					texture = m_app->getUnitTree()->find(m_values["texture3"], m_attributes["basepath"], false);
-					m_material->setTexture(3, static_cast<ImageResource*>(texture));
+					texture = doCast<ImageResource>(m_app->getUnitTree()->find(m_values["texture3"], m_attributes["basepath"], false));
+					if (texture)
+						m_material->setTexture(3, texture);
 				}
 				if (m_values["texture4"] != Variant()) {
-					texture = m_app->getUnitTree()->find(m_values["texture4"], m_attributes["basepath"], false);
-					m_material->setTexture(4, static_cast<ImageResource*>(texture));
+					texture = doCast<ImageResource>(m_app->getUnitTree()->find(m_values["texture4"], m_attributes["basepath"], false));
+					if (texture)
+						m_material->setTexture(4, texture);
 				}
 			}
 		}

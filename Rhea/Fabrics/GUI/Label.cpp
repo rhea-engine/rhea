@@ -153,7 +153,7 @@ namespace Rhea
 				res += it->value;
 				break;
 			case 1:				
-				Unit* u = m_app->getUnitTree()->find(it->path);
+				Unit* u = doCast<Unit>(m_app->getUnitTree()->find(it->path));
 				if (u != nullptr)
 					res += u->getValue(it->value, "");
 				break;

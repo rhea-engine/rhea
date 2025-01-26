@@ -2,7 +2,7 @@
 
 #include <Rhea/Application.h>
 #include <Rhea/UnitTree.h>
-#include <Rhea/Fabrics/3D/Item.h>
+#include <Rhea/Fabrics/Core/Item.h>
 
 namespace Rhea
 {
@@ -18,18 +18,26 @@ namespace Rhea
 			});
 	}
 
-	bool WorldService::onFrameFinal(float delta)
+	bool WorldService::onFrame(float delta)
 	{
 		// update items
 		for (auto it = m_scenes.begin(); it < m_scenes.end(); ++it) {
-			(*it)->traverse([delta](std::string& name, Unit* unit)->bool {
+			(*it)->traverse([delta](std::string& name, Component* unit)->bool {
 				Item* item = doCast<Item>(unit);
 				if (item) {
 					item->onFrame(delta);
+					// TODO: Check if this is necessary
+					if (item->getTransform())
+						item->getTransform()->update();
 				}
 				return true;
 				});
 		}
+		return false;
+	}
+
+	bool WorldService::onFrameFinal(float delta)
+	{
 		return false;
 	}
 

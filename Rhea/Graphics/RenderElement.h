@@ -6,7 +6,7 @@
 #include <Poseidon/RenderContext.h>
 #include <Poseidon/Mesh.h>
 
-#include "../Element.h"
+#include "GraphicsElement.h"
 #include "../Event.h"
 
 #include <Poseidon/Node.h>
@@ -16,7 +16,7 @@ namespace Rhea
 	class Unit;
 	class GraphicsService;
 
-	class GraphicsRenderElement : public Element
+	class GraphicsRenderElement : public GraphicsElement
 	{
 	public:
 		GraphicsRenderElement(Poseidon::Core* core) :

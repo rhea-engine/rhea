@@ -1,5 +1,5 @@
 #include "BasicController.h"
-#include "Fabrics/3D/Item.h"
+#include "Fabrics/Core/Item.h"
 #include "../Application.h"
 #include "../UnitTree.h"
 #include <Psio/Log.h>
@@ -73,10 +73,10 @@ namespace Rhea
 		else if (e->isAction("debug")) {
 			Unit* tree = m_app->getUnitTree();
 			DLOG(LOG_DEBUG) << "Debug positions";
-			tree->traverse([](std::string& name, Unit* u)->bool {
+			tree->traverse([](std::string& name, Component* u)->bool {
 				std::string type_name = u->getTypeName();
 			if ((type_name == "//meworla/item") || (type_name == "//meworla/camera") || (type_name == "//meworla/terrain") || (type_name == "//meworla/character")) {
-				DLOG(LOG_DEBUG) << "debugtree: " << u->getPath();
+				DLOG(LOG_DEBUG) << "debugtree: " << doCast<Unit>(u)->getPath();
 				Math::Vector3 pos = ((Item*)u)->getTransform()->get_position()->get_worldspace();
 				Math::Vector3 pos_d = ((Item*)u)->getTransform()->get_derived_position()->get_worldspace();
 				DLOG(LOG_DEBUG) << "item:pos(" << pos.x << ", " << pos.y << ", " << pos.z << "); DPos(" << pos_d.x << ", " << pos_d.y << ", " << pos_d.z << ")";

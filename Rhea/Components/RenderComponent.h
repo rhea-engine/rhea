@@ -5,16 +5,14 @@
 
 namespace Rhea
 {
-	class Item;
-
-	class RenderComponent : public Unit
+	class RenderComponent : public Component
 	{
-		MECLASS(RenderComponent, Unit)
+		RECLASS(RenderComponent, Component, "//meworla/rendercomponent")
 	public:
 		RenderComponent(std::string name, std::string type_name) :
 			m_hidden(false),
 			m_mesh(nullptr),
-			Unit(name, type_name)
+			Component(name, type_name)
 		{}
 
 		// visibility

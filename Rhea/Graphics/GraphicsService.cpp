@@ -24,10 +24,13 @@
 #include <Rhea/Physics/PhysicsService.h>
 #include "EventInput.h"
 
-#include "Fabrics/3D/Item.h"
+#include "Fabrics/Core/Item.h"
 #include "Fabrics/3D/Mesh.h"
 #include "Poseidon/Renderable.h"
 #include "Poseidon/Entity.h"
+
+#include <Rhea/Fabrics/Core/Material.h>
+#include <Rhea/Fabrics/3D/Camera.h>
 
 #include <Psio/Log.h>
 
@@ -43,43 +46,35 @@ namespace Rhea
 	{
 		m_core = std::make_unique<Poseidon::Core>();
 
-		m_managers["//meworla/scene"] = new GraphicsSceneManager(this);
-		m_managers["//meworla/item"] = new GraphicsItemManager(this);
-		m_managers["//meworla/mesh"] = new GraphicsMeshManager(this);
-		m_managers["//meworla/character"] = m_managers["//meworla/item"];
-		m_managers["//meworla/terrain"] = m_managers["//meworla/item"];
-		m_managers["//meworla/skybox"] = m_managers["//meworla/item"];
-		m_managers["//meworla/material"] = new GraphicsMaterialManager(this);
-		m_managers["//meworla/camera"] = new GraphicsCameraManager(this);
+		addManager<Scene>(std::make_unique<GraphicsSceneManager>(this));
+		addManager<Item>(std::make_unique<GraphicsItemManager>(this));
+		addManager<Mesh>(std::make_unique<GraphicsMeshManager>(this));
+		addManager<Material>(std::make_unique<GraphicsMaterialManager>(this));
+		addManager<Camera>(std::make_unique<GraphicsCameraManager>(this));
 	}
 
 	GraphicsService::~GraphicsService()
-	{
-		delete m_managers["//meworla/scene"];
-		delete m_managers["//meworla/item"];
-		delete m_managers["//meworla/mesh"];
-		delete m_managers["//meworla/material"];
-		delete m_managers["//meworla/camera"];
+	{		
 	}
 
-	GraphicsManager* GraphicsService::getManager(std::string type_name)
+	GraphicsManager* GraphicsService::getManager(SimpleParser::Type* type)
 	{
 		// find manager for type name in manager list
-		auto it = m_managers.find(type_name);
+		auto it = m_managers.find(type);
 		if (it != m_managers.end()) {
-			GraphicsManager* mgr = it->second;
+			GraphicsManager* mgr = it->second.get();
 			return mgr;
-		}
-
+		}		
+		
 		return nullptr;
 	}
 
 	bool GraphicsService::addElement(Unit* unit)
 	{
 		// find manager for type name in manager list
-		auto it = m_managers.find(unit->getTypeName());
+		auto it = m_managers.find(unit->getType());
 		if (it != m_managers.end()) {
-			GraphicsManager* mgr = it->second;
+			GraphicsManager* mgr = it->second.get();
 			mgr->createElement(m_core.get(), unit);
 			return true;
 		}
@@ -93,17 +88,18 @@ namespace Rhea
 
 	bool GraphicsService::onAddItem(Event* ev, Unit* unit)
 	{
-		ev->getTarget()->traverse([&](std::string& name, Unit* unit)->bool {
-			if (!unit->getElement("graphics")) {
+		ev->getTarget()->traverse([&](std::string& name, Component* unit)->bool {
+			Unit* u = doCast<Unit>(unit);
+			if (u && !u->getComponent<GraphicsComponent>()) {
 				printf("GraphicsService::onAddItem: add typename: %s\n", unit->getTypeName().c_str());
 
 				// try manager
-				GraphicsManager* mgr = getManager(unit->getTypeName());
+				GraphicsManager* mgr = getManager(unit->getType());
 				if (mgr) {
-					mgr->createElement(m_core.get(), unit);
+					mgr->createElement(m_core.get(), u);
 				}
 				else if (doCast<Item>(unit)) {
-					m_managers["//meworla/item"]->createElement(m_core.get(), unit);
+					getManager<Item>()->createElement(m_core.get(), u);
 				}
 			}
 		return true;
@@ -119,17 +115,17 @@ namespace Rhea
 			if (context) {
 				context->addRenderChild(item);
 				// add elements
-				item->traverse([&](std::string name, Unit* u)->bool {
+				item->traverse([&](std::string name, Component* u)->bool {
 					Item* item = doCast<Item>(u);
 					if (!item)
 						return true;
 				// try manager
-				GraphicsManager* mgr = getManager(item->getTypeName());
+				GraphicsManager* mgr = getManager(item->getType());
 				if (mgr) {
 					mgr->createElement(m_core.get(), item);
 				}
 				else {
-					mgr = getManager("//meworla/item");
+					mgr = getManager<Item>();
 					mgr->createElement(m_core.get(), item);
 				}
 				return true;
@@ -185,18 +181,6 @@ namespace Rhea
 	
 	bool GraphicsService::onFrameFinal(float delta)
 	{
-		// update items
-		for (auto it=m_scenes.begin(); it<m_scenes.end(); ++it) {
-			(*it)->traverse([](std::string& name, Unit* unit)->bool {
-				std::string type_name = unit->getTypeName();
-			if ((type_name == "//meworla/item") || (type_name == "//meworla/camera") || (type_name == "//meworla/terrain") || (type_name == "//meworla/character")) {
-				Item* item = static_cast<Item*>(unit);
-				item->getTransform()->update();				
-			}
-			return true;
-				});
-		}
-
 		return m_core->iterate();
 	}
 	
@@ -210,8 +194,8 @@ namespace Rhea
 		m_scenes.push_back(scene);
 
 		// try manager
-		GraphicsManager* mgr = getManager(scene->getTypeName());
-		Element* el = nullptr;
+		GraphicsManager* mgr = getManager(scene->getType());
+		GraphicsElement* el = nullptr;
 		if (mgr) {
 			el = mgr->createElement(m_core.get(), scene);
 		}
@@ -239,9 +223,11 @@ namespace Rhea
 		}
 
 		m_scenes.erase(std::remove(m_scenes.begin(), m_scenes.end(), scene));
-		scene->addElement("graphics", nullptr);
-		scene->traverse([](std::string& name, Unit* unit)->bool {
-			unit->addElement("graphics", nullptr);
+		scene->deleteComponent<GraphicsComponent>();
+		scene->traverse([](std::string& name, Component* unit)->bool {
+			Unit* u = doCast<Unit>(unit);
+			if (u)
+				u->deleteComponent<GraphicsComponent>();
 			return true;
 			});
 	}
@@ -268,14 +254,14 @@ namespace Rhea
 
 		// scene children with other contexts
 		// handle all current subtree nodes
-		scene->traverse([scene, scene_mgr](std::string& name, Unit* unit)->bool {
+		scene->traverse([scene, scene_mgr](std::string& name, Component* unit)->bool {
 			if (scene == unit)
 				return true;
 			Item* item = doCast<Item>(unit);
 			if (!item)
 				return true;
 			// we simply assume if the rendercontext is set we must add a render child
-			std::string render_context_name = unit->getValue("rendercontext", "");
+			std::string render_context_name = item->getValue("rendercontext", "");
 			if (render_context_name != "") {
 				Poseidon::RenderContext* render_context = scene_mgr->getViewport()->getRenderContext(render_context_name);
 				if (!render_context) {
@@ -312,14 +298,14 @@ namespace Rhea
 
 		// scene children with other contexts
 		// handle all current subtree nodes
-		scene->traverse([scene, scene_mgr](std::string& name, Unit* unit)->bool {
+		scene->traverse([scene, scene_mgr](std::string& name, Component* unit)->bool {
 			if (scene == unit)
 				return true;
 			Item* item = doCast<Item>(unit);
 			if (!item)
 				return true;
 			// we simply assume if the rendercontext is set we must add a render child
-			std::string render_context_name = unit->getValue("rendercontext", "");
+			std::string render_context_name = item->getValue("rendercontext", "");
 			if (render_context_name != "") {
 				Poseidon::RenderContext* render_context = scene_mgr->getViewport()->getRenderContext(render_context_name);
 				if (!render_context) {

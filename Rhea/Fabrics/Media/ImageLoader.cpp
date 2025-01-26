@@ -15,7 +15,7 @@ namespace Rhea
 			Psio::Stream* rs = req->getStream();
 			rs->SetMode(Psio::Fs::READ | Psio::Fs::BINARY);
 			rs->onEnd([name, app, buf, handler](size_t bytes_read) {
-				ImageResource* img = new ImageResource(name, "//meworla/image");
+				ImageResource* img = new ImageResource(name);
 				char* dest = (char*)malloc(buf->Remaining());
 				if (dest) {
 					memcpy(dest, buf->reader(), buf->Remaining());

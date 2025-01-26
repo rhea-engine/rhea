@@ -1,7 +1,7 @@
 #include <Math/Quaternion.h>
 
 #include "BtGhost.h"
-#include "Fabrics/3D/Item.h"
+#include "Fabrics/Core/Item.h"
 
 #include <bullet/src/btBulletDynamicsCommon.h>
 #include <bullet/src/BulletCollision/CollisionDispatch/btGhostObject.h>

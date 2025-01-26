@@ -7,19 +7,18 @@
 #include <Rhea/Controller/SpectatorController.h>
 #include <Psio/Log.h>
 #include <Rhea/Physics/Bullet/BtPhysicsService.h>
-#include <Rhea/Fabrics/Network/ClientService.h>
+#include <Rhea/Fabrics/Network/NetworkFabrics.h>
 #include <Rhea/Platform/PlatformService.h>
 #include <Meworla/meworlafabrics.h>
 #include <Rhea/UnitTree.h>
 #include <Rhea/Resources/ResourceList.h>
 #include <Rhea/Resources/ResourceService.h>
+#include <Rhea/Graphics/GraphicsComponent.h>
 
 using Rhea::GraphicsService;
 using Rhea::Service;
 using Rhea::BasicController;
 using Rhea::SpectatorController;
-using Rhea::ClientService;
-using Rhea::WorldClient;
 
 namespace Poseidon
 {
@@ -29,11 +28,12 @@ namespace Poseidon
 
 		// register services
 		SimpleParser::Type::registerType<GraphicsService>("//meworla/graphicsservice");
+		Rhea::GraphicsComponent::_register_GraphicsComponent();
 
+		SimpleParser::Type::registerType<Rhea::Controller>("//meworla/icontroller");
 		SimpleParser::Type::registerType<BasicController>("//meworla/controller");
 		SimpleParser::Type::registerType<SpectatorController>("//meworla/spectator");
-		SimpleParser::Type::registerType<ClientService>("//meworla/clientservice");
-		SimpleParser::Type::registerTypeName<Rhea::Unit>("//meworla/avatarlist");
+		SimpleParser::Type::registerType<Rhea::Unit>("//meworla/avatarlist");
 	
 		GraphicsService* g_service = (GraphicsService*)SimpleParser::Type::create("GraphicsService", "//meworla/graphicsservice");
 		g_service->setup(this);
@@ -42,6 +42,9 @@ namespace Poseidon
 		Rhea::PlatformService* psio = static_cast<Rhea::PlatformService *>(m_services["platform"]);
 		g_service->setPlatform(psio);
 		core = g_service->getEngine();
+
+		// register network fabrics
+		Rhea::NetworkFabrics::Register(this);
 
 		// create a representation for the engine
 		std::unordered_map<std::string, std::string> attributes;

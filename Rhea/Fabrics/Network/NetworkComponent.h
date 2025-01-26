@@ -2,7 +2,8 @@
 #define RHEA_NETWORKCOMPONENT_H
 
 #include <Math/Vector3.h>
-#include "Rhea/Fabrics/Core/Position.h"
+#include <Rhea/Fabrics/Core/Position.h>
+#include <Rhea/Component.h>
 #include "NetworkDelegate.h"
 
 #define NET_ROLE_NONE 0
@@ -14,15 +15,17 @@ namespace Rhea
 {
 	class Item;
 
-	class NetworkComponent
+	class NetworkComponent : public Component
 	{
+		MECLASS_VIRTUAL(NetworkComponent, Component)
 	public:
 		NetworkComponent(Item* item, int nuid, int role) :
 			m_NUID(nuid),
 			m_item(item),
 			m_role(role),
 			m_dirty(false),
-			m_delegate(nullptr)
+			m_delegate(nullptr),
+			Component("network", "//meworla/networkcomponent")
 		{}
 
 		int NUID() { return m_NUID; }

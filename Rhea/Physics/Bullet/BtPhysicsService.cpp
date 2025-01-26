@@ -1,6 +1,6 @@
 #include "BtPhysicsService.h"
 #include "Controller/BasicController.h"
-#include "Fabrics/3D/Item.h"
+#include "Fabrics/Core/Item.h"
 #include "Fabrics/Core/Scene.h"
 #include "BtBody.h"
 #include "BtHeightMap.h"
@@ -22,6 +22,13 @@
 #include "UnitTree.h"
 
 #include <assert.h>
+#include "../PhysicsComponent.h"
+#include <Fabrics/3D/Camera.h>
+#include <Fabrics/Character/Character.h>
+#include <Fabrics/Canvas/Item2D.h>
+#include <Fabrics/Text/TextWidget.h>
+#include <Fabrics/3D/Skybox.h>
+#include <Fabrics/Character/KinematicCharacter.h>
 
 namespace Rhea
 {
@@ -32,13 +39,13 @@ namespace Rhea
 	{
 	}
 
-	void BulletPhysicsService::step(float delta)
+	void BulletPhysicsService::onPhysicsStep(float delta)
 	{
 		if (!m_world || !m_scene) {		
 			assert(false);
 			return;
 		}
-		PhysicsService::step(delta);
+		PhysicsService::onPhysicsStep(delta);
 
 		std::vector<Item*> items = m_scene->getItems();
 
@@ -126,7 +133,7 @@ namespace Rhea
 
 		for (auto it = items.begin(); it != items.end(); ++it) {
 			Item* item = *it;
-			if (item->getElement("physics"))
+			if (item->getComponent<PhysicsComponent>())
 				continue;
 
 			initializeItem(item);
@@ -135,32 +142,32 @@ namespace Rhea
 
 	void BulletPhysicsService::initializeItem(Item* item)
 	{
-		if (item->getTypeName() == "//meworla/terrain") {
-			BulletHeightMap* hmap = new BulletHeightMap(item);
-			item->addElement("physics", hmap);
+		if (doCast<Terrain>(item)) {
+			BulletHeightMap* hmap = new BulletHeightMap(item);			
+			item->addComponentUnique<PhysicsComponent>(hmap);
 			m_world->addRigidBody(hmap->getBody());
 			// TODO currently simply set the last terrain to active
 			m_terrain = doCast<Terrain>(item);
 		}
-		else if (item->getTypeName() == "//meworla/camera") {
+		else if (doCast<Camera>(item)) {
 			// make camera without physics	
 			m_item = item;
 		}
-		else if (item->getTypeName() == "//meworla/character") {
+		else if (doCast<KinematicCharacter>(item)) {
 			BulletPhysicsCharacter* body = new BulletPhysicsCharacter(m_world, item);
 			body->init();
-			item->addElement("physics", body);
+			item->addComponentUnique<PhysicsComponent>(body);
 		}
-		else if (item->getTypeName() == "//meworla/widget")
+		else if (doCast<Item2D>(item))
 			return;
-		else if (item->getTypeName() == "//meworla/textwidget")
+		else if (doCast<TextWidget>(item))
 			return;
-		else if (item->getTypeName() == "//meworla/skybox")
+		else if (doCast<Skybox>(item))
 			return;
 		else {
 			BulletPhysicsBody* body = new BulletPhysicsBody(m_world, item);
 			if (body->init()) {
-				item->addElement("physics", body);
+				item->addComponentUnique<PhysicsComponent>(body);
 				m_world->addRigidBody(body->getBody());
 			}
 		}
@@ -168,7 +175,7 @@ namespace Rhea
 
 	void BulletPhysicsService::removeItem(Item* item)
 	{
-		item->addElement("physics", nullptr);
+		item->deleteComponent<PhysicsComponent>();
 	}
 
 	void BulletPhysicsService::onInit()

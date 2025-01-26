@@ -20,6 +20,7 @@
 #include <Rhea/Fabrics/3D/PointLight.h>
 #include <Rhea/Fabrics/3D/SpotLight.h>
 #include <Rhea/Fabrics/Terrain/Terrain.h>
+#include <Rhea/Graphics/GraphicsComponent.h>
 
 namespace Poseidon
 {
@@ -183,7 +184,7 @@ namespace Poseidon
 				Item* renderable = m_rend_queue->first();
 				for (Item* renderable = m_rend_queue->first(); renderable != NULL; renderable = m_rend_queue->next()) {
 
-					Rhea::RenderComponent* r_comp = renderable->getRenderComponent();
+					Rhea::RenderComponent* r_comp = renderable->getComponent<Rhea::RenderComponent>();
 					if (!r_comp)
 						continue;
 					if (doCast<Rhea::Terrain>(renderable)) {
@@ -214,13 +215,17 @@ namespace Poseidon
 					}
 
 					// get render mesh
-					Rhea::GraphicsMesh* m_elem = (Rhea::GraphicsMesh*)rmesh->getElement("graphics");
+					Rhea::GraphicsComponent* g_component = rmesh->getComponent<Rhea::GraphicsComponent>();
+					if (!g_component)
+						continue;
+					Rhea::GraphicsMesh* m_elem = (Rhea::GraphicsMesh*)g_component->getElement();
 					if (!m_elem)
 						continue;
 					Mesh* mesh = m_elem->m_mesh;
 
+
 					// skeleton handling if any
-					Rhea::Skeleton* skeleton = rmesh->getSkeleton();
+					Rhea::Skeleton* skeleton = rmesh->getComponent<Rhea::Skeleton>();
 					if (skeleton) {
 						// Fill the bone buffer
 						BoneBuffer boneBuffer;

@@ -26,12 +26,12 @@ namespace Rhea
 		Item::ready();
 
 		// skybox mesh
-		if (!m_render_component) {
-			m_render_component = new RenderComponent("renderer", "//meworla/rendercomponent");
-			addChild(m_render_component);
+		RenderComponent* render_component = getComponent<RenderComponent>();
+		if (!render_component) {
+			render_component = addComponentUnique<RenderComponent>("renderer");			
 		}
 		// if no mesh defined, add a cube
-		if (!m_render_component->getMesh()) {
+		if (!render_component->getMesh()) {
 			// add a cube as child
 			Mesh* cube = new Mesh(m_pathname + "_mesh");
 			std::unordered_map<std::string, Variant> sub_values;
@@ -79,7 +79,7 @@ namespace Rhea
 
 			addChild(cube);
 			cube->ready();
-			m_render_component->setMesh(cube);
+			render_component->setMesh(cube);
 		}
 		
 		// find camera
@@ -91,13 +91,13 @@ namespace Rhea
 			m_camera = m_app->getUnitTree()->findByType<Camera>();			
 		}
 
-		if (!m_render_component->getMesh()->getMaterial()) {
+		if (!render_component->getMesh()->getMaterial()) {
 			Material* mat = doCast<Material>(m_app->getUnitTree()->find(m_values["shader"], m_attributes["basepath"], false));
 			if (!mat) {
 				mat = new Material(m_path + "_material", "//meworla/material");
 				addChild(mat);
 			}
-			m_render_component->getMesh()->setMaterial(mat);
+			render_component->getMesh()->setMaterial(mat);
 
 		}
 	}

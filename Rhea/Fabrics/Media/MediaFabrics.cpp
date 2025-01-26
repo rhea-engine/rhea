@@ -9,9 +9,9 @@ namespace Rhea
 {
 	void MediaFabrics::Register(Application* app)
 	{
+		ImageResource::_register_ImageResource();
 		SimpleParser::Type::registerType<ImageResource>("//meworla/texture");
-		SimpleParser::Type::registerTypeName<ImageResource>("//meworla/image");
-		SimpleParser::Type::registerType<CubeMap>("//meworla/cubemap");
+		CubeMap::_register_CubeMap();
 		app->getResourceLoader()->registerLoader<ImageLoader>("image/*");		
 	}
 }

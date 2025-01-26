@@ -47,7 +47,7 @@ namespace Rhea
 		// load and add textures
 		if (m_values.find("texture") != m_values.end())
 		{			
-			Unit* tex = m_app->getUnitTree()->find(m_values["texture"], m_attributes["basepath"], false);
+			Unit* tex = doCast<Unit>(m_app->getUnitTree()->find(m_values["texture"], m_attributes["basepath"], false));
 			if (tex) {
 
 				// create dummy material
@@ -59,9 +59,9 @@ namespace Rhea
 				tex->ready();
 				
 				// get the shader
-				Unit* shader_res = m_app->getUnitTree()->find(m_values["shader"], m_attributes["basepath"], false);
+				Shader* shader_res = doCast<Shader>(m_app->getUnitTree()->find(m_values["shader"], m_attributes["basepath"], false));
 				if (shader_res) {
-					m_material->setShaderRes(doCast<Shader>(shader_res));
+					m_material->setShaderRes(shader_res);
 				}				
 				else {
 					LOG(LOG_ERROR) << "item2d::ready(): Shader '" << (std::string)m_values["shader"] << "' for " << m_pathname << " not found";
@@ -70,20 +70,20 @@ namespace Rhea
 				m_material->setTexture(0, static_cast<ImageResource*>(tex));
 				//addChild(m_material);
 
-				if (!m_render_component) {
-					m_render_component = new RenderComponent("renderer", "//meworla/rendercomponent");
-					addChild(m_render_component);
+				RenderComponent* render_component = getComponent<RenderComponent>();
+				if (!render_component) {
+					render_component = addComponentUnique<RenderComponent>("renderer");					
 				}
 
 				// add the mesh
-				if (!m_render_component->getMesh()) {
+				if (!render_component->getMesh()) {
 
 					std::unordered_map<std::string, std::string> attributes;
 					std::unordered_map<std::string, Variant> values;
-					Mesh* mesh = static_cast<Mesh*>(m_app->getUnitTree()->createUnit(m_pathname + "_mesh", "//meworla/mesh", attributes, values));
+					Mesh* mesh = m_app->getUnitTree()->createUnit<Mesh>(m_pathname + "_mesh", attributes, values);
 					mesh->setMaterial(m_material);
 					addChild(mesh);
-					m_render_component->setMesh(mesh);
+					render_component->setMesh(mesh);
 
 					setMesh();
 				}
@@ -119,15 +119,16 @@ namespace Rhea
 			{ m_x + m_w, m_y - m_h, z, m_u2, m_v2 }  // bottom-right
 		};
 		std::vector<unsigned long> v_indices = { 0, 1, 2, 0, 2, 3 };
-		if (m_render_component && m_render_component->getMesh()) {
-			m_render_component->getMesh()->setBuffers(vertices, v_indices);
-			m_render_component->getMesh()->sendEvent("update", nullptr);
+		RenderComponent* render_component = getComponent<RenderComponent>();
+		if (render_component && render_component->getMesh()) {
+			render_component->getMesh()->setBuffers(vertices, v_indices);
+			render_component->getMesh()->sendEvent("update", nullptr);
 		}
 	}
 	
 	void Rhea::Item2D::update()
 	{
-		if (m_render_component && m_render_component->getMesh())
+		if (getComponent<RenderComponent>() && getComponent<RenderComponent>()->getMesh())
 			setMesh();
 		sendEvent("update", nullptr);
 	}

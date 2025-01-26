@@ -8,15 +8,16 @@
 #include "../Unit.h"
 #include "Fabrics/3D/Camera.h"
 #include "RenderElement.h"
+#include "GraphicsComponent.h"
 
 namespace Rhea
 {
-	Element* GraphicsCameraManager::createElement(Poseidon::Core* core, Unit* unit)
+	GraphicsElement* GraphicsCameraManager::createElement(Poseidon::Core* core, Unit* unit)
 	{	
 		// check if already created
-		Element* el = unit->getElement("graphics");
+		GraphicsComponent* el = unit->getComponent<GraphicsComponent>();
 		if (el)
-			return el;
+			return el->getElement();
 
 		// create
 		GraphicsRenderElement* elem = new GraphicsRenderElement(core);
@@ -58,20 +59,13 @@ namespace Rhea
 
 		static_cast<Poseidon::Camera*>(m_entity)->setAspectRatio((float)Width / (float)Height);
 
-		unit->addElement("graphics", elem);
+		unit->addComponentUnique<GraphicsComponent>(elem);
 
 		return elem;
 	}
 
 	bool GraphicsCameraManager::onUpdate(Event* ev, Unit* unit)
 	{
-		printf("item updated\n");
-
-/*		Item* item = doCast<Item>(unit);
-		if (item)
-			GraphicsRenderElement* elem = static_cast<GraphicsRenderElement*>(item->getElement("graphics"));
-*/
-
 		// TODO (?) what could be an update?
 
 		return false;
@@ -83,12 +77,6 @@ namespace Rhea
 
 	bool GraphicsCameraManager::onItemDelete(Event* ev, Unit* unit)
 	{
-		//erase element from list
-		Element* elem = unit->getElement("graphics");
-		unit->addElement("graphics", nullptr);
-		// free element
-		delete elem;
-
 		return false;
 	}
 }

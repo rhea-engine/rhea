@@ -8,7 +8,7 @@
 #include "ItemManager.h"
 #include "CameraManager.h"
 #include "../Unit.h"
-#include "Fabrics/3D/Item.h"
+#include "Fabrics/Core/Item.h"
 #include "Fabrics/Canvas/Item2D.h"
 #include "GraphicsService.h"
 #include <Psio/Log.h>
@@ -27,15 +27,16 @@ namespace Rhea
 		}
 
 		// add my items
-		scene->traverse([&](std::string& name, Unit* unit)->bool {
+		scene->traverse([&](std::string& name, Component* unit)->bool {
 			{
-				if (unit != scene) {
-					addItem(unit);
+				Unit* u = doCast<Unit>(unit);
+				if (u && unit != scene) {
+					addItem(u);
 				}
 				return true;
 			}
 			});
-		scene->addElement("graphics", elem);
+		scene->addComponentUnique<GraphicsComponent>(elem);
 
 		// listen to add item event		
 		scene->registerEventHandler("add_item", this, std::bind(&GraphicsSceneManager::onItemAdd, this, std::placeholders::_1, std::placeholders::_2));
@@ -46,12 +47,12 @@ namespace Rhea
 		printf("GraphicsSceneManager::addItem: %s add typename: %s\n", item->getPathName().c_str(), item->getTypeName().c_str());
 
 		// try manager
-		GraphicsManager* mgr = m_service->getManager(item->getTypeName());
+		GraphicsManager* mgr = m_service->getManager(item->getType());
 		if (mgr) {
 			mgr->createElement(m_core, item);
 		}
 		else if (doCast<Item>(item)) {
-			mgr = m_service->getManager("//meworla/item");
+			mgr = m_service->getManager<Item>();
 			mgr->createElement(m_core, item);
 		}
 		else if (doCast<Lighting>(item)) {
@@ -72,7 +73,7 @@ namespace Rhea
 		return false;
 	}
 
-	Element* GraphicsSceneManager::createElement(Poseidon::Core* core, Unit* unit)
+	GraphicsElement* GraphicsSceneManager::createElement(Poseidon::Core* core, Unit* unit)
 	{
 		Scene* scene = doCast<Scene>(unit);
 		if (!scene) {
@@ -81,9 +82,9 @@ namespace Rhea
 		}
 
 		// check if already created
-		Element* el = scene->getElement("graphics");
+		GraphicsComponent* el = scene->getComponent<GraphicsComponent>();
 		if (el)
-			return el;
+			return el->getElement();
 
 		// create it
 		GraphicsScene* scene_elem = new GraphicsScene(scene);

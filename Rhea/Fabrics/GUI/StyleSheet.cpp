@@ -22,9 +22,10 @@ namespace Rhea
 	{
 		for (auto it = m_entries.begin(); it != m_entries.end(); ++it) {
 			
-			std::string type = (*it).selector.name;
-			std::transform(type.begin(), type.end(), type.begin(), ::tolower);
-			if (!std::string("//meworla/gui/" + type).compare(w->getTypeName())) {
+			std::string type_name = (*it).selector.name;
+			std::transform(type_name.begin(), type_name.end(), type_name.begin(), ::tolower);
+			SimpleParser::Type* type = SimpleParser::Type::get(std::string("//meworla/gui/" + type_name));
+			if (type && w->getType()==type) {			
 				w->setStyle((*it).properties);
 			}
 		}

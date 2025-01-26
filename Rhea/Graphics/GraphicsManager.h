@@ -4,6 +4,8 @@
 #include <Poseidon/Core.h>
 #include <Poseidon/Node.h>
 
+#include "GraphicsElement.h"
+
 namespace Rhea
 {
 	class Element;
@@ -23,9 +25,10 @@ namespace Rhea
 		GraphicsManager(GraphicsService* service) :
 			m_service(service)
 		{}
+		virtual ~GraphicsManager() {}
 
 		// create an element for this unit
-		virtual Element* createElement(Poseidon::Core* core, Unit* unit) = 0;
+		virtual GraphicsElement* createElement(Poseidon::Core* core, Unit* unit) = 0;
 
 		// handle frame update
 		virtual void onFrame() = 0;

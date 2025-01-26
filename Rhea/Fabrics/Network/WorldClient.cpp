@@ -1,7 +1,7 @@
 #include "WorldClient.h"
 #include <Hermes/Opcode.h>
 #include <Rhea/UnitTree.h>
-#include <Rhea/Fabrics/3D/Item.h>
+#include <Rhea/Fabrics/Core/Item.h>
 #include <Psio/Log.h>
 #include <Hermes/Messages/MessageMove.h>
 #include <Hermes/Messages/MessageTurn.h>
@@ -13,6 +13,7 @@
 #include <Hermes/Messages/MessageEnterWorld.h>
 #include <Application.h>
 #include "ClientService.h"
+#include "NetworkComponent.h"
 
 namespace Rhea
 {
@@ -69,9 +70,9 @@ namespace Rhea
 			Math::Quaternion rot = Math::Quaternion(msg->transform[0], msg->transform[1], msg->transform[2], msg->transform[3]);
 			player->setPosition(position);
 			player->getTransform()->get_position()->setOrientation(rot);
-			std::unique_ptr<Rhea::NetworkComponent> net_comp = std::make_unique<Rhea::NetworkComponent>(player, msg->NUID, NET_ROLE_CLIENT);
+			Rhea::NetworkComponent* net_comp = new Rhea::NetworkComponent(player, msg->NUID, NET_ROLE_CLIENT);
 			net_comp->setDelegate(this);
-			player->setNetworkComponent(std::move(net_comp));
+			player->addComponent(net_comp);
 			m_net_items[msg->NUID] = player;
 			Rhea::Event e("scene_enter", player);
 			m_scene->bubbleEvent("scene_enter", &e);

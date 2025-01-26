@@ -5,10 +5,9 @@
 
 #include <Rhea/Unit.h>
 
-#include "Rhea/Fabrics/Core/Position.h"
-#include "Math/Vector3.h"
-#include "../Core/Transform.h"
-#include "../Network/NetworkComponent.h"
+#include <Rhea/Fabrics/Core/Position.h>
+#include <Math/Vector3.h>
+#include  <Rhea/Fabrics/Core/Transform.h>
 #include <Rhea/Components/RenderComponent.h>
 
 namespace Poseidon
@@ -25,7 +24,7 @@ namespace Rhea
 	class Material;
 
 	/** 
-	* Item is the base class for all units that can be placed in the scene with a 3D location.
+	* Item is the base class for all units that can be placed in the scene with a location.
 	* For adding behahviour or visual representation add components as childs
 	*/
 	class Item : public Unit
@@ -37,11 +36,9 @@ namespace Rhea
 			Item(name, "//meworla/item")
 		{}
 		Item(std::string name, std::string type_name) :
-			m_graphics_item(nullptr),
 			m_physics_body(nullptr),
 			m_turn(0.0f),			
 			m_transform(this),
-			m_render_component(nullptr),
 			Unit(name, type_name)
 		{}
 		
@@ -52,7 +49,7 @@ namespace Rhea
 		void ready();
 
 		// get dependent data
-		Mesh* getMesh() { if (m_render_component) return m_render_component->getMesh(); else return nullptr; }
+		Mesh* getMesh() { if (getComponent<RenderComponent>()) return getComponent<RenderComponent>()->getMesh(); else return nullptr; }
 
 		std::vector<Export> getReferences();
 
@@ -79,29 +76,20 @@ namespace Rhea
 		virtual void jump() {}
 
 		// graphics
-		RenderComponent* getRenderComponent() { return m_render_component; }
+		RenderComponent* getRenderComponent() {	return getComponent<RenderComponent>(); }
 
 		// visibility
-		virtual void hide() { if (m_render_component) m_render_component->hide(); }
-		virtual void show() { if (m_render_component) m_render_component->show(); }
-		bool isVisible() { if (m_render_component) return m_render_component->isVisible(); else return false; }
-
-		// networking
-		void setNetworkComponent(std::unique_ptr<NetworkComponent> component) { m_net_component = std::move(component); }
-		NetworkComponent* getNetworkComponent() { return m_net_component.get(); }
+		virtual void hide() { if (getComponent<RenderComponent>()) getComponent<RenderComponent>()->hide(); }
+		virtual void show() { if (getComponent<RenderComponent>()) getComponent<RenderComponent>()->show(); }
+		bool isVisible() { if (getComponent<RenderComponent>()) return getComponent<RenderComponent>()->isVisible(); else return false; }
 
 		// physics
 		PhysicsBody* getPhysicsBody();
 
 	protected:
-		GraphicsRenderElement* m_graphics_item;
 		PhysicsBody* m_physics_body;
-		std::unique_ptr<NetworkComponent> m_net_component;
 		Math::Vector3 m_movement;
-		float m_turn;
-		RenderComponent* m_render_component;
-
-		bool getGraphicsItem();
+		float m_turn;				
 
 		Transform m_transform;
 	};

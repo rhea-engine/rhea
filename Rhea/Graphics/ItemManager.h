@@ -20,9 +20,10 @@ namespace Rhea
 		GraphicsItemManager(GraphicsService* service) :
 			GraphicsManager(service)
 		{}
+		~GraphicsItemManager();
 
 		// create an element for this unit
-		Element* createElement(Poseidon::Core* core, Unit* unit);
+		GraphicsElement* createElement(Poseidon::Core* core, Unit* unit);
 
 		// handle update event
 		bool onUpdate(Event* ev, Unit* unit);

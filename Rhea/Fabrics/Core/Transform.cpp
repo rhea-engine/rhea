@@ -1,5 +1,5 @@
 #include "Transform.h"
-#include "../3D/Item.h"
+#include "Item.h"
 
 namespace Rhea
 {

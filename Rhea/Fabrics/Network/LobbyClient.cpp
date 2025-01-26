@@ -68,7 +68,7 @@ namespace Rhea
 		// fill up avatar list of scene
 		if (!m_owner)
 			return;
-		Rhea::Unit* avatar_list = m_owner->getChild("avatarlist");
+		Rhea::Unit* avatar_list = doCast<Rhea::Unit>(m_owner->getChild("avatarlist"));
 		if (!avatar_list) {
 			avatar_list = new Rhea::Unit("avatarlist", "//meworla/avatarlist");
 			avatar_list->setup(m_app);

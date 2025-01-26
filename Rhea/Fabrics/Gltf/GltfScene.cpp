@@ -54,8 +54,8 @@ namespace Rhea
 				Bone rootBone(0, -1, Math::Matrix4());
 				skel->addBone(rootBone);
 			}
-			addChild(skel);
-			mesh->setSkeleton(skel);
+			//addComponent(skel);
+			mesh->addComponent(skel);
 
 			// add the animations
 			CreateAnimations(mesh);
@@ -436,7 +436,7 @@ namespace Rhea
 	{
 		for (auto it = m_ordered_children.begin(); it != m_ordered_children.end(); it++)
 		{
-			Unit* child = (*it)->Clone();
+			Component* child = (*it)->Clone();
 			owner->addChild(child);
 		}
 	}

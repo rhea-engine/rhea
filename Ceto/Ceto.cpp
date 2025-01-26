@@ -71,14 +71,17 @@ bool Ceto::onInput(Rhea::EventInput* e, Rhea::Unit* unit)
 		Rhea::Item* gus2 = doCast<Rhea::Item>(m_unit_tree->find("//local/scene1/gus2"));
 		if (gus2)
 		{
-			Rhea::Animation* anim;
-			if (!walk_state) {
-				anim = doCast<Rhea::Animation>(gus2->getChild("mesh")->getChild("IdleAction"));
-				walk_state = 1;
-			}
-			else {
-				anim = doCast<Rhea::Animation>(gus2->getChild("mesh")->getChild("RunningAction"));
-				walk_state = 0;
+			Rhea::Animation* anim = nullptr;
+			Rhea::Mesh* mesh = doCast<Rhea::Mesh>(gus2->getChild("mesh"));
+			if (mesh) {
+				if (!walk_state) {
+					anim = doCast<Rhea::Animation>(mesh->getChild("IdleAction"));
+					walk_state = 1;
+				}
+				else {
+					anim = doCast<Rhea::Animation>(mesh->getChild("RunningAction"));
+					walk_state = 0;
+				}
 			}
 
 			Rhea::Animator* animator = doCast<Rhea::Animator>(m_unit_tree->find("//local/scene1/Animator"));
@@ -242,7 +245,9 @@ void Ceto::setScene(bool mark_preferrences)
 		if (scene && err == ReqError::OK) {
 
 			// set origin info
-			m_unit_tree->getChild("engine")->setValue("origin", m_home_scene);
+			Rhea::Unit* engine = doCast<Rhea::Unit>(m_unit_tree->getChild("engine"));
+			if (engine)
+				engine->setValue("origin", m_home_scene);
 
 			// hide GUI background
 			SimpleParser::CssParser::PropertyMap properties;
@@ -311,7 +316,7 @@ void Ceto::showScene(Rhea::Scene* scene)
 		scene->addChild(m_view);
 
 		Rhea::GraphicsService* gs = static_cast<Rhea::GraphicsService*>(getService("graphics"));
-		Rhea::GraphicsManager* mgr = gs->getManager("//meworla/camera");
+		Rhea::GraphicsManager* mgr = gs->getManager<Rhea::Camera>();
 		//Rhea::GraphicsCamera::createElement(core, m_view);
 		mgr->createElement(core, m_view);
 		Variant pos = scene->getValue("start");
@@ -338,20 +343,22 @@ void Ceto::showScene(Rhea::Scene* scene)
 	// now we are ready
 	scene->show();
 
-	Rhea::Unit* gus2 = scene->getChild("gus2");
+	Rhea::Unit* gus2 = doCast<Rhea::Unit>(scene->getChild("gus2"));
 	if (gus2)
 	{
-		Rhea::Animation* anim = doCast<Rhea::Animation>(gus2->getChild("mesh")->getChild("RunningAction"));
-		Rhea::Skeleton* skeleton = doCast<Rhea::Skeleton>(doCast<Rhea::Mesh>(gus2->getChild("mesh"))->getSkeleton());
-		if (anim && skeleton) {
-			// add the animator to the scene
-			Rhea::Animator* animator = new Rhea::Animator("Animator", "//meworla/animator");
-			animator->setSkeleton(skeleton);
-			animator->PlayAnimation(anim);			
-			scene->addChild(animator);
+		Rhea::Mesh* mesh = doCast<Rhea::Mesh>(gus2->getChild("mesh"));
+		if (mesh) {
+			Rhea::Animation* anim = doCast<Rhea::Animation>(mesh->getChild("RunningAction"));
+			Rhea::Skeleton* skeleton = doCast<Rhea::Skeleton>(mesh->getComponent<Rhea::Skeleton>());
+			if (anim && skeleton) {
+				// add the animator to the scene
+				Rhea::Animator* animator = new Rhea::Animator("Animator", "//meworla/animator");
+				animator->setSkeleton(skeleton);
+				animator->PlayAnimation(anim);
+				scene->addChild(animator);
+			}
 		}
 	}
-	
 }
 
 void Ceto::showAlert(std::string text)

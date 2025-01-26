@@ -8,7 +8,7 @@ add_library (RheaFabrics "Character/Character.cpp" "Character/KinematicCharacter
 "Media/ImageLoader.cpp" "Media/CubeMap.h" "Media/CubeMap.cpp" 
 "Core/Material.h" "Core/Material.cpp" "Text/TextLoader.h" "Text/TextLoader.cpp" "Core/SceneLoader.cpp" "Core/Scene.cpp" "Core/Avatar.h" "Core/Avatar.cpp" 
 "Core/Position.h" "Core/Position.cpp" "Core/Transform.h" "Core/Transform.cpp" "Core/Geometry.h" "Core/Shader.h"  "Core/Shader.cpp"
-"3D/Item.cpp" "3D/Camera.cpp" "3D/Mesh.cpp" "3D/ObjLoader.h" "3D/ObjLoader.cpp" 
+"Core/Item.h" "Core/Item.cpp" "3D/Camera.cpp" "3D/Mesh.cpp" "3D/ObjLoader.h" "3D/ObjLoader.cpp" 
 "3D/Skybox.h" "3D/Skybox.cpp" 
 "GUI/Button.h" "GUI/Button.cpp" "GUI/Dialog.h" "GUI/Label.cpp" "GUI/WidgetEvent.h" 
 "GUI/GUIController.h" "GUI/GUIController.cpp" "GUI/Widget.h" "GUI/Widget.cpp" "GUI/GuiService.cpp" "GUI/Label.h"

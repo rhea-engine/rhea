@@ -98,7 +98,7 @@ namespace Rhea
 					unit = tree->createUnit(path, type_name, section.attributes, section.values);
 
 					// find parent relative to top parent			
-					child_parent = scene->find(ppath, true);
+					child_parent = doCast<Unit>(scene->find(ppath, true));
 				}
 				else {
 					// create the unit and set config params

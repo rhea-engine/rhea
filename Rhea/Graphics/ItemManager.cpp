@@ -5,7 +5,7 @@
 #include <Poseidon/RenderContext.h>
 
 #include "../Unit.h"
-#include "Fabrics/3D/Item.h"
+#include "Fabrics/Core/Item.h"
 #include "Fabrics/3D/Mesh.h"
 #include "Fabrics/Core/Material.h"
 #include "../Resources/TextResource.h"
@@ -18,17 +18,23 @@
 
 #include <Psio/Log.h>
 #include <Rhea/Fabrics/3D/Light.h>
+#include "GraphicsComponent.h"
 
 namespace Rhea
 {
-	Element* GraphicsItemManager::createElement(Poseidon::Core* core, Unit* unit)	
+	GraphicsItemManager::~GraphicsItemManager()
+	{
+	
+	}
+
+	GraphicsElement* GraphicsItemManager::createElement(Poseidon::Core* core, Unit* unit)
 	{
 		GraphicsRenderElement* elem = nullptr;
 
 		// check if already created
-		Element* item_el = unit->getElement("graphics");
+		GraphicsComponent* item_el = unit->getComponent<GraphicsComponent>();
 		if (item_el)
-			return item_el;
+			return item_el->getElement();
 
 		Item* item = doCast<Item>(unit);
 		if (!item)
@@ -41,7 +47,7 @@ namespace Rhea
 			elem = new GraphicsRenderElement(core);
 			Poseidon::Renderable* light_entity = static_cast<Poseidon::Renderable*>(createEntity(elem, core, unit, "default", false));
 			// attach to unit
-			unit->addElement("graphics", elem);
+			unit->addComponentUnique<GraphicsComponent>(elem);
 		}
 
 		// prepare basic elements
@@ -56,10 +62,9 @@ namespace Rhea
 		if (item_mesh) {
 
 			// check if mesh element already defined
-			GraphicsMesh* mesh_el = static_cast<GraphicsMesh*>(item_mesh->getElement("graphics"));
-			if (!mesh_el) {
+			if (!item_mesh->getComponent<GraphicsComponent>()) {
 				// create using mesh manager
-				mesh_el = (GraphicsMesh*)m_service->getManager("//meworla/mesh")->createElement(core, item_mesh);
+				GraphicsMesh* mesh_el = (GraphicsMesh*)m_service->getManager<Mesh>()->createElement(core, item_mesh);
 			}
 
 			// create the element		
@@ -70,7 +75,7 @@ namespace Rhea
 		}
 
 		// attach to unit
-		unit->addElement("graphics", elem);
+		unit->addComponentUnique<GraphicsComponent>(elem);
 
 		// register handlers
 		unit->registerEventHandler("delete", this, std::bind(&GraphicsItemManager::onItemDelete, this, std::placeholders::_1, std::placeholders::_2));
@@ -85,7 +90,10 @@ namespace Rhea
 	bool GraphicsItemManager::onUpdate(Event* ev, Unit* unit)
 	{
 		Item* item = static_cast<Item*>(unit);
-		GraphicsRenderElement* elem = static_cast<GraphicsRenderElement*>(item->getElement("graphics"));
+		GraphicsComponent* gr_comp = item->getComponent<GraphicsComponent>();
+		if (!gr_comp)
+			return nullptr;
+		GraphicsRenderElement* elem = static_cast<GraphicsRenderElement*>(gr_comp->getElement());
 
 		// possible material change - check if material has element
 		//Mesh* mesh = item->getGraphicsComponent()->getMesh();
@@ -94,9 +102,9 @@ namespace Rhea
 			return false;
 
 		if (Material* mat = mesh->getMaterial()) {
-			if (!mat->getElement("graphics")) {
+			if (!mat->getComponent<GraphicsComponent>()) {
 				// create the element for the new material
-				GraphicsManager* mgr = m_service->getManager(mat->getTypeName());
+				GraphicsManager* mgr = m_service->getManager(mat->getType());
 				mgr->createElement(m_service->getEngine(), mat);
 			}
 		}
@@ -107,14 +115,13 @@ namespace Rhea
 	bool GraphicsItemManager::onItemDelete(Event* ev, Unit* unit)
 	{
 		//erase element from list
-		GraphicsRenderElement* elem = (GraphicsRenderElement*)(unit->getElement("graphics"));
-		auto elem_pos = std::find(m_elements.begin(), m_elements.end(), elem);
-		if (elem_pos != m_elements.end())
-			m_elements.erase(elem_pos);
-
-		// free element
-		unit->addElement("graphics", nullptr);
-
+		GraphicsComponent* g_component = unit->getComponent<GraphicsComponent>();
+		if (g_component) {
+			GraphicsRenderElement* elem = (GraphicsRenderElement*)(g_component->getElement());
+			auto elem_pos = std::find(m_elements.begin(), m_elements.end(), elem);
+			if (elem_pos != m_elements.end())
+				m_elements.erase(elem_pos);
+		}
 		return false;
 	}
 }

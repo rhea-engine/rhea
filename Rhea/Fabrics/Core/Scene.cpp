@@ -1,11 +1,8 @@
 #include "Scene.h"
-#include "Scene.h"
-#include "Scene.h"
-#include "Scene.h"
 
 #include <memory>
 
-#include "Fabrics/3D/Item.h"
+#include "Item.h"
 #include "SceneLoader.h"
 #include "Event.h"
 #include "Application.h"

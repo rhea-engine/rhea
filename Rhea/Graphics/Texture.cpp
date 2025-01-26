@@ -4,6 +4,7 @@
 #include <Psio/Log.h>
 #include <Rhea/Fabrics/Media/ImageResource.h>
 #include <Poseidon/Texture.h>
+#include "GraphicsComponent.h"
 
 namespace Rhea
 {
@@ -33,15 +34,15 @@ namespace Rhea
 	}
 
 
-	Element* GraphicsTexture::createElement(Poseidon::Core *core, Unit* unit)
+	GraphicsElement* GraphicsTexture::createElement(Poseidon::Core *core, Unit* unit)
 	{
 		char* buf;
 		size_t buflen;
 
 		// check if already created
-		Element* el = unit->getElement("graphics");
+		GraphicsComponent* el = unit->getComponent<GraphicsComponent>();
 		if (el)
-			return el;
+			return el->getElement();
 
 		ImageResource* img = doCast<ImageResource>(unit);
 
@@ -83,7 +84,7 @@ namespace Rhea
 			}
 		}
 
-		unit->addElement("graphics", elem);
+		unit->addComponentUnique<GraphicsComponent>(elem);
 		return elem;
 	}
 }

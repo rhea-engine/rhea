@@ -14,7 +14,7 @@
 #include "Unit.h"
 #include "UnitTree.h"
 #include "Realm.h"
-#include "Fabrics/3D/Item.h"
+#include "Fabrics/Core/Item.h"
 #include "Fabrics/Core/Transform.h"
 #include "Fabrics/Core/Scene.h"
 #include "Fabrics/3D/Mesh.h"
@@ -60,6 +60,8 @@
 #ifdef USE_RHEA_GLTF_LOADER
 #include <Fabrics/Gltf/GltfFabrics.h>
 #endif
+#include <Component.h>
+#include <Physics/PhysicsComponent.h>
 
 #undef min
 
@@ -87,6 +89,7 @@ namespace Rhea
 
 		
 		// register core types
+		SimpleParser::Type::registerType<Component>("//core/types/component"); 
 		SimpleParser::Type::registerType<Unit>("//core/types/unit");
 		SimpleParser::Type::registerType<UnitTree>("//core/unittree");
 		SimpleParser::Type::registerType<Collection>("//core/collection");
@@ -109,6 +112,7 @@ namespace Rhea
 		Service* phy_mgr = (PhysicsManagerService*)SimpleParser::Type::create("PhysicsManagerService", "//meworla/physicsmanagerservice");
 		phy_mgr->setup(this);
 		m_services["physics_mgr"] = phy_mgr;
+		PhysicsComponent::_register_PhysicsComponent();
 
 		m_fs = new Orion::Orion(static_cast<PlatformService*>(psio)->getEngine(), m_appname);
 		m_unit_tree.reset((UnitTree*)SimpleParser::Type::create("/", "//core/unittree"));
@@ -129,8 +133,8 @@ namespace Rhea
 		SimpleParser::Type::registerType<Resources>("//meworla/resources");
 		SimpleParser::Type::registerType<Transform>("//meworla/transform");
 		SimpleParser::Type::registerType<Item>("//meworla/item");
-		SimpleParser::Type::registerType<Mesh>("//meworla/mesh");
-		SimpleParser::Type::registerType<RenderComponent>("//meworla/rendercomponent");
+		SimpleParser::Type::registerType<Mesh>("//meworla/mesh");		
+		RenderComponent::_register_RenderComponent();
 		SimpleParser::Type::registerType<Shader>("//meworla/shader");
 		SimpleParser::Type::registerType<Lighting>("//meworla/lighting");
 		SimpleParser::Type::registerType<Light>("//meworla/light");
@@ -143,14 +147,14 @@ namespace Rhea
 		SimpleParser::Type::registerType<Skybox>("//meworla/skybox"); 
 		MediaFabrics::Register(this);
 		SimpleParser::Type::registerType<Camera>("//meworla/camera");
-		SimpleParser::Type::registerTypeName<ImageResource>("//meworla/heightmap");
+		SimpleParser::Type::registerType<ImageResource>("//meworla/heightmap");
 		SimpleParser::Type::registerType<Terrain>("//meworla/terrain");
 		SimpleParser::Type::registerType<KinematicCharacter>("//meworla/character");		
 		SimpleParser::Type::registerType<Item2D>("//meworla/widget");
 		SimpleParser::Type::registerType<TextWidget>("//meworla/textwidget");
 		SimpleParser::Type::registerType<Font>("//meworla/font");
 		SimpleParser::Type::registerType<BitmapFont>("//meworla/bitmapfont");
-		SimpleParser::Type::registerTypeName<TextResource>("//meworla/fontinfo");
+		SimpleParser::Type::registerType<TextResource>("//meworla/fontinfo");
 		GUIController::Register(this);
 		
 		// register wavefront types
@@ -243,7 +247,25 @@ namespace Rhea
 		return false;
 	}
 
-	
+	/**
+	 * Main Application Loop
+	 * --------------
+	 * This loop drives the application by managing input, network, physics, and other subsystems.
+	 *
+	 * Key Components:
+	 * - `elapsed_s`: Time in seconds since the last frame. Used for frame-based updates.
+	 * - `frame_slice`: Fixed timestep for physics updates. Ensures stability and determinism.
+	 *
+	 * Steps:
+	 * 1. Calculate `elapsed_s` to determine the time since the last frame.
+	 * 2. Begin frame processing (e.g., resetting state, profiling hooks)
+	 * 3. Handle input events and network updates.
+	 * 4. Perform pre-physics updates (frame-based, using `elapsed_s`).
+	 * 5. Run physics simulation in fixed timesteps (`frame_slice`).
+	 * 6. Perform frame-based updates (animations, AI, etc., using `elapsed_s`).
+	 * 7. Perform final updates (e.g., rendering).
+	 * 8. Finish frame processing after all updates, physics simulations, and rendering have completed.
+	 */
 	int Application::loop()
 	{
 		// start the loop
@@ -272,6 +294,8 @@ namespace Rhea
 		while (!ret) {
 
 			// timings
+
+			// 1. Calculate elapsed time since the last frame (in seconds)
 			current_ticks = psio->getTicks();
 			elapsed_ticks = current_ticks - last_ticks;
 			float elapsed_s = static_cast<float>(elapsed_ticks) / 1000000.0f;
@@ -296,10 +320,11 @@ namespace Rhea
 			//if (physics_steps > 5)
 			//	printf("phys steps: %d ; acc: %f        \r\n", physics_steps, accumulated_time);
 
+			// 2. Begin frame processing (e.g., resetting state, profiling hooks)
 			if (onFrameBegin())
 				ret = true;
 
-			// check for window and input events
+			// 3.1 check for window and input events
 			while (evt = psio->pollInput()) {
 
 				// always handle OS quit
@@ -325,19 +350,31 @@ namespace Rhea
 				if (onInput(&e, nullptr))
 					ret = true;
 			}
+
+			// 3.2 Run network updates (e.g., sync data, process packets)
 			psio->RunNet();
+			
+			// 4. Call pre-physics updates for all services (elapsed time is frame-based)
+			for (auto it = m_services.begin(); it != m_services.end(); ++it) {
+				if (it->second->onPrePhysics(elapsed_s))
+					ret = true;
+			}
 
 			// physics
 
+			// 5. Run fixed-timestep physics simulation
 			uint64_t physics_begin = psio->getTicks();
 
-			if (m_physics) {
+			if (m_physics || m_wold_service) {
 				static int max_physics_steps = 10;
 				physics_steps = std::min(physics_steps, max_physics_steps);
 
 				for (int i = 0; i < physics_steps; i++)
 				{
-					m_physics->step(frame_slice);
+					if (m_physics)
+						m_physics->onPhysicsStep(frame_slice);
+					if (m_wold_service)
+						m_wold_service->onPhysicsStep(frame_slice);
 				}
 			}
 
@@ -346,12 +383,13 @@ namespace Rhea
 			
 			// idle(elapsed_s)
 
-			// on Frame - normally used for physics etc.
+			// 6. Call frame-based updates for all services - physics is done
 			for (auto it = m_services.begin(); it != m_services.end(); ++it) {
 				if (it->second->onFrame(elapsed_s))
 					ret = true;
 			}			
-			// on Frame final - physics etc. are already done
+
+			// 7. Perform any final updates (e.g., rendering, cleanup)
 			for (auto it = m_services.begin(); it != m_services.end(); ++it) {
 				if (it->second->onFrameFinal(elapsed_s))
 					ret = true;
@@ -359,6 +397,7 @@ namespace Rhea
 
 			frames++;
 
+			// 8. Finish the frame, after all updates, physics simulations, and rendering have completed.
 			if (onFrameEnd())
 				ret = true;
 		}
@@ -378,7 +417,7 @@ namespace Rhea
 
 				// get the realm parent unit (or create it if it doesn't exists) 
 				std::string realm_name = req->getRealmName();
-				Unit* realm_unit = m_unit_tree->find(realm_name, false);
+				Component* realm_unit = m_unit_tree->find(realm_name, false);
 				if (!realm_unit) {
 					// add the realm
 					realm_unit = (Unit*)new Realm(req->getRealm(), realm_name);
@@ -387,7 +426,7 @@ namespace Rhea
 
 				// find the unit parent and create the folders if necessary
 				std::string parentpath = realm_name + req->getParentPath();
-				Unit* parent_unit = m_unit_tree->find(parentpath, true);
+				Unit* parent_unit = doCast<Unit>(m_unit_tree->find(parentpath, true));
 				if (!parent_unit)
 					// should not happen
 					return handler(NULL, ReqError::PATH_NOT_FOUND);

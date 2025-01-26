@@ -116,14 +116,14 @@ namespace Rhea
 		// prepare material
 		Item2D::ready();
 
+		RenderComponent* render_component = getComponent<RenderComponent>();
 		//  widgets always need a render component
-		if (!m_render_component) {
-			m_render_component = new RenderComponent("renderer", "//meworla/rendercomponent");
-			addChild(m_render_component);
+		if (!render_component) {
+			render_component = addComponentUnique<RenderComponent>("renderer");			
 		}
 
 		// if we are hidden at the beggining - send the event
-		if (!m_render_component || !m_render_component->isVisible()) {
+		if (!render_component || !render_component->isVisible()) {
 			hide();
 		}
 	}
@@ -151,7 +151,7 @@ namespace Rhea
 
 	void Widget::setPosition(Vector2 position)
 	{
-		if (!m_render_component || !m_render_component->isVisible())
+		if (!getComponent<RenderComponent>() || !getComponent<RenderComponent>()->isVisible())
 			return;
 
 		// set the screen coords
@@ -191,7 +191,7 @@ namespace Rhea
 		// constraints for children
 		Vector2 inner_size = size_constraints;
 
-		if (!m_render_component || !m_render_component->isVisible())
+		if (!getComponent<RenderComponent>() || !getComponent<RenderComponent>()->isVisible())
 			return m_outer_size;
 
 		// apply modifiers
@@ -289,13 +289,13 @@ namespace Rhea
 						m_material->sendEvent("delete", nullptr);
 						delete m_material;
 						m_material = nullptr;
-						if (m_render_component) {
-							Mesh* mesh = m_render_component->getMesh();
+						if (getComponent<RenderComponent>()) {
+							Mesh* mesh = getComponent<RenderComponent>()->getMesh();
 							if (mesh) {
 								mesh->sendEvent("delete", nullptr);
 								removeChild(mesh);
 								delete mesh;
-								m_render_component->setMesh(nullptr);
+								getComponent<RenderComponent>()->setMesh(nullptr);
 							}
 						}
 					}
@@ -304,7 +304,7 @@ namespace Rhea
 					std::unordered_map<std::string, std::string> attr;
 					std::unordered_map<std::string, Variant> val;
 
-					Unit* tex = m_app->getUnitTree()->find(resname);
+					Unit* tex = doCast<Unit>(m_app->getUnitTree()->find(resname));
 					if (tex) {
 
 						// create dummy material
@@ -317,9 +317,9 @@ namespace Rhea
 							// set a default
 							m_values["shader"] = "//rhea/shaders/widget";
 						}
-						Unit* shader_res = m_app->getUnitTree()->find(m_values["shader"]);
+						Shader* shader_res = doCast<Shader>(m_app->getUnitTree()->find(m_values["shader"]));
 						if (shader_res) {
-							m_material->setShaderRes(doCast<Shader>(shader_res));
+							m_material->setShaderRes(shader_res);
 						}
 						else {
 							LOG(LOG_ERROR) << "item2d::ready(): Shader '" << (std::string)m_values["shader"] << "' for " << m_pathname << " not found";
@@ -327,25 +327,25 @@ namespace Rhea
 						}
 						m_material->setTexture(0, static_cast<ImageResource*>(tex));
 
-						if (!m_render_component) {
-							m_render_component = new RenderComponent("renderer", "//meworla/rendercomponent");
-							addChild(m_render_component);
+						RenderComponent* render_component = getComponent<RenderComponent>();
+						if (!render_component) {
+							render_component = addComponentUnique<RenderComponent>("renderer");							
 						}
 
 						// add the mesh
-						if (!m_render_component->getMesh()) {
+						if (!render_component->getMesh()) {
 
 							std::unordered_map<std::string, std::string> attributes;
-							std::unordered_map<std::string, Variant> values;
-							Mesh* mesh = static_cast<Mesh*>(m_app->getUnitTree()->createUnit(m_pathname + "_mesh", "//meworla/mesh", attributes, values));
+							std::unordered_map<std::string, Variant> values;							
+							Mesh* mesh = m_app->getUnitTree()->createUnit<Mesh>(m_pathname + "_mesh", attributes, values);
 							mesh->setMaterial(m_material);
 							addChild(mesh);
-							m_render_component->setMesh(mesh);
+							render_component->setMesh(mesh);
 
 							setMesh();
 						}
 						else
-							m_render_component->getMesh()->setMaterial(m_material);
+							render_component->getMesh()->setMaterial(m_material);
 						sendEvent("update", nullptr);
 					}
 				}
@@ -394,7 +394,7 @@ namespace Rhea
 
 	Widget* Widget::capture(int c_x, int c_y)
 	{
-		if (!m_render_component || !m_render_component->isVisible())
+		if (!getComponent<RenderComponent>() || !getComponent<RenderComponent>()->isVisible())
 			return nullptr;
 
 		if (m_position.x > c_x ||

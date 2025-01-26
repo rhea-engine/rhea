@@ -4,7 +4,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ ${CMAKE_SOURCE_DIR} ${CMAKE_SOU
 
 add_library (RheaPhysics "PhysicsService.cpp" "Bullet/BtPhysicsService.cpp" "Bullet/BtBody.cpp" "Body.cpp" "PhysicsManager.cpp" 
 "Bullet/BtHeightmap.h" "PhysicsHeightmap.h" "Bullet/BtHeightMap.cpp" 
-"PhysicsEvent.h" "Bullet/BtCharacter.h" "Bullet/BtCharacter.cpp" "Bullet/BtGhost.cpp" "PhysicsCharacter.h" "PhysicsCharacter.cpp")
+"PhysicsEvent.h" "Bullet/BtCharacter.h" "Bullet/BtCharacter.cpp" "Bullet/BtGhost.cpp" "PhysicsCharacter.h" "PhysicsCharacter.cpp" "PhysicsComponent.h")
 
 add_library(RheaPhysicsDebug "Bullet/BtDebugDraw.h" "Bullet/BtDebugDraw.cpp")
 

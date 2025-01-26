@@ -2,7 +2,7 @@
 #define POSEIDON_RENDERQUEUE_H
 
 #include <vector>
-#include <Rhea/Fabrics/3D/Item.h>
+#include <Rhea/Fabrics/Core/Item.h>
 
 using Rhea::Item;
 

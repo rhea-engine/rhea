@@ -7,13 +7,13 @@
 #include <Poseidon/Core.h>
 #include <Rhea/Fabrics/Media/ImageResource.h>
 
-#include "../Element.h"
+#include "GraphicsElement.h"
 
 namespace Rhea
 {
 	class Unit;
 
-	class GraphicsTexture : public Element
+	class GraphicsTexture : public GraphicsElement
 	{
 	public:
 		GraphicsTexture(Poseidon::Core* core, ImageResource::TextureType texture_type, int num_textures);
@@ -27,7 +27,7 @@ namespace Rhea
 		// get the Poseidon Texture
 		Poseidon::Texture* get() { return m_img; }
 
-		static Element* createElement(Poseidon::Core* core, Unit *unit);
+		static GraphicsElement* createElement(Poseidon::Core* core, Unit *unit);
 
 	protected:
 		Poseidon::Core* m_core;

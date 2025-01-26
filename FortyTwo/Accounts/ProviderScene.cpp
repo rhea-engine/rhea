@@ -29,7 +29,7 @@ void ProviderScene::GetAccount(AuthInfo& auth_info, std::function<void(User*, in
 {
 	if (!m_user_list && !m_avatarlist_scene.empty()) {
 		// find the user list
-		m_user_list = m_app->getUnitTree()->find(m_avatarlist_scene);
+		m_user_list = doCast<Rhea::Unit>(m_app->getUnitTree()->find(m_avatarlist_scene));
 	}
 	if (m_user_list) {
 		User* user_info = doCast<User>(m_user_list->getChild(auth_info.user_id));
@@ -47,7 +47,7 @@ void ProviderScene::CreateAccount(std::string user_id, std::string name, std::fu
 	// this does not add the user to the storage yet
 	if (!m_user_list && !m_avatarlist_scene.empty()) {
 		// find the user list
-		m_user_list = m_app->getUnitTree()->find(m_avatarlist_scene);
+		m_user_list = doCast<Rhea::Unit>(m_app->getUnitTree()->find(m_avatarlist_scene));
 	}
 	if (m_user_list) {
 		User* user = new User(user_id);
@@ -73,7 +73,7 @@ void ProviderScene::CreateAvatar(User* user, Rhea::Avatar* avatar, std::function
 	// check for uniqueness
 	if (!m_user_list && !m_avatarlist_scene.empty()) {
 		// find the user list
-		m_user_list = m_app->getUnitTree()->find(m_avatarlist_scene);
+		m_user_list = doCast<Rhea::Unit>(m_app->getUnitTree()->find(m_avatarlist_scene));
 		if (!m_user_list) {
 			return handler(2);
 		}
@@ -101,13 +101,13 @@ void ProviderScene::Save(std::function<void(int)> handler)
 			Orion::FileResourceStream* stream = (Orion::FileResourceStream*)req->getStream();
 			stream->SetMode(Psio::Fs::WRITE);		
 
-			m_user_list->children([&, buf](std::string name, Rhea::Unit* unit)->bool {
+			m_user_list->children([&, buf](std::string name, Rhea::Component* unit)->bool {
 				User* user = doCast<User>(unit);
 				if (user) {
 					int size = snprintf(buf->writer(), buf->FreeBufSize(), "[%s]\ntype=\"//meworla/user\"\nname=\"%s\"\n\n",
 						name.c_str(), user->getDisplayName().c_str());
 					buf->Produce(size);
-					user->children([&, name, buf](std::string avatar_name, Rhea::Unit* unit)->bool {
+					user->children([&, name, buf](std::string avatar_name, Rhea::Component* unit)->bool {
 						Rhea::Avatar* avatar = doCast<Rhea::Avatar>(unit);
 						if (avatar) {
 							int size = snprintf(buf->writer(), buf->FreeBufSize(), "[%s/%s]\ntype=\"//meworla/avatar\"\nname=\"%s\"\n",

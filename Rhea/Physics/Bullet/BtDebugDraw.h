@@ -9,7 +9,7 @@
 #include <Poseidon/Mesh.h>
 #include <vector>
 #include <Poseidon/Material.h>
-#include <Rhea/Fabrics/3D/Item.h>
+#include <Rhea/Fabrics/Core/Item.h>
 
 class btDynamicsWorld;
 

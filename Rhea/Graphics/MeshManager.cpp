@@ -1,5 +1,5 @@
 #include "MeshManager.h"
-#include <Rhea/Fabrics/3D/Item.h>
+#include <Rhea/Fabrics/Core/Item.h>
 #include <Rhea/Fabrics/3D/Mesh.h>
 #include <Poseidon/Mesh.h>
 #include <Poseidon/SceneManager.h>
@@ -8,15 +8,16 @@
 #include "GraphicsService.h"
 #include <Rhea/Resources/VertexBuffer.h>
 #include "MaterialManager.h"
+#include "GraphicsComponent.h"
 
 namespace Rhea
 {
-	Element* GraphicsMeshManager::createElement(Poseidon::Core* core, Unit* unit)
+	GraphicsElement* GraphicsMeshManager::createElement(Poseidon::Core* core, Unit* unit)
 	{
 		// check if already created
-		Element* el = unit->getElement("graphics");
+		GraphicsComponent* el = unit->getComponent<GraphicsComponent>();
 		if (el)
-			return el;
+			return el->getElement();
 		
 		// create the element
 		Mesh* mesh_res = doCast<Mesh>(unit);
@@ -41,7 +42,7 @@ namespace Rhea
 				delete el;
 				return nullptr;
 			}
-			if (!material->getElement("graphics")) {
+			if (!material->getComponent<GraphicsComponent>()) {
 				if (!m_service->addElement(material)) {
 					LOG(LOG_ERROR) << "GraphicsItemManager::createElement: could not create element for material";
 					delete el;
@@ -52,13 +53,13 @@ namespace Rhea
 			setMaterial(core, material);
 		}		
 
-		unit->addElement("graphics", mesh_el);
+		unit->addComponentUnique<GraphicsComponent>(mesh_el);		
 
 		// initial initialization
 		onUpdate(nullptr, unit);
 
 		unit->registerEventHandler("update", this, std::bind(&GraphicsMeshManager::onUpdate, this, std::placeholders::_1, std::placeholders::_2));
-		unit->registerEventHandler("delete", this, std::bind(&GraphicsMeshManager::onDelete, this, std::placeholders::_1, std::placeholders::_2));
+		//unit->registerEventHandler("delete", this, std::bind(&GraphicsMeshManager::onDelete, this, std::placeholders::_1, std::placeholders::_2));
 
 		return mesh_el;
 	}
@@ -66,7 +67,7 @@ namespace Rhea
 	bool GraphicsMeshManager::ensureMaterialElement(Material* material)
 	{
 		if (material) {
-			if (!material->getElement("graphics")) {
+			if (!material->getComponent<GraphicsComponent>()) {
 				if (!m_service->addElement(material)) {
 					LOG(LOG_ERROR) << "GraphicsMeshManager::ensureMaterialElement: could not create element for material";
 					return false;
@@ -81,11 +82,14 @@ namespace Rhea
 
 	bool GraphicsMeshManager::onUpdate(Event* ev, Unit* unit)
 	{
-		GraphicsMesh* mesh_el = (GraphicsMesh*)unit->getElement("graphics");
+		GraphicsComponent* g_component = unit->getComponent<GraphicsComponent>();
+		if (!g_component)
+			return false;
+		GraphicsMesh* mesh_el = (GraphicsMesh*)g_component->getElement();
 		Mesh* mesh = doCast<Mesh>(unit);
 		if (!mesh) {
 			LOG(LOG_ERROR) << "GraphicsMeshManager::onUpdate: No mesh.";
-			return nullptr;
+			return false;
 		}
 
 		// add vertex and index buffer
@@ -96,7 +100,9 @@ namespace Rhea
 				std::vector<unsigned long> v_indices = mesh->getIndices(idx);
 				// Check if v_indices is valid and has a multiple of 3 elements
 				if (v_indices.size() && v_indices.size() % 3 == 0) {
-					mesh_el->m_mesh->setMesh(idx, sizeof(unsigned long), v_indices.size() / 3, v_indices.data(), ((GraphicsMaterial*)(mesh->getMaterial(idx)->getElement("graphics")))->m_material);
+					GraphicsComponent* mat_component = mesh->getMaterial(idx)->getComponent<GraphicsComponent>();
+					if (mat_component)
+					  mesh_el->m_mesh->setMesh(idx, sizeof(unsigned long), v_indices.size() / 3, v_indices.data(), ((GraphicsMaterial*)(mat_component->getElement()))->m_material);
 				}
 				else {
 					LOG(LOG_ERROR) << "Invalid index buffer";
@@ -123,14 +129,15 @@ namespace Rhea
 
 			mesh_el->m_mesh->setVertices(sizeof(Hippios::vertex_uv), hippios_vertices.size(), hippios_vertices.data());
 			ensureMaterialElement(mesh->getMaterial());
-			mesh_el->m_mesh->setMesh(0, sizeof(unsigned long), v_indices.size() / 3, v_indices.data(), ((GraphicsMaterial*)(mesh->getMaterial(0)->getElement("graphics")))->m_material);
+			GraphicsComponent* mat_component = mesh->getMaterial(0)->getComponent<GraphicsComponent>();
+			if (mat_component)
+				mesh_el->m_mesh->setMesh(0, sizeof(unsigned long), v_indices.size() / 3, v_indices.data(), ((GraphicsMaterial*)(mat_component->getElement()))->m_material);
 		}
 		return false;
 	}
 
 	bool GraphicsMeshManager::onDelete(Event* ev, Unit* unit)
 	{
-		unit->addElement("graphics", nullptr);
 		return false;
 	}
 }

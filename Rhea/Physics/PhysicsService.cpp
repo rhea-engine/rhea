@@ -1,16 +1,17 @@
 #include "PhysicsService.h"
 #include "Body.h"
 #include "../Controller/BasicController.h"
-#include "Fabrics/3D/Item.h"
+#include "Fabrics/Core/Item.h"
 #include "../Application.h"
 #include "UnitTree.h"
 #include "PhysicsEvent.h"
 #include "PhysicsCharacter.h"
 #include <Psio/Log.h>
+#include <PhysicsComponent.h>
 
 namespace Rhea
 {
-	void PhysicsService::step(float delta)
+	void PhysicsService::onPhysicsStep(float delta)
 	{
 		// send pre event
 		std::unique_ptr<Rhea::PhysicsEvent> ev = std::make_unique<Rhea::PhysicsEvent>("physics_pre", delta, m_terrain);
@@ -57,12 +58,12 @@ namespace Rhea
 	void PhysicsService::initializeItem(Item* item)
 	{
 		PhysicsBody* body = new PhysicsCharacter(item);
-		item->addElement("physics", body);
+		item->addComponentUnique<PhysicsComponent>(body);
 	}
 
 	void PhysicsService::removeItem(Item* item)
 	{
-		item->addElement("physics", nullptr);
+		item->deleteComponent<PhysicsComponent>();
 	}
 	
 	void PhysicsService::onInit()

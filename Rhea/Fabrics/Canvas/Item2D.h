@@ -3,7 +3,7 @@
 
 #include "../Core/Material.h"
 #include "../Core/Transform.h"
-#include "../3D/Item.h"
+#include "../Core/Item.h"
 #include <Math/Vector2.h>
 
 using Math::Vector2;

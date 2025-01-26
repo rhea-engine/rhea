@@ -54,7 +54,7 @@ namespace Rhea
 
 		// find parent
 		Unit* unit_parent;
-		unit_parent = find(path.substr(0, rpos));
+		unit_parent = doCast<Unit>(find(path.substr(0, rpos)));
 		if (!unit_parent)
 			return NULL;
 
@@ -68,6 +68,7 @@ namespace Rhea
 		return unit;
 	}
 
+	// note: Components cannot be targets
 	UnitTree::Binding UnitTree::getBinding(std::string binding_desc, std::string basepath)
 	{
 		Binding binding = { nullptr, std::string("") };
@@ -75,14 +76,14 @@ namespace Rhea
 		size_t pos = binding_desc.find(".");
 		if (pos != std::string::npos && pos) {
 			if (basepath != "" && (binding_desc.size() < 2 || (binding_desc[0] != '/' && binding_desc[1] != '/')))
-				binding.target = find(basepath + "/" + binding_desc.substr(0, pos));
+				binding.target = doCast<Unit>(find(basepath + "/" + binding_desc.substr(0, pos)));
 			else
-				binding.target = find(binding_desc.substr(0, pos));
+				binding.target = doCast<Unit>(find(binding_desc.substr(0, pos)));
 
 			binding.value = binding_desc.substr(pos + 1);
 		}
 		else {
-			binding.target = find(basepath);
+			binding.target = doCast<Unit>(find(basepath));
 			if (!pos)
 				binding.value = binding_desc.substr(pos + 1); // if someone put a "." at start
 			else

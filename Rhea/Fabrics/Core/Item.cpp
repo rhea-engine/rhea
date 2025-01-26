@@ -3,11 +3,13 @@
 #include "Poseidon/Entity.h"
 #include "Poseidon/SceneManager.h"
 #include "UnitTree.h"
-#include "Mesh.h"
+#include "../3D/Mesh.h"
 #include "Graphics/RenderElement.h"
 #include "Physics/Body.h"
+#include "../Network/NetworkComponent.h"
 #include <Psio/Log.h>
 #include <Math/Math.h>
+#include <Physics/PhysicsComponent.h>
 
 namespace Rhea
 {
@@ -54,35 +56,26 @@ namespace Rhea
 	{
 		Unit::ready();
 
+		RenderComponent* render_component  = getComponent<RenderComponent>();
+
 		auto mesh_it = m_values.find("mesh");
 		if (mesh_it != m_values.end()) {
-			if (!m_render_component) {
-				m_render_component = new RenderComponent("renderer", "//meworla/rendercomponent");
-				addChild(m_render_component);
+			if (!render_component) {
+				render_component = addComponentUnique<RenderComponent>("renderer");				
 			}
 			Mesh* mesh = doCast<Mesh>(m_app->getUnitTree()->find(mesh_it->second, m_attributes["basepath"], false));
 			if (mesh) {
 				mesh->ready();
-				m_render_component->setMesh(mesh);
+				render_component->setMesh(mesh);
 			}
 			else {
 				LOG(LOG_ERROR) << "No mesh defined for item";
 			}
 		}	
 
-		if (m_render_component && m_values.find("fabric") != m_values.end())
-			m_render_component->hide();
-	}
-
-	bool Item::getGraphicsItem()
-	{
-		auto it = m_elements.find("graphics");
-		if (it != m_elements.end()) {
-			m_graphics_item = static_cast<GraphicsRenderElement*>(it->second);
-			return true;
-		}
-		return false;
-	}
+		if (render_component && m_values.find("fabric") != m_values.end())
+			render_component->hide();		
+	}	
 
 	Item* Item::instance(std::string name)
 	{
@@ -100,9 +93,10 @@ namespace Rhea
 		new_item->Unit::setup(m_app, attr, values);
 
 		// copy item values and components
-		new_item->m_render_component = new RenderComponent("renderer", "//meworla/rendercomponent");
-		new_item->m_render_component->setMesh(m_render_component->getMesh());
-		new_item->addChild(new_item->m_render_component);
+		if (getComponent<RenderComponent>()) {
+			RenderComponent* render_component = new_item->addComponentUnique<RenderComponent>("renderer");
+			render_component->setMesh(render_component->getMesh());
+		}
 
 		return new_item;
 	}
@@ -134,19 +128,20 @@ namespace Rhea
 		if (m_physics_body)
 			return m_physics_body;
 
-		auto it = m_elements.find("physics");
-		if (it != m_elements.end()) {
-			m_physics_body = static_cast<PhysicsBody*>(it->second);
+		PhysicsComponent* physics = getComponent<PhysicsComponent>();
+		if (physics) {
+			m_physics_body = physics->getBody();
 			return m_physics_body;
 		}
-		return nullptr;
+		else
+			return nullptr;		
 	}
 
 	void Item::setMovement(Math::Vector3 move)
 	{
 		m_movement = move;
-		if (m_net_component)
-			m_net_component->setMovement(move);
+		if (getComponent<Rhea::NetworkComponent>())
+			getComponent<Rhea::NetworkComponent>()->setMovement(move);
 		if (!m_physics_body)
 			if (!getPhysicsBody())
 				return;
@@ -156,8 +151,8 @@ namespace Rhea
 	void Item::setTurn(float turn)
 	{
 		m_turn = turn;
-		if (m_net_component)
-			m_net_component->setTurn(turn);
+		if (getComponent<Rhea::NetworkComponent>())
+			getComponent<Rhea::NetworkComponent>()->setTurn(turn);
 		if (!m_physics_body)
 			if (!getPhysicsBody())
 				return;

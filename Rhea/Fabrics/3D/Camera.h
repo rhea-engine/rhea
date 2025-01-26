@@ -1,7 +1,7 @@
 #ifndef RHEA_CAMERA_H
 #define RHEA_CAMERA_H
 
-#include "Item.h"
+#include "../Core/Item.h"
 
 #include "../Core/Position.h"
 

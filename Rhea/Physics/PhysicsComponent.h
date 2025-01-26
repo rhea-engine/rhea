@@ -8,7 +8,7 @@ namespace Rhea
 {
 	class PhysicsComponent : public Component
 	{
-		MECLASS(PhysicsComponent, Component)
+		RECLASS(PhysicsComponent, Component, "//meworla/physicscomponent")
 	public:
 		PhysicsComponent::PhysicsComponent(std::string name, std::string type_name) :
 			m_body(nullptr),

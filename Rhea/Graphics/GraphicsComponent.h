@@ -8,7 +8,7 @@ namespace Rhea
 {
 	class GraphicsComponent : public Component
 	{
-		MECLASS(GraphicsComponent, Component)
+		RECLASS(GraphicsComponent, Component, "//meworla/graphicscomponent")
 	public:
 		GraphicsComponent::GraphicsComponent(std::string name, std::string type_name) :
 			m_element(nullptr),

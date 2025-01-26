@@ -112,7 +112,7 @@ namespace Rhea
 		Service* phy_mgr = (PhysicsManagerService*)SimpleParser::Type::create("PhysicsManagerService", "//meworla/physicsmanagerservice");
 		phy_mgr->setup(this);
 		m_services["physics_mgr"] = phy_mgr;
-		SimpleParser::Type::registerType<PhysicsComponent>("//meworla/physicscomponent");
+		PhysicsComponent::_register_PhysicsComponent();
 
 		m_fs = new Orion::Orion(static_cast<PlatformService*>(psio)->getEngine(), m_appname);
 		m_unit_tree.reset((UnitTree*)SimpleParser::Type::create("/", "//core/unittree"));

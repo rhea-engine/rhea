@@ -28,7 +28,7 @@ namespace Poseidon
 
 		// register services
 		SimpleParser::Type::registerType<GraphicsService>("//meworla/graphicsservice");
-		SimpleParser::Type::registerType<Rhea::GraphicsComponent>("//meworla/graphicscomponent");
+		Rhea::GraphicsComponent::_register_GraphicsComponent();
 
 		SimpleParser::Type::registerType<Rhea::Controller>("//meworla/icontroller");
 		SimpleParser::Type::registerType<BasicController>("//meworla/controller");

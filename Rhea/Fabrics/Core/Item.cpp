@@ -61,7 +61,7 @@ namespace Rhea
 		auto mesh_it = m_values.find("mesh");
 		if (mesh_it != m_values.end()) {
 			if (!render_component) {
-				render_component = addComponentUnique<RenderComponent>("renderer", "//meworla/rendercomponent");				
+				render_component = addComponentUnique<RenderComponent>("renderer");				
 			}
 			Mesh* mesh = doCast<Mesh>(m_app->getUnitTree()->find(mesh_it->second, m_attributes["basepath"], false));
 			if (mesh) {
@@ -94,7 +94,7 @@ namespace Rhea
 
 		// copy item values and components
 		if (getComponent<RenderComponent>()) {
-			RenderComponent* render_component = new_item->addComponentUnique<RenderComponent>("renderer", "//meworla/rendercomponent");
+			RenderComponent* render_component = new_item->addComponentUnique<RenderComponent>("renderer");
 			render_component->setMesh(render_component->getMesh());
 		}
 

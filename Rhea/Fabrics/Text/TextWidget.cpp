@@ -61,7 +61,7 @@ namespace Rhea
 
 			RenderComponent* render_component = getComponent<RenderComponent>();
 			if (!render_component) {
-				render_component = addComponentUnique<RenderComponent>("renderer", "//meworla/rendercomponent");				
+				render_component = addComponentUnique<RenderComponent>("renderer");				
 			}
 
 			// add the mesh

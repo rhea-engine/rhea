@@ -119,7 +119,7 @@ namespace Rhea
 		RenderComponent* render_component = getComponent<RenderComponent>();
 		//  widgets always need a render component
 		if (!render_component) {
-			render_component = addComponentUnique<RenderComponent>("renderer", "//meworla/rendercomponent");			
+			render_component = addComponentUnique<RenderComponent>("renderer");			
 		}
 
 		// if we are hidden at the beggining - send the event
@@ -329,15 +329,15 @@ namespace Rhea
 
 						RenderComponent* render_component = getComponent<RenderComponent>();
 						if (!render_component) {
-							render_component = addComponentUnique<RenderComponent>("renderer", "//meworla/rendercomponent");							
+							render_component = addComponentUnique<RenderComponent>("renderer");							
 						}
 
 						// add the mesh
 						if (!render_component->getMesh()) {
 
 							std::unordered_map<std::string, std::string> attributes;
-							std::unordered_map<std::string, Variant> values;
-							Mesh* mesh = static_cast<Mesh*>(m_app->getUnitTree()->createUnit(m_pathname + "_mesh", "//meworla/mesh", attributes, values));
+							std::unordered_map<std::string, Variant> values;							
+							Mesh* mesh = m_app->getUnitTree()->createUnit<Mesh>(m_pathname + "_mesh", attributes, values);
 							mesh->setMaterial(m_material);
 							addChild(mesh);
 							render_component->setMesh(mesh);

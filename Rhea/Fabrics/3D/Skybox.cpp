@@ -28,7 +28,7 @@ namespace Rhea
 		// skybox mesh
 		RenderComponent* render_component = getComponent<RenderComponent>();
 		if (!render_component) {
-			render_component = addComponentUnique<RenderComponent>("renderer", "//meworla/rendercomponent");			
+			render_component = addComponentUnique<RenderComponent>("renderer");			
 		}
 		// if no mesh defined, add a cube
 		if (!render_component->getMesh()) {

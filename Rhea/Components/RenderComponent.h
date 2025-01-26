@@ -7,7 +7,7 @@ namespace Rhea
 {
 	class RenderComponent : public Component
 	{
-		MECLASS(RenderComponent, Component)
+		RECLASS(RenderComponent, Component, "//meworla/rendercomponent")
 	public:
 		RenderComponent(std::string name, std::string type_name) :
 			m_hidden(false),

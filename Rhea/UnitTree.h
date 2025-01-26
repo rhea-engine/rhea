@@ -31,6 +31,14 @@ namespace Rhea
 		// create a reource
 		Unit* createUnit(std::string basename, std::string type_name, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
 		
+		template<typename T>
+		T* createUnit(std::string basename, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values) {
+			T* ret = SimpleParser::Type::create<T>(basename);
+			if (doCast<Unit>(ret))
+				ret->setup(m_app, attributes, values);
+			return ret;
+		}
+
 		// create resource without values
 		Unit* createUnit(std::string basename, std::string type_name);
 

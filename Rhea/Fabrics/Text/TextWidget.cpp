@@ -68,8 +68,8 @@ namespace Rhea
 			if (!render_component->getMesh()) {
 
 				std::unordered_map<std::string, std::string> attributes;
-				std::unordered_map<std::string, Variant> values;
-				Mesh* mesh = static_cast<Mesh*>(m_app->getUnitTree()->createUnit(m_pathname + "_mesh", "//meworla/mesh", attributes, values));
+				std::unordered_map<std::string, Variant> values;				
+				Mesh* mesh = m_app->getUnitTree()->createUnit<Mesh>(m_pathname + "_mesh", attributes, values);
 				mesh->setMaterial(font_material);
 				// text is dynamic
 				mesh->setDynamic(true);

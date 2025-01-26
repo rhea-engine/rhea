@@ -87,6 +87,15 @@ namespace SimpleParser
 		// creation
 		static Variant* create(std::string basename, std::string type_name);
 
+		template<typename T>
+		static T* create(std::string basename) {
+			Type* t = T::staticType();
+			if (t)
+				return (T*)(t->m_factory(basename, t->getName()));
+			else
+				return nullptr;
+		}
+
 		static Type* get(BaseType t);
 		static Type* get(std::string& type_name);
 

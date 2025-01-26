@@ -342,7 +342,7 @@ namespace Rhea
 		app->getResourceLoader()->registerLoader<CssLoader>("text/css");
 		SimpleParser::Type::registerType<GuiService>("//meworla/gui/service"); 
 		
-		GuiService* service = (GuiService*)SimpleParser::Type::create("GuiService", "//meworla/gui/service");
+		GuiService* service = SimpleParser::Type::create<GuiService>("GuiService");
 		service->setup(app);
 		app->registerService("gui", service);
 	}

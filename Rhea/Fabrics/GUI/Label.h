@@ -32,6 +32,9 @@ namespace Rhea
 		// reset the textWidget
 		void onSetPosition();
 
+		// styling
+		const std::string getSelector() { return "Label"; }
+
 		// parse template
 		void parseText(const std::string text);
 		std::string getText();

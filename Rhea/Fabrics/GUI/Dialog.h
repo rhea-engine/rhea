@@ -23,6 +23,9 @@ namespace Rhea
 
 		void onSetPosition();
 
+		// styling
+		const std::string getSelector() { return "Dialog"; }
+
 	protected:
 		
 	};

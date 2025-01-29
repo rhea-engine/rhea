@@ -23,6 +23,9 @@ namespace Rhea
 		// input handling
 		bool onMouseClick(Event* ev, Unit* unit);
 
+		// styling
+		const std::string getSelector() { return "ListItem"; }
+
 	protected:
 		Label* m_label;
 	};

@@ -19,6 +19,9 @@ namespace Rhea {
 		// recompute widget size
 		void onSetPosition();
 
+		// styling
+		const std::string getSelector() { return "Box"; }
+
 	protected:
 
 	};

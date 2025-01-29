@@ -24,6 +24,9 @@ namespace Rhea {
 
 		void innerGetMinSize(Vector2 size_constraints, Vector2& min_size);
 
+		// styling
+		const std::string getSelector() { return "Row"; }
+
 	protected:
 		float m_children_size;
 	};

@@ -29,6 +29,9 @@ namespace Rhea
 		// sizing
 		void onSetPosition();
 
+		// styling
+		const std::string getSelector() { return "Button"; }
+
 	protected:
 		Label* m_label;
 	};

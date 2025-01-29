@@ -70,6 +70,7 @@ namespace Rhea
 		// style
 		void setStyle(SimpleParser::CssParser::PropertyMap& properties);
 		std::vector<Variant>* getStyle(std::string name);
+		virtual const std::string getSelector() { return "Widget"; }
 
 		// Widget handling functions
 

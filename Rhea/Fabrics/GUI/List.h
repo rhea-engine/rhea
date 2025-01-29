@@ -39,6 +39,9 @@ namespace Rhea
 		// recalculate my size
 		Vector2 innerSize(Vector2 size_constraints);
 
+		// styling
+		const std::string getSelector() { return "List"; }
+
 	protected:
 		UnitTree::Binding m_data_binding;
 		std::vector<ListWidgetItem*> m_list_items; // list item

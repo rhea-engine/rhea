@@ -251,7 +251,7 @@ void Ceto::setScene(bool mark_preferrences)
 				engine->setValue("origin", m_home_scene);
 
 			// hide GUI background
-			std::unordered_map<Rhea::StylePropertyID, std::string> properties;
+			std::unordered_map<Rhea::StylePropertyID, SimpleParser::Variant> properties;
 			properties[Rhea::StylePropertyID::kBackgroundImage] =  "none" ;
 			Rhea::GUIController* w = doCast<Rhea::GUIController>(m_unit_tree->find("//local/cetogui/gui"));
 			if (w) {

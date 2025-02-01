@@ -98,11 +98,11 @@ namespace Rhea
 		Widget::ApplyStyles();
 
 		if (m_label_item) {
-			std::string* font_prop = getStyle(StylePropertyID::kFont);
+			SimpleParser::Variant* font_prop = getStyle(StylePropertyID::kFont);
 			if (font_prop) {
 				Font* font = doCast<Font>(m_app->getUnitTree()->find(*font_prop));
 				if (!font)
-					LOG(LOG_ERROR) << "font " << *font_prop << " not found";
+					LOG(LOG_ERROR) << "font " << (std::string)(*font_prop) << " not found";
 				else
 					m_label_item->setFont(font);
 			}

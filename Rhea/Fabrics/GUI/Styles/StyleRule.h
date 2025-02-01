@@ -13,7 +13,7 @@ namespace Rhea
 		// optionally prefixed with a dot (e.g., ".button").
 		std::string selector;
 		// A mapping of style properties (e.g., "background-color") to their values.
-		std::unordered_map<StylePropertyID, std::string> properties;
+		std::unordered_map<StylePropertyID, SimpleParser::Variant> properties;
 	};
 }
 

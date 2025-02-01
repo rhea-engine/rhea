@@ -8,6 +8,7 @@
 //#include "../Widget.h"
 //#include "StyleSheet.h"
 #include "Property.h"
+#include <Components/SimpleParser/Variant.h>
 
 namespace Rhea
 {
@@ -19,11 +20,11 @@ namespace Rhea
 	public:
 		void AppendStylesheet(StyleSheet* sheet);
 
-		std::unordered_map<StylePropertyID, std::string> GetStylesForWidget(Widget* widget);
+		std::unordered_map<StylePropertyID, SimpleParser::Variant> GetStylesForWidget(Widget* widget);
 
 	protected:
 		// Holds pointers to appended style sheets.
-		std::vector<StyleSheet*> styleSheets;
+		std::vector<StyleSheet*> m_stylesheets;
 	};
 }
 

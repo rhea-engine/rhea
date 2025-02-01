@@ -48,11 +48,11 @@ namespace Rhea
 
 		else {
 			if (doCast<Widget>(m_parent)) {
-				std::string* font_prop = ((Widget*)m_parent)->getStyle(CssProperty::FindCssProperty("font")->id);
+				SimpleParser::Variant* font_prop = ((Widget*)m_parent)->getStyle(CssProperty::FindCssProperty("font")->id);
 				if (font_prop) {
 					Font* font = doCast<Font>(m_app->getUnitTree()->find(*font_prop));
 					if (!m_font)
-						LOG(LOG_ERROR) << "font " << *font_prop << " not found";
+						LOG(LOG_ERROR) << "font " << (std::string)(*font_prop) << " not found";
 					else
 						setFont(font);
 				}				

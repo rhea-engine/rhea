@@ -5,16 +5,16 @@ namespace Rhea
 {
 	void StyleEngine::AppendStylesheet(StyleSheet* sheet)
 	{
-        styleSheets.push_back(sheet);
+        m_stylesheets.push_back(sheet);
 	}
 
     // Computes and returns the style properties for a given widget.
-    std::unordered_map<StylePropertyID, std::string> StyleEngine::GetStylesForWidget(Widget* widget)
+    std::unordered_map<StylePropertyID, SimpleParser::Variant> StyleEngine::GetStylesForWidget(Widget* widget)
     {
-        std::unordered_map<StylePropertyID, std::string> computedStyles;
+        std::unordered_map<StylePropertyID, SimpleParser::Variant> computedStyles;
 
         // Iterate over all style sheets.
-        for (auto sheet : styleSheets) {
+        for (auto sheet : m_stylesheets) {
             for (const auto& rule : sheet->getRules()) {
                 // For this example, we assume the selector is a class name.
                 // If the selector starts with a '.', we remove it.

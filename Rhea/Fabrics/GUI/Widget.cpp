@@ -318,10 +318,10 @@ namespace Rhea
 		AppendStyles(m_properties);
 
 		// Get computed style properties from the style engine.
-		auto computedStyles = style_engine->GetStylesForWidget(this);
+		auto computed_styles = style_engine->GetStylesForWidget(this);
 
 		// Apply these computed styles.
-		AppendStyles(computedStyles);
+		AppendStyles(computed_styles);
 
 		ApplyStyles();
 
@@ -333,7 +333,7 @@ namespace Rhea
 			});
 	}
 
-	void Widget::AppendStyles(std::unordered_map<StylePropertyID, std::string>& styles)
+	void Widget::AppendStyles(std::unordered_map<StylePropertyID, SimpleParser::Variant>& styles)
 	{
 		// For simplicity, we just merge (or override) properties.
 		for (const auto& style : styles) {
@@ -419,14 +419,14 @@ namespace Rhea
 		}
 	}
 
-	void Widget::setStyles(std::unordered_map<StylePropertyID, std::string>& styles)
+	void Widget::setStyles(std::unordered_map<StylePropertyID, SimpleParser::Variant>& styles)
 	{
 		for (const auto& style : styles) {
 			m_properties[style.first] = style.second;
 		}
 	}
 
-	std::string* Widget::getStyle(StylePropertyID style)
+	SimpleParser::Variant* Widget::getStyle(StylePropertyID style)
 	{
 		auto it = m_computed_properties.find(style);
 		if (it != m_computed_properties.end())

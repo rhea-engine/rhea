@@ -1,5 +1,6 @@
 #include "TextWidget.h"
 #include "TextWidget.h"
+#include "TextWidget.h"
 #include "Application.h"
 #include "Fabrics/Media/ImageResource.h"
 #include "Resources/TextResource.h"
@@ -37,23 +38,31 @@ namespace Rhea
 		// load and add font and text
 		if (m_values.find("font") != m_values.end())
 		{
-			m_font = doCast<Font>(m_app->getUnitTree()->find(m_values["font"], m_attributes["basepath"], false));
-			if (!m_font)
+			Font* font = doCast<Font>(m_app->getUnitTree()->find(m_values["font"], m_attributes["basepath"], false));
+			if (!font)
 				LOG(LOG_ERROR) << "TextWidget: Font '" << (std::string)m_values["font"] << "' not found";
+			else
+				setFont(font);
 		}
+
+
 		else {
 			if (doCast<Widget>(m_parent)) {
-				std::vector<Variant>* font_prop = ((Widget*)m_parent)->getStyle("font");
+				std::string* font_prop = ((Widget*)m_parent)->getStyle(CssProperty::FindCssProperty("font")->id);
 				if (font_prop) {
-					m_font = doCast<Font>(m_app->getUnitTree()->find((*font_prop)[0]));
+					Font* font = doCast<Font>(m_app->getUnitTree()->find(*font_prop));
 					if (!m_font)
-						LOG(LOG_ERROR) << "font " << (std::string)(*font_prop)[0] << " not found";
-				}
-				else {
-					DLOG(LOG_DEBUG) << "font not set in parents";
-				}
+						LOG(LOG_ERROR) << "font " << *font_prop << " not found";
+					else
+						setFont(font);
+				}				
 			}
-		}
+		}		
+	}
+
+	void TextWidget::setFont(Font* font)
+	{
+		m_font = font;
 
 		if (m_font) {
 			m_font->ready();
@@ -61,24 +70,23 @@ namespace Rhea
 
 			RenderComponent* render_component = getComponent<RenderComponent>();
 			if (!render_component) {
-				render_component = addComponentUnique<RenderComponent>("renderer");				
+				render_component = addComponentUnique<RenderComponent>("renderer");
 			}
 
 			// add the mesh
 			if (!render_component->getMesh()) {
 
 				std::unordered_map<std::string, std::string> attributes;
-				std::unordered_map<std::string, Variant> values;				
+				std::unordered_map<std::string, Variant> values;
 				Mesh* mesh = m_app->getUnitTree()->createUnit<Mesh>(m_pathname + "_mesh", attributes, values);
 				mesh->setMaterial(font_material);
 				// text is dynamic
 				mesh->setDynamic(true);
 				addChild(mesh);
-				render_component->setMesh(mesh);				
+				render_component->setMesh(mesh);
 
 				setMesh();
 			}
-
 		}
 	}
 	

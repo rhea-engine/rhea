@@ -12,14 +12,14 @@ add_library (RheaFabrics "Character/Character.cpp" "Character/KinematicCharacter
 "3D/Skybox.h" "3D/Skybox.cpp" 
 "GUI/Button.h" "GUI/Button.cpp" "GUI/Dialog.h" "GUI/Label.cpp" "GUI/WidgetEvent.h" 
 "GUI/GUIController.h" "GUI/GUIController.cpp" "GUI/Widget.h" "GUI/Widget.cpp" "GUI/GuiService.cpp" "GUI/Label.h"
-"GUI/Dialog.cpp" "GUI/List.h" "GUI/List.cpp" "GUI/ListItem.h" "GUI/ListItem.cpp" "GUI/StyleSheet.h" "GUI/StyleSheet.cpp" "GUI/CssLoader.h" "GUI/CssLoader.cpp" 
+"GUI/Dialog.cpp" "GUI/List.h" "GUI/List.cpp" "GUI/ListItem.h" "GUI/ListItem.cpp" "GUI/Styles/StyleSheet.h" "GUI/Styles/StyleSheet.cpp" "GUI/CssLoader.h" "GUI/CssLoader.cpp" 
 "GUI/TextInput.h" "GUI/TextInput.cpp" "GUI/Events/SubmitEvent.h" "GUI/Box.h" "GUI/Box.cpp"
 "GUI/Modifier/Modifier.h"  "GUI/Modifier/Size.h" "GUI/Modifier/Offset.h" "GUI/Modifier/FillWidth.h" 
 "GUI/Modifier/FillSize.h" "GUI/Modifier/Padding.h" "GUI/Column.h" "GUI/Column.cpp" "GUI/Row.h" "GUI/Row.cpp"
 "GUI/Modifier/SizeWidth.h" "GUI/Modifier/SizeHeight.h" 
 "GUI/Layout/Alignment.h" "Core/WorldService.h" "Core/WorldService.cpp" 
 "3D/Light.h" "3D/Light.cpp" "Core/Lighting.cpp" "3D/DirectionalLight.h" "3D/DirectionalLight.cpp" "3D/PointLight.h" "3D/PointLight.cpp" 
-"Core/Lighting.h" "Core/Lighting.cpp" "3D/SpotLight.h" "3D/SpotLight.cpp")
+"Core/Lighting.h" "Core/Lighting.cpp" "3D/SpotLight.h" "3D/SpotLight.cpp" "GUI/Styles/StyleEngine.cpp" "GUI/Styles/StyleRule.h" "GUI/Styles/Property.h" "GUI/Styles/Property.cpp")
 
 add_subdirectory (Network)
 add_subdirectory(Animation)

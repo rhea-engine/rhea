@@ -8,11 +8,8 @@ namespace Rhea
 	class TextWidget;
 
 	class Label : public Widget {
-		MECLASS(Label, Widget)
+		RECLASS(Label, Widget, "//meworla/gui/label")
 	public:
-		Label(std::string path_name) :
-			Label(path_name, "//meworla/gui/label")
-		{}
 		Label(std::string path_name, std::string type_name) :
 			Widget(path_name, type_name),			
 			m_label_item(nullptr),
@@ -34,6 +31,7 @@ namespace Rhea
 
 		// styling
 		const std::string getSelector() { return "Label"; }
+		void ApplyStyles() override;
 
 		// parse template
 		void parseText(const std::string text);

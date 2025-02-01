@@ -18,11 +18,11 @@ namespace Rhea
 		return refs;
 	}
 
-	void StyleSheet::applyStyle(Widget* w)
+	/*void StyleSheet::applyStyle(Widget* w)
 	{
 		for (auto it = m_entries.begin(); it != m_entries.end(); ++it) {
 			
-			std::string type_name = (*it).selector.name;
+			std::string type_name = (*it).selector;
 			std::transform(type_name.begin(), type_name.end(), type_name.begin(), ::tolower);
 			SimpleParser::Type* type = SimpleParser::Type::get(std::string("//meworla/gui/" + type_name));
 			if (type && w->getType()==type) {			
@@ -30,18 +30,26 @@ namespace Rhea
 			}
 		}
 	}
+	*/
 
 	void StyleSheet::setStyle(std::vector<SimpleParser::CssParser::Entry>& entries)
 	{
-		m_entries = entries;
 		int i = 0;
-		for (auto it = m_entries.begin(); it != m_entries.end(); ++it)
+		for (auto it = entries.begin(); it != entries.end(); ++it) {
+			StyleRule rule;
+			rule.selector = (*it).selector.name;
 			for (auto p_it = (*it).properties.begin(); p_it != (*it).properties.end(); ++p_it)
 			{
 				if (!p_it->first.compare("background-image")) {
 					refs.push_back({ "image_" + std::to_string(i++), "image/png", p_it->second[0] });
+					const CssProperty* prop = CssProperty::FindCssProperty("background-image");
+					if (prop)
+						rule.properties[prop->id] = p_it->second[0];
 				}
 			}
+			if (rule.properties.size())
+				m_entries.push_back(rule);
+		}
 	}
 }
 

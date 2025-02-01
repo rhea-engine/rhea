@@ -7,6 +7,8 @@
 #include <SimpleParser/CssParser.h>
 #include "Modifier/Modifier.h"
 #include "Layout/Alignment.h"
+#include "Styles/Property.h"
+#include "Styles/StyleEngine.h"
 
 using Math::Vector2;
 
@@ -68,8 +70,12 @@ namespace Rhea
 		void setBasePosition(Vector2 pos) { m_base_position = pos; }
 
 		// style
-		void setStyle(SimpleParser::CssParser::PropertyMap& properties);
-		std::vector<Variant>* getStyle(std::string name);
+		void RecalculateStyle(StyleEngine* style_engine);		
+		void AppendStyles(std::unordered_map<StylePropertyID, std::string>& styles);
+		virtual void ApplyStyles();
+		// set widgets own style(s)
+		void setStyles(std::unordered_map<StylePropertyID, std::string>& styles);
+		std::string* getStyle(StylePropertyID style);
 		virtual const std::string getSelector() { return "Widget"; }
 
 		// Widget handling functions
@@ -140,7 +146,9 @@ namespace Rhea
 		void* m_user_ptr;
 
 		// my styles
-		SimpleParser::CssParser::PropertyMap m_properties;
+		std::unordered_map<StylePropertyID, std::string> m_properties;
+		// Holds the computed style properties for this widget.
+		std::unordered_map<StylePropertyID, std::string> m_computed_properties;
 
 		// rtl layout
 		bool m_is_rtl;

@@ -1,4 +1,5 @@
 #include "GUIController.h"
+#include "GUIController.h"
 #include "Application.h"
 #include "UnitTree.h"
 #include "Fabrics/Core/Scene.h"
@@ -13,7 +14,7 @@
 #include "Dialog.h"
 #include "List.h"
 #include "ListItem.h"
-#include "StyleSheet.h"
+#include "Styles/StyleSheet.h"
 #include "CssLoader.h"
 #include <Graphics/GraphicsService.h>
 #include <Psio/Log.h>
@@ -50,31 +51,23 @@ namespace Rhea
 	{
 		// prepare all children
 		Widget::ready();
-
-		// apply Style
-		if (m_values["stylesheet"] != Variant()) {
-			StyleSheet* css = (StyleSheet*)m_app->getUnitTree()->find(m_values["stylesheet"], m_attributes["basepath"], false);
-			if (css) {
-				traverse([&, css](std::string name, Rhea::Component* unit)->bool {
-					Widget* w = doCast<Widget>(unit);
-					if (w) {
-						css->applyStyle(w);
-						return true;
-					}
-					else {
-						return false;
-					}
-					});
-			}
-			else {
-				LOG(LOG_ERROR) << "No stylesheet defined for GUI Controller";
-			}
-		}
-
+		
 		// set current viewport size
 		GraphicsService* gsrv = (GraphicsService*)m_app->getService("graphics");
 		m_viewport_width = gsrv->getViewportWidth();
 		m_viewport_height = gsrv->getViewportHeight();
+
+		m_style_engine = std::make_unique<StyleEngine>();
+		if (m_values["stylesheet"] != Variant()) {
+			StyleSheet* css = (StyleSheet*)m_app->getUnitTree()->find(m_values["stylesheet"], m_attributes["basepath"], false);
+			m_style_engine->AppendStylesheet(css);
+		}
+		else {
+			LOG(LOG_ERROR) << "No stylesheet defined for GUI Controller";
+		}
+
+		// apply Style
+		UpdateStyle();
 
 		// all children are ready - set toplevel mark
 		for (auto it = m_children.begin(); it != m_children.end(); ++it)
@@ -316,6 +309,11 @@ namespace Rhea
 		return false;
 	}
 
+	void GUIController::UpdateStyle()
+	{
+		RecalculateStyle(m_style_engine.get());
+	}
+
 	void GUIController::Register(Application* app)
 	{
 		// register widget types
@@ -338,7 +336,6 @@ namespace Rhea
 		SimpleParser::Type::registerType<GUIController>("//meworla/gui");
 		
 		// register helpers
-		SimpleParser::Type::registerType<StyleSheet>("//meworla/gui/stylesheet");
 		app->getResourceLoader()->registerLoader<CssLoader>("text/css");
 		SimpleParser::Type::registerType<GuiService>("//meworla/gui/service"); 
 		

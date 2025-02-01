@@ -1,3 +1,7 @@
+#include "Widget.h"
+#include "Widget.h"
+#include "Widget.h"
+#include "Widget.h"
 #include <cassert>
 #include <Psio/Log.h>
 
@@ -19,6 +23,7 @@
 #include "Modifier/SizeHeight.h"
 #include "Modifier/Padding.h"
 #include "Modifier/FillWidth.h"
+#include "Styles/Property.h"
 
 namespace Rhea
 {
@@ -100,9 +105,9 @@ namespace Rhea
 
 		// set styles based on values
 		if (m_values.find("font") != m_values.end())
-			m_properties["font"].push_back({ m_values["font"] });
+			m_properties[StylePropertyID::kFont] = m_values["font"];
 		if (m_values.find("texture") != m_values.end())
-			m_properties["background-image"].push_back({ m_values["texture"] });
+			m_properties[StylePropertyID::kBackgroundImage] = m_values["texture"];
 
 		std::unordered_map<std::string, std::string> attr;
 		std::unordered_map<std::string, Variant> val;
@@ -277,12 +282,70 @@ namespace Rhea
 		}
 	}
 
-	void Widget::setStyle(SimpleParser::CssParser::PropertyMap& properties)
+	void Widget::RecalculateStyle(StyleEngine* style_engine)
 	{
-		for (auto it = properties.begin(); it != properties.end(); ++it) {
-			m_properties[it->first] = it->second;
-			if (it->first == "background-image") {
-				std::string resname = it->second[0];
+		// Clear any previously computed styles.
+		m_computed_properties.clear();
+
+		// Inherit style properties from the parent widget if they are inherited
+		if (doCast<Widget>(m_parent)) {
+			for (const auto& prop : kCssProperties) {
+				if (prop.inherited) {
+					// Look for the property in the parent's computed styles.
+					auto it = doCast<Widget>(m_parent)->m_computed_properties.find(prop.id);
+					if (it != doCast<Widget>(m_parent)->m_computed_properties.end()) {
+						// Copy the parent's value.
+						m_computed_properties[prop.id] = it->second;
+					}
+					else {
+						// If the parent doesn't define it, fallback to the default value.
+						m_computed_properties[prop.id] = CssProperty::GetDefaultValue(prop.id);
+					}
+				}
+			}
+		}
+		else
+		{
+			// For the root widget, initialize inherited properties to their defaults.
+			for (const auto& prop : kCssProperties) {
+				if (prop.inherited) {
+					m_computed_properties[prop.id] = CssProperty::GetDefaultValue(prop.id);
+				}
+			}
+		}
+
+		// overwrite with my own property
+		AppendStyles(m_properties);
+
+		// Get computed style properties from the style engine.
+		auto computedStyles = style_engine->GetStylesForWidget(this);
+
+		// Apply these computed styles.
+		AppendStyles(computedStyles);
+
+		ApplyStyles();
+
+		// Recursively recalculate style for all child widgets.
+		children([&](std::string name, Rhea::Component* child)->bool {
+			if (doCast<Widget>(child))
+				doCast<Widget>(child)->RecalculateStyle(style_engine);
+			return true;
+			});
+	}
+
+	void Widget::AppendStyles(std::unordered_map<StylePropertyID, std::string>& styles)
+	{
+		// For simplicity, we just merge (or override) properties.
+		for (const auto& style : styles) {
+			m_computed_properties[style.first] = style.second;
+		}
+	}
+
+	void Widget::ApplyStyles()
+	{
+		for (auto it = m_computed_properties.begin(); it != m_computed_properties.end(); ++it) {
+			if (it->first == StylePropertyID::kBackgroundImage) {
+				std::string resname = it->second;
 				if (!resname.compare("none")) {
 					if (m_material) {
 						// remove background image
@@ -356,14 +419,18 @@ namespace Rhea
 		}
 	}
 
-	std::vector<Variant>* Widget::getStyle(std::string name)
+	void Widget::setStyles(std::unordered_map<StylePropertyID, std::string>& styles)
 	{
-		assert(m_parent);
-		auto it = m_properties.find(name);
-		if (it != m_properties.end())
+		for (const auto& style : styles) {
+			m_properties[style.first] = style.second;
+		}
+	}
+
+	std::string* Widget::getStyle(StylePropertyID style)
+	{
+		auto it = m_computed_properties.find(style);
+		if (it != m_computed_properties.end())
 			return &it->second;
-		else if (doCast<Widget>(m_parent))
-			return ((Widget*)m_parent)->getStyle(name);
 		else
 			return nullptr;
 	}

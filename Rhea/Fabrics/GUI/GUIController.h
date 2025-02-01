@@ -2,17 +2,15 @@
 #define RHEA_GUI_CONTROLLER_H
 
 #include "Widget.h"
+#include "Styles/StyleEngine.h"
 
 namespace Rhea
 {
 
 	class GUIController : public Widget
 	{
-		MECLASS(GUIController, Widget)
+		RECLASS(GUIController, Widget, "//meworla/mwgui/controller")
 	public:
-		GUIController(std::string name) :
-			GUIController(name, "//meworla/mwgui/controller")
-		{}
 		GUIController(std::string name, std::string type_name) :	
 			m_widget(nullptr),
 			m_target(nullptr),
@@ -49,6 +47,9 @@ namespace Rhea
 		// redraw requested
 		bool onGuiUpdate(Event* ev, Unit* unit);
 
+		// update style of elements
+		void UpdateStyle();
+
 		// gui fabric function
 		static void Register(Application* app);
 
@@ -67,6 +68,8 @@ namespace Rhea
 		// viewport size
 		unsigned int m_viewport_width;
 		unsigned int m_viewport_height;
+
+		std::unique_ptr<StyleEngine> m_style_engine;
 	};
 }
 

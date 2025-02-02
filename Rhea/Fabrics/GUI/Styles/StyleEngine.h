@@ -15,16 +15,21 @@ namespace Rhea
 	class StyleSheet;
 	class Widget;
 
+	typedef std::unordered_map<StylePropertyID, SimpleParser::Variant> CssRuleSet;
+
 	class StyleEngine
 	{
 	public:
 		void AppendStylesheet(StyleSheet* sheet);
 
-		std::unordered_map<StylePropertyID, SimpleParser::Variant> GetStylesForWidget(Widget* widget);
+		CssRuleSet GetStylesForWidget(Widget* widget);
 
 	protected:
 		// Holds pointers to appended style sheets.
 		std::vector<StyleSheet*> m_stylesheets;
+		std::unordered_map<std::string, CssRuleSet> m_class_rules;
+		std::unordered_map<std::string, CssRuleSet> m_type_rules;
+		std::unordered_map<std::string, CssRuleSet> m_name_rules;
 	};
 }
 

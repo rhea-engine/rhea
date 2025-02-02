@@ -21,11 +21,15 @@ namespace Rhea
 		val["w"] = m_base_size.x;
 		val["h"] = m_base_size.y;
 		val["text"] = getValue("text", "");
-		if (m_values.find("font") != m_values.end())
+		if (m_values.find("font") != m_values.end()) {
 			val["font"] = getValue("font");
+			m_properties[StylePropertyID::kFont] = getValue("font");
+		}
 		val["word_wrap"] = getValue("word_wrap", true);
 		val["multiline"] = getValue("multiline", true);
 		m_clip = getValue("clip", m_clip);
+
+		m_computed_properties = m_properties;
 
 		// DEBUG
 		// always handle input 

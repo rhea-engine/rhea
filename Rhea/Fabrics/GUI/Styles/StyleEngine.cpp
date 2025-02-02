@@ -6,31 +6,59 @@ namespace Rhea
 	void StyleEngine::AppendStylesheet(StyleSheet* sheet)
 	{
         m_stylesheets.push_back(sheet);
-	}
+        
+        // fill rules from this sheet
 
-    // Computes and returns the style properties for a given widget.
-    std::unordered_map<StylePropertyID, SimpleParser::Variant> StyleEngine::GetStylesForWidget(Widget* widget)
-    {
-        std::unordered_map<StylePropertyID, SimpleParser::Variant> computedStyles;
+        for (const auto& rule : sheet->getRules()) {
+            // TODO Add selector based on full sequence 
+            // e.g with: for (const auto& selector : rule.selector) 
+            if (rule.selector.size() > 0 && rule.selector[0].sequence.size() > 0) {
+                SimpleParser::CssParser::SimpleSelector simple_sel = rule.selector[0].sequence[0];
 
-        // Iterate over all style sheets.
-        for (auto sheet : m_stylesheets) {
-            for (const auto& rule : sheet->getRules()) {
-                // For this example, we assume the selector is a class name.
-                // If the selector starts with a '.', we remove it.
-                std::string ruleClass = rule.selector;
-                if (!ruleClass.empty() && ruleClass[0] == '.')
-                    ruleClass = ruleClass.substr(1);
-
-                // Check if the widget's classname matches the rule's selector.
-                if (ruleClass == widget->getSelector()) {
-                    // Merge style properties (later rules override earlier ones).
-                    for (const auto& prop : rule.properties) {
-                        computedStyles[prop.first] = prop.second;
-                    }
+                if (simple_sel.type == SimpleParser::CssParser::SimpleSelectorType::kClass) {
+                    m_class_rules[simple_sel.name] = rule.properties;
+                }
+                else if (simple_sel.type == SimpleParser::CssParser::SimpleSelectorType::kId) {
+                    m_name_rules[simple_sel.name] = rule.properties;
+                }
+                else if (simple_sel.type == SimpleParser::CssParser::SimpleSelectorType::kType) {
+                    m_type_rules[simple_sel.name] = rule.properties;
                 }
             }
         }
-        return computedStyles;
+	}
+
+    // Computes and returns the style properties for a given widget.
+    CssRuleSet StyleEngine::GetStylesForWidget(Widget* widget)
+    {
+        CssRuleSet computed_styles;
+
+        auto type_it = m_type_rules.find(widget->getSelector());
+        if (type_it != m_type_rules.end()) {
+            // Merge style properties (later rules override earlier ones).
+            for (const auto& prop : type_it->second) {
+                computed_styles[prop.first] = prop.second;
+            }
+        }
+
+        // get rules for class names
+        auto class_it = m_class_rules.find(widget->getValue("cssclass"));
+        if (class_it != m_class_rules.end()) {
+            // Merge style properties (later rules override earlier ones).
+            for (const auto& prop : class_it->second) {
+                computed_styles[prop.first] = prop.second;
+            }
+        }
+
+        // get rules for element names
+        auto name_it = m_name_rules.find(widget->getPathName());
+        if (name_it != m_name_rules.end()) {
+            // Merge style properties (later rules override earlier ones).
+            for (const auto& prop : name_it->second) {
+                computed_styles[prop.first] = prop.second;
+            }
+        }
+
+        return computed_styles;
     }
 }

@@ -11,6 +11,9 @@ namespace SimpleParser
 		TOKEN_NUMBER,
 		TOKEN_IDENTIFIER,
 		TOKEN_EQUEAL,
+		TOKEN_GREATER,
+		TOKEN_LESS,
+		TOKEN_PLUS,
 		TOKEN_LEFT_PARENTHESIS,
 		TOKEN_RIGHT_PARENTHESIS,
 		TOKEN_LEFT_BRACKET,
@@ -18,9 +21,13 @@ namespace SimpleParser
 		TOKEN_LEFT_CURLYBRACKET,
 		TOKEN_RIGHT_CURLYBRACKET,
 		TOKEN_NEWLINE,
+		TOKEN_DOT,
 		TOKEN_COMMA,
 		TOKEN_COLON,
-		TOKEN_SEMICOLON
+		TOKEN_SEMICOLON,
+		TOKEN_HASH,
+		TOKEN_TILDE,
+		TOKEN_WHITESPACE
 	};
 
 	struct Token
@@ -56,12 +63,13 @@ namespace SimpleParser
 			m_ignore_newline(ignore_newline)
 		{}
 		// get the next token
-		Error nextToken(char* buf, size_t& reader, size_t buflen, int &line, Token& token);
+		Error nextToken(char* buf, size_t& reader, size_t buflen, int &line, Token& token, bool ws_relevant=false);
 		// get an error message
 		char* getErrMsg(Error);
 	protected:
 		bool m_ignore_newline;
 		char* id_chars = "_/:";
+		int m_comment_type = 0;
 	};
 }
 #endif // !SIMPLEPARSER_H

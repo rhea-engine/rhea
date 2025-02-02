@@ -15,6 +15,11 @@ namespace Rhea
 		kWidth,
 		kHeight,
 		kFont,
+		kPaddingTop,
+		kPaddingLeft,
+		kPaddingBottom,
+		kPaddingRight,
+		kPadding,
 		kCount
 	};
 
@@ -22,7 +27,7 @@ namespace Rhea
 	struct CssProperty;
 
 	// Forward declare kCssProperties so it's visible to functions defined in CssProperty.
-	extern const std::array<CssProperty, static_cast<size_t>(StylePropertyID::kCount)> kCssProperties;
+	extern const std::array<const CssProperty*, static_cast<size_t>(StylePropertyID::kCount)> kCssProperties;
 	extern std::array<const char*, static_cast<size_t>(StylePropertyID::kCount)> kDefaultValues;
 	extern std::unordered_map<std::string, StylePropertyID> kCssPropertyNames;
 
@@ -31,28 +36,31 @@ namespace Rhea
 		StylePropertyID id;
 		char* name;
 		bool inherited;
+		bool shorthand;
+
+		CssProperty(StylePropertyID id, char* name, bool inherited, bool shorthand) :
+			id(id),
+			name(name),
+			inherited(inherited),
+			shorthand(shorthand)
+		{}
 
 		// Utility function to look up a property by its ID.
 		static const CssProperty* GetCssProperty(StylePropertyID id) {
 			size_t index = static_cast<size_t>(id);
 			if (index < kCssProperties.size()) {
-				return &kCssProperties[index];
+				return kCssProperties[index];
 			}
 			return nullptr;
 		}
 
 		// function to return a default value for a given property.
 		static inline std::string GetDefaultValue(StylePropertyID id) {
-			// For demonstration, we return simple strings. In a real system,
-			// these might be more complex types or generated differently.
-			switch (id) {
-			case StylePropertyID::kBackgroundImage: return "none";
-			case StylePropertyID::kLeft:            return "0";
-			case StylePropertyID::kTop:             return "0";
-			case StylePropertyID::kWidth:           return "auto";
-			case StylePropertyID::kHeight:          return "auto";
-			default:                              return "";
+			size_t index = static_cast<size_t>(id);
+			if (index < kCssProperties.size()) {
+				return kDefaultValues[index];
 			}
+			return "";
 		}
 
 		// Build a static lookup map from property name to property metadata.

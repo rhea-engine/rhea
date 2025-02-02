@@ -2,6 +2,7 @@
 #include "Application.h"
 
 #include <algorithm>
+#include "CssShorthand.h"
 
 namespace Rhea
 {
@@ -37,14 +38,33 @@ namespace Rhea
 		int i = 0;
 		for (auto it = entries.begin(); it != entries.end(); ++it) {
 			StyleRule rule;
-			rule.selector = (*it).selector.name;
+			rule.selector = (*it).selector;
 			for (auto p_it = (*it).properties.begin(); p_it != (*it).properties.end(); ++p_it)
 			{
-				if (!p_it->first.compare("background-image")) {
-					refs.push_back({ "image_" + std::to_string(i++), "image/png", p_it->second[0] });
-					const CssProperty* prop = CssProperty::FindCssProperty("background-image");
-					if (prop)
-						rule.properties[prop->id] = p_it->second[0];
+				const CssProperty* prop = CssProperty::FindCssProperty(p_it->first);
+				if (prop) {
+					if (prop->shorthand) {
+						const CssShorthand* s = static_cast<const CssShorthand*>(prop);
+						if (s->Parse(p_it->second, [&rule](StylePropertyID id, SimpleParser::Variant value)->void {
+							rule.properties[id] = value;
+							})) 
+						{}
+					}
+					else {
+						if (p_it->second.size() == 1)
+							rule.properties[prop->id] = p_it->second[0];
+						else {
+							std::vector<SimpleParser::Variant> arr;
+							for (int i = 0; i < p_it->second.size(); i++) {
+								arr.push_back(p_it->second[i]);
+							}
+							rule.properties[prop->id] = arr;
+						}
+
+						if (prop->id == StylePropertyID::kBackgroundImage) {
+							refs.push_back({ "image_" + std::to_string(i++), "image/png", p_it->second[0] });
+						}
+					}
 				}
 			}
 			if (rule.properties.size())

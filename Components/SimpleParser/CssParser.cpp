@@ -2,41 +2,160 @@
 
 namespace SimpleParser
 {
-	CssParser::Error CssParser::parseSelector(char* buf, size_t& reader, size_t buflen, int& line, Selector& name)
+	enum class SelectorStates
+	{
+		kNone,
+		kSequence,
+		kClass,
+		kId
+	};
+
+	CssParser::Error CssParser::parseSelector(char* buf, size_t& reader, size_t buflen, int& line, Selector& selector)
 	{
 		Token token;
 		SimpleParser::Error err;
 
-		int state = 0;
+		SelectorStates state = SelectorStates::kNone;
+		SimpleSelectorType cur_simple_type = SimpleSelectorType::kType;
+		Combinator cur_combinator = Combinator::kDescendant;
+		SimpleSelectorSequence cur_simple_seq;
+		selector.clear();
+
+		bool ws_relevant = false;
 
 		while (reader < buflen) {
-			err = nextToken(buf, reader, buflen, line, token);
+			err = nextToken(buf, reader, buflen, line, token, ws_relevant);
 			if (err >= SimpleParser::Error::PARSE_ERR)
 				return Error::PARSE_ERR;
 			else {
 				switch (state) {
-				case 0:
-					if (err == SimpleParser::Error::PARSE_EOF ||
-						(token.type != TokenType::TOKEN_IDENTIFIER) &&
-						(token.type != TokenType::TOKEN_STRING))
+				case SelectorStates::kNone:
+					if (err == SimpleParser::Error::PARSE_EOF)
 						return Error::PARSE_EXPECT_IDENTIFIER;
-					else {
-						name.name = token.value;
-						state = 1;
+					switch (token.type) {
+					case TokenType::TOKEN_IDENTIFIER:
+					case TokenType::TOKEN_STRING:
+						// must be a type selector
+						// start the simple sequence
+						cur_simple_seq.push_back({ SimpleSelectorType::kType, token.value });
+						state = SelectorStates::kSequence;
+						ws_relevant = true;
+						break;
+					case TokenType::TOKEN_DOT:
+						// start of class selector
+						state = SelectorStates::kClass;
+						ws_relevant = true;
+						break;
+					case TokenType::TOKEN_HASH:
+						// start of id selector
+						state = SelectorStates::kId;
+						ws_relevant = true;
+						break;
+					case TokenType::TOKEN_GREATER:
+						if (cur_combinator != Combinator::kDescendant)
+							return Error::PARSE_EXPECT_IDENTIFIER;
+						cur_combinator = Combinator::kChild;
+						break;
+					case TokenType::TOKEN_PLUS:
+						if (cur_combinator != Combinator::kDescendant)
+							return Error::PARSE_EXPECT_IDENTIFIER;
+						cur_combinator = Combinator::kSibling;
+						break;
+					case TokenType::TOKEN_TILDE:
+						if (cur_combinator != Combinator::kDescendant)
+							return Error::PARSE_EXPECT_IDENTIFIER;
+						cur_combinator = Combinator::kSubsequent;
+						break;
+					case TokenType::TOKEN_LEFT_CURLYBRACKET:
+						// start content
+						if (!selector.size())
+							return Error::PARSE_EXPECT_IDENTIFIER;
+						return Error::PARSE_OK;
+					default:
+						return Error::PARSE_EXPECT_IDENTIFIER;
 					}
 					break;
-				case 1:
-					if (err == SimpleParser::Error::PARSE_EOF ||
-						token.type != TokenType::TOKEN_LEFT_CURLYBRACKET) {
-						return Error::PARSE_EXPECT_CONTENT_START;
-					}
-					else {
+				case SelectorStates::kSequence:
+					// expect a new element of the sequence or whitespace or start of content
+					if (err == SimpleParser::Error::PARSE_EOF)
+						return Error::PARSE_EXPECT_IDENTIFIER;
+					switch (token.type) {
+					case TokenType::TOKEN_DOT:
+						// start of class selector
+						state = SelectorStates::kClass;
+						break;
+					case TokenType::TOKEN_HASH:
+						// start of id selector
+						state = SelectorStates::kId;
+						break;
+					case TokenType::TOKEN_WHITESPACE:
+						// current sequence ended
+						state = SelectorStates::kNone;
+						ws_relevant = false;
+						if (cur_simple_seq.size())
+							selector.push_back({ cur_combinator , cur_simple_seq });
+						cur_simple_seq.clear();
+						cur_combinator = Combinator::kDescendant;
+						break;
+					case TokenType::TOKEN_LEFT_CURLYBRACKET:
+						// start content
+						if (cur_simple_seq.size())
+							selector.push_back({ cur_combinator , cur_simple_seq });
+						if (!selector.size())
+							return Error::PARSE_EXPECT_IDENTIFIER;
 						return Error::PARSE_OK;
+						break;
+					case TokenType::TOKEN_GREATER:
+						// current sequence ended
+						state = SelectorStates::kNone;
+						ws_relevant = false;
+						if (cur_simple_seq.size())
+							selector.push_back({ cur_combinator , cur_simple_seq });
+						cur_simple_seq.clear();
+						cur_combinator = Combinator::kChild;
+						break;
+					case TokenType::TOKEN_PLUS:
+						// current sequence ended
+						state = SelectorStates::kNone;
+						ws_relevant = false;
+						if (cur_simple_seq.size())
+							selector.push_back({ cur_combinator , cur_simple_seq });
+						cur_simple_seq.clear();
+						cur_combinator = Combinator::kSibling;
+						break;
+					case TokenType::TOKEN_TILDE:
+						// current sequence ended
+						state = SelectorStates::kNone;
+						ws_relevant = false;
+						if (cur_simple_seq.size())
+							selector.push_back({ cur_combinator , cur_simple_seq });
+						cur_simple_seq.clear();
+						cur_combinator = Combinator::kSubsequent;
+						break;
+					default:
+						return Error::PARSE_EXPECT_IDENTIFIER;
 					}
+					break;
+				case SelectorStates::kClass:
+					if (err == SimpleParser::Error::PARSE_EOF ||
+						!(token.type == TokenType::TOKEN_IDENTIFIER ||
+							token.type == TokenType::TOKEN_STRING))
+						return Error::PARSE_EXPECT_IDENTIFIER;
+					cur_simple_seq.push_back({ SimpleSelectorType::kClass, token.value });
+					state = SelectorStates::kSequence;
+					break;
+				case SelectorStates::kId:
+					if (err == SimpleParser::Error::PARSE_EOF ||
+						!(token.type == TokenType::TOKEN_IDENTIFIER ||
+							token.type == TokenType::TOKEN_STRING))
+						return Error::PARSE_EXPECT_IDENTIFIER;
+					cur_simple_seq.push_back({ SimpleSelectorType::kId, token.value });
+					state = SelectorStates::kSequence;
 					break;
 				}
 			}
 		}
+		return Error::PARSE_EXPECT_IDENTIFIER;
 	}
 
 	CssParser::Error CssParser::parseContent(char* buf, size_t& reader, size_t buflen, int& line, PropertyMap& property_map)
@@ -105,10 +224,19 @@ namespace SimpleParser
 							return Error::PARSE_OK;
 						}
 						else {
-							if (value.compare(""))
-								value += std::string(" ") + (std::string)token.value;
+							std::string val;
+							if (token.value.getType() == Type::get(Type::BaseType::FLOAT)) {
+								val = std::to_string((float)token.value);
+							}
+							else if (token.value.getType() == Type::get(Type::BaseType::INT)) {
+								val = std::to_string((int)token.value);
+							}
 							else
-								value = token.value;
+								val = (std::string)token.value;
+							if (value.compare(""))
+								value += std::string(" ") + val;
+							else
+								value = val;
 						}
 					}
 				}
@@ -149,6 +277,7 @@ namespace SimpleParser
 
 		size_t reader = 0;
 		m_ignore_newline = true;
+		m_comment_type = 1;
 		while (reader < buflen)
 		{
 			err = parseEntry(buf, reader, buflen, line, entry);

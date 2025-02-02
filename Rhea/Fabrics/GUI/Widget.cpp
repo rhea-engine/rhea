@@ -65,11 +65,21 @@ namespace Rhea
 		// padding
 		Variant padding = getValue("padding");
 		if (padding != Variant()) {
-			if (!padding.isArray())
-				m_modifiers.push_back(std::make_unique<PaddingModifier>(padding));
-			else if (padding.length() == 4)
+			if (!padding.isArray()) {
+				m_modifiers.push_back(std::make_unique<PaddingModifier>(padding));				
+				m_properties[StylePropertyID::kPaddingLeft] = padding;
+				m_properties[StylePropertyID::kPaddingTop] = padding;
+				m_properties[StylePropertyID::kPaddingRight] = padding;
+				m_properties[StylePropertyID::kPaddingBottom] = padding;
+			}
+			else if (padding.length() == 4) {
 				m_modifiers.push_back(std::make_unique<PaddingModifier>(padding[0], padding[1], padding[2], padding[3]));
-		}
+				m_properties[StylePropertyID::kPaddingLeft] = padding[0];
+				m_properties[StylePropertyID::kPaddingTop] = padding[1];
+				m_properties[StylePropertyID::kPaddingRight] = padding[2];
+				m_properties[StylePropertyID::kPaddingBottom] = padding[3];
+			}
+		}		
 
 		// fillsize
 		if (getValue("fillsize", false)) {
@@ -290,16 +300,16 @@ namespace Rhea
 		// Inherit style properties from the parent widget if they are inherited
 		if (doCast<Widget>(m_parent)) {
 			for (const auto& prop : kCssProperties) {
-				if (prop.inherited) {
+				if (prop->inherited) {
 					// Look for the property in the parent's computed styles.
-					auto it = doCast<Widget>(m_parent)->m_computed_properties.find(prop.id);
+					auto it = doCast<Widget>(m_parent)->m_computed_properties.find(prop->id);
 					if (it != doCast<Widget>(m_parent)->m_computed_properties.end()) {
 						// Copy the parent's value.
-						m_computed_properties[prop.id] = it->second;
+						m_computed_properties[prop->id] = it->second;
 					}
 					else {
 						// If the parent doesn't define it, fallback to the default value.
-						m_computed_properties[prop.id] = CssProperty::GetDefaultValue(prop.id);
+						m_computed_properties[prop->id] = CssProperty::GetDefaultValue(prop->id);
 					}
 				}
 			}
@@ -308,20 +318,20 @@ namespace Rhea
 		{
 			// For the root widget, initialize inherited properties to their defaults.
 			for (const auto& prop : kCssProperties) {
-				if (prop.inherited) {
-					m_computed_properties[prop.id] = CssProperty::GetDefaultValue(prop.id);
+				if (prop->inherited) {
+					m_computed_properties[prop->id] = CssProperty::GetDefaultValue(prop->id);
 				}
 			}
 		}
-
-		// overwrite with my own property
-		AppendStyles(m_properties);
 
 		// Get computed style properties from the style engine.
 		auto computed_styles = style_engine->GetStylesForWidget(this);
 
 		// Apply these computed styles.
 		AppendStyles(computed_styles);
+
+		// overwrite with my own property
+		AppendStyles(m_properties);
 
 		ApplyStyles();
 
@@ -416,6 +426,46 @@ namespace Rhea
 					DLOG(LOG_DEBUG) << "TODO: Handle owverwriting of texture, if not set on widget";
 				}
 			}
+		}
+
+		// re-create modifiers
+
+		if (m_modifiers.size())
+			m_modifiers.clear();
+		if (m_base_position.x || m_base_position.y) {
+			m_modifiers.push_back(std::make_unique<OffsetModifier>(m_base_position));
+		}
+
+		// size set
+		if (m_base_size.x > 0.0f && m_base_size.y > 0.0f) {
+			m_modifiers.push_back(std::make_unique<SizeModifier>(m_base_size));
+		}
+		else if (m_base_size.x > 0.0f) {				
+			m_modifiers.push_back(std::make_unique<SizeWidthModifier>(m_base_size.x));
+		}
+		else if (m_base_size.y > 0.0f) {				
+			m_modifiers.push_back(std::make_unique<SizeHeightModifier>(m_base_size.y));
+		}
+
+		// padding		
+		std::array<float, 4> padding = { 0.0f, 0.0f, 0.0f, 0.0f };
+		if (m_computed_properties.find(StylePropertyID::kPaddingLeft) != m_computed_properties.end())
+			padding[0] = m_computed_properties[StylePropertyID::kPaddingLeft];
+		if (m_computed_properties.find(StylePropertyID::kPaddingTop) != m_computed_properties.end())
+			padding[1] = m_computed_properties[StylePropertyID::kPaddingTop];
+		if (m_computed_properties.find(StylePropertyID::kPaddingRight) != m_computed_properties.end())
+			padding[2] = m_computed_properties[StylePropertyID::kPaddingRight];
+		if (m_computed_properties.find(StylePropertyID::kPaddingBottom) != m_computed_properties.end())
+			padding[3] = m_computed_properties[StylePropertyID::kPaddingBottom];
+		if (padding[0] > 0.0f || padding[1] > 0.0f || padding[2] > 0.0f || padding[3] > 0.0f)
+			m_modifiers.push_back(std::make_unique<PaddingModifier>(padding[0], padding[1], padding[2], padding[3]));
+
+		// fillsize
+		if (getValue("fillsize", false)) {
+			m_modifiers.push_back(std::make_unique<FillSizeModifier>());
+		}
+		if (getValue("fillwidth", false)) {
+			m_modifiers.push_back(std::make_unique<FillWidthModifier>());
 		}
 	}
 

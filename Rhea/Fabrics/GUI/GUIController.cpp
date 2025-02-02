@@ -32,6 +32,7 @@ namespace Rhea
 
 		Widget::setup(app, attributes, values);
 
+		m_values["fillsize"] = true;
 		m_modifiers.push_back(std::make_unique<FillSizeModifier>());
 
 		// make sure the GUI is not displayed in the world render context by default

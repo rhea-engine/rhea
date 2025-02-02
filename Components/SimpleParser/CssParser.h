@@ -10,10 +10,38 @@ namespace SimpleParser
 	{
 	public:
 
-		struct Selector
+		enum class SimpleSelectorType
 		{
+			kType,
+			kUniversal,
+			kId,
+			kClass,
+			kAttribute,
+			kPseudo
+		};
+
+		struct SimpleSelector
+		{
+			SimpleSelectorType type;
 			std::string name;
 		};
+
+		typedef std::vector<SimpleSelector> SimpleSelectorSequence;
+
+		enum class Combinator {
+			kDescendant,
+			kChild,
+			kSibling,
+			kSubsequent
+		};
+
+		struct SelectorItem
+		{
+			Combinator combinator;
+			SimpleSelectorSequence sequence;
+		};
+
+		typedef std::vector<SelectorItem> Selector;
 
 		typedef std::unordered_map<std::string, std::vector<Variant>> PropertyMap;
 

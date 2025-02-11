@@ -19,11 +19,11 @@ namespace Rhea
 
 		std::vector<Unit::Export> getReferences();
 
-		//void applyStyle(Widget* w);
-
 		void setStyle(std::vector<SimpleParser::CssParser::Entry>& entries);
 
 		std::vector<StyleRule>& getRules() { return m_entries; }
+
+		bool ParseValues(StylePropertyId id, std::vector<SimpleParser::CssParser::Property>& content, std::vector<CssValue>& values);
 
 	protected:
 		std::vector<StyleRule> m_entries;

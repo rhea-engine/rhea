@@ -9,13 +9,12 @@
 //#include "StyleSheet.h"
 #include "Property.h"
 #include <Components/SimpleParser/Variant.h>
+#include "StyleRule.h"
 
 namespace Rhea
 {
 	class StyleSheet;
 	class Widget;
-
-	typedef std::unordered_map<StylePropertyID, SimpleParser::Variant> CssRuleSet;
 
 	class StyleEngine
 	{

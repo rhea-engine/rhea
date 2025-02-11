@@ -6,24 +6,25 @@
 #include <functional>
 #include <vector>
 #include <Components/SimpleParser/Variant.h>
+#include "CssValue.h"
 
 namespace Rhea
 {
 	struct CssShorthand : public CssProperty
 	{
 		// Call the base class constructor.
-		CssShorthand(StylePropertyID id, char* name, bool inherited, bool shorthand)
+		CssShorthand(StylePropertyId id, char* name, bool inherited, bool shorthand)
 			: CssProperty(id, name, inherited, shorthand) {}
 
-		virtual bool Parse(std::vector<SimpleParser::Variant>& value, std::function<void(StylePropertyID, SimpleParser::Variant)> callback) const { return true; }
+		virtual bool Parse(std::vector<CssValue>& value, std::function<void(StylePropertyId, std::vector<CssValue>&)> callback) const { return true; }
 	};
 
 	struct CssPadding : public CssShorthand
 	{
-		CssPadding(StylePropertyID id, char* name, bool inherited, bool shorthand)
+		CssPadding(StylePropertyId id, char* name, bool inherited, bool shorthand)
 			: CssShorthand(id, name, inherited, shorthand) {}
 
-		bool Parse(std::vector<SimpleParser::Variant>& value, std::function<void(StylePropertyID, SimpleParser::Variant)> callback) const override;
+		bool Parse(std::vector<CssValue>& value, std::function<void(StylePropertyId, std::vector<CssValue>&)> callback) const override;
 	};
 }
 

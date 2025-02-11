@@ -23,7 +23,7 @@ namespace Rhea
 		val["text"] = getValue("text", "");
 		if (m_values.find("font") != m_values.end()) {
 			val["font"] = getValue("font");
-			m_properties[StylePropertyID::kFont] = getValue("font");
+			m_properties[StylePropertyId::kFont].push_back({ CssValueId::kString, getValue("font") });
 		}
 		val["word_wrap"] = getValue("word_wrap", true);
 		val["multiline"] = getValue("multiline", true);
@@ -102,11 +102,11 @@ namespace Rhea
 		Widget::ApplyStyles();
 
 		if (m_label_item) {
-			SimpleParser::Variant* font_prop = getStyle(StylePropertyID::kFont);
-			if (font_prop) {
-				Font* font = doCast<Font>(m_app->getUnitTree()->find(*font_prop));
+			std::vector<CssValue> font_prop = getStyle(StylePropertyId::kFont);
+			if (font_prop.size()) {
+				Font* font = doCast<Font>(m_app->getUnitTree()->find(font_prop[0].value));
 				if (!font)
-					LOG(LOG_ERROR) << "font " << (std::string)(*font_prop) << " not found";
+					LOG(LOG_ERROR) << "font " << (std::string)(font_prop[0].value) << " not found";
 				else
 					m_label_item->setFont(font);
 			}

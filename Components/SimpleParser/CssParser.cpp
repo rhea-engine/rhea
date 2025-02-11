@@ -163,8 +163,9 @@ namespace SimpleParser
 		Token token;
 		SimpleParser::Error err;
 		std::string prop_name;
-		std::vector<Variant> properties;
-		std::string value;
+		std::vector<Property> properties;
+		Variant value;
+		int anchestor = -1;
 
 		int state = 0;
 		id_chars = "-";
@@ -174,7 +175,7 @@ namespace SimpleParser
 				return Error::PARSE_ERR;
 			else {
 				switch (state) {
-				case 0:
+				case 0: // outer context
 					if (err == SimpleParser::Error::PARSE_EOF)
 						return Error::PARSE_EXPECT_IDENTIFIER; 
 					if (token.type == TokenType::TOKEN_RIGHT_CURLYBRACKET) {
@@ -189,55 +190,79 @@ namespace SimpleParser
 						state = 1;				
 					}
 					break;
-				case 1:
+				case 1: // parse property identifier
 					if (err == SimpleParser::Error::PARSE_EOF ||
 						(token.type != TokenType::TOKEN_COLON))
 						return Error::PARSE_EXPECT_IDENTIFIER;
 					else {
+						// switch to value parsing
 						state = 2;
-						id_chars = ":/-()'.";
+						id_chars = ":/-'.";
 						value = "";
 					}
 					break;
-				case 2:
+				case 2: // parse values
 					if (err == SimpleParser::Error::PARSE_EOF)
 						return Error::PARSE_EXPECT_IDENTIFIER;
-					else {
-						if (token.type == TokenType::TOKEN_COMMA) {
-							if (value.compare(""))
-								properties.push_back(value);
-							value = "";
-						}
-						else if (token.type == TokenType::TOKEN_SEMICOLON) {
-							if (value.compare(""))
-								properties.push_back(value);
-							if (properties.size())
-								property_map[prop_name] = properties;
-							state = 0;
-							id_chars = "-";
-						}
-						else if (token.type == TokenType::TOKEN_RIGHT_CURLYBRACKET) {
-							if (value.compare(""))
-								properties.push_back(value);
-							if (properties.size())
-								property_map[prop_name] = properties;
-							return Error::PARSE_OK;
+					switch (token.type) {
+					case TokenType::TOKEN_COMMA:
+						break;
+					case TokenType::TOKEN_SEMICOLON:
+						// end of property
+						if (properties.size())
+							property_map[prop_name] = properties;
+						state = 0;
+						id_chars = "-";
+						break;
+					case TokenType::TOKEN_RIGHT_CURLYBRACKET:
+						// end of rule entry
+						if (properties.size())
+							property_map[prop_name] = properties;
+						return Error::PARSE_OK;
+					case TokenType::TOKEN_NUMBER:
+						// lookahead if its a dimension
+						if (reader < buflen && ((buf[reader] >= 'a' && buf[reader] <= 'z') ||
+							(buf[reader] >= 'A' && buf[reader] <= 'Z') || buf[reader] == '%')) {
+							// has a dimension
+							Property prop;
+							prop.id = PropertyId::kDimension;
+							prop.value = token.value;
+							if (buf[reader] == '%') {
+								prop.extra = "%";
+								reader++;
+							}
+							else {
+								err = nextToken(buf, reader, buflen, line, token);
+								if (err == SimpleParser::Error::PARSE_EOF || token.type != TokenType::TOKEN_IDENTIFIER)
+									return Error::PARSE_EXPECT_IDENTIFIER;
+								prop.extra = token.value;
+							}
+							properties.push_back(prop);
 						}
 						else {
-							std::string val;
-							if (token.value.getType() == Type::get(Type::BaseType::FLOAT)) {
-								val = std::to_string((float)token.value);
-							}
-							else if (token.value.getType() == Type::get(Type::BaseType::INT)) {
-								val = std::to_string((int)token.value);
-							}
-							else
-								val = (std::string)token.value;
-							if (value.compare(""))
-								value += std::string(" ") + val;
-							else
-								value = val;
+							properties.push_back({ PropertyId::kNumeric, anchestor, token.value });
 						}
+						break;
+					case TokenType::TOKEN_IDENTIFIER:
+						properties.push_back({ PropertyId::kIdentifier, anchestor, token.value });
+						break;
+					case TokenType::TOKEN_LEFT_PARENTHESIS:
+						// if last token was an identifier change it to function, else error
+						anchestor = (int)properties.size() - 1;
+						if (anchestor >= 0 && properties[anchestor].id == PropertyId::kIdentifier)
+							properties[anchestor].id = PropertyId::kFunction;
+						else
+							return Error::PARSE_EXPECT_IDENTIFIER;
+						break;
+					case TokenType::TOKEN_RIGHT_PARENTHESIS:
+						if (anchestor >= 0)
+							anchestor = -1;
+						else
+							return Error::PARSE_UNTERMINATED_ARRAY;
+						break;
+					case TokenType::TOKEN_STRING:
+						properties.push_back({ PropertyId::kString, anchestor, token.value });
+						break;
 					}
 				}
 			}

@@ -71,11 +71,13 @@ namespace Rhea
 
 		// style
 		void RecalculateStyle(StyleEngine* style_engine);		
-		void AppendStyles(std::unordered_map<StylePropertyID, SimpleParser::Variant>& styles);
+		void AppendStyles(CssRuleSet& styles);
 		virtual void ApplyStyles();
 		// set widgets own style(s)
-		void setStyles(std::unordered_map<StylePropertyID, SimpleParser::Variant>& styles);
-		SimpleParser::Variant* getStyle(StylePropertyID style);
+		void setStyles(CssRuleSet& styles);
+		std::vector<CssValue>& getStyle(StylePropertyId style);
+		// set the css value with text. value will be parsed
+		void setStyle(StylePropertyId id, SimpleParser::Variant value);
 		virtual const std::string getSelector() { return "Widget"; }
 
 		// Widget handling functions
@@ -146,9 +148,9 @@ namespace Rhea
 		void* m_user_ptr;
 
 		// my styles
-		std::unordered_map<StylePropertyID, SimpleParser::Variant> m_properties;
+		CssRuleSet m_properties;
 		// Holds the computed style properties for this widget.
-		std::unordered_map<StylePropertyID, SimpleParser::Variant> m_computed_properties;
+		CssRuleSet m_computed_properties;
 
 		// rtl layout
 		bool m_is_rtl;

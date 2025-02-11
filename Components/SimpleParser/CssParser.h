@@ -43,7 +43,22 @@ namespace SimpleParser
 
 		typedef std::vector<SelectorItem> Selector;
 
-		typedef std::unordered_map<std::string, std::vector<Variant>> PropertyMap;
+		enum class PropertyId {
+			kString,
+			kIdentifier,
+			kFunction,
+			kNumeric,
+			kDimension,
+		};
+
+		struct Property {
+			PropertyId id = PropertyId::kString;
+			int anchestor = -1;
+			Variant value;
+			Variant extra;
+		};
+
+		typedef std::unordered_map<std::string, std::vector<Property>> PropertyMap;
 
 		struct Entry
 		{
@@ -61,7 +76,7 @@ namespace SimpleParser
 			PARSE_EOF,
 			PARSE_ERR,
 			PARSE_UNTERMINATED_STRING,
-			PARSE_UNERMINATED_ARRAY,
+			PARSE_UNTERMINATED_ARRAY,
 			PARSE_INVALID_ID_CHAR,
 			// IniFileParser
 			PARSE_EXPECT_IDENTIFIER,

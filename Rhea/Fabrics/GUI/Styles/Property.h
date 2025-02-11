@@ -5,9 +5,11 @@
 #include <array>
 #include <unordered_map>
 
+#include "CssValue.h"
+
 namespace Rhea
 {
-	enum class StylePropertyID
+	enum class StylePropertyId
 	{
 		kBackgroundImage,
 		kLeft,
@@ -25,20 +27,26 @@ namespace Rhea
 
 	// Forward declare CssProperty.
 	struct CssProperty;
+	// Forward declare CssValueId
+
+	struct _css_def {
+		CssValueId id;
+		SimpleParser::Variant value;
+	};
 
 	// Forward declare kCssProperties so it's visible to functions defined in CssProperty.
-	extern const std::array<const CssProperty*, static_cast<size_t>(StylePropertyID::kCount)> kCssProperties;
-	extern std::array<const char*, static_cast<size_t>(StylePropertyID::kCount)> kDefaultValues;
-	extern std::unordered_map<std::string, StylePropertyID> kCssPropertyNames;
+	extern const std::array<const CssProperty*, static_cast<size_t>(StylePropertyId::kCount)> kCssProperties;
+	extern std::array<_css_def, static_cast<size_t>(StylePropertyId::kCount)> kDefaultValues;
+	extern std::unordered_map<std::string, StylePropertyId> kCssPropertyNames;
 
 	struct CssProperty
 	{
-		StylePropertyID id;
+		StylePropertyId id;
 		char* name;
 		bool inherited;
 		bool shorthand;
 
-		CssProperty(StylePropertyID id, char* name, bool inherited, bool shorthand) :
+		CssProperty(StylePropertyId id, char* name, bool inherited, bool shorthand) :
 			id(id),
 			name(name),
 			inherited(inherited),
@@ -46,7 +54,7 @@ namespace Rhea
 		{}
 
 		// Utility function to look up a property by its ID.
-		static const CssProperty* GetCssProperty(StylePropertyID id) {
+		static const CssProperty* GetCssProperty(StylePropertyId id) {
 			size_t index = static_cast<size_t>(id);
 			if (index < kCssProperties.size()) {
 				return kCssProperties[index];
@@ -55,12 +63,14 @@ namespace Rhea
 		}
 
 		// function to return a default value for a given property.
-		static inline std::string GetDefaultValue(StylePropertyID id) {
+		static inline CssValue GetDefaultValue(StylePropertyId id) {
 			size_t index = static_cast<size_t>(id);
 			if (index < kCssProperties.size()) {
-				return kDefaultValues[index];
+				CssValue val = { kDefaultValues[index].id, kDefaultValues[index].value };
+				return val;
 			}
-			return "";
+			CssValue val = { CssValueId::kString, "" };
+			return val;
 		}
 
 		// Build a static lookup map from property name to property metadata.

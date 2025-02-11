@@ -145,6 +145,18 @@ namespace SimpleParser
 				token.type = TokenType::TOKEN_STRING;
 				reader++;
 				return Error::PARSE_OK;
+			case '/': // NOTE: must be the last one before default
+				// c-style comments
+				if (m_comment_type == 1) {
+					if (reader + 1 < buflen && buf[reader + 1] == '*') {
+						// is a comment - search for end, if not found silently consumes the whole document
+						reader += 3;
+						while (reader < buflen && (buf[reader - 1] != '*' || buf[reader] != '/'))
+							reader++;
+						reader++;
+						break;
+					}
+				}
 			default:
 				// number value
 				int neg = 1;

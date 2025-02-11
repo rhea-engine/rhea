@@ -4,24 +4,24 @@
 namespace Rhea
 {
     // A compile-time constant array of CSS properties.
-    // Order must match the StylePropertyID enum order.
+    // Order must match the StylePropertyId enum order.
    
     namespace {  // anonymous namespace to limit the scope.
 
-        const CssProperty backgroundImage{ StylePropertyID::kBackgroundImage, "background-image", false, false };
-        const CssProperty left{ StylePropertyID::kLeft, "left",false, false };
-        const CssProperty top{ StylePropertyID::kTop, "top", false, false };
-        const CssProperty width{ StylePropertyID::kWidth, "width", false, false };
-        const CssProperty height{ StylePropertyID::kHeight, "height", false, false };
-        const CssProperty font{ StylePropertyID::kFont, "font", true, false };
-        const CssProperty paddingTop{ StylePropertyID::kPaddingTop, "padding-top", false, false };
-        const CssProperty paddingLeft{ StylePropertyID::kPaddingLeft, "padding-left", false, false };
-        const CssProperty paddingBottom{ StylePropertyID::kPaddingBottom, "padding-bottom", false, false };
-        const CssProperty paddingRight{ StylePropertyID::kPaddingRight, "padding-right", false, false };
-        const CssPadding padding{ StylePropertyID::kPadding, "padding", false, true };
+        const CssProperty backgroundImage{ StylePropertyId::kBackgroundImage, "background-image", false, false };
+        const CssProperty left{ StylePropertyId::kLeft, "left",false, false };
+        const CssProperty top{ StylePropertyId::kTop, "top", false, false };
+        const CssProperty width{ StylePropertyId::kWidth, "width", false, false };
+        const CssProperty height{ StylePropertyId::kHeight, "height", false, false };
+        const CssProperty font{ StylePropertyId::kFont, "font", true, false };
+        const CssProperty paddingTop{ StylePropertyId::kPaddingTop, "padding-top", false, false };
+        const CssProperty paddingLeft{ StylePropertyId::kPaddingLeft, "padding-left", false, false };
+        const CssProperty paddingBottom{ StylePropertyId::kPaddingBottom, "padding-bottom", false, false };
+        const CssProperty paddingRight{ StylePropertyId::kPaddingRight, "padding-right", false, false };
+        const CssPadding padding{ StylePropertyId::kPadding, "padding", false, true };
     }
             
-    const std::array<const CssProperty*, static_cast<size_t>(StylePropertyID::kCount)> kCssProperties{ {
+    const std::array<const CssProperty*, static_cast<size_t>(StylePropertyId::kCount)> kCssProperties{ {
         &backgroundImage,
         &left,
         &top,
@@ -35,21 +35,21 @@ namespace Rhea
         &paddingRight,
         } };
 
-    std::unordered_map<std::string, StylePropertyID> kCssPropertyNames;
+    std::unordered_map<std::string, StylePropertyId> kCssPropertyNames;
 
-    std::array<const char*, static_cast<size_t>(StylePropertyID::kCount)> kDefaultValues = {
-        "none",  // kBackgroundImage default.
-        "0",     // kLeft default.
-        "0",     // kTop default.
-        "auto",  // kWidth default.
-        "auto"   // kHeight default.
-        "", // font default
-        "0", // padding-top default
-        "0", // padding-left default
-        "0", // padding-bottom default
-        "0", // padding-right default
-        "0", // padding default
-    };
+    std::array<_css_def, static_cast<size_t>(StylePropertyId::kCount)> kDefaultValues = { {
+        {CssValueId::kIdentifier, "none"},  // kBackgroundImage default.
+        {CssValueId::kNumeric, 0},     // kLeft default.
+        {CssValueId::kNumeric, 0},     // kTop default.
+        {CssValueId::kIdentifier, "auto"},  // kWidth default.
+        {CssValueId::kIdentifier,"auto"},   // kHeight default.
+        {CssValueId::kString, ""}, // font default
+        {CssValueId::kNumeric, 0}, // padding-top default
+        {CssValueId::kNumeric, 0}, // padding-left default
+        {CssValueId::kNumeric, 0}, // padding-bottom default
+        {CssValueId::kNumeric, 0}, // padding-right default
+        {CssValueId::kNumeric, 0}, // padding default
+    } };
 
     const std::unordered_map<std::string, const CssProperty*>& CssProperty::GetPropertyLookup()
     {

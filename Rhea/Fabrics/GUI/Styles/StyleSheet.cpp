@@ -19,20 +19,6 @@ namespace Rhea
 		return refs;
 	}
 
-	/*void StyleSheet::applyStyle(Widget* w)
-	{
-		for (auto it = m_entries.begin(); it != m_entries.end(); ++it) {
-			
-			std::string type_name = (*it).selector;
-			std::transform(type_name.begin(), type_name.end(), type_name.begin(), ::tolower);
-			SimpleParser::Type* type = SimpleParser::Type::get(std::string("//meworla/gui/" + type_name));
-			if (type && w->getType()==type) {			
-				w->setStyle((*it).properties);
-			}
-		}
-	}
-	*/
-
 	void StyleSheet::setStyle(std::vector<SimpleParser::CssParser::Entry>& entries)
 	{
 		int i = 0;
@@ -43,26 +29,22 @@ namespace Rhea
 			{
 				const CssProperty* prop = CssProperty::FindCssProperty(p_it->first);
 				if (prop) {
+					// parse the values
+					std::vector<CssValue> values;
+					ParseValues(prop->id, p_it->second, values);
+
 					if (prop->shorthand) {
 						const CssShorthand* s = static_cast<const CssShorthand*>(prop);
-						if (s->Parse(p_it->second, [&rule](StylePropertyID id, SimpleParser::Variant value)->void {
+						if (s->Parse(values, [&rule](StylePropertyId id, std::vector<CssValue>& value)->void {
 							rule.properties[id] = value;
 							})) 
 						{}
 					}
 					else {
-						if (p_it->second.size() == 1)
-							rule.properties[prop->id] = p_it->second[0];
-						else {
-							std::vector<SimpleParser::Variant> arr;
-							for (int i = 0; i < p_it->second.size(); i++) {
-								arr.push_back(p_it->second[i]);
-							}
-							rule.properties[prop->id] = arr;
-						}
+						rule.properties[prop->id] = values;						
 
-						if (prop->id == StylePropertyID::kBackgroundImage) {
-							refs.push_back({ "image_" + std::to_string(i++), "image/png", p_it->second[0] });
+						if (prop->id == StylePropertyId::kBackgroundImage) {
+							refs.push_back({ "image_" + std::to_string(i++), "image/png", values[0].value });
 						}
 					}
 				}
@@ -70,6 +52,42 @@ namespace Rhea
 			if (rule.properties.size())
 				m_entries.push_back(rule);
 		}
+	}
+	bool StyleSheet::ParseValues(StylePropertyId id, std::vector<SimpleParser::CssParser::Property>& content, std::vector<CssValue>& values)
+	{
+		int state = 0;
+		for (int i = 0; i < content.size(); i++)
+		{
+			switch (state) {
+			case 0:
+				// get value as string
+				std::string value_s = content[i].value;
+				switch (content[i].id) {
+				case SimpleParser::CssParser::PropertyId::kString:
+					values.push_back({ CssValueId::kString, content[i].value });
+					break;
+				case SimpleParser::CssParser::PropertyId::kNumeric:
+					values.push_back({ CssValueId::kNumeric, content[i].value });
+					break;
+				case SimpleParser::CssParser::PropertyId::kFunction:
+					if (!value_s.compare("url")) {
+						int anchestor = i;
+						while (i + 1 < content.size() && content[i+1].anchestor == anchestor) {
+							i++;
+							if (content[i].id == SimpleParser::CssParser::PropertyId::kString) {
+								values.push_back({ CssValueId::kURI, content[i].value });
+							}							
+						}
+					}
+					break;
+				case SimpleParser::CssParser::PropertyId::kIdentifier:
+					values.push_back({ CssValueId::kKeyword, content[i].value });
+					break;
+				}
+				break;
+			}
+		}
+		return true;
 	}
 }
 

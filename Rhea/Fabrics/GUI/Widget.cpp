@@ -1,7 +1,4 @@
 #include "Widget.h"
-#include "Widget.h"
-#include "Widget.h"
-#include "Widget.h"
 #include <cassert>
 #include <Psio/Log.h>
 
@@ -24,6 +21,7 @@
 #include "Modifier/Padding.h"
 #include "Modifier/FillWidth.h"
 #include "Styles/Property.h"
+#include "Styles/StyleSheet.h"
 
 namespace Rhea
 {
@@ -66,18 +64,23 @@ namespace Rhea
 		Variant padding = getValue("padding");
 		if (padding != Variant()) {
 			if (!padding.isArray()) {
-				m_modifiers.push_back(std::make_unique<PaddingModifier>(padding));				
-				m_properties[StylePropertyID::kPaddingLeft] = padding;
-				m_properties[StylePropertyID::kPaddingTop] = padding;
-				m_properties[StylePropertyID::kPaddingRight] = padding;
-				m_properties[StylePropertyID::kPaddingBottom] = padding;
+				m_modifiers.push_back(std::make_unique<PaddingModifier>(padding));
+				CssValue css_padding = { CssValueId::kNumeric, SimpleParser::Variant(padding) };
+				m_properties[StylePropertyId::kPaddingLeft].push_back(css_padding);
+				m_properties[StylePropertyId::kPaddingTop].push_back(css_padding);
+				m_properties[StylePropertyId::kPaddingRight].push_back(css_padding);
+				m_properties[StylePropertyId::kPaddingBottom].push_back(css_padding);
 			}
 			else if (padding.length() == 4) {
+				CssValue css_padding_left = { CssValueId::kNumeric, SimpleParser::Variant(padding[0])};
+				CssValue css_padding_top = { CssValueId::kNumeric, SimpleParser::Variant(padding[1])};
+				CssValue css_padding_right = { CssValueId::kNumeric, SimpleParser::Variant(padding[2])};
+				CssValue css_padding_bottom = { CssValueId::kNumeric, SimpleParser::Variant(padding[3])};
 				m_modifiers.push_back(std::make_unique<PaddingModifier>(padding[0], padding[1], padding[2], padding[3]));
-				m_properties[StylePropertyID::kPaddingLeft] = padding[0];
-				m_properties[StylePropertyID::kPaddingTop] = padding[1];
-				m_properties[StylePropertyID::kPaddingRight] = padding[2];
-				m_properties[StylePropertyID::kPaddingBottom] = padding[3];
+				m_properties[StylePropertyId::kPaddingLeft].push_back(css_padding_left);
+				m_properties[StylePropertyId::kPaddingTop].push_back(css_padding_top);
+				m_properties[StylePropertyId::kPaddingRight].push_back(css_padding_right);
+				m_properties[StylePropertyId::kPaddingBottom].push_back(css_padding_bottom);
 			}
 		}		
 
@@ -115,9 +118,9 @@ namespace Rhea
 
 		// set styles based on values
 		if (m_values.find("font") != m_values.end())
-			m_properties[StylePropertyID::kFont] = m_values["font"];
+			m_properties[StylePropertyId::kFont].push_back({ CssValueId::kString, m_values["font"] });
 		if (m_values.find("texture") != m_values.end())
-			m_properties[StylePropertyID::kBackgroundImage] = m_values["texture"];
+			m_properties[StylePropertyId::kBackgroundImage].push_back({ CssValueId::kString, m_values["texture"] });
 
 		std::unordered_map<std::string, std::string> attr;
 		std::unordered_map<std::string, Variant> val;
@@ -309,7 +312,7 @@ namespace Rhea
 					}
 					else {
 						// If the parent doesn't define it, fallback to the default value.
-						m_computed_properties[prop->id] = CssProperty::GetDefaultValue(prop->id);
+						m_computed_properties[prop->id].push_back(CssProperty::GetDefaultValue(prop->id));
 					}
 				}
 			}
@@ -319,7 +322,7 @@ namespace Rhea
 			// For the root widget, initialize inherited properties to their defaults.
 			for (const auto& prop : kCssProperties) {
 				if (prop->inherited) {
-					m_computed_properties[prop->id] = CssProperty::GetDefaultValue(prop->id);
+					m_computed_properties[prop->id].push_back(CssProperty::GetDefaultValue(prop->id));
 				}
 			}
 		}
@@ -343,7 +346,7 @@ namespace Rhea
 			});
 	}
 
-	void Widget::AppendStyles(std::unordered_map<StylePropertyID, SimpleParser::Variant>& styles)
+	void Widget::AppendStyles(CssRuleSet& styles)
 	{
 		// For simplicity, we just merge (or override) properties.
 		for (const auto& style : styles) {
@@ -354,8 +357,8 @@ namespace Rhea
 	void Widget::ApplyStyles()
 	{
 		for (auto it = m_computed_properties.begin(); it != m_computed_properties.end(); ++it) {
-			if (it->first == StylePropertyID::kBackgroundImage) {
-				std::string resname = it->second;
+			if (it->first == StylePropertyId::kBackgroundImage && it->second.size()) {
+				std::string resname = it->second[0].value;
 				if (!resname.compare("none")) {
 					if (m_material) {
 						// remove background image
@@ -449,14 +452,14 @@ namespace Rhea
 
 		// padding		
 		std::array<float, 4> padding = { 0.0f, 0.0f, 0.0f, 0.0f };
-		if (m_computed_properties.find(StylePropertyID::kPaddingLeft) != m_computed_properties.end())
-			padding[0] = m_computed_properties[StylePropertyID::kPaddingLeft];
-		if (m_computed_properties.find(StylePropertyID::kPaddingTop) != m_computed_properties.end())
-			padding[1] = m_computed_properties[StylePropertyID::kPaddingTop];
-		if (m_computed_properties.find(StylePropertyID::kPaddingRight) != m_computed_properties.end())
-			padding[2] = m_computed_properties[StylePropertyID::kPaddingRight];
-		if (m_computed_properties.find(StylePropertyID::kPaddingBottom) != m_computed_properties.end())
-			padding[3] = m_computed_properties[StylePropertyID::kPaddingBottom];
+		if (m_computed_properties.find(StylePropertyId::kPaddingLeft) != m_computed_properties.end())
+			padding[0] = m_computed_properties[StylePropertyId::kPaddingLeft][0].value;
+		if (m_computed_properties.find(StylePropertyId::kPaddingTop) != m_computed_properties.end())
+			padding[1] = m_computed_properties[StylePropertyId::kPaddingTop][0].value;
+		if (m_computed_properties.find(StylePropertyId::kPaddingRight) != m_computed_properties.end())
+			padding[2] = m_computed_properties[StylePropertyId::kPaddingRight][0].value;
+		if (m_computed_properties.find(StylePropertyId::kPaddingBottom) != m_computed_properties.end())
+			padding[3] = m_computed_properties[StylePropertyId::kPaddingBottom][0].value;
 		if (padding[0] > 0.0f || padding[1] > 0.0f || padding[2] > 0.0f || padding[3] > 0.0f)
 			m_modifiers.push_back(std::make_unique<PaddingModifier>(padding[0], padding[1], padding[2], padding[3]));
 
@@ -469,20 +472,32 @@ namespace Rhea
 		}
 	}
 
-	void Widget::setStyles(std::unordered_map<StylePropertyID, SimpleParser::Variant>& styles)
+	void Widget::setStyles(CssRuleSet& styles)
 	{
 		for (const auto& style : styles) {
 			m_properties[style.first] = style.second;
 		}
 	}
 
-	SimpleParser::Variant* Widget::getStyle(StylePropertyID style)
+	std::vector<CssValue>& Widget::getStyle(StylePropertyId style)
 	{
 		auto it = m_computed_properties.find(style);
 		if (it != m_computed_properties.end())
-			return &it->second;
-		else
-			return nullptr;
+			return it->second;
+		else {
+			static std::vector<CssValue> empty;
+			return empty;
+		}
+	}
+
+	void Widget::setStyle(StylePropertyId id, SimpleParser::Variant value)
+	{
+		StyleSheet css("intern");
+		std::vector<CssValue> values;
+		std::vector<SimpleParser::CssParser::Property> content;
+		content.push_back({ SimpleParser::CssParser::PropertyId::kString, 0, value });
+		if (css.ParseValues(id, content, values))
+			m_properties[id] = values;
 	}
 
 	void Widget::show()

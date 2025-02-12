@@ -356,80 +356,34 @@ namespace Rhea
 
 	void Widget::ApplyStyles()
 	{
+		// (re-)create material
+		CreateMaterial();
+
 		for (auto it = m_computed_properties.begin(); it != m_computed_properties.end(); ++it) {
 			if (it->first == StylePropertyId::kBackgroundImage && it->second.size()) {
-				std::string resname = it->second[0].value;
-				if (!resname.compare("none")) {
-					if (m_material) {
-						// remove background image
-						m_material->sendEvent("delete", nullptr);
-						delete m_material;
-						m_material = nullptr;
-						if (getComponent<RenderComponent>()) {
-							Mesh* mesh = getComponent<RenderComponent>()->getMesh();
-							if (mesh) {
-								mesh->sendEvent("delete", nullptr);
-								removeChild(mesh);
-								delete mesh;
-								getComponent<RenderComponent>()->setMesh(nullptr);
-							}
-						}
-					}
+				std::string res_name = it->second[0].value;
+				if (!res_name.compare("none")) {
+					setBackgroundImage(nullptr);
 				}
-				else if (!m_material) {
-					std::unordered_map<std::string, std::string> attr;
-					std::unordered_map<std::string, Variant> val;
-
-					Unit* tex = doCast<Unit>(m_app->getUnitTree()->find(resname));
+				else {
+					// res_name is probably a path
+					ImageResource* tex = doCast<ImageResource>(m_app->getUnitTree()->find(res_name));
 					if (tex) {
-
-						// create dummy material
-						m_material = new Material(m_path + "_material");
-						m_material->setup(m_app);
-						m_material->setValue("shader", "widget");						
-
-						// get the shader						
-						if (m_values.find("shader") == m_values.end()) {
-							// set a default
-							m_values["shader"] = "//rhea/shaders/widget";
-						}
-						Shader* shader_res = doCast<Shader>(m_app->getUnitTree()->find(m_values["shader"]));
-						if (shader_res) {
-							m_material->setShaderRes(shader_res);
-						}
-						else {
-							LOG(LOG_ERROR) << "item2d::ready(): Shader '" << (std::string)m_values["shader"] << "' for " << m_pathname << " not found";
-							return;
-						}
-						m_material->setTexture(0, static_cast<ImageResource*>(tex));
-
-						RenderComponent* render_component = getComponent<RenderComponent>();
-						if (!render_component) {
-							render_component = addComponentUnique<RenderComponent>("renderer");							
-						}
-
-						// add the mesh
-						if (!render_component->getMesh()) {
-
-							std::unordered_map<std::string, std::string> attributes;
-							std::unordered_map<std::string, Variant> values;							
-							Mesh* mesh = m_app->getUnitTree()->createUnit<Mesh>(m_pathname + "_mesh", attributes, values);
-							mesh->setMaterial(m_material);
-							addChild(mesh);
-							render_component->setMesh(mesh);
-
-							setMesh();
-						}
-						else
-							render_component->getMesh()->setMaterial(m_material);
-						sendEvent("update", nullptr);
+						setBackgroundImage(tex);
 					}
-				}
-				else if (m_values["texture"] == Variant()) {
-					DLOG(LOG_DEBUG) << "TODO: Handle owverwriting of texture, if not set on widget";
 				}
 			}
+			else if (it->first == StylePropertyId::kBackgroundColor && it->second.size()>=3) {
+
+				// set background color as (r,g,b,alpha)
+				if (it->second.size() > 3)
+					setBackgroundColor(it->second[0].value, it->second[1].value, it->second[2].value, it->second[3].value);
+				else
+					setBackgroundColor(it->second[0].value, it->second[1].value, it->second[2].value);
+			}
 		}
+		UpdateMaterial();
+		sendEvent("update", nullptr);
 
 		// re-create modifiers
 

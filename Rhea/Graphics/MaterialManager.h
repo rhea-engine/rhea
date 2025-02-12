@@ -9,6 +9,7 @@ namespace Rhea
 	class GraphicsMaterial : public GraphicsElement
 	{
 	public:
+		~GraphicsMaterial() { if (m_material) delete m_material; }
 		Poseidon::Material* m_material{};
 	};
 

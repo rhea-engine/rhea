@@ -64,7 +64,8 @@ namespace Poseidon
 			Math::Vector4 emissive;
 			float shininess;
 			float has_normal_map;
-			float padding[2];
+			int num_textures;
+			float padding[1];
 		} per_mat_buf;
 		Hippios::GraphicsBuffer* m_material_buffer;
 	};

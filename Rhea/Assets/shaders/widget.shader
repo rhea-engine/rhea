@@ -4,3 +4,4 @@ name="widget"
 code="//rhea/shaders/widget.hlsl"
 stencil_test="disabled"
 alpha_blending=true
+material_slots=("BaseColor")

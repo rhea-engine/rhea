@@ -33,7 +33,7 @@ namespace Rhea
 		gmat->m_material = core->createMaterial();
 		std::string mat_name = material_res->getPathName();
 
-		core->registerMaterial(mat_name, gmat->m_material);
+		core->registerMaterial(mat_name, gmat->m_material);   // is this needed?
 
 		// add the shader
 		Shader* shader_res = material_res->getShaderRes();
@@ -100,14 +100,28 @@ namespace Rhea
 				// for now only the default layout is supported
 				std::vector<Poseidon::Shader::MatBufferLayoutElement> elements;
 				elements = {
-					{ Poseidon::Shader::MatBufferLayoutElementType::VECTOR4, "AMBIENT", 0, sizeof(Math::Vector4) },
-					{ Poseidon::Shader::MatBufferLayoutElementType::VECTOR4, "DIFFUSE", 16, sizeof(Math::Vector4) },
+					{ Poseidon::Shader::MatBufferLayoutElementType::VECTOR4, "DIFFUSE", 0, sizeof(Math::Vector4) },
+					{ Poseidon::Shader::MatBufferLayoutElementType::VECTOR4, "AMBIENT", 16, sizeof(Math::Vector4) },
 					{ Poseidon::Shader::MatBufferLayoutElementType::VECTOR4, "SPECULAR", 32, sizeof(Math::Vector4) },
 					{ Poseidon::Shader::MatBufferLayoutElementType::VECTOR4, "EMISSIVE", 48, sizeof(Math::Vector4) },
 					{ Poseidon::Shader::MatBufferLayoutElementType::FLOAT, "SHININESS", 64, sizeof(float) }
 				};
 
 				shader->setMatBufLayout(elements);				
+			}
+			else if (shader_res->getNumInputSlots()) {
+				// TODO: really set the elements (not copy from light)
+				std::vector<Poseidon::Shader::MatBufferLayoutElement> elements;
+				elements = {
+					{ Poseidon::Shader::MatBufferLayoutElementType::VECTOR4, "BaseColor", 0, sizeof(Math::Vector4) },
+					{ Poseidon::Shader::MatBufferLayoutElementType::VECTOR4, "DIFFUSE", 16, sizeof(Math::Vector4) },
+					{ Poseidon::Shader::MatBufferLayoutElementType::VECTOR4, "SPECULAR", 32, sizeof(Math::Vector4) },
+					{ Poseidon::Shader::MatBufferLayoutElementType::VECTOR4, "EMISSIVE", 48, sizeof(Math::Vector4) },
+					{ Poseidon::Shader::MatBufferLayoutElementType::FLOAT, "SHININESS", 64, sizeof(float) },
+					{ Poseidon::Shader::MatBufferLayoutElementType::FLOAT, "NumTextures", 68, sizeof(int) }
+				};
+
+				shader->setMatBufLayout(elements);
 			}
 
 			// compute the shader
@@ -121,8 +135,8 @@ namespace Rhea
 
 		// now add the material properties
 		std::string light_type = shader_res->getValue("light_type", "none");
-		if (light_type == "vertex") {
-			std::vector<std::string> props = { "AMBIENT", "DIFFUSE", "SPECULAR", "EMMISSIVE" };
+		std::vector<std::string> props = shader_res->getInputSlotNames();
+		if (props.size()) {
 			for (auto it = props.begin(); it != props.end(); ++it) {
 				Math::Vector4 color;
 				int slot_res = shader_res->getInputSlotId(*it);

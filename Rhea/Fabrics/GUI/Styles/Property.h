@@ -12,6 +12,7 @@ namespace Rhea
 	enum class StylePropertyId
 	{
 		kBackgroundImage,
+		kBackgroundColor,
 		kLeft,
 		kTop,
 		kWidth,

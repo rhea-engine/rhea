@@ -44,6 +44,9 @@ namespace Rhea
 		// get max input slot
 		int getNumInputSlots() const { return m_num_input_slots; }
 
+		// get id names of input slots
+		std::vector<std::string>& getInputSlotNames() { return m_property_names; }
+
 		// get texture input slot id by name
 		int getTextureSlotId(std::string name) { if (m_texture_slots.find(name) != m_texture_slots.end()) return m_texture_slots[name]; else return -1; }
 
@@ -62,9 +65,10 @@ namespace Rhea
 		bool m_wvp;
 		// vertex layout as a vector of element length
 		std::vector<VertexAttribute> m_vertex_layout;
-		// material inpout slot ids
+		// material input slot ids
 		std::map<std::string, int> m_input_slots;
 		int m_num_input_slots;
+		std::vector<std::string> m_property_names;
 		// texture input slots
 		std::map<std::string, int> m_texture_slots;
 		int m_num_texture_slots;

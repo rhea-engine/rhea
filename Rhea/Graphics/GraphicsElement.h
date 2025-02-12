@@ -5,6 +5,8 @@ namespace Rhea
 {
 	class GraphicsElement
 	{
+	public:
+		virtual ~GraphicsElement() {};
 	};
 }
 

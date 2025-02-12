@@ -59,12 +59,20 @@ namespace Rhea
 		// setup material input slots
 		std::string light_type = getValue("light_type", "none");
 		if (light_type == "vertex") {
+			m_property_names = { "AMBIENT", "DIFFUSE", "SPECULAR", "EMMISSIVE" };
 			m_input_slots["AMBIENT"] = 0;
 			m_input_slots["DIFFUSE"] = 1;
 			m_input_slots["SPECULAR"] = 2;
 			m_input_slots["SHININESS"] = 3;
 			m_input_slots["EMISSIVE"] = 4;
 			m_num_input_slots = 5;
+		}
+		else if (m_values.find("material_slots") != m_values.end() && m_values["material_slots"].isArray()) {
+			for (int i = 0; i < m_values["material_slots"].size(); i++) {
+				m_property_names.push_back(m_values["material_slots"][i]);
+				m_input_slots[m_values["material_slots"][i]] = i;
+				m_num_input_slots = i + 1;
+			}
 		}
 
 		// setup texture slots

@@ -19,8 +19,6 @@ namespace Poseidon
 
 	Material::~Material()
 	{
-		if (m_shader)
-			delete m_shader;
 		if (m_mat_buffer)
 			free(m_mat_buffer);
 	}
@@ -73,6 +71,7 @@ namespace Poseidon
 		m_textures.push_back(texture);
 		if (m_textures.size() > 1)
 			per_mat_buf.has_normal_map = 1.0f;
+		per_mat_buf.num_textures = (int)m_textures.size();
 	}
 
 	Hippios::GPUProgram* Material::getVShader()

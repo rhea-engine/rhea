@@ -9,6 +9,7 @@ namespace Rhea
     namespace {  // anonymous namespace to limit the scope.
 
         const CssProperty backgroundImage{ StylePropertyId::kBackgroundImage, "background-image", false, false };
+        const CssProperty backgroundColor{ StylePropertyId::kBackgroundColor, "background-color", false, false };
         const CssProperty left{ StylePropertyId::kLeft, "left",false, false };
         const CssProperty top{ StylePropertyId::kTop, "top", false, false };
         const CssProperty width{ StylePropertyId::kWidth, "width", false, false };
@@ -23,6 +24,7 @@ namespace Rhea
             
     const std::array<const CssProperty*, static_cast<size_t>(StylePropertyId::kCount)> kCssProperties{ {
         &backgroundImage,
+        &backgroundColor,
         &left,
         &top,
         &width,
@@ -39,6 +41,7 @@ namespace Rhea
 
     std::array<_css_def, static_cast<size_t>(StylePropertyId::kCount)> kDefaultValues = { {
         {CssValueId::kIdentifier, "none"},  // kBackgroundImage default.
+        {CssValueId::kIdentifier, "transparent"},  // kBackgroundColor default.
         {CssValueId::kNumeric, 0},     // kLeft default.
         {CssValueId::kNumeric, 0},     // kTop default.
         {CssValueId::kIdentifier, "auto"},  // kWidth default.

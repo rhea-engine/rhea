@@ -19,6 +19,7 @@ namespace Rhea
 			m_scene(scene),
 			m_items_valid(false)
 		{}
+		~GraphicsScene() {}
 
 		// get my currently active items
 		std::vector<Item*> getItems();

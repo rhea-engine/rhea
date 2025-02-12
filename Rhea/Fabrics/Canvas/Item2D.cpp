@@ -44,53 +44,22 @@ namespace Rhea
 	{
 		Unit::ready();
 
-		// load and add textures
-		if (m_values.find("texture") != m_values.end())
-		{			
-			Unit* tex = doCast<Unit>(m_app->getUnitTree()->find(m_values["texture"], m_attributes["basepath"], false));
-			if (tex) {
+		if (m_bg_color.w > 0.0f || m_values.find("texture") != m_values.end()) {
+			// background color or image was set
 
-				// create dummy material
-				m_material = new Material(m_path + "_material");
-				m_material->setup(m_app);
-				m_material->setValue("shader", "widget");
-
-				// make sure texture is ready
-				tex->ready();
-				
-				// get the shader
-				Shader* shader_res = doCast<Shader>(m_app->getUnitTree()->find(m_values["shader"], m_attributes["basepath"], false));
-				if (shader_res) {
-					m_material->setShaderRes(shader_res);
-				}				
+			if (m_values.find("texture") != m_values.end()) {
+				ImageResource* tex = doCast<ImageResource>(m_app->getUnitTree()->find(m_values["texture"], m_attributes["basepath"], false));
+				if (tex) {
+					// make sure texture is ready
+					tex->ready();
+					// add to material
+					m_bg_image = tex;
+				}
 				else {
-					LOG(LOG_ERROR) << "item2d::ready(): Shader '" << (std::string)m_values["shader"] << "' for " << m_pathname << " not found";
-					return;
-				}
-				m_material->setTexture(0, static_cast<ImageResource*>(tex));
-				//addChild(m_material);
-
-				RenderComponent* render_component = getComponent<RenderComponent>();
-				if (!render_component) {
-					render_component = addComponentUnique<RenderComponent>("renderer");					
-				}
-
-				// add the mesh
-				if (!render_component->getMesh()) {
-
-					std::unordered_map<std::string, std::string> attributes;
-					std::unordered_map<std::string, Variant> values;
-					Mesh* mesh = m_app->getUnitTree()->createUnit<Mesh>(m_pathname + "_mesh", attributes, values);
-					mesh->setMaterial(m_material);
-					addChild(mesh);
-					render_component->setMesh(mesh);
-
-					setMesh();
+					LOG(LOG_ERROR) << "texture for item2d set but not found: " << (std::string)m_values["texture"];
 				}
 			}
-			else {
-				LOG(LOG_ERROR) << "texture or shader for item2d not found";
-			}
+			UpdateMaterial();
 		}
 	}
 
@@ -131,5 +100,73 @@ namespace Rhea
 		if (getComponent<RenderComponent>() && getComponent<RenderComponent>()->getMesh())
 			setMesh();
 		sendEvent("update", nullptr);
+	}
+
+	void Rhea::Item2D::setBackgroundColor(int r, int g, int b, float opacity)
+	{
+		m_bg_color.x = r / 255.0f;
+		m_bg_color.y = g / 255.0f;
+		m_bg_color.z = b / 255.0f;
+		m_bg_color.w = opacity;
+	}
+
+	void Item2D::setBackgroundImage(ImageResource* tex)
+	{
+		m_bg_image = tex;
+	}
+
+	void Rhea::Item2D::CreateMaterial()
+	{
+		m_material = nullptr; // old material gets destroyed 
+		m_material = std::make_unique<Material>(m_path + "_material");
+		m_material->setup(m_app);
+		m_material->setValue("shader", "widget");
+
+		// get the shader
+		Shader* shader_res = doCast<Shader>(m_app->getUnitTree()->find(m_values["shader"], m_attributes["basepath"], false));
+		if (shader_res) {
+			m_material->setShaderRes(shader_res);
+		}
+		else {
+			LOG(LOG_ERROR) << "item2d::ready(): Shader '" << (std::string)m_values["shader"] << "' for " << m_pathname << " not found";
+			return;
+		}
+	}
+
+	void Rhea::Item2D::UpdateMaterial()
+	{
+		// make sure material is set
+		if (!m_material)
+			CreateMaterial();
+
+		// make sure rendercomponent is set
+		RenderComponent* render_component = getComponent<RenderComponent>();
+		if (!render_component) {
+			render_component = addComponentUnique<RenderComponent>("renderer");
+		}
+
+		// set or clear texture
+		m_material->setTexture(0, m_bg_image);
+
+		// set bg colors
+		m_material->setColor(0, m_bg_color);
+
+		// add the mesh if not set
+		if (!render_component->getMesh()) {
+
+			std::unordered_map<std::string, std::string> attributes;
+			std::unordered_map<std::string, Variant> values;
+			Mesh* mesh = m_app->getUnitTree()->createUnit<Mesh>(m_pathname + "_mesh", attributes, values);
+			mesh->setMaterial(m_material.get());
+			addChild(mesh);
+			render_component->setMesh(mesh);
+
+			setMesh();
+		}
+		else {
+			// set current material
+			Mesh* mesh = render_component->getMesh();
+			mesh->setMaterial(m_material.get());
+		}
 	}
 }

@@ -3,6 +3,7 @@
 
 #include "Rhea/Unit.h"
 #include <Components/Math/Vector3.h>
+#include <Math/Vector4.h>
 
 namespace Rhea
 {
@@ -31,7 +32,7 @@ namespace Rhea
 		std::vector<ImageResource*>& getTextures() { return m_textures; }
 
 		// set texture to specific slot
-		void setTexture(int slot, ImageResource* res) { if (slot >= m_textures.size()) m_textures.resize(slot + 1); m_textures[slot] = res; }
+		void setTexture(int slot, ImageResource* res) { if (slot >= m_textures.size() && res) m_textures.resize(slot + 1); m_textures[slot] = res; }
 
 		// set shader resource
 		void setShader(TextResource* shader) { m_shader = shader; }
@@ -49,8 +50,10 @@ namespace Rhea
 
 		// set color for id
 		void setColor(int propertyID, Math::Vector3 color) { if (propertyID < m_colors.size()) m_colors[propertyID] = color; }
+		void setColor(int propertyID, Math::Vector4 color) { if (propertyID < m_colors.size()) m_colors[propertyID] = color; }
+
 		// get color for id
-		Math::Vector3 getColor(int propertyID) { if (propertyID < m_colors.size()) return m_colors[propertyID]; else return Math::Vector3(0, 0, 0); }
+		Math::Vector4 getColor(int propertyID) { if (propertyID < m_colors.size()) return m_colors[propertyID]; else return Math::Vector4(0, 0, 0, 0); }
 
 		// set a float value by id
 		void setFloat(int propertyID, float value) { if (propertyID < m_floats.size()) m_floats[propertyID] = value; }
@@ -66,7 +69,7 @@ namespace Rhea
 		TextResource* m_shader;
 		Shader* m_shader_res;
 		std::vector<ImageResource*> m_textures;
-		std::vector<Math::Vector3> m_colors;
+		std::vector<Math::Vector4> m_colors;
 		std::vector<float> m_floats;
 		std::vector<int> m_ints;
 	};

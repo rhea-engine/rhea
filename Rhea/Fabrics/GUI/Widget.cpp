@@ -22,6 +22,9 @@
 #include "Modifier/FillWidth.h"
 #include "Styles/Property.h"
 #include "Styles/StyleSheet.h"
+#include "Modifier/SizePercentageWidth.h"
+#include "Modifier/FillHeight.h"
+#include "Modifier/SizePercentageHeight.h"
 
 namespace Rhea
 {
@@ -45,18 +48,27 @@ namespace Rhea
 
 		// size set
 		if (m_values["w"] != Variant() || m_values["h"] != Variant()) {
+			Vector2 m_base_size;
 			if (m_values["w"] != Variant() && m_values["h"] != Variant()) {
 				m_base_size.x = getValue("w", 0.0f);
 				m_base_size.y = getValue("h", 0.0f);
 				m_modifiers.push_back(std::make_unique<SizeModifier>(m_base_size));
+				//setStyle(StylePropertyId::kWidth, m_values["w"]);
+				//setStyle(StylePropertyId::kHeight, m_values["h"]);
+				m_properties[StylePropertyId::kWidth].push_back({ CssValueId::kNumeric, m_values["w"] });
+				m_properties[StylePropertyId::kHeight].push_back({ CssValueId::kNumeric, m_values["h"] });
 			}
 			else if (m_values["w"] != Variant()) {
 				m_base_size.x = getValue("w", 0.0f);
 				m_modifiers.push_back(std::make_unique<SizeWidthModifier>(m_base_size.x));
+				//setStyle(StylePropertyId::kWidth, m_values["w"]);
+				m_properties[StylePropertyId::kWidth].push_back({ CssValueId::kNumeric, m_values["w"] });
 			}
 			else {
 				m_base_size.y = getValue("h", 0.0f);
 				m_modifiers.push_back(std::make_unique<SizeHeightModifier>(m_base_size.y));
+				//setStyle(StylePropertyId::kHeight, m_values["h"]);
+				m_properties[StylePropertyId::kHeight].push_back({ CssValueId::kNumeric, m_values["h"] });
 			}
 		}
 
@@ -190,22 +202,23 @@ namespace Rhea
 		for (auto it = m_children.begin(); it != m_children.end(); ++it) {
 			Widget* w = doCast<Widget>(it->second);
 			if (w) {
-				w->setPosition(m_position);
+				w->setPosition(m_position + m_content_position);
 			}
 		}
 	}
 
 	// compute widget size
 	// apply all modifiers	
-	// call internal size
+	// get content size and add it (if size not forced)
 	// compute and return outer_size
 	Vector2 Widget::size(Vector2 size_constraints)
 	{
-		m_size = Vector2(0.0f, 0.0f);
+		m_size = Vector2(-1.0f, -1.0f);
 		m_base_position = Vector2(0.0f, 0.0f);
+		m_content_position = Vector2(0.0f, 0.0f);
+		Vector2 margin;
+		Vector2 outer_size;
 
-		// reported size to parent
-		m_outer_size = Vector2(0.0f, 0.0f);
 		// constraints for children
 		Vector2 inner_size = size_constraints;
 
@@ -214,23 +227,39 @@ namespace Rhea
 
 		// apply modifiers
 		for (auto it = m_modifiers.begin(); it < m_modifiers.end(); ++it) {
-			(*it)->apply(this, inner_size, m_size, m_outer_size);
-		}
-		Vector2 child_size = innerSize(inner_size);
+			(*it)->apply(this, inner_size, m_size, outer_size, margin);
+		}				
+
+		// get the content without modifiers from the concrete widget
+		Vector2 content_size = innerSize(inner_size);
+
+		// content size 
+		// is the resulting inner size (TODO handle overflow?)
+		m_content_size = inner_size;
+
+		// box size
+		// if m_size is set it is the size of the box
+		// else we use the contents size and add extra space from padding and borders etc but not margin
+		m_size.x = (m_size.x >= 0.0f) ? m_size.x : content_size.x + outer_size.x;
+		m_size.y = (m_size.y >= 0.0f) ? m_size.y : content_size.y + outer_size.y;
+
+		// depending on box model?
+		// outer size is size plus margin
+		m_outer_size = m_size + margin;
 
 		// enlarge size and m_outer_size if child is larger than size;
-		float child_delta_x = child_size.x - m_size.x;
-		if (child_delta_x > 0.0f) {
-			m_size.x = child_size.x;
-			m_outer_size.x += child_delta_x;
+		float content_delta_x = content_size.x - m_size.x;
+		if (content_delta_x > 0.0f) {
+			m_size.x = content_size.x;
+			m_outer_size.x += content_delta_x;
 		}
-		float child_delta_y = child_size.y - m_size.y;
-		if (child_delta_y > 0.0f) {
-			m_size.y = child_size.y;
-			m_outer_size.y += child_delta_y;
+		float content_delta_y = content_size.y - m_size.y;
+		if (content_delta_y > 0.0f) {
+			m_size.y = content_size.y;
+			m_outer_size.y += content_delta_y;
 		}
 
-		// report only the constraint size
+		// clamp report to the constraint size
 		if (m_outer_size.x > size_constraints.x)
 			m_outer_size.x = size_constraints.x;
 		if (m_outer_size.y > size_constraints.y)
@@ -241,7 +270,8 @@ namespace Rhea
 
 	Vector2 Widget::innerSize(Vector2 size_constraints)
 	{
-		Vector2 max_child_size = Vector2(0.0f, 0.0f);
+		Vector2 max_child_size(0.0f, 0.0f);
+		// the default for widgets is to use the largest child (not a container)
 		for (auto it = m_children.begin(); it != m_children.end(); ++it) {
 			Widget* w = doCast<Widget>(it->second);
 			if (w) {
@@ -297,46 +327,51 @@ namespace Rhea
 
 	void Widget::RecalculateStyle(StyleEngine* style_engine)
 	{
-		// Clear any previously computed styles.
-		m_computed_properties.clear();
+		if (m_style_dirty) {
 
-		// Inherit style properties from the parent widget if they are inherited
-		if (doCast<Widget>(m_parent)) {
-			for (const auto& prop : kCssProperties) {
-				if (prop->inherited) {
-					// Look for the property in the parent's computed styles.
-					auto it = doCast<Widget>(m_parent)->m_computed_properties.find(prop->id);
-					if (it != doCast<Widget>(m_parent)->m_computed_properties.end()) {
-						// Copy the parent's value.
-						m_computed_properties[prop->id] = it->second;
+			// Clear any previously computed styles.
+			m_computed_properties.clear();
+
+			// Inherit style properties from the parent widget if they are inherited
+			if (doCast<Widget>(m_parent)) {
+				for (const auto& prop : kCssProperties) {
+					if (prop->inherited) {
+						// Look for the property in the parent's computed styles.
+						auto it = doCast<Widget>(m_parent)->m_computed_properties.find(prop->id);
+						if (it != doCast<Widget>(m_parent)->m_computed_properties.end()) {
+							// Copy the parent's value.
+							m_computed_properties[prop->id] = it->second;
+						}
+						else {
+							// If the parent doesn't define it, fallback to the default value.
+							m_computed_properties[prop->id].push_back(CssProperty::GetDefaultValue(prop->id));
+						}
 					}
-					else {
-						// If the parent doesn't define it, fallback to the default value.
+				}
+			}
+			else
+			{
+				// For the root widget, initialize inherited properties to their defaults.
+				for (const auto& prop : kCssProperties) {
+					if (prop->inherited) {
 						m_computed_properties[prop->id].push_back(CssProperty::GetDefaultValue(prop->id));
 					}
 				}
 			}
+
+			// Get computed style properties from the style engine.
+			auto computed_styles = style_engine->GetStylesForWidget(this);
+
+			// Apply these computed styles.
+			AppendStyles(computed_styles);
+
+			// overwrite with my own property
+			AppendStyles(m_properties);
+
+			ApplyStyles();
+
+			m_style_dirty = false;
 		}
-		else
-		{
-			// For the root widget, initialize inherited properties to their defaults.
-			for (const auto& prop : kCssProperties) {
-				if (prop->inherited) {
-					m_computed_properties[prop->id].push_back(CssProperty::GetDefaultValue(prop->id));
-				}
-			}
-		}
-
-		// Get computed style properties from the style engine.
-		auto computed_styles = style_engine->GetStylesForWidget(this);
-
-		// Apply these computed styles.
-		AppendStyles(computed_styles);
-
-		// overwrite with my own property
-		AppendStyles(m_properties);
-
-		ApplyStyles();
 
 		// Recursively recalculate style for all child widgets.
 		children([&](std::string name, Rhea::Component* child)->bool {
@@ -356,11 +391,18 @@ namespace Rhea
 
 	void Widget::ApplyStyles()
 	{
-		// (re-)create material
-		CreateMaterial();
+		Vector2 base_position;
+		Vector2 base_size;
+		CssValueId position_types[4] = { CssValueId::kString, CssValueId::kString, CssValueId::kString, CssValueId::kString };
+		m_font_size = -1.0f;
 
 		for (auto it = m_computed_properties.begin(); it != m_computed_properties.end(); ++it) {
-			if (it->first == StylePropertyId::kBackgroundImage && it->second.size()) {
+			// make sure we have at least one value
+			if (!it->second.size())
+				continue;
+			switch (it->first) {
+			case StylePropertyId::kBackgroundImage:
+			{
 				std::string res_name = it->second[0].value;
 				if (!res_name.compare("none")) {
 					setBackgroundImage(nullptr);
@@ -373,13 +415,63 @@ namespace Rhea
 					}
 				}
 			}
-			else if (it->first == StylePropertyId::kBackgroundColor && it->second.size()>=3) {
+			break;
+			case StylePropertyId::kBackgroundColor:
+				if (it->second.size() >= 3) {
 
-				// set background color as (r,g,b,alpha)
-				if (it->second.size() > 3)
-					setBackgroundColor(it->second[0].value, it->second[1].value, it->second[2].value, it->second[3].value);
-				else
-					setBackgroundColor(it->second[0].value, it->second[1].value, it->second[2].value);
+					// set background color as (r,g,b,alpha)
+					if (it->second.size() > 3)
+						setBackgroundColor(it->second[0].value, it->second[1].value, it->second[2].value, it->second[3].value);
+					else
+						setBackgroundColor(it->second[0].value, it->second[1].value, it->second[2].value);
+				}
+				break;
+			case StylePropertyId::kLeft:
+				base_position.x = it->second[0].value;
+				position_types[0] = it->second[0].id;
+				break;
+			case StylePropertyId::kTop:
+				base_position.y = it->second[0].value;
+				position_types[1] = it->second[0].id;
+				break;
+			case StylePropertyId::kWidth:
+				base_size.x = it->second[0].value;
+				position_types[2] = it->second[0].id;
+				break;
+			case StylePropertyId::kHeight:
+				base_size.y = it->second[0].value;
+				position_types[3] = it->second[0].id;
+				break;
+			case StylePropertyId::kFontSize:
+			{
+				float parent_font_size = 0.0f;
+				if (doCast<Widget>(m_parent))
+					parent_font_size = doCast<Widget>(m_parent)->getFontSize();
+				else {
+					CssValue default_font_size_val = CssProperty::GetDefaultValue(StylePropertyId::kFontSize);
+					if (default_font_size_val.id == CssValueId::kNumeric)
+						parent_font_size = (float)default_font_size_val.value;
+					else
+						// TODO parse size names
+						parent_font_size = 16;
+				}
+
+				switch (it->second[0].id) {
+				case CssValueId::kNumeric:
+					m_font_size = it->second[0].value;
+					break;
+				case CssValueId::kDimensionEm:
+					m_font_size = parent_font_size * (float)it->second[0].value;
+					break;
+				case CssValueId::kPercentage:
+					m_font_size = parent_font_size * (float)it->second[0].value / 100.0f;
+					break;
+				case CssValueId::kString:
+					if (it->second[0].value == "inherit")
+						m_font_size = parent_font_size;
+				}
+			}
+			break;
 			}
 		}
 		UpdateMaterial();
@@ -393,15 +485,77 @@ namespace Rhea
 			m_modifiers.push_back(std::make_unique<OffsetModifier>(m_base_position));
 		}
 
+		// get my font size
+		if (m_font_size < 0) {
+			if (doCast<Widget>(m_parent))
+				m_font_size = doCast<Widget>(m_parent)->getFontSize();
+			else {
+				CssValue default_font_size_val = CssProperty::GetDefaultValue(StylePropertyId::kFontSize);
+				if (default_font_size_val.id == CssValueId::kNumeric)
+					m_font_size = (float)default_font_size_val.value;
+				else
+					// TODO parse size names
+					m_font_size = 16;
+			}
+		}
+
 		// size set
-		if (m_base_size.x > 0.0f && m_base_size.y > 0.0f) {
-			m_modifiers.push_back(std::make_unique<SizeModifier>(m_base_size));
+
+		if (position_types[2] != CssValueId::kString && position_types[2] != CssValueId::kPercentage && position_types[3] != CssValueId::kString && position_types[3] != CssValueId::kPercentage) {
+			// both dimensions set and are absolute
+			Vector2 size;
+			switch (position_types[2]) {
+			case CssValueId::kNumeric:
+				size.x = base_size.x;
+				break;
+			case CssValueId::kDimensionEm:
+				size.x = m_font_size * base_size.x;
+				break;
+			}
+			switch (position_types[3]) {
+			case CssValueId::kNumeric:
+				size.y = base_size.y;
+				break;
+			case CssValueId::kDimensionEm:
+				size.y = m_font_size * base_size.y;
+				break;
+			}
+			m_modifiers.push_back(std::make_unique<SizeModifier>(size));
 		}
-		else if (m_base_size.x > 0.0f) {				
-			m_modifiers.push_back(std::make_unique<SizeWidthModifier>(m_base_size.x));
-		}
-		else if (m_base_size.y > 0.0f) {				
-			m_modifiers.push_back(std::make_unique<SizeHeightModifier>(m_base_size.y));
+		else {
+			if (base_size.x > 0.0f) {
+				switch (position_types[2]) {
+				case CssValueId::kNumeric:
+					m_modifiers.push_back(std::make_unique<SizeWidthModifier>(base_size.x));
+					break;
+				case CssValueId::kDimensionEm:
+					m_modifiers.push_back(std::make_unique<SizeWidthModifier>(base_size.x * m_font_size));
+					break;
+				case CssValueId::kPercentage:
+					if (base_size.x < 100.0f)
+						m_modifiers.push_back(std::make_unique<SizePercentageWidthModifier>(base_size.x / 100.0f));
+					else
+						m_modifiers.push_back(std::make_unique<FillWidthModifier>());
+					break;
+				}
+
+			}
+			if (base_size.y > 0.0f) {
+				switch (position_types[3]) {
+				case CssValueId::kNumeric:
+					m_modifiers.push_back(std::make_unique<SizeHeightModifier>(base_size.y));
+					break;
+				case CssValueId::kDimensionEm:
+					m_modifiers.push_back(std::make_unique<SizeHeightModifier>(base_size.y * m_font_size));
+					break;
+				case CssValueId::kPercentage:
+					if (base_size.y < 100.0f)
+						m_modifiers.push_back(std::make_unique<SizePercentageHeightModifier>(base_size.y / 100.0f));
+					else
+						m_modifiers.push_back(std::make_unique<FillHeightModifier>());
+					break;
+				}
+			}
 		}
 
 		// padding		
@@ -431,6 +585,7 @@ namespace Rhea
 		for (const auto& style : styles) {
 			m_properties[style.first] = style.second;
 		}
+		m_style_dirty = true;
 	}
 
 	std::vector<CssValue>& Widget::getStyle(StylePropertyId style)
@@ -446,12 +601,13 @@ namespace Rhea
 
 	void Widget::setStyle(StylePropertyId id, SimpleParser::Variant value)
 	{
-		StyleSheet css("intern");
 		std::vector<CssValue> values;
 		std::vector<SimpleParser::CssParser::Property> content;
 		content.push_back({ SimpleParser::CssParser::PropertyId::kString, 0, value });
-		if (css.ParseValues(id, content, values))
+		if (StyleSheet::ParseValues(id, content, values)) {
 			m_properties[id] = values;
+			m_style_dirty = true;
+		}
 	}
 
 	void Widget::show()

@@ -14,11 +14,10 @@ namespace Rhea {
 			m_size(size)
 		{}
 
-		void apply(Widget* w, Vector2& size_constraints, Vector2& inner_size, Vector2& outer_size) {
+		void apply(Widget* w, Vector2& size_constraints, Vector2& inner_size, Vector2& outer_size, Vector2& margin) {
 			inner_size.x = m_size;
 			if (size_constraints.x < inner_size.x)
 				inner_size.x = size_constraints.x;
-			outer_size.x += m_size;
 			size_constraints.x = m_size;
 		};
 
@@ -27,7 +26,6 @@ namespace Rhea {
 			if (max_inner_size.x < min_inner_size.x)
 				min_inner_size.x = max_inner_size.x;
 			max_inner_size.x = m_size;
-			min_outer_size.x += m_size;
 		}
 
 		std::string name() { return "width"; }

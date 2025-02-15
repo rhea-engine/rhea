@@ -48,7 +48,7 @@ namespace Rhea
 			Vector2 parent_size = p->getSize();
 
 			// m_size contains the size parameter or the size needed by its children
-			Vector2 padding = Vector2((parent_size.x - m_size.x) / 2, (parent_size.y - m_size.y) / 2);
+			Vector2 padding = Vector2((parent_size.x - m_outer_size.x) / 2, (parent_size.y - m_outer_size.y) / 2);
 			m_position += padding;
 		}
 

@@ -8,6 +8,8 @@ namespace Rhea
 	enum class CssValueId
 	{
 		kNumeric,
+		kPercentage,
+		kDimensionEm,
 		kString,
 		kKeyword,
 		kURI,

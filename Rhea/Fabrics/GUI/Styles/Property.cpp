@@ -15,6 +15,7 @@ namespace Rhea
         const CssProperty width{ StylePropertyId::kWidth, "width", false, false };
         const CssProperty height{ StylePropertyId::kHeight, "height", false, false };
         const CssProperty font{ StylePropertyId::kFont, "font", true, false };
+        const CssProperty fontSize{ StylePropertyId::kFont, "font-size", true, false };
         const CssProperty paddingTop{ StylePropertyId::kPaddingTop, "padding-top", false, false };
         const CssProperty paddingLeft{ StylePropertyId::kPaddingLeft, "padding-left", false, false };
         const CssProperty paddingBottom{ StylePropertyId::kPaddingBottom, "padding-bottom", false, false };
@@ -30,6 +31,7 @@ namespace Rhea
         &width,
         &height,
         &font,
+        &fontSize,
         &padding,
         &paddingTop,
         &paddingLeft,
@@ -47,6 +49,7 @@ namespace Rhea
         {CssValueId::kIdentifier, "auto"},  // kWidth default.
         {CssValueId::kIdentifier,"auto"},   // kHeight default.
         {CssValueId::kString, ""}, // font default
+        {CssValueId::kNumeric, 16}, // font-size default
         {CssValueId::kNumeric, 0}, // padding-top default
         {CssValueId::kNumeric, 0}, // padding-left default
         {CssValueId::kNumeric, 0}, // padding-bottom default

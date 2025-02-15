@@ -21,6 +21,7 @@ namespace Rhea
 			m_size(0.0f, 0.0f),
 			m_position(0.0f, 0.0f),
 			m_bg_image(nullptr),
+			m_material_dirty(false),
 			Item(name, type_name)
 		{}
 
@@ -52,7 +53,7 @@ namespace Rhea
 		
 		// current position in pixel
 		Vector2 m_position;
-		// current  width in pixel
+		// current width in pixel
 		Vector2 m_size;
 
 		// background-color
@@ -61,7 +62,8 @@ namespace Rhea
 		// background image
 		ImageResource* m_bg_image;
 
-		void CreateMaterial();
+		bool m_material_dirty;
+		// update (or create) the material if material is dirty
 		void UpdateMaterial();
 		std::unique_ptr<Material> m_material;
 	};

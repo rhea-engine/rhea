@@ -109,9 +109,9 @@ namespace Rhea
 
 	void ListWidget::onSetPosition()
 	{
-		m_cur_position = m_position;
+		m_cur_position = m_position + m_content_position;
 
-		Vector2 child_position = m_position;
+		Vector2 child_position = m_position + m_content_position;
 		for (auto it = m_list_items.begin(); it != m_list_items.end(); ++it) {
 			Widget* w = doCast<Widget>(*it);
 			if (w) {

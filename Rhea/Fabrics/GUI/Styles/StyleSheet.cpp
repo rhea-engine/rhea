@@ -83,6 +83,14 @@ namespace Rhea
 				case SimpleParser::CssParser::PropertyId::kIdentifier:
 					values.push_back({ CssValueId::kKeyword, content[i].value });
 					break;
+				case SimpleParser::CssParser::PropertyId::kDimension:
+					if (content[i].extra=="px")
+						values.push_back({ CssValueId::kNumeric, content[i].value });
+					else if (content[i].extra=="%")
+						values.push_back({ CssValueId::kPercentage, content[i].value });
+					else if (content[i].extra == "em")
+						values.push_back({ CssValueId::kDimensionEm, content[i].value });
+					break;
 				}
 				break;
 			}

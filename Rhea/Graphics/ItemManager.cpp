@@ -104,6 +104,8 @@ namespace Rhea
 		// NOTE: This assumes a changed material will actually be a new material (i.e. the old one gets destroyed)
 
 		// ensure all submeshes have the correct material
+		if (!mesh->getComponent<GraphicsComponent>())
+			return false;
 		GraphicsMesh* mesh_el = static_cast<GraphicsMesh*>(mesh->getComponent<GraphicsComponent>()->getElement());
 		for (size_t i = 0; i < mesh->getNumSubmeshes(); i++) {
 			Material* material = mesh->getMaterial(i);

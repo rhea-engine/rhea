@@ -18,8 +18,6 @@ namespace Rhea
 
 		val["x"] = m_base_position.x;
 		val["y"] = m_base_position.y;
-		val["w"] = m_base_size.x;
-		val["h"] = m_base_size.y;
 		val["text"] = getValue("text", "");
 		if (m_values.find("font") != m_values.end()) {
 			val["font"] = getValue("font");
@@ -92,7 +90,7 @@ namespace Rhea
 	void Label::onSetPosition()
 	{
 		if (m_label_item) {
-			m_label_item->move(m_position.x, m_position.y);
+			m_label_item->move(m_position.x + m_content_position.x, m_position.y + m_content_position.y);
 			m_label_item->update();
 		}
 	}

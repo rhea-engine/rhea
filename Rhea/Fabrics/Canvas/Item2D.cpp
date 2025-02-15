@@ -59,6 +59,7 @@ namespace Rhea
 					LOG(LOG_ERROR) << "texture for item2d set but not found: " << (std::string)m_values["texture"];
 				}
 			}
+			m_material_dirty = true;
 			UpdateMaterial();
 		}
 	}
@@ -104,40 +105,50 @@ namespace Rhea
 
 	void Rhea::Item2D::setBackgroundColor(int r, int g, int b, float opacity)
 	{
-		m_bg_color.x = r / 255.0f;
-		m_bg_color.y = g / 255.0f;
-		m_bg_color.z = b / 255.0f;
-		m_bg_color.w = opacity;
+		Math::Vector4 bg_color;
+		bg_color.x = r / 255.0f;
+		bg_color.y = g / 255.0f;
+		bg_color.z = b / 255.0f;
+		bg_color.w = opacity;
+		if (bg_color != m_bg_color) {
+			m_bg_color = bg_color;
+			m_material_dirty = true;
+		}
 	}
 
 	void Item2D::setBackgroundImage(ImageResource* tex)
 	{
-		m_bg_image = tex;
-	}
-
-	void Rhea::Item2D::CreateMaterial()
-	{
-		m_material = nullptr; // old material gets destroyed 
-		m_material = std::make_unique<Material>(m_path + "_material");
-		m_material->setup(m_app);
-		m_material->setValue("shader", "widget");
-
-		// get the shader
-		Shader* shader_res = doCast<Shader>(m_app->getUnitTree()->find(m_values["shader"], m_attributes["basepath"], false));
-		if (shader_res) {
-			m_material->setShaderRes(shader_res);
-		}
-		else {
-			LOG(LOG_ERROR) << "item2d::ready(): Shader '" << (std::string)m_values["shader"] << "' for " << m_pathname << " not found";
-			return;
+		if (tex != m_bg_image) {
+			m_bg_image = tex;
+			m_material_dirty = true;
 		}
 	}
 
 	void Rhea::Item2D::UpdateMaterial()
 	{
-		// make sure material is set
-		if (!m_material)
-			CreateMaterial();
+		// only update if really changed
+		if (!m_material_dirty)
+			return;
+		else {
+			m_material_dirty = false;
+
+			// (re-)create material
+			//if (!m_material)
+			m_material = nullptr; // old material gets destroyed 
+			m_material = std::make_unique<Material>(m_path + "_material");
+			m_material->setup(m_app);
+			m_material->setValue("shader", "widget");
+
+			// get the shader
+			Shader* shader_res = doCast<Shader>(m_app->getUnitTree()->find(m_values["shader"], m_attributes["basepath"], false));
+			if (shader_res) {
+				m_material->setShaderRes(shader_res);
+			}
+			else {
+				LOG(LOG_ERROR) << "item2d::ready(): Shader '" << (std::string)m_values["shader"] << "' for " << m_pathname << " not found";
+				return;
+			}
+		}
 
 		// make sure rendercomponent is set
 		RenderComponent* render_component = getComponent<RenderComponent>();

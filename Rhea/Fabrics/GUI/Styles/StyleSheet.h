@@ -23,7 +23,7 @@ namespace Rhea
 
 		std::vector<StyleRule>& getRules() { return m_entries; }
 
-		bool ParseValues(StylePropertyId id, std::vector<SimpleParser::CssParser::Property>& content, std::vector<CssValue>& values);
+		static bool ParseValues(StylePropertyId id, std::vector<SimpleParser::CssParser::Property>& content, std::vector<CssValue>& values);
 
 	protected:
 		std::vector<StyleRule> m_entries;

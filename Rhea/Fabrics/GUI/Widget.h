@@ -27,11 +27,12 @@ namespace Rhea
 			Item2D(path_name, type_name),
 			m_top_window(false),			
 			m_handle_input(false),
-			m_user_ptr(nullptr),
-			m_base_size(0.0f, 0.0f),
+			m_user_ptr(nullptr),			
 			m_base_position(0.0f, 0.0f),
 			m_cur_position(0.0f, 0.0f),
+			m_font_size(0.0),
 			m_screen_position_valid(false),
+			m_style_dirty(true),
 			m_is_rtl(false),
 			m_essential_size_valid(false)
 		{}
@@ -49,8 +50,9 @@ namespace Rhea
 		void setPosition(Vector2 position);
 		virtual void onSetPosition();
 
-		// recalculate my size
-		Vector2 size(Vector2 size_constraints);
+		// recalculate my size (get preferred content size)
+		Vector2 size(Vector2 size_constraints);		
+		// measure my content size
 		virtual Vector2 innerSize(Vector2 size_constraints);
 
 		// get the current size
@@ -63,11 +65,17 @@ namespace Rhea
 		virtual void innerGetMinSize(Vector2 size_constraints, Vector2& min_size);
 
 		Vector2 getOuterSize() { return m_outer_size; }
+		Vector2 getContainingBlock() { return m_content_size; }
 
 		// get the current position (relative to parent)
 		Vector2 getBasePosition() { return m_base_position; }
 		// set the position (relative to parent)
 		void setBasePosition(Vector2 pos) { m_base_position = pos; }
+		// get the current content position (relative to base position)
+		Vector2 getContentPosition() { return m_content_position; }
+		// set the content position (relative to base position)
+		void setContentPosition(Vector2 pos) { m_content_position = pos; }
+
 
 		// style
 		void RecalculateStyle(StyleEngine* style_engine);		
@@ -79,6 +87,7 @@ namespace Rhea
 		// set the css value with text. value will be parsed
 		void setStyle(StylePropertyId id, SimpleParser::Variant value);
 		virtual const std::string getSelector() { return "Widget"; }
+		float getFontSize() { return m_font_size; }
 
 		// Widget handling functions
 
@@ -120,12 +129,21 @@ namespace Rhea
 
 		// defined coordinates
 		
-		// position of element relative to parent
-		Vector2 m_base_position;		
-		// initial size of element
-		Vector2 m_base_size;
-		// outer size of element
+		// position of box with border (w/o margin) relative to parent
+		Vector2 m_base_position;
+		// size of the box with border (w/o margin)
+		// Vector2 m_size defined in Item2D
+		
+		// position of content area relative to parent
+		Vector2 m_content_position;
+		// size of content area
+		Vector2 m_content_size;
+
+		// outer size of element including margin
 		Vector2 m_outer_size;
+
+		// cached font size
+		float m_font_size;
 
 		Vector2 m_cached_min_size;
 		Vector2 m_cached_max_size;
@@ -135,7 +153,7 @@ namespace Rhea
 
 		// current coordinates
 
-		// current position in pixel
+		// current screen position in pixel
 		Vector2 m_cur_position;
 
 		// screen space
@@ -151,6 +169,8 @@ namespace Rhea
 		CssRuleSet m_properties;
 		// Holds the computed style properties for this widget.
 		CssRuleSet m_computed_properties;
+		// store if style is changed
+		bool m_style_dirty;
 
 		// rtl layout
 		bool m_is_rtl;

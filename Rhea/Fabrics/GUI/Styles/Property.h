@@ -18,6 +18,7 @@ namespace Rhea
 		kWidth,
 		kHeight,
 		kFont,
+		kFontSize,
 		kPaddingTop,
 		kPaddingLeft,
 		kPaddingBottom,

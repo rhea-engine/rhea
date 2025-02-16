@@ -31,6 +31,7 @@ namespace Rhea
 			m_base_position(0.0f, 0.0f),
 			m_cur_position(0.0f, 0.0f),
 			m_font_size(0.0),
+			m_sizing_mode(TextureSizingMode::kCover),
 			m_screen_position_valid(false),
 			m_style_dirty(true),
 			m_is_rtl(false),
@@ -80,7 +81,8 @@ namespace Rhea
 		// style
 		void RecalculateStyle(StyleEngine* style_engine);		
 		void AppendStyles(CssRuleSet& styles);
-		virtual void ApplyStyles();
+		virtual void ApplyStyles();		
+
 		// set widgets own style(s)
 		void setStyles(CssRuleSet& styles);
 		std::vector<CssValue>& getStyle(StylePropertyId style);
@@ -144,6 +146,16 @@ namespace Rhea
 
 		// cached font size
 		float m_font_size;
+
+		// scaling the background-image
+		enum class TextureSizingMode {
+			kContain,   // Keep aspect ratio, fit inside widget
+			kCover,		// Scale to fit widget without preserving aspect ratio
+			kFixed      // No scaling, only tiling applies
+		};
+		// cached sizing mode
+		TextureSizingMode m_sizing_mode;
+		void ApplyTextureSizing();
 
 		Vector2 m_cached_min_size;
 		Vector2 m_cached_max_size;

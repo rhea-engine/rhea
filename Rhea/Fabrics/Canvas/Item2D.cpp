@@ -162,6 +162,11 @@ namespace Rhea
 		// set bg colors
 		m_material->setColor(0, m_bg_color);
 
+		// set tiling
+		m_material->setFloat2VS(0, m_tiling);
+		// set scaling
+		m_material->setFloat2VS(1, m_scaling);
+
 		// add the mesh if not set
 		if (!render_component->getMesh()) {
 

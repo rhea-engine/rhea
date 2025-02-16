@@ -19,6 +19,12 @@ cbuffer cbMaterial : register(b3)
     float mat_shininess;
     float has_normal_map;
     int num_textures;
+};
+
+cbuffer cbBackground : register(b5)
+{
+    float2 tiling;
+    float2 scaling;
 }
 
 struct VS_OUTPUT
@@ -32,13 +38,14 @@ SamplerState ObjSamplerState;
 
 VS_OUTPUT VShader(float4 position : POSITION, float2 tex : TEXCOORD)
 {
-    VS_OUTPUT output;
+    VS_OUTPUT output;  
 
     position.x = position.x + model[3][0];
     position.y = position.y + model[3][1];
 
     output.position = mul(position, VP);
-    output.tex = tex;
+    // Apply tiling if explicitly set (>1.0), otherwise apply scaling
+    output.tex = tex * (tiling > 1.0f ? tiling : scaling);
 	
     return output;
 }

@@ -1,4 +1,5 @@
 #include "Widget.h"
+#include "Widget.h"
 #include <cassert>
 #include <Psio/Log.h>
 
@@ -265,6 +266,12 @@ namespace Rhea
 		if (m_outer_size.y > size_constraints.y)
 			m_outer_size.y = size_constraints.y;
 
+		if (m_pathname == "lastused")
+			LOG(LOG_DEBUG) << "size";
+
+		// Compute tiling if necessary
+		ApplyTextureSizing();		
+
 		return m_outer_size;
 	}
 
@@ -474,6 +481,12 @@ namespace Rhea
 			break;
 			}
 		}
+		if (m_bg_image && m_bg_image->width > 0 && m_bg_image->height > 0) {
+			// adjust tiling
+			m_tiling.x = m_content_size.x / m_bg_image->width;
+			m_tiling.y = m_content_size.y / m_bg_image->height;
+		}
+
 		UpdateMaterial();
 		sendEvent("update", nullptr);
 
@@ -578,6 +591,64 @@ namespace Rhea
 		if (getValue("fillwidth", false)) {
 			m_modifiers.push_back(std::make_unique<FillWidthModifier>());
 		}
+	}
+
+	void Widget::ApplyTextureSizing() {
+
+		if (m_bg_image && m_bg_image->width > 0 && m_bg_image->height > 0 && (m_content_size.x > 1.0f || m_content_size.y>1.0f) ) 
+		{
+			// image and image size is set and content is not 1x1	
+			
+			// tiling
+			// assume background-reapat
+			Math::Vector2 tiling;			
+			tiling.x = max(m_content_size.x / m_bg_image->width, 1.0f); // dont tile if image is larger than content
+			tiling.y = max(m_content_size.y / m_bg_image->height, 1.0f);
+			if (m_tiling != tiling) {
+				m_tiling = tiling;
+				m_material_dirty = true;
+			}
+
+			// scaling
+			if (m_bg_image->width > m_content_size.x || m_bg_image->height > m_content_size.y)
+			{
+				Math::Vector2 scaling(1.0f, 1.0f);
+				switch (m_sizing_mode) {
+				case TextureSizingMode::kContain:
+				{
+					// Use the smaller scale factor for both axes to maintain aspect ratio
+					float aspect_scale = min(m_content_size.x / (float)m_bg_image->width, m_content_size.y / (float)m_bg_image->height);
+					scaling.x = aspect_scale;
+					scaling.y = aspect_scale;
+				}
+				break;
+				case TextureSizingMode::kCover:
+				{
+					float image_aspect = (float)m_bg_image->width / (float)m_bg_image->height;
+					float widget_aspect = m_content_size.x / m_content_size.y;
+					if (widget_aspect < image_aspect) {
+						// Widget is wider than image, fit height, scale width
+						scaling.x = widget_aspect / image_aspect;
+					}
+					else {
+						// Widget is taller than image, fit width, scale height					
+						scaling.y = image_aspect / widget_aspect;
+					}
+					
+					break;
+				}				
+				case TextureSizingMode::kFixed:
+					// scaling = { 1.0f, 1.0f };
+					break;
+				}				
+				if (scaling != m_scaling) {
+					m_scaling = scaling;
+					m_material_dirty = true;
+				}
+			}
+
+			UpdateMaterial();
+		}		
 	}
 
 	void Widget::setStyles(CssRuleSet& styles)

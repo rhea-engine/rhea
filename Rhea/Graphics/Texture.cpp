@@ -61,6 +61,9 @@ namespace Rhea
 					delete elem;
 					return nullptr;
 				}
+				// store the widht / height
+				img->width = elem->m_img->getWidth();
+				img->height = elem->m_img->getHeight();
 			}
 		}
 		else 

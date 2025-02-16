@@ -251,7 +251,7 @@ namespace Poseidon
 
 						if (mat != m_current_material && mat) {
 							m_current_material = mat;
-							mat->activate(3);
+							mat->activate(3, 5);
 						}
 						if (!m_current_material) {
 							printf("SceneManager::render: No shader found\n");

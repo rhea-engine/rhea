@@ -57,7 +57,7 @@ namespace Rhea
 		}
 
 		// setup material input slots
-		std::string light_type = getValue("light_type", "none");
+		std::string light_type = getValue("light_type", "none");		
 		if (light_type == "vertex") {
 			m_property_names = { "AMBIENT", "DIFFUSE", "SPECULAR", "EMMISSIVE" };
 			m_input_slots["AMBIENT"] = 0;
@@ -67,14 +67,22 @@ namespace Rhea
 			m_input_slots["EMISSIVE"] = 4;
 			m_num_input_slots = 5;
 		}
-		else if (m_values.find("material_slots") != m_values.end() && m_values["material_slots"].isArray()) {
-			for (int i = 0; i < m_values["material_slots"].size(); i++) {
-				m_property_names.push_back(m_values["material_slots"][i]);
-				m_input_slots[m_values["material_slots"][i]] = i;
+		else if (m_values.find("material_slots_ps") != m_values.end() && m_values["material_slots_ps"].isArray()) {
+			for (int i = 0; i < m_values["material_slots_ps"].size(); i++) {
+				m_property_names.push_back(m_values["material_slots_ps"][i]);
+				m_input_slots[m_values["material_slots_ps"][i]] = i;
 				m_num_input_slots = i + 1;
 			}
 		}
-
+		if (m_values.find("material_slots_vs") != m_values.end() && m_values["material_slots_vs"].isArray()) {
+			for (int i = 0; i < m_values["material_slots_vs"].size(); i++) {
+				m_property_names_vs.push_back(m_values["material_slots_vs"][i]);
+				// TODO support other types than float2
+				m_input_slots_vs[m_values["material_slots_vs"][i]] = { (size_t)i, InputType::kVector2 };
+				m_num_input_slots_vs = static_cast<size_t>(i) + 1;
+			}
+		}
+		
 		// setup texture slots
 		std::string texture_type = getValue("texture_type", "none");
 		if (texture_type == "standard") {

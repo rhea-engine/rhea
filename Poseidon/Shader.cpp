@@ -14,6 +14,7 @@ namespace Poseidon
 		m_topology_type(0),
 		m_cull_mode(true),
 		m_matbuf_size(0),
+		m_matbuf_size_vs(0),
 		m_material_buffer(nullptr),
 		m_matbuf_layout(),
 		m_renderer(nullptr)
@@ -143,9 +144,21 @@ namespace Poseidon
 	{
 		m_matbuf_layout = layout; 
 		m_matbuf_size = 0; 
-		for (int i = 0; i < m_matbuf_layout.size(); i++) {
+		m_matbuf_layout_map.clear();
+		for (size_t i = 0; i < m_matbuf_layout.size(); i++) {
 			m_matbuf_size += layout[i].size;
-			m_matbuf_layout_map[layout[i].name] = i;
+			m_matbuf_layout_map[layout[i].name] = static_cast<int>(i);
+		}
+	}
+
+	void Shader::setMatBufLayoutVS(std::vector<MatBufferLayoutElement>& layout)
+	{
+		m_matbuf_layout_vs = layout;
+		m_matbuf_size_vs = 0;
+		m_matbuf_layout_map_vs.clear();
+		for (size_t i = 0; i < m_matbuf_layout_vs.size(); i++) {
+			m_matbuf_size_vs += layout[i].size;
+			m_matbuf_layout_map_vs[layout[i].name] = static_cast<int>(i);
 		}
 	}
 

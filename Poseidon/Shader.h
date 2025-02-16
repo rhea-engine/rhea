@@ -52,10 +52,12 @@ namespace Poseidon
 
 		enum class MatBufferLayoutElementType
 		{
-			VECTOR3 = 0,
-			VECTOR4 = 1,
-			INT = 2,
-			FLOAT = 3
+			NONE = 0,
+			FLOAT = 1,
+			VECTOR2 = 2,
+			VECTOR3 = 3,
+			VECTOR4 = 4,
+			INT = 5,
 		};
 
 		struct MatBufferLayoutElement
@@ -68,7 +70,7 @@ namespace Poseidon
 			MatBufferLayoutElement(MatBufferLayoutElementType type, std::string name, size_t offset, size_t size) : type(type), name(name), offset(offset), size(size) {}
 		};
 
-		// get the layout for the material buffer
+		// get the layout for the PS material buffer
 		std::vector<MatBufferLayoutElement>* getMatBufLayout() { return &m_matbuf_layout; }
 		// add element for material buffer layoout
 		void addMatBufLayoutElement(MatBufferLayoutElementType type, std::string name, size_t offset, size_t size) {
@@ -79,6 +81,18 @@ namespace Poseidon
 		void setMatBufLayout(std::vector<MatBufferLayoutElement>& layout);
 		size_t getMatBufSize() const { return m_matbuf_size; }
 		int getMatBufLayoutMap(std::string name) { if (m_matbuf_layout_map.find(name) != m_matbuf_layout_map.end()) return m_matbuf_layout_map[name]; else return -1; }
+
+		// get the layout for the VS material buffer
+		std::vector<MatBufferLayoutElement>* getMatBufLayoutVS() { return &m_matbuf_layout_vs; }
+		// add element for material buffer layoout
+		void addMatBufLayoutElementVS(MatBufferLayoutElementType type, std::string name, size_t offset, size_t size) {
+			m_matbuf_layout_vs.push_back(MatBufferLayoutElement(type, name, offset, size));
+			m_matbuf_size_vs = offset + size;
+			m_matbuf_layout_map_vs[name] = (int)m_matbuf_layout.size() - 1;
+		}
+		void setMatBufLayoutVS(std::vector<MatBufferLayoutElement>& layout);
+		size_t getMatBufSizeVS() const { return m_matbuf_size_vs; }
+		int getMatBufLayoutMapVS(std::string name) { if (m_matbuf_layout_map_vs.find(name) != m_matbuf_layout_map_vs.end()) return m_matbuf_layout_map_vs[name]; else return -1; }
 
 	protected:
 		Core* m_grahpics_core;
@@ -95,10 +109,17 @@ namespace Poseidon
 		int m_topology_type;
 		bool m_cull_mode;
 
+		// pixel shader material buffer
 		std::vector<MatBufferLayoutElement> m_matbuf_layout;
 		size_t m_matbuf_size;
 		std::unordered_map<std::string, int> m_matbuf_layout_map;
 		Hippios::GraphicsBuffer* m_material_buffer;
+
+		// vertex shader material buffer
+		std::vector<MatBufferLayoutElement> m_matbuf_layout_vs;
+		size_t m_matbuf_size_vs;
+		std::unordered_map<std::string, int> m_matbuf_layout_map_vs;
+		Hippios::GraphicsBuffer* m_material_buffer_vs;
 	};
 }
 

@@ -15,11 +15,24 @@ namespace Rhea
 			m_alpha_blending(false),
 			m_wvp(false),
 			m_num_input_slots(0),
+			m_num_input_slots_vs(0),
 			m_num_texture_slots(0),
 			m_vertex_size(-1),
 			m_vertex_elements(-1),
 			Unit(name, "//meworla/shader")
 		{}
+
+		enum class InputType {
+			kFloat,
+			kVector2,
+			kVector4,
+			kInt
+		};
+
+		struct InputSlot {
+			size_t slot_id;
+			InputType type;
+		};
 
 		// setup
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
@@ -47,6 +60,15 @@ namespace Rhea
 		// get id names of input slots
 		std::vector<std::string>& getInputSlotNames() { return m_property_names; }
 
+		// get input slot id by name
+		InputSlot* getInputSlotVS(std::string name) { if (m_input_slots_vs.find(name) != m_input_slots_vs.end()) return &m_input_slots_vs[name]; else return nullptr; }		
+
+		// get max input slot
+		size_t getNumInputSlotsVS() const { return m_num_input_slots_vs; }
+
+		// get id names of input slots
+		std::vector<std::string>& getInputSlotNamesVS() { return m_property_names_vs; }
+
 		// get texture input slot id by name
 		int getTextureSlotId(std::string name) { if (m_texture_slots.find(name) != m_texture_slots.end()) return m_texture_slots[name]; else return -1; }
 
@@ -69,6 +91,11 @@ namespace Rhea
 		std::map<std::string, int> m_input_slots;
 		int m_num_input_slots;
 		std::vector<std::string> m_property_names;
+		// material input slot for vertex shader
+		std::map<std::string, InputSlot> m_input_slots_vs;
+		size_t m_num_input_slots_vs;
+		std::vector<std::string> m_property_names_vs;
+
 		// texture input slots
 		std::map<std::string, int> m_texture_slots;
 		int m_num_texture_slots;

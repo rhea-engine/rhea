@@ -12,7 +12,12 @@ namespace Poseidon
 		m_mat_buffer(nullptr),
 		m_mat_buffer_size(0),
 		m_layout(nullptr),
-		m_material_buffer(nullptr)
+		m_material_buffer(nullptr),
+		m_mat_buffer_vs(nullptr),
+		m_mat_buffer_size_vs(0),
+		m_layout_vs(nullptr),
+		m_material_buffer_vs(nullptr),
+		m_mat_buf_vs_dirty(false)
 	{
 		per_mat_buf = {};
 	}
@@ -21,9 +26,11 @@ namespace Poseidon
 	{
 		if (m_mat_buffer)
 			free(m_mat_buffer);
+		if (m_mat_buffer_vs)
+			free(m_mat_buffer_vs);
 	}
 
-	void Material::activate(int mat_buf_register)
+	void Material::activate(int mat_buf_register, int mat_buf_register_vs)
 	{		
 		// activate the shader (the pso)
 		m_shader->activate();
@@ -33,6 +40,12 @@ namespace Poseidon
 			// bind the material buffer
 			m_material_buffer->update((void*)&per_mat_buf);
 			m_grahpics_core->get_renderer()->bindGPUBuffer(m_material_buffer, mat_buf_register, "PS");
+		}
+
+		if (m_material_buffer_vs && mat_buf_register_vs > 0 && m_mat_buffer_vs) {
+			if (m_mat_buf_vs_dirty)
+				m_material_buffer_vs->update(m_mat_buffer_vs);
+			m_grahpics_core->get_renderer()->bindGPUBuffer(m_material_buffer_vs, mat_buf_register_vs, "VS");
 		}
 	}
 
@@ -63,6 +76,31 @@ namespace Poseidon
 
 		//	m_mat_buffer = (float*)malloc(m_mat_buffer_size);
 		//	if (m_mat_buffer) memset(m_mat_buffer, 0, m_mat_buffer_size);
+		}
+
+		// VS
+		m_mat_buffer_size_vs = m_shader->getMatBufSizeVS();
+		if (m_mat_buffer_size_vs > 0) {
+			// setup the material buffer
+			m_layout_vs = m_shader->getMatBufLayoutVS();
+
+			// Calculate the remainder when dividing by 16
+			remainder = m_mat_buffer_size_vs % 16;
+			// Calculate the padding needed to reach the next multiple of 16
+			padding = (remainder == 0) ? 0 : (16 - remainder);
+			// Add the padding to the original size
+			m_mat_buffer_size_vs += padding;
+
+			if (m_mat_buffer_vs) {
+				free(m_mat_buffer_vs);  // Free if already allocated
+			}
+			m_mat_buffer_vs = (char*)malloc(shader->getMatBufSize());
+			if (m_mat_buffer_vs) memset(m_mat_buffer_vs, 0, shader->getMatBufSize());
+			
+			// setup the material buffer			
+			m_material_buffer_vs = m_grahpics_core->getGraphicsBuffer("material_buffer_vs", m_mat_buffer_size_vs);
+
+			m_mat_buf_vs_dirty = true;
 		}
 	}
 
@@ -124,5 +162,43 @@ namespace Poseidon
 	{
 	//	if (m_mat_buffer)
 	//		memcpy(m_mat_buffer + (*m_layout)[slot].offset, &value, sizeof(int));
+	}
+	
+	void Material::SetFloat2VS(int slot, const Math::Vector2& value)
+	{
+		if (m_mat_buffer_vs) {
+			memcpy((char*)m_mat_buffer_vs + (*m_layout_vs)[slot].offset, &value, sizeof(Math::Vector2));		
+			m_mat_buf_vs_dirty = true;
+		}
+	}
+
+	void Material::SetFloat4VS(int slot, const Math::Vector4& value)
+	{
+		if (m_mat_buffer_vs) {
+			memcpy((char*)m_mat_buffer_vs + (*m_layout_vs)[slot].offset, &value, sizeof(Math::Vector4));
+			m_mat_buf_vs_dirty = true;
+		}
+	}
+
+	void Material::SetFloatVS(int slot, float value)
+	{
+		if (m_mat_buffer) {
+			memcpy(m_mat_buffer_vs + (*m_layout_vs)[slot].offset, &value, sizeof(float));
+			m_mat_buf_vs_dirty = true;
+		}
+	}
+
+	void Material::SetIntVS(int slot, int value)
+	{
+		if (m_mat_buffer) {
+			memcpy(m_mat_buffer_vs + (*m_layout_vs)[slot].offset, &value, sizeof(int));
+			m_mat_buf_vs_dirty = true;
+		}
+	}
+
+	void Material::setMaterialVSBuffer(const void* buf)
+	{
+		if (m_material_buffer_vs)
+			m_material_buffer_vs->update(buf);
 	}
 }

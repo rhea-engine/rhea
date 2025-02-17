@@ -124,6 +124,17 @@ namespace Rhea
 		}
 		Unit* findByType(std::string type_name);
 
+		// find parent by type
+		template <class T>
+		T* findParentByType() {
+			Unit* u = m_parent;
+			while (u) {
+				if (doCast<T>(u)) return (T*)u;
+				u = u->m_parent;
+			}
+			return nullptr;
+		}
+
 		// get value
 		Variant getValue(std::string name);
 		// get value with default

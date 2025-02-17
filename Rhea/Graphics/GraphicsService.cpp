@@ -352,41 +352,18 @@ namespace Rhea
 					m_viewport_height = viewport_height;
 					
 					Poseidon::Viewport* viewport = m_core->get_scene_manager()->getViewport();
-					context_name = "HUD";
-					Poseidon::RenderContext* context = viewport->getRenderContext(context_name);
-					if (context) {
+					// iterate over contexts and their cameras and set new values
+					float aspect_ratio = (float)m_viewport_width / (float)m_viewport_height;
+					std::vector<Poseidon::RenderContext*> contexts = viewport->getRenderContextList();
+					for (auto context : contexts) {
 						Poseidon::Camera* cam = context->get_camera();
 						if (cam) {
-							cam->setAspectRatio((float)m_viewport_width / (float)m_viewport_height);
-							cam->setOrthographicSize((float)m_viewport_height);							
+							cam->setAspectRatio(aspect_ratio);
+							cam->setOrthographicSize((float)m_viewport_height);
 							cam->updateProjection();
 							cam->updateView();
 						}
 					}
-					
-					/*float ratio = (float)m_viewport_width / (float)m_viewport_height;
-					if (ratio < (800.0f / 600.f)) {
-						viewport_height = (float)m_viewport_width / (800.0f / 600.f);
-					}
-					else {
-						viewport_width = (float)m_viewport_height / (800.0f / 600.f);
-					}				
-					
-					m_viewport_width = viewport_width;
-					m_viewport_height = viewport_height;
-
-					Poseidon::Viewport* viewport = m_core->get_scene_manager()->getViewport();
-					context_name = "HUD";
-					Poseidon::RenderContext* context = viewport->getRenderContext(context_name);
-					if (0 && context) {
-						Poseidon::Camera* cam = context->get_camera();
-						//cam->setAspectRatio((float)m_viewport_width / (float)m_viewport_height);
-						cam->setAspectRatio((800.0f / 600.f));
-						cam->setOrthographicSize((float)m_viewport_height);			
-						cam->updateProjection();
-						cam->updateView();
-					}
-					*/
 				}
 				
 				break;

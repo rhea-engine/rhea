@@ -90,7 +90,12 @@ namespace Rhea
 	void Label::onSetPosition()
 	{
 		if (m_label_item) {
-			m_label_item->move(m_position.x + m_content_position.x, m_position.y + m_content_position.y);
+			
+			// prevent Text Rendering at Fractional Coordinates
+			float pos_x = floor(m_position.x + m_content_position.x + 0.5f);
+			float pos_y = floor(m_position.y + m_content_position.y + 0.5f);
+
+			m_label_item->move(pos_x, pos_y);
 			m_label_item->update();
 		}
 	}

@@ -263,12 +263,10 @@ namespace Rhea
 
 		case Psio::InputEventId::WIN_SIZE:
 			// resize window
-/*
 			std::shared_ptr<Psio::WinSizeEvent> me = std::static_pointer_cast<Psio::WinSizeEvent>(e->getEvent());
 			m_viewport_width = me->width();
 			m_viewport_height = me->height();
 			onGuiUpdate(ev, unit);
-			*/
 			break;
 
 		}
@@ -301,9 +299,11 @@ namespace Rhea
 	bool GUIController::onGuiUpdate(Event* ev, Unit* unit)
 	{
 		// sizing with constraint of viewport size
-		//Vector2 vp_size((float)m_viewport_width, (float)m_viewport_height);
-		GraphicsService* gsrv = (GraphicsService*)m_app->getService("graphics");
-		Vector2 vp_size((float)gsrv->getViewportWidth(), (float)gsrv->getViewportHeight());
+		Vector2 vp_size((float)m_viewport_width, (float)m_viewport_height);
+		
+		if (m_viewport_width <= 0 && m_viewport_height <= 0)
+			return false;
+
 		size(vp_size);
 
 		setPosition(Vector2(m_base_position));
@@ -312,7 +312,8 @@ namespace Rhea
 
 	void GUIController::UpdateStyle()
 	{
-		RecalculateStyle(m_style_engine.get());
+		if (m_style_engine)
+			RecalculateStyle(m_style_engine.get());
 	}
 
 	void GUIController::Register(Application* app)

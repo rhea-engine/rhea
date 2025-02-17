@@ -1,5 +1,6 @@
 #include "Shader.h"
 #include <cassert>
+#include <Psio/Log.h>
 
 namespace Poseidon
 {
@@ -17,7 +18,9 @@ namespace Poseidon
 		m_matbuf_size_vs(0),
 		m_material_buffer(nullptr),
 		m_matbuf_layout(),
-		m_renderer(nullptr)
+		m_material_buffer_vs(nullptr),
+		m_renderer(nullptr),
+		m_sampler_handle(nullptr)
 	{
 		m_renderer = m_grahpics_core->get_renderer();
 	}
@@ -72,6 +75,11 @@ namespace Poseidon
 			// cull mode in raster state
 			if (!m_cull_mode)
 				pso_desc.rasterizerState.cull_mode = Hippios::CullMode::NONE;
+
+			// sampler
+			m_sampler_handle = m_renderer->getSampler(m_sampler_name);
+			if (!m_sampler_handle)
+				LOG(LOG_ERROR) << "Sampler " << m_sampler_name << " not found";
 
 			// shader programs
 			pso_desc.shaderProgram.vertex_shader = getVShader();

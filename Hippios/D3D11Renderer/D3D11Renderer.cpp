@@ -10,6 +10,7 @@
 using namespace std;
 
 #include "D3D11Renderer.h"
+#include "D3D11BaseTypes.h"
 #include "D3D11Window.h"
 #include "D3D11HLSL.h"
 #include "D3D11VertexBuffer.h"
@@ -21,9 +22,21 @@ using namespace std;
 #include "D3D11StencilState.h"
 #include "D3D11PipelineState.h"
 
+
 #pragma comment (lib, "d3d11.lib")
 
 namespace Hippios {
+
+	// constant mappings
+	std::unordered_map<SamplerDesc::Filter, D3D11_FILTER> _sampler_filters = {
+		{SamplerDesc::Filter::LINEAR, D3D11_FILTER::D3D11_FILTER_MIN_MAG_MIP_LINEAR},
+		{SamplerDesc::Filter::MIP_POINT, D3D11_FILTER::D3D11_FILTER_MIN_MAG_MIP_POINT}
+	};
+
+	std::unordered_map<SamplerDesc::AddressMode, D3D11_TEXTURE_ADDRESS_MODE> _address_modes = {
+		{SamplerDesc::AddressMode::WRAP, D3D11_TEXTURE_ADDRESS_MODE::D3D11_TEXTURE_ADDRESS_WRAP},
+		{SamplerDesc::AddressMode::CLAMP, D3D11_TEXTURE_ADDRESS_MODE::D3D11_TEXTURE_ADDRESS_CLAMP}
+	};
 
 	D3D11Renderer::D3D11Renderer() :
 		D3D11Renderer(nullptr, nullptr)
@@ -221,21 +234,35 @@ namespace Hippios {
 
 		m_device_context->RSSetViewports(1, &viewport);		
 
-		// Describe the Sample State
-		D3D11_SAMPLER_DESC sampDesc;
-		ZeroMemory(&sampDesc, sizeof(sampDesc));
-		sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-		sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-		sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-		sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-		sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-		sampDesc.MinLOD = 0;
-		sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+		// Create default sampler states
 
-		//Create the Sample State
-		HRESULT HR = m_device->CreateSamplerState(&sampDesc, &m_sampler_state);
-		// set as default sampler
-		m_device_context->PSSetSamplers(0, 1, &m_sampler_state);
+		SamplerDesc sampler_desc;		
+		
+		// linear sampler
+		ZeroMemory(&sampler_desc, sizeof(sampler_desc));
+		sampler_desc.filter = SamplerDesc::Filter::LINEAR;
+		sampler_desc.address_u = SamplerDesc::AddressMode::WRAP;
+		sampler_desc.address_v = SamplerDesc::AddressMode::WRAP;
+		sampler_desc.address_w = SamplerDesc::AddressMode::WRAP;
+		sampler_desc.comparison_func = ComparisonFunction::COMPARE_NEVER;
+		sampler_desc.min_lod = 0;
+		sampler_desc.max_lod = D3D11_FLOAT32_MAX;
+		GPUHandle* handle = createSampler("linear", &sampler_desc);
+		if (handle) {
+			// set as default sampler
+			m_device_context->PSSetSamplers(0, 1, &m_sampler_states[0]);
+		}
+		
+		// nearest sampler
+		ZeroMemory(&sampler_desc, sizeof(sampler_desc));
+		sampler_desc.filter = SamplerDesc::Filter::MIP_POINT; // Nearest-neighbor filtering
+		sampler_desc.address_u = SamplerDesc::AddressMode::CLAMP;
+		sampler_desc.address_v = SamplerDesc::AddressMode::CLAMP;
+		sampler_desc.address_w = SamplerDesc::AddressMode::CLAMP;
+		sampler_desc.comparison_func = ComparisonFunction::COMPARE_NEVER;
+		sampler_desc.min_lod = 0;
+		sampler_desc.max_lod = D3D11_FLOAT32_MAX;
+		handle = createSampler("nearest", &sampler_desc);		
 	}
 
 	HippiosWindow* D3D11Renderer::createWindow(Psio::Engine *psio)
@@ -347,6 +374,52 @@ namespace Hippios {
 		if (state != m_current_stencil_state) {
 			m_current_stencil_state = static_cast<D3D11StencilState*>(state);
 			m_current_stencil_state->setState(stencil_ref);
+		}
+	}
+
+	GPUHandle* D3D11Renderer::createSampler(std::string name, SamplerDesc* desc)
+	{
+		// Create default sampler states
+		D3D11_SAMPLER_DESC sampDesc;
+
+		// linear sampler
+		ZeroMemory(&sampDesc, sizeof(sampDesc));
+		sampDesc.Filter = _sampler_filters[desc->filter];
+		sampDesc.AddressU = _address_modes[desc->address_u];
+		sampDesc.AddressV = _address_modes[desc->address_v];
+		sampDesc.AddressW = _address_modes[desc->address_w];
+		sampDesc.ComparisonFunc = _comparison_functions[desc->comparison_func];
+		sampDesc.MinLOD = desc->min_lod;
+		sampDesc.MaxLOD = desc->max_lod;
+
+		// Create the Sample State
+		ID3D11SamplerState* sampler_state;
+		HRESULT HR = m_device->CreateSamplerState(&sampDesc, &sampler_state);
+		if (SUCCEEDED(HR)) {
+			m_sampler_states.push_back(sampler_state);
+			D3D11GPUHandle handle;
+			handle.handle = m_sampler_states.size()-1;
+			m_samplers[name] = handle;
+			return (GPUHandle*)(&m_samplers[name].handle);			
+		}
+		return nullptr;
+	}
+
+	GPUHandle* D3D11Renderer::getSampler(std::string name)
+	{
+		if (m_samplers.find(name) != m_samplers.end())
+			return (GPUHandle*)(&m_samplers[name].handle);
+		else
+			return nullptr;
+	}
+
+	void D3D11Renderer::setSampler(GPUHandle* handle)
+	{
+		static size_t last_handle = -1;
+		size_t idx = static_cast<D3D11GPUHandle*>(handle)->handle;
+		if (handle && m_sampler_states.size() > idx && idx != last_handle) {
+			last_handle = idx;
+			m_device_context->PSSetSamplers(0, 1, &m_sampler_states[idx]);
 		}
 	}
 

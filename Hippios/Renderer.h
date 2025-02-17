@@ -3,10 +3,12 @@
 
 #include <string>
 
+#include "BaseTypes.h"
 #include "RenderListener.h"
 #include "TextureDesc.h"
 #include "PipelineState.h"
 #include "BlendState.h"
+#include "Sampler.h"
 
 namespace Psio {
 	class Engine;
@@ -20,10 +22,11 @@ namespace Hippios
 	class GraphicsBuffer;
 	class Texture;
 	class GPUProgram;
-
+	
 	class Renderer
 	{
-	public:
+	public:		
+
 		virtual ~Renderer() {}
 		virtual HippiosWindow* createWindow(Psio::Engine *psio) = 0;
 		virtual int render() = 0;
@@ -69,6 +72,13 @@ namespace Hippios
 
 		// create a new stencil state
 		virtual StencilState* createStencilState(std::string name, DepthStencilStateDesc& desc) = 0;
+
+		// create a new sampler
+		virtual GPUHandle* createSampler(std::string name, SamplerDesc* desc) = 0;
+		// get a sampler
+		virtual GPUHandle* getSampler(std::string name) = 0;
+		// set sampler as active
+		virtual void setSampler(GPUHandle* handle) = 0;
 
 		// set gpu parameters
 

@@ -12,6 +12,7 @@
 #include "Hippios/Renderer.h"
 #include "ComPtr.h"
 #include "D3D11DepthBuffer.h"
+#include "D3D11BaseTypes.h"
 
 class D3D11Driver;
 namespace Hippios
@@ -24,7 +25,7 @@ namespace Hippios
 	class D3D11VertexBuffer;
 	class D3D11IndexBuffer;
 	class Texture;	
-	class D3D11StencilState;
+	class D3D11StencilState;	
 
 	class D3D11Renderer : public Renderer
 	{
@@ -47,8 +48,7 @@ namespace Hippios
 		ID3D11DeviceContext* m_device_context = 0;
 		IDXGISwapChain* m_pDXGISwapChain = 0;
 		ID3D11RenderTargetView* mBackbuffer = 0;    // the pointer to our back buffer
-		D3D11DepthBuffer* m_depth_buffer = 0;
-		ID3D11SamplerState* m_sampler_state = 0;
+		D3D11DepthBuffer* m_depth_buffer = 0;		
 		ID3D11Buffer* m_cb_per_object_buffer = 0;	
 
 		void createSwapChain();
@@ -76,7 +76,10 @@ namespace Hippios
 			return m_depth_buffer;
 		}
 		ID3D11SamplerState* get_default_samplerstate() {
-			return m_sampler_state;
+			if (m_sampler_states.size())
+				return m_sampler_states[0];
+			else
+				return nullptr;
 		}
 		
 		// create and use objects
@@ -103,7 +106,13 @@ namespace Hippios
 		StencilState* getStencilState(std::string name);
 		StencilState* createStencilState(std::string name, DepthStencilStateDesc& desc);
 		void setStencilState(StencilState* state, int stencil_ref);
-		
+
+		// create a new sampler
+		GPUHandle* createSampler(std::string name, SamplerDesc* desc) override;
+		// get a sampler
+		GPUHandle* getSampler(std::string name) override;
+		virtual void setSampler(GPUHandle* handle) override;
+
 		// rasterizer state
 		void setRasterizerState(ID3D11RasterizerState* state);
 
@@ -140,6 +149,8 @@ namespace Hippios
 		D3D11StencilState* m_current_stencil_state;
 		ID3D11RasterizerState* m_current_raster_state;
 		std::vector<ID3D11InputLayout*> m_input_layouts;
+		std::vector<ID3D11SamplerState*> m_sampler_states;
+		std::unordered_map<std::string, D3D11GPUHandle> m_samplers;
 	};
 }
 #endif // !HIPPIOS_D3D11RENDERER_H

@@ -76,6 +76,10 @@ namespace Rhea
 				}
 			}
 
+			// sampler state
+			std::string sampler_name = shader_res->getValue("sampler", "linear");
+			shader->setSampler(sampler_name);
+
 			// input layout
 			std::string input_layout = shader_res->getValue("input", "");
 			if (input_layout == "default") {

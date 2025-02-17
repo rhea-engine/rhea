@@ -22,9 +22,6 @@ namespace Hippios
 		ID3D11DepthStencilState* m_depth_stencil_state;
 		ID3D11Device* m_device;
 		ID3D11DeviceContext* m_device_context;
-
-		D3D11_STENCIL_OP op(StencilOp op);
-		D3D11_COMPARISON_FUNC func(ComparisonFunction func);
 	};
 }
 

@@ -1,6 +1,6 @@
 # for now only Direct3dDX11 is supported
 
-add_library(HippiosEngine STATIC Engine.cpp Viewport.cpp Camera.cpp "GPUProgram.h" "StencilState.h" "TextureDesc.h" "PipelineState.h" "BlendState.h" "BaseTypes.h")
+add_library(HippiosEngine STATIC Engine.cpp Viewport.cpp Camera.cpp "GPUProgram.h" "StencilState.h" "TextureDesc.h" "PipelineState.h" "BlendState.h" "BaseTypes.h" "Sampler.h")
 include_directories(${PROJECT_SOURCE_DIR}/ ${PROJECT_SOURCE_DIR}/Components)
 
 # search only if right platform

@@ -3,6 +3,8 @@
 
 namespace Hippios
 {
+	struct GPUHandle {};
+
 	enum class ComparisonFunction
 	{
 		COMPARE_NEVER = 0,
@@ -13,6 +15,6 @@ namespace Hippios
 		COMPARE_NOT_EQUAL = 5,
 		COMPARE_GREATER_EQUAL = 6,
 		COMPARE_ALWAYS = 7
-	};
+	};	
 }
 #endif // !HIPPIOS_BASETYPES_H

@@ -44,6 +44,9 @@ namespace Poseidon
 		// cull mode
 		void setCullMode(bool enabled) { m_cull_mode = enabled; }
 
+		// sampler reference
+		void setSampler(std::string name) { m_sampler_name = name; }
+
 		// setup is complete, finalize
 		void finalize();
 
@@ -108,6 +111,8 @@ namespace Poseidon
 		std::string m_stencil_test;
 		int m_topology_type;
 		bool m_cull_mode;
+		std::string m_sampler_name;
+		Hippios::GPUHandle* m_sampler_handle;
 
 		// pixel shader material buffer
 		std::vector<MatBufferLayoutElement> m_matbuf_layout;

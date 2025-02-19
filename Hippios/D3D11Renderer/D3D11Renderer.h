@@ -8,7 +8,6 @@
 #include <unordered_map>
 #include <memory>
 
-#include "Hippios/Engine.h"
 #include "Hippios/Renderer.h"
 #include "ComPtr.h"
 #include "D3D11DepthBuffer.h"

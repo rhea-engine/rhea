@@ -1,7 +1,6 @@
 #ifndef POSEIDON_TEXTURE_H
 #define POSEIDON_TEXTURE_H
 
-#include "Hippios/Engine.h"
 #include "Hippios/Renderer.h"
 #include "Hippios/Texture.h"
 
@@ -16,7 +15,7 @@ namespace Poseidon
 		Hippios::Texture* m_hw_texture = 0;
 		virtual void createTexture();
 	public:
-		void bind(Hippios::Engine *engine);
+		void bind(Hippios::Renderer *engine);
 		
 		// load an image from filesystem
 		bool load(const std::string& file_name) override;

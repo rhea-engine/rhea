@@ -10,6 +10,7 @@
 
 #include "Core.h"
 #include <Psio/Log.h>
+#include <Hippios/D3D11Renderer/D3D11Renderer.h>
 
 using Hippios::SamplerDesc;
 
@@ -36,8 +37,12 @@ namespace Poseidon
 		m_psio = psio;
 
 		// initialize render sub system
-		m_renderer = std::make_unique<Hippios::Engine>();
-		m_renderer->startup();
+#ifdef WIN32
+		m_renderer = std::make_unique<Hippios::D3D11Renderer>();
+#else
+		printf("Only DirectX11 on Windows is supported\n");
+		exit(-1);
+#endif // WIN32		
 
 		// add a root window which is also the root viewport		
 		std::string name = "root";
@@ -49,8 +54,8 @@ namespace Poseidon
 
 		// create the default stencil states
 		Hippios::DepthStencilStateDesc desc;
-		m_renderer->getRenderer()->createStencilState("default", nullptr);
-		m_renderer->getRenderer()->createStencilState("disabled", &desc);
+		m_renderer->createStencilState("default", nullptr);
+		m_renderer->createStencilState("disabled", &desc);
 
 		// create default samplers
 
@@ -64,7 +69,7 @@ namespace Poseidon
 		sampler_desc.comparison_func = Hippios::ComparisonFunction::COMPARE_NEVER;
 		sampler_desc.min_lod = 0;
 		sampler_desc.max_lod = FLT_MAX;
-		if (!m_renderer->getRenderer()->createSampler("linear", &sampler_desc))
+		if (!m_renderer->createSampler("linear", &sampler_desc))
 			LOG(LOG_ERROR) << "Could not create linear sampler";
 		
 		// nearest sampler
@@ -76,12 +81,12 @@ namespace Poseidon
 		sampler_desc.comparison_func = Hippios::ComparisonFunction::COMPARE_NEVER;
 		sampler_desc.min_lod = 0;
 		sampler_desc.max_lod = FLT_MAX;
-		if (!m_renderer->getRenderer()->createSampler("nearest", &sampler_desc))
+		if (!m_renderer->createSampler("nearest", &sampler_desc))
 			LOG(LOG_ERROR) << "Could not create nearest sampler";
 
 		// add a scene manager 
 		m_scene_manager = new SceneManager();
-		m_scene_manager->setRenderer(m_renderer->getRenderer());
+		m_scene_manager->setRenderer(m_renderer.get());
 		m_scene_manager->setRoot(m_window);
 		m_scene_manager->registerViewport(m_window);
 	}
@@ -104,7 +109,7 @@ namespace Poseidon
 
 			// present pass for all windows
 			// currently only one
-			if (m_renderer->getRenderer()->presentPass(m_window->getSwapChain()))
+			if (m_renderer->presentPass(m_window->getSwapChain()))
 				quit = true;
 		}
 		return 0;
@@ -123,7 +128,7 @@ namespace Poseidon
 
 		// present pass for all windows
 		// currently only one
-		if (m_renderer->getRenderer()->presentPass(m_window->getSwapChain()))
+		if (m_renderer->presentPass(m_window->getSwapChain()))
 			quit = true;
 
 		if (quit)
@@ -195,7 +200,7 @@ namespace Poseidon
 
 	Camera* Core::createCamera()
 	{
-		Camera* camera = new Poseidon::Camera(m_renderer->getRenderer());
+		Camera* camera = new Poseidon::Camera(m_renderer.get());
 		return camera;
 	}
 
@@ -209,7 +214,7 @@ namespace Poseidon
 			return it->second;
 
 		// no such buffer in the pool, create a new one
-		Hippios::GraphicsBuffer* newBuffer = m_renderer->getRenderer()->createGraphicsBuffer(size);
+		Hippios::GraphicsBuffer* newBuffer = m_renderer->createGraphicsBuffer(size);
 		m_buffer_pool[desc] = newBuffer;
 		return newBuffer;
 	}

@@ -5,7 +5,7 @@
 #include <Psio/Psio.h>
 #include <Psio/Window.h>
 #include <Hippios/SwapChain.h>
-#include <Hippios/Engine.h>
+#include <Hippios/Renderer.h>
 #include <memory>
 
 namespace Poseidon
@@ -16,7 +16,7 @@ namespace Poseidon
 		Window(std::string& name) :
 			Viewport(name)
 		{}
-		void initRenderTarget(Hippios::Engine* engine);
+		void initRenderTarget(Hippios::Renderer* renderer);
 		void CreateFromNativeWindow(Psio::Engine* psio, int width, int height);
 		void onResize(int width, int height) override;
 

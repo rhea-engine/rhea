@@ -24,10 +24,9 @@ namespace Poseidon
 		Node::~Node();
 	}
 
-	void Viewport::initRenderTarget(Hippios::Engine* engine)
-	{
-		m_engine = engine;
-		m_renderer = m_engine->getRenderer();
+	void Viewport::initRenderTarget(Hippios::Renderer* renderer)
+	{		
+		m_renderer = renderer;
 	}
 
 	RenderContext* Viewport::getRenderContext(std::string& name)

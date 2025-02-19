@@ -4,9 +4,9 @@
 
 namespace Poseidon
 {
-	void Window::initRenderTarget(Hippios::Engine* engine)
+	void Window::initRenderTarget(Hippios::Renderer* renderer)
 	{
-		Viewport::initRenderTarget(engine);
+		Viewport::initRenderTarget(renderer);
 	}
 
 	void Window::CreateFromNativeWindow(Psio::Engine* psio, int width, int height)
@@ -18,7 +18,7 @@ namespace Poseidon
 		win.height = m_native_win->GetHeight();
 		win.native_win_handle = m_native_win->getHandle();
 
-		m_swap_chain.reset(m_engine->getRenderer()->createSwapChain(&win));
+		m_swap_chain.reset(m_renderer->createSwapChain(&win));
 		// create my own render target
 		createRenderTarget(win.width, win.height, m_swap_chain.get());
 	}

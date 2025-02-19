@@ -87,6 +87,6 @@ namespace Poseidon
 	void Mesh::setViewport(Viewport* viewport)
 	{
 		m_viewport = viewport;		
-		m_renderer = m_viewport->get_renderer()->getRenderer();
+		m_renderer = m_viewport->get_renderer();
 	}	
 }

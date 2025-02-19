@@ -1,12 +1,12 @@
 #ifndef POSEIDON_VIEWPORT_H
 #define POSEIDON_VIEWPORT_H
 
-#include <Hippios/Engine.h>
 #include <Hippios/Renderer.h>
 
 #include "Camera.h"
 #include "Node.h"
 #include <Hippios/RenderTarget.h>
+#include <memory>
 
 namespace Poseidon
 {
@@ -30,8 +30,8 @@ namespace Poseidon
 		Viewport(std::string name);
 		~Viewport();
 
-		virtual void initRenderTarget(Hippios::Engine* engine);
-		Hippios::Engine* get_renderer() { return m_engine; };
+		virtual void initRenderTarget(Hippios::Renderer* renderer);
+		Hippios::Renderer* get_renderer() { return m_renderer; };
 
 		// render contexts
 		RenderContext* getRenderContext(std::string& name);
@@ -61,8 +61,7 @@ namespace Poseidon
 	protected:
 		std::string m_name;
 		Camera* m_camera = 0; // the active camera
-		Hippios::Engine* m_engine = 0; // reference to the render system
-		Hippios::Renderer* m_renderer = 0;
+		Hippios::Renderer* m_renderer = 0; // reference to the render system
 		Hippios::SwapChain* m_swapchain;
 
 		int m_width;

@@ -31,7 +31,8 @@ namespace Rhea
 			m_base_position(0.0f, 0.0f),
 			m_cur_position(0.0f, 0.0f),
 			m_font_size(0.0),
-			m_sizing_mode(TextureSizingMode::kCover),
+			m_sizing_mode_w(TextureSizingMode::kAuto),
+			m_sizing_mode_h(TextureSizingMode::kAuto),
 			m_screen_position_valid(false),
 			m_style_dirty(true),
 			m_is_rtl(false),
@@ -85,9 +86,14 @@ namespace Rhea
 
 		// set widgets own style(s)
 		void setStyles(CssRuleSet& styles);
+		void setStyle(StylePropertyId id, std::vector<CssValue> value);
 		std::vector<CssValue>& getStyle(StylePropertyId style);
-		// set the css value with text. value will be parsed
-		void setStyle(StylePropertyId id, SimpleParser::Variant value);
+		// set the css value for a property taking a string value
+		void setStyle(StylePropertyId id, std::string value);
+		// set the css value for a property taking a numeric value
+		void setStyle(StylePropertyId id, int value);
+		// set the css value for a property taking a dimension value
+		void setStyle(StylePropertyId id, int value, std::string dim);
 		virtual const std::string getSelector() { return "Widget"; }
 		float getFontSize() { return m_font_size; }
 
@@ -149,12 +155,14 @@ namespace Rhea
 
 		// scaling the background-image
 		enum class TextureSizingMode {
+			kAuto,      // No scaling
 			kContain,   // Keep aspect ratio, fit inside widget
 			kCover,		// Scale to fit widget without preserving aspect ratio
 			kFixed      // No scaling, only tiling applies
 		};
 		// cached sizing mode
-		TextureSizingMode m_sizing_mode;
+		TextureSizingMode m_sizing_mode_w;
+		TextureSizingMode m_sizing_mode_h;
 		void ApplyTextureSizing();
 
 		Vector2 m_cached_min_size;

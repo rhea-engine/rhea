@@ -1,9 +1,7 @@
 #include "Widget.h"
-#include "Widget.h"
 #include <cassert>
 #include <Psio/Log.h>
 
-#include "Widget.h"
 #include "WidgetEvent.h"
 
 #include "Application.h"
@@ -266,9 +264,6 @@ namespace Rhea
 		if (m_outer_size.y > size_constraints.y)
 			m_outer_size.y = size_constraints.y;
 
-		if (m_pathname == "lastused")
-			LOG(LOG_DEBUG) << "size";
-
 		// Compute tiling if necessary
 		ApplyTextureSizing();		
 
@@ -402,6 +397,8 @@ namespace Rhea
 		Vector2 base_size;
 		CssValueId position_types[4] = { CssValueId::kString, CssValueId::kString, CssValueId::kString, CssValueId::kString };
 		m_font_size = -1.0f;
+		m_sizing_mode_w = TextureSizingMode::kAuto;
+		m_sizing_mode_h = TextureSizingMode::kAuto;
 
 		for (auto it = m_computed_properties.begin(); it != m_computed_properties.end(); ++it) {
 			// make sure we have at least one value
@@ -431,6 +428,27 @@ namespace Rhea
 						setBackgroundColor(it->second[0].value, it->second[1].value, it->second[2].value, it->second[3].value);
 					else
 						setBackgroundColor(it->second[0].value, it->second[1].value, it->second[2].value);
+				}
+				break;
+			case StylePropertyId::kBackgroundSize:
+				if (it->second[0].value == "contain") {
+					m_sizing_mode_w = TextureSizingMode::kContain;
+				}
+				else if (it->second[0].value == "cover") {
+					m_sizing_mode_w = TextureSizingMode::kCover;
+				}
+				if (it->second.size() >= 2) {
+					// note: contain and cover make no sense to list twice but just in case
+					if (it->second[1].value == "contain") {
+						m_sizing_mode_h = TextureSizingMode::kContain;
+					}
+					else if (it->second[1].value == "cover") {
+						m_sizing_mode_h = TextureSizingMode::kCover;
+					}
+				}
+				else {
+					// only one property
+					m_sizing_mode_h = m_sizing_mode_w;
 				}
 				break;
 			case StylePropertyId::kLeft:
@@ -481,11 +499,8 @@ namespace Rhea
 			break;
 			}
 		}
-		if (m_bg_image && m_bg_image->width > 0 && m_bg_image->height > 0) {
-			// adjust tiling
-			m_tiling.x = m_content_size.x / m_bg_image->width;
-			m_tiling.y = m_content_size.y / m_bg_image->height;
-		}
+		
+		ApplyTextureSizing();
 
 		UpdateMaterial();
 		sendEvent("update", nullptr);
@@ -597,29 +612,37 @@ namespace Rhea
 
 		if (m_bg_image && m_bg_image->width > 0 && m_bg_image->height > 0 && (m_content_size.x > 1.0f || m_content_size.y>1.0f) ) 
 		{
-			// image and image size is set and content is not 1x1	
-			
+			// image and image size is set and content is not 1x1
+
 			// tiling
 			// assume background-reapat
-			Math::Vector2 tiling;			
-			tiling.x = max(m_content_size.x / m_bg_image->width, 1.0f); // dont tile if image is larger than content
-			tiling.y = max(m_content_size.y / m_bg_image->height, 1.0f);
+			// if image is scaled to fit into the widget we can't also tile the image
+			Math::Vector2 tiling;
+			if (m_sizing_mode_w == TextureSizingMode::kAuto)
+				tiling.x = max(m_content_size.x / m_bg_image->width, 1.0f); // dont tile if image is larger than content
+			if (m_sizing_mode_h == TextureSizingMode::kAuto)
+				tiling.y = max(m_content_size.y / m_bg_image->height, 1.0f);
 			if (m_tiling != tiling) {
 				m_tiling = tiling;
 				m_material_dirty = true;
+			}
+
+			if (m_sizing_mode_w == TextureSizingMode::kContain) {
+				LOG(LOG_DEBUG) << "ApplyTextureSizing: content=" << m_content_size.x << "/" << m_content_size.y << "; image=" << m_bg_image->width << "/" << m_bg_image->height;;
 			}
 
 			// scaling
 			if (m_bg_image->width > m_content_size.x || m_bg_image->height > m_content_size.y)
 			{
 				Math::Vector2 scaling(1.0f, 1.0f);
-				switch (m_sizing_mode) {
+				switch (m_sizing_mode_w) {
 				case TextureSizingMode::kContain:
 				{
 					// Use the smaller scale factor for both axes to maintain aspect ratio
 					float aspect_scale = min(m_content_size.x / (float)m_bg_image->width, m_content_size.y / (float)m_bg_image->height);
 					scaling.x = aspect_scale;
 					scaling.y = aspect_scale;
+					LOG(LOG_DEBUG) << "ApplyTextureSizing: aspect_scale=" << aspect_scale;
 				}
 				break;
 				case TextureSizingMode::kCover:
@@ -659,6 +682,12 @@ namespace Rhea
 		m_style_dirty = true;
 	}
 
+	void Widget::setStyle(StylePropertyId id, std::vector<CssValue> value)
+	{
+		m_properties[id] = value;
+		m_style_dirty = true;
+	}
+
 	std::vector<CssValue>& Widget::getStyle(StylePropertyId style)
 	{
 		auto it = m_computed_properties.find(style);
@@ -669,12 +698,34 @@ namespace Rhea
 			return empty;
 		}
 	}
-
-	void Widget::setStyle(StylePropertyId id, SimpleParser::Variant value)
+	
+	void Widget::setStyle(StylePropertyId id, std::string value)
 	{
 		std::vector<CssValue> values;
 		std::vector<SimpleParser::CssParser::Property> content;
 		content.push_back({ SimpleParser::CssParser::PropertyId::kString, 0, value });
+		if (StyleSheet::ParseValues(id, content, values)) {
+			m_properties[id] = values;
+			m_style_dirty = true;
+		}
+	}
+
+	void Widget::setStyle(StylePropertyId id, int value)
+	{
+		std::vector<CssValue> values;
+		std::vector<SimpleParser::CssParser::Property> content;
+		content.push_back({ SimpleParser::CssParser::PropertyId::kNumeric, 0, value });
+		if (StyleSheet::ParseValues(id, content, values)) {
+			m_properties[id] = values;
+			m_style_dirty = true;
+		}
+	}
+
+	void Widget::setStyle(StylePropertyId id, int value, std::string dim)
+	{
+		std::vector<CssValue> values;
+		std::vector<SimpleParser::CssParser::Property> content;
+		content.push_back({ SimpleParser::CssParser::PropertyId::kDimension, 0, value, dim });
 		if (StyleSheet::ParseValues(id, content, values)) {
 			m_properties[id] = values;
 			m_style_dirty = true;

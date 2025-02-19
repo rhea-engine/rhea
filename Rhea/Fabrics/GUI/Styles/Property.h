@@ -13,6 +13,7 @@ namespace Rhea
 	{
 		kBackgroundImage,
 		kBackgroundColor,
+		kBackgroundSize,
 		kLeft,
 		kTop,
 		kWidth,

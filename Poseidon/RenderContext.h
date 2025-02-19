@@ -7,6 +7,7 @@
 #include "Node.h"
 #include <Rhea/Fabrics/Core/Item.h>
 #include <Rhea/Fabrics/3D/Light.h>
+#include <Hippios/BaseTypes.h>
 
 using Rhea::Item;
 
@@ -52,6 +53,9 @@ namespace Poseidon
 		void setStencilState(int state_id) { m_stencil_state = state_id; }
 		int getStencilState() { return m_stencil_state; }
 
+		void setSize(float width, float height) { m_size.w = width; m_size.h = height; }
+		Hippios::ViewportDesc* getSize() { return &m_size; }
+
 		// ambient light
 		void setAmbient(Math::Quaternion ambient) { m_ambient = ambient; }
 		Math::Quaternion getAmbient() { return m_ambient; }
@@ -62,6 +66,7 @@ namespace Poseidon
 		std::vector<Item*> m_render_children;
 		int m_stencil_state;
 		Math::Quaternion m_ambient;
+		Hippios::ViewportDesc m_size;
 	};
 }
 

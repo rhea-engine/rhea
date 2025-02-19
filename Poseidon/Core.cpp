@@ -1,6 +1,4 @@
 #include "Psio/Psio.h"
-#include "Hippios/Window.h"
-#include "Hippios/Viewport.h"
 
 #include "Texture.h"
 #include "Material.h"
@@ -11,7 +9,9 @@
 #include "Cubemap.h"
 
 #include "Core.h"
+#include <Psio/Log.h>
 
+using Hippios::SamplerDesc;
 
 namespace Poseidon
 {
@@ -36,12 +36,48 @@ namespace Poseidon
 		m_psio = psio;
 
 		// initialize render sub system
-		m_renderer = std::make_unique<Hippios::Engine>(m_psio);
-		m_renderer->startup();		
+		m_renderer = std::make_unique<Hippios::Engine>();
+		m_renderer->startup();
 
-		// add a root window which is also the root viewport
-		m_window = new Window();		
+		// add a root window which is also the root viewport		
+		std::string name = "root";
+		m_window = new Window(name);
 		m_window->initRenderTarget(m_renderer.get());
+		int width = 1152;
+		int height = 864;
+		m_window->CreateFromNativeWindow(psio, width, height);
+
+		// create the default stencil states
+		Hippios::DepthStencilStateDesc desc;
+		m_renderer->getRenderer()->createStencilState("default", nullptr);
+		m_renderer->getRenderer()->createStencilState("disabled", &desc);
+
+		// create default samplers
+
+		Hippios::SamplerDesc sampler_desc;
+		// linear sampler
+		memset(&sampler_desc, 0, sizeof(sampler_desc));
+		sampler_desc.filter = SamplerDesc::Filter::LINEAR;
+		sampler_desc.address_u = SamplerDesc::AddressMode::WRAP;
+		sampler_desc.address_v = SamplerDesc::AddressMode::WRAP;
+		sampler_desc.address_w = SamplerDesc::AddressMode::WRAP;
+		sampler_desc.comparison_func = Hippios::ComparisonFunction::COMPARE_NEVER;
+		sampler_desc.min_lod = 0;
+		sampler_desc.max_lod = FLT_MAX;
+		if (!m_renderer->getRenderer()->createSampler("linear", &sampler_desc))
+			LOG(LOG_ERROR) << "Could not create linear sampler";
+		
+		// nearest sampler
+		memset(&sampler_desc, 0, sizeof(sampler_desc));
+		sampler_desc.filter = SamplerDesc::Filter::MIP_POINT; // Nearest-neighbor filtering
+		sampler_desc.address_u = SamplerDesc::AddressMode::CLAMP;
+		sampler_desc.address_v = SamplerDesc::AddressMode::CLAMP;
+		sampler_desc.address_w = SamplerDesc::AddressMode::CLAMP;
+		sampler_desc.comparison_func = Hippios::ComparisonFunction::COMPARE_NEVER;
+		sampler_desc.min_lod = 0;
+		sampler_desc.max_lod = FLT_MAX;
+		if (!m_renderer->getRenderer()->createSampler("nearest", &sampler_desc))
+			LOG(LOG_ERROR) << "Could not create nearest sampler";
 
 		// add a scene manager 
 		m_scene_manager = new SceneManager();
@@ -65,6 +101,11 @@ namespace Poseidon
 			// main pass: render frame
 			if (m_scene_manager->render())
 				quit = true;
+
+			// present pass for all windows
+			// currently only one
+			if (m_renderer->getRenderer()->presentPass(m_window->getSwapChain()))
+				quit = true;
 		}
 		return 0;
 	}
@@ -78,6 +119,11 @@ namespace Poseidon
 
 		// main pass: render frame
 		if (m_scene_manager->render())
+			quit = true;
+
+		// present pass for all windows
+		// currently only one
+		if (m_renderer->getRenderer()->presentPass(m_window->getSwapChain()))
 			quit = true;
 
 		if (quit)

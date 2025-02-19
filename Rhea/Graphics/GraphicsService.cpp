@@ -160,6 +160,7 @@ namespace Rhea
 			m_viewport_width = 800;
 		if (!m_viewport_height)
 			m_viewport_height = 600;
+		context->setSize((float)m_viewport_width, (float)m_viewport_height);
 		cam->setAspectRatio((float)m_viewport_width / (float)m_viewport_height);
 		cam->setOrthographicSize((float)m_viewport_height);
 		cam->setOrthographic(true);
@@ -352,10 +353,13 @@ namespace Rhea
 					m_viewport_height = viewport_height;
 					
 					Poseidon::Viewport* viewport = m_core->get_scene_manager()->getViewport();
+					// TODO handle special render targets that are not bound to this window
+					viewport->onResize(viewport_width, viewport_height);
+
 					// iterate over contexts and their cameras and set new values
 					float aspect_ratio = (float)m_viewport_width / (float)m_viewport_height;
-					std::vector<Poseidon::RenderContext*> contexts = viewport->getRenderContextList();
-					for (auto context : contexts) {
+					for (const auto& context : viewport->getRenderContextList()) {
+						context->setSize((float)m_viewport_width, (float)m_viewport_height);
 						Poseidon::Camera* cam = context->get_camera();
 						if (cam) {
 							cam->setAspectRatio(aspect_ratio);

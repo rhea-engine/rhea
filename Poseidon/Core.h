@@ -9,7 +9,6 @@
 #include <unordered_map>
 
 #include "Hippios/Engine.h"
-#include "Hippios/Window.h"
 #include "Hippios/Renderer.h"
 
 #include "Node.h"

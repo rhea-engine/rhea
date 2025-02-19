@@ -9,7 +9,7 @@ namespace Hippios
 	{
 	protected:
 		bool m_is_locked = false;
-		size_t m_size_in_bytes;
+		size_t m_size_in_bytes = 0;
 	public:
 		virtual ~GraphicsBuffer() = default;
 		virtual void* Lock(size_t offset, size_t length) {

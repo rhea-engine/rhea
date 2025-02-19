@@ -4,11 +4,6 @@
 #include <memory>
 #include "Renderer.h"
 
-namespace Psio
-{
-	class Engine;
-}
-
 namespace Hippios
 {
 	class HippiosWindow;
@@ -18,19 +13,13 @@ namespace Hippios
 	class Engine
 	{
 	public:
-		Engine(Psio::Engine* psio) :
-			m_psio(psio),
+		Engine() :
 			m_main_window(nullptr)		
 		{}
 
 		void startup();		
 		Renderer* getRenderer() { return m_renderer.get(); };
 		void setRenderer(std::unique_ptr<Renderer> renderer);
-		
-		// create a new window
-		HippiosWindow* createWindow();
-		
-		bool render();
 		
 		// return the main window
 		HippiosWindow* getMainWindow() { return m_main_window; }
@@ -42,8 +31,7 @@ namespace Hippios
 
 	protected:
 		std::unique_ptr<Renderer> m_renderer;
-		HippiosWindow* m_main_window ;
-		Psio::Engine* m_psio;
+		HippiosWindow* m_main_window ;		
 	};
 }
 #endif // !HIPPIOS_ENGINE_H

@@ -64,7 +64,7 @@ namespace Hippios
 		// initialize dpeth stencil state
 		m_stencil_state = static_cast<D3D11StencilState*>(m_renderer->getStencilState(desc->depthStencilState.name));		
 		if (!m_stencil_state)
-			m_stencil_state = static_cast<D3D11StencilState*>(m_renderer->createStencilState(desc->depthStencilState.name, desc->depthStencilState));
+			m_stencil_state = static_cast<D3D11StencilState*>(m_renderer->createStencilState(desc->depthStencilState.name, &desc->depthStencilState));
 		
 		// initialize rasterizer state
 

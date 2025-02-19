@@ -10,24 +10,18 @@
 
 namespace Poseidon
 {	
-	Viewport::Viewport(std::string& name) :
-		m_name(name)
+	Viewport::Viewport(std::string name) :
+		m_name(name),
+		m_width(-1),
+		m_height(-1),
+		m_swapchain(nullptr)
 	{
 		m_groups.emplace("renderable", std::vector<Node*>());
-		RenderContext* context = new RenderContext(std::string("default"));
-		m_render_contexts.push_back(context);
 	}
 
 	Viewport::~Viewport()
 	{
 		Node::~Node();
-		for (std::vector<RenderContext*>::iterator it = m_render_contexts.begin(); it != m_render_contexts.end(); ++it)
-		{
-			RenderContext* context = *it;
-			delete context;
-		}
-		if (m_win)
-			delete m_win;
 	}
 
 	void Viewport::initRenderTarget(Hippios::Engine* engine)
@@ -38,9 +32,9 @@ namespace Poseidon
 
 	RenderContext* Viewport::getRenderContext(std::string& name)
 	{
-		for (std::vector<RenderContext*>::iterator it = m_render_contexts.begin(); it != m_render_contexts.end(); ++it)
+		for (auto it = m_render_contexts.begin(); it != m_render_contexts.end(); ++it)
 		{
-			RenderContext* context = *it;
+			RenderContext* context = (*it).get();
 			if (context->isName(name))
 				return context;
 		}
@@ -49,25 +43,33 @@ namespace Poseidon
 
 	RenderContext* Viewport::createRenderContext(std::string& name)
 	{
-		RenderContext* context = new RenderContext(name);
-		m_render_contexts.push_back(context);
-		return context;
+		m_render_contexts.push_back(std::make_unique<RenderContext>(name));
+		return m_render_contexts.back().get();
 	}
 
-	int Viewport::getHeight()
+	void Viewport::createRenderTarget(int width, int height, Hippios::SwapChain* swap_chain)
 	{
-		if (m_win) {
-			return m_win->getHeight();
-		}
-		return 0;
+		m_width = width;
+		m_height = height;
+		m_swapchain = swap_chain;
+		m_render_target.reset(m_renderer->createRenderTarget(width, height, swap_chain));
+		// create a default context
+		m_render_contexts.clear();
+		std::string name = "default";
+		RenderContext* context = createRenderContext(name);
+		context->setSize((float)width, (float)height);
 	}
 
-	int Viewport::getWidth()
+	void Viewport::onResize(int width, int height)
 	{
-		if (m_win) {
-			return m_win->getWidth();
-		}
-		return 0;
+		if (m_width == width && m_height == height)
+			return;
+
+		m_width = width;
+		m_height = height;
+		// need to update render target
+		if (m_render_target)
+			m_render_target->create(m_width, m_height, m_swapchain);		
 	}
 
 	void Viewport::registerNode()

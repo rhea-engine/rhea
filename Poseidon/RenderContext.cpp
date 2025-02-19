@@ -12,6 +12,8 @@ namespace Poseidon
 		m_name(name),
 		m_stencil_state(0)
 	{
+		m_size = { 0 };
+		m_size.max_depth = 1.0f;
 	}
 
 	void RenderContext::getLights(std::vector<Rhea::Light*>& lights)

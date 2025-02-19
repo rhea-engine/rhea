@@ -174,6 +174,7 @@ namespace Poseidon
 	{
 		assert(m_pso != nullptr);
 		m_grahpics_core->get_renderer()->setPipelineState(m_pso.get());
+		m_grahpics_core->get_renderer()->setSampler(m_sampler_handle);
 	}
 
 }

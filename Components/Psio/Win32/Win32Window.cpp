@@ -164,9 +164,11 @@ namespace Psio
 		HWND parentHWnd = NULL;
 		DWORD dwStyle = 0;
 
-		// set inital window size
-		mWidth = 1152;
-		mHeight = 864;
+		// set inital window size if not set
+		if (!m_width)
+			m_width = 1152;
+		if (!m_height)
+			m_height = 864;
 
 		// some default defines
 		classStyle |= CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS; // TODO: make configurable?  , CS_HREDRAW | CS_VREDRAW means redraw on v or h move of the win (not needed for fs)
@@ -202,7 +204,7 @@ namespace Psio
 		}
 
 		// compute win size
-		RECT wr = { 0, 0, mWidth, mHeight };    // set the size, but not the position
+		RECT wr = { 0, 0, m_width, m_height };    // set the size, but not the position
 		AdjustWindowRect(&wr, WS_OVERLAPPEDWINDOW, FALSE);    // adjust the size
 
 

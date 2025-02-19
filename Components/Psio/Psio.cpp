@@ -50,10 +50,11 @@ namespace Psio
 #endif
 	}
 
-	Window* Engine::createWindow()
+	std::unique_ptr <Window> Engine::createWindow(int width, int height)
 	{
-		Window* win = Window::createWindow();
+		std::unique_ptr<Window> win = Window::createWindow(width, height);
 		win->setInput(m_input);
+		win->create();
 		return win;
 	}
 }

@@ -6,10 +6,10 @@
 
 namespace Psio
 {
-	Window* Window::createWindow()
+	std::unique_ptr<Window> Window::createWindow(int width, int height)
 	{
 #ifdef WIN32
-		Window* win = (Window *)new Win32Window();
+		std::unique_ptr<Window> win = std::make_unique<Win32Window>(width, height);		
 #else
 		// TODO
 		Window *win = nullptr;

@@ -19,7 +19,7 @@ namespace Psio
 		Engine();
 
 		// create a window
-		Window* createWindow();
+		std::unique_ptr <Window> createWindow(int width, int height);
 
 		// get input Handler
 		Input* getInput() { return m_input; }

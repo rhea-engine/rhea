@@ -156,6 +156,40 @@ namespace Psio
 		return DefWindowProc(hWnd, uMsg, wParam, lParam);
 	}
 
+	void Win32Window::SetFullscreen(bool mode)
+	{
+		if (mode) {
+			// Save current window state
+			GetWindowPlacement(m_HWnd, &m_wp);
+
+			// Get monitor size
+			MONITORINFO mi = { sizeof(mi) };
+			GetMonitorInfo(MonitorFromWindow(m_HWnd, MONITOR_DEFAULTTOPRIMARY), &mi);
+
+			// Set borderless fullscreen
+			SetWindowLong(m_HWnd, GWL_STYLE, WS_POPUP);
+			SetWindowPos(m_HWnd, nullptr, mi.rcMonitor.left, mi.rcMonitor.top,
+				mi.rcMonitor.right - mi.rcMonitor.left,
+				mi.rcMonitor.bottom - mi.rcMonitor.top,
+				SWP_FRAMECHANGED | SWP_NOOWNERZORDER);
+
+			// Set window style and extended style (to show in Alt-Tab)
+			SetWindowLong(m_HWnd, GWL_STYLE, WS_POPUP | WS_VISIBLE);
+			SetWindowLong(m_HWnd, GWL_EXSTYLE, WS_EX_APPWINDOW | WS_EX_TOPMOST); // Ensure it appears in Alt-Tab
+
+			// Bring window to the foreground
+			ShowWindow(m_HWnd, SW_SHOW);
+			SetForegroundWindow(m_HWnd);
+			SetFocus(m_HWnd);
+		}
+		else {
+			// Restore original window
+			SetWindowLong(m_HWnd, GWL_STYLE, WS_OVERLAPPEDWINDOW);
+			SetWindowPlacement(m_HWnd, &m_wp);
+			SetWindowPos(m_HWnd, nullptr, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_FRAMECHANGED);
+		}
+	}
+
 	void Win32Window::create()
 	{
 		UINT classStyle = 0;
@@ -172,7 +206,7 @@ namespace Psio
 
 		// some default defines
 		classStyle |= CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS; // TODO: make configurable?  , CS_HREDRAW | CS_VREDRAW means redraw on v or h move of the win (not needed for fs)
-		mHInstance = (HINSTANCE)GetModuleHandle(NULL);
+		m_HInstance = (HINSTANCE)GetModuleHandle(NULL);
 
 		// fill the wndclass
 		WNDCLASSEX wc;
@@ -203,41 +237,55 @@ namespace Psio
 				return;
 		}
 
+		// Get monitor where the mouse is
+		POINT cursor;
+		GetCursorPos(&cursor);
+		HMONITOR monitor = MonitorFromPoint(cursor, MONITOR_DEFAULTTONEAREST);
+
+		MONITORINFO mi = { sizeof(mi) };
+		GetMonitorInfo(monitor, &mi);
+
+		// Get monitor size
+		int screen_width = mi.rcMonitor.right - mi.rcMonitor.left;
+		int screen_height = mi.rcMonitor.bottom - mi.rcMonitor.top;
+		
 		// compute win size
 		RECT wr = { 0, 0, m_width, m_height };    // set the size, but not the position
 		AdjustWindowRect(&wr, WS_OVERLAPPEDWINDOW, FALSE);    // adjust the size
 
+		// Calculate centered position relative to the monitor
+		int posX = mi.rcMonitor.left + (screen_width - (wr.right - wr.left)) / 2;
+		int posY = mi.rcMonitor.top + (screen_height - (wr.bottom - wr.top)) / 2;
 
 		// Create the window for our viewport.
-		mHWnd = CreateWindowEx(dwStyle, PSIO_WIN_CLASS_NAME, "Poseidon", WS_OVERLAPPEDWINDOW, 300, 200, wr.right - wr.left, wr.bottom - wr.top,
+		m_HWnd = CreateWindowEx(dwStyle, PSIO_WIN_CLASS_NAME, m_name.c_str(), WS_OVERLAPPEDWINDOW, posX, posY, wr.right - wr.left, wr.bottom - wr.top,
 			parentHWnd,
 			NULL,
-			mHInstance,
+			m_HInstance,
 			this);
-		if (mHWnd == NULL)
+		if (m_HWnd == NULL)
 		{
-			MessageBox(NULL, "Window Creation Failed!", "Error!",
-				MB_ICONEXCLAMATION | MB_OK);
+			MessageBox(NULL, "Window Creation Failed!", "Error!", MB_ICONEXCLAMATION | MB_OK);
 			return;
 		}
 
 		// show the window
-		ShowWindow(mHWnd, SW_SHOWNORMAL);
-		UpdateWindow(mHWnd);
+		ShowWindow(m_HWnd, SW_SHOWNORMAL);
+		UpdateWindow(m_HWnd);
 	}
 
 	void Win32Window::destroy()
 	{
 		HMENU hMenu;
-		hMenu = GetMenu(mHWnd);
+		hMenu = GetMenu(m_HWnd);
 		if (hMenu != NULL)
 		{
 			DestroyMenu(hMenu);
 		}
-		DestroyWindow(mHWnd);
+		DestroyWindow(m_HWnd);
 		UnregisterClass(
 			PSIO_WIN_CLASS_NAME,
-			mHInstance
+			m_HInstance
 		);
 	}
 }

@@ -10,6 +10,9 @@ namespace Hippios
 
 		// handle resize event
 		virtual void onResize(int width, int height) = 0;
+
+		// set fullscreen mode
+		virtual void SetFullscreen(bool mode) = 0;
 	};
 }
 

@@ -62,6 +62,12 @@ namespace Poseidon
 		Entity* createEntity(Mesh* mesh);
 		Camera* createCamera();		
 
+		// set application name
+		void setAppname(std::string appname) { m_appname = appname; }
+
+		// fullscreen mode
+		void SetFullscreen(bool mode);
+
 		Hippios::GraphicsBuffer* getGraphicsBuffer(std::string facility, size_t size);
 
 	protected:
@@ -69,6 +75,7 @@ namespace Poseidon
 		int quit = 0;
 		Window* m_window = 0;
 		SceneManager* m_scene_manager = 0;
+		std::string m_appname;
 
 		Psio::Engine* m_psio;
 		std::unordered_map<std::string, Material*> m_materials;

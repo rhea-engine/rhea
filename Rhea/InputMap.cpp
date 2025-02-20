@@ -44,7 +44,8 @@ namespace Rhea
 		{ Psio::CODE_END, "move_down" },
 		{ Psio::CODE_ESC, "cancel" },
 		{ Psio::CODE_SPACE, "jump"},
-		{ Psio::CODE_F2, "debug"},		
+		{ Psio::CODE_F2, "debug"},
+		
 	};
 
 	actdef default_keyup_map[] = {
@@ -60,6 +61,7 @@ namespace Rhea
 		{ Psio::CODE_S, "move_back_stop" },
 		{ Psio::CODE_HOME, "move_up_stop" },
 		{ Psio::CODE_END, "move_down_stop" },
+		{ Psio::CODE_F11, "fullscreen"}
 	};
 
 

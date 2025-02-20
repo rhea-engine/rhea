@@ -18,7 +18,8 @@ namespace Poseidon
 {
 	Core::Core()
 	{
-		m_psio = nullptr;	
+		m_psio = nullptr;
+		m_appname = "Poseidon";
 	}
 
 	Core::~Core()
@@ -50,7 +51,7 @@ namespace Poseidon
 		m_window->initRenderTarget(m_renderer.get());
 		int width = 1152;
 		int height = 864;
-		m_window->CreateFromNativeWindow(psio, width, height);
+		m_window->CreateFromNativeWindow(psio, m_appname, width, height);
 
 		// create the default stencil states
 		Hippios::DepthStencilStateDesc desc;
@@ -202,6 +203,11 @@ namespace Poseidon
 	{
 		Camera* camera = new Poseidon::Camera(m_renderer.get());
 		return camera;
+	}
+
+	void Core::SetFullscreen(bool mode)
+	{
+		m_window->SetFullscreen(mode);
 	}
 
 	Hippios::GraphicsBuffer* Core::getGraphicsBuffer(std::string facility, size_t size)

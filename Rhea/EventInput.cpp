@@ -9,7 +9,7 @@ namespace Rhea
 			return false;
 
 		for (auto& act : m_actions) {
-			if (act == action)
+			if (!act.compare(action))
 				return true;
 		}
 		return false;

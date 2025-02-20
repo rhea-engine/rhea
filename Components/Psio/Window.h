@@ -2,6 +2,7 @@
 #define PSIO_WINDOW_H
 
 #include <memory>
+#include <string>
 
 namespace Psio
 {
@@ -20,11 +21,13 @@ namespace Psio
 		virtual void destroy() = 0;
 		
 		// factory function
-		static std::unique_ptr<Window> createWindow(int width, int height);
+		static std::unique_ptr<Window> createWindow(std::string name, int width, int height);
 		
 		virtual void* getHandle() = 0;
 		int GetWidth() { return m_width; }
 		int GetHeight() { return m_height; }
+
+		virtual void SetFullscreen(bool mode) = 0;
 
 		// set input queue
 		void setInput(Input* input);

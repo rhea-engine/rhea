@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <cstdint>
+#include <string>
 
 namespace Psio
 {
@@ -19,7 +20,7 @@ namespace Psio
 		Engine();
 
 		// create a window
-		std::unique_ptr <Window> createWindow(int width, int height);
+		std::unique_ptr <Window> createWindow(std::string name, int width, int height);
 
 		// get input Handler
 		Input* getInput() { return m_input; }

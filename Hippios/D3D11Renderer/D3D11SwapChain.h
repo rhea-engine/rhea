@@ -17,6 +17,8 @@ namespace Hippios
 		// methods from base class
 		void onResize(int width, int height);
 
+		void SetFullscreen(bool mode);
+
 		// get the native swapchain
 		IDXGISwapChain* getNativeSwapChain() { return m_swapchain; }
 	protected:

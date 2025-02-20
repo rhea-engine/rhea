@@ -57,6 +57,9 @@ namespace Rhea
 		int getViewportWidth() { return m_viewport_width; }
 		int getViewportHeight() { return m_viewport_height; }
 
+		// request fullscreen
+		void ToggleFullscreen();
+
 		// get the manager for a certain type
 		GraphicsManager* getManager(SimpleParser::Type* type);
 
@@ -91,6 +94,9 @@ namespace Rhea
 		// the current mouse pos
 		int m_mx;
 		int m_my;
+
+		// fullscreen mode
+		bool m_fullscreen;
 
 		Unit* pick();
 	};

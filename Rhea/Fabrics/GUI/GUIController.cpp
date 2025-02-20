@@ -57,6 +57,11 @@ namespace Rhea
 		GraphicsService* gsrv = (GraphicsService*)m_app->getService("graphics");
 		m_viewport_width = gsrv->getViewportWidth();
 		m_viewport_height = gsrv->getViewportHeight();
+		gsrv->registerEventHandler("resize", this, [&, gsrv](Event* ev, Unit* unit) -> bool { 
+			m_viewport_width = gsrv->getViewportWidth();
+			m_viewport_height = gsrv->getViewportHeight();
+			return onGuiUpdate(ev, unit); 
+		});
 
 		m_style_engine = std::make_unique<StyleEngine>();
 		if (m_values["stylesheet"] != Variant()) {
@@ -123,6 +128,14 @@ namespace Rhea
 		}
 
 		Psio::InputEventId id = e->getEvent()->getId();
+
+		if (e->isAction("fullscreen")) {
+			GraphicsService* gsrv = doCast<GraphicsService>(m_app->getService("graphics"));
+			if (gsrv) {
+				gsrv->ToggleFullscreen();
+			}
+			return false;
+		}
 
 		switch (id) {
 		case Psio::InputEventId::MOUSE_BTN_PRESSED:
@@ -260,15 +273,6 @@ namespace Rhea
 				m_target->bubbleEvent("text_input", e);
 			}
 			break;
-
-		case Psio::InputEventId::WIN_SIZE:
-			// resize window
-			std::shared_ptr<Psio::WinSizeEvent> me = std::static_pointer_cast<Psio::WinSizeEvent>(e->getEvent());
-			m_viewport_width = me->width();
-			m_viewport_height = me->height();
-			onGuiUpdate(ev, unit);
-			break;
-
 		}
 		
 		return false;
@@ -300,7 +304,7 @@ namespace Rhea
 	{
 		// sizing with constraint of viewport size
 		Vector2 vp_size((float)m_viewport_width, (float)m_viewport_height);
-		
+
 		if (m_viewport_width <= 0 && m_viewport_height <= 0)
 			return false;
 

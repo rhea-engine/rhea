@@ -1,4 +1,5 @@
 #include "GraphicsService.h"
+#include "GraphicsService.h"
 #include <functional>
 
 #include "../Platform/PlatformService.h"
@@ -42,6 +43,7 @@ namespace Rhea
 		m_viewport_height(0),
 		m_mx(0),
 		m_my(0),
+		m_fullscreen(false),
 		Service(name, type_name)	
 	{
 		m_core = std::make_unique<Poseidon::Core>();
@@ -55,6 +57,15 @@ namespace Rhea
 
 	GraphicsService::~GraphicsService()
 	{		
+	}
+
+	void GraphicsService::ToggleFullscreen()
+	{
+		if (!m_fullscreen)
+			m_core->SetFullscreen(true);
+		else
+			m_core->SetFullscreen(false);
+		m_fullscreen = !m_fullscreen;
 	}
 
 	GraphicsManager* GraphicsService::getManager(SimpleParser::Type* type)
@@ -368,6 +379,7 @@ namespace Rhea
 							cam->updateView();
 						}
 					}
+					sendEvent("resize", nullptr);
 				}
 				
 				break;

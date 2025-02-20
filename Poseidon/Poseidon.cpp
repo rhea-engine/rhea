@@ -42,6 +42,7 @@ namespace Poseidon
 		Rhea::PlatformService* psio = static_cast<Rhea::PlatformService *>(m_services["platform"]);
 		g_service->setPlatform(psio);
 		core = g_service->getEngine();
+		core->setAppname(m_appname);
 
 		// register network fabrics
 		Rhea::NetworkFabrics::Register(this);

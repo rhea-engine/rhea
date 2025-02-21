@@ -20,6 +20,8 @@ namespace Rhea
 
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
 
+		void ready();
+
 		// input handling
 		bool onMouseClick(Event* ev, Unit* unit);
 

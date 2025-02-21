@@ -507,6 +507,8 @@ namespace Rhea
 
 		// re-create modifiers
 
+		int num_old_modifiers = m_modifiers.size();
+
 		if (m_modifiers.size())
 			m_modifiers.clear();
 		if (m_base_position.x || m_base_position.y) {
@@ -605,6 +607,12 @@ namespace Rhea
 		}
 		if (getValue("fillwidth", false)) {
 			m_modifiers.push_back(std::make_unique<FillWidthModifier>());
+		}
+
+		// if we had or now have size modifiers we need a resize
+		if (num_old_modifiers || m_modifiers.size()) {
+			Event resize_ev("need_resize", this);
+			bubbleEvent("need_resize", &resize_ev);
 		}
 	}
 

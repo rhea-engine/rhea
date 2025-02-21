@@ -86,6 +86,10 @@ namespace Rhea
 				render_component->setMesh(mesh);
 
 				setMesh();
+
+				// newly created mesh: update my item
+				Event e("update", this);
+				sendEvent("update", &e);
 			}
 		}
 	}
@@ -95,8 +99,10 @@ namespace Rhea
 		Rhea::Font* font = getFont();
 		std::string sentence = getText();
 
-		if (!font)
+		if (!font) {
+			LOG(LOG_ERROR) << "TextWidget has no font defined";
 			return;
+		}
 
 		float t_x = (float)X() + m_offset_x;
 		float t_y = (float)Y();

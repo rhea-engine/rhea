@@ -27,6 +27,8 @@ namespace Rhea
 
 		Event e("scene_enter", item);
 		bubbleEvent("scene_enter", &e);
+		Event e2("need_resize", item);
+		bubbleEvent("need_resize", &e2);
 
 		registerEventHandler("selected", this, std::bind(&ListWidget::onSelected, this, std::placeholders::_1, std::placeholders::_2));
 	}
@@ -77,12 +79,16 @@ namespace Rhea
 				if (changed) {
 
 					// iterate over children and delete all listwidgetitems
+					std::vector<ListWidgetItem*> to_del;
 					for (auto it = m_children.begin(); it != m_children.end(); ++it) {
 						ListWidgetItem* w = doCast<ListWidgetItem>(it->second);
 						if (w) {
-							removeChild(w);
-							delete w;
+							to_del.push_back(w);
 						}
+					}
+					for (ListWidgetItem* w : to_del) {
+						removeChild(w);
+						delete w;
 					}
 					// clear list
 					m_list_items.clear();					

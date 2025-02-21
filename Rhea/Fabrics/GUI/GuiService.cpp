@@ -11,7 +11,7 @@ namespace Rhea
 	bool GuiService::onFrame(float delta)
 	{	
 		for (auto controller : m_controllers) {
-			controller->UpdateStyle();
+			controller->onFrame();
 		}
 		return false;
 	}

@@ -25,6 +25,14 @@ namespace Rhea
 
 		registerEventHandler("mouse_btn_down", this, std::bind(&ListWidgetItem::onMouseClick, this, std::placeholders::_1, std::placeholders::_2));
 	}
+
+	void ListWidgetItem::ready()
+	{
+		Widget::ready();
+
+		if (m_label)
+			m_label->ready();
+	}
 	
 	bool ListWidgetItem::onMouseClick(Event* ev, Unit* unit)
 	{

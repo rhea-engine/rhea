@@ -1,5 +1,6 @@
 #include "GUIController.h"
 #include "GUIController.h"
+#include "GUIController.h"
 #include "Application.h"
 #include "UnitTree.h"
 #include "Fabrics/Core/Scene.h"
@@ -93,6 +94,9 @@ namespace Rhea
 		registerEventHandler("scene_enter", this, std::bind(&GUIController::onGuiUpdate, this, std::placeholders::_1, std::placeholders::_2));
 		registerEventHandler("scene_leave", this, std::bind(&GUIController::onGuiUpdate, this, std::placeholders::_1, std::placeholders::_2));
 		registerEventHandler("gui_redraw", this, std::bind(&GUIController::onGuiUpdate, this, std::placeholders::_1, std::placeholders::_2));
+		registerEventHandler("need_resize", this, [&](Event* ev, Unit* u)->bool {
+			m_need_resize = true; return false; 
+			});
 
 		// handle show/hide of children
 		registerEventHandler("show", this, std::bind(&GUIController::onShowWidget, this, std::placeholders::_1, std::placeholders::_2));
@@ -311,6 +315,7 @@ namespace Rhea
 		size(vp_size);
 
 		setPosition(Vector2(m_base_position));
+
 		return false;
 	}
 
@@ -318,6 +323,15 @@ namespace Rhea
 	{
 		if (m_style_engine)
 			RecalculateStyle(m_style_engine.get());
+	}
+
+	void GUIController::onFrame()
+	{
+		UpdateStyle();
+		if (m_need_resize) {
+			onGuiUpdate(nullptr, nullptr);
+			m_need_resize = false;
+		}
 	}
 
 	void GUIController::Register(Application* app)

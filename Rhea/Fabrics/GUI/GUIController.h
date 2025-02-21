@@ -19,6 +19,7 @@ namespace Rhea
 			m_my(0),
 			m_viewport_width(0),
 			m_viewport_height(0),
+			m_need_resize(false),
 			Widget(name, type_name)
 		{}
 
@@ -50,6 +51,9 @@ namespace Rhea
 		// update style of elements
 		void UpdateStyle();
 
+		// handle onFrame
+		void onFrame();
+
 		// gui fabric function
 		static void Register(Application* app);
 
@@ -60,6 +64,9 @@ namespace Rhea
 		Widget* m_target;
 		// the current hover widget
 		Widget* m_captured;
+
+		// if we need a resize in the next frame?
+		bool m_need_resize;
 
 		// last mouse position
 		int m_mx;

@@ -347,7 +347,7 @@ namespace Rhea
 	void Unit::bubbleEvent(std::string event_name, Event* event)
 	{
 		sendEvent(event_name, event);
-		if (!event->isPropagationStoppped() && m_parent)
+		if (m_parent && (!event || !event->isPropagationStoppped()))
 			m_parent->bubbleEvent(event_name, event);
 	}
 

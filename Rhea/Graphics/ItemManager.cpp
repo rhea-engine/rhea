@@ -54,10 +54,6 @@ namespace Rhea
 		// prepare basic elements
 		
 		Mesh* item_mesh = item->getMesh();
-		if (!light && !item_mesh) {
-			DLOG(LOG_DEBUG) << "GraphicsItemManager::createElement: getMesh returned nullptr";	
-			return nullptr;
-		}
 		elem = new GraphicsRenderElement(core);
 
 		if (item_mesh) {
@@ -71,9 +67,10 @@ namespace Rhea
 			// create the element		
 			Poseidon::Renderable* entity = static_cast<Poseidon::Renderable*>(createRenderable(elem, core, unit, "default", item_mesh->isDynamic()));
 		}
-		else {
+		else if (light) {
 			Poseidon::Renderable* entity = static_cast<Poseidon::Renderable*>(createEntity(elem, core, unit, "default", false));
 		}
+		// NOTE else do nothing: this is normal for widgets that have no or transparent background defined
 
 		// attach to unit
 		unit->addComponentUnique<GraphicsComponent>(elem);
@@ -103,9 +100,12 @@ namespace Rhea
 
 		// NOTE: This assumes a changed material will actually be a new material (i.e. the old one gets destroyed)
 
+		// check if mesh has already a component, if not create it
+		if (!mesh->getComponent<GraphicsComponent>()) {
+			// create using mesh manager
+			GraphicsMesh* mesh_el = (GraphicsMesh*)m_service->getManager<Mesh>()->createElement(m_service->getEngine(), mesh);
+		}
 		// ensure all submeshes have the correct material
-		if (!mesh->getComponent<GraphicsComponent>())
-			return false;
 		GraphicsMesh* mesh_el = static_cast<GraphicsMesh*>(mesh->getComponent<GraphicsComponent>()->getElement());
 		for (size_t i = 0; i < mesh->getNumSubmeshes(); i++) {
 			Material* material = mesh->getMaterial(i);

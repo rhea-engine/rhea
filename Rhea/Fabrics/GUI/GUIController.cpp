@@ -158,15 +158,11 @@ namespace Rhea
 				Widget* root_capture = nullptr;
 
 				// check all top level windows
-				for (auto it = m_children.begin(); it != m_children.end(); ++it)
+				for (auto it = m_ordered_children.rbegin(); it != m_ordered_children.rend(); ++it)
 				{
-					Widget* w = doCast<Widget>(it->second);
+					Widget* w = doCast<Widget>(*it);
 					if (w) {
-
-						if (me->getX() > 1330) {
-							captured = nullptr;
-						}
-
+						
 						// get the captured widget (if in this tree)
 						captured = w->capture(me->getX(), me->getY());
 						if (captured) {

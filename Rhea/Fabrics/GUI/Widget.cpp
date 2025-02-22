@@ -777,9 +777,9 @@ namespace Rhea
 
 		// is a child a better match?
 		Widget* captured;
-		for (auto it = m_children.begin(); it != m_children.end(); ++it)
+		for (auto it = m_ordered_children.rbegin(); it != m_ordered_children.rend(); ++it)
 		{
-			Widget* w = doCast<Widget>(it->second);
+			Widget* w = doCast<Widget>(*it);
 			if (w) {
 				captured = w->capture(c_x, c_y);
 				if (captured) {

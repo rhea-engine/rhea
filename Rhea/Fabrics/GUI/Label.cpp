@@ -55,7 +55,7 @@ namespace Rhea
 	Vector2 Label::innerSize(Vector2 size_constraints)
 	{
 		// get height from font of text widget
-		Vector2 child_size = m_label_item->getTextSize();
+		Vector2 child_size = m_label_item->getTextSize(size_constraints);
 		// fill label to my size
 		if (m_size.x > child_size.x) {
 			child_size.x = m_size.x;
@@ -80,7 +80,7 @@ namespace Rhea
 
 	void Label::innerGetMinSize(Vector2& min_size)
 	{
-		Vector2 child_size = m_label_item->getTextSize();
+		Vector2 child_size = m_label_item->getTextSize(min_size);
 		if (min_size.x < child_size.x)
 			min_size.x = child_size.x;
 		if (min_size.y < child_size.y)
@@ -96,6 +96,7 @@ namespace Rhea
 			float pos_y = floor(m_position.y + m_content_position.y + 0.5f);
 
 			m_label_item->move(pos_x, pos_y);
+			m_label_item->resize(m_size.x, m_size.y);
 			m_label_item->update();
 		}
 	}
@@ -105,6 +106,8 @@ namespace Rhea
 		Widget::ApplyStyles();
 
 		if (m_label_item) {
+
+			// set the font style
 			std::vector<CssValue> font_prop = getStyle(StylePropertyId::kFont);
 			if (font_prop.size()) {
 				Font* font = doCast<Font>(m_app->getUnitTree()->find(font_prop[0].value));

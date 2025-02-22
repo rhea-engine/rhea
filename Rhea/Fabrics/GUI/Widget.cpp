@@ -414,9 +414,8 @@ namespace Rhea
 				else {
 					// res_name is probably a path
 					ImageResource* tex = doCast<ImageResource>(m_app->getUnitTree()->find(res_name));
-					if (tex) {
-						setBackgroundImage(tex);
-					}
+					// if not found we get a nullptr and that sets the image to null
+					setBackgroundImage(tex);
 				}
 			}
 			break;

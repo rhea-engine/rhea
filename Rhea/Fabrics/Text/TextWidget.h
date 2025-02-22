@@ -57,7 +57,7 @@ namespace Rhea
 		void setOffset(float offset) { m_offset_x = offset; }
 
 		// get size of current text
-		Vector2 getTextSize();
+		Vector2 getTextSize(Vector2 size_constraints);
 
 		// set word wrap option
 		void setWordWrap(bool word_warp);

@@ -92,7 +92,18 @@ namespace Rhea
 
 		// watch for updates
 		registerEventHandler("scene_enter", this, std::bind(&GUIController::onGuiUpdate, this, std::placeholders::_1, std::placeholders::_2));
-		registerEventHandler("scene_leave", this, std::bind(&GUIController::onGuiUpdate, this, std::placeholders::_1, std::placeholders::_2));
+		registerEventHandler("scene_leave", this, [&](Event* ev, Unit* u)->bool {
+			Rhea::Unit* target = ev->getTarget();
+			// if the leaving unit is currently captured empty reference
+			target->traverse([&](std::string name, Rhea::Component* c)->bool {
+				if (c == m_target)
+					m_target = nullptr;
+				if (c == m_captured)
+					m_captured = nullptr;
+				return true;
+				});
+			return GUIController::onGuiUpdate(ev, u);
+			});
 		registerEventHandler("gui_redraw", this, std::bind(&GUIController::onGuiUpdate, this, std::placeholders::_1, std::placeholders::_2));
 		registerEventHandler("need_resize", this, [&](Event* ev, Unit* u)->bool {
 			m_need_resize = true; return false; 

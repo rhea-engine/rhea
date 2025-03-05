@@ -44,7 +44,8 @@ namespace Rhea
 						rule.properties[prop->id] = values;						
 
 						if (prop->id == StylePropertyId::kBackgroundImage) {
-							refs.push_back({ "image_" + std::to_string(i++), "image/png", values[0].value });
+							if (values[0].value != "none")
+								refs.push_back({ "image_" + std::to_string(i++), "image/png", values[0].value });
 						}
 					}
 				}

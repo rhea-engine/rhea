@@ -24,6 +24,9 @@ namespace Rhea
 
 		void addItem(std::string text, std::string value);
 
+		// clear the list
+		void clear();
+
 		void ready();
 
 		// frame handler

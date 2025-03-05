@@ -14,7 +14,9 @@ namespace Rhea {
 			m_full_weight(0.0f),
 			m_children_size(0.0f),
 			Widget(name, type_name)
-		{}
+		{
+			m_justify_mode = 1;
+		}
 
 		void ready();
 

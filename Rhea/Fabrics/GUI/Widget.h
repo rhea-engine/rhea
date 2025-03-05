@@ -35,6 +35,7 @@ namespace Rhea
 			m_sizing_mode_h(TextureSizingMode::kAuto),
 			m_screen_position_valid(false),
 			m_style_dirty(true),
+			m_justify_mode(0),
 			m_is_rtl(false),
 			m_essential_size_valid(false)
 		{}
@@ -83,6 +84,9 @@ namespace Rhea
 		void RecalculateStyle(StyleEngine* style_engine);		
 		void AppendStyles(CssRuleSet& styles);
 		virtual void ApplyStyles();		
+
+		void setAlignment(std::string horizontal, std::string vertical);
+		void setJustifyMode(int mode) { m_justify_mode = mode; }
 
 		// set widgets own style(s)
 		void setStyles(CssRuleSet& styles);
@@ -170,6 +174,9 @@ namespace Rhea
 		bool m_essential_size_valid;
 
 		std::vector<std::unique_ptr<Modifier>> m_modifiers;
+
+		// justify mode
+		int m_justify_mode;
 
 		// current coordinates
 

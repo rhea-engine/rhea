@@ -13,7 +13,9 @@ namespace Rhea {
 		RowWidget(std::string name, std::string type_name) :
 			m_children_size(0),
 			Widget(name, type_name)
-		{}
+		{
+			m_justify_mode = 1;
+		}
 
 		void ready();
 

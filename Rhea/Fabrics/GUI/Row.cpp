@@ -15,7 +15,14 @@ void Rhea::RowWidget::onSetPosition()
 		return;
 	float slot_padding;
 
-	slot_padding = (m_content_size.x - m_children_size) / m_ordered_children.size();
+	switch (m_justify_mode) {
+	case 0:
+		slot_padding = 0.0f;
+		break;
+	case 1:
+		slot_padding = (m_content_size.x - m_children_size) / m_ordered_children.size();
+		break;
+	}
 	Vector2 slot_size = Vector2(0.0f, m_content_size.y);
 
 	for (auto it = m_ordered_children.begin(); it != m_ordered_children.end(); ++it) {

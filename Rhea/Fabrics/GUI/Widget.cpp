@@ -1,4 +1,5 @@
 #include "Widget.h"
+#include "Widget.h"
 #include <cassert>
 #include <Psio/Log.h>
 
@@ -106,25 +107,12 @@ namespace Rhea
 		// layout
 		Variant align = getValue("alignment");
 		if (align.isArray()) {
-			Alignment::Horizontal h_align = Alignment::Horizontal::START;
-			Alignment::Vertical v_align = Alignment::Vertical::TOP;
-			if (align.size() > 0) {
-				if (align[0] == "start")
-					h_align = Alignment::Horizontal::START;
-				else if (align[0] == "end")
-					h_align = Alignment::Horizontal::END;
-				else if (align[0] == "center")
-					h_align = Alignment::Horizontal::CENTER;
-			}
-			if (align.size() > 1) {
-				if (align[1] == "top")
-					v_align = Alignment::Vertical::TOP;
-				else if (align[1] == "bottom")
-					v_align = Alignment::Vertical::BOTTOM;
-				else if (align[1] == "center")
-					v_align = Alignment::Vertical::CENTER;
-			}
-			m_alignment = std::make_unique<Alignment>(h_align, v_align);
+			if (align.size() > 1)
+				setAlignment(align[0], align[1]);
+			else if (align.size() > 0)
+				setAlignment(align[0], "top");
+
+			
 		}
 
 		// set styles based on values
@@ -506,7 +494,7 @@ namespace Rhea
 
 		// re-create modifiers
 
-		int num_old_modifiers = m_modifiers.size();
+		size_t num_old_modifiers = m_modifiers.size();
 
 		if (m_modifiers.size())
 			m_modifiers.clear();
@@ -613,6 +601,28 @@ namespace Rhea
 			Event resize_ev("need_resize", this);
 			bubbleEvent("need_resize", &resize_ev);
 		}
+	}
+
+	void Widget::setAlignment(std::string horizontal, std::string vertical)
+	{
+		Alignment::Horizontal h_align = Alignment::Horizontal::START;
+		Alignment::Vertical v_align = Alignment::Vertical::TOP;
+
+		if (horizontal == "start")
+			h_align = Alignment::Horizontal::START;
+		else if (horizontal == "end")
+			h_align = Alignment::Horizontal::END;
+		else if (horizontal == "center")
+			h_align = Alignment::Horizontal::CENTER;
+
+		if (vertical == "top")
+			v_align = Alignment::Vertical::TOP;
+		else if (vertical == "bottom")
+			v_align = Alignment::Vertical::BOTTOM;
+		else if (vertical == "center")
+			v_align = Alignment::Vertical::CENTER;
+
+		m_alignment = std::make_unique<Alignment>(h_align, v_align);
 	}
 
 	void Widget::ApplyTextureSizing() {

@@ -30,7 +30,7 @@ namespace Hippios
 	{
 	public:
 		/// Virtual destructor to ensure proper cleanup in derived classes.
-		virtual ~Renderer() {}
+		virtual ~Renderer();
 
 		/**
 		 * @brief Creates a vertex buffer.

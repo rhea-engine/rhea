@@ -74,7 +74,7 @@ namespace Rhea
 		 * @brief Sets the onClick event handler target.
 		 * @param target The target for the onClick event.
 		 */
-		void setOnClick(std::string target);
+		void setOnClick(const std::string& target);
 
 		/**
 		 * @brief Handles the onClick event.
@@ -187,7 +187,7 @@ namespace Rhea
 		/**
 		 * @brief Applies the styles to the widget.
 		 */
-		virtual void ApplyStyles();
+		virtual void ApplyStyles();		
 
 		/**
 		 * @brief Sets the alignment of the widget.
@@ -327,6 +327,16 @@ namespace Rhea
 		 * @return The screen position.
 		 */
 		Vector2 getScreenPosition();
+
+		/**
+		 * @brief calculates the font size.
+		 */
+		float calculateFontSize(const CssValue& value) const;
+
+		/**
+		 * @brief Recalculates the modifiers of the widget.
+		 */
+		void recreateModifiers(const Vector2& base_position, const Vector2& base_size, const CssValueId position_types[4]);
 
 		// Whether this is a top window
 		bool m_top_window;

@@ -1,5 +1,6 @@
 #include "Widget.h"
 #include "Widget.h"
+#include "Widget.h"
 #include <cassert>
 #include <Psio/Log.h>
 
@@ -145,10 +146,10 @@ namespace Rhea
 		}
 	}
 
-	void Widget::setOnClick(std::string target)
+	void Widget::setOnClick(const std::string& target)
 	{
-		bool is_set = (m_onClick != "");
-		bool is_new_set = (target != "");
+		bool is_set = !m_onClick.empty();
+		bool is_new_set = !target.empty();
 		m_onClick = target;
 		if (!is_set && is_new_set)
 			registerEventHandler("mouse_btn_down", this, [&](Event* e, Unit* u)->bool {
@@ -388,116 +389,94 @@ namespace Rhea
 		m_sizing_mode_w = TextureSizingMode::kAuto;
 		m_sizing_mode_h = TextureSizingMode::kAuto;
 
-		for (auto it = m_computed_properties.begin(); it != m_computed_properties.end(); ++it) {
-			// make sure we have at least one value
-			if (!it->second.size())
-				continue;
-			switch (it->first) {
-			case StylePropertyId::kBackgroundImage:
-			{
-				std::string res_name = it->second[0].value;
-				if (!res_name.compare("none")) {
-					setBackgroundImage(nullptr);
-				}
-				else {
-					// res_name is probably a path
-					ImageResource* tex = doCast<ImageResource>(m_app->getUnitTree()->find(res_name));
-					// if not found we get a nullptr and that sets the image to null
-					setBackgroundImage(tex);
-				}
-			}
-			break;
-			case StylePropertyId::kBackgroundColor:
-				if (it->second.size() >= 3) {
+		for (const auto& property : m_computed_properties) {          
+			auto property_id = property.first;  
+            auto values = property.second;
 
-					// set background color as (r,g,b,alpha)
-					if (it->second.size() > 3)
-						setBackgroundColor(it->second[0].value, it->second[1].value, it->second[2].value, it->second[3].value);
-					else
-						setBackgroundColor(it->second[0].value, it->second[1].value, it->second[2].value);
+			// make sure we have at least one value
+			if (values.empty())
+				continue;
+			switch (property_id) {
+			case StylePropertyId::kBackgroundImage:
+				setBackgroundImage(values[0].value == "none" ? nullptr : doCast<ImageResource>(m_app->getUnitTree()->find(values[0].value)));
+				break;
+			case StylePropertyId::kBackgroundColor:
+				if (values.size() >= 3) {
+					setBackgroundColor(values[0].value, values[1].value, values[2].value, values.size() > 3 ? values[3].value : 1.0f);
 				}
 				break;
 			case StylePropertyId::kBackgroundSize:
-				if (it->second[0].value == "contain") {
+				if (values[0].value == "contain") {
 					m_sizing_mode_w = TextureSizingMode::kContain;
 				}
-				else if (it->second[0].value == "cover") {
+				else if (values[0].value == "cover") {
 					m_sizing_mode_w = TextureSizingMode::kCover;
 				}
-				if (it->second.size() >= 2) {
-					// note: contain and cover make no sense to list twice but just in case
-					if (it->second[1].value == "contain") {
+				if (values.size() >= 2) {
+					if (values[1].value == "contain") {
 						m_sizing_mode_h = TextureSizingMode::kContain;
 					}
-					else if (it->second[1].value == "cover") {
+					else if (values[1].value == "cover") {
 						m_sizing_mode_h = TextureSizingMode::kCover;
 					}
 				}
 				else {
-					// only one property
 					m_sizing_mode_h = m_sizing_mode_w;
-				}
+				}				
 				break;
 			case StylePropertyId::kLeft:
-				base_position.x = it->second[0].value;
-				position_types[0] = it->second[0].id;
+				base_position.x = values[0].value;
+				position_types[0] = values[0].id;
 				break;
 			case StylePropertyId::kTop:
-				base_position.y = it->second[0].value;
-				position_types[1] = it->second[0].id;
+				base_position.y = values[0].value;
+				position_types[1] = values[0].id;
 				break;
 			case StylePropertyId::kWidth:
-				base_size.x = it->second[0].value;
-				position_types[2] = it->second[0].id;
+				base_size.x = values[0].value;
+				position_types[2] = values[0].id;
 				break;
 			case StylePropertyId::kHeight:
-				base_size.y = it->second[0].value;
-				position_types[3] = it->second[0].id;
+				base_size.y = values[0].value;
+				position_types[3] = values[0].id;
 				break;
 			case StylePropertyId::kFontSize:
-			{
-				float parent_font_size = 0.0f;
-				if (doCast<Widget>(m_parent))
-					parent_font_size = doCast<Widget>(m_parent)->getFontSize();
-				else {
-					CssValue default_font_size_val = CssProperty::GetDefaultValue(StylePropertyId::kFontSize);
-					if (default_font_size_val.id == CssValueId::kNumeric)
-						parent_font_size = (float)default_font_size_val.value;
-					else
-						// TODO parse size names
-						parent_font_size = 16;
-				}
-
-				switch (it->second[0].id) {
-				case CssValueId::kNumeric:
-					m_font_size = it->second[0].value;
-					break;
-				case CssValueId::kDimensionEm:
-					m_font_size = parent_font_size * (float)it->second[0].value;
-					break;
-				case CssValueId::kPercentage:
-					m_font_size = parent_font_size * (float)it->second[0].value / 100.0f;
-					break;
-				case CssValueId::kString:
-					if (it->second[0].value == "inherit")
-						m_font_size = parent_font_size;
-				}
-			}
-			break;
+				m_font_size = calculateFontSize(values[0]);
+				break;			
 			}
 		}
 		
 		ApplyTextureSizing();
-
 		UpdateMaterial();
 		sendEvent("update", nullptr);
 
-		// re-create modifiers
+		recreateModifiers(base_position, base_size, position_types);
 
+		
+	}
+
+	float Widget::calculateFontSize(const CssValue& value) const
+	{
+		float parent_font_size = doCast<Widget>(m_parent) ? doCast<Widget>(m_parent)->getFontSize() : CssProperty::GetDefaultValue(StylePropertyId::kFontSize).value;
+		switch (value.id) {
+		case CssValueId::kNumeric:
+			return value.value;
+		case CssValueId::kDimensionEm:
+			return parent_font_size * (float)value.value;
+		case CssValueId::kPercentage:
+			return parent_font_size * (float)value.value / 100.0f;
+		case CssValueId::kString:
+			return value.value == "inherit" ? parent_font_size : 16.0f;
+		default:
+			return 16.0f;
+		}
+	}
+
+	void Widget::recreateModifiers(const Vector2& base_position, const Vector2& base_size, const CssValueId position_types[4])
+	{
 		size_t num_old_modifiers = m_modifiers.size();
+		m_modifiers.clear();
 
-		if (m_modifiers.size())
-			m_modifiers.clear();
 		if (m_base_position.x || m_base_position.y) {
 			m_modifiers.push_back(std::make_unique<OffsetModifier>(m_base_position));
 		}
@@ -597,12 +576,11 @@ namespace Rhea
 		}
 
 		// if we had or now have size modifiers we need a resize
-		if (num_old_modifiers || m_modifiers.size()) {
+		if (num_old_modifiers || !m_modifiers.empty()) {
 			Event resize_ev("need_resize", this);
 			bubbleEvent("need_resize", &resize_ev);
 		}
 	}
-
 	void Widget::setAlignment(std::string horizontal, std::string vertical)
 	{
 		Alignment::Horizontal h_align = Alignment::Horizontal::START;

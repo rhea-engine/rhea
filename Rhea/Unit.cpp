@@ -313,10 +313,10 @@ namespace Rhea
 	{
 		auto it = m_eventhandlers.find(event_name);
 		if (it != m_eventhandlers.end()) {
-			for (auto eh_it = it->second.begin(); eh_it != it->second.end(); ++eh_it) {
-				Event::EventHandler eh = eh_it->second;
-				if (eh)
-					eh(event, this);
+			auto handlers_copy = it->second;  // Copy the handlers so |this| may be destroyed
+			for (auto& eh : handlers_copy) {
+				if (eh.second)
+					eh.second(event, this);  // |this| might be destroyed here
 			}
 		}
 	}
@@ -347,7 +347,7 @@ namespace Rhea
 	void Unit::bubbleEvent(std::string event_name, Event* event)
 	{
 		sendEvent(event_name, event);
-		if (!event->isPropagationStoppped() && m_parent)
+		if (m_parent && (!event || !event->isPropagationStoppped()))
 			m_parent->bubbleEvent(event_name, event);
 	}
 

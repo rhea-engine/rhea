@@ -10,13 +10,20 @@ void Rhea::ColumnWidget::ready()
 
 void Rhea::ColumnWidget::onSetPosition()
 {
-	Vector2 cur_position = m_position;
+	Vector2 cur_position = m_position + m_content_position;
 	if (!m_ordered_children.size())
 		return;
 	float slot_padding;
 
-	slot_padding = (m_size.y - m_children_size) / m_ordered_children.size();
-	Vector2 slot_size = Vector2(m_size.x, 0.0f);
+	switch (m_justify_mode) {
+	case 0:
+		slot_padding = 0.0f;
+		break;
+	case 1:
+		slot_padding = (m_content_size.y - m_children_size) / m_ordered_children.size();
+		break;
+	}
+	Vector2 slot_size = Vector2(m_content_size.x, 0.0f);
 
 	for (auto it = m_ordered_children.begin(); it != m_ordered_children.end(); ++it) {
 		Widget* w = doCast<Widget>(*it);

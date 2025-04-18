@@ -74,9 +74,9 @@ namespace Rhea
 		// for now we assume only one child is possible
 		// currently the label
 
-		Vector2 child_pos = m_position;
+		Vector2 child_pos = m_position + m_content_position;
 		if (m_alignment)
-			m_alignment->apply(m_size, m_label->getOuterSize(), child_pos);
+			m_alignment->apply(m_content_size, m_label->getOuterSize(), child_pos);
 
 		m_label->setPosition(child_pos);
 

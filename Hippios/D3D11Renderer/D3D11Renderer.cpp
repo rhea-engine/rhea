@@ -10,20 +10,32 @@
 using namespace std;
 
 #include "D3D11Renderer.h"
-#include "D3D11Window.h"
+#include "D3D11BaseTypes.h"
 #include "D3D11HLSL.h"
 #include "D3D11VertexBuffer.h"
 #include "D3D11IndexBuffer.h"
 #include "D3D11GraphicsBuffer.h"
 #include "../Texture.h"
 #include "D3D11Texture.h"
-#include <Psio/Window.h>
 #include "D3D11StencilState.h"
 #include "D3D11PipelineState.h"
+#include "D3D11SwapChain.h"
+#include "D3D11RenderTarget.h"
 
 #pragma comment (lib, "d3d11.lib")
 
 namespace Hippios {
+
+	// constant mappings
+	std::unordered_map<SamplerDesc::Filter, D3D11_FILTER> _sampler_filters = {
+		{SamplerDesc::Filter::LINEAR, D3D11_FILTER::D3D11_FILTER_MIN_MAG_MIP_LINEAR},
+		{SamplerDesc::Filter::MIP_POINT, D3D11_FILTER::D3D11_FILTER_MIN_MAG_MIP_POINT}
+	};
+
+	std::unordered_map<SamplerDesc::AddressMode, D3D11_TEXTURE_ADDRESS_MODE> _address_modes = {
+		{SamplerDesc::AddressMode::WRAP, D3D11_TEXTURE_ADDRESS_MODE::D3D11_TEXTURE_ADDRESS_WRAP},
+		{SamplerDesc::AddressMode::CLAMP, D3D11_TEXTURE_ADDRESS_MODE::D3D11_TEXTURE_ADDRESS_CLAMP}
+	};
 
 	D3D11Renderer::D3D11Renderer() :
 		D3D11Renderer(nullptr, nullptr)
@@ -40,17 +52,10 @@ namespace Hippios {
 		m_current_texture = nullptr;
 		m_current_pso = nullptr;
 		m_current_stencil_state = nullptr;
-	}
-
-	void D3D11Renderer::init()
-	{	
-		// create device and swap chain
-		HRESULT hr = createDevice(mDriverType, mMinRequestedFeatureLevel, mMaxRequestedFeatureLevel, 0);
-		if (FAILED(hr))
-			return;
-	}
+		m_current_raster_state = nullptr;
+	}	
 		
-	HRESULT D3D11Renderer::createDevice(D3D_DRIVER_TYPE driverType, D3D_FEATURE_LEVEL minFL, D3D_FEATURE_LEVEL maxFL, D3D_FEATURE_LEVEL* pFeatureLevel)
+	HRESULT D3D11Renderer::createDeviceAndSwapChain(D3D_DRIVER_TYPE driverType, D3D_FEATURE_LEVEL minFL, D3D_FEATURE_LEVEL maxFL, D3D_FEATURE_LEVEL* pFeatureLevel, NativeWindow* win, IDXGISwapChain** swap_chain)
 	{
 		//IDXGIAdapter* pAdapter = (d3dDriver && driverType == D3D_DRIVER_TYPE_HARDWARE) ? d3dDriver->getDeviceAdapter() : NULL;
 		IDXGIAdapter* pAdapter = NULL;
@@ -102,8 +107,8 @@ namespace Hippios {
 		ZeroMemory(&desc, sizeof(DXGI_SWAP_CHAIN_DESC));
 				
 		desc.BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM; // use 32-bit color
-		desc.BufferDesc.Width = m_win->getWindow()->GetWidth();
-		desc.BufferDesc.Height = m_win->getWindow()->GetHeight();
+		desc.BufferDesc.Width = win->width;
+		desc.BufferDesc.Height = win->height;
 		desc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
 		desc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
 
@@ -116,7 +121,7 @@ namespace Hippios {
 		desc.SampleDesc.Quality = 0;    //vendor-specific flag
 		desc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 		//desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD; // TODO needs win10!
-		desc.OutputWindow = (HWND)m_win->getWindow()->getHandle();	
+		desc.OutputWindow = (HWND)win->native_win_handle;
 		desc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;     // allow full-screen switching
 
 		UINT creationFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT; 
@@ -132,7 +137,7 @@ namespace Hippios {
 			NULL,
 			D3D11_SDK_VERSION,
 			&desc,
-			&m_pDXGISwapChain,
+			swap_chain,
 			&m_device,
 			NULL,
 			&m_device_context);
@@ -150,191 +155,49 @@ namespace Hippios {
 		return hr;
 	}
 
-	void D3D11Renderer::createSwapChain()
-	{
-		DXGI_SWAP_CHAIN_DESC desc;
-		ZeroMemory(&desc, sizeof(DXGI_SWAP_CHAIN_DESC));
-		desc.Windowed = TRUE; // Sets the initial state of full-screen mode.
-		desc.BufferCount = 2;
-		desc.BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
-		desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-		desc.SampleDesc.Count = 1;      //multisampling setting
-		desc.SampleDesc.Quality = 0;    //vendor-specific flag
-		desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD; // TODO needs win10!
-		desc.OutputWindow = (HWND)m_win->getWindow()->getHandle();
-
-		// get DXGI factory from device
-		IDXGIDevice* pDXGIDevice;
-		IDXGIAdapter* pDXGIAdapter;
-		IDXGIFactory* mDXGIFactory;
-
-		//HRESULT hr = m_device->QueryInterface(__uuidof(IDXGIDevice2), (void**)&pDXGIDevice);
-		pDXGIDevice = (IDXGIDevice*)m_device;
-		HRESULT hr = pDXGIDevice->GetAdapter(&pDXGIAdapter);
-
-		//pDXGIAdapter->GetParent(__uuidof(pDXGIAdapter), (void**)&pDXGIAdapter);
-		pDXGIAdapter->GetParent(__uuidof(IDXGIFactory), (void**)&mDXGIFactory);
-
-		hr = mDXGIFactory->CreateSwapChain(
-			(IUnknown*)m_device,
-			&desc,
-			&m_pDXGISwapChain
-		);		
-	}
-
-	void D3D11Renderer::setRenderTarget()
-	{
-		// get the address of the back buffer
-		ID3D11Texture2D* pBackBuffer;
-		m_pDXGISwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pBackBuffer);
-
-		if (!pBackBuffer)
-			return;
-
-		// use the back buffer address to create the render target
-		m_device->CreateRenderTargetView(pBackBuffer, NULL, &mBackbuffer);
-		pBackBuffer->Release();
-
-		// create the depth buffer
-		m_depth_buffer = new D3D11DepthBuffer(m_device, 24, m_win->getWindow()->GetWidth(), m_win->getWindow()->GetHeight());
-
-		// create the default stencil states
-		DepthStencilStateDesc desc;
-		D3D11StencilState* stencil_std = new D3D11StencilState(m_device, m_device_context, nullptr);
-		D3D11StencilState* stencil_disabled = new D3D11StencilState(m_device, m_device_context, &desc);
-		m_stencil_states["default"].reset(stencil_std);
-		m_stencil_states["disabled"].reset(stencil_disabled);
-
-		// set the render target as the back buffer
-		m_device_context->OMSetRenderTargets(1, &mBackbuffer, m_depth_buffer->get_view());
-
-		// Set the viewport
-		D3D11_VIEWPORT viewport;
-		ZeroMemory(&viewport, sizeof(D3D11_VIEWPORT));
-
-		viewport.TopLeftX = 0;
-		viewport.TopLeftY = 0;
-		viewport.Width = (FLOAT)m_win->getWindow()->GetWidth();
-		viewport.Height = (FLOAT)m_win->getWindow()->GetHeight();
-		viewport.MinDepth = 0.0f;
-		viewport.MaxDepth = 1.0f;
-
-		m_device_context->RSSetViewports(1, &viewport);		
-
-		// Describe the Sample State
-		D3D11_SAMPLER_DESC sampDesc;
-		ZeroMemory(&sampDesc, sizeof(sampDesc));
-		sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-		sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-		sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-		sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-		sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-		sampDesc.MinLOD = 0;
-		sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-
-		//Create the Sample State
-		HRESULT HR = m_device->CreateSamplerState(&sampDesc, &m_sampler_state);
-		// set as default sampler
-		m_device_context->PSSetSamplers(0, 1, &m_sampler_state);
-	}
-
-	HippiosWindow* D3D11Renderer::createWindow(Psio::Engine *psio)
-	{
-		// TODO: this "attaches" the window as render target - could be a list
-		m_win = new D3D11Window();
-		m_win->create(psio);
-		init();
-
-		// set render target
-		setRenderTarget();
-
-		return m_win;
-	}
-
-	void D3D11Renderer::set_window(HippiosWindow* win)
-	{
-		m_win = (D3D11Window*)win;
-	}
-
-	/// called before drawing anything
-	void D3D11Renderer::update()
-	{
-		if (m_vb && m_vb->is_dirty) {
-			UINT stride = (UINT)m_vb->get_vertex_size();
-			UINT offset = 0; 
-			ID3D11Buffer* buffer = m_vb->get_buffer();
-			m_device_context->IASetVertexBuffers(0, 1, &buffer, &stride, &offset);
-			m_vb->is_dirty = false;
-		}
-
-		// set index buffer
-		if (m_ib && m_ib->is_dirty) {
-			ID3D11Buffer* buffer = m_ib->get_buffer();
-			m_device_context->IASetIndexBuffer(buffer, DXGI_FORMAT_R32_UINT, 0);
-			m_ib->is_dirty = false;
-		}
-	}
-
 	void D3D11Renderer::bindBuffers(VertexBuffer* vb, IndexBuffer* ib)
 	{
-		if (m_vb != vb) {
-			m_vb = static_cast<D3D11VertexBuffer*>(vb);
-			m_vb->is_dirty = true;
+		if (m_last_vb != vb) {
+			m_last_vb = static_cast<D3D11VertexBuffer*>(vb);
+			m_last_vb->is_dirty = true;
 		}
 
-		if (m_vb && m_vb->is_dirty) {
-			UINT stride = (UINT)m_vb->get_vertex_size();
+		if (m_last_vb && m_last_vb->is_dirty) {
+			UINT stride = (UINT)m_last_vb->get_vertex_size();
 			UINT offset = 0;
-			ID3D11Buffer* buffer = m_vb->get_buffer();
+			ID3D11Buffer* buffer = m_last_vb->get_buffer();
 			m_device_context->IASetVertexBuffers(0, 1, &buffer, &stride, &offset);
-			m_vb->is_dirty = false;
+			m_last_vb->is_dirty = false;
 		}
 
-		if (m_ib != ib && ib) {
-			m_ib = static_cast<D3D11IndexBuffer*>(ib);
-			m_ib->is_dirty = true;
+		if (m_last_ib != ib && ib) {
+			m_last_ib = static_cast<D3D11IndexBuffer*>(ib);
+			m_last_ib->is_dirty = true;
 		}
 
 		// set index buffer
-		if (m_ib && m_ib->is_dirty) {
-			ID3D11Buffer* buffer = m_ib->get_buffer();
+		if (m_last_ib && m_last_ib->is_dirty) {
+			ID3D11Buffer* buffer = m_last_ib->get_buffer();
 			m_device_context->IASetIndexBuffer(buffer, DXGI_FORMAT_R32_UINT, 0);
-			m_ib->is_dirty = false;
+			m_last_ib->is_dirty = false;
 		}
 	}
 
-	void D3D11Renderer::clearPass()
+	void D3D11Renderer::clearPass(RenderTarget* render_target)
 	{
-		// clear the back buffer to a deep blue
-		float color[4] = { 0.0f, 0.0f, 0.5f, 0.0f };
-		m_device_context->ClearRenderTargetView(mBackbuffer, color);
-
-		//Refresh the Depth/Stencil view
-		m_device_context->ClearDepthStencilView(m_depth_buffer->get_view(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+		render_target->clearPass();
 	}
 
-	int D3D11Renderer::presentPass()
+	int D3D11Renderer::presentPass(SwapChain* swap_chain)
 	{
-		// switch the back buffer and the front buffer
-		HRESULT hr = m_pDXGISwapChain->Present(0, 0);
-		if (FAILED(hr)) {
-			printf("Swapchain.Present failed\n");
-			return -1;
-		}
-		return 0;
-	}
-
-	int D3D11Renderer::render()
-	{
-		// clear the back buffer to a deep blue
-		float color[4] = { 0.0f, 0.2f, 0.4f, 1.0f };
-		m_device_context->ClearRenderTargetView(mBackbuffer, color);
-
-		// render all render targets - currently only one
-		m_win->update();
+		if (!swap_chain)
+			return 0;
+		IDXGISwapChain* pDXGISwapChain = static_cast<D3D11SwapChain*>(swap_chain)->getNativeSwapChain();
+		if (!pDXGISwapChain)
+			return 0;
 
 		// switch the back buffer and the front buffer
-		HRESULT hr = m_pDXGISwapChain->Present(0, 0);
+		HRESULT hr = pDXGISwapChain->Present(0, 0);
 		if (FAILED(hr)) {
 			printf("Swapchain.Present failed\n");
 			return -1;
@@ -347,6 +210,52 @@ namespace Hippios {
 		if (state != m_current_stencil_state) {
 			m_current_stencil_state = static_cast<D3D11StencilState*>(state);
 			m_current_stencil_state->setState(stencil_ref);
+		}
+	}
+
+	bool D3D11Renderer::createSampler(std::string name, SamplerDesc* desc)
+	{
+		// Create default sampler states
+		D3D11_SAMPLER_DESC sampDesc;
+
+		// linear sampler
+		ZeroMemory(&sampDesc, sizeof(sampDesc));
+		sampDesc.Filter = _sampler_filters[desc->filter];
+		sampDesc.AddressU = _address_modes[desc->address_u];
+		sampDesc.AddressV = _address_modes[desc->address_v];
+		sampDesc.AddressW = _address_modes[desc->address_w];
+		sampDesc.ComparisonFunc = _comparison_functions[desc->comparison_func];
+		sampDesc.MinLOD = desc->min_lod;
+		sampDesc.MaxLOD = desc->max_lod;
+
+		// Create the Sample State
+		ID3D11SamplerState* sampler_state;
+		HRESULT HR = m_device->CreateSamplerState(&sampDesc, &sampler_state);
+		if (SUCCEEDED(HR)) {
+			m_sampler_states.push_back(sampler_state);
+			D3D11GPUHandle handle;
+			handle.handle = m_sampler_states.size()-1;
+			m_samplers[name] = handle;
+			return true;
+		}
+		return false;
+	}
+
+	GPUHandle* D3D11Renderer::getSampler(std::string name)
+	{
+		if (m_samplers.find(name) != m_samplers.end())
+			return (GPUHandle*)(&m_samplers[name].handle);
+		else
+			return nullptr;
+	}
+
+	void D3D11Renderer::setSampler(GPUHandle* handle)
+	{
+		static size_t last_handle = -1;
+		size_t idx = static_cast<D3D11GPUHandle*>(handle)->handle;
+		if (handle && m_sampler_states.size() > idx && idx != last_handle) {
+			last_handle = idx;
+			m_device_context->PSSetSamplers(0, 1, &m_sampler_states[idx]);
 		}
 	}
 
@@ -364,7 +273,6 @@ namespace Hippios {
 
 		//assert(!m_vb && "TODO: only one vertex buffer allowed");
 		buf = new D3D11VertexBuffer(m_device, m_device_context, vertexSize, numVertices, dynamic);
-		m_vb = buf;
 		return (VertexBuffer*)buf;
 	}
 	
@@ -374,7 +282,6 @@ namespace Hippios {
 
 		//assert(!m_ib && "TODO: only one index buffer allowed");
 		buf = new D3D11IndexBuffer(m_device, m_device_context, vertex_size, num_faces, dynamic);
-		m_ib = buf;
 		return (IndexBuffer*)buf;
 	}
 
@@ -388,7 +295,7 @@ namespace Hippios {
 
 	D3D11Renderer::~D3D11Renderer()
 	{
-		m_pDXGISwapChain->SetFullscreenState(FALSE, NULL);    // switch to windowed mode to allow D3D11 to close
+		//m_pDXGISwapChain->SetFullscreenState(FALSE, NULL);    // switch to windowed mode to allow D3D11 to close
 
 		// close and release all existing COM objects
 
@@ -398,13 +305,24 @@ namespace Hippios {
 			(*it)->Release();
 
 		// release the swap chain
-		m_pDXGISwapChain->Release();
+		//m_pDXGISwapChain->Release();
 
 		// release the back buffer
-		mBackbuffer->Release();
+		//mBackbuffer->Release();
 
 		m_device->Release();
 		m_device_context->Release();
+	}
+
+	RenderTarget* D3D11Renderer::createRenderTarget(int width, int height, SwapChain* swap_chain)
+	{
+		D3D11RenderTarget* target = new D3D11RenderTarget();
+		if (target->create(this, width, height, swap_chain))
+			return target;
+		else {
+			delete target;
+			return nullptr;
+		}
 	}
 
 	Texture* D3D11Renderer::createTexture(TextureDesc& desc)
@@ -465,6 +383,21 @@ namespace Hippios {
 		}
 	}
 
+	SwapChain* D3D11Renderer::createSwapChain(NativeWindow* win)
+	{
+		if (!m_device) {
+			// create device and context in one step
+			IDXGISwapChain* d3_swap_chain;
+			HRESULT hr = createDeviceAndSwapChain(mDriverType, mMinRequestedFeatureLevel, mMaxRequestedFeatureLevel, 0, win, &d3_swap_chain);
+			if (SUCCEEDED(hr)) {
+				SwapChain* swap_chain = new D3D11SwapChain(d3_swap_chain);
+				return swap_chain;
+			}
+		}
+
+		return nullptr;
+	}
+
 	void D3D11Renderer::setBlendState(BlendState* state, float* blend_factor, unsigned int mask)
 	{
 		m_device_context->OMSetBlendState(static_cast<D3D11BlendState*>(state)->getBlendState(), blend_factor, mask);
@@ -509,9 +442,9 @@ namespace Hippios {
 		}
 	}
 
-	StencilState* D3D11Renderer::createStencilState(std::string name, DepthStencilStateDesc& desc)
+	StencilState* D3D11Renderer::createStencilState(std::string name, DepthStencilStateDesc* desc)
 	{
-		D3D11StencilState* state = new D3D11StencilState(m_device, m_device_context, &desc);
+		D3D11StencilState* state = new D3D11StencilState(m_device, m_device_context, desc);
 		if (state) {
 			m_stencil_states[name].reset(state);
 			return m_stencil_states[name].get();

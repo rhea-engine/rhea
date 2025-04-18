@@ -1,6 +1,4 @@
 #include "Psio/Psio.h"
-#include "Hippios/Window.h"
-#include "Hippios/Viewport.h"
 
 #include "Texture.h"
 #include "Material.h"
@@ -11,13 +9,17 @@
 #include "Cubemap.h"
 
 #include "Core.h"
+#include <Psio/Log.h>
+#include <Hippios/D3D11Renderer/D3D11Renderer.h>
 
+using Hippios::SamplerDesc;
 
 namespace Poseidon
 {
 	Core::Core()
 	{
-		m_psio = nullptr;	
+		m_psio = nullptr;
+		m_appname = "Poseidon";
 	}
 
 	Core::~Core()
@@ -36,16 +38,56 @@ namespace Poseidon
 		m_psio = psio;
 
 		// initialize render sub system
-		m_renderer = std::make_unique<Hippios::Engine>(m_psio);
-		m_renderer->startup();		
+#ifdef WIN32
+		m_renderer = std::make_unique<Hippios::D3D11Renderer>();
+#else
+		printf("Only DirectX11 on Windows is supported\n");
+		exit(-1);
+#endif // WIN32		
 
-		// add a root window which is also the root viewport
-		m_window = new Window();		
+		// add a root window which is also the root viewport		
+		std::string name = "root";
+		m_window = new Window(name);
 		m_window->initRenderTarget(m_renderer.get());
+		int width = 1152;
+		int height = 864;
+		m_window->CreateFromNativeWindow(psio, m_appname, width, height);
+
+		// create the default stencil states
+		Hippios::DepthStencilStateDesc desc;
+		m_renderer->createStencilState("default", nullptr);
+		m_renderer->createStencilState("disabled", &desc);
+
+		// create default samplers
+
+		Hippios::SamplerDesc sampler_desc;
+		// linear sampler
+		memset(&sampler_desc, 0, sizeof(sampler_desc));
+		sampler_desc.filter = SamplerDesc::Filter::LINEAR;
+		sampler_desc.address_u = SamplerDesc::AddressMode::WRAP;
+		sampler_desc.address_v = SamplerDesc::AddressMode::WRAP;
+		sampler_desc.address_w = SamplerDesc::AddressMode::WRAP;
+		sampler_desc.comparison_func = Hippios::ComparisonFunction::COMPARE_NEVER;
+		sampler_desc.min_lod = 0;
+		sampler_desc.max_lod = FLT_MAX;
+		if (!m_renderer->createSampler("linear", &sampler_desc))
+			LOG(LOG_ERROR) << "Could not create linear sampler";
+		
+		// nearest sampler
+		memset(&sampler_desc, 0, sizeof(sampler_desc));
+		sampler_desc.filter = SamplerDesc::Filter::MIP_POINT; // Nearest-neighbor filtering
+		sampler_desc.address_u = SamplerDesc::AddressMode::CLAMP;
+		sampler_desc.address_v = SamplerDesc::AddressMode::CLAMP;
+		sampler_desc.address_w = SamplerDesc::AddressMode::CLAMP;
+		sampler_desc.comparison_func = Hippios::ComparisonFunction::COMPARE_NEVER;
+		sampler_desc.min_lod = 0;
+		sampler_desc.max_lod = FLT_MAX;
+		if (!m_renderer->createSampler("nearest", &sampler_desc))
+			LOG(LOG_ERROR) << "Could not create nearest sampler";
 
 		// add a scene manager 
 		m_scene_manager = new SceneManager();
-		m_scene_manager->setRenderer(m_renderer->getRenderer());
+		m_scene_manager->setRenderer(m_renderer.get());
 		m_scene_manager->setRoot(m_window);
 		m_scene_manager->registerViewport(m_window);
 	}
@@ -65,6 +107,11 @@ namespace Poseidon
 			// main pass: render frame
 			if (m_scene_manager->render())
 				quit = true;
+
+			// present pass for all windows
+			// currently only one
+			if (m_renderer->presentPass(m_window->getSwapChain()))
+				quit = true;
 		}
 		return 0;
 	}
@@ -78,6 +125,11 @@ namespace Poseidon
 
 		// main pass: render frame
 		if (m_scene_manager->render())
+			quit = true;
+
+		// present pass for all windows
+		// currently only one
+		if (m_renderer->presentPass(m_window->getSwapChain()))
 			quit = true;
 
 		if (quit)
@@ -149,8 +201,13 @@ namespace Poseidon
 
 	Camera* Core::createCamera()
 	{
-		Camera* camera = new Poseidon::Camera(m_renderer->getRenderer());
+		Camera* camera = new Poseidon::Camera(m_renderer.get());
 		return camera;
+	}
+
+	void Core::SetFullscreen(bool mode)
+	{
+		m_window->SetFullscreen(mode);
 	}
 
 	Hippios::GraphicsBuffer* Core::getGraphicsBuffer(std::string facility, size_t size)
@@ -163,7 +220,7 @@ namespace Poseidon
 			return it->second;
 
 		// no such buffer in the pool, create a new one
-		Hippios::GraphicsBuffer* newBuffer = m_renderer->getRenderer()->createGraphicsBuffer(size);
+		Hippios::GraphicsBuffer* newBuffer = m_renderer->createGraphicsBuffer(size);
 		m_buffer_pool[desc] = newBuffer;
 		return newBuffer;
 	}

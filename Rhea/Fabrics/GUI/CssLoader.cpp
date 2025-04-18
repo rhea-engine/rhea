@@ -1,7 +1,7 @@
 #include "CssLoader.h"
 
 #include <SimpleParser/CssParser.h>
-#include "StyleSheet.h"
+#include "Styles/StyleSheet.h"
 #include <Resources/ResourceService.h>
 
 namespace Rhea {
@@ -18,7 +18,7 @@ namespace Rhea {
 				int nof_entries = parser->parse(buf->reader(), buflen, entries);
 
 				// how to find the target?
-				StyleSheet* css = static_cast<StyleSheet*>(SimpleParser::Type::create(name, "//meworla/gui/stylesheet"));
+				StyleSheet* css = SimpleParser::Type::create<StyleSheet>(name);
 				std::unordered_map<std::string, std::string> attributes;
 				std::unordered_map<std::string, Variant> values;
 				css->setup(app, attributes, values);

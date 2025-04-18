@@ -17,28 +17,23 @@ namespace Rhea
 			m_topleft(padding_left, padding_top),
 			m_rightbottom(padding_right, padding_bottom)
 		{}
-		void apply(Widget* w, Vector2& size_constraints, Vector2& inner_size, Vector2& outer_size) {
-			Vector2 pos = w->getBasePosition();
+		void apply(Widget* w, Vector2& size_constraints, Vector2& inner_size, Vector2& outer_size, Vector2& margin) {
+			
+			// horizontal padding
+			size_constraints.x -= (m_topleft.x + m_rightbottom.x);
+			outer_size.x += m_topleft.x + m_rightbottom.x;
+			
+			// vertical padding			
+			size_constraints.y -= (m_topleft.y + m_rightbottom.y);
+			outer_size.y += m_topleft.y + m_rightbottom.y;
 
-			// left padding
+			// adjust position
+			Vector2 pos = w->getContentPosition();
 			pos.x += m_topleft.x;
-			size_constraints.x -= m_topleft.x;
-			outer_size.x += m_topleft.x;
-			// top padding
 			pos.y += m_topleft.y;
-			size_constraints.y -= m_topleft.y;
-			outer_size.y += m_topleft.y;
+			w->setContentPosition(pos);
 
-			w->setBasePosition(pos);
-
-			// right padding
-			outer_size.x += m_rightbottom.x;
-			size_constraints.x -= m_rightbottom.x;
-			// bottom padding
-			outer_size.y += m_rightbottom.y;
-			size_constraints.y -= m_rightbottom.y;
-
-			// constraints become negative enlarge size
+			// if constraints become negative set them to zero
 			if (size_constraints.x < 0.0f) {
 				outer_size.x -= size_constraints.x;
 				size_constraints.x = 0.0f;

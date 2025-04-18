@@ -102,7 +102,7 @@ namespace Rhea
 
 	void TextInput::onSetPosition()
 	{
-		m_label_item->setPosition(m_position);		
+		m_label_item->setPosition(m_position + m_content_position);		
 		m_cursor_item->setPosition(m_cursor_position);
 	}
 

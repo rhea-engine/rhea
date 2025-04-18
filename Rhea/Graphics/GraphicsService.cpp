@@ -1,4 +1,5 @@
 #include "GraphicsService.h"
+#include "GraphicsService.h"
 #include <functional>
 
 #include "../Platform/PlatformService.h"
@@ -42,6 +43,7 @@ namespace Rhea
 		m_viewport_height(0),
 		m_mx(0),
 		m_my(0),
+		m_fullscreen(false),
 		Service(name, type_name)	
 	{
 		m_core = std::make_unique<Poseidon::Core>();
@@ -55,6 +57,15 @@ namespace Rhea
 
 	GraphicsService::~GraphicsService()
 	{		
+	}
+
+	void GraphicsService::ToggleFullscreen()
+	{
+		if (!m_fullscreen)
+			m_core->SetFullscreen(true);
+		else
+			m_core->SetFullscreen(false);
+		m_fullscreen = !m_fullscreen;
 	}
 
 	GraphicsManager* GraphicsService::getManager(SimpleParser::Type* type)
@@ -160,6 +171,7 @@ namespace Rhea
 			m_viewport_width = 800;
 		if (!m_viewport_height)
 			m_viewport_height = 600;
+		context->setSize((float)m_viewport_width, (float)m_viewport_height);
 		cam->setAspectRatio((float)m_viewport_width / (float)m_viewport_height);
 		cam->setOrthographicSize((float)m_viewport_height);
 		cam->setOrthographic(true);
@@ -343,35 +355,33 @@ namespace Rhea
 
 			case Psio::InputEventId::WIN_SIZE:
 				// resize window
-				/*
+				
 				std::shared_ptr<Psio::WinSizeEvent> me = std::static_pointer_cast<Psio::WinSizeEvent>(e->getEvent());
 				viewport_width = me->width();
 				viewport_height = me->height();
-				if (viewport_width != m_viewport_width || viewport_height != m_viewport_height) {
-					float ratio = (float)m_viewport_width / (float)m_viewport_height;
-					if (ratio < (800.0f / 600.f)) {
-						viewport_height = (float)m_viewport_width / (800.0f / 600.f);
-					}
-					else {
-						viewport_width = (float)m_viewport_height / (800.0f / 600.f);
-					}
-					
-					m_viewport_wbidth = viewport_width;
+				if (viewport_width != m_viewport_width || viewport_height != m_viewport_height &&  viewport_width>0 && viewport_height>0) {
+					m_viewport_width = viewport_width;
 					m_viewport_height = viewport_height;
-
+					
 					Poseidon::Viewport* viewport = m_core->get_scene_manager()->getViewport();
-					context_name = "HUD";
-					Poseidon::RenderContext* context = viewport->getRenderContext(context_name);
-					if (0 && context) {
+					// TODO handle special render targets that are not bound to this window
+					viewport->onResize(viewport_width, viewport_height);
+
+					// iterate over contexts and their cameras and set new values
+					float aspect_ratio = (float)m_viewport_width / (float)m_viewport_height;
+					for (const auto& context : viewport->getRenderContextList()) {
+						context->setSize((float)m_viewport_width, (float)m_viewport_height);
 						Poseidon::Camera* cam = context->get_camera();
-						//cam->setAspectRatio((float)m_viewport_width / (float)m_viewport_height);
-						cam->setAspectRatio((800.0f / 600.f));
-						cam->setOrthographicSize((float)m_viewport_height);			
-						cam->updateProjection();
-						cam->updateView();
+						if (cam) {
+							cam->setAspectRatio(aspect_ratio);
+							cam->setOrthographicSize((float)m_viewport_height);
+							cam->updateProjection();
+							cam->updateView();
+						}
 					}
+					sendEvent("resize", nullptr);
 				}
-				*/
+				
 				break;
 			}
 		}

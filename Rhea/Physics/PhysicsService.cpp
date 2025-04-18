@@ -46,8 +46,8 @@ namespace Rhea
 		if (controller) {
 			// get target from controller
 			m_item = controller->getTarget();
-
-			initializeItem(m_item);
+			if (m_item)
+				initializeItem(m_item);
 		}
 		else {
 			LOG(LOG_ERROR) << "No controller found in setting scene";

@@ -10,6 +10,23 @@ cbuffer cbPerObject
     float4x4 model;
 };
 
+cbuffer cbMaterial : register(b3)
+{
+    float4 mat_diffuse;
+    float4 mat_ambient;
+    float4 mat_specular;
+    float4 mat_emissive;
+    float mat_shininess;
+    float has_normal_map;
+    int num_textures;
+};
+
+cbuffer cbBackground : register(b5)
+{
+    float2 tiling;
+    float2 scaling;
+}
+
 struct VS_OUTPUT
 {
     float4 position : SV_POSITION;
@@ -21,13 +38,14 @@ SamplerState ObjSamplerState;
 
 VS_OUTPUT VShader(float4 position : POSITION, float2 tex : TEXCOORD)
 {
-    VS_OUTPUT output;
+    VS_OUTPUT output;  
 
     position.x = position.x + model[3][0];
     position.y = position.y + model[3][1];
 
     output.position = mul(position, VP);
-    output.tex = tex;
+    // Apply tiling if explicitly set (>1.0), otherwise apply scaling
+    output.tex = tex * (tiling > 1.0f ? tiling : scaling);
 	
     return output;
 }
@@ -35,5 +53,13 @@ VS_OUTPUT VShader(float4 position : POSITION, float2 tex : TEXCOORD)
 
 float4 PShader(VS_OUTPUT input) : SV_TARGET
 {
-    return ObjTexture.Sample(ObjSamplerState, input.tex);
+    float4 texColor = ObjTexture.Sample(ObjSamplerState, input.tex);
+    
+    // Blend based on `useTexture` (avoids if statements)
+    float4 outColor = lerp(mat_diffuse, texColor, (num_textures>0) ? 1.0f : 0.0f);
+
+    // Discard fully transparent pixels
+    clip(outColor.a - 0.01f);
+
+    return outColor;
 }

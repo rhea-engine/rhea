@@ -18,14 +18,16 @@ namespace Rhea
 
 		val["x"] = m_base_position.x;
 		val["y"] = m_base_position.y;
-		val["w"] = m_base_size.x;
-		val["h"] = m_base_size.y;
 		val["text"] = getValue("text", "");
-		if (m_values.find("font") != m_values.end())
+		if (m_values.find("font") != m_values.end()) {
 			val["font"] = getValue("font");
+			m_properties[StylePropertyId::kFont].push_back({ CssValueId::kString, getValue("font") });
+		}
 		val["word_wrap"] = getValue("word_wrap", true);
 		val["multiline"] = getValue("multiline", true);
 		m_clip = getValue("clip", m_clip);
+
+		m_computed_properties = m_properties;
 
 		// DEBUG
 		// always handle input 
@@ -53,7 +55,7 @@ namespace Rhea
 	Vector2 Label::innerSize(Vector2 size_constraints)
 	{
 		// get height from font of text widget
-		Vector2 child_size = m_label_item->getTextSize();
+		Vector2 child_size = m_label_item->getTextSize(size_constraints);
 		// fill label to my size
 		if (m_size.x > child_size.x) {
 			child_size.x = m_size.x;
@@ -78,7 +80,7 @@ namespace Rhea
 
 	void Label::innerGetMinSize(Vector2& min_size)
 	{
-		Vector2 child_size = m_label_item->getTextSize();
+		Vector2 child_size = m_label_item->getTextSize(min_size);
 		if (min_size.x < child_size.x)
 			min_size.x = child_size.x;
 		if (min_size.y < child_size.y)
@@ -88,9 +90,36 @@ namespace Rhea
 	void Label::onSetPosition()
 	{
 		if (m_label_item) {
-			m_label_item->move(m_position.x, m_position.y);
+			
+			// prevent Text Rendering at Fractional Coordinates
+			float pos_x = floor(m_position.x + m_content_position.x + 0.5f);
+			float pos_y = floor(m_position.y + m_content_position.y + 0.5f);
+
+			m_label_item->move(pos_x, pos_y);
+			m_label_item->resize(m_size.x, m_size.y);
 			m_label_item->update();
 		}
+	}
+
+	void Label::ApplyStyles()
+	{
+		Widget::ApplyStyles();
+
+		if (m_label_item) {
+
+			// set the font style
+			std::vector<CssValue> font_prop = getStyle(StylePropertyId::kFont);
+			if (font_prop.size()) {
+				Font* font = doCast<Font>(m_app->getUnitTree()->find(font_prop[0].value));
+				if (!font)
+					LOG(LOG_ERROR) << "font " << (std::string)(font_prop[0].value) << " not found";
+				else
+					m_label_item->setFont(font);
+			}
+			else
+				LOG(LOG_ERROR) << "No font style found for label";
+		}
+
 	}
 
 	void Label::parseText(const std::string text)

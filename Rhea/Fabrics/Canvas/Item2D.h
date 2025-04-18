@@ -20,7 +20,10 @@ namespace Rhea
 		Item2D(std::string name, std::string type_name) :
 			m_size(0.0f, 0.0f),
 			m_position(0.0f, 0.0f),
-			m_material(nullptr),
+			m_bg_image(nullptr),
+			m_material_dirty(false),
+			m_tiling(Math::Vector2(1.0f, 1.0f)),
+			m_scaling(Math::Vector2(1.0f, 1.0f)),
 			Item(name, type_name)
 		{}
 
@@ -38,6 +41,9 @@ namespace Rhea
 		void resize(float _w, float _h) { m_size.x = _w; m_size.y = _h; }
 		void update();
 
+		void setBackgroundColor(int r, int g, int b, float opacity = 1.0f);
+		void setBackgroundImage(ImageResource* tex);
+
 		// get dimensions
 		float X() { return m_position.x; }
 		float Y() { return m_position.y; }
@@ -49,10 +55,23 @@ namespace Rhea
 		
 		// current position in pixel
 		Vector2 m_position;
-		// current  width in pixel
+		// current width in pixel
 		Vector2 m_size;
+		//  tiling
+		Vector2 m_tiling;
+		// scaling
+		Vector2 m_scaling;
 
-		Material* m_material;
+		// background-color
+		Math::Vector4 m_bg_color;
+
+		// background image
+		ImageResource* m_bg_image;
+
+		bool m_material_dirty;
+		// update (or create) the material if material is dirty
+		void UpdateMaterial();
+		std::unique_ptr<Material> m_material;
 	};
 }
 

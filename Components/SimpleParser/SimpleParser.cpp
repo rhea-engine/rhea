@@ -19,7 +19,7 @@ namespace SimpleParser
 		return "";
 	}
 
-	SimpleParser::Error SimpleParser::nextToken(char* buf, size_t& reader, size_t buflen, int& line, Token& token)
+	SimpleParser::Error SimpleParser::nextToken(char* buf, size_t& reader, size_t buflen, int& line, Token& token, bool ws_relevant)
 	{
 		char* s_start;
 
@@ -28,6 +28,18 @@ namespace SimpleParser
 			switch (buf[reader]) {
 			case '=':
 				token.type = TokenType::TOKEN_EQUEAL;
+				reader++;
+				return Error::PARSE_OK;
+			case '>':
+				token.type = TokenType::TOKEN_GREATER;
+				reader++;
+				return Error::PARSE_OK;
+			case '<':
+				token.type = TokenType::TOKEN_LESS;
+				reader++;
+				return Error::PARSE_OK;
+			case '+':
+				token.type = TokenType::TOKEN_PLUS;
 				reader++;
 				return Error::PARSE_OK;
 			case '(':
@@ -58,6 +70,10 @@ namespace SimpleParser
 				token.type = TokenType::TOKEN_COMMA;
 				reader++;
 				return Error::PARSE_OK;
+			case '.':
+				token.type = TokenType::TOKEN_DOT;
+				reader++;
+				return Error::PARSE_OK;
 			case ':':
 				token.type = TokenType::TOKEN_COLON;
 				reader++;
@@ -66,27 +82,50 @@ namespace SimpleParser
 				token.type = TokenType::TOKEN_SEMICOLON;
 				reader++;
 				return Error::PARSE_OK;
-			case '\n':
+			case '\n':				
 				reader++;
 				line++;
+				if (ws_relevant) {
+					while (reader < buflen && (buf[reader] == '\n' || buf[reader] == ' ' || buf[reader] == '\t'))
+						reader++;
+					token.type = TokenType::TOKEN_WHITESPACE;
+					return Error::PARSE_OK;
+				}
 				if (!m_ignore_newline) {
 					token.type = TokenType::TOKEN_NEWLINE;
 					return Error::PARSE_OK;
 				}
 				break;
 			case '#':
-				// a comment - skip until end of line
-				while (reader < buflen && buf[reader] != '\n')
+				if (!m_comment_type) {
+					// a comment - skip until end of line
+					while (reader < buflen && buf[reader] != '\n')
+						reader++;
+					line++;
+					if (reader == buflen)
+						return Error::PARSE_EOF;
 					reader++;
-				line++;
-				if (reader == buflen)
-					return Error::PARSE_EOF;
+					break;
+				}
+				else {
+					token.type = TokenType::TOKEN_HASH;
+					reader++;
+					return Error::PARSE_OK;
+				}
+			case '~':
+				token.type = TokenType::TOKEN_TILDE;
 				reader++;
-				break;
+				return Error::PARSE_OK;
 			case ' ':
 			case '\t':
 				// skip whitespace
 				reader++;
+				if (ws_relevant) {
+					while (reader < buflen && (buf[reader] == '\n' || buf[reader] == ' ' || buf[reader] == '\t'))
+						reader++;
+					token.type = TokenType::TOKEN_WHITESPACE;
+					return Error::PARSE_OK;
+				}
 				break;
 			case '"':
 				// string value
@@ -106,6 +145,18 @@ namespace SimpleParser
 				token.type = TokenType::TOKEN_STRING;
 				reader++;
 				return Error::PARSE_OK;
+			case '/': // NOTE: must be the last one before default
+				// c-style comments
+				if (m_comment_type == 1) {
+					if (reader + 1 < buflen && buf[reader + 1] == '*') {
+						// is a comment - search for end, if not found silently consumes the whole document
+						reader += 3;
+						while (reader < buflen && (buf[reader - 1] != '*' || buf[reader] != '/'))
+							reader++;
+						reader++;
+						break;
+					}
+				}
 			default:
 				// number value
 				int neg = 1;

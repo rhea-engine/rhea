@@ -33,7 +33,7 @@ namespace Rhea
 		gmat->m_material = core->createMaterial();
 		std::string mat_name = material_res->getPathName();
 
-		core->registerMaterial(mat_name, gmat->m_material);
+		core->registerMaterial(mat_name, gmat->m_material);   // is this needed?
 
 		// add the shader
 		Shader* shader_res = material_res->getShaderRes();
@@ -76,6 +76,10 @@ namespace Rhea
 				}
 			}
 
+			// sampler state
+			std::string sampler_name = shader_res->getValue("sampler", "linear");
+			shader->setSampler(sampler_name);
+
 			// input layout
 			std::string input_layout = shader_res->getValue("input", "");
 			if (input_layout == "default") {
@@ -100,14 +104,40 @@ namespace Rhea
 				// for now only the default layout is supported
 				std::vector<Poseidon::Shader::MatBufferLayoutElement> elements;
 				elements = {
-					{ Poseidon::Shader::MatBufferLayoutElementType::VECTOR4, "AMBIENT", 0, sizeof(Math::Vector4) },
-					{ Poseidon::Shader::MatBufferLayoutElementType::VECTOR4, "DIFFUSE", 16, sizeof(Math::Vector4) },
+					{ Poseidon::Shader::MatBufferLayoutElementType::VECTOR4, "DIFFUSE", 0, sizeof(Math::Vector4) },
+					{ Poseidon::Shader::MatBufferLayoutElementType::VECTOR4, "AMBIENT", 16, sizeof(Math::Vector4) },
 					{ Poseidon::Shader::MatBufferLayoutElementType::VECTOR4, "SPECULAR", 32, sizeof(Math::Vector4) },
 					{ Poseidon::Shader::MatBufferLayoutElementType::VECTOR4, "EMISSIVE", 48, sizeof(Math::Vector4) },
 					{ Poseidon::Shader::MatBufferLayoutElementType::FLOAT, "SHININESS", 64, sizeof(float) }
 				};
 
 				shader->setMatBufLayout(elements);				
+			}
+			else if (shader_res->getNumInputSlots()) {
+				// TODO: really set the elements (not copy from light)
+				std::vector<Poseidon::Shader::MatBufferLayoutElement> elements;
+				elements = {
+					{ Poseidon::Shader::MatBufferLayoutElementType::VECTOR4, "BaseColor", 0, sizeof(Math::Vector4) },
+					{ Poseidon::Shader::MatBufferLayoutElementType::VECTOR4, "DIFFUSE", 16, sizeof(Math::Vector4) },
+					{ Poseidon::Shader::MatBufferLayoutElementType::VECTOR4, "SPECULAR", 32, sizeof(Math::Vector4) },
+					{ Poseidon::Shader::MatBufferLayoutElementType::VECTOR4, "EMISSIVE", 48, sizeof(Math::Vector4) },
+					{ Poseidon::Shader::MatBufferLayoutElementType::FLOAT, "SHININESS", 64, sizeof(float) },
+					{ Poseidon::Shader::MatBufferLayoutElementType::FLOAT, "NumTextures", 68, sizeof(int) }
+				};
+
+				shader->setMatBufLayout(elements);
+			}
+			// add vertex shader material buffer
+			if (shader_res->getNumInputSlotsVS()) {
+				std::vector<Poseidon::Shader::MatBufferLayoutElement> elements;
+				std::vector<std::string> material_names = shader_res->getInputSlotNamesVS();
+				size_t size = 0;
+				for (auto& name : material_names) {
+					Shader::InputSlot* slot = shader_res->getInputSlotVS(name);
+					elements.push_back({ Poseidon::Shader::MatBufferLayoutElementType::VECTOR2, name, size, sizeof(Math::Vector2) });
+					size += sizeof(Math::Vector2);
+				}
+				shader->setMatBufLayoutVS(elements);
 			}
 
 			// compute the shader
@@ -121,8 +151,8 @@ namespace Rhea
 
 		// now add the material properties
 		std::string light_type = shader_res->getValue("light_type", "none");
-		if (light_type == "vertex") {
-			std::vector<std::string> props = { "AMBIENT", "DIFFUSE", "SPECULAR", "EMMISSIVE" };
+		std::vector<std::string> props = shader_res->getInputSlotNames();
+		if (props.size()) {
 			for (auto it = props.begin(); it != props.end(); ++it) {
 				Math::Vector4 color;
 				int slot_res = shader_res->getInputSlotId(*it);
@@ -138,6 +168,18 @@ namespace Rhea
 				int slot = gmat->m_material->getShader()->getMatBufLayoutMap("SHININESS");
 				if (slot != -1)
 					gmat->m_material->SetFloat(slot, material_res->getFloat(slot_res));
+			}
+		}
+		// vs props
+		std::vector<std::string> material_names = shader_res->getInputSlotNamesVS();
+		for (auto& name : material_names) {
+			Shader::InputSlot* slot = shader_res->getInputSlotVS(name);
+			// TODO implement other types
+			if (slot->type == Shader::InputType::kVector2) {
+				Math::Vector2 v2 = material_res->getFloat2VS(slot->slot_id);
+				int poseidon_slot = gmat->m_material->getShader()->getMatBufLayoutMapVS(name);
+				gmat->m_material->SetFloat2VS(poseidon_slot, v2);
+				//gmat->m_material->SetFloat2VS(poseidon_slot, Math::Vector2(2.0f,2.0f));
 			}
 		}
 

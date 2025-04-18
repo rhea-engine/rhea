@@ -42,6 +42,7 @@ namespace Poseidon
 		Rhea::PlatformService* psio = static_cast<Rhea::PlatformService *>(m_services["platform"]);
 		g_service->setPlatform(psio);
 		core = g_service->getEngine();
+		core->setAppname(m_appname);
 
 		// register network fabrics
 		Rhea::NetworkFabrics::Register(this);
@@ -77,7 +78,7 @@ namespace Poseidon
 		dss.depth_enable = true;
 		dss.depth_write_mask = Hippios::DepthWriteMask::DEPTH_WRITE_ALL;
 		dss.depth_func = Hippios::ComparisonFunction::COMPARE_LESS_EQUAL;
-		doCast<GraphicsService>(getService("graphics"))->getEngine()->get_renderer()->createStencilState("skybox", dss);
+		doCast<GraphicsService>(getService("graphics"))->getEngine()->get_renderer()->createStencilState("skybox", &dss);
 		res_list.push("skybox_shader", "//rhea/shaders/skybox.shader", "//meworla/shader");
 
 		// note: for locally installed resources this is actually synchronous

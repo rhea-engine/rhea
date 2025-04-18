@@ -9,6 +9,7 @@
 #include "Fabrics/3D/Camera.h"
 #include "RenderElement.h"
 #include "GraphicsComponent.h"
+#include <Psio/Log.h>
 
 namespace Rhea
 {
@@ -24,6 +25,10 @@ namespace Rhea
 		Poseidon::SceneManager* m_scene_mgr = core->get_scene_manager();
 		// get dimensions from viewport
 		Poseidon::Viewport* viewport = m_scene_mgr->getViewport();
+		if (!viewport) {
+			LOG(LOG_ERROR) << "No root viewport found - cannot set camera";
+			return nullptr;
+		}
 		float Width = (float)viewport->getWidth();
 		float Height = (float)viewport->getHeight();
 		if (!Width)

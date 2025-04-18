@@ -1,5 +1,6 @@
 #include "TextWidget.h"
 #include "TextWidget.h"
+#include "TextWidget.h"
 #include "Application.h"
 #include "Fabrics/Media/ImageResource.h"
 #include "Resources/TextResource.h"
@@ -37,23 +38,31 @@ namespace Rhea
 		// load and add font and text
 		if (m_values.find("font") != m_values.end())
 		{
-			m_font = doCast<Font>(m_app->getUnitTree()->find(m_values["font"], m_attributes["basepath"], false));
-			if (!m_font)
+			Font* font = doCast<Font>(m_app->getUnitTree()->find(m_values["font"], m_attributes["basepath"], false));
+			if (!font)
 				LOG(LOG_ERROR) << "TextWidget: Font '" << (std::string)m_values["font"] << "' not found";
+			else
+				setFont(font);
 		}
+
+
 		else {
 			if (doCast<Widget>(m_parent)) {
-				std::vector<Variant>* font_prop = ((Widget*)m_parent)->getStyle("font");
-				if (font_prop) {
-					m_font = doCast<Font>(m_app->getUnitTree()->find((*font_prop)[0]));
+				std::vector<CssValue> font_prop = ((Widget*)m_parent)->getStyle(CssProperty::FindCssProperty("font")->id);
+				if (font_prop.size()) {
+					Font* font = doCast<Font>(m_app->getUnitTree()->find(font_prop[0].value));
 					if (!m_font)
-						LOG(LOG_ERROR) << "font " << (std::string)(*font_prop)[0] << " not found";
-				}
-				else {
-					DLOG(LOG_DEBUG) << "font not set in parents";
-				}
+						LOG(LOG_ERROR) << "font " << (std::string)(font_prop[0].value) << " not found";
+					else
+						setFont(font);
+				}				
 			}
-		}
+		}		
+	}
+
+	void TextWidget::setFont(Font* font)
+	{
+		m_font = font;
 
 		if (m_font) {
 			m_font->ready();
@@ -61,24 +70,27 @@ namespace Rhea
 
 			RenderComponent* render_component = getComponent<RenderComponent>();
 			if (!render_component) {
-				render_component = addComponentUnique<RenderComponent>("renderer");				
+				render_component = addComponentUnique<RenderComponent>("renderer");
 			}
 
 			// add the mesh
 			if (!render_component->getMesh()) {
 
 				std::unordered_map<std::string, std::string> attributes;
-				std::unordered_map<std::string, Variant> values;				
+				std::unordered_map<std::string, Variant> values;
 				Mesh* mesh = m_app->getUnitTree()->createUnit<Mesh>(m_pathname + "_mesh", attributes, values);
 				mesh->setMaterial(font_material);
 				// text is dynamic
 				mesh->setDynamic(true);
 				addChild(mesh);
-				render_component->setMesh(mesh);				
+				render_component->setMesh(mesh);
 
 				setMesh();
-			}
 
+				// newly created mesh: update my item
+				Event e("update", this);
+				sendEvent("update", &e);
+			}
 		}
 	}
 	
@@ -87,116 +99,143 @@ namespace Rhea
 		Rhea::Font* font = getFont();
 		std::string sentence = getText();
 
-		if (!font)
+		if (!font) {
+			LOG(LOG_ERROR) << "TextWidget has no font defined";
 			return;
+		}
 
-		float t_x = (float)X() + m_offset_x;
-		float t_y = (float)Y();
-		float t_w = (float)W() - m_offset_x;
-		float t_h = (float)H();
+		float t_x = static_cast<float>(X()) + m_offset_x;
+		float t_y = static_cast<float>(Y());
+		float t_w = static_cast<float>(W()) - m_offset_x;
+		float t_h = static_cast<float>(H());
 
-		// adjust to height of viewport (y is negative)
+		// adjust for viewport (y is inverted)
 		GraphicsService* gsrv = (GraphicsService*)m_app->getService("graphics");
 		t_y = gsrv->getViewportHeight() - t_y;
 
 		float z = 0.0f;
 		float draw_x = t_x;
 		float draw_y = t_y;
-		Glyph* glyph;
 		float f_sz = font->getFontSize();
 
 		std::vector<Mesh::vertex> vertices;
 		std::vector<unsigned long> v_indices;
+		int v_c = 0;
 
-		int v_c = 0; // vertex count
-		for (int i = 0; i < sentence.size(); i++) {
+		size_t i = 0;
+		while (i < sentence.size()) {
 
-			unsigned char c = static_cast<unsigned char>(sentence[i]);
-
-			if (m_multiline && (c == '\n')) {
-				// go to next line
-				if (draw_y - (2 * f_sz) < t_y - t_h) { // NOTE: "-" because coords are flipped
-					// no - stop rendering
-					break;
+			// Handle explicit newline
+			if (sentence[i] == '\n') {
+				if (m_multiline) {
+					draw_x = t_x;
+					draw_y -= f_sz;
 				}
-				// go to next line
-				draw_x = t_x;
-				draw_y -= f_sz;
+				i++;
 				continue;
 			}
-			glyph = font->getGlyph((unsigned int)c);
 
-			// safety check
-			if (!glyph)
-				return;
-
-			// top/left=0/0
-			float f_left = glyph->left;
-			float f_right = glyph->right;
-			float f_top = glyph->top;
-			float f_bottom = glyph->bottom;
-
-			// do we have space for the next char?
-			if (draw_x + glyph->advance > t_w + t_x) {
-
-				// check if word-wrapping is on
-				// if not we break out
-				if (!m_word_wrap)
-					break;
-
-				// do we have space for the next line?
-				if (draw_y - (2 * f_sz) < t_y - t_h) { // NOTE: "-" because coords are flipped
-					// no - stop rendering
-					break;
+			// Process whitespace as a single token (e.g. space, tab)
+			if (isspace(sentence[i])) {
+				Glyph* glyph = font->getGlyph(static_cast<unsigned int>(sentence[i]));
+				if (!glyph) {
+					i++;
+					continue;
 				}
-				// go to next line
+				// If the space glyph would exceed the line width (and we’re not already at the line start)
+				if (draw_x + glyph->advance > t_x + t_w && draw_x != t_x) {
+					draw_x = t_x;
+					draw_y -= f_sz;
+				}
+				// Render the whitespace glyph
+				if (draw_x >= X()) {
+					// First triangle
+					vertices.push_back({ draw_x, draw_y, z, glyph->left, glyph->top });
+					v_indices.push_back(v_c * 4);
+					vertices.push_back({ draw_x + glyph->advance, draw_y - f_sz, z, glyph->right, glyph->bottom });
+					v_indices.push_back(v_c * 4 + 1);
+					vertices.push_back({ draw_x, draw_y - f_sz, z, glyph->left, glyph->bottom });
+					v_indices.push_back(v_c * 4 + 2);
+					// Second triangle
+					v_indices.push_back(v_c * 4 + 0);
+					vertices.push_back({ draw_x + glyph->advance, draw_y, z, glyph->right, glyph->top });
+					v_indices.push_back(v_c * 4 + 3);
+					v_indices.push_back(v_c * 4 + 1);
+					v_c++;
+				}
+				draw_x += glyph->advance;
+				i++;
+				continue;
+			}
+
+			// Process a word (a contiguous sequence of non-whitespace characters)
+			size_t word_start = i;
+			float word_width = 0.0f;
+			size_t j = i;
+			while (j < sentence.size() && !isspace(sentence[j]) && sentence[j] != '\n') {
+				Glyph* glyph = font->getGlyph(static_cast<unsigned int>(sentence[j]));
+				if (glyph)
+					word_width += glyph->advance;
+				j++;
+			}
+
+			// If the word would exceed the available width and we're not already at the beginning, break to a new line.
+			if (draw_x + word_width > t_x + t_w && draw_x != t_x) {
 				draw_x = t_x;
 				draw_y -= f_sz;
+				// NOTE, here we could add code for alignment adjustments per line.
 			}
 
-			// check clipping
-			if (draw_x >= X()) {
+			// Render the word character by character
+			for (size_t k = word_start; k < j; k++) {
+				unsigned char c = static_cast<unsigned char>(sentence[k]);
+				Glyph* glyph = font->getGlyph((unsigned int)c);
+				if (!glyph)
+					continue;
 
-				// first triangle
-				// top-left
-				vertices.push_back({ draw_x, draw_y, z, f_left, f_top });
-				v_indices.push_back(v_c * 4);
-				// bottom-right
-				vertices.push_back({ draw_x + glyph->advance, draw_y - f_sz, z, f_right, f_bottom });
-				v_indices.push_back(v_c * 4 + 1);
-				// bottom-left
-				vertices.push_back({ draw_x, draw_y - f_sz, z, f_left, f_bottom });
-				v_indices.push_back(v_c * 4 + 2);
-
-				// second triangle
-				// top-left
-				v_indices.push_back(v_c * 4 + 0);
-				// top-right
-				vertices.push_back({ draw_x + glyph->advance, draw_y, z, f_right, f_top });
-				v_indices.push_back(v_c * 4 + 3);
-				// bottom-right
-				v_indices.push_back(v_c * 4 + 1);
-
-				v_c++;
+				// In the unlikely event a glyph doesn’t fit (e.g. an overly long word), break mid-word
+				if (draw_x + glyph->advance > t_x + t_w) {
+					if (m_multiline) {
+						draw_x = t_x;
+						draw_y -= f_sz;
+					}
+					else
+						break;
+				}
+				if (draw_x >= X()) {
+					// First triangle
+					vertices.push_back({ draw_x, draw_y, z, glyph->left, glyph->top });
+					v_indices.push_back(v_c * 4);
+					vertices.push_back({ draw_x + glyph->advance, draw_y - f_sz, z, glyph->right, glyph->bottom });
+					v_indices.push_back(v_c * 4 + 1);
+					vertices.push_back({ draw_x, draw_y - f_sz, z, glyph->left, glyph->bottom });
+					v_indices.push_back(v_c * 4 + 2);
+					// Second triangle
+					v_indices.push_back(v_c * 4 + 0);
+					vertices.push_back({ draw_x + glyph->advance, draw_y, z, glyph->right, glyph->top });
+					v_indices.push_back(v_c * 4 + 3);
+					v_indices.push_back(v_c * 4 + 1);
+					v_c++;
+				}
+				draw_x += glyph->advance;
 			}
-
-			// advance by glyph width
-			draw_x += glyph->advance;
+			i = j;
 		}
 
-		if (!v_indices.size()) {
+		if (v_indices.empty()) {
 			hide();
 			return;
-		} else {
+		}
+		else {
 			show();
 		}
 
-		// fill up the buffer with zeros
+		// Fill up the buffer with zeros if needed
 		size_t v_len = vertices.size();
 		if (m_vertex_size > v_len) {
 			for (size_t j = v_len; j < m_vertex_size; j++) {
-				vertices.push_back({ 0,0,0,0,0 });
-			}	
+				vertices.push_back({ 0, 0, 0, 0, 0 });
+			}
 		}
 		else {
 			m_vertex_size = v_len;
@@ -309,35 +348,106 @@ namespace Rhea
 			setMesh();
 	}
 
-	Vector2 TextWidget::getTextSize()
+	Vector2 TextWidget::getTextSize(Vector2 size_constraints)
 	{
-		float ret_x = 0.0f;
 		Rhea::Font* font = getFont();
 		std::string sentence = getText();
 		if (!font)
 			return Vector2();
-		float f_sz = font->getFontSize();
-		Glyph* glyph;
-		Vector2 size(0.0f, 0.0f);
 
+		float f_sz = font->getFontSize();
+		Vector2 size(0.0f, 0.0f);
 		// At least one line height
 		size.y = f_sz;
-		for (int i = 0; i < sentence.size(); i++) {
-			glyph = font->getGlyph(static_cast<unsigned char>(sentence[i]));
-			
-			unsigned char c = static_cast<unsigned char>(sentence[i]);
-			if (m_multiline && (c == '\n')) {
-				if (ret_x > size.x)
-					size.x = ret_x;
-				ret_x = 0.0f;
-				size.y += f_sz;
+		float current_line_width = 0.0f;
+		size_t i = 0;
+
+		while (i < sentence.size()) {
+
+			// Handle explicit newline
+			if (sentence[i] == '\n') {
+				if (current_line_width > size.x)
+					size.x = current_line_width;
+				current_line_width = 0.0f;
+				// Only wrap if within vertical constraints
+				if (size.y + f_sz < size_constraints.y)
+					size.y += f_sz;
+				i++;
+				continue;
+			}
+
+			// Process whitespace as a single token (spaces, tabs, etc.)
+			if (isspace(sentence[i])) {
+				Glyph* glyph = font->getGlyph(static_cast<unsigned char>(sentence[i]));
+				if (!glyph) {
+					i++;
+					continue;
+				}
+				// If adding the space would exceed the horizontal constraint and we already have content on the line,
+				// move to the next line (provided we have room vertically)
+				if (current_line_width + glyph->advance > size_constraints.x && current_line_width > 0.0f &&
+					size.y + f_sz < size_constraints.y) {
+					if (m_multiline) {
+						if (current_line_width > size.x)
+							size.x = current_line_width;
+						current_line_width = 0.0f;
+						size.y += f_sz;
+					}
+				}
+				current_line_width += glyph->advance;
+				i++;
+				continue;
+			}
+
+			// Process a word: a contiguous sequence of non-whitespace characters
+			size_t word_start = i;
+			float word_width = 0.0f;
+			size_t j = i;
+			while (j < sentence.size() && sentence[j] != '\n' && !isspace(sentence[j])) {
+				Glyph* glyph = font->getGlyph(static_cast<unsigned char>(sentence[j]));
+				if (glyph)
+					word_width += glyph->advance;
+				j++;
+			}
+
+			// If the word doesn't fit on the current line and we're not at the beginning,
+			// wrap to the next line (if within vertical constraints)
+			if (current_line_width + word_width > size_constraints.x && current_line_width > 0.0f &&
+				size.y + f_sz < size_constraints.y) {
+				if (m_multiline) {
+					if (current_line_width > size.x)
+						size.x = current_line_width;
+					current_line_width = 0.0f;
+					size.y += f_sz;
+				}
+			}
+
+			// If the word is too long to fit even on a fresh line, process it glyph-by-glyph
+			if (word_width > size_constraints.x && current_line_width == 0.0f) {
+				for (size_t k = word_start; k < j; k++) {
+					Glyph* glyph = font->getGlyph(static_cast<unsigned char>(sentence[k]));
+					if (!glyph)
+						continue;
+					if (current_line_width + glyph->advance > size_constraints.x &&
+						size.y + f_sz < size_constraints.y) {
+						if (m_multiline) {
+							if (current_line_width > size.x)
+								size.x = current_line_width;
+							current_line_width = 0.0f;
+							size.y += f_sz;
+						}
+					}
+					current_line_width += glyph->advance;
+				}
 			}
 			else {
-				ret_x += glyph->advance;
+				// Otherwise, add the whole word's width to the current line
+				current_line_width += word_width;
 			}
+			i = j;
 		}
-		if (ret_x > size.x)
-			size.x = ret_x;
+		if (current_line_width > size.x)
+			size.x = current_line_width;
 		return size;
 	}
 

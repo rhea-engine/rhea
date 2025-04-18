@@ -34,6 +34,9 @@ namespace Rhea
 		virtual int getNumImages() { return 1; }
 
 		virtual Resource* getImage(int index) { if (!index) return this; else return nullptr; }
+
+		int width = -1;
+		int height = -1;
 	};
 }
 

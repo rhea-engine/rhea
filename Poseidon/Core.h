@@ -8,8 +8,6 @@
 #include <memory>
 #include <unordered_map>
 
-#include "Hippios/Engine.h"
-#include "Hippios/Window.h"
 #include "Hippios/Renderer.h"
 
 #include "Node.h"
@@ -43,8 +41,7 @@ namespace Poseidon
 		// get psio engine
 		Psio::Engine* getPsio() { return m_psio; }
 
-		Hippios::Renderer* get_renderer() { return m_renderer->getRenderer(); }
-		Hippios::Engine* get_engine() { return m_renderer.get(); }
+		Hippios::Renderer* get_renderer() { return m_renderer.get(); }		
 
 		// create various items
 
@@ -65,14 +62,20 @@ namespace Poseidon
 		Entity* createEntity(Mesh* mesh);
 		Camera* createCamera();		
 
+		// set application name
+		void setAppname(std::string appname) { m_appname = appname; }
+
+		// fullscreen mode
+		void SetFullscreen(bool mode);
+
 		Hippios::GraphicsBuffer* getGraphicsBuffer(std::string facility, size_t size);
 
 	protected:
-		std::unique_ptr<Hippios::Engine> m_renderer;
+		std::unique_ptr<Hippios::Renderer> m_renderer;
 		int quit = 0;
-		Hippios::HippiosWindow* m_win = 0;
 		Window* m_window = 0;
 		SceneManager* m_scene_manager = 0;
+		std::string m_appname;
 
 		Psio::Engine* m_psio;
 		std::unordered_map<std::string, Material*> m_materials;

@@ -2,9 +2,9 @@
 
 namespace Poseidon
 {
-	void Texture::bind(Hippios::Engine* engine)
+	void Texture::bind(Hippios::Renderer* renderer)
 	{
-		m_renderer = engine->getRenderer();
+		m_renderer = renderer;
 	}
 
 	bool Texture::load(const std::string& file_name)

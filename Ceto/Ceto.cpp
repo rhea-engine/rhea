@@ -25,6 +25,7 @@
 #include <Components/Math/Math.h>
 #include <Rhea/Fabrics/Animation/Animation.h>
 #include <Rhea/Fabrics/Animation/Animator.h>
+#include <Rhea/Fabrics/GUI/GUIController.h>
 
 bool Ceto::onQuit(Rhea::Event* ev, Rhea::Unit* unit)
 {
@@ -250,11 +251,11 @@ void Ceto::setScene(bool mark_preferrences)
 				engine->setValue("origin", m_home_scene);
 
 			// hide GUI background
-			SimpleParser::CssParser::PropertyMap properties;
-			properties["background-image"] = { "none" };
-			Rhea::Widget* w = doCast<Rhea::Widget>(m_unit_tree->find("//local/cetogui/gui"));
-			if (w)
-				w->setStyle(properties);
+			Rhea::GUIController* w = doCast<Rhea::GUIController>(m_unit_tree->find("//local/cetogui/gui"));
+			if (w) {
+				w->setStyle(Rhea::StylePropertyId::kBackgroundImage, "none");
+				w->UpdateStyle();
+			}				
 
 			// display scene
 			std::string start_scene = scene->getValue("startscene", "");

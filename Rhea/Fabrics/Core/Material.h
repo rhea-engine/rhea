@@ -3,6 +3,8 @@
 
 #include "Rhea/Unit.h"
 #include <Components/Math/Vector3.h>
+#include <Math/Vector4.h>
+#include <Math/Vector2.h>
 
 namespace Rhea
 {
@@ -31,7 +33,7 @@ namespace Rhea
 		std::vector<ImageResource*>& getTextures() { return m_textures; }
 
 		// set texture to specific slot
-		void setTexture(int slot, ImageResource* res) { if (slot >= m_textures.size()) m_textures.resize(slot + 1); m_textures[slot] = res; }
+		void setTexture(int slot, ImageResource* res) { if (slot >= m_textures.size() && res) m_textures.resize(slot + 1); m_textures[slot] = res; }
 
 		// set shader resource
 		void setShader(TextResource* shader) { m_shader = shader; }
@@ -49,8 +51,14 @@ namespace Rhea
 
 		// set color for id
 		void setColor(int propertyID, Math::Vector3 color) { if (propertyID < m_colors.size()) m_colors[propertyID] = color; }
+		void setColor(int propertyID, Math::Vector4 color) { if (propertyID < m_colors.size()) m_colors[propertyID] = color; }
+
 		// get color for id
-		Math::Vector3 getColor(int propertyID) { if (propertyID < m_colors.size()) return m_colors[propertyID]; else return Math::Vector3(0, 0, 0); }
+		Math::Vector4 getColor(int propertyID) { if (propertyID < m_colors.size()) return m_colors[propertyID]; else return Math::Vector4(0, 0, 0, 0); }
+		// set float2 for id
+		void setFloat2(int propertyID, Math::Vector2 value) { if (propertyID < m_float2s.size()) m_float2s[propertyID] = value; }
+		// get float2 for id
+		Math::Vector2 getFloat2(int propertyID) { if (propertyID < m_colors.size()) return m_float2s[propertyID]; else return Math::Vector2(0, 0); }
 
 		// set a float value by id
 		void setFloat(int propertyID, float value) { if (propertyID < m_floats.size()) m_floats[propertyID] = value; }
@@ -62,13 +70,39 @@ namespace Rhea
 		// get an int value by id
 		int getInt(int propertyID) { if (propertyID < m_ints.size()) return m_ints[propertyID]; else return 0; }
 
+		// set color for id
+		void setColorVS(int propertyID, Math::Vector3 color) { if (propertyID < m_colors_vs.size()) m_colors_vs[propertyID] = color; }
+		void setColorVS(int propertyID, Math::Vector4 color) { if (propertyID < m_colors_vs.size()) m_colors_vs[propertyID] = color; }
+
+		// get color for id
+		Math::Vector4 getColorVS(size_t propertyID) { if (propertyID < m_colors_vs.size()) return m_colors_vs[propertyID]; else return Math::Vector4(0, 0, 0, 0); }
+		// set float2 for id
+		void setFloat2VS(size_t propertyID, Math::Vector2 value) { if (propertyID < m_float2s_vs.size()) m_float2s_vs[propertyID] = value; }
+		// get float2 for id
+		Math::Vector2 getFloat2VS(size_t propertyID) { if (propertyID < m_colors_vs.size()) return m_float2s_vs[propertyID]; else return Math::Vector2(0, 0); }
+
+		// set a float value by id
+		void setFloatVS(size_t propertyID, float value) { if (propertyID < m_floats.size()) m_floats_vs[propertyID] = value; }
+		// get a float value by id
+		float getFloatVS(size_t propertyID) { if (propertyID < m_floats_vs.size()) return m_floats_vs[propertyID]; else return 0.0f; }
+
+		// set an int value by id
+		void setIntVS(size_t propertyID, int value) { if (propertyID < m_ints_vs.size()) m_ints_vs[propertyID] = value; }
+		// get an int value by id
+		int getIntVS(size_t propertyID) { if (propertyID < m_ints_vs.size()) return m_ints_vs[propertyID]; else return 0; }
+
 	protected:
 		TextResource* m_shader;
 		Shader* m_shader_res;
 		std::vector<ImageResource*> m_textures;
-		std::vector<Math::Vector3> m_colors;
+		std::vector<Math::Vector4> m_colors;
+		std::vector<Math::Vector2> m_float2s;
 		std::vector<float> m_floats;
 		std::vector<int> m_ints;
+		std::vector<Math::Vector4> m_colors_vs;
+		std::vector<Math::Vector2> m_float2s_vs;
+		std::vector<float> m_floats_vs;
+		std::vector<int> m_ints_vs;
 	};
 }
 		

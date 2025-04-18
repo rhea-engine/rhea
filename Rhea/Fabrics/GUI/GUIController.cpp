@@ -1,4 +1,6 @@
 #include "GUIController.h"
+#include "GUIController.h"
+#include "GUIController.h"
 #include "Application.h"
 #include "UnitTree.h"
 #include "Fabrics/Core/Scene.h"
@@ -13,7 +15,7 @@
 #include "Dialog.h"
 #include "List.h"
 #include "ListItem.h"
-#include "StyleSheet.h"
+#include "Styles/StyleSheet.h"
 #include "CssLoader.h"
 #include <Graphics/GraphicsService.h>
 #include <Psio/Log.h>
@@ -31,6 +33,7 @@ namespace Rhea
 
 		Widget::setup(app, attributes, values);
 
+		m_values["fillsize"] = true;
 		m_modifiers.push_back(std::make_unique<FillSizeModifier>());
 
 		// make sure the GUI is not displayed in the world render context by default
@@ -50,31 +53,28 @@ namespace Rhea
 	{
 		// prepare all children
 		Widget::ready();
-
-		// apply Style
-		if (m_values["stylesheet"] != Variant()) {
-			StyleSheet* css = (StyleSheet*)m_app->getUnitTree()->find(m_values["stylesheet"], m_attributes["basepath"], false);
-			if (css) {
-				traverse([&, css](std::string name, Rhea::Component* unit)->bool {
-					Widget* w = doCast<Widget>(unit);
-					if (w) {
-						css->applyStyle(w);
-						return true;
-					}
-					else {
-						return false;
-					}
-					});
-			}
-			else {
-				LOG(LOG_ERROR) << "No stylesheet defined for GUI Controller";
-			}
-		}
-
+		
 		// set current viewport size
 		GraphicsService* gsrv = (GraphicsService*)m_app->getService("graphics");
 		m_viewport_width = gsrv->getViewportWidth();
 		m_viewport_height = gsrv->getViewportHeight();
+		gsrv->registerEventHandler("resize", this, [&, gsrv](Event* ev, Unit* unit) -> bool { 
+			m_viewport_width = gsrv->getViewportWidth();
+			m_viewport_height = gsrv->getViewportHeight();
+			return onGuiUpdate(ev, unit); 
+		});
+
+		m_style_engine = std::make_unique<StyleEngine>();
+		if (m_values["stylesheet"] != Variant()) {
+			StyleSheet* css = (StyleSheet*)m_app->getUnitTree()->find(m_values["stylesheet"], m_attributes["basepath"], false);
+			m_style_engine->AppendStylesheet(css);
+		}
+		else {
+			LOG(LOG_ERROR) << "No stylesheet defined for GUI Controller";
+		}
+
+		// apply Style
+		UpdateStyle();
 
 		// all children are ready - set toplevel mark
 		for (auto it = m_children.begin(); it != m_children.end(); ++it)
@@ -92,8 +92,22 @@ namespace Rhea
 
 		// watch for updates
 		registerEventHandler("scene_enter", this, std::bind(&GUIController::onGuiUpdate, this, std::placeholders::_1, std::placeholders::_2));
-		registerEventHandler("scene_leave", this, std::bind(&GUIController::onGuiUpdate, this, std::placeholders::_1, std::placeholders::_2));
+		registerEventHandler("scene_leave", this, [&](Event* ev, Unit* u)->bool {
+			Rhea::Unit* target = ev->getTarget();
+			// if the leaving unit is currently captured empty reference
+			target->traverse([&](std::string name, Rhea::Component* c)->bool {
+				if (c == m_target)
+					m_target = nullptr;
+				if (c == m_captured)
+					m_captured = nullptr;
+				return true;
+				});
+			return GUIController::onGuiUpdate(ev, u);
+			});
 		registerEventHandler("gui_redraw", this, std::bind(&GUIController::onGuiUpdate, this, std::placeholders::_1, std::placeholders::_2));
+		registerEventHandler("need_resize", this, [&](Event* ev, Unit* u)->bool {
+			m_need_resize = true; return false; 
+			});
 
 		// handle show/hide of children
 		registerEventHandler("show", this, std::bind(&GUIController::onShowWidget, this, std::placeholders::_1, std::placeholders::_2));
@@ -130,6 +144,14 @@ namespace Rhea
 
 		Psio::InputEventId id = e->getEvent()->getId();
 
+		if (e->isAction("fullscreen")) {
+			GraphicsService* gsrv = doCast<GraphicsService>(m_app->getService("graphics"));
+			if (gsrv) {
+				gsrv->ToggleFullscreen();
+			}
+			return false;
+		}
+
 		switch (id) {
 		case Psio::InputEventId::MOUSE_BTN_PRESSED:
 		case Psio::InputEventId::MOUSE_BTN_RELEASED:
@@ -147,15 +169,11 @@ namespace Rhea
 				Widget* root_capture = nullptr;
 
 				// check all top level windows
-				for (auto it = m_children.begin(); it != m_children.end(); ++it)
+				for (auto it = m_ordered_children.rbegin(); it != m_ordered_children.rend(); ++it)
 				{
-					Widget* w = doCast<Widget>(it->second);
+					Widget* w = doCast<Widget>(*it);
 					if (w) {
-
-						if (me->getX() > 1330) {
-							captured = nullptr;
-						}
-
+						
 						// get the captured widget (if in this tree)
 						captured = w->capture(me->getX(), me->getY());
 						if (captured) {
@@ -266,17 +284,6 @@ namespace Rhea
 				m_target->bubbleEvent("text_input", e);
 			}
 			break;
-
-		case Psio::InputEventId::WIN_SIZE:
-			// resize window
-/*
-			std::shared_ptr<Psio::WinSizeEvent> me = std::static_pointer_cast<Psio::WinSizeEvent>(e->getEvent());
-			m_viewport_width = me->width();
-			m_viewport_height = me->height();
-			onGuiUpdate(ev, unit);
-			*/
-			break;
-
 		}
 		
 		return false;
@@ -307,13 +314,31 @@ namespace Rhea
 	bool GUIController::onGuiUpdate(Event* ev, Unit* unit)
 	{
 		// sizing with constraint of viewport size
-		//Vector2 vp_size((float)m_viewport_width, (float)m_viewport_height);
-		GraphicsService* gsrv = (GraphicsService*)m_app->getService("graphics");
-		Vector2 vp_size((float)gsrv->getViewportWidth(), (float)gsrv->getViewportHeight());
+		Vector2 vp_size((float)m_viewport_width, (float)m_viewport_height);
+
+		if (m_viewport_width <= 0 && m_viewport_height <= 0)
+			return false;
+
 		size(vp_size);
 
 		setPosition(Vector2(m_base_position));
+
 		return false;
+	}
+
+	void GUIController::UpdateStyle()
+	{
+		if (m_style_engine)
+			RecalculateStyle(m_style_engine.get());
+	}
+
+	void GUIController::onFrame()
+	{
+		UpdateStyle();
+		if (m_need_resize) {
+			onGuiUpdate(nullptr, nullptr);
+			m_need_resize = false;
+		}
 	}
 
 	void GUIController::Register(Application* app)
@@ -338,7 +363,6 @@ namespace Rhea
 		SimpleParser::Type::registerType<GUIController>("//meworla/gui");
 		
 		// register helpers
-		SimpleParser::Type::registerType<StyleSheet>("//meworla/gui/stylesheet");
 		app->getResourceLoader()->registerLoader<CssLoader>("text/css");
 		SimpleParser::Type::registerType<GuiService>("//meworla/gui/service"); 
 		

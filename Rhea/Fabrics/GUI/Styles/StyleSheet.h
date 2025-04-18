@@ -3,17 +3,15 @@
 
 #include <Resources/Resource.h>
 #include <SimpleParser/CssParser.h>
-#include "Widget.h"
+#include "../Widget.h"
+#include "StyleRule.h"
 
 namespace Rhea
 {
 	class StyleSheet : public Unit
 	{
-		MECLASS(StyleSheet, Unit)
+		RECLASS(StyleSheet, Unit, "//meworla/gui/stylesheet")
 	public:
-		StyleSheet(std::string path_name) :
-			StyleSheet(path_name, "//meworla/gui/stylesheet")
-		{}
 		StyleSheet(std::string path_name, std::string type_name) :
 			Unit(path_name, type_name)
 		{}
@@ -21,12 +19,14 @@ namespace Rhea
 
 		std::vector<Unit::Export> getReferences();
 
-		void applyStyle(Widget* w);
-
 		void setStyle(std::vector<SimpleParser::CssParser::Entry>& entries);
 
+		std::vector<StyleRule>& getRules() { return m_entries; }
+
+		static bool ParseValues(StylePropertyId id, std::vector<SimpleParser::CssParser::Property>& content, std::vector<CssValue>& values);
+
 	protected:
-		std::vector<SimpleParser::CssParser::Entry> m_entries;
+		std::vector<StyleRule> m_entries;
 		std::vector<Unit::Export> refs;
 	};
 }

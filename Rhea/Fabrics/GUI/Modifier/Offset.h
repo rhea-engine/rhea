@@ -14,7 +14,7 @@ namespace Rhea {
 			m_offset(offset)
 		{}
 
-		void apply(Widget* w, Vector2& size_constraints, Vector2& inner_size, Vector2& outer_size) {
+		void apply(Widget* w, Vector2& size_constraints, Vector2& inner_size, Vector2& outer_size, Vector2& margin) {
 			w->setBasePosition(m_offset + w->getBasePosition());
 		};
 

@@ -12,7 +12,7 @@ namespace Rhea
 
 	void BoxWidget::onSetPosition()
 	{
-		m_cur_position = m_position;
+		m_cur_position = m_position + m_content_position;
 		Vector2 child_size;
 		Vector2 padding;
 

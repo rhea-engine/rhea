@@ -11,11 +11,8 @@ namespace Rhea
 {
 	class TextWidget : public Item2D
 	{
-		MECLASS(TextWidget, Item2D)
-	public:
-		TextWidget(std::string name) :
-			TextWidget(name, "//meworla/textwidget")
-		{}
+		RECLASS(TextWidget, Item2D, "//meworla/textwidget")
+	public:		
 		TextWidget(std::string name, std::string type_name) :
 			m_font(nullptr),
 			Item2D(name, type_name),
@@ -33,6 +30,8 @@ namespace Rhea
 
 		// ready event handler
 		void ready();
+
+		void setFont(Font* font);
 
 		// reset the mesh for the text
 		void setMesh();
@@ -58,7 +57,7 @@ namespace Rhea
 		void setOffset(float offset) { m_offset_x = offset; }
 
 		// get size of current text
-		Vector2 getTextSize();
+		Vector2 getTextSize(Vector2 size_constraints);
 
 		// set word wrap option
 		void setWordWrap(bool word_warp);

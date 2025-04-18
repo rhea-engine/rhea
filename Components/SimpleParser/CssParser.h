@@ -10,12 +10,55 @@ namespace SimpleParser
 	{
 	public:
 
-		struct Selector
+		enum class SimpleSelectorType
 		{
+			kType,
+			kUniversal,
+			kId,
+			kClass,
+			kAttribute,
+			kPseudo
+		};
+
+		struct SimpleSelector
+		{
+			SimpleSelectorType type;
 			std::string name;
 		};
 
-		typedef std::unordered_map<std::string, std::vector<Variant>> PropertyMap;
+		typedef std::vector<SimpleSelector> SimpleSelectorSequence;
+
+		enum class Combinator {
+			kDescendant,
+			kChild,
+			kSibling,
+			kSubsequent
+		};
+
+		struct SelectorItem
+		{
+			Combinator combinator;
+			SimpleSelectorSequence sequence;
+		};
+
+		typedef std::vector<SelectorItem> Selector;
+
+		enum class PropertyId {
+			kString,
+			kIdentifier,
+			kFunction,
+			kNumeric,
+			kDimension,
+		};
+
+		struct Property {
+			PropertyId id = PropertyId::kString;
+			int anchestor = -1;
+			Variant value;
+			Variant extra;
+		};
+
+		typedef std::unordered_map<std::string, std::vector<Property>> PropertyMap;
 
 		struct Entry
 		{
@@ -33,7 +76,7 @@ namespace SimpleParser
 			PARSE_EOF,
 			PARSE_ERR,
 			PARSE_UNTERMINATED_STRING,
-			PARSE_UNERMINATED_ARRAY,
+			PARSE_UNTERMINATED_ARRAY,
 			PARSE_INVALID_ID_CHAR,
 			// IniFileParser
 			PARSE_EXPECT_IDENTIFIER,

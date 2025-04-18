@@ -35,7 +35,12 @@ namespace Rhea
 		Poseidon::Node* entity = core->createEntity(mesh);	
 		elem->SetRenderEntity(entity);		
 		
-		Poseidon::RenderContext* render_context = scene_mgr->getViewport()->getRenderContext(render_context_name);
+		Poseidon::Viewport* viewport = scene_mgr->getViewport();
+		if (!viewport) {
+			LOG(LOG_ERROR) << "No root viewport found - cannot create element";
+			return nullptr;
+		}
+		Poseidon::RenderContext* render_context = viewport->getRenderContext(render_context_name);
 		if (!render_context) {
 			LOG(LOG_ERROR) << "GraphicsText::createText: render context '" << render_context_name << "' not found";
 			return nullptr;
@@ -55,7 +60,12 @@ namespace Rhea
 		Poseidon::Node* entity = core->createEntity(nullptr);
 		elem->SetRenderEntity(entity);
 
-		Poseidon::RenderContext* render_context = scene_mgr->getViewport()->getRenderContext(render_context_name);
+		Poseidon::Viewport* viewport = scene_mgr->getViewport();
+		if (!viewport) {
+			LOG(LOG_ERROR) << "No root viewport found - cannot create element";
+			return nullptr;
+		}
+		Poseidon::RenderContext* render_context = viewport->getRenderContext(render_context_name);
 		if (!render_context) {
 			LOG(LOG_ERROR) << "GraphicsText::createText: render context '" << render_context_name << "' not found";
 			return nullptr;

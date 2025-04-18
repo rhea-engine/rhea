@@ -93,13 +93,18 @@ namespace Poseidon
 		for (std::vector<Viewport*>::iterator it = m_viewports.begin(); it != m_viewports.end(); ++it) {
 			Viewport* viewport = *it;
 
-			// clear pass
-			m_renderer->clearPass();
+			if (!viewport->getRenderTarget())
+				continue;
+
+			// set render target as active
+			viewport->getRenderTarget()->setActive();
+			// clear with background color
+			viewport->getRenderTarget()->clearPass();
 
 			// iterate over render contexts of this viewport
-			std::vector<RenderContext*> r_contexts = viewport->getRenderContextList();
-			for (std::vector<RenderContext*>::iterator rc_it = r_contexts.begin(); rc_it != r_contexts.end(); ++rc_it) {
-				RenderContext* context = *rc_it;
+			for (const auto& rc_it : viewport->getRenderContextList()) {
+				RenderContext* context = rc_it.get();
+				viewport->getRenderTarget()->setViewport(context->getSize());
 
 				// cull pass	
 				m_rend_queue->clear();
@@ -251,7 +256,7 @@ namespace Poseidon
 
 						if (mat != m_current_material && mat) {
 							m_current_material = mat;
-							mat->activate(3);
+							mat->activate(3, 5);
 						}
 						if (!m_current_material) {
 							printf("SceneManager::render: No shader found\n");
@@ -291,10 +296,6 @@ namespace Poseidon
 					}
 				}
 			}
-
-			// present pass
-			if (m_renderer->presentPass())
-				return true;
 		}
 		return false;
 	}

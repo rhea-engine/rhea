@@ -1,5 +1,6 @@
 #include "Shader.h"
 #include <cassert>
+#include <Psio/Log.h>
 
 namespace Poseidon
 {
@@ -14,9 +15,12 @@ namespace Poseidon
 		m_topology_type(0),
 		m_cull_mode(true),
 		m_matbuf_size(0),
+		m_matbuf_size_vs(0),
 		m_material_buffer(nullptr),
 		m_matbuf_layout(),
-		m_renderer(nullptr)
+		m_material_buffer_vs(nullptr),
+		m_renderer(nullptr),
+		m_sampler_handle(nullptr)
 	{
 		m_renderer = m_grahpics_core->get_renderer();
 	}
@@ -71,6 +75,11 @@ namespace Poseidon
 			// cull mode in raster state
 			if (!m_cull_mode)
 				pso_desc.rasterizerState.cull_mode = Hippios::CullMode::NONE;
+
+			// sampler
+			m_sampler_handle = m_renderer->getSampler(m_sampler_name);
+			if (!m_sampler_handle)
+				LOG(LOG_ERROR) << "Sampler " << m_sampler_name << " not found";
 
 			// shader programs
 			pso_desc.shaderProgram.vertex_shader = getVShader();
@@ -143,9 +152,21 @@ namespace Poseidon
 	{
 		m_matbuf_layout = layout; 
 		m_matbuf_size = 0; 
-		for (int i = 0; i < m_matbuf_layout.size(); i++) {
+		m_matbuf_layout_map.clear();
+		for (size_t i = 0; i < m_matbuf_layout.size(); i++) {
 			m_matbuf_size += layout[i].size;
-			m_matbuf_layout_map[layout[i].name] = i;
+			m_matbuf_layout_map[layout[i].name] = static_cast<int>(i);
+		}
+	}
+
+	void Shader::setMatBufLayoutVS(std::vector<MatBufferLayoutElement>& layout)
+	{
+		m_matbuf_layout_vs = layout;
+		m_matbuf_size_vs = 0;
+		m_matbuf_layout_map_vs.clear();
+		for (size_t i = 0; i < m_matbuf_layout_vs.size(); i++) {
+			m_matbuf_size_vs += layout[i].size;
+			m_matbuf_layout_map_vs[layout[i].name] = static_cast<int>(i);
 		}
 	}
 
@@ -153,6 +174,7 @@ namespace Poseidon
 	{
 		assert(m_pso != nullptr);
 		m_grahpics_core->get_renderer()->setPipelineState(m_pso.get());
+		m_grahpics_core->get_renderer()->setSampler(m_sampler_handle);
 	}
 
 }

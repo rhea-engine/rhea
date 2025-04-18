@@ -24,6 +24,9 @@ namespace Rhea
 
 		void addItem(std::string text, std::string value);
 
+		// clear the list
+		void clear();
+
 		void ready();
 
 		// frame handler
@@ -38,6 +41,9 @@ namespace Rhea
 
 		// recalculate my size
 		Vector2 innerSize(Vector2 size_constraints);
+
+		// styling
+		const std::string getSelector() { return "List"; }
 
 	protected:
 		UnitTree::Binding m_data_binding;

@@ -14,7 +14,9 @@ namespace Rhea {
 			m_full_weight(0.0f),
 			m_children_size(0.0f),
 			Widget(name, type_name)
-		{}
+		{
+			m_justify_mode = 1;
+		}
 
 		void ready();
 
@@ -24,6 +26,9 @@ namespace Rhea {
 		Vector2 innerSize(Vector2 size_constraints);
 
 		void innerGetMinSize(Vector2 size_constraints, Vector2& min_size);
+
+		// styling
+		const std::string getSelector() { return "Column"; }
 
 	protected:
 		float m_full_weight;

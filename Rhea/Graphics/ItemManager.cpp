@@ -19,6 +19,7 @@
 #include <Psio/Log.h>
 #include <Rhea/Fabrics/3D/Light.h>
 #include "GraphicsComponent.h"
+#include "MaterialManager.h"
 
 namespace Rhea
 {
@@ -53,10 +54,6 @@ namespace Rhea
 		// prepare basic elements
 		
 		Mesh* item_mesh = item->getMesh();
-		if (!light && !item_mesh) {
-			DLOG(LOG_DEBUG) << "GraphicsItemManager::createElement: getMesh returned nullptr";	
-			return nullptr;
-		}
 		elem = new GraphicsRenderElement(core);
 
 		if (item_mesh) {
@@ -70,9 +67,10 @@ namespace Rhea
 			// create the element		
 			Poseidon::Renderable* entity = static_cast<Poseidon::Renderable*>(createRenderable(elem, core, unit, "default", item_mesh->isDynamic()));
 		}
-		else {
+		else if (light) {
 			Poseidon::Renderable* entity = static_cast<Poseidon::Renderable*>(createEntity(elem, core, unit, "default", false));
 		}
+		// NOTE else do nothing: this is normal for widgets that have no or transparent background defined
 
 		// attach to unit
 		unit->addComponentUnique<GraphicsComponent>(elem);
@@ -95,20 +93,47 @@ namespace Rhea
 			return nullptr;
 		GraphicsRenderElement* elem = static_cast<GraphicsRenderElement*>(gr_comp->getElement());
 
-		// possible material change - check if material has element
-		//Mesh* mesh = item->getGraphicsComponent()->getMesh();
+		// possible material change - check if material has element		
 		Mesh* mesh = item->getMesh();
 		if (!mesh)
 			return false;
 
-		if (Material* mat = mesh->getMaterial()) {
-			if (!mat->getComponent<GraphicsComponent>()) {
-				// create the element for the new material
-				GraphicsManager* mgr = m_service->getManager(mat->getType());
-				mgr->createElement(m_service->getEngine(), mat);
-			}
-		}
+		// NOTE: This assumes a changed material will actually be a new material (i.e. the old one gets destroyed)
 
+		// check if mesh has already a component, if not create it
+		if (!mesh->getComponent<GraphicsComponent>()) {
+			// create using mesh manager
+			GraphicsMesh* mesh_el = (GraphicsMesh*)m_service->getManager<Mesh>()->createElement(m_service->getEngine(), mesh);
+		}
+		// ensure all submeshes have the correct material
+		GraphicsMesh* mesh_el = static_cast<GraphicsMesh*>(mesh->getComponent<GraphicsComponent>()->getElement());
+		for (size_t i = 0; i < mesh->getNumSubmeshes(); i++) {
+			Material* material = mesh->getMaterial(i);
+			if (!material) {
+				LOG(LOG_ERROR) << "GraphicsMeshManager::createElement: No material for submesh " << i;
+				return false;
+			}
+			GraphicsComponent* mat_gr_comp = material->getComponent<GraphicsComponent>();
+			if (!mat_gr_comp) {
+				if (!m_service->addElement(material)) {
+					LOG(LOG_ERROR) << "GraphicsItemManager::createElement: could not create element for material";
+					return false;
+				}
+				else
+					mat_gr_comp = material->getComponent<GraphicsComponent>();
+			}
+			// set the material in core
+			setMaterial(m_service->getEngine(), material);
+			// set the poseidon material
+			if (mesh_el && mesh_el->m_mesh) {
+				Poseidon::Mesh::SubMesh* submesh = mesh_el->m_mesh->getSubMesh(i);
+				if (submesh) {
+					GraphicsMaterial* gr_mat = static_cast<GraphicsMaterial*>(mat_gr_comp->getElement());
+					if (gr_mat)
+						submesh->material = gr_mat->m_material;
+				}
+			}
+		}		
 		return false;
 	}
 

@@ -59,6 +59,9 @@ namespace Rhea
 
 		void ready();
 
+		// styling
+		const std::string getSelector() { return "Input"; }
+
 	protected:
 
 		void updateText(bool isEvent);

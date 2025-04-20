@@ -10,7 +10,7 @@
 #include "Fabrics/Terrain/Terrain.h"
 #include "Physics/Bullet/BtGhost.h"
 #include "Physics/PhysicsCharacter.h"
-#include "../Core/Transform.h"
+#include <Rhea/Core/Transform.h>
 #include "../Network/NetworkComponent.h"
 
 #include <algorithm>

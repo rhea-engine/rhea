@@ -4,7 +4,7 @@
 #include <string>
 #include <Psio/Log.h>
 #include <Rhea/UnitTree.h>
-#include <Rhea/Fabrics/Core/Avatar.h>
+#include <Rhea/Core/Avatar.h>
 #include <FortyTwo/Accounts/AccountService.h>
 #include "Authorization/AuthorizationService.h"
 #include <Rhea/Fabrics/Network/ServerService.h>

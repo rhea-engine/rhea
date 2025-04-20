@@ -1,9 +1,9 @@
 #ifndef RHEA_CAMERA_H
 #define RHEA_CAMERA_H
 
-#include "../Core/Item.h"
+#include "Rhea/Core/Item.h"
 
-#include "../Core/Position.h"
+#include "Rhea/Core/Position.h"
 
 namespace Rhea
 {

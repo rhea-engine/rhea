@@ -7,8 +7,8 @@
 #include <Psio/Image/Image.h>
 #include <Poseidon/SceneManager.h>
 #include <Poseidon/Shader.h>
-#include "Fabrics/Core/Material.h"
-#include <Rhea/Fabrics/Core/Shader.h>
+#include "Core/Material.h"
+#include <Rhea/Core/Shader.h>
 #include <Psio/Log.h>
 #include <Components/Math/Vector2.h>
 

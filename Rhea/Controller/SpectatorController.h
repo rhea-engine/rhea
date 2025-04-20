@@ -4,7 +4,7 @@
 #include "BasicController.h"
 #include <Math/Vector3.h>
 #include <Math/Quaternion.h>
-#include <Rhea/Fabrics/Core/Position.h>
+#include <Rhea/Core/Position.h>
 
 namespace Rhea
 {

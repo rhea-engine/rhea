@@ -3,7 +3,7 @@
 
 #include <Rhea/Service.h>
 #include <Rhea/Unit.h>
-#include <Rhea/Fabrics/Core/Scene.h>
+#include <Rhea/Core/Scene.h>
 #include <Psio/Psio.h>
 #include <Psio/Net/Network.h>
 #include <Psio/Net/Socket/StreamSocket.h>

@@ -4,7 +4,7 @@
 #include <Rhea/UnitTree.h>
 #include <Psio/Log.h>
 #include "Resources/TextResource.h"
-#include <Rhea/Fabrics/Core/Shader.h>
+#include <Rhea/Core/Shader.h>
 
 namespace Rhea 
 {

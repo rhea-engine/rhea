@@ -2,7 +2,7 @@
 #define RHEA_GLTF_SCENE_H
 
 #include <Rhea/Unit.h>
-#include <Rhea/Fabrics/Core/Geometry.h>
+#include <Rhea/Core/Geometry.h>
 
 #define TINYGLTF_NO_STB_IMAGE_WRITE
 #define TINYGLTF_NO_INCLUDE_JSON

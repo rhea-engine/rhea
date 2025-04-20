@@ -8,11 +8,11 @@
 #include "ItemManager.h"
 #include "CameraManager.h"
 #include "../Unit.h"
-#include "Fabrics/Core/Item.h"
+#include "Core/Item.h"
 #include "Fabrics/Canvas/Item2D.h"
 #include "GraphicsService.h"
 #include <Psio/Log.h>
-#include <Fabrics/Core/Lighting.h>
+#include <Core/Lighting.h>
 
 namespace Rhea
 {

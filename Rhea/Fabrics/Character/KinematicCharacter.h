@@ -1,8 +1,8 @@
 #ifndef RHEA_KINEMATIC_CHARACTER_H
 #define RHEA_KINEMATIC_CHARACTER_H
 
-#include <Rhea/Fabrics/Core/Position.h>
-#include <Rhea/Fabrics/Core/Item.h>
+#include <Rhea/Core/Position.h>
+#include <Rhea/Core/Item.h>
 
 namespace Rhea
 {

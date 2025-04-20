@@ -2,7 +2,7 @@
 #define FORTYTWO_USER_H
 
 #include <Rhea/Unit.h>
-#include <Rhea/Fabrics/Core/Avatar.h>
+#include <Rhea/Core/Avatar.h>
 
 // class representing the information and resources of a user
 // This is not the full account data but everything that is

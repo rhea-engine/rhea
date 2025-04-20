@@ -1,0 +1,8 @@
+{
+  "name": "Lobby",
+  "version": "1.2.3",
+  "vendor": "Meworla",
+  "description": "Lobby System for Multiplayer",
+  "assets": [ "Assets/" ],
+  "entry": "meworlafabrics.cpp"
+}

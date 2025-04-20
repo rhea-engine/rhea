@@ -2,11 +2,11 @@
 #define RHEA_TERRAIN_H
 
 #include <vector>
-#include <Rhea/Fabrics/Core/Material.h>
+#include <Rhea/Core/Material.h>
 #include <Psio/Image/Image.h>
 #include <Math/Vector3.h>
 
-#include <Rhea/Fabrics/Core/Item.h>
+#include <Rhea/Core/Item.h>
 
 namespace Rhea
 {

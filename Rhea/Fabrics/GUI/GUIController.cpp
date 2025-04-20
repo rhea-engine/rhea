@@ -3,13 +3,13 @@
 #include "GUIController.h"
 #include "Application.h"
 #include "UnitTree.h"
-#include "Fabrics/Core/Scene.h"
+#include "Core/Scene.h"
 
 #include "GuiService.h"
 
 #include "Widget.h"
 #include "Label.h"
-#include <Rhea/Fabrics/Core/SceneLoader.h>
+#include <Rhea/Core/SceneLoader.h>
 #include <EventInput.h>
 #include "Button.h"
 #include "Dialog.h"

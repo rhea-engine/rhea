@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include <Rhea/Fabrics/Core/Position.h>
+#include <Rhea/Core/Position.h>
 #include <bullet/src/LinearMath/btGeometryUtil.h>
 #include <bullet/src/LinearMath/btQuaternion.h>
 

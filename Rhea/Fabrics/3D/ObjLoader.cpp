@@ -8,8 +8,8 @@
 #include <Resources/TextResource.h>
 #include <Psio/Log.h>
 #include <functional>
-#include <Rhea/Fabrics/Core/Shader.h>
-#include <Rhea/Fabrics/Core/Material.h>
+#include <Rhea/Core/Shader.h>
+#include <Rhea/Core/Material.h>
 #include <Rhea/Fabrics/Media/ImageResource.h>
 #include <Resources/VertexBufferStandard.h>
 

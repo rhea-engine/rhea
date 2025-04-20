@@ -4,7 +4,7 @@
 #include <Rhea/UnitTree.h>
 #include <Rhea/Fabrics/GUI/Widget.h>
 #include <Rhea/Fabrics/GUI/List.h>
-#include <Rhea/Fabrics/Core/Avatar.h>
+#include <Rhea/Core/Avatar.h>
 #include <Psio/Log.h>
 
 namespace Meworla

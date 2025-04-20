@@ -1,7 +1,7 @@
 #include "LobbyServer.h"
 #include <Psio/Log.h>
 #include <Hermes/Messages/MessageAvatarList.h>
-#include <Rhea/Fabrics/Core/Avatar.h>
+#include <Rhea/Core/Avatar.h>
 #include <Hermes/Messages/MessageEnterFailed.h>
 
 namespace Rhea

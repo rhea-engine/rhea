@@ -1,6 +1,6 @@
 #include <Hermes/Stream.h>
 #include <Rhea/UnitTree.h>
-#include <Rhea/Fabrics/Core/Item.h>
+#include <Rhea/Core/Item.h>
 #include <Rhea/Physics/PhysicsService.h>
 #include <Psio/Log.h>
 #include <Rhea/Fabrics/Network/ServerService.h>

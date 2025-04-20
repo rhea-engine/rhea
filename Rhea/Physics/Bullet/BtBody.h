@@ -1,7 +1,7 @@
 #ifndef RHEA_PHYSICS_BULLET_BODY_H
 #define RHEA_PHYSICS_BULLET_BODY_H
 
-#include <Rhea/Fabrics/Core/Position.h>
+#include <Rhea/Core/Position.h>
 
 #include "../Body.h"
 

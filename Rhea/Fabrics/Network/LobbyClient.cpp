@@ -1,6 +1,6 @@
 #include "LobbyClient.h"
 #include <Psio/Log.h>
-#include <Rhea/Fabrics/Core/Avatar.h>
+#include <Rhea/Core/Avatar.h>
 #include <Rhea/UnitTree.h>
 #include <Hermes/Messages/MessageEnterWorld.h>
 #include <Hermes/Messages/MessageCreateAvatar.h>

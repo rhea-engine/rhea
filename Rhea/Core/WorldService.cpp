@@ -2,7 +2,7 @@
 
 #include <Rhea/Application.h>
 #include <Rhea/UnitTree.h>
-#include <Rhea/Fabrics/Core/Item.h>
+#include <Rhea/Core/Item.h>
 
 namespace Rhea
 {

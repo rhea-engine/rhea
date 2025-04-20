@@ -5,7 +5,7 @@
 #include "../Platform/PlatformService.h"
 #include "../Application.h"
 #include "../Unit.h"
-#include "Fabrics/Core//Scene.h"
+#include "Core//Scene.h"
 #include "../UnitTree.h"
 
 #include "Poseidon/Core.h"
@@ -25,12 +25,12 @@
 #include <Rhea/Physics/PhysicsService.h>
 #include "EventInput.h"
 
-#include "Fabrics/Core/Item.h"
+#include "Core/Item.h"
 #include "Fabrics/3D/Mesh.h"
 #include "Poseidon/Renderable.h"
 #include "Poseidon/Entity.h"
 
-#include <Rhea/Fabrics/Core/Material.h>
+#include <Rhea/Core/Material.h>
 #include <Rhea/Fabrics/3D/Camera.h>
 
 #include <Psio/Log.h>

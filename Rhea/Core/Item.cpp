@@ -3,10 +3,10 @@
 #include "Poseidon/Entity.h"
 #include "Poseidon/SceneManager.h"
 #include "UnitTree.h"
-#include "../3D/Mesh.h"
+#include <Rhea/Fabrics/3D/Mesh.h>
 #include "Graphics/RenderElement.h"
 #include "Physics/Body.h"
-#include "../Network/NetworkComponent.h"
+#include <Rhea/Fabrics/Network/NetworkComponent.h>
 #include <Psio/Log.h>
 #include <Math/Math.h>
 #include <Physics/PhysicsComponent.h>

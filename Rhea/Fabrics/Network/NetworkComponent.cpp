@@ -1,5 +1,5 @@
 #include "NetworkComponent.h"
-#include <Rhea/Fabrics/Core/Item.h>
+#include <Rhea/Core/Item.h>
 #include <Psio/Log.h>
 
 namespace Rhea

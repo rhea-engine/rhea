@@ -4,7 +4,7 @@
 #include <Hermes/Stream.h>
 #include <Hermes/Messages/MessageMove.h>
 #include <Hermes/Messages/MessageTurn.h>
-#include <Rhea/Fabrics/Core/Item.h>
+#include <Rhea/Core/Item.h>
 
 namespace Rhea
 {

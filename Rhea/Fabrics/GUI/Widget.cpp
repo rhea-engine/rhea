@@ -8,9 +8,9 @@
 
 #include "Application.h"
 #include "UnitTree.h"
-#include "Fabrics/Core/Scene.h"
+#include "Core/Scene.h"
 #include "Fabrics/Media/ImageResource.h"
-#include <Rhea/Fabrics/Core/Shader.h>
+#include <Rhea/Core/Shader.h>
 
 #include "../Canvas/Item2D.h"
 

@@ -6,7 +6,7 @@
 #include <Hermes/Messages/MessageTurn.h>
 #include <Hermes/Messages/MessageCreateAvatar.h>
 #include <Hermes/Stream.h>
-#include <Rhea/Fabrics/Core/Avatar.h>
+#include <Rhea/Core/Avatar.h>
 
 namespace Rhea
 {

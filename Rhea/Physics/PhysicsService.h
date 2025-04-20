@@ -2,7 +2,7 @@
 #define RHEA_PHYSICS_SERVICE_H
 
 #include "../Service.h"
-#include <Rhea/Fabrics/Core/Scene.h>
+#include <Rhea/Core/Scene.h>
 #include <Math/Vector3.h>
 
 namespace Rhea

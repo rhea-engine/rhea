@@ -7,7 +7,7 @@
 #include <Psio/Net/Network.h>
 #include <Psio/Net/Socket/TCPSocket.h>
 #include <Hermes/MessageFactory.h>
-#include <Rhea/Fabrics/Core/Scene.h>
+#include <Rhea/Core/Scene.h>
 #include <Hermes/ServerStream.h>
 #include <Rhea/Application.h>
 

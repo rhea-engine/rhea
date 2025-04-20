@@ -2,7 +2,7 @@
 #define RHEA_NETWORKCOMPONENT_H
 
 #include <Math/Vector3.h>
-#include <Rhea/Fabrics/Core/Position.h>
+#include <Rhea/Core/Position.h>
 #include <Rhea/Component.h>
 #include "NetworkDelegate.h"
 

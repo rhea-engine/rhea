@@ -2,7 +2,7 @@
 #define RHEA_TEXTWIDGET_H
 
 #include "Resources/Resource.h"
-#include "Fabrics/Core/Material.h"
+#include "Core/Material.h"
 #include "Font.h"
 #include "../Canvas/Item2D.h"
 #include "Math/Vector2.h"

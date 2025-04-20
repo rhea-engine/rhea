@@ -1,5 +1,5 @@
 #include "SpectatorController.h"
-#include "Fabrics/Core/Item.h"
+#include "Core/Item.h"
 #include "../Application.h"
 #include "../UnitTree.h"
 #include "Fabrics/3D/Camera.h"

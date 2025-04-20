@@ -1,8 +1,8 @@
 #include "Skybox.h"
 #include "Application.h"
 #include "UnitTree.h"
-#include <Rhea/Fabrics/Core/Material.h>
-#include <Rhea/Fabrics/Core/Shader.h>
+#include <Rhea/Core/Material.h>
+#include <Rhea/Core/Shader.h>
 #include <Psio/Log.h>
 
 namespace Rhea

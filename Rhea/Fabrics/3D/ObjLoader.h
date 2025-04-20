@@ -2,7 +2,7 @@
 #define RHEA_OBJLOADER_H
 
 #include <string>
-#include "../Core/Geometry.h"
+#include "Rhea/Core/Geometry.h"
 #include "Fabrics/3D/Mesh.h"
 #include <Math/Vector3.h>
 #include <Math/Vector2.h>

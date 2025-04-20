@@ -3,7 +3,7 @@
 #include "ClientConnection.h"
 #include <Rhea/Realm.h>
 #include <Rhea/UnitTree.h>
-#include <Rhea/Fabrics/Core/Scene.h>
+#include <Rhea/Core/Scene.h>
 #include <Hermes/ServerStream.h>
 #include <Psio/Net/Socket/TCPSocket.h>
 #include <Hermes/Opcode.h>
@@ -11,7 +11,7 @@
 #include <Rhea/Fabrics/3D/Item.h>
 #include <Hermes/Messages/MessageMove.h>
 #include <Hermes/Messages/MessageTurn.h>
-#include <Rhea/Fabrics/Core/Avatar.h>
+#include <Rhea/Core/Avatar.h>
 #include "ServerService.h"
 #include "Accounts/Provider.h"
 #include "Accounts/AccountService.h"

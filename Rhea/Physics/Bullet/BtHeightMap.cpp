@@ -1,5 +1,5 @@
 #include "BtHeightMap.h"
-#include "Fabrics/Core/Item.h"
+#include "Core/Item.h"
 #include "Fabrics/Media/ImageResource.h"
 #include "Fabrics/Terrain/Terrain.h"
 

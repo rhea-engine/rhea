@@ -1,10 +1,10 @@
 #include "MeshManager.h"
-#include <Rhea/Fabrics/Core/Item.h>
+#include <Rhea/Core/Item.h>
 #include <Rhea/Fabrics/3D/Mesh.h>
 #include <Poseidon/Mesh.h>
 #include <Poseidon/SceneManager.h>
 #include <Psio/Log.h>
-#include <Rhea/Fabrics/Core/Material.h>
+#include <Rhea/Core/Material.h>
 #include "GraphicsService.h"
 #include <Rhea/Resources/VertexBuffer.h>
 #include "MaterialManager.h"

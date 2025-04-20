@@ -1,7 +1,7 @@
 #include "WorldClient.h"
 #include <Hermes/Opcode.h>
 #include <Rhea/UnitTree.h>
-#include <Rhea/Fabrics/Core/Item.h>
+#include <Rhea/Core/Item.h>
 #include <Psio/Log.h>
 #include <Hermes/Messages/MessageMove.h>
 #include <Hermes/Messages/MessageTurn.h>
@@ -9,7 +9,7 @@
 #include <Hermes/Messages/MessageCreate.h>
 #include <Hermes/Messages/MessageDestroy.h>
 #include <Hermes/Messages/MessageAvatarList.h>
-#include <Rhea/Fabrics/Core/Avatar.h>
+#include <Rhea/Core/Avatar.h>
 #include <Hermes/Messages/MessageEnterWorld.h>
 #include <Application.h>
 #include "ClientService.h"

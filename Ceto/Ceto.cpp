@@ -1,5 +1,5 @@
 #include "Ceto.h"
-#include "Rhea/Fabrics/Core/Scene.h"
+#include "Rhea/Core/Scene.h"
 #include "Rhea/Unit.h"
 #include "Rhea/UnitTree.h"
 #include "Rhea/Controller/BasicController.h"
@@ -13,14 +13,14 @@
 
 #include "Poseidon/Material.h"
 #include "Poseidon/Shader.h"
-#include "Rhea/Fabrics/Core/Material.h"
+#include "Rhea/Core/Material.h"
 #include <Rhea/Fabrics/Network/ClientService.h>
 #include <Psio/Log.h>
 #include <Psio/Keyboard.h>
 #include <Rhea/EventInput.h>
 #include <Rhea/Fabrics/GUI/List.h>
 #include <Orion/FileStream.h>
-#include <Rhea/Fabrics/Core/Avatar.h>
+#include <Rhea/Core/Avatar.h>
 #include <Rhea/Resources/Collection.h>
 #include <Components/Math/Math.h>
 #include <Rhea/Fabrics/Animation/Animation.h>

@@ -2,7 +2,7 @@
 #define RHEA_GLTF_MESH_H
 
 #include <Rhea/Unit.h>
-#include <Rhea/Fabrics/Core/Geometry.h>
+#include <Rhea/Core/Geometry.h>
 
 namespace Rhea
 {

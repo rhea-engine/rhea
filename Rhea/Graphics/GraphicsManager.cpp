@@ -6,7 +6,7 @@
 
 #include "Application.h"
 #include "Unit.h"
-#include "Fabrics/Core/Material.h"
+#include "Core/Material.h"
 
 #include "GraphicsManager.h"
 #include "MaterialManager.h"

@@ -5,9 +5,9 @@
 #include <Poseidon/RenderContext.h>
 
 #include "../Unit.h"
-#include "Fabrics/Core/Item.h"
+#include "Core/Item.h"
 #include "Fabrics/3D/Mesh.h"
-#include "Fabrics/Core/Material.h"
+#include "Core/Material.h"
 #include "../Resources/TextResource.h"
 #include "../UnitTree.h"
 

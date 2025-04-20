@@ -5,10 +5,10 @@
 #include <unordered_map>
 #include <string>
 
-#include <Rhea/Fabrics/Core/Position.h>
+#include <Rhea/Core/Position.h>
 #include <Rhea/Element.h>
 #include <Rhea/Unit.h>
-#include <Rhea/Fabrics/Core/Transform.h>
+#include <Rhea/Core/Transform.h>
 
 using Rhea::Position;
 

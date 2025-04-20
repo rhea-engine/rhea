@@ -10,7 +10,7 @@
 #include "Orion/ResourceStream.h"
 #include <Psio/Fs/Fs.h>
 #include <Psio/Log.h>
-#include <Rhea/Fabrics/Core/Shader.h>
+#include <Rhea/Core/Shader.h>
 
 namespace Rhea
 {

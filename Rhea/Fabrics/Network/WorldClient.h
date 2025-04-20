@@ -3,7 +3,7 @@
 
 #include <Rhea/Unit.h>
 #include <Hermes/ClientStream.h>
-#include <Rhea/Fabrics/Core/Scene.h>
+#include <Rhea/Core/Scene.h>
 #include "NetworkDelegate.h"
 #include <Math/Vector3.h>
 #include <Hermes/Messages/MessageAvatarList.h>

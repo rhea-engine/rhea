@@ -11,8 +11,8 @@
 
 #include <Hippios/Renderer.h>
 #include <Hippios/GraphicsBuffer.h>
-#include <Rhea/Fabrics/Core/Material.h>
-#include <Rhea/Fabrics/Core/Shader.h>
+#include <Rhea/Core/Material.h>
+#include <Rhea/Core/Shader.h>
 #include <Rhea/Graphics/MaterialManager.h>
 #include <Rhea/Graphics/MeshElement.h>
 #include <Rhea/Fabrics/3D/Mesh.h>

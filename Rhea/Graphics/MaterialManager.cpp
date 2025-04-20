@@ -6,11 +6,11 @@
 #include "Resources/TextResource.h"
 #include "Event.h"
 
-#include "Fabrics/Core/Material.h"
+#include "Core/Material.h"
 #include "MaterialManager.h"
 #include "./Texture.h"
 #include <Psio/Log.h>
-#include <Rhea/Fabrics/Core/Shader.h>
+#include <Rhea/Core/Shader.h>
 #include "GraphicsComponent.h"
 
 namespace Rhea

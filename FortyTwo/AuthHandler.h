@@ -4,7 +4,7 @@
 #include <Psio/Net/Network.h>
 #include <Hermes/ServerStream.h>
 #include <Rhea/Application.h>
-#include <Rhea/Fabrics/Core/Scene.h>
+#include <Rhea/Core/Scene.h>
 #include <FortyTwo/Accounts/User.h>
 #include <Hermes/Messages/MessageEnterWorld.h>
 #include <Hermes/Messages/MessageMove.h>

@@ -5,7 +5,7 @@
 #include "Resources/ResourceList.h"
 #include <Psio/Log.h>
 #include <Graphics/GraphicsService.h>
-#include <Rhea/Fabrics/Core/Shader.h>
+#include <Rhea/Core/Shader.h>
 
 namespace Rhea
 {

@@ -5,7 +5,7 @@
 
 #include "SimpleParser/Variant.h"
 #include "SimpleParser/Type.h"
-#include "../Core/Position.h"
+#include "Rhea/Core/Position.h"
 
 namespace Rhea
 {

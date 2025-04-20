@@ -1,7 +1,7 @@
 #include "Label.h"
 #include "Application.h"
 #include "UnitTree.h"
-#include "Fabrics/Core/Scene.h"
+#include "Core/Scene.h"
 #include "../Text/TextWidget.h"
 #include <Psio/Log.h>
 

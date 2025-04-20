@@ -4,9 +4,9 @@
 #include "Orion/ResourceStream.h"
 #include "UnitTree.h"
 #include "Resources/TextResource.h"
-#include <Rhea/Fabrics/Core/Shader.h>
+#include <Rhea/Core/Shader.h>
 #include "Fabrics/Media/ImageResource.h"
-#include "../Core/Material.h"
+#include "Rhea/Core/Material.h"
 #include "Resources/ResourceList.h"
 
 #include "Graphics/Texture.h"

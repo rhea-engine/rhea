@@ -7,7 +7,7 @@
 #include <Resources/VertexBufferSkeletal.h>
 #include <Rhea/Fabrics/Media/ImageResource.h>
 #include <Rhea/Core/Material.h>
-#include <Rhea/Fabrics/Animation/Animation.h>
+#include <Rhea/Fabrics/Animation/include/Rhea/Animation/Animation.h>
 #include <Math/Vector4.h>
 #undef max
 #include <algorithm>

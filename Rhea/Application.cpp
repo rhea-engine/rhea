@@ -56,7 +56,7 @@
 #include <Core/Lighting.h>
 #include <Fabrics/3D/PointLight.h>
 #include <Fabrics/3D/SpotLight.h>
-#include <Fabrics/Animation/AnimationFabrics.h>
+#include <Rhea/Fabrics/Animation/include/Rhea/Animation/AnimationFabrics.h>
 #ifdef USE_RHEA_GLTF_LOADER
 #include <Fabrics/Gltf/GltfFabrics.h>
 #endif

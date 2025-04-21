@@ -1,4 +1,4 @@
-#include "Animator.h"
+#include <Rhea/Animation/Animator.h>
 
 namespace Rhea
 {

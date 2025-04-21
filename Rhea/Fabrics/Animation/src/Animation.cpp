@@ -1,4 +1,4 @@
-#include "Animation.h"
+#include <Rhea/Animation/Animation.h>
 #include <Math/Interpolation.h>
 #include <Psio/Log.h>
 

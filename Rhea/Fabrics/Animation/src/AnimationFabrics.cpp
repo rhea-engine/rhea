@@ -1,8 +1,8 @@
 #include <Rhea/Application.h>
 
-#include "AnimationFabrics.h"
-#include "Animator.h"
-#include "Animation.h"
+#include <Rhea/Animation/AnimationFabrics.h>
+#include <Rhea/Animation/Animator.h>
+#include <Rhea/Animation/Animation.h>
 
 namespace Rhea
 {

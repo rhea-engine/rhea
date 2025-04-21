@@ -1,4 +1,4 @@
-#include "Skeleton.h"
+#include <Rhea/Animation/Skeleton.h>
 #include <Psio/Log.h>
 #include <cassert>
 

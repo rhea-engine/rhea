@@ -1,0 +1,8 @@
+{
+  "name": "MyProject",
+  "dependencies": {
+    "RheaEngine": "1.0.0",
+    "Animation": "1.0.0",
+    "Rhea GUI system": "1.0.0"
+  }
+}

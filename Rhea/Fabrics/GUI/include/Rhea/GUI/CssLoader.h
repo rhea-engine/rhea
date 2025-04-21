@@ -2,8 +2,8 @@
 #define RHEA_CSSLOADER_H
 
 #include <Rhea/Application.h>
-#include "Resources/Resource.h"
-#include "Resources/ResourceLoader.h"
+#include <Rhea/Resources/Resource.h>
+#include <Rhea/Resources/ResourceLoader.h>
 
 namespace Rhea
 {

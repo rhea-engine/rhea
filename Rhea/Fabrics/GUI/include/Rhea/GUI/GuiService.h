@@ -1,7 +1,7 @@
 #ifndef RHEA_GUI_SERVICE
 #define RHEA_GUI_SERVICE
 
-#include "../../Service.h"
+#include <Rhea/Service.h>
 
 namespace Rhea
 {

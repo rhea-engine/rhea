@@ -3,7 +3,7 @@
 
 #include <Rhea/Application.h>
 #include <Rhea/Fabrics/Network/ClientService.h>
-#include <Rhea/Fabrics/GUI/Widget.h>
+#include <Rhea/Fabrics/GUI/include/Rhea/GUI/Widget.h>
 #include <Rhea/Fabrics/Network/LobbyClient.h>
 #include <Hermes/ClientStream.h>
 

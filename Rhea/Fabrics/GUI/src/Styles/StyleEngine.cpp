@@ -1,5 +1,5 @@
-#include "StyleEngine.h"
-#include "StyleSheet.h"
+#include <Rhea/GUI/Styles/StyleEngine.h>
+#include <Rhea/GUI/Styles/StyleSheet.h>
 
 namespace Rhea
 {

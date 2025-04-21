@@ -1,9 +1,9 @@
-#include "Dialog.h"
+#include <Rhea/GUI/Dialog.h>
 #include <Rhea/Application.h>
 #include <Rhea/UnitTree.h>
 #include <Psio/Log.h>
 
-#include "Modifier/FillSize.h"
+#include <Rhea/GUI/Modifier/FillSize.h>
 
 namespace Rhea
 {

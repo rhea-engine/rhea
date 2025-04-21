@@ -1,7 +1,7 @@
 #include "ClientConnect.h"
 #include <Components/Psio/Log.h>
 #include <Rhea/UnitTree.h>
-#include <Rhea/Fabrics/GUI/Widget.h>
+#include <Rhea/Fabrics/GUI/include/Rhea/GUI/Widget.h>
 #include <Rhea/Fabrics/Network/ClientService.h>
 #include <CredentialsService.h>
 

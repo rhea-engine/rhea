@@ -1,7 +1,7 @@
 #ifndef RHEA_GUI_STYLESHEET_H
 #define RHEA_GUI_STYLESHEET_H
 
-#include <Resources/Resource.h>
+#include <Rhea/Resources/Resource.h>
 #include <SimpleParser/CssParser.h>
 #include "../Widget.h"
 #include "StyleRule.h"

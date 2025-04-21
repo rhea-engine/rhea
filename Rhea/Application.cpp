@@ -29,8 +29,8 @@
 #include "Fabrics/Media/MediaFabrics.h"
 #include "Fabrics/Character/Character.h"
 #include "Fabrics/Character/KinematicCharacter.h"
-#include "Fabrics/GUI/GUIController.h"
-#include "Fabrics/GUI/GuiService.h"
+#include "Fabrics/GUI/include/Rhea/GUI/GUIController.h"
+#include "Fabrics/GUI/include/Rhea/GUI/GuiService.h"
 #include "Resources/ResourceService.h"
 
 #include "Graphics/GraphicsService.h"

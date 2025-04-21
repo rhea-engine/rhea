@@ -1,5 +1,5 @@
-#include "Property.h"
-#include "CssShorthand.h"
+#include <Rhea/GUI/Styles/Property.h>
+#include <Rhea/GUI/Styles/CssShorthand.h>
 
 namespace Rhea
 {
@@ -47,17 +47,17 @@ namespace Rhea
         {CssValueId::kIdentifier, "none"},  // kBackgroundImage default.
         {CssValueId::kIdentifier, "transparent"},  // kBackgroundColor default.
         {CssValueId::kIdentifier, "auto"}, // kBackgroundSize default
-        {CssValueId::kNumeric, 0},     // kLeft default.
-        {CssValueId::kNumeric, 0},     // kTop default.
+        {CssValueId::kNumeric, "0"},     // kLeft default.
+        {CssValueId::kNumeric, "0"},     // kTop default.
         {CssValueId::kIdentifier, "auto"},  // kWidth default.
         {CssValueId::kIdentifier,"auto"},   // kHeight default.
         {CssValueId::kString, ""}, // font default
-        {CssValueId::kNumeric, 16}, // font-size default
-        {CssValueId::kNumeric, 0}, // padding-top default
-        {CssValueId::kNumeric, 0}, // padding-left default
-        {CssValueId::kNumeric, 0}, // padding-bottom default
-        {CssValueId::kNumeric, 0}, // padding-right default
-        {CssValueId::kNumeric, 0}, // padding default
+        {CssValueId::kNumeric, "16"}, // font-size default
+        {CssValueId::kNumeric, "0"}, // padding-top default
+        {CssValueId::kNumeric, "0"}, // padding-left default
+        {CssValueId::kNumeric, "0"}, // padding-bottom default
+        {CssValueId::kNumeric, "0"}, // padding-right default
+        {CssValueId::kNumeric, "0"}, // padding default
     } };
 
     const std::unordered_map<std::string, const CssProperty*>& CssProperty::GetPropertyLookup()

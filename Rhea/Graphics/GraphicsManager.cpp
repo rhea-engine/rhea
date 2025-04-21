@@ -13,7 +13,7 @@
 #include "GraphicsService.h"
 #include "RenderElement.h"
 #include <Psio/Log.h>
-#include <Fabrics/GUI/Widget.h>
+#include <Fabrics/GUI/include/Rhea/GUI/Widget.h>
 #include "GraphicsComponent.h"
 
 namespace Rhea

@@ -1,8 +1,8 @@
-#include "StyleSheet.h"
-#include "Application.h"
+#include <Rhea/GUI/Styles/StyleSheet.h>
+#include <Rhea/Application.h>
 
 #include <algorithm>
-#include "CssShorthand.h"
+#include <Rhea/GUI/Styles/CssShorthand.h>
 
 namespace Rhea
 {

@@ -1,8 +1,8 @@
-#include "CssLoader.h"
+#include <Rhea/GUI/CssLoader.h>
 
 #include <SimpleParser/CssParser.h>
-#include "Styles/StyleSheet.h"
-#include <Resources/ResourceService.h>
+#include <Rhea/GUI/Styles/StyleSheet.h>
+#include <Rhea/Resources/ResourceService.h>
 
 namespace Rhea {
 	

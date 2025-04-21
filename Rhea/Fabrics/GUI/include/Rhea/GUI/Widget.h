@@ -1,8 +1,8 @@
 #ifndef RHEA_GUI_WIDGET_H
 #define RHEA_GUI_WIDGET_H
 
-#include "../../Unit.h"
-#include "../Canvas/Item2D.h"
+#include <Rhea/Unit.h>
+#include <Rhea/Fabrics/Canvas/Item2D.h>
 #include <Math/Vector2.h>
 #include <SimpleParser/CssParser.h>
 #include "Modifier/Modifier.h"

@@ -1,13 +1,13 @@
-#include "TextInput.h"
-#include "Application.h"
-#include "UnitTree.h"
-#include "Core/Scene.h"
-#include "../Text/TextWidget.h"
-#include "Label.h"
+#include <Rhea/GUI/TextInput.h>
+#include <Rhea/Application.h>
+#include <Rhea/UnitTree.h>
+#include <Rhea/Core/Scene.h>
+#include <Rhea/Fabrics/Text/TextWidget.h>
+#include <Rhea/GUI/Label.h>
 #include <Psio/Log.h>
 #include <Psio/Keyboard.h>
-#include "EventInput.h"
-#include "Events/SubmitEvent.h"
+#include <Rhea/EventInput.h>
+#include <Rhea/GUI/Events/SubmitEvent.h>
 
 namespace Rhea
 {

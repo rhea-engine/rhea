@@ -1,29 +1,27 @@
-#include "GUIController.h"
-#include "GUIController.h"
-#include "GUIController.h"
-#include "Application.h"
-#include "UnitTree.h"
-#include "Core/Scene.h"
+#include <Rhea/GUI/GUIController.h>
+#include <Rhea/Application.h>
+#include <Rhea/UnitTree.h>
+#include <Rhea/Core/Scene.h>
 
-#include "GuiService.h"
+#include <Rhea/GUI/GuiService.h>
 
-#include "Widget.h"
-#include "Label.h"
+#include <Rhea/GUI/Widget.h>
+#include <Rhea/GUI/Label.h>
 #include <Rhea/Core/SceneLoader.h>
-#include <EventInput.h>
-#include "Button.h"
-#include "Dialog.h"
-#include "List.h"
-#include "ListItem.h"
-#include "Styles/StyleSheet.h"
-#include "CssLoader.h"
-#include <Graphics/GraphicsService.h>
+#include <Rhea/EventInput.h>
+#include <Rhea/GUI/Button.h>
+#include <Rhea/GUI/Dialog.h>
+#include <Rhea/GUI/List.h>
+#include <Rhea/GUI/ListItem.h>
+#include <Rhea/GUI/Styles/StyleSheet.h>
+#include <Rhea/GUI/CssLoader.h>
+#include <Rhea/Graphics/GraphicsService.h>
 #include <Psio/Log.h>
-#include "TextInput.h"
-#include "Box.h"
-#include "Modifier/FillSize.h"
-#include "Column.h"
-#include "Row.h"
+#include <Rhea/GUI/TextInput.h>
+#include <Rhea/GUI/Box.h>
+#include <Rhea/GUI/Modifier/FillSize.h>
+#include <Rhea/GUI/Column.h>
+#include <Rhea/GUI/Row.h>
 
 namespace Rhea
 {

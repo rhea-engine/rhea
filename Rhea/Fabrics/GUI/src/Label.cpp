@@ -1,8 +1,8 @@
-#include "Label.h"
-#include "Application.h"
-#include "UnitTree.h"
-#include "Core/Scene.h"
-#include "../Text/TextWidget.h"
+#include <Rhea/GUI/Label.h>
+#include <Rhea/Application.h>
+#include <Rhea/UnitTree.h>
+#include <Rhea/Core/Scene.h>
+#include <Rhea/Fabrics/Text/TextWidget.h>
 #include <Psio/Log.h>
 
 namespace Rhea

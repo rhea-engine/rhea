@@ -1,6 +1,4 @@
 #include "TextWidget.h"
-#include "TextWidget.h"
-#include "TextWidget.h"
 #include "Application.h"
 #include "Fabrics/Media/ImageResource.h"
 #include "Resources/TextResource.h"
@@ -8,7 +6,7 @@
 #include "Resources/ResourceList.h"
 #include <Psio/Log.h>
 #include <Graphics/GraphicsService.h>
-#include <GUI/Widget.h>
+#include <Rhea/Fabrics/GUI/include/Rhea/GUI/Widget.h>
 
 namespace Rhea
 {

@@ -1,4 +1,4 @@
-#include "Box.h"
+#include <Rhea/GUI/Box.h>
 
 namespace Rhea
 {

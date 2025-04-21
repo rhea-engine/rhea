@@ -1,31 +1,29 @@
-#include "Widget.h"
-#include "Widget.h"
-#include "Widget.h"
+#include <Rhea/GUI/Widget.h>
 #include <cassert>
 #include <Psio/Log.h>
 
-#include "WidgetEvent.h"
+#include <Rhea/GUI/WidgetEvent.h>
 
-#include "Application.h"
-#include "UnitTree.h"
-#include "Core/Scene.h"
-#include "Fabrics/Media/ImageResource.h"
+#include <Rhea/Application.h>
+#include <Rhea/UnitTree.h>
+#include <Rhea/Core/Scene.h>
+#include <Rhea/Fabrics/Media/ImageResource.h>
 #include <Rhea/Core/Shader.h>
 
-#include "../Canvas/Item2D.h"
+#include <Rhea/Fabrics/Canvas/Item2D.h>
 
-#include "Modifier/FillSize.h"
-#include "Modifier/Offset.h"
-#include "Modifier/Size.h"
-#include "Modifier/SizeWidth.h"
-#include "Modifier/SizeHeight.h"
-#include "Modifier/Padding.h"
-#include "Modifier/FillWidth.h"
-#include "Styles/Property.h"
-#include "Styles/StyleSheet.h"
-#include "Modifier/SizePercentageWidth.h"
-#include "Modifier/FillHeight.h"
-#include "Modifier/SizePercentageHeight.h"
+#include <Rhea/GUI/Modifier/FillSize.h>
+#include <Rhea/GUI/Modifier/Offset.h>
+#include <Rhea/GUI/Modifier/Size.h>
+#include <Rhea/GUI/Modifier/SizeWidth.h>
+#include <Rhea/GUI/Modifier/SizeHeight.h>
+#include <Rhea/GUI/Modifier/Padding.h>
+#include <Rhea/GUI/Modifier/FillWidth.h>
+#include <Rhea/GUI/Styles/Property.h>
+#include <Rhea/GUI/Styles/StyleSheet.h>
+#include <Rhea/GUI/Modifier/SizePercentageWidth.h>
+#include <Rhea/GUI/Modifier/FillHeight.h>
+#include <Rhea/GUI/Modifier/SizePercentageHeight.h>
 
 namespace Rhea
 {

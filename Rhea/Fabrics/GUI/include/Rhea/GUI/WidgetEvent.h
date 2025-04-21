@@ -1,7 +1,7 @@
 #ifndef RHEA_GUI_WIDGETEVENT_H
 #define RHEA_GUI_WIDGETEVENT_H
 
-#include "../../Event.h"
+#include <Rhea/Event.h>
 
 namespace Rhea
 {

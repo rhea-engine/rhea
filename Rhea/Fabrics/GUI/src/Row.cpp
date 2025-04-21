@@ -1,6 +1,6 @@
-#include "Column.h"
+#include <Rhea/GUI/Row.h>
 
-void Rhea::ColumnWidget::ready()
+void Rhea::RowWidget::ready()
 {
 	Widget::ready();
 
@@ -8,7 +8,7 @@ void Rhea::ColumnWidget::ready()
 		m_alignment = std::make_unique<Alignment>(Alignment::Horizontal::CENTER, Alignment::Vertical::CENTER);
 }
 
-void Rhea::ColumnWidget::onSetPosition()
+void Rhea::RowWidget::onSetPosition()
 {
 	Vector2 cur_position = m_position + m_content_position;
 	if (!m_ordered_children.size())
@@ -20,59 +20,61 @@ void Rhea::ColumnWidget::onSetPosition()
 		slot_padding = 0.0f;
 		break;
 	case 1:
-		slot_padding = (m_content_size.y - m_children_size) / m_ordered_children.size();
+		slot_padding = (m_content_size.x - m_children_size) / m_ordered_children.size();
 		break;
 	}
-	Vector2 slot_size = Vector2(m_content_size.x, 0.0f);
+	Vector2 slot_size = Vector2(0.0f, m_content_size.y);
 
 	for (auto it = m_ordered_children.begin(); it != m_ordered_children.end(); ++it) {
 		Widget* w = doCast<Widget>(*it);
 		if (w) {
 			// get size of child
 			Vector2 child_outer_size = w->getOuterSize();
-			if (child_outer_size.y == 0.0f)
-				child_outer_size.y = w->H();
+			if (child_outer_size.x == 0.0f)
+				child_outer_size.x = w->W();
 
-			float slot_height = child_outer_size.y + slot_padding;
-			slot_size.y = child_outer_size.y + slot_padding;
+			float slot_width = child_outer_size.x + slot_padding;
+			slot_size.x = child_outer_size.x + slot_padding;
+			
 			// apply alignment
 			Vector2 child_position = cur_position;
-			
+
 			if (m_alignment)
 				m_alignment->apply(slot_size, child_outer_size, child_position);
+
 			w->setPosition(child_position);
 
 			// advance to next slot
-			cur_position.y += slot_height;
+			cur_position.x += slot_width;
 		}
 	}
 }
 
-Vector2 Rhea::ColumnWidget::innerSize(Vector2 size_constraints)
+Vector2 Rhea::RowWidget::innerSize(Vector2 size_constraints)
 {
 	Vector2 innerSize(0.0f, 0.0f);
 
 	// TODO: check for scrolling
 	// TODO Use min size for enlarging children
 	//Vector2 min_size = getMinSize(size_constraints);
-	
+
 	for (auto it = m_ordered_children.begin(); it != m_ordered_children.end(); ++it) {
 		Widget* w = doCast<Widget>(*it);
 		if (w) {
 			Vector2 child_size = w->size(size_constraints);
-			if (child_size.x > innerSize.x)
-				innerSize.x = child_size.x;
-			innerSize.y += child_size.y;
-			size_constraints.y -= child_size.y;
+			if (child_size.y > innerSize.y)
+				innerSize.y = child_size.y;
+			innerSize.x += child_size.x;
+			size_constraints.x -= child_size.x;
 		}
 	}
 	//store for layout
-	m_children_size = innerSize.y;
+	m_children_size = innerSize.x;
 
 	return innerSize;
 }
 
-void Rhea::ColumnWidget::innerGetMinSize(Vector2 size_constraints, Vector2& min_size)
+void Rhea::RowWidget::innerGetMinSize(Vector2 size_constraints, Vector2& min_size)
 {
 	Vector2 inner_min;
 
@@ -80,13 +82,14 @@ void Rhea::ColumnWidget::innerGetMinSize(Vector2 size_constraints, Vector2& min_
 		Widget* w = doCast<Widget>(it->second);
 		if (w) {
 			Vector2 child_min = w->getMinSize(size_constraints);
-			if (child_min.x > inner_min.x)
-				inner_min.x = child_min.x;
-			inner_min.y += child_min.y;
+			if (child_min.y > inner_min.y)
+				inner_min.y = child_min.y;
+			inner_min.x += child_min.x;
 		}
 	}
 	if (min_size.x < inner_min.x)
 		min_size.x = inner_min.x;
 	if (min_size.y < inner_min.y)
 		min_size.y = inner_min.y;
+
 }

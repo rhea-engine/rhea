@@ -2,8 +2,8 @@
 
 #include <Rhea/Application.h>
 #include <Rhea/UnitTree.h>
-#include <Rhea/Fabrics/GUI/Widget.h>
-#include <Rhea/Fabrics/GUI/List.h>
+#include <Rhea/Fabrics/GUI/include/Rhea/GUI/Widget.h>
+#include <Rhea/Fabrics/GUI/include/Rhea/GUI/List.h>
 #include <Rhea/Core/Avatar.h>
 #include <Psio/Log.h>
 

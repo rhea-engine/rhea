@@ -34,7 +34,7 @@ namespace Rhea
 
 	struct _css_def {
 		CssValueId id;
-		SimpleParser::Variant value;
+		char* value;
 	};
 
 	// Forward declare kCssProperties so it's visible to functions defined in CssProperty.
@@ -68,9 +68,15 @@ namespace Rhea
 		// function to return a default value for a given property.
 		static inline CssValue GetDefaultValue(StylePropertyId id) {
 			size_t index = static_cast<size_t>(id);
-			if (index < kCssProperties.size()) {
-				CssValue val = { kDefaultValues[index].id, kDefaultValues[index].value };
-				return val;
+			if (index < kCssProperties.size()) {				
+				if (kDefaultValues[index].id == CssValueId::kNumeric) {
+					CssValue val = { kDefaultValues[index].id, atoi(kDefaultValues[index].value) };
+					return val;
+				}
+				else {
+					CssValue val = { kDefaultValues[index].id, kDefaultValues[index].value };
+					return val;
+				}
 			}
 			CssValue val = { CssValueId::kString, "" };
 			return val;

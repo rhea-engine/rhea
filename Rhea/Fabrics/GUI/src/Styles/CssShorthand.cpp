@@ -1,4 +1,4 @@
-#include "CssShorthand.h"
+#include <Rhea/GUI/Styles/CssShorthand.h>
 
 namespace Rhea
 {

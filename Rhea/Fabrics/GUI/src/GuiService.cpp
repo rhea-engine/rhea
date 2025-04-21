@@ -1,5 +1,5 @@
-#include "GuiService.h"
-#include "GUIController.h"
+#include <Rhea/GUI/GuiService.h>
+#include <Rhea/GUI/GUIController.h>
 
 namespace Rhea
 {

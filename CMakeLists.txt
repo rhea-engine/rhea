@@ -46,6 +46,10 @@ FetchContent_MakeAvailable(googletest)
 FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.2/json.tar.xz DOWNLOAD_EXTRACT_TIMESTAMP)
 FetchContent_MakeAvailable(json)
 
+# Target definition
+add_library(RheaEngine INTERFACE)
+target_include_directories(RheaEngine INTERFACE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/Components)
+
 # bullet 
 add_subdirectory (ThirdParty/bullet)
 
@@ -57,14 +61,21 @@ endif()
 include_directories(${PROJECT_SOURCE_DIR} ${PROJECT_SOURCE_DIR}/Components/ ${json_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/ThirdParty/ ${PROJECT_SOURCE_DIR}/ThirdParty/bullet/src)
 
 # Cross-Compiling works only for some projects
-set(targetdirs Components FortyTwo)
+set(enginedirs Components)
+set(targetdirs FortyTwo)
 if(WIN32)
-    list(APPEND targetdirs Poseidon Hippios Orion Rhea Ceto Hermes Iris Meworla)    
+    list(APPEND enginedirs Poseidon Hermes Hippios Orion Rhea)    
+    list(APPEND targetdirs Ceto Iris Meworla)    
 endif()
 
 # Targets
 foreach (TARGET ${targetdirs})
 	add_subdirectory(${TARGET})	
+endforeach ()
+
+foreach (ENGINE ${enginedirs})
+    add_subdirectory(${ENGINE})
+    target_link_libraries(RheaEngine INTERFACE ${ENGINE})
 endforeach ()
 
 target_include_directories(Orion PUBLIC ${json_SOURCE_DIR}/include)

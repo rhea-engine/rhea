@@ -1,0 +1,20 @@
+{
+  "name": "RheaEngine",
+  "vendor": "Meworla",
+  "version": "1.0.0",
+  "dependencies": {
+    "Core/Animation": { "source": "Rhea/Fabrics/Animation" }
+  },
+  "dependencies0": {
+    "Core/Animation": { "source": "Rhea/Fabrics/Animation" },
+    "Core/2D": { "source": "Rhea/Fabrics/Canvas" },
+    "Core/3D": { "source": "Rhea/Fabrics/3D" },
+    "Core/Character": { "source": "Rhea/Fabrics/Character" },
+    "Core/Gltf": { "source": "Rhea/Fabrics/Gltf" },
+    "Core/GUI": { "source": "Rhea/Fabrics/GUI" },
+    "Core/Media": { "source": "Rhea/Fabrics/Media" },
+    "Core/Network": { "source": "Rhea/Fabrics/Network" },
+    "Core/Terrain": { "source": "Rhea/Fabrics/Terrain" },
+    "Core/Text": { "source": "Rhea/Fabrics/Text" } 
+  }
+}

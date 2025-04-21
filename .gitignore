@@ -40,3 +40,6 @@ bin
 /out/install/x64-Debug
 /Samples/XPlain
 /html/doxygen_crawl.html
+
+# Modules
+Modules

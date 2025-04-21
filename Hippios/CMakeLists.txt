@@ -1,7 +1,7 @@
 # for now only Direct3dDX11 is supported
 
-add_library(HippiosEngine STATIC)
-target_sources(HippiosEngine PRIVATE "Renderer.h" "Renderer.cpp" "GPUProgram.h" "StencilState.h" "TextureDesc.h" "PipelineState.h" "BlendState.h" "BaseTypes.h" 
+add_library(Hippios STATIC)
+target_sources(Hippios PRIVATE "Renderer.h" "Renderer.cpp" "GPUProgram.h" "StencilState.h" "TextureDesc.h" "PipelineState.h" "BlendState.h" "BaseTypes.h" 
 "Sampler.h" "SwapChain.h" "SwapChain.h" "RenderTarget.h")
 include_directories(${PROJECT_SOURCE_DIR}/ ${PROJECT_SOURCE_DIR}/Components)
 
@@ -44,7 +44,7 @@ if(WIN32)
 		message(STATUS "Found DirectX11 headers: ${DirectX11_INCLUDE_DIR}")
 	
 		add_subdirectory(D3D11Renderer)
-		target_link_libraries(HippiosEngine D3D11Renderer)
+		target_link_libraries(Hippios D3D11Renderer)
 
 	endif()
 	

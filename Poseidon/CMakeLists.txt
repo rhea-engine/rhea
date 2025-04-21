@@ -15,4 +15,4 @@ add_library (Poseidon "Core.cpp" "Node.cpp" "Mesh.cpp" "Viewport.cpp"
 
 
 # add the renderer engine
-target_link_libraries(Poseidon HippiosEngine Hermes)
+#target_link_libraries(Poseidon HippiosEngine Hermes)

@@ -1,0 +1,7 @@
+{
+  "name": "MyProject",
+  "dependencies": {
+    "Animation": "1.0.0",
+    "GUI": "1.0.0"
+  }
+}

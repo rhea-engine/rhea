@@ -3,11 +3,11 @@
   "vendor": "Meworla",
   "version": "1.0.0",
   "dependencies": {
-    "Core/Animation": { "source": "Rhea/Fabrics/Animation" },
+    "Core/Animation": { "source": "Rhea/Animation" },
     "Core/GUI": { "source": "Rhea/Fabrics/GUI" }
   },
   "dependencies0": {
-    "Core/Animation": { "source": "Rhea/Fabrics/Animation" },
+    "Core/Animation": { "source": "Rhea/Animation" },
     "Core/2D": { "source": "Rhea/Fabrics/Canvas" },
     "Core/3D": { "source": "Rhea/Fabrics/3D" },
     "Core/Character": { "source": "Rhea/Fabrics/Character" },

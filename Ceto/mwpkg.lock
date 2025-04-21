@@ -1,0 +1,8 @@
+{
+  "Core/Animation": {
+    "version": "1.0.0"
+  },
+  "Core/GUI": {
+    "version": "1.0.0"
+  }
+}

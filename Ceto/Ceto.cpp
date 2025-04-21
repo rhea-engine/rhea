@@ -18,14 +18,14 @@
 #include <Psio/Log.h>
 #include <Psio/Keyboard.h>
 #include <Rhea/EventInput.h>
-#include <Rhea/Fabrics/GUI/List.h>
+#include <Rhea/GUI/List.h>
 #include <Orion/FileStream.h>
 #include <Rhea/Core/Avatar.h>
 #include <Rhea/Resources/Collection.h>
 #include <Components/Math/Math.h>
-#include <Rhea/Fabrics/Animation/Animation.h>
-#include <Rhea/Fabrics/Animation/Animator.h>
-#include <Rhea/Fabrics/GUI/GUIController.h>
+#include <Rhea/Animation/Animation.h>
+#include <Rhea/Animation/Animator.h>
+#include <Rhea/GUI/GUIController.h>
 
 bool Ceto::onQuit(Rhea::Event* ev, Rhea::Unit* unit)
 {

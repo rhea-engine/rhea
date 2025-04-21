@@ -1,10 +1,10 @@
 #ifndef RHEA_TEXTWIDGET_H
 #define RHEA_TEXTWIDGET_H
 
-#include "Resources/Resource.h"
-#include "Core/Material.h"
+#include <Rhea/Resources/Resource.h>
+#include <Rhea/Core/Material.h>
 #include "Font.h"
-#include "../Canvas/Item2D.h"
+#include <Rhea/Fabrics/Canvas/Item2D.h>
 #include "Math/Vector2.h"
 
 namespace Rhea

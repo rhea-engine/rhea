@@ -42,4 +42,5 @@ bin
 /html/doxygen_crawl.html
 
 # Modules
-Modules
+MwpkgModules
+mwpkg.cmake

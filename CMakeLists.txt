@@ -65,7 +65,7 @@ set(enginedirs Components)
 set(targetdirs FortyTwo)
 if(WIN32)
     list(APPEND enginedirs Poseidon Hermes Hippios Orion Rhea)    
-    list(APPEND targetdirs Ceto Iris Meworla)    
+    list(APPEND targetdirs Ceto Iris Modules)    
 endif()
 
 # Targets

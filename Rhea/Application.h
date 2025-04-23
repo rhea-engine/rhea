@@ -6,6 +6,7 @@
 #include "Orion/Orion.h"
 #include "Orion/ResourceRequest.h"
 #include "Resources/ResourceLoader.h"
+#include "ModuleSystem.h"
 
 #include <string>
 #include <unordered_map>
@@ -130,6 +131,11 @@ namespace Rhea
 		// get fs
 		Orion::Orion* getFS() { return m_fs; }
 
+		// register a module
+		void RegisterModule(std::unique_ptr<IFabricModule> module);
+		// init modules
+		void InitModules(); // Call this after registering to initialize all
+
 	protected:
 		Orion::Orion* m_fs = 0;
 		std::string m_appname = "";
@@ -146,6 +152,9 @@ namespace Rhea
 		// timing info
 		uint64_t elapsed_ticks = 0;
 		float fps = 0.0f;
+
+	private:
+		std::vector<std::unique_ptr<IFabricModule>> m_modules;
 	};
 }
 #endif // !RHEA_H

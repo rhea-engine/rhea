@@ -65,6 +65,7 @@
 
 #undef min
 
+extern std::vector<std::unique_ptr<Rhea::IFabricModule>> createModules();
 
 namespace Rhea
 {
@@ -155,7 +156,7 @@ namespace Rhea
 		SimpleParser::Type::registerType<Font>("//meworla/font");
 		SimpleParser::Type::registerType<BitmapFont>("//meworla/bitmapfont");
 		SimpleParser::Type::registerType<TextResource>("//meworla/fontinfo");
-		GUIController::Register(this);
+		//GUIController::Register(this);
 		
 		// register wavefront types
 		m_resource_loader.registerLoader<TextLoader>("model/obj");
@@ -172,6 +173,11 @@ namespace Rhea
 #ifdef USE_RHEA_GLTF_LOADER
 		GltfFabrics::Register(this);
 #endif
+		// register the modules
+		for (auto& mod : createModules()) {
+			RegisterModule(std::move(mod));
+		}
+		InitModules();
 
 		// add a default input map
 		m_input_map = new InputMap();
@@ -484,5 +490,18 @@ namespace Rhea
 	void Application::close()
 	{
 
+	}
+
+	void Application::RegisterModule(std::unique_ptr<IFabricModule> module) {
+		LOG(LOG_INFO) << "[Application] Registered module: " << module->getName();
+		m_modules.push_back(std::move(module));
+	}
+
+	void Application::InitModules() {
+		LOG(LOG_INFO) << "[Application] Initializing modules...";
+		for (auto& module : m_modules) {
+			LOG(LOG_INFO) << " - Initializing: " << module->getName();
+			module->Register(this);
+		}
 	}
 }

@@ -13,7 +13,7 @@ add_library(RheaBase "Unit.cpp" "UnitTree.cpp" "Realm.cpp" "InputMap.cpp" "Dispa
  "EventInput.cpp" "Error.h" "Application.cpp" "Component.h" "Component.cpp"
 "Core/Material.h" "Core/Material.cpp" "Core/SceneLoader.cpp" "Core/Scene.cpp" "Core/Avatar.h" "Core/Avatar.cpp" "Core/Position.h" "Core/Position.cpp"
 "Core/Transform.h" "Core/Transform.cpp" "Core/Geometry.h" "Core/Shader.h"  "Core/Shader.cpp" "Core/Item.h" "Core/Item.cpp" 
-"Core/WorldService.h" "Core/WorldService.cpp" "Core/Lighting.cpp" "Core/Lighting.h" "Core/Lighting.cpp")
+"Core/WorldService.h" "Core/WorldService.cpp" "Core/Lighting.cpp" "Core/Lighting.h" "Core/Lighting.cpp" "ModuleSystem.h")
 
 target_link_libraries(RheaBase PoseidonMath Orion SimpleParser RheaResources RheaPhysics RheaFabrics RheaComponents Psio)
 

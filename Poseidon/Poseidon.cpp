@@ -9,7 +9,6 @@
 #include <Rhea/Physics/Bullet/BtPhysicsService.h>
 #include <Rhea/Fabrics/Network/NetworkFabrics.h>
 #include <Rhea/Platform/PlatformService.h>
-#include <Meworla/meworlafabrics.h>
 #include <Rhea/UnitTree.h>
 #include <Rhea/Resources/ResourceList.h>
 #include <Rhea/Resources/ResourceService.h>
@@ -52,10 +51,7 @@ namespace Poseidon
 		std::unordered_map<std::string, Variant> values;
 		
 		Rhea::Unit* engine = m_unit_tree->createUnit("engine", "//core/types/unit", attributes, values);
-		m_unit_tree->addChild(engine);
-
-		// register meworla fabrics
-		MeworlaFabrics::registerFabrics(this);
+		m_unit_tree->addChild(engine);		
 	}
 
 	void Application::setup()

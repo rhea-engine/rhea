@@ -1,21 +1,21 @@
 {
   "name": "RheaEngine",
   "vendor": "Meworla",
-  "version": "1.0.0",
+  "version": "0.9.0",
   "dependencies": {
-    "Core/Animation": { "source": "Rhea/Animation" },
-    "Core/GUI": { "source": "Rhea/Fabrics/GUI" }
+    "Meworla/Animation": "0.9.0",
+    "Meworla/GUI": "0.9.0"
   },
   "dependencies0": {
-    "Core/Animation": { "source": "Rhea/Animation" },
-    "Core/2D": { "source": "Rhea/Fabrics/Canvas" },
-    "Core/3D": { "source": "Rhea/Fabrics/3D" },
-    "Core/Character": { "source": "Rhea/Fabrics/Character" },
-    "Core/Gltf": { "source": "Rhea/Fabrics/Gltf" },
-    "Core/GUI": { "source": "Rhea/Fabrics/GUI" },
-    "Core/Media": { "source": "Rhea/Fabrics/Media" },
-    "Core/Network": { "source": "Rhea/Fabrics/Network" },
-    "Core/Terrain": { "source": "Rhea/Fabrics/Terrain" },
-    "Core/Text": { "source": "Rhea/Fabrics/Text" } 
+    "Meworla/Animation": "0.9.0",
+    "Meworla/2D": "0.9.0",
+    "Meworla/3D": "0.9.0",
+    "Meworla/Character": "0.9.0",
+    "Meworla/Gltf": "0.9.0",
+    "Meworla/GUI": "0.9.0",
+    "Meworla/Media": "0.9.0",
+    "Meworla/Network": "0.9.0",
+    "Meworla/Terrain": "0.9.0",
+    "Meworla/Text": "0.9.0"
   }
 }

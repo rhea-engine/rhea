@@ -1,0 +1,11 @@
+{
+  "Meworla/Animation": {
+    "path": "./Modules/Animation"
+  },
+  "Meworla/GUI": {
+    "path": "./Modules/GUI"
+  },
+  "Meworla/Lobby": {
+    "path": "./Modules/Lobby"
+  }
+}

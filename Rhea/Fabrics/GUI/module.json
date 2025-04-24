@@ -1,6 +1,6 @@
 {
   "name": "GUI",
-  "version": "1.0.0",
+  "version": "0.9.0",
   "vendor": "Rhea",
   "description": "Rhea GUI System",
   "class": "Rhea::GUIModule",

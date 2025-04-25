@@ -35,7 +35,7 @@ for base_dir in module_dirs:
             if subdir.is_dir():
                 mod_json = subdir / "module.json"
                 if mod_json.exists():
-                     try:
+                   try:
                         data = json.loads(mod_json.read_text())
                         fq_class = data["class"]
                         include = data["include"]

@@ -21,6 +21,7 @@
 #include <Rhea/Fabrics/3D/SpotLight.h>
 #include <Rhea/Fabrics/Terrain/Terrain.h>
 #include <Rhea/Graphics/GraphicsComponent.h>
+#include "Modules/Animation/include/Rhea/Animation/Skeleton.h"
 
 namespace Poseidon
 {

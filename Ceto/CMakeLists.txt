@@ -10,13 +10,12 @@ add_executable (Ceto "Ceto.h" "Ceto.cpp" "UserPrefs.h" "UserPrefs.cpp")
 
 # add the submodules
 include(mwpkg.cmake)
-include(MwpkgModules/Meworla/RheaEngine/rhea.cmake)
-target_link_libraries(MWPModules INTERFACE GUI)
+include(../rhea.cmake)
 
 # add the renderer engine
 target_link_libraries(MWPModules INTERFACE RheaEngine)
 
-target_link_libraries(Ceto MWPModules RheaModules nlohmann_json::nlohmann_json)
+target_link_libraries(Ceto Rhea MWPModules RheaModules nlohmann_json::nlohmann_json)
 
 add_custom_command(TARGET Ceto POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory

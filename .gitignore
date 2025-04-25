@@ -44,3 +44,4 @@ bin
 # Modules
 MwpkgModules
 mwpkg.cmake
+/Ceto/mwpkg.cmake

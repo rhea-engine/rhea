@@ -6,7 +6,7 @@
 #include "Resources/ResourceList.h"
 #include <Psio/Log.h>
 #include <Graphics/GraphicsService.h>
-#include <Rhea/Fabrics/GUI/include/Rhea/GUI/Widget.h>
+#include "Modules/GUI/include/Rhea/GUI/Widget.h"
 
 namespace Rhea
 {

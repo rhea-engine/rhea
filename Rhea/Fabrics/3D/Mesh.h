@@ -6,7 +6,7 @@
 #include <Rhea/Unit.h>
 #include <Rhea/Resources/VertexBuffer.h>
 #include <Rhea/Resources/VertexAttribute.h>
-#include <Rhea/Fabrics/Animation/include/Rhea/Animation/Skeleton.h>
+//#include <Rhea/Animation/Skeleton.h>
 
 namespace Rhea
 {

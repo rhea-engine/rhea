@@ -14,6 +14,7 @@
 #include <ThirdParty/tiny_gltf_loader/tiny_gltf.h>
 #include <Components/Math/Vector2.h>
 #include <Components/Math/Vector3.h>
+#include "Modules/Animation/include/Rhea/Animation/Skeleton.h"
 
 namespace Rhea
 {

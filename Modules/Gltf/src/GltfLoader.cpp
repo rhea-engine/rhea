@@ -1,9 +1,9 @@
 #include <Orion/ResourceStream.h>
 #include <Psio/Fs/Fs.h>
 #include <Psio/Net/IOBuffer.h>
-#include <Rhea/Fabrics/Gltf/GltfScene.h>
+#include <Rhea/Gltf/GltfScene.h>
 
-#include "GltfLoader.h"
+#include <Rhea/Gltf/GltfLoader.h>
 #define TINYGLTF_NO_STB_IMAGE_WRITE
 #define TINYGLTF_NO_INCLUDE_JSON
 #define TINYGLTF_NO_INCLUDE_STB_IMAGE
@@ -14,7 +14,7 @@
 #include <nlohmann/json.hpp>
 #include <ThirdParty/tiny_gltf_loader/tiny_gltf.h>
 #include <Psio/Log.h>
-#include <Fabrics/Media/ImageResource.h>
+#include <Rhea/Fabrics/Media/ImageResource.h>
 
 namespace Rhea
 {	

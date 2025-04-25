@@ -1,11 +1,14 @@
 {
   "Meworla/Animation": {
-    "path": "./Modules/Animation"
+    "source": "./Modules/Animation"
   },
   "Meworla/GUI": {
-    "path": "./Modules/GUI"
+    "source": "./Modules/GUI"
   },
   "Meworla/Lobby": {
-    "path": "./Modules/Lobby"
+    "source": "./Modules/Lobby"
+  },
+  "Meworla/Gltf": {
+    "source": "./Modules/Gltf"
   }
 }

@@ -29,8 +29,8 @@
 #include "Fabrics/Media/MediaFabrics.h"
 #include "Fabrics/Character/Character.h"
 #include "Fabrics/Character/KinematicCharacter.h"
-#include "Fabrics/GUI/include/Rhea/GUI/GUIController.h"
-#include "Fabrics/GUI/include/Rhea/GUI/GuiService.h"
+#include "Modules/GUI/include/Rhea/GUI/GUIController.h"
+#include "Modules/GUI/include/Rhea/GUI/GuiService.h"
 #include "Resources/ResourceService.h"
 
 #include "Graphics/GraphicsService.h"
@@ -56,10 +56,7 @@
 #include <Core/Lighting.h>
 #include <Fabrics/3D/PointLight.h>
 #include <Fabrics/3D/SpotLight.h>
-#include <Rhea/Fabrics/Animation/include/Rhea/Animation/AnimationFabrics.h>
-#ifdef USE_RHEA_GLTF_LOADER
-#include <Fabrics/Gltf/GltfFabrics.h>
-#endif
+#include "Modules/Animation/include/Rhea/Animation/AnimationFabrics.h"
 #include <Component.h>
 #include <Physics/PhysicsComponent.h>
 
@@ -169,11 +166,7 @@ namespace Rhea
 
 		AnimationFabrics::Register(this);
 
-		// optional fabrics
-#ifdef USE_RHEA_GLTF_LOADER
-		GltfFabrics::Register(this);
-#endif
-		// register the modules
+		// register optional modules
 		for (auto& mod : createModules()) {
 			RegisterModule(std::move(mod));
 		}

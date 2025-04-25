@@ -1,10 +1,10 @@
 #include <Rhea/Application.h>
 #include <Orion/Mime.h>
 
-#include "GltfFabrics.h"
-#include "GlbLoader.h"
-#include "GltfScene.h"
-#include "GltfMesh.h"
+#include <Rhea/Gltf/GltfFabrics.h>
+#include <Rhea/Gltf/GlbLoader.h>
+#include <Rhea/Gltf/GltfScene.h>
+#include <Rhea/Gltf/GltfMesh.h>
 
 void Rhea::GltfFabrics::Register(Application* app)
 {

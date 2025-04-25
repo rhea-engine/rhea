@@ -1,8 +1,11 @@
 {
-  "Core/Animation": {
-    "version": "1.0.0"
+  "Meworla/GUI": {
+    "version": "0.9.0"
   },
-  "Core/GUI": {
-    "version": "1.0.0"
+  "Meworla/Animation": {
+    "version": "0.9.0"
+  },
+  "Meworla/Gltf": {
+    "version": "0.9.0"
   }
 }

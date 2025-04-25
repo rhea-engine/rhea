@@ -1,8 +1,9 @@
-#include "GltfMesh.h"
+#include <Rhea/Gltf/GltfMesh.h>
 #include <Psio/Log.h>
-#include "GltfScene.h"
+#include <Rhea/Gltf/GltfScene.h>
 #include <Rhea/Application.h>
 #include <Rhea/UnitTree.h>
+#include <Rhea/Core/Item.h>
 
 namespace Rhea
 {

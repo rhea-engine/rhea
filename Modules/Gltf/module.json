@@ -1,0 +1,9 @@
+{
+  "name": "Gltf",
+  "version": "0.9.0",
+  "vendor": "Rhea",
+  "description": "Rhea Gltf loader",
+  "class": "Rhea::GltfFabrics",
+  "include": "Rhea/Gltf/GltfFabrics.h",
+  "target": "RheaGltf"
+}

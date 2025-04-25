@@ -13,9 +13,4 @@ add_library (RheaFabrics "Character/Character.cpp" "Character/KinematicCharacter
 
 add_subdirectory (Network)
 #add_subdirectory(Animation)
-target_link_libraries(RheaFabrics RheaFabricsNet)
-
-if(USE_RHEA_GLTF_LOADER)
-	add_subdirectory(Gltf)
-	target_link_libraries(RheaFabrics RheaFabricsGltf)
-endif()
+target_link_libraries(RheaFabrics RheaFabricsNet Animation)

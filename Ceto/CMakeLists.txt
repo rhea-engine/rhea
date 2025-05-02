@@ -8,6 +8,10 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ ${CMAKE_SOURCE_DIR} ${CMAKE_SOU
 # Define the main app
 add_executable (Ceto "Ceto.h" "Ceto.cpp" "UserPrefs.h" "UserPrefs.cpp")
 
+if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/mwpkg.cmake")
+    message(FATAL_ERROR "Missing mwpkg.cmake. Run `mwpkg install` before configuring.")
+endif()
+
 # add the submodules
 include(mwpkg.cmake)
 include(../rhea.cmake)

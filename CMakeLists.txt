@@ -53,18 +53,26 @@ endif()
 
 include_directories(${PROJECT_SOURCE_DIR} ${PROJECT_SOURCE_DIR}/Components/ ${json_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/ThirdParty/ ${PROJECT_SOURCE_DIR}/ThirdParty/bullet/src)
 
+option(DEV_BUILD_CETO "Build Ceto" ON)
+
 # Cross-Compiling works only for some projects
 set(enginedirs Components)
 set(targetdirs FortyTwo)
 if(WIN32)
     list(APPEND enginedirs Poseidon Hermes Hippios Orion Rhea)    
-    list(APPEND targetdirs Ceto Iris)    
+    if(DEV_BUILD_CETO AND EXISTS "${CMAKE_SOURCE_DIR}/Ceto/CMakeLists.txt")
+        list(APPEND targetdirs Ceto)
+    endif()
+    list(APPEND targetdirs Iris)    
 endif()
 
 # Targets
-foreach (TARGET ${targetdirs})
-	add_subdirectory(${TARGET})	
-endforeach ()
+# Only add targets if in top-level directory
+if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+    foreach (TARGET ${targetdirs})
+	    add_subdirectory(${TARGET})	
+    endforeach ()
+ endif()
 
 foreach (ENGINE ${enginedirs})
     add_subdirectory(${ENGINE})

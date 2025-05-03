@@ -1,9 +1,4 @@
 {
-  "Meworla/Rhea": {
-    "version": "0.9.0",
-    "resolved": "registry",
-    "link": true
-  },
   "Meworla/Animation": {
     "version": "0.9.0",
     "resolved": "registry",
@@ -15,6 +10,11 @@
     "link": true
   },
   "Meworla/Gltf": {
+    "version": "0.9.0",
+    "resolved": "registry",
+    "link": true
+  },
+  "Meworla/Controller": {
     "version": "0.9.0",
     "resolved": "registry",
     "link": true

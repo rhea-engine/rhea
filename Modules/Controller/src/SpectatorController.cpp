@@ -1,11 +1,11 @@
-#include "SpectatorController.h"
-#include "Core/Item.h"
-#include "../Application.h"
-#include "../UnitTree.h"
-#include "Fabrics/3D/Camera.h"
-#include "../Graphics/CameraManager.h"
-#include "../Graphics/GraphicsService.h"
-#include "../Graphics/GraphicsManager.h"
+#include <Rhea/Controller/SpectatorController.h>
+#include <Rhea/Core/Item.h>
+#include <Rhea/Application.h>
+#include <Rhea/UnitTree.h>
+#include <Rhea/Fabrics/3D/Camera.h>
+#include <Rhea/Graphics/CameraManager.h>
+#include <Rhea/Graphics/GraphicsService.h>
+#include <Rhea/Graphics/GraphicsManager.h>
 #include <Rhea/EventInput.h>
 #include <Psio/Log.h>
 

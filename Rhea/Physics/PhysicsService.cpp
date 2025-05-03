@@ -1,6 +1,6 @@
 #include "PhysicsService.h"
 #include "Body.h"
-#include "../Controller/BasicController.h"
+#include <Rhea/Core/Controller.h>
 #include "Core/Item.h"
 #include "../Application.h"
 #include "UnitTree.h"

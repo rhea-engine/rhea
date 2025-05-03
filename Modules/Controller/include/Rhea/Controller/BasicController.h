@@ -1,7 +1,7 @@
 #ifndef RHEA_BASICCONTROLLER_H
 #define RHEA_BASICCONTROLLER_H
 
-#include "Controller.h"
+#include <Rhea/Core/Controller.h>
 #include <Math/Vector3.h>
 #include <Math/Quaternion.h>
 #include <Rhea/Core/Position.h>

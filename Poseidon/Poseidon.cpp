@@ -2,9 +2,7 @@
 #include <Rhea/Service.h>
 #include <Rhea/Graphics/GraphicsManager.h>
 #include <Rhea/Graphics/GraphicsService.h>
-#include <Rhea/Controller/Controller.h>
-#include <Rhea/Controller/BasicController.h>
-#include <Rhea/Controller/SpectatorController.h>
+#include <Rhea/Core/Controller.h>
 #include <Psio/Log.h>
 #include <Rhea/Physics/Bullet/BtPhysicsService.h>
 #include <Rhea/Fabrics/Network/NetworkFabrics.h>
@@ -16,8 +14,6 @@
 
 using Rhea::GraphicsService;
 using Rhea::Service;
-using Rhea::BasicController;
-using Rhea::SpectatorController;
 
 namespace Poseidon
 {
@@ -30,8 +26,6 @@ namespace Poseidon
 		Rhea::GraphicsComponent::_register_GraphicsComponent();
 
 		SimpleParser::Type::registerType<Rhea::Controller>("//meworla/icontroller");
-		SimpleParser::Type::registerType<BasicController>("//meworla/controller");
-		SimpleParser::Type::registerType<SpectatorController>("//meworla/spectator");
 		SimpleParser::Type::registerType<Rhea::Unit>("//meworla/avatarlist");
 	
 		GraphicsService* g_service = (GraphicsService*)SimpleParser::Type::create("GraphicsService", "//meworla/graphicsservice");

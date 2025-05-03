@@ -18,7 +18,7 @@ add_library(RheaBase "Unit.cpp" "UnitTree.cpp" "Realm.cpp" "InputMap.cpp" "Dispa
 target_link_libraries(RheaBase PoseidonMath Orion SimpleParser RheaResources RheaPhysics RheaFabrics RheaComponents Psio)
 
 if(RHEA_WITH_GRAPHICS)
-	add_library(RheaClient "Controller/BasicController.cpp" "Controller/SpectatorController.cpp" 
+	add_library(RheaClient
 	"Graphics/GraphicsService.cpp" "Graphics/Texture.cpp" "Graphics/ItemManager.cpp" "Graphics/SceneManager.cpp" 
 	"Graphics/CameraManager.cpp" "Graphics/RenderElement.h" "Graphics/RenderElement.cpp"
 	"Graphics/GraphicsManager.h" "Graphics/MaterialManager.cpp"

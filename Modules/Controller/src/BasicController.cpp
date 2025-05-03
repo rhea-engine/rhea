@@ -1,10 +1,10 @@
-#include "BasicController.h"
-#include "Core/Item.h"
-#include "../Application.h"
-#include "../UnitTree.h"
+#include <Rhea/Controller/BasicController.h>
+#include <Rhea/Core/Item.h>
+#include <Rhea/Application.h>
+#include <Rhea/UnitTree.h>
 #include <Psio/Log.h>
 
-#include "EventInput.h"
+#include <Rhea/EventInput.h>
 
 namespace Rhea
 {

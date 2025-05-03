@@ -10,5 +10,8 @@
   },
   "Meworla/Gltf": {
     "source": "./Modules/Gltf"
+  },
+  "Meworla/Controller": {
+    "source": "./Modules/Controller"
   }
 }

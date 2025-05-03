@@ -1,0 +1,9 @@
+{
+  "name": "Controller",
+  "version": "0.9.0",
+  "vendor": "Rhea",
+  "description": "Rhea default Controllers",
+  "class": "Rhea::ControllerFabrics",
+  "include": "Rhea/Controller/ControllerFabrics.h",
+  "target": "RheaController"
+}

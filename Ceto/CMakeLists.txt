@@ -13,8 +13,15 @@ if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/mwpkg.cmake")
 endif()
 
 # add the submodules
-include(mwpkg.cmake)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/mwpkg.cmake")
+    include(mwpkg.cmake)
+else()
+    message(STATUS "mwpkg.cmake not found — run 'mwpkg install' to generate it.")
+endif()
 include(../rhea.cmake)
+
+# Manually add Rhea to modules
+target_link_libraries(MWPModules INTERFACE Rhea)
 
 # add the renderer engine
 target_link_libraries(MWPModules INTERFACE RheaEngine)

@@ -7,7 +7,6 @@
 #include "Physics/Body.h"
 #include "Physics/PhysicsEvent.h"
 #include "Physics/PhysicsManager.h"
-#include "Fabrics/Terrain/Terrain.h"
 #include "Physics/Bullet/BtGhost.h"
 #include "Physics/PhysicsCharacter.h"
 #include <Rhea/Core/Transform.h>
@@ -38,8 +37,7 @@ namespace Rhea
 			m_position = getTransform()->get_position();
 		}
 
-		float delta = static_cast<PhysicsEvent*>(ev)->getDelta();
-		Terrain* terrain = static_cast<PhysicsEvent*>(ev)->getTerrain();
+		float delta = static_cast<PhysicsEvent*>(ev)->getDelta();		
 		PhysicsCharacter* character = static_cast<PhysicsCharacter*>(m_physics_body);
 		bool dirty = false;
 
@@ -99,16 +97,7 @@ namespace Rhea
 				// no - if we were on ground we are now falling
 				m_move_state = MoveState::FALL;
 			}
-
-			/*if (terrain && m_gravity) {
-				float height = terrain->getHeight(pos.x, pos.z);
-				if (pos.y < height) {
-					pos.y = height;
-					m_position->setPosition(pos);
-				}
-				
-			}
-			*/
+		
 		}
 
 		// turning

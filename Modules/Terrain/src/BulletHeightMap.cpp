@@ -1,9 +1,9 @@
-#include "BtHeightMap.h"
-#include "Core/Item.h"
-#include "Fabrics/Media/ImageResource.h"
-#include "Fabrics/Terrain/Terrain.h"
+#include <Rhea/Terrain/BulletHeightMap.h>
+#include <Rhea/Core/Item.h>
+#include <Rhea/Fabrics/Media/ImageResource.h>
+#include <Rhea/Terrain/Terrain.h>
 
-#include "Graphics/Texture.h"
+#include <Rhea/Graphics/Texture.h>
 #include <Poseidon/Texture.h>
 
 #include <bullet/src/btBulletDynamicsCommon.h>

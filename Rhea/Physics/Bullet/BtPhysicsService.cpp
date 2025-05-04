@@ -2,11 +2,9 @@
 #include "Core/Item.h"
 #include "Core/Scene.h"
 #include "BtBody.h"
-#include "BtHeightMap.h"
 #include "BtDebugDraw.h"
 #include "BtGhost.h"
 #include "BtCharacter.h"
-#include "Fabrics/Terrain/Terrain.h"
 
 #include "Poseidon/Core.h"
 #include "Poseidon/Viewport.h"
@@ -141,13 +139,17 @@ namespace Rhea
 
 	void BulletPhysicsService::initializeItem(Item* item)
 	{
-		if (doCast<Terrain>(item)) {
-			BulletHeightMap* hmap = new BulletHeightMap(item);			
-			item->addComponentUnique<PhysicsComponent>(hmap);
-			m_world->addRigidBody(hmap->getBody());
-			// TODO currently simply set the last terrain to active
-			m_terrain = doCast<Terrain>(item);
-		}
+		// try to find in component registry
+		auto it = m_physics_component_registry.find(item->getTypeName());
+		if (it != m_physics_component_registry.end()) {
+			// found a physics component
+			PhysicsBody* body = it->second(item);
+			if (body) {
+				item->addComponentUnique<PhysicsComponent>(body);
+				m_world->addRigidBody(static_cast<BulletPhysicsBody*>(body)->getBody());
+			}
+			return;
+		}		
 		else if (doCast<Camera>(item)) {
 			// make camera without physics	
 			m_item = item;

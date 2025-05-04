@@ -20,7 +20,6 @@
 #include "Fabrics/3D/Mesh.h"
 #include "Fabrics/3D/Camera.h"
 #include "Fabrics/Canvas/Item2D.h"
-#include "Fabrics/Terrain/Terrain.h"
 #include "Resources/TextResource.h"
 #include "Fabrics/Text/TextLoader.h"
 #include "Fabrics/Media/ImageResource.h"
@@ -145,8 +144,6 @@ namespace Rhea
 		SimpleParser::Type::registerType<Skybox>("//meworla/skybox"); 
 		MediaFabrics::Register(this);
 		SimpleParser::Type::registerType<Camera>("//meworla/camera");
-		SimpleParser::Type::registerType<ImageResource>("//meworla/heightmap");
-		SimpleParser::Type::registerType<Terrain>("//meworla/terrain");
 		SimpleParser::Type::registerType<KinematicCharacter>("//meworla/character");		
 		SimpleParser::Type::registerType<Item2D>("//meworla/widget");
 		SimpleParser::Type::registerType<TextWidget>("//meworla/textwidget");

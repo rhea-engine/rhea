@@ -19,7 +19,6 @@
 #include <Rhea/Fabrics/3D/DirectionalLight.h>
 #include <Rhea/Fabrics/3D/PointLight.h>
 #include <Rhea/Fabrics/3D/SpotLight.h>
-#include <Rhea/Fabrics/Terrain/Terrain.h>
 #include <Rhea/Graphics/GraphicsComponent.h>
 #include "Modules/Animation/include/Rhea/Animation/Skeleton.h"
 
@@ -193,9 +192,6 @@ namespace Poseidon
 					Rhea::RenderComponent* r_comp = renderable->getComponent<Rhea::RenderComponent>();
 					if (!r_comp)
 						continue;
-					if (doCast<Rhea::Terrain>(renderable)) {
-						int i = 1;
-					}
 
 					// get the main mesh object
 					Rhea::Mesh* rmesh = r_comp->getMesh();

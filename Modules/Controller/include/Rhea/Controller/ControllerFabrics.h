@@ -1,4 +1,5 @@
-#ifndef RHEA_CONTROLLER_H
+#ifndef RHEA_CONTROLLERFABRICS_H
+#define RHEA_CONTROLLERFABRICS_H
 
 #include <Rhea/Application.h>
 #include <Rhea/ModuleSystem.h>
@@ -16,4 +17,4 @@ namespace Rhea
 	};
 }
 
-#endif // !RHEA_CONTROLLER_H
+#endif // !RHEA_CONTROLLERFABRICS_H

@@ -5,7 +5,7 @@
 #include <memory>
 #include <Psio/Image/Image.h>
 
-#include "../PhysicsHeightMap.h"
+#include <Rhea/Physics/PhysicsHeightMap.h>
 
 class btHeightfieldTerrainShape;
 class btRigidBody;

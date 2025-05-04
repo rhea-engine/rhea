@@ -44,6 +44,7 @@ add_library(RheaEngine INTERFACE)
 target_include_directories(RheaEngine INTERFACE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/Components)
 
 # bullet 
+option(USE_PHYSICS_BULLET "Enable Bullet physics" ON)
 add_subdirectory (ThirdParty/bullet)
 
 # Static Library Link to make .exe copyable under Windows

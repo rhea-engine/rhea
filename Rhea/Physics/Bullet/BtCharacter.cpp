@@ -1,6 +1,5 @@
 #include "BtCharacter.h"
 #include "Core/Item.h"
-#include "Fabrics/Terrain/Terrain.h"
 #include "BtGhost.h"
 
 #include <bullet/src/btBulletDynamicsCommon.h>

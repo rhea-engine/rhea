@@ -13,5 +13,8 @@
   },
   "Meworla/Controller": {
     "source": "./Modules/Controller"
+  },
+  "Meworla/Terrain": {
+    "source": "./Modules/Terrain"
   }
 }

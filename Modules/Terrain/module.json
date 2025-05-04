@@ -1,0 +1,9 @@
+{
+  "name": "Terrain",
+  "version": "0.9.0",
+  "vendor": "Rhea",
+  "description": "Rhea heightmap terrain",
+  "class": "Rhea::TerrainFabrics",
+  "include": "Rhea/Terrain/TerrainFabrics.h",
+  "target": "RheaTerrain"
+}

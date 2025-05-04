@@ -7,7 +7,6 @@
 #include "Physics/Body.h"
 #include "Physics/PhysicsEvent.h"
 #include "Physics/PhysicsManager.h"
-#include "Fabrics/Terrain/Terrain.h"
 
 using Math::Quaternion;
 using Math::Vector3;
@@ -30,8 +29,7 @@ namespace Rhea
 		if (!m_position)
 			m_position = getTransform()->get_position();
 
-		float delta = static_cast<PhysicsEvent*>(ev)->getDelta();
-		Terrain* terrain = static_cast<PhysicsEvent*>(ev)->getTerrain();
+		float delta = static_cast<PhysicsEvent*>(ev)->getDelta();		
 
 		if (m_move_state != MoveState::GROUND) {
 			m_air_timer += delta;
@@ -57,38 +55,10 @@ namespace Rhea
 			Math::Quaternion rot = m_position->get_rotation();
 			m_physics_body->applyImpulse(rot * move);
 
-			// move object itself
-
-			/*
-			Math::Vector3 pos = m_position->moveRelative(move);
-
-			if (terrain && m_gravity) {
-				float height = terrain->getHeight(pos.x, pos.z);
-				if (pos.y < height) {
-					pos.y = height;
-					m_position->setPosition(pos);
-				}
-			}
-
-			m_physics_body->setPosition(pos);
-			*/
 		}
 
 		// gravity 
-/*
-		if (terrain && m_gravity) {
-			m_upwards = m_gravity * delta;
-			Math::Vector3 pos = m_position->moveRelative(Math::Vector3(0.0f, m_upwards, 0.0f));
 
-			float height = terrain->getHeight(pos.x, pos.z);
-			if (pos.y < height) {
-				pos.y = height;
-				m_position->setPosition(pos);
-			}
-
-			m_physics_body->setPosition(pos);
-		}		
-*/
 		// turning
 
 		if (m_turn != 0) {

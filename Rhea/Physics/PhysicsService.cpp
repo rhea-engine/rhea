@@ -14,7 +14,7 @@ namespace Rhea
 	void PhysicsService::onPhysicsStep(float delta)
 	{
 		// send pre event
-		std::unique_ptr<Rhea::PhysicsEvent> ev = std::make_unique<Rhea::PhysicsEvent>("physics_pre", delta, m_terrain);
+		std::unique_ptr<Rhea::PhysicsEvent> ev = std::make_unique<Rhea::PhysicsEvent>("physics_pre", delta);
 		sendEvent(std::string("pre_physics"), ev.get());
 
 		if (!m_item)
@@ -72,5 +72,10 @@ namespace Rhea
 			setScene((Scene*)ev->getTarget());
 			return false;
 			});
+	}
+
+	void PhysicsService::registerPhysicsComponent(const std::string& name, CreatorFunc func)
+	{
+		m_physics_component_registry[name] = func;
 	}
 }

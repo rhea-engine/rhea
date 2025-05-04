@@ -1,7 +1,6 @@
 #include "BtBody.h"
 #include "Core/Item.h"
 #include "Fabrics/3D/Mesh.h"
-#include "Fabrics/Terrain/Terrain.h"
 #include <Psio/Log.h>
 
 #include <bullet/src/btBulletDynamicsCommon.h>
@@ -165,104 +164,6 @@ namespace Rhea
 		}
 	}
 
-	void BulletPhysicsBody::doPhysics(float delta, Terrain *terrain)
-	{		
-		if (m_movement != Math::Vector3::ZERO) {
-			// currently moving			
-			Math::Vector3 move = m_movement;
-			move *= delta;
-			
-			if (m_isKinematic) {
-				btTransform transform;
-				transform.setIdentity();
-
-				// move object itself
-			
-				Math::Vector3 pos = m_item->getTransform()->get_position()->moveRelative(move);
-
-				if (terrain) {
-					float height = terrain->getHeight(pos.x, pos.z);
-					if (pos.y < height) {
-						pos.y = height;						
-						m_item->getTransform()->get_position()->setPosition(pos);
-
-					}
-				}
-
-				transform.setOrigin(btVector3(
-					btScalar(pos.x),
-					btScalar(pos.y),
-					btScalar(pos.z)));
-
-				m_body->getMotionState()->setWorldTransform(transform);
-			}
-			else {
-				Math::Quaternion rot = m_item->getTransform()->get_position()->get_rotation();
-				Math::Vector3 t = rot * move;
-				m_body->setLinearVelocity(btVector3(t.x, t.y, t.z));
-				m_body->setActivationState(ACTIVE_TAG);
-			}
-		}
-
-		// gravity for kinematic objects
-		/*
-		if (terrain && m_gravity && m_isKinematic) {
-			m_upwards = m_gravity * delta;
-			Math::Vector3 pos = m_item->getTransform()->get_position()->moveRelative(Math::Vector3(0.0f, m_upwards, 0.0f));
-
-			float height = terrain->getHeight(pos.x, pos.z);
-			if (pos.y < height) {
-				pos.y = height;
-				m_item->getTransform()->get_position()->setPosition(pos);
-			}
-
-			btTransform transform;
-			transform.setIdentity();
-			transform.setOrigin(btVector3(
-				btScalar(pos.x),
-				btScalar(pos.y),
-				btScalar(pos.z)));
-
-			m_body->getMotionState()->setWorldTransform(transform);
-		}
-		*/
-
-		if (m_turn != 0) {
-			float turn_step = m_turn * delta;
-			if (!m_isKinematic) {
-				btQuaternion bt_q = btQuaternion(btVector3(0, 1, 0), turn_step);
-
-				btTransform trans = m_body->getWorldTransform();
-				btQuaternion rot = trans.getRotation();
-
-				btQuaternion orientation = bt_q * rot;
-				orientation.normalize();
-
-				trans.setRotation(orientation);
-				m_body->setWorldTransform(trans);
-
-				m_body->setActivationState(ACTIVE_TAG);
-			}
-			else {
-				Math::Quaternion q;
-				q.fromAngleAxis(turn_step, Math::Vector3(0, 1, 0));
-				Math::Quaternion m_orientation = q * m_item->getTransform()->get_position()->get_rotation(); //* m_orientation;
-				m_orientation.normalize();				
-				m_item->getTransform()->get_position()->setOrientation(m_orientation);
-				
-				btQuaternion bt_orientation = btQuaternion(
-					btScalar(m_orientation.x),
-					btScalar(m_orientation.y),
-					btScalar(m_orientation.z),
-					btScalar(m_orientation.w));
-				btTransform trans;
-				trans.setRotation(bt_orientation);
-				m_body->setWorldTransform(trans);
-			}
-
-		}
-	}
-	
 	void BulletPhysicsBody::stop()
 	{
 		m_body->setLinearVelocity(btVector3(0.0, 0.0, 0.0));

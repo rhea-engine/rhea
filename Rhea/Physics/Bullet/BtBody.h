@@ -12,7 +12,6 @@ class btCompoundShape;
 namespace Rhea
 {
 	class Item;
-	class Terrain;
 
 	class BulletPhysicsBody : public PhysicsBody
 	{
@@ -21,8 +20,6 @@ namespace Rhea
 		~BulletPhysicsBody();
 
 		bool init();
-
-		void doPhysics(float delta, Terrain* terrain);
 
 		// stop the current movement
 		void stop();

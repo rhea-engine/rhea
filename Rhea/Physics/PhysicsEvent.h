@@ -5,24 +5,19 @@
 
 namespace Rhea
 {
-	class Terrain;
-
 	class PhysicsEvent : public Event
 	{
 	public:
-		PhysicsEvent(std::string e_name, float delta, Terrain* terrain) :
-			m_delta(delta),
-			m_terrain(terrain),
-			Event(e_name, (Unit*)terrain)
+		PhysicsEvent(std::string e_name, float delta) :
+			m_delta(delta),			
+			Event(e_name, (Unit*)nullptr)
 		{}
 
 		//getters
-		float getDelta() { return m_delta; }
-		Terrain* getTerrain() { return m_terrain; }
+		float getDelta() { return m_delta; }		
 
 	protected:
-		float m_delta;
-		Terrain* m_terrain;
+		float m_delta;		
 	};
 }
 

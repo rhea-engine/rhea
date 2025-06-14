@@ -17,7 +17,7 @@ namespace Rhea
 		PhysicsService* phy_mgr = doCast<PhysicsService>(app->getService("physics"));
 		if (phy_mgr) {
 			phy_mgr->registerPhysicsComponent("//meworla/terrain", [](Item* item) -> PhysicsBody* {
-				return new BulletHeightMap(item);
+				return new BulletHeightMap(nullptr, item);
 				});
 		}
 		else {

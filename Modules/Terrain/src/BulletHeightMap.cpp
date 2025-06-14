@@ -15,14 +15,15 @@
 
 namespace Rhea
 {
-	BulletHeightMap::BulletHeightMap(Item* item) : 
+	BulletHeightMap::BulletHeightMap(btDynamicsWorld* world, Item* item) :
 		m_width(0),
 		m_height(0),
-		PhysicsHeightMap(item)
+		BulletPhysicsBody(world, item)
 	{
 		Unit* heightmap = static_cast<Terrain*>(item)->getHeightmap();
 		bool flipZ = true;
-
+		m_isStatic = true; // static heightmap
+		
 		if (heightmap) {
 
 			unsigned char* buf;

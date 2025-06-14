@@ -19,7 +19,7 @@ namespace Rhea
 		BulletPhysicsBody(btDynamicsWorld* world, Item* item);
 		~BulletPhysicsBody();
 
-		bool init();
+		virtual bool init();
 
 		// stop the current movement
 		void stop();

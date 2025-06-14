@@ -5,7 +5,7 @@
 #include <memory>
 #include <Psio/Image/Image.h>
 
-#include <Rhea/Physics/PhysicsHeightMap.h>
+#include <Rhea/Physics/Bullet/BtBody.h>
 
 class btHeightfieldTerrainShape;
 class btRigidBody;
@@ -14,16 +14,15 @@ namespace Rhea
 {
 	class Item;
 
-	class BulletHeightMap : public PhysicsHeightMap
+	class BulletHeightMap : public BulletPhysicsBody
 	{
 	public:
-		BulletHeightMap(Item* item);
+		BulletHeightMap(btDynamicsWorld* world, Item* item);
 		~BulletHeightMap();
 
-		btRigidBody* getBody() { return m_body; }
+		bool init() override { return true; }
 
 	protected:
-		btRigidBody* m_body;
 		btHeightfieldTerrainShape* m_shape;
 		int m_width;
 		int m_height;

@@ -21,11 +21,9 @@
 #include <assert.h>
 #include "../PhysicsComponent.h"
 #include <Fabrics/3D/Camera.h>
-#include <Fabrics/Character/Character.h>
 #include <Fabrics/Canvas/Item2D.h>
 #include <Fabrics/Text/TextWidget.h>
 #include <Fabrics/3D/Skybox.h>
-#include <Fabrics/Character/KinematicCharacter.h>
 
 namespace Rhea
 {
@@ -143,10 +141,11 @@ namespace Rhea
 		auto it = m_physics_component_registry.find(item->getTypeName());
 		if (it != m_physics_component_registry.end()) {
 			// found a physics component
-			PhysicsBody* body = it->second(item);
-			if (body) {
+			BulletPhysicsBody* body = static_cast<BulletPhysicsBody*>(it->second(item));
+			if (body && body->init()) {
 				item->addComponentUnique<PhysicsComponent>(body);
-				m_world->addRigidBody(static_cast<BulletPhysicsBody*>(body)->getBody());
+				if (body->getBody())
+					m_world->addRigidBody(body->getBody());
 			}
 			return;
 		}		
@@ -154,11 +153,11 @@ namespace Rhea
 			// make camera without physics	
 			m_item = item;
 		}
-		else if (doCast<KinematicCharacter>(item)) {
+		/*else if (doCast<KinematicCharacter>(item)) {
 			BulletPhysicsCharacter* body = new BulletPhysicsCharacter(m_world, item);
 			body->init();
 			item->addComponentUnique<PhysicsComponent>(body);
-		}
+		}*/
 		else if (doCast<Item2D>(item))
 			return;
 		else if (doCast<TextWidget>(item))

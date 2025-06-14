@@ -6,6 +6,7 @@
     "Meworla/Gltf": "0.9.0",
     "Meworla/Controller": "0.9.0",
     "Meworla/HeightmapTerrain": "0.9.0",
-    "Meworla/Terrain": "0.9.0"
+    "Meworla/Terrain": "0.9.0",
+    "Meworla/Character": "0.9.0"
   }
 }

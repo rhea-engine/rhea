@@ -1,12 +1,11 @@
-#include "Character.h"
 #include <functional>
 
-#include "Character.h"
-#include "Application.h"
-#include "Service.h"
-#include "Physics/Body.h"
-#include "Physics/PhysicsEvent.h"
-#include "Physics/PhysicsManager.h"
+#include <Rhea/Character/Character.h>
+#include <Rhea/Application.h>
+#include <Rhea/Service.h>
+#include <Rhea/Physics/Body.h>
+#include <Rhea/Physics/PhysicsEvent.h>
+#include <Rhea/Physics/PhysicsManager.h>
 
 using Math::Quaternion;
 using Math::Vector3;

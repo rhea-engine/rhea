@@ -26,8 +26,6 @@
 #include "InputMap.h"
 #include "Dispatcher.h"
 #include "Fabrics/Media/MediaFabrics.h"
-#include "Fabrics/Character/Character.h"
-#include "Fabrics/Character/KinematicCharacter.h"
 #include "Modules/GUI/include/Rhea/GUI/GUIController.h"
 #include "Modules/GUI/include/Rhea/GUI/GuiService.h"
 #include "Resources/ResourceService.h"
@@ -144,7 +142,6 @@ namespace Rhea
 		SimpleParser::Type::registerType<Skybox>("//meworla/skybox"); 
 		MediaFabrics::Register(this);
 		SimpleParser::Type::registerType<Camera>("//meworla/camera");
-		SimpleParser::Type::registerType<KinematicCharacter>("//meworla/character");		
 		SimpleParser::Type::registerType<Item2D>("//meworla/widget");
 		SimpleParser::Type::registerType<TextWidget>("//meworla/textwidget");
 		SimpleParser::Type::registerType<Font>("//meworla/font");

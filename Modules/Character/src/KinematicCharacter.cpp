@@ -1,16 +1,15 @@
-#include "KinematicCharacter.h"
 #include <functional>
 
-#include "KinematicCharacter.h"
-#include "Application.h"
-#include "Service.h"
-#include "Physics/Body.h"
-#include "Physics/PhysicsEvent.h"
-#include "Physics/PhysicsManager.h"
-#include "Physics/Bullet/BtGhost.h"
-#include "Physics/PhysicsCharacter.h"
+#include <Rhea/Character/KinematicCharacter.h>
+#include <Rhea/Application.h>
+#include <Rhea/Service.h>
+#include <Rhea/Physics/Body.h>
+#include <Rhea/Physics/PhysicsEvent.h>
+#include <Rhea/Physics/PhysicsManager.h>
+#include <Rhea/Physics/Bullet/BtGhost.h>
+#include <Rhea/Physics/PhysicsCharacter.h>
 #include <Rhea/Core/Transform.h>
-#include "../Network/NetworkComponent.h"
+#include <Rhea/Fabrics/Network/NetworkComponent.h>
 
 #include <algorithm>
 #include <Psio/Log.h>
@@ -38,7 +37,7 @@ namespace Rhea
 		}
 
 		float delta = static_cast<PhysicsEvent*>(ev)->getDelta();		
-		PhysicsCharacter* character = static_cast<PhysicsCharacter*>(m_physics_body);
+		PhysicsCharacterInterface* character = static_cast<PhysicsCharacterInterface*>(m_physics_body);
 		bool dirty = false;
 
 		// if not on ground increase air timer else reset it

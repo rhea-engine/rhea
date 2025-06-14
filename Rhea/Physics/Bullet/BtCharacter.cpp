@@ -87,7 +87,7 @@ namespace Rhea
 		m_ghost_object(nullptr),
 		m_hitting_wall(false),
 		m_position(nullptr),
-		PhysicsCharacter(item)
+		BulletPhysicsBody(world, item)
 	{
 		// prepare default values
 		m_step_height = item->getValue("step_height", 0.3f);

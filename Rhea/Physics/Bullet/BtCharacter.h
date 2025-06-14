@@ -8,6 +8,7 @@
 #include <bullet/src/LinearMath/btQuaternion.h>
 
 #include "../PhysicsCharacter.h"
+#include "BtBody.h"
 
 class btDynamicsWorld;
 class btPairCachingGhostObject;
@@ -21,13 +22,13 @@ namespace Rhea
 	class Terrain;
 	class BulletPhysicsGhost;
 
-	class BulletPhysicsCharacter : public PhysicsCharacter
+	class BulletPhysicsCharacter : public PhysicsCharacterInterface, public BulletPhysicsBody
 	{
 	public:
 		BulletPhysicsCharacter(btDynamicsWorld *world, Item* item);
 		~BulletPhysicsCharacter();
 
-		bool init();
+		bool init() override;
 
 		// can we controll the move?
 		bool isMoveControllable();

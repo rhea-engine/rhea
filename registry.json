@@ -16,5 +16,8 @@
   },
   "Meworla/Terrain": {
     "source": "./Modules/Terrain"
+  },
+  "Meworla/Character": {
+    "source": "./Modules/Character"
   }
 }

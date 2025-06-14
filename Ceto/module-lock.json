@@ -23,5 +23,10 @@
     "version": "0.9.0",
     "resolved": "registry",
     "link": true
+  },
+  "Meworla/Character": {
+    "version": "0.9.0",
+    "resolved": "registry",
+    "link": true
   }
 }

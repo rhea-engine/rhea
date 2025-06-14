@@ -1,0 +1,9 @@
+{
+  "name": "Character",
+  "version": "0.9.0",
+  "vendor": "Rhea",
+  "description": "Rhea default Character",
+  "class": "Rhea::CharacterFabrics",
+  "include": "Rhea/Character/CharacterFabrics.h",
+  "target": "RheaCharacter"
+}

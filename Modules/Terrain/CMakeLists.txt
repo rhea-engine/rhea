@@ -8,6 +8,7 @@ add_library (RheaTerrain
 "include/Rhea/Terrain/BulletHeightMap.h"
 "src/BulletHeightMap.cpp"
 )
+add_library(Rhea::Terrain ALIAS RheaTerrain)
 
 # Scoped includes are under include/Rhea/GUI/**
 target_include_directories(RheaTerrain PUBLIC

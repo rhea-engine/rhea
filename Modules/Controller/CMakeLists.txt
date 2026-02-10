@@ -8,6 +8,7 @@ add_library (RheaController
 "include/Rhea/Controller/SpectatorController.h" 
 "src/SpectatorController.cpp" 
 )
+add_library(Rhea::Controller ALIAS RheaController)
 
 # Scoped includes are under include/Rhea/GUI/**
 target_include_directories(RheaController PUBLIC

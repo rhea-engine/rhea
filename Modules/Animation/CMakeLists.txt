@@ -11,6 +11,7 @@ add_library (Animation
 	"include/Rhea/Animation/Skeleton.h" 
 	"src/Skeleton.cpp"
 )
+add_library(Rhea::Animation ALIAS Animation)
 target_include_directories(Animation PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 target_link_libraries(Animation PUBLIC RheaEngine)

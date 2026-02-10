@@ -11,6 +11,7 @@ add_library (Lobby
 "src/Avatars.cpp" 
 "include/Rhea/Lobby/CredentialsService.h" 
 "src/CredentialsService.cpp")
+add_library(Rhea::Lobby ALIAS Lobby)
 
 # Scoped includes are under include/Rhea/GUI/**
 target_include_directories(Lobby PUBLIC

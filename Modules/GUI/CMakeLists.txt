@@ -21,6 +21,7 @@ target_sources(GUI PRIVATE
     src/Styles/StyleEngine.cpp
     src/Styles/StyleSheet.cpp
 )
+add_library(Rhea::GUI ALIAS GUI)
 
 # Scoped includes are under include/Rhea/GUI/**
 target_include_directories(GUI PUBLIC

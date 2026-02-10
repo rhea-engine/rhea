@@ -10,6 +10,7 @@ add_library (RheaGltf
 "src/GltfMesh.cpp" 
 "include/Rhea/Gltf/GltfScene.h" 
 "src/GltfScene.cpp")
+add_library(Rhea::Gltf ALIAS RheaGltf)
 
 # Scoped includes are under include/Rhea/GUI/**
 target_include_directories(RheaGltf PUBLIC

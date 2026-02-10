@@ -8,6 +8,7 @@ add_library (RheaCharacter
 "include/Rhea/Character/KinematicCharacter.h" 
 "src/KinematicCharacter.cpp" 
 )
+add_library(Rhea::Character ALIAS RheaCharacter)
 
 # Scoped includes are under include/Rhea/GUI/**
 target_include_directories(RheaCharacter PUBLIC

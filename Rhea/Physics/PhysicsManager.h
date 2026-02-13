@@ -27,8 +27,13 @@ namespace Rhea
 		// Service functions
 		virtual void onInit();
 
+		// physics component registry
+		using CreatorFunc = std::function<PhysicsBody* (Item*)>;
+		void registerPhysicsComponent(const std::string& name, CreatorFunc func);
+
 	protected:
 		PhysicsService* m_phy_services;
+		std::unordered_map<std::string, CreatorFunc> m_physics_component_registry;
 	};
 }
 

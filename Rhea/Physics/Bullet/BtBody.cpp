@@ -158,7 +158,7 @@ namespace Rhea
 		if (m_body) {
 			auto motionState = m_body->getMotionState();
 			if (motionState) delete motionState;
-			m_world->removeRigidBody(m_body);
+			if (m_world) m_world->removeRigidBody(m_body);
 			delete m_body;
 			m_body = nullptr;
 		}

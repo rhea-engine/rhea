@@ -70,6 +70,11 @@ namespace Rhea
 		// update in physics step
 		Math::Vector3 update(Position* pos, Math::Vector3& move, Math::Vector3& gravity);
 
+		void* queryInterface(std::string id) override {
+			if (id == "PhysicsCharacter") return static_cast<PhysicsCharacterInterface*>(this);
+			return PhysicsBody::queryInterface(id);
+		}
+
 	protected:
 		enum class moveState {
 			GROUND,

@@ -4,6 +4,7 @@
 #include <Rhea/Core/Position.h>
 
 #include <Rhea/Element.h>
+#include <string>
 
 namespace Rhea
 {
@@ -44,6 +45,12 @@ namespace Rhea
 
 		// is it a dynamic object
 		bool isDynamic() { return !m_isKinematic && !m_isStatic; }
+
+		// query interfaxces
+		virtual void* queryInterface(std::string InterfaceId) { return nullptr; }
+
+		template <typename T>
+		T* query(std::string id) { return static_cast<T*>(queryInterface(id)); }
 
 	protected:		
 		Math::Vector3 m_movement;

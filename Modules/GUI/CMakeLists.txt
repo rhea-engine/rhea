@@ -7,7 +7,7 @@ target_sources(GUI PRIVATE
     src/Column.cpp
     src/CssLoader.cpp
     src/Dialog.cpp
-    src/GUI.cpp
+    src/GUIFabric.cpp
     src/GUIController.cpp
     src/GuiService.cpp
     src/Label.cpp

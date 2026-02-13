@@ -3,7 +3,7 @@
   "version": "0.9.0",
   "vendor": "Meworla",
   "description": "Animation System",
-  "include": "Rhea/Animation/AnimationFabrics.h",
-  "class": "Rhea::AnimationFabrics",
+  "include": "Rhea/Animation/AnimationFabric.h",
+  "class": "Rhea::AnimationFabric",
   "cmake_target": "Rhea::Animation"
 }

@@ -3,7 +3,7 @@
   "version": "0.9.0",
   "vendor": "Rhea",
   "description": "Rhea GUI System",
-  "class": "Rhea::GUIModule",
-  "include": "Rhea/GUI/GUI.h",
+  "class": "Rhea::GUIFabric",
+  "include": "Rhea/GUI/GUIFabric.h",
   "cmake_target": "Rhea::GUI"
 }

@@ -1,5 +1,5 @@
-#ifndef RHEA_TERRAINFABRICS_H
-#define RHEA_TERRAINFABRICS_H
+#ifndef RHEA_TERRAINFABRIC_H
+#define RHEA_TERRAINFABRIC_H
 
 #include <Rhea/Application.h>
 #include <Rhea/ModuleSystem.h>
@@ -8,7 +8,7 @@ namespace Rhea
 {
 	/** Fabrics for terrain handling
 	*/
-	class TerrainFabrics : public Rhea::IFabricModule
+	class TerrainFabric : public Rhea::IFabric
 	{
 	public:
 		void Register(Application* app) override;
@@ -17,4 +17,4 @@ namespace Rhea
 	};
 }
 
-#endif // !RHEA_TERRAINFABRICS_H
+#endif // !RHEA_TERRAINFABRIC_H

@@ -1,5 +1,5 @@
-#ifndef RHEA_CHARACTERFABRICS_H
-#define RHEA_CHARACTERFABRICS_H
+#ifndef RHEA_CHARACTERFABRIC_H
+#define RHEA_CHARACTERFABRIC_H
 
 #include <Rhea/Application.h>
 #include <Rhea/ModuleSystem.h>
@@ -8,7 +8,7 @@ namespace Rhea
 {
 	/** Fabrics for characters
 	*/
-	class CharacterFabrics : public Rhea::IFabricModule
+	class CharacterFabric : public Rhea::IFabric
 	{
 	public:
 		void Register(Application* app) override;

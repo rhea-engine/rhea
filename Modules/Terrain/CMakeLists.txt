@@ -1,8 +1,8 @@
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ ${CMAKE_SOURCE_DIR})
 
 add_library (RheaTerrain
-"include/Rhea/Terrain/TerrainFabrics.h" 
-"src/TerrainFabrics.cpp" 
+"include/Rhea/Terrain/TerrainFabric.h" 
+"src/TerrainFabric.cpp" 
 "include/Rhea/Terrain/Terrain.h" 
 "src/Terrain.cpp"
 "include/Rhea/Terrain/BulletHeightMap.h"

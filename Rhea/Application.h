@@ -132,7 +132,7 @@ namespace Rhea
 		Orion::Orion* getFS() { return m_fs; }
 
 		// register a module
-		void RegisterModule(std::unique_ptr<IFabricModule> module);
+		void RegisterModule(std::unique_ptr<IFabric> module);
 		// init modules
 		void InitModules(); // Call this after registering to initialize all
 
@@ -154,7 +154,7 @@ namespace Rhea
 		float fps = 0.0f;
 
 	private:
-		std::vector<std::unique_ptr<IFabricModule>> m_modules;
+		std::vector<std::unique_ptr<IFabric>> m_modules;
 	};
 }
 #endif // !RHEA_H

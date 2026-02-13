@@ -1,8 +1,8 @@
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ ${CMAKE_SOURCE_DIR})
 
 add_library (Animation
-	"include/Rhea/Animation/AnimationFabrics.h" 
-	"src/AnimationFabrics.cpp" 
+	"include/Rhea/Animation/AnimationFabric.h" 
+	"src/AnimationFabric.cpp" 
 	"include/Rhea/Animation/Animation.h" 
 	"src/Animation.cpp" 
 	"include/Rhea/Animation/Animator.h" 

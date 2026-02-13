@@ -1,4 +1,4 @@
-#include <Rhea/GUI/GUI.h>
+#include <Rhea/GUI/GUIFabric.h>
 #include <Rhea/GUI/Widget.h>
 #include <Rhea/GUI/Label.h>
 #include <Rhea/GUI/Button.h>
@@ -16,7 +16,7 @@
 
 namespace Rhea
 {
-	void Rhea::GUIModule::Register(Rhea::Application* app)
+	void Rhea::GUIFabric::Register(Rhea::Application* app)
 	{
 		// register widget types
 		SimpleParser::Type::registerType<Widget>("//meworla/gui/widget");

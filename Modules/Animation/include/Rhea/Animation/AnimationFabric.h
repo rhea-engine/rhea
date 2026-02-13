@@ -1,5 +1,5 @@
-#ifndef RHEA_ANIMATIONFABRICS_H
-#define RHEA_ANIMATIONFABRICS_H
+#ifndef RHEA_ANIMATIONFABRIC_H
+#define RHEA_ANIMATIONFABRIC_H
 
 namespace Rhea
 {
@@ -7,7 +7,7 @@ namespace Rhea
 
 	/** Fabrics for animations
 	*/
-	class AnimationFabrics : public Rhea::IFabricModule
+	class AnimationFabric : public Rhea::IFabric
 	{
 	public:
 		void Register(Application* app) override;
@@ -16,4 +16,4 @@ namespace Rhea
 	};
 }
 
-#endif // !RHEA_ANIMATIONFABRICS_H
+#endif // !RHEA_ANIMATIONFABRIC_H

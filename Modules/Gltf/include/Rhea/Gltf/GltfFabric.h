@@ -1,5 +1,5 @@
-#ifndef RHEA_GLTF_H
-#define RHEA_GLTF_H
+#ifndef RHEA_GLTFFABRIC_H
+#define RHEA_GLTFFABRIC_H
 
 #include <Rhea/Application.h>
 #include <Rhea/ModuleSystem.h>
@@ -8,7 +8,7 @@ namespace Rhea
 {	
 	/** Fabrics for gltf file loading
 	*/
-	class GltfFabrics : public Rhea::IFabricModule
+	class GltfFabric : public Rhea::IFabric
 	{
 	public:
 		void Register(Application* app) override;

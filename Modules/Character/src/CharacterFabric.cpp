@@ -1,4 +1,4 @@
-#include <Rhea/Character/CharacterFabrics.h>
+#include <Rhea/Character/CharacterFabric.h>
 
 #include <Rhea/Character/KinematicCharacter.h>
 #include <Psio/Log.h>
@@ -9,7 +9,7 @@
 
 namespace Rhea
 {
-	void CharacterFabrics::Register(Application* app)
+	void CharacterFabric::Register(Application* app)
 	{
 		SimpleParser::Type::registerType<KinematicCharacter>("//meworla/character");
 

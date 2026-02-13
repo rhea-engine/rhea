@@ -7,7 +7,7 @@
 namespace Rhea
 {
 
-	class GUIModule : public Rhea::IFabricModule
+	class GUIFabric : public Rhea::IFabric
 	{
 	public:
 

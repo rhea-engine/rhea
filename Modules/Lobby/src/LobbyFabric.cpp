@@ -1,11 +1,11 @@
-#include <Rhea/Lobby/LobbyFabrics.h>
+#include <Rhea/Lobby/LobbyFabric.h>
 #include <Rhea/Lobby/ClientConnect.h>
 #include <Rhea/Lobby/Avatars.h>
 #include <Rhea/Lobby/CredentialsService.h>
 
 namespace Meworla
 {
-	void LobbyFabrics::Register(Rhea::Application* app)
+	void LobbyFabric::Register(Rhea::Application* app)
 	{
 		// register types
 		SimpleParser::Type::registerType<ClientConnect>("//meworla/lobby/connect");

@@ -3,9 +3,8 @@
   "version": "1.0.0",
   "vendor": "Meworla",
   "description": "Lobby System for Multiplayer",
-  "include": "Rhea/Lobby/LobbyFabrics.h",
-  "class": "Meworla::LobbyFabrics",
-  "target": "RheaLobby",
+  "include": "Rhea/Lobby/LobbyFabric.h",
+  "class": "Meworla::LobbyFabric", 
   "cmake_target": "Rhea::Lobby",
   "dependencies": [ "Rhea/GUI" ]
 }

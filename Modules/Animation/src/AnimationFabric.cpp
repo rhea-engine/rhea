@@ -1,12 +1,12 @@
 #include <Rhea/Application.h>
 
-#include <Rhea/Animation/AnimationFabrics.h>
+#include <Rhea/Animation/AnimationFabric.h>
 #include <Rhea/Animation/Animator.h>
 #include <Rhea/Animation/Animation.h>
 
 namespace Rhea
 {
-	void AnimationFabrics::Register(Application* app)
+	void AnimationFabric::Register(Application* app)
 	{
 		SimpleParser::Type::registerType<Animator>("//meworla/animator");
 		SimpleParser::Type::registerType<Animation>("//meworla/animation");

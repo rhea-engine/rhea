@@ -1,5 +1,5 @@
-#ifndef MEWORLA_LOBBYFABRICS_H
-#define MEWORLA_LOBBYFABRICS_H
+#ifndef MEWORLA_LOBBYFABRIC_H
+#define MEWORLA_LOBBYFABRIC_H
 
 #include <Rhea/Application.h>
 #include <Rhea/ModuleSystem.h>
@@ -7,7 +7,7 @@
 namespace Meworla
 {
 
-	class LobbyFabrics : public Rhea::IFabricModule		
+	class LobbyFabric : public Rhea::IFabric
 	{
 	public:
 
@@ -19,4 +19,4 @@ namespace Meworla
 	};
 }
 
-#endif // MEWORLA_LOBBYFABRICS_H
+#endif // MEWORLA_LOBBYFABRIC_H

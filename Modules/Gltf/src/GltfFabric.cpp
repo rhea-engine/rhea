@@ -1,12 +1,12 @@
 #include <Rhea/Application.h>
 #include <Orion/Mime.h>
 
-#include <Rhea/Gltf/GltfFabrics.h>
+#include <Rhea/Gltf/GltfFabric.h>
 #include <Rhea/Gltf/GlbLoader.h>
 #include <Rhea/Gltf/GltfScene.h>
 #include <Rhea/Gltf/GltfMesh.h>
 
-void Rhea::GltfFabrics::Register(Application* app)
+void Rhea::GltfFabric::Register(Application* app)
 {
 	// register gltf loader	
 	app->getResourceLoader()->registerLoader<GltfLoader>("model/gltf+json");

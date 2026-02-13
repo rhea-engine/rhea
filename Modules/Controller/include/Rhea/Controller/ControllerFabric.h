@@ -6,9 +6,9 @@
 
 namespace Rhea
 {
-	/** Fabrics for controllers
+	/** Fabric for controllers
 	*/
-	class ControllerFabrics : public Rhea::IFabricModule
+	class ControllerFabric : public Rhea::IFabric
 	{
 	public:
 		void Register(Application* app) override;

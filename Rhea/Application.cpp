@@ -53,13 +53,12 @@
 #include <Core/Lighting.h>
 #include <Fabrics/3D/PointLight.h>
 #include <Fabrics/3D/SpotLight.h>
-#include "Modules/Animation/include/Rhea/Animation/AnimationFabrics.h"
 #include <Component.h>
 #include <Physics/PhysicsComponent.h>
 
 #undef min
 
-extern std::vector<std::unique_ptr<Rhea::IFabricModule>> createModules();
+extern std::vector<std::unique_ptr<Rhea::IFabric>> createModules();
 
 namespace Rhea
 {
@@ -477,7 +476,7 @@ namespace Rhea
 
 	}
 
-	void Application::RegisterModule(std::unique_ptr<IFabricModule> module) {
+	void Application::RegisterModule(std::unique_ptr<IFabric> module) {
 		LOG(LOG_INFO) << "[Application] Registered module: " << module->getName();
 		m_modules.push_back(std::move(module));
 	}

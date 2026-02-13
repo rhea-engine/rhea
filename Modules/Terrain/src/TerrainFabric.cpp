@@ -1,4 +1,4 @@
-#include <Rhea/Terrain/TerrainFabrics.h>
+#include <Rhea/Terrain/TerrainFabric.h>
 
 #include <Rhea/Terrain/Terrain.h>
 #include <Rhea/Fabrics/Media/ImageResource.h>
@@ -8,7 +8,7 @@
 
 namespace Rhea
 {
-	void TerrainFabrics::Register(Application* app)
+	void TerrainFabric::Register(Application* app)
 	{
 		SimpleParser::Type::registerType<ImageResource>("//meworla/heightmap");
 		SimpleParser::Type::registerType<Terrain>("//meworla/terrain");

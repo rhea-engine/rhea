@@ -3,8 +3,7 @@
   "version": "0.9.0",
   "vendor": "Rhea",
   "description": "Rhea Gltf loader",
-  "class": "Rhea::GltfFabrics",
-  "include": "Rhea/Gltf/GltfFabrics.h",
-  "target": "RheaGltf",
+  "class": "Rhea::GltfFabric",
+  "include": "Rhea/Gltf/GltfFabric.h",
   "cmake_target": "Rhea::Gltf"
 }

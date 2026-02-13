@@ -1,9 +1,9 @@
-#include "ClientConnect.h"
+#include <Rhea/Lobby/ClientConnect.h>
 #include <Components/Psio/Log.h>
 #include <Rhea/UnitTree.h>
-#include <Rhea/Fabrics/GUI/include/Rhea/GUI/Widget.h>
+#include <Rhea/GUI/Widget.h>
 #include <Rhea/Fabrics/Network/ClientService.h>
-#include <CredentialsService.h>
+#include <Rhea/Lobby/CredentialsService.h>
 
 namespace Meworla
 {

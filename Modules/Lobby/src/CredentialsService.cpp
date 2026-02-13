@@ -1,4 +1,4 @@
-#include "CredentialsService.h"
+#include <Rhea/Lobby/CredentialsService.h>
 #include <Rhea/Application.h>
 #include <Orion/FileStream.h>
 

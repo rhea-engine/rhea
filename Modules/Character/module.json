@@ -5,5 +5,6 @@
   "description": "Rhea default Character",
   "class": "Rhea::CharacterFabrics",
   "include": "Rhea/Character/CharacterFabrics.h",
-  "target": "RheaCharacter"
+  "target": "RheaCharacter",
+  "cmake_target": "Rhea::Character"
 }

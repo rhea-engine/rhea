@@ -3,8 +3,8 @@
 
 #include <Rhea/Application.h>
 #include <Rhea/Fabrics/Network/ClientService.h>
-#include <Rhea/Fabrics/GUI/include/Rhea/GUI/Widget.h>
-#include <ClientConnect.h>
+#include <Rhea/GUI/Widget.h>
+#include <Rhea/Lobby/ClientConnect.h>
 
 namespace Meworla
 {

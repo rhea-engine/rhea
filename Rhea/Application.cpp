@@ -158,8 +158,6 @@ namespace Rhea
 		// register mime type for shader
 		Orion::MIME::RegisterExtenstion("text/plain", "hlsl");
 
-		AnimationFabrics::Register(this);
-
 		// register optional modules
 		for (auto& mod : createModules()) {
 			RegisterModule(std::move(mod));

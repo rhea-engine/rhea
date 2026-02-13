@@ -4,5 +4,6 @@
   "vendor": "Rhea",
   "description": "Rhea GUI System",
   "class": "Rhea::GUIModule",
-  "include": "Rhea/GUI/GUI.h"
+  "include": "Rhea/GUI/GUI.h",
+  "cmake_target": "Rhea::GUI"
 }

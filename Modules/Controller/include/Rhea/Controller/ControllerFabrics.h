@@ -6,12 +6,12 @@
 
 namespace Rhea
 {
-	/** Fabrics for basic image loading
+	/** Fabrics for controllers
 	*/
 	class ControllerFabrics : public Rhea::IFabricModule
 	{
 	public:
-		void Register(Application* app);
+		void Register(Application* app) override;
 
 		const char* getName() const override { return "Controller"; }
 	};

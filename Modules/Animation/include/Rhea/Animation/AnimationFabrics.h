@@ -1,16 +1,19 @@
-#ifndef RHEA_ANIMATION_H
+#ifndef RHEA_ANIMATIONFABRICS_H
+#define RHEA_ANIMATIONFABRICS_H
 
 namespace Rhea
 {
 	class Application;
 
-	/** Fabrics for basic image loading
+	/** Fabrics for animations
 	*/
-	class AnimationFabrics
+	class AnimationFabrics : public Rhea::IFabricModule
 	{
 	public:
-		static void Register(Application* app);
+		void Register(Application* app) override;
+
+		const char* getName() const override { return "Animation"; }
 	};
 }
 
-#endif // !RHEA_ANIMATION_H
+#endif // !RHEA_ANIMATIONFABRICS_H

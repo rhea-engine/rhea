@@ -37,7 +37,10 @@ namespace Rhea
 		}
 
 		float delta = static_cast<PhysicsEvent*>(ev)->getDelta();		
-		PhysicsCharacterInterface* character = static_cast<PhysicsCharacterInterface*>(m_physics_body);
+		auto* character = m_physics_body->query<PhysicsCharacterInterface>("PhysicsCharacter");
+		if (!character) {
+			return false;
+		}
 		bool dirty = false;
 
 		// if not on ground increase air timer else reset it
@@ -83,7 +86,7 @@ namespace Rhea
 			Math::Vector3 pos = character->update(m_position, move, gravity);			
 			if (!pos.equals(m_position->get_worldspace())) {
 				m_position->setPosition(pos);
-				character->setPosition(pos);
+				m_physics_body->setPosition(pos);
 				dirty = true;
 			}
 

@@ -1,7 +1,7 @@
 {
   "name": "Controller",
   "version": "0.9.0",
-  "vendor": "Rhea",
+  "vendor": "Meworla",
   "description": "Rhea default Controllers",
   "class": "Rhea::ControllerFabric",
   "include": "Rhea/Controller/ControllerFabric.h",

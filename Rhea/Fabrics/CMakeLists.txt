@@ -14,3 +14,11 @@ add_library (RheaFabrics
 add_subdirectory (Network)
 #add_subdirectory(Animation)
 target_link_libraries(RheaFabrics RheaFabricsNet Animation)
+
+# add internal fabrics
+add_subdirectory(Animation)
+add_subdirectory(Character)
+add_subdirectory(Controller)
+add_subdirectory(Gltf)
+add_subdirectory(GUI)
+add_subdirectory(Terrain)

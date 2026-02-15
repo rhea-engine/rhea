@@ -7,13 +7,8 @@
 
 #include <Rhea/Core/Position.h>
 #include <Math/Vector3.h>
-#include  <Rhea/Core/Transform.h>
+#include <Rhea/Core/Transform.h>
 #include <Rhea/Components/RenderComponent.h>
-
-namespace Poseidon
-{
-	class Node;
-}
 
 namespace Rhea
 {

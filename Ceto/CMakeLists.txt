@@ -8,25 +8,10 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ ${CMAKE_SOURCE_DIR} ${CMAKE_SOU
 # Define the main app
 add_executable (Ceto "Ceto.h" "Ceto.cpp" "UserPrefs.h" "UserPrefs.cpp")
 
-if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/mwpkg.cmake")
-    message(FATAL_ERROR "Missing mwpkg.cmake. Run `mwpkg install` before configuring.")
-endif()
-
-# add the submodules
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/mwpkg.cmake")
-    include(mwpkg.cmake)
-else()
-    message(STATUS "mwpkg.cmake not found — run 'mwpkg install' to generate it.")
-endif()
-include(../rhea.cmake)
-
-# Manually add Rhea to modules
-target_link_libraries(MWPModules INTERFACE Rhea)
+#include(../rhea.cmake)
 
 # add the renderer engine
-target_link_libraries(MWPModules INTERFACE RheaEngine)
-
-target_link_libraries(Ceto Rhea MWPModules RheaModules nlohmann_json::nlohmann_json)
+target_link_libraries(Ceto Rhea RheaModules nlohmann_json::nlohmann_json)
 
 add_custom_command(TARGET Ceto POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory

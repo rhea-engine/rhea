@@ -1,5 +1,7 @@
 #include "BtDebugDraw.h"
-#include "Application.h"
+#include <ThirdParty/bullet/src/btBulletDynamicsCommon.h>
+#include <Rhea/Application.h>
+#include <Poseidon/Mesh.h>
 #include <Poseidon/RenderQueue.h>
 #include <Poseidon/SceneManager.h>
 #include <Hippios/VertexBuffer.h>
@@ -9,76 +11,158 @@
 
 namespace Rhea
 {
+
+	struct BulletDebugDraw::Impl
+	{
+		class DebugDraw : public btIDebugDraw {
+
+		public:
+			DebugDraw() :
+				m_normals(false),
+				m_mode(0)
+			{
+			}
+
+			virtual void setDebugMode(int mode);
+			virtual int getDebugMode() const;
+			virtual void reportErrorWarning(const char* warning);
+
+			virtual void drawLine(const btVector3& from, const btVector3& to,
+				const btVector3& color);
+			virtual void drawContactPoint(const btVector3& point,
+				const btVector3& normal, btScalar distance, int lifetime,
+				const btVector3& color);
+			virtual void draw3dText(const btVector3& location, const char* text);
+			virtual void drawTriangle(const btVector3& v0, const btVector3& v1,
+				const btVector3& v2, const btVector3& color, btScalar);
+			virtual void drawTriangle(const btVector3& v0, const btVector3& v1,
+				const btVector3& v2, const btVector3& n0, const btVector3& n1,
+				const btVector3& n2, const btVector3& color, btScalar alpha);
+			virtual void drawSphere(btScalar radius, const btTransform& transform,
+				const btVector3& color);
+
+		public:
+			std::vector<Triangle> m_triangles;
+			std::vector<Line> m_lines;
+			bool m_normals;
+			int m_mode;
+		};
+
+		Impl(Application* a, btDynamicsWorld* w, Item* owner)
+			: m_app(a),
+			m_world(w),
+			m_owner(owner)
+		{
+			m_mesh = new Poseidon::Mesh();
+			Poseidon::Core* core;
+
+			GraphicsService* gs = static_cast<GraphicsService*>(m_app->getService("graphics"));
+			if (!gs)
+				return;
+			core = gs->getEngine();
+
+			m_mesh->setViewport(core->get_scene_manager()->getViewport());			
+			m_num_faces = 0;
+			m_enabled = true;
+
+			// prepare shaders		
+			material = core->getMaterial("color");
+			if (!material) {
+				material = core->createMaterial();
+				material->setTopology(2);
+				Poseidon::Shader* shader = core->getShader("shader_vp");
+				if (!shader) {
+					shader = core->createShader("shader_vp");
+					shader->setVertexType(0);
+					if (shader->loadFromFile("Data\\Rhea\\shaders\\shader_vp.hlsl", "VShader", "PShader"))
+						exit(-1);
+				}
+				material->setShader(shader);
+				core->registerMaterial("color", material);
+			}
+
+			core->get_scene_manager()->getViewport()->getRenderContext(std::string("default"))->addRenderChild(m_owner);
+			int mode = DebugDraw::DBG_DrawText |
+				DebugDraw::DBG_DrawFeaturesText |
+				DebugDraw::DBG_DrawContactPoints;
+			mode |= btIDebugDraw::DBG_DrawWireframe /* + btIDebugDraw::DBG_DrawConstraints + btIDebugDraw::DBG_DrawConstraintLimits*/;
+			mode |= DebugDraw::DBG_DrawAabb;
+			mode |= DebugDraw::DBG_DrawNormals;
+			m_drawer.setDebugMode(mode);
+		}
+
+		~Impl()
+		{
+			if (m_world && m_world->getDebugDrawer() == &m_drawer)
+				m_world->setDebugDrawer(nullptr);
+		}
+
+		Application* m_app = nullptr;
+		btDynamicsWorld* m_world = nullptr;
+		Item* m_owner;
+
+		DebugDraw m_drawer;
+
+		Poseidon::Mesh* m_mesh = nullptr;
+		Poseidon::Material* material = nullptr;
+		std::vector<Poseidon::Texture*> m_textures;
+
+		int m_num_faces = 0;
+		bool m_enabled = false;
+
+		// Debug geometry buffers
+		std::vector<Line> lines;
+		std::vector<Triangle> triangles;
+
+		// Helpers
+		void clearFrameData()
+		{
+			lines.clear();
+			triangles.clear();
+		}	
+	};
+
 	BulletDebugDraw::BulletDebugDraw(Application* app, btDynamicsWorld* world) :
 		Item("DebugDraw")
 	{
-		m_app = app;
-		m_mesh = new Poseidon::Mesh();
-		Poseidon::Core* core;
+		m_impl = new Impl(app, world, this);
+	}
 
-		GraphicsService* gs = static_cast<GraphicsService*>(m_app->getService("graphics"));
-		if (!gs)
-			return;
-		core = gs->getEngine();
-
-		m_mesh->setViewport(core->get_scene_manager()->getViewport());
-		m_world = world;
-		m_num_faces = 0;	
-		m_enabled = true;
-
-		// prepare shaders		
-		material = core->getMaterial("color");
-		if (!material) {
-			material = core->createMaterial();
-			material->setTopology(2);
-			Poseidon::Shader* shader = core->getShader("shader_vp");
-			if (!shader) {
-				shader = core->createShader("shader_vp");
-				shader->setVertexType(0);
-				if (shader->loadFromFile("Data\\Rhea\\shaders\\shader_vp.hlsl", "VShader", "PShader"))
-					exit(-1);
-			}
-			material->setShader(shader);
-			core->registerMaterial("color", material);
-		}
-
-		core->get_scene_manager()->getViewport()->getRenderContext(std::string("default"))->addRenderChild(this);
-		int mode = DebugDraw::DBG_DrawText |
-			DebugDraw::DBG_DrawFeaturesText |
-			DebugDraw::DBG_DrawContactPoints;
-		mode |= btIDebugDraw::DBG_DrawWireframe /* + btIDebugDraw::DBG_DrawConstraints + btIDebugDraw::DBG_DrawConstraintLimits*/;
-		mode |= DebugDraw::DBG_DrawAabb;
-		mode |= DebugDraw::DBG_DrawNormals;
-		m_drawer.setDebugMode(mode);
-		world->setDebugDrawer(&m_drawer);
+	BulletDebugDraw::~BulletDebugDraw()
+	{
+		delete m_impl;
+		m_impl = nullptr;
 	}
 
 	void BulletDebugDraw::cullPhase(Poseidon::RenderQueue* queue, Poseidon::Camera* camera)
 	{
-		if (m_enabled)
+		if (!m_impl)
+			return;
+		if (m_impl->m_enabled)
+
 			queue->addRenderable(this);
 		else
 			return;
 
 		// Collect debug geometry data
-		m_drawer.m_lines.clear();
-		m_drawer.m_triangles.clear();
+		m_impl->m_drawer.m_lines.clear();
+		m_impl->m_drawer.m_triangles.clear();
 
 		static int nums = 0;
 
-		m_world->debugDrawWorld();
+		m_impl->m_world->debugDrawWorld();
 
 		//if (nums == m_drawer.m_lines.size())
 		//	return;
 
-		nums = (int)m_drawer.m_lines.size();
+		nums = (int)m_impl->m_drawer.m_lines.size();
 
 		// draw to the mesh
 
 		// Render lines		
 		std::vector<Hippios::vertex> l_vertices;
 		float fact = 1;
-		for (auto lit = m_drawer.m_lines.begin(); lit != m_drawer.m_lines.end(); lit++) {
+		for (auto lit = m_impl->m_drawer.m_lines.begin(); lit != m_impl->m_drawer.m_lines.end(); lit++) {
 			Line& line = *lit;	
 			//line.p0.normalize();
 			//line.p1.normalize();
@@ -89,8 +173,8 @@ namespace Rhea
 			l_vertices.push_back({ line.p1.x, line.p1.y, line.p1.z, line.color.x, line.color.y, line.color.z, 1.0f });
 		}
 
-		m_mesh->setVertices(sizeof(Hippios::vertex), l_vertices.size(), l_vertices.data());
-		m_num_faces = (int)l_vertices.size();
+		m_impl->m_mesh->setVertices(sizeof(Hippios::vertex), l_vertices.size(), l_vertices.data());
+		m_impl->m_num_faces = (int)l_vertices.size();
 
 		// render triangles
 		/*
@@ -116,16 +200,16 @@ namespace Rhea
 
 	void BulletDebugDraw::getRenderInput(Hippios::VertexBuffer** pvb, Hippios::IndexBuffer** pib, int& num_indices)
 	{
-		*pvb = m_mesh->get_vbuffer();
+		*pvb = m_impl->m_mesh->get_vbuffer();
 		//*pib = m_mesh->get_ibuffer();
 		//num_indices = m_num_faces * 3;
 		*pib = nullptr;
-		num_indices = m_num_faces;
+		num_indices = m_impl->m_num_faces;
 	}
 
 	Poseidon::Material* BulletDebugDraw::getMaterial()
 	{
-		return material;
+		return m_impl->material;
 	}
 
 	Poseidon::Texture* BulletDebugDraw::getTexture()
@@ -135,25 +219,25 @@ namespace Rhea
 
 	void BulletDebugDraw::toggle()
 	{
-		m_enabled = !m_enabled;
+		m_impl->m_enabled = !m_impl->m_enabled;
 	}
 
-	void BulletDebugDraw::DebugDraw::setDebugMode(int mode)
+	void BulletDebugDraw::Impl::DebugDraw::setDebugMode(int mode)
 	{
 		m_mode = mode;
 	}
 
-	int BulletDebugDraw::DebugDraw::getDebugMode() const
+	int BulletDebugDraw::Impl::DebugDraw::getDebugMode() const
 	{
 		return m_mode;
 	}
 
-	void BulletDebugDraw::DebugDraw::reportErrorWarning(const char* warning)
+	void BulletDebugDraw::Impl::DebugDraw::reportErrorWarning(const char* warning)
 	{
 		printf("btDbgWarn: %s\n", warning);
 	}
 
-	void BulletDebugDraw::DebugDraw::drawLine(const btVector3& from, const btVector3& to, const btVector3& color)
+	void BulletDebugDraw::Impl::DebugDraw::drawLine(const btVector3& from, const btVector3& to, const btVector3& color)
 	{
 		float r = color.getX();
 		float g = color.getY();
@@ -180,19 +264,19 @@ namespace Rhea
 		m_lines.push_back(line);
 	}
 
-	void BulletDebugDraw::DebugDraw::drawContactPoint(const btVector3& point, const btVector3& normal, btScalar distance, int lifetime, const btVector3& color)
+	void BulletDebugDraw::Impl::DebugDraw::drawContactPoint(const btVector3& point, const btVector3& normal, btScalar distance, int lifetime, const btVector3& color)
 	{
 		const btVector3 to = point + normal * distance;
 		const btVector3& from = point;
 
 		drawLine(from, to, color);
 	}
-	void BulletDebugDraw::DebugDraw::draw3dText(const btVector3& location, const char* text)
+	void BulletDebugDraw::Impl::DebugDraw::draw3dText(const btVector3& location, const char* text)
 	{
 		printf("draw3dText not implemented: %s\n", text);
 	}
 
-	void BulletDebugDraw::DebugDraw::drawTriangle(const btVector3& v0, const btVector3& v1, const btVector3& v2, const btVector3& color, btScalar)
+	void BulletDebugDraw::Impl::DebugDraw::drawTriangle(const btVector3& v0, const btVector3& v1, const btVector3& v2, const btVector3& color, btScalar)
 	{
 		btScalar r = color.getX();
 		btScalar g = color.getY();
@@ -219,12 +303,12 @@ namespace Rhea
 		m_triangles.push_back(tri);
 	}
 
-	void BulletDebugDraw::DebugDraw::drawTriangle(const btVector3& v0, const btVector3& v1, const btVector3& v2, const btVector3& n0, const btVector3& n1, const btVector3& n2, const btVector3& color, btScalar alpha)
+	void BulletDebugDraw::Impl::DebugDraw::drawTriangle(const btVector3& v0, const btVector3& v1, const btVector3& v2, const btVector3& n0, const btVector3& n1, const btVector3& n2, const btVector3& color, btScalar alpha)
 	{
 		printf("drawTriangle(2) - not yet implemented!\n");	
 	}
 
-	void BulletDebugDraw::DebugDraw::drawSphere(btScalar radius, const btTransform& transform, const btVector3& color)
+	void BulletDebugDraw::Impl::DebugDraw::drawSphere(btScalar radius, const btTransform& transform, const btVector3& color)
 	{
 		btVector3 center = transform.getOrigin();
 

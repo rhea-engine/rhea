@@ -1,7 +1,5 @@
 #include "Item.h"
 #include "Application.h"
-#include "Poseidon/Entity.h"
-#include "Poseidon/SceneManager.h"
 #include "UnitTree.h"
 #include <Rhea/Fabrics/3D/Mesh.h>
 #include "Graphics/RenderElement.h"

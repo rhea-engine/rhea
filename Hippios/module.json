@@ -1,0 +1,8 @@
+{
+  "vendor": "Meworla",
+  "name": "Hippios",
+  "version": "0.9.0",
+  "dependencies": {
+    "Meworla/Components": "0.9.0"
+  }
+}

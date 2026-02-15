@@ -20,7 +20,7 @@
 #include <Rhea/Fabrics/3D/PointLight.h>
 #include <Rhea/Fabrics/3D/SpotLight.h>
 #include <Rhea/Graphics/GraphicsComponent.h>
-#include "Modules/Animation/include/Rhea/Animation/Skeleton.h"
+#include <Rhea/Fabrics/Animation/include/Rhea/Animation/Skeleton.h>
 
 namespace Poseidon
 {

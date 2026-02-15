@@ -11,6 +11,8 @@ add_library(Psio STATIC Psio.cpp  Window.cpp "InputEvent.cpp"  "Net/UrlRequest/U
 "Net/Socket/ConnectorFactory.cpp" "Net/Socket/TCPConnector.h"  "Net/Socket/TCPConnector.cpp" "Net/Socket/StreamSocket.h"
 "Image/Image.h" "Image/Image.cpp" "IPC/NamedPipe.h" "IPC/NamedPipe.cpp" "IPC/Process.h" "IPC/Process.cpp" "IPC/Pipe.h" "IPC/Pipe.cpp" "IPC/IO.h" "IPC/IO.cpp" "Fs/Fs.h" "Fs/Fs.cpp")
 
+add_library(Meworla::Psio ALIAS Psio)
+
 if (WIN32)
 	target_sources(Psio PRIVATE 
 	"Win32/Win32Window.cpp" "Win32/InputImpl.cpp" "Win32/KeyboardImpl.cpp" "Win32/Timer.cpp" 

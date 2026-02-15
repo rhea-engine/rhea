@@ -29,3 +29,6 @@ target_include_directories(GUI PUBLIC
 )
 
 target_link_libraries(GUI PUBLIC RheaEngine)
+
+# register for auto registry generation
+rhea_register_fabric_module("${CMAKE_CURRENT_SOURCE_DIR}/module.json")

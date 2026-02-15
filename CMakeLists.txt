@@ -54,7 +54,19 @@ endif()
 
 include_directories(${PROJECT_SOURCE_DIR} ${PROJECT_SOURCE_DIR}/Components/ ${json_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/ThirdParty/ ${PROJECT_SOURCE_DIR}/ThirdParty/bullet/src)
 
-option(DEV_BUILD_CETO "Build Ceto" ON)
+# Detect if we are the top-level project
+if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+#if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+    set(RHEA_IS_TOPLEVEL ON)
+else()
+    set(RHEA_IS_TOPLEVEL OFF)
+endif()
+
+option(RHEA_BUILD_ENGINE   "Build Rhea core" ON)
+# Only add modules and apps if in top-level directory
+option(RHEA_BUILD_EXTRAS  "Build bundled extras" ${RHEA_IS_TOPLEVEL})
+option(RHEA_BUILD_APPS     "Build engine apps (Ceto etc.)" ${RHEA_IS_TOPLEVEL})
+option(RHEA_BUILD_SAMPLES     "Build samples" ${RHEA_IS_TOPLEVEL})
 
 # Cross-Compiling works only for some projects
 set(enginedirs Components)
@@ -68,19 +80,27 @@ if(WIN32)
 endif()
 
 # Targets
-# Only add targets if in top-level directory
-if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+
+if(RHEA_BUILD_ENGINE)
+    foreach (ENGINE ${enginedirs})
+        add_subdirectory(${ENGINE})
+        target_link_libraries(RheaEngine INTERFACE ${ENGINE})
+    endforeach ()
+
+    target_include_directories(Orion PUBLIC ${json_SOURCE_DIR}/include)
+ endif()
+
+if(RHEA_BUILD_EXTRAS)
+    add_subdirectory(Lobby)
+endif()
+
+if(RHEA_BUILD_APPS)    
     foreach (TARGET ${targetdirs})
 	    add_subdirectory(${TARGET})	
     endforeach ()
  endif()
 
-foreach (ENGINE ${enginedirs})
-    add_subdirectory(${ENGINE})
-    target_link_libraries(RheaEngine INTERFACE ${ENGINE})
-endforeach ()
-
-target_include_directories(Orion PUBLIC ${json_SOURCE_DIR}/include)
-
 # Setup samples
-add_subdirectory(Samples)
+if(RHEA_BUILD_SAMPLES)
+    add_subdirectory(Samples)
+endif()

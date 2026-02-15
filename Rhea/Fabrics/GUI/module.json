@@ -2,6 +2,7 @@
   "name": "GUI",
   "version": "0.9.0",
   "vendor": "Meworla",
+  "package": "Rhea",
   "description": "Rhea GUI System",
   "class": "Rhea::GUIFabric",
   "include": "Rhea/GUI/GUIFabric.h",

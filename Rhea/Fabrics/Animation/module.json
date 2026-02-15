@@ -2,6 +2,7 @@
   "name": "Animation",
   "version": "0.9.0",
   "vendor": "Meworla",
+  "package": "Rhea",
   "description": "Animation System",
   "include": "Rhea/Animation/AnimationFabric.h",
   "class": "Rhea::AnimationFabric",

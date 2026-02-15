@@ -2,6 +2,12 @@ cmake_minimum_required (VERSION 3.9.2)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/Components/)
 
+# Make the functions available to subdirectories
+include(cmake/rhea_modules.cmake)
+
+# Create RheaModules target (empty for now)
+rhea_modules_begin()
+
 add_subdirectory(Resources)
 add_subdirectory(Physics)
 add_subdirectory(Fabrics)
@@ -30,3 +36,6 @@ if(RHEA_WITH_GRAPHICS)
 else()
 	add_library(Rhea ALIAS RheaBase)
 endif()
+
+# Finalize: generate registry + link enabled module targets into RheaModules
+rhea_modules_end()

@@ -26,8 +26,8 @@
 #include "InputMap.h"
 #include "Dispatcher.h"
 #include "Fabrics/Media/MediaFabrics.h"
-#include "Modules/GUI/include/Rhea/GUI/GUIController.h"
-#include "Modules/GUI/include/Rhea/GUI/GuiService.h"
+#include "Fabrics/GUI/include/Rhea/GUI/GUIController.h"
+#include "Fabrics/GUI/include/Rhea/GUI/GuiService.h"
 #include "Resources/ResourceService.h"
 
 #include "Graphics/GraphicsService.h"

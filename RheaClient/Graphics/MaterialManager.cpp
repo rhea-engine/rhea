@@ -3,10 +3,10 @@
 #include <Psio/Image/Image.h>
 #include <Poseidon/Texture.h>
 
-#include "Resources/TextResource.h"
-#include "Event.h"
+#include <Rhea/Resources/TextResource.h>
+#include <Rhea/Event.h>
 
-#include "Core/Material.h"
+#include <Rhea/Core/Material.h>
 #include "MaterialManager.h"
 #include "./Texture.h"
 #include <Psio/Log.h>

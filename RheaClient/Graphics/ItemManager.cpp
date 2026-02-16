@@ -4,12 +4,12 @@
 #include <Poseidon/Shader.h>
 #include <Poseidon/RenderContext.h>
 
-#include "../Unit.h"
-#include "Core/Item.h"
-#include "Fabrics/3D/Mesh.h"
-#include "Core/Material.h"
-#include "../Resources/TextResource.h"
-#include "../UnitTree.h"
+#include <Rhea/Unit.h>
+#include <Rhea/Core/Item.h>
+#include <Rhea/Fabrics/3D/Mesh.h>
+#include <Rhea/Core/Material.h>
+#include <Rhea/Resources/TextResource.h>
+#include <Rhea/UnitTree.h>
 
 #include "ItemManager.h"
 #include "Texture.h"

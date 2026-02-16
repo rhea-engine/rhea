@@ -11,4 +11,5 @@ target_link_libraries(Poseidon
   PUBLIC
     Meworla::Components
     Meworla::Hippios
+    Rhea::Client
 )

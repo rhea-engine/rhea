@@ -2,12 +2,6 @@ cmake_minimum_required (VERSION 3.9.2)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/Components/)
 
-# Make the functions available to subdirectories
-include(cmake/rhea_modules.cmake)
-
-# Create RheaModules target (empty for now)
-rhea_modules_begin()
-
 add_subdirectory(Resources)
 add_subdirectory(Physics)
 add_subdirectory(Fabrics)
@@ -20,22 +14,16 @@ add_library(RheaBase "Unit.cpp" "UnitTree.cpp" "Realm.cpp" "InputMap.cpp" "Dispa
 "Core/Material.h" "Core/Material.cpp" "Core/SceneLoader.cpp" "Core/Scene.cpp" "Core/Avatar.h" "Core/Avatar.cpp" "Core/Position.h" "Core/Position.cpp"
 "Core/Transform.h" "Core/Transform.cpp" "Core/Geometry.h" "Core/Shader.h"  "Core/Shader.cpp" "Core/Item.h" "Core/Item.cpp" "Core/Controller.h"
 "Core/WorldService.h" "Core/WorldService.cpp" "Core/Lighting.cpp" "Core/Lighting.h" "Core/Lighting.cpp" "ModuleSystem.h")
+add_library(Rhea::Core ALIAS RheaBase)
 
 target_link_libraries(RheaBase PoseidonMath Orion SimpleParser RheaResources RheaPhysics RheaFabrics RheaComponents Psio)
 
-if(RHEA_WITH_GRAPHICS)
-	add_library(RheaClient
-	"Graphics/GraphicsService.cpp" "Graphics/Texture.cpp" "Graphics/ItemManager.cpp" "Graphics/SceneManager.cpp" 
-	"Graphics/CameraManager.cpp" "Graphics/RenderElement.h" "Graphics/RenderElement.cpp"
-	"Graphics/GraphicsManager.h" "Graphics/MaterialManager.cpp"
-	"Graphics/GraphicsManager.cpp" "Graphics/MeshElement.h"  "Graphics/MeshManager.h" "Graphics/MeshManager.cpp" "Graphics/GraphicsComponent.h" "Graphics/GraphicsElement.h")
+# helpers for consumers
+set(RHEA_CMAKE_DIR "${CMAKE_CURRENT_LIST_DIR}/cmake" CACHE INTERNAL "")
+add_library(RheaRuntime INTERFACE)
+add_library(Rhea::Runtime ALIAS RheaRuntime)
 
-	target_link_libraries(RheaClient RheaBase Poseidon Winmm RheaPhysicsDebug)
+target_link_libraries(RheaRuntime INTERFACE
+  Rhea::Core
+)
 
-	add_library(Rhea ALIAS RheaClient)
-else()
-	add_library(Rhea ALIAS RheaBase)
-endif()
-
-# Finalize: generate registry + link enabled module targets into RheaModules
-rhea_modules_end()

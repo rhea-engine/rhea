@@ -4,12 +4,11 @@
 #include "Rhea/UnitTree.h"
 #include "Rhea/Controller/BasicController.h"
 #include "Rhea/Controller/SpectatorController.h"
-#include "Rhea/Graphics/GraphicsService.h"
-#include "Rhea/Graphics/CameraManager.h"
+#include <Rhea/Graphics/GraphicsService.h>
+#include <Rhea/Graphics/GraphicsManager.h>
+#include <Rhea/Graphics/CameraManager.h>
 #include "Rhea/Fabrics/3D/Camera.h"
 #include "Rhea/Physics/PhysicsManager.h"
-#include "Rhea/Graphics/GraphicsService.h"
-#include "Rhea/Graphics/GraphicsManager.h"
 
 #include "Poseidon/Material.h"
 #include "Poseidon/Shader.h"

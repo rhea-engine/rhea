@@ -1,6 +1,6 @@
 #include "Texture.h"
-#include "../Unit.h"
-#include "../Resources/Resource.h"
+#include <Rhea/Unit.h>
+#include <Rhea/Resources/Resource.h>
 #include <Psio/Log.h>
 #include <Rhea/Fabrics/Media/ImageResource.h>
 #include <Poseidon/Texture.h>

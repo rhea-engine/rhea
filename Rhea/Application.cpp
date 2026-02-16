@@ -30,7 +30,6 @@
 #include "Fabrics/GUI/include/Rhea/GUI/GuiService.h"
 #include "Resources/ResourceService.h"
 
-#include "Graphics/GraphicsService.h"
 #include "Platform/PlatformService.h"
 #include "Physics/PhysicsManager.h"
 
@@ -42,7 +41,6 @@
 #include <Fabrics/Text/BitmapFont.h>
 #include <EventInput.h>
 #include <Core/Avatar.h>
-#include <Fabrics/3D/ObjLoader.h>
 #include <Resources/Resources.h>
 #include <Resources/Collection.h>
 #include <Fabrics/3D/Skybox.h>

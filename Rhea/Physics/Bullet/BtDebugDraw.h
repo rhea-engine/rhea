@@ -5,7 +5,7 @@
 #include <Math/Vector3.h>
 #include <Rhea/Core/Item.h>
 
-namespace Poseidon { class RenderQueue; class Camera; class Material; class Texture; class Mesh; }
+namespace Poseidon { class RenderQueue; class Camera; class Material; class Texture; class Mesh; class Core; }
 namespace Hippios { class VertexBuffer; class IndexBuffer; }
 class btDynamicsWorld;
 
@@ -29,7 +29,7 @@ namespace Rhea
             Math::Vector3 color;
         };
 
-        BulletDebugDraw(Application* app, btDynamicsWorld* world);
+        BulletDebugDraw(Application* app, btDynamicsWorld* world, Poseidon::Core* core);
 		~BulletDebugDraw();
 
         //  Renderable functions

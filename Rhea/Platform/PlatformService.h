@@ -3,7 +3,7 @@
 
 #include <memory>
 
-#include "../Service.h"
+#include <Rhea/Service.h>
 
 namespace Psio
 {

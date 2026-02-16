@@ -86,7 +86,7 @@ namespace Poseidon
 		if (m_phys_debug) {
 			Rhea::BulletPhysicsService* ps = doCast<Rhea::BulletPhysicsService>(getService("physics"));
 			if (ps)
-				m_debug_draw = new Rhea::BulletDebugDraw(this, ps->getWorld());
+				m_debug_draw = new Rhea::BulletDebugDraw(this, ps->getWorld(), core);
 		}
 	}
 

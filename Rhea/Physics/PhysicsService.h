@@ -1,7 +1,7 @@
 #ifndef RHEA_PHYSICS_SERVICE_H
 #define RHEA_PHYSICS_SERVICE_H
 
-#include "../Service.h"
+#include <Rhea/Service.h>
 #include <Rhea/Core/Scene.h>
 #include <Math/Vector3.h>
 #include "Body.h"

@@ -7,7 +7,6 @@
 #include <Hippios/VertexBuffer.h>
 #include <Poseidon/Shader.h>
 #include <Poseidon/RenderContext.h>
-#include <Graphics/GraphicsService.h>
 
 namespace Rhea
 {
@@ -48,18 +47,12 @@ namespace Rhea
 			int m_mode;
 		};
 
-		Impl(Application* a, btDynamicsWorld* w, Item* owner)
+		Impl(Application* a, btDynamicsWorld* w, Item* owner, Poseidon::Core* core)
 			: m_app(a),
 			m_world(w),
 			m_owner(owner)
 		{
 			m_mesh = new Poseidon::Mesh();
-			Poseidon::Core* core;
-
-			GraphicsService* gs = static_cast<GraphicsService*>(m_app->getService("graphics"));
-			if (!gs)
-				return;
-			core = gs->getEngine();
 
 			m_mesh->setViewport(core->get_scene_manager()->getViewport());			
 			m_num_faces = 0;
@@ -122,10 +115,10 @@ namespace Rhea
 		}	
 	};
 
-	BulletDebugDraw::BulletDebugDraw(Application* app, btDynamicsWorld* world) :
+	BulletDebugDraw::BulletDebugDraw(Application* app, btDynamicsWorld* world, Poseidon::Core* core) :
 		Item("DebugDraw")
 	{
-		m_impl = new Impl(app, world, this);
+		m_impl = new Impl(app, world, this, core);
 	}
 
 	BulletDebugDraw::~BulletDebugDraw()

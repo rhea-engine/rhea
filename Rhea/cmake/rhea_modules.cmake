@@ -4,6 +4,13 @@
 
 include_guard(GLOBAL)
 
+get_filename_component(RHEA_ROOT_DIR "${CMAKE_CURRENT_LIST_FILE}" DIRECTORY)
+get_filename_component(RHEA_ROOT_DIR "${RHEA_ROOT_DIR}" DIRECTORY)
+set(RHEA_GENERATOR_PY "${RHEA_ROOT_DIR}/scripts/generate_module_registry.py")
+if(NOT EXISTS "${RHEA_GENERATOR_PY}")
+  message(FATAL_ERROR "Rhea generator not found at: ${RHEA_GENERATOR_PY}")
+endif()
+
 # Where to write the generated file
 set(RHEA_GENERATED_CPP "${CMAKE_BINARY_DIR}/GeneratedModules.cpp" CACHE FILEPATH "")
 
@@ -41,10 +48,11 @@ function(rhea_modules_begin)
   if(TARGET RheaModules)
     return()
   endif()
-
-  # Set to where the generator script lives
-  set(RHEA_GENERATOR_PY "${CMAKE_CURRENT_LIST_DIR}/../scripts/generate_module_registry.py")
-
+  
+  get_filename_component(RHEA_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}" DIRECTORY)
+   message("RHEA_ROOT_DIR: " ${RHEA_ROOT_DIR})
+  set(RHEA_GENERATOR_PY "${RHEA_ROOT_DIR}/scripts/generate_module_registry.py")
+  
   find_package(Python3 REQUIRED COMPONENTS Interpreter)
 
   # Generation rule: depends on explicit JSON list (populated later),
@@ -133,9 +141,6 @@ function(rhea_modules_end)
      endif()
    endforeach()
  endif()
-
-  # --- generator command uses enabled jsons only ---
-  set(RHEA_GENERATOR_PY "${CMAKE_CURRENT_LIST_DIR}/../scripts/generate_module_registry.py")
 
   set(_json_args "")
   foreach(j IN LISTS _enabled_jsons)

@@ -11,7 +11,7 @@ add_executable (Ceto "Ceto.h" "Ceto.cpp" "UserPrefs.h" "UserPrefs.cpp")
 #include(../rhea.cmake)
 
 # add the renderer engine
-target_link_libraries(Ceto Rhea RheaModules nlohmann_json::nlohmann_json)
+target_link_libraries(Ceto Rhea::Core RheaModules Rhea::Client RheaPhysicsDebug nlohmann_json::nlohmann_json)
 
 add_custom_command(TARGET Ceto POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory

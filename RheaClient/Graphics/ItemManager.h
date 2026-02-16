@@ -5,7 +5,7 @@
 #include <Poseidon/Node.h>
 #include <Poseidon/RenderContext.h>
 
-#include "../Element.h"
+#include <Rhea/Element.h>
 #include "RenderElement.h"
 #include "GraphicsManager.h"
 

@@ -7,7 +7,7 @@
 #include <Poseidon/Mesh.h>
 
 #include "GraphicsElement.h"
-#include "../Event.h"
+#include <Rhea/Event.h>
 
 #include <Poseidon/Node.h>
 

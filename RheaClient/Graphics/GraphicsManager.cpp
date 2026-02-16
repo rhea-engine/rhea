@@ -4,16 +4,16 @@
 #include <Poseidon/Mesh.h>
 #include <Poseidon/RenderContext.h>
 
-#include "Application.h"
-#include "Unit.h"
-#include "Core/Material.h"
+#include <Rhea/Application.h>
+#include <Rhea/Unit.h>
+#include <Rhea/Core/Material.h>
 
 #include "GraphicsManager.h"
 #include "MaterialManager.h"
 #include "GraphicsService.h"
 #include "RenderElement.h"
 #include <Psio/Log.h>
-#include "../Fabrics/GUI/include/Rhea/GUI/Widget.h"
+#include <Rhea/GUI/Widget.h>
 #include "GraphicsComponent.h"
 
 namespace Rhea

@@ -4,7 +4,7 @@
 #include <memory>
 #include <unordered_map>
 
-#include "../Service.h"
+#include <Rhea/Service.h>
 #include <Rhea/Core/Scene.h>
 
 namespace Poseidon

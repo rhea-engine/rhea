@@ -2,11 +2,11 @@
 #include "GraphicsService.h"
 #include <functional>
 
-#include "../Platform/PlatformService.h"
-#include "../Application.h"
-#include "../Unit.h"
-#include "Core//Scene.h"
-#include "../UnitTree.h"
+#include <Rhea/Platform/PlatformService.h>
+#include <Rhea/Application.h>
+#include <Rhea/Unit.h>
+#include <Rhea/Core/Scene.h>
+#include <Rhea/UnitTree.h>
 
 #include "Poseidon/Core.h"
 #include "Poseidon/Viewport.h"
@@ -14,7 +14,7 @@
 #include "Poseidon/RenderContext.h"
 #include "Poseidon/Camera.h"
 
-#include "../Element.h"
+#include <Rhea/Element.h>
 #include "Texture.h"
 #include "ItemManager.h"
 #include "SceneManager.h"
@@ -23,10 +23,10 @@
 #include "CameraManager.h"
 #include "MeshManager.h"
 #include <Rhea/Physics/PhysicsService.h>
-#include "EventInput.h"
+#include <Rhea/EventInput.h>
 
-#include "Core/Item.h"
-#include "Fabrics/3D/Mesh.h"
+#include <Rhea/Core/Item.h>
+#include <Rhea/Fabrics/3D/Mesh.h>
 #include "Poseidon/Renderable.h"
 #include "Poseidon/Entity.h"
 

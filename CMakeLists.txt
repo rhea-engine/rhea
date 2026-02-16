@@ -69,10 +69,12 @@ option(RHEA_BUILD_APPS     "Build engine apps (Ceto etc.)" ${RHEA_IS_TOPLEVEL})
 option(RHEA_BUILD_SAMPLES     "Build samples" ${RHEA_IS_TOPLEVEL})
 
 # Cross-Compiling works only for some projects
-set(enginedirs Components)
+set(engine_dirs Components)
+set(engine_targets Meworla::Components)
 set(targetdirs FortyTwo)
 if(WIN32)
-    list(APPEND enginedirs Poseidon Hermes Hippios Orion Rhea)    
+    list(APPEND engine_dirs Poseidon Hermes Hippios Orion Rhea RheaClient)
+    list(APPEND engine_targets Meworla::Poseidon Hermes Meworla::Hippios Meworla::Orion Rhea::Core Rhea::Client)
   #  if(DEV_BUILD_CETO)
         list(APPEND targetdirs Ceto)
     #endif()
@@ -81,18 +83,31 @@ endif()
 
 # Targets
 
+# Make the functions available to subdirectories
+include(Rhea/cmake/rhea_modules.cmake)
+
+# Create RheaModules target (empty for now)
+rhea_modules_begin()
+
+
 if(RHEA_BUILD_ENGINE)
-    foreach (ENGINE ${enginedirs})
-        add_subdirectory(${ENGINE})
-        target_link_libraries(RheaEngine INTERFACE ${ENGINE})
-    endforeach ()
+    foreach(dir IN LISTS engine_dirs)
+        add_subdirectory(${dir})
+    endforeach()
+
+    foreach(tgt IN LISTS engine_targets)
+        target_link_libraries(RheaEngine INTERFACE ${tgt})
+    endforeach()
 
     target_include_directories(Orion PUBLIC ${json_SOURCE_DIR}/include)
- endif()
+endif()
 
 if(RHEA_BUILD_EXTRAS)
     add_subdirectory(Lobby)
 endif()
+
+# Finalize: generate registry + link enabled module targets into RheaModules
+rhea_modules_end()
 
 if(RHEA_BUILD_APPS)    
     foreach (TARGET ${targetdirs})

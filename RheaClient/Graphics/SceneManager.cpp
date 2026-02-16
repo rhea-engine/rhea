@@ -7,12 +7,12 @@
 #include "SceneManager.h"
 #include "ItemManager.h"
 #include "CameraManager.h"
-#include "../Unit.h"
-#include "Core/Item.h"
-#include "Fabrics/Canvas/Item2D.h"
+#include <Rhea/Unit.h>
+#include <Rhea/Core/Item.h>
+#include <Rhea/Fabrics/Canvas/Item2D.h>
 #include "GraphicsService.h"
 #include <Psio/Log.h>
-#include <Core/Lighting.h>
+#include <Rhea/Core/Lighting.h>
 
 namespace Rhea
 {

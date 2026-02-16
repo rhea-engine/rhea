@@ -1,7 +1,7 @@
 #ifndef RHEA_PHYSICS_MGR_H
 #define RHEA_PHYSICS_MGR_H
 
-#include "../Service.h"
+#include <Rhea/Service.h>
 #include "PhysicsService.h"
 
 namespace Rhea

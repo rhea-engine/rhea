@@ -1,7 +1,7 @@
 #ifndef RHEA_GRAPHICS_CAMERA_H
 #define RHEA_GRAPHICS_CAMERA_H
 
-#include "../Event.h"
+#include <Rhea/Event.h>
 #include "GraphicsElement.h"
 #include "GraphicsManager.h"
 

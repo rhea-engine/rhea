@@ -32,8 +32,8 @@ with output_file.open("w", encoding="utf-8") as out:
     for include, _ in modules:
         out.write(f'#include <{include}>\n')
 
-    out.write("\nstd::vector<std::unique_ptr<Rhea::IFabricModule>> createModules() {\n")
-    out.write("    std::vector<std::unique_ptr<Rhea::IFabricModule>> modules;\n\n")
+    out.write("\nstd::vector<std::unique_ptr<Rhea::IFabric>> createModules() {\n")
+    out.write("    std::vector<std::unique_ptr<Rhea::IFabric>> modules;\n\n")
 
     for _, fq_class in modules:
         out.write(f"    modules.push_back(std::make_unique<{fq_class}>());\n")

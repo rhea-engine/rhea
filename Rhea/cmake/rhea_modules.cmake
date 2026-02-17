@@ -49,9 +49,6 @@ function(rhea_modules_begin)
     return()
   endif()
   
-  get_filename_component(RHEA_ROOT_DIR "${CMAKE_CURRENT_LIST_DIR}" DIRECTORY)
-   message("RHEA_ROOT_DIR: " ${RHEA_ROOT_DIR})
-  set(RHEA_GENERATOR_PY "${RHEA_ROOT_DIR}/scripts/generate_module_registry.py")
   
   find_package(Python3 REQUIRED COMPONENTS Interpreter)
 
@@ -71,8 +68,10 @@ function(rhea_modules_end)
     message(FATAL_ERROR "rhea_modules_end: call rhea_modules_begin() first.")
   endif()
     
+  find_package(Python3 REQUIRED COMPONENTS Interpreter)
+
   # Read the registered json list from GLOBAL property (populated by rhea_register_fabric_module calls in subdirs)
- get_property(_all_jsons GLOBAL PROPERTY RHEA_FABRIC_MODULE_JSONS)
+  get_property(_all_jsons GLOBAL PROPERTY RHEA_FABRIC_MODULE_JSONS)
   if(NOT _all_jsons)
     set(_all_jsons "")
     message(STATUS "RheaModules: no fabric modules registered; generating empty registry.")
@@ -152,7 +151,7 @@ function(rhea_modules_end)
     COMMAND ${Python3_EXECUTABLE} "${RHEA_GENERATOR_PY}"
       --output "${RHEA_GENERATED_CPP}"
       ${_json_args}
-    DEPENDS ${_enabled_jsons}
+    DEPENDS ${_enabled_jsons} "${RHEA_GENERATOR_PY}"
     COMMENT "Rhea: Generating central module registry (enabled fabrics)"
     VERBATIM
   )

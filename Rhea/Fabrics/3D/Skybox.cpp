@@ -4,6 +4,8 @@
 #include <Rhea/Core/Material.h>
 #include <Rhea/Core/Shader.h>
 #include <Psio/Log.h>
+#include <Rhea/Components/RenderComponent.h>
+#include <Rhea/Fabrics/3D/Mesh.h>
 
 namespace Rhea
 {
@@ -25,6 +27,11 @@ namespace Rhea
 	{
 		Item::ready();
 
+		// make sure visualcomponent is set
+		VisualComponent* visual_component = getComponent<VisualComponent>();
+		if (!visual_component) {
+			visual_component = addComponentUnique<VisualComponent>("visual");
+		}
 		// skybox mesh
 		RenderComponent* render_component = getComponent<RenderComponent>();
 		if (!render_component) {

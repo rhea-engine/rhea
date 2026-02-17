@@ -6,6 +6,8 @@
 #include <Psio/Log.h>
 #include <Graphics/GraphicsService.h>
 #include <Rhea/Core/Shader.h>
+#include <Rhea/Components/RenderComponent.h>
+#include <Rhea/Fabrics/3D/Mesh.h>
 
 namespace Rhea
 {
@@ -150,6 +152,11 @@ namespace Rhea
 			}
 		}
 
+		// make sure visualcomponent is set
+		VisualComponent* visual_component = getComponent<VisualComponent>();
+		if (!visual_component) {
+			visual_component = addComponentUnique<VisualComponent>("visual");
+		}
 		// make sure rendercomponent is set
 		RenderComponent* render_component = getComponent<RenderComponent>();
 		if (!render_component) {

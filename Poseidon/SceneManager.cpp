@@ -21,6 +21,8 @@
 #include <Rhea/Fabrics/3D/SpotLight.h>
 #include <Rhea/Graphics/GraphicsComponent.h>
 #include <Rhea/Fabrics/Animation/include/Rhea/Animation/Skeleton.h>
+#include <Rhea/Components/VisualComponent.h>
+#include <Rhea/Components/RenderComponent.h>
 
 namespace Poseidon
 {
@@ -130,7 +132,7 @@ namespace Poseidon
 				context->getLights(lights);
 				light_buf = {};
 
-				// gloabl ambient light
+				// global ambient light
 				light_buf.ambient = context->getAmbient();
 
 				// iterate lights and add them to the light buffer
@@ -189,14 +191,14 @@ namespace Poseidon
 				Item* renderable = m_rend_queue->first();
 				for (Item* renderable = m_rend_queue->first(); renderable != NULL; renderable = m_rend_queue->next()) {
 
+					auto* vis = renderable->getComponent<Rhea::VisualComponent>();
+					if (!vis || !vis->isVisible()) continue;
+
 					Rhea::RenderComponent* r_comp = renderable->getComponent<Rhea::RenderComponent>();
-					if (!r_comp)
+					// get the main mesh object
+					if (!r_comp || !r_comp->mesh)
 						continue;
 
-					// get the main mesh object
-					Rhea::Mesh* rmesh = r_comp->getMesh();
-					if (!rmesh)
-						continue;
 
 					// fill per object buffer
 					Rhea::Transform* transform = renderable->getTransform();
@@ -217,17 +219,18 @@ namespace Poseidon
 					}
 
 					// get render mesh
-					Rhea::GraphicsComponent* g_component = rmesh->getComponent<Rhea::GraphicsComponent>();
-					if (!g_component)
-						continue;
-					Rhea::GraphicsMesh* m_elem = (Rhea::GraphicsMesh*)g_component->getElement();
-					if (!m_elem)
-						continue;
+					Rhea::GraphicsMesh* m_elem = r_comp->getGraphicsMesh();
+					if (!m_elem) {
+						Rhea::GraphicsComponent* g = r_comp->mesh->getComponent<Rhea::GraphicsComponent>();
+						if (!g) continue;
+						m_elem = static_cast<Rhea::GraphicsMesh*>(g->getElement());
+						r_comp->gfxMesh = m_elem; // cache it
+					}
 					Mesh* mesh = m_elem->m_mesh;
 
 
 					// skeleton handling if any
-					Rhea::Skeleton* skeleton = rmesh->getComponent<Rhea::Skeleton>();
+					Rhea::Skeleton* skeleton = r_comp->skeleton;
 					if (skeleton) {
 						// Fill the bone buffer
 						BoneBuffer boneBuffer;

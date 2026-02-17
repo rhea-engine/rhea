@@ -3,7 +3,7 @@
   "package": "RheaClient",
   "name": "GraphicsPoseidon",
   "version": "0.9.0",
-  "class": "RheaClient::PoseidonGraphicsFabric",
+  "class": "Rhea::PoseidonGraphicsFabric",
   "include": "Rhea/PoseidonGraphicsFabric.h",
   "cmake_target": "Rhea::Client"
 }

@@ -4,6 +4,7 @@
 #include <Poseidon/Shader.h>
 #include <Poseidon/RenderContext.h>
 
+#include <Rhea/Application.h>
 #include <Rhea/Unit.h>
 #include <Rhea/Core/Item.h>
 #include <Rhea/Fabrics/3D/Mesh.h>
@@ -20,6 +21,7 @@
 #include <Rhea/Fabrics/3D/Light.h>
 #include "GraphicsComponent.h"
 #include "MaterialManager.h"
+#include <Rhea/Components/RenderComponent.h>
 
 namespace Rhea
 {
@@ -41,6 +43,8 @@ namespace Rhea
 		if (!item)
 			return nullptr;
 
+		DLOG(LOG_DEBUG) << "GraphicsItemManager::createElement called for: " << item->getPathName();
+
 		// is this a light?
 		Light* light = doCast<Light>(item);
 		if (light) {			
@@ -53,8 +57,38 @@ namespace Rhea
 
 		// prepare basic elements
 		
-		Mesh* item_mesh = item->getMesh();
-		elem = new GraphicsRenderElement(core);
+		auto* rc = item->getComponent<RenderComponent>();
+		Mesh* item_mesh = nullptr;
+		if (!elem)
+			elem = new GraphicsRenderElement(core);
+		if (!rc || !rc->mesh)
+		{
+			VisualComponent* v_c = item->getComponent<VisualComponent>();
+			if (!v_c) {
+				DLOG(LOG_DEBUG) << "Item has no visual component";
+				return nullptr;
+				//v_c = item->addComponentUnique<VisualComponent>("visual");
+			}
+
+			Application* app = m_service->getApplication();
+			if (!app) {
+				LOG(LOG_ERROR) << "Graphics service has no app reference";
+				return nullptr;
+			}
+			item_mesh = doCast<Mesh>(app->getUnitTree()->find(v_c->meshRef(), v_c->basepathRef(), false));
+			if (item_mesh) {
+				item_mesh->ready();
+				if (!rc)
+					rc = item->addComponentUnique<RenderComponent>("renderer");
+				rc->setMesh(item_mesh);
+			}
+			else {
+				LOG(LOG_ERROR) << "No mesh defined for item";
+				return nullptr;
+			}			
+		}
+		else
+			item_mesh = rc->mesh;
 
 		if (item_mesh) {
 
@@ -94,9 +128,9 @@ namespace Rhea
 		GraphicsRenderElement* elem = static_cast<GraphicsRenderElement*>(gr_comp->getElement());
 
 		// possible material change - check if material has element		
-		Mesh* mesh = item->getMesh();
-		if (!mesh)
-			return false;
+		auto* rc = item->getComponent<RenderComponent>();
+		if (!rc || !rc->mesh) return false;
+		Mesh* mesh = rc->mesh;
 
 		// NOTE: This assumes a changed material will actually be a new material (i.e. the old one gets destroyed)
 

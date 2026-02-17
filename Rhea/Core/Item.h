@@ -8,7 +8,7 @@
 #include <Rhea/Core/Position.h>
 #include <Math/Vector3.h>
 #include <Rhea/Core/Transform.h>
-#include <Rhea/Components/RenderComponent.h>
+#include <Rhea/Components/VisualComponent.h>
 
 namespace Rhea
 {
@@ -44,7 +44,7 @@ namespace Rhea
 		void ready();
 
 		// get dependent data
-		Mesh* getMesh() { if (getComponent<RenderComponent>()) return getComponent<RenderComponent>()->getMesh(); else return nullptr; }
+		//Mesh* getMesh() { if (getComponent<RenderComponent>()) return getComponent<RenderComponent>()->getMesh(); else return nullptr; }
 
 		std::vector<Export> getReferences();
 
@@ -71,12 +71,12 @@ namespace Rhea
 		virtual void jump() {}
 
 		// graphics
-		RenderComponent* getRenderComponent() {	return getComponent<RenderComponent>(); }
+		//RenderComponent* getRenderComponent() {	return getComponent<RenderComponent>(); }
 
 		// visibility
-		virtual void hide() { if (getComponent<RenderComponent>()) getComponent<RenderComponent>()->hide(); }
-		virtual void show() { if (getComponent<RenderComponent>()) getComponent<RenderComponent>()->show(); }
-		bool isVisible() { if (getComponent<RenderComponent>()) return getComponent<RenderComponent>()->isVisible(); else return false; }
+		virtual void hide() { if (getComponent<VisualComponent>()) getComponent<VisualComponent>()->hide(); }
+		virtual void show() { if (getComponent<VisualComponent>()) getComponent<VisualComponent>()->show(); }
+		bool isVisible() { if (getComponent<VisualComponent>()) return getComponent<VisualComponent>()->isVisible(); else return false; }
 
 		// physics
 		PhysicsBody* getPhysicsBody();

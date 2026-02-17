@@ -11,6 +11,7 @@
 #include <Rhea/Core/Shader.h>
 #include <Psio/Log.h>
 #include <Components/Math/Vector2.h>
+#include <Rhea/Components/RenderComponent.h>
 
 namespace Rhea
 {
@@ -132,6 +133,12 @@ namespace Rhea
 				float max_height = getValue("height");
 				if (max_height)
 					m_max_height = max_height;
+
+				// make sure visualcomponent is set
+				VisualComponent* visual_component = getComponent<VisualComponent>();
+				if (!visual_component) {
+					visual_component = addComponentUnique<VisualComponent>("visual");
+				}
 
 				RenderComponent* render_component = getComponent<RenderComponent>();
 				if (!render_component) {

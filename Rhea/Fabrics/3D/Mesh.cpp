@@ -21,7 +21,8 @@ namespace Rhea
 		m_vertices(m.m_vertices),
 		m_submeshes(m.m_submeshes),
 		m_isDynamic(m.m_isDynamic),
-		m_vertex(m.m_vertex)
+		m_vertex(m.m_vertex),
+		m_state(m.m_state)
 	{
 	}
 

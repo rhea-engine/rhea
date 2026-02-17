@@ -25,6 +25,7 @@
 #include <Rhea/Animation/Animation.h>
 #include <Rhea/Animation/Animator.h>
 #include <Rhea/GUI/GUIController.h>
+#include <Rhea/Fabrics/3D/Mesh.h>
 
 bool Ceto::onQuit(Rhea::Event* ev, Rhea::Unit* unit)
 {

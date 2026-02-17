@@ -125,8 +125,7 @@ namespace Rhea
 		SimpleParser::Type::registerType<Resources>("//meworla/resources");
 		SimpleParser::Type::registerType<Transform>("//meworla/transform");
 		SimpleParser::Type::registerType<Item>("//meworla/item");
-		SimpleParser::Type::registerType<Mesh>("//meworla/mesh");		
-		RenderComponent::_register_RenderComponent();
+		SimpleParser::Type::registerType<Mesh>("//meworla/mesh");				
 		SimpleParser::Type::registerType<Shader>("//meworla/shader");
 		SimpleParser::Type::registerType<Lighting>("//meworla/lighting");
 		SimpleParser::Type::registerType<Light>("//meworla/light");

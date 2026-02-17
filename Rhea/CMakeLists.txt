@@ -5,7 +5,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ ${CMAKE_SOURCE_DIR} ${CMAKE_SOU
 add_subdirectory(Resources)
 add_subdirectory(Physics)
 add_subdirectory(Fabrics)
-add_subdirectory(Components)
+
 
 option(RHEA_WITH_GRAPHICS "Enable graphics support for Rhea" ON)
 
@@ -16,7 +16,7 @@ add_library(RheaBase "Unit.cpp" "UnitTree.cpp" "Realm.cpp" "InputMap.cpp" "Dispa
 "Core/WorldService.h" "Core/WorldService.cpp" "Core/Lighting.cpp" "Core/Lighting.h" "Core/Lighting.cpp" "ModuleSystem.h")
 add_library(Rhea::Core ALIAS RheaBase)
 
-target_link_libraries(RheaBase PoseidonMath Orion SimpleParser RheaResources RheaPhysics RheaFabrics RheaComponents Psio)
+target_link_libraries(RheaBase PoseidonMath Orion SimpleParser RheaResources RheaPhysics RheaFabrics  Psio)
 
 # helpers for consumers
 set(RHEA_CMAKE_DIR "${CMAKE_CURRENT_LIST_DIR}/cmake" CACHE INTERNAL "")

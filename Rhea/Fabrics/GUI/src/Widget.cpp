@@ -24,6 +24,7 @@
 #include <Rhea/GUI/Modifier/SizePercentageWidth.h>
 #include <Rhea/GUI/Modifier/FillHeight.h>
 #include <Rhea/GUI/Modifier/SizePercentageHeight.h>
+#include <Rhea/Components/RenderComponent.h>
 
 namespace Rhea
 {
@@ -132,14 +133,20 @@ namespace Rhea
 		// prepare material
 		Item2D::ready();
 
+		// make sure visualcomponent is set
+		VisualComponent* visual_component = getComponent<VisualComponent>();
+		if (!visual_component) {
+			visual_component = addComponentUnique<VisualComponent>("visual");
+		}
+
 		RenderComponent* render_component = getComponent<RenderComponent>();
 		//  widgets always need a render component
 		if (!render_component) {
 			render_component = addComponentUnique<RenderComponent>("renderer");			
 		}
-
+		
 		// if we are hidden at the beggining - send the event
-		if (!render_component || !render_component->isVisible()) {
+		if (!visual_component || !visual_component->isVisible()) {
 			hide();
 		}
 	}
@@ -167,7 +174,7 @@ namespace Rhea
 
 	void Widget::setPosition(Vector2 position)
 	{
-		if (!getComponent<RenderComponent>() || !getComponent<RenderComponent>()->isVisible())
+		if (!getComponent<VisualComponent>() || !getComponent<VisualComponent>()->isVisible())
 			return;
 
 		// set the screen coords
@@ -208,7 +215,7 @@ namespace Rhea
 		// constraints for children
 		Vector2 inner_size = size_constraints;
 
-		if (!getComponent<RenderComponent>() || !getComponent<RenderComponent>()->isVisible())
+		if (!getComponent<VisualComponent>() || !getComponent<VisualComponent>()->isVisible())
 			return m_outer_size;
 
 		// apply modifiers
@@ -751,7 +758,7 @@ namespace Rhea
 
 	Widget* Widget::capture(int c_x, int c_y)
 	{
-		if (!getComponent<RenderComponent>() || !getComponent<RenderComponent>()->isVisible())
+		if (!getComponent<VisualComponent>() || !getComponent<VisualComponent>()->isVisible())
 			return nullptr;
 
 		if (m_position.x > c_x ||

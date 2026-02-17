@@ -21,21 +21,14 @@ namespace Poseidon
 	{
 		Rhea::Application::init();
 
-		// register services
-		SimpleParser::Type::registerType<GraphicsService>("//meworla/graphicsservice");
-		Rhea::GraphicsComponent::_register_GraphicsComponent();
-
 		SimpleParser::Type::registerType<Rhea::Controller>("//meworla/icontroller");
 		SimpleParser::Type::registerType<Rhea::Unit>("//meworla/avatarlist");
 	
-		GraphicsService* g_service = (GraphicsService*)SimpleParser::Type::create("GraphicsService", "//meworla/graphicsservice");
-		g_service->setup(this);
-		m_services["graphics"] = g_service;
-
-		Rhea::PlatformService* psio = static_cast<Rhea::PlatformService *>(m_services["platform"]);
-		g_service->setPlatform(psio);
-		core = g_service->getEngine();
-		core->setAppname(m_appname);
+		GraphicsService* g_service = static_cast<Rhea::GraphicsService*>(getService("graphics"));
+		if (g_service) {
+			core = g_service->getEngine();
+			core->setAppname(m_appname);
+		}
 
 		// register network fabrics
 		Rhea::NetworkFabrics::Register(this);

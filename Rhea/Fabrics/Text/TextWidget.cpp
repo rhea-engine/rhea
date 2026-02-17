@@ -7,6 +7,8 @@
 #include <Psio/Log.h>
 #include <Graphics/GraphicsService.h>
 #include "../GUI/include/Rhea/GUI/Widget.h"
+#include <Rhea/Components/RenderComponent.h>
+#include <Rhea/Fabrics/3D/Mesh.h>
 
 namespace Rhea
 {
@@ -66,6 +68,11 @@ namespace Rhea
 			m_font->ready();
 			Material* font_material = m_font->getMaterial();
 
+			// make sure visualcomponent is set
+			VisualComponent* visual_component = getComponent<VisualComponent>();
+			if (!visual_component) {
+				visual_component = addComponentUnique<VisualComponent>("visual");
+			}
 			RenderComponent* render_component = getComponent<RenderComponent>();
 			if (!render_component) {
 				render_component = addComponentUnique<RenderComponent>("renderer");
@@ -81,7 +88,7 @@ namespace Rhea
 				// text is dynamic
 				mesh->setDynamic(true);
 				addChild(mesh);
-				render_component->setMesh(mesh);
+				render_component->mesh = mesh;
 
 				setMesh();
 

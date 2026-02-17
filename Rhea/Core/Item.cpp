@@ -54,14 +54,16 @@ namespace Rhea
 	{
 		Unit::ready();
 
-		RenderComponent* render_component  = getComponent<RenderComponent>();
+		VisualComponent* visual_component  = getComponent<VisualComponent>();
 
 		auto mesh_it = m_values.find("mesh");
 		if (mesh_it != m_values.end()) {
-			if (!render_component) {
-				render_component = addComponentUnique<RenderComponent>("renderer");				
+			if (!visual_component) {
+				visual_component = addComponentUnique<VisualComponent>("visual");
 			}
-			Mesh* mesh = doCast<Mesh>(m_app->getUnitTree()->find(mesh_it->second, m_attributes["basepath"], false));
+			// only set ref
+			visual_component->setMeshRef(mesh_it->second, m_attributes["basepath"]);
+/*			Mesh* mesh = doCast<Mesh>(m_app->getUnitTree()->find(mesh_it->second, m_attributes["basepath"], false));
 			if (mesh) {
 				mesh->ready();
 				render_component->setMesh(mesh);
@@ -69,10 +71,11 @@ namespace Rhea
 			else {
 				LOG(LOG_ERROR) << "No mesh defined for item";
 			}
-		}	
+			*/
+		}			
 
-		if (render_component && m_values.find("fabric") != m_values.end())
-			render_component->hide();		
+		if (visual_component && m_values.find("fabric") != m_values.end())
+			visual_component->hide();
 	}	
 
 	Item* Item::instance(std::string name)
@@ -91,9 +94,14 @@ namespace Rhea
 		new_item->Unit::setup(m_app, attr, values);
 
 		// copy item values and components
-		if (getComponent<RenderComponent>()) {
-			RenderComponent* render_component = new_item->addComponentUnique<RenderComponent>("renderer");
-			render_component->setMesh(render_component->getMesh());
+		if (getComponent<VisualComponent>()) {
+
+			// TODO: copy all components using their own copy function?
+			// 			RenderComponent* render_component = new_item->addComponentUnique<RenderComponent>("renderer");
+			// 			render_component->setMesh(render_component->getMesh());
+			VisualComponent* v_c = getComponent<VisualComponent>();
+			VisualComponent* visual_component = new_item->addComponentUnique<VisualComponent>("visual");
+			visual_component->setMeshRef(v_c->meshRef(), v_c->basepathRef());
 		}
 
 		return new_item;

@@ -14,12 +14,10 @@
 #include <Rhea/Core/Material.h>
 #include <Rhea/Core/Shader.h>
 #include <Rhea/Graphics/MaterialManager.h>
-#include <Rhea/Graphics/MeshElement.h>
 #include <Rhea/Fabrics/3D/Mesh.h>
 #include <Rhea/Fabrics/3D/DirectionalLight.h>
 #include <Rhea/Fabrics/3D/PointLight.h>
 #include <Rhea/Fabrics/3D/SpotLight.h>
-#include <Rhea/Graphics/GraphicsComponent.h>
 #include <Rhea/Fabrics/Animation/include/Rhea/Animation/Skeleton.h>
 #include <Rhea/Components/VisualComponent.h>
 #include <Rhea/Components/RenderComponent.h>
@@ -194,11 +192,10 @@ namespace Poseidon
 					auto* vis = renderable->getComponent<Rhea::VisualComponent>();
 					if (!vis || !vis->isVisible()) continue;
 
-					Rhea::RenderComponent* r_comp = renderable->getComponent<Rhea::RenderComponent>();
-					// get the main mesh object
-					if (!r_comp || !r_comp->mesh)
+					// get render information
+					Rhea::RenderComponent* r_comp = renderable->getComponent<Rhea::RenderComponent>();					
+					if (!r_comp)
 						continue;
-
 
 					// fill per object buffer
 					Rhea::Transform* transform = renderable->getTransform();
@@ -219,15 +216,11 @@ namespace Poseidon
 					}
 
 					// get render mesh
-					Rhea::GraphicsMesh* m_elem = r_comp->getGraphicsMesh();
-					if (!m_elem) {
-						Rhea::GraphicsComponent* g = r_comp->mesh->getComponent<Rhea::GraphicsComponent>();
-						if (!g) continue;
-						m_elem = static_cast<Rhea::GraphicsMesh*>(g->getElement());
-						r_comp->gfxMesh = m_elem; // cache it
+					// Ensure GPU mesh is available
+					Poseidon::Mesh* mesh = r_comp->gpuMesh;
+					if (!mesh) {
+						continue;
 					}
-					Mesh* mesh = m_elem->m_mesh;
-
 
 					// skeleton handling if any
 					Rhea::Skeleton* skeleton = r_comp->skeleton;

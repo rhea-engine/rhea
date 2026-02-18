@@ -3,10 +3,11 @@ add_library(Rhea::Client ALIAS RheaClient)
 
 target_sources(RheaClient PRIVATE
 	"Graphics/GraphicsService.cpp" "Graphics/Texture.cpp" "Graphics/ItemManager.cpp" "Graphics/SceneManager.cpp" 
-	"Graphics/CameraManager.cpp" "Graphics/RenderElement.h" "Graphics/RenderElement.cpp"
-	"Graphics/GraphicsManager.h" "Graphics/MaterialManager.cpp"
-	"Graphics/GraphicsManager.cpp" "Graphics/MeshElement.h"  "Graphics/MeshManager.h" "Graphics/MeshManager.cpp" 
- "Fabrics/PoseidonGraphics/include/Rhea/PoseidonGraphicsFabric.h" "Fabrics/PoseidonGraphics/src/PoseidonGraphicsFabric.cpp")
+	"Graphics/CameraManager.cpp" "Graphics/GraphicsManager.h" "Graphics/MaterialManager.cpp"
+	"Graphics/GraphicsManager.cpp"  "Graphics/MeshManager.h" "Graphics/MeshManager.cpp" 
+ "Fabrics/PoseidonGraphics/include/Rhea/PoseidonGraphicsFabric.h" "Fabrics/PoseidonGraphics/src/PoseidonGraphicsFabric.cpp" 
+ "Graphics/MeshGpuCache.h" "Graphics/MeshGpuCache.cpp" "Graphics/TextureGpuCache.h" "Graphics/TextureGpuCache.cpp" 
+ "Graphics/MaterialGpuCache.h" "Graphics/MaterialGpuCache.cpp")
 
 target_include_directories(RheaClient PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}       # so includes like <Graphics/...> still work temporarily

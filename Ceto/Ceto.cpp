@@ -319,7 +319,7 @@ void Ceto::showScene(Rhea::Scene* scene)
 		Rhea::GraphicsService* gs = static_cast<Rhea::GraphicsService*>(getService("graphics"));
 		Rhea::GraphicsManager* mgr = gs->getManager<Rhea::Camera>();
 		//Rhea::GraphicsCamera::createElement(core, m_view);
-		mgr->createElement(core, m_view);
+		mgr->Ensure(core, m_view);
 		Variant pos = scene->getValue("start");
 		if (pos != Variant()) {
 			Math::Vector3 start_pos(pos[0], pos[1], pos[2]);

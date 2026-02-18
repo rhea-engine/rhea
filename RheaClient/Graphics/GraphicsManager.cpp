@@ -11,29 +11,18 @@
 #include "GraphicsManager.h"
 #include "MaterialManager.h"
 #include "GraphicsService.h"
-#include "RenderElement.h"
 #include <Psio/Log.h>
 #include <Rhea/GUI/Widget.h>
-#include "GraphicsComponent.h"
 
 namespace Rhea
 {
-	Poseidon::Node* GraphicsManager::createRenderable(GraphicsRenderElement* elem, Poseidon::Core* core, Unit* item, std::string render_context_name, bool dynamic_usage)
+	Poseidon::Node* GraphicsManager::createRenderable(RenderComponent* rc, Poseidon::Core* core, Unit* item, Poseidon::Mesh* mesh, std::string render_context_name)
 	{
 		Poseidon::SceneManager* scene_mgr = core->get_scene_manager();
-
-		// get mesh if already defined
-		Poseidon::Mesh* mesh = elem->getMesh();
-		if (!mesh) {
-			// create an empty mesh
-			mesh = new Poseidon::Mesh(dynamic_usage);
-			mesh->setViewport(scene_mgr
-				->getViewport());
-			elem->SetMesh(mesh);
-		}
-		// create an entity
+		
+		// create an entity using the shared mesh
 		Poseidon::Node* entity = core->createEntity(mesh);	
-		elem->SetRenderEntity(entity);		
+		rc->entity = entity;
 		
 		Poseidon::Viewport* viewport = scene_mgr->getViewport();
 		if (!viewport) {
@@ -45,20 +34,20 @@ namespace Rhea
 			LOG(LOG_ERROR) << "GraphicsText::createText: render context '" << render_context_name << "' not found";
 			return nullptr;
 		}
-		elem->setRenderContext(render_context);
+		rc->ctx = render_context;
 		//render_context->addRenderChild(static_cast<Poseidon::Entity*>(entity));
 		//render_context->addRenderChild((Item*)item);
 
 		return entity;
 	}
 
-	Poseidon::Node* GraphicsManager::createEntity(GraphicsRenderElement* elem, Poseidon::Core* core, Unit* item, std::string render_context_name, bool dynamic_usage)
+	Poseidon::Node* GraphicsManager::createEntity(RenderComponent* rc, Poseidon::Core* core, Unit* item, std::string render_context_name, bool dynamic_usage)
 	{
 		Poseidon::SceneManager* scene_mgr = core->get_scene_manager();
 
 		// create an entity
 		Poseidon::Node* entity = core->createEntity(nullptr);
-		elem->SetRenderEntity(entity);
+		rc->entity = entity;
 
 		Poseidon::Viewport* viewport = scene_mgr->getViewport();
 		if (!viewport) {
@@ -70,23 +59,9 @@ namespace Rhea
 			LOG(LOG_ERROR) << "GraphicsText::createText: render context '" << render_context_name << "' not found";
 			return nullptr;
 		}
-		elem->setRenderContext(render_context);
+		rc->ctx = render_context;
 
 		return entity;
-	}
-
-	void GraphicsManager::removeRenderable(Item* item)
-	{
-		GraphicsComponent* g_component = item->getComponent<GraphicsComponent>();
-		if (g_component) {
-			GraphicsRenderElement* elem = (GraphicsRenderElement*)g_component->getElement();
-			Poseidon::RenderContext* render_context = elem->getRenderContext();
-			if (!render_context) {
-				LOG(LOG_ERROR) << "GraphicsText::removeRenderable: render context not set";
-				return;
-			}
-			render_context->removeRenderChild(static_cast<Item*>(item));
-		}
 	}
 
 	void GraphicsManager::setPosition(Unit* u, Transform* t)
@@ -104,38 +79,5 @@ namespace Rhea
 		}
 		else
 			t->get_position()->setPosition(0.0f, 0.0f, 0.0f);
-	}
-
-	void GraphicsManager::setMaterial(Poseidon::Core* core, Material* material)
-	{
-		// get the material element
-		if (!material->getComponent<GraphicsComponent>()) {
-			// create it in material manager
-			std::string mat_name = material->getPathName();
-			GraphicsMaterialManager* mat_mgr = static_cast<GraphicsMaterialManager*>(m_service->getManager<Material>());
-			GraphicsMaterial* mat_elem = static_cast<GraphicsMaterial*>(mat_mgr->createElement(core, material));
-		}
-	}
-
-	bool GraphicsManager::onHide(Event* ev, Unit* unit)
-	{
-		GraphicsComponent* g_component = unit->getComponent<GraphicsComponent>();
-		if (g_component) {
-			GraphicsRenderElement* elem = static_cast<GraphicsRenderElement*>(g_component->getElement());
-			Poseidon::Entity* entity = static_cast<Poseidon::Entity*>(elem->getRenderEntity());
-			entity->hide();
-		}
-		return true;
-	}
-
-	bool GraphicsManager::onShow(Event* ev, Unit* unit)
-	{
-		GraphicsComponent* g_component = unit->getComponent<GraphicsComponent>();
-		if (g_component) {
-			GraphicsRenderElement* elem = static_cast<GraphicsRenderElement*>(g_component->getElement());
-			Poseidon::Entity* entity = static_cast<Poseidon::Entity*>(elem->getRenderEntity());
-			entity->show();
-		}
-		return true;
-	}
+	}	
 }

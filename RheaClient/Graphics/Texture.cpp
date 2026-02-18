@@ -4,7 +4,6 @@
 #include <Psio/Log.h>
 #include <Rhea/Fabrics/Media/ImageResource.h>
 #include <Poseidon/Texture.h>
-#include "GraphicsComponent.h"
 
 namespace Rhea
 {
@@ -31,63 +30,5 @@ namespace Rhea
 	{
 		m_img->load(index, texture->m_img);
 		return m_img;
-	}
-
-
-	GraphicsElement* GraphicsTexture::createElement(Poseidon::Core *core, Unit* unit)
-	{
-		char* buf;
-		size_t buflen;
-
-		// check if already created
-		GraphicsComponent* el = unit->getComponent<GraphicsComponent>();
-		if (el)
-			return el->getElement();
-
-		ImageResource* img = doCast<ImageResource>(unit);
-
-		GraphicsTexture* elem = new GraphicsTexture(core, img->getTextureType(), img->getNumImages());
-
-		if (img->getNumImages() == 1) {
-			
-			Resource* res = doCast<Resource>(img->getImage(0));
-			if (!res) {
-				LOG(LOG_ERROR) << "GraphicsTexture::createElement: not a resource";
-				return nullptr;
-			}
-			if (res->getRaw(&buf, &buflen)) {
-				if (!buf || !elem->createTexture(0, (unsigned char*)buf, buflen)) {
-					LOG(LOG_ERROR) << "Image " << unit->getPath() << " could not be created";
-					delete elem;
-					return nullptr;
-				}
-				// store the widht / height
-				img->width = elem->m_img->getWidth();
-				img->height = elem->m_img->getHeight();
-			}
-		}
-		else 
-		{
-			for (int index = 0; index < img->getNumImages(); index++) {
-				ImageResource* res = doCast<ImageResource>(img->getImage(index));
-				if (!res) {
-					LOG(LOG_ERROR) << "GraphicsTexture::createElement: not a resource";
-					return nullptr;
-				}
-				GraphicsTexture* img_elem = static_cast<GraphicsTexture*>(createElement(core, res));
-				if (!img_elem) {
-					delete elem;
-					return nullptr;
-				}
-				if (!elem->createTexture(index, img_elem)) {
-					LOG(LOG_ERROR) << "Image " << index << " of " << unit->getPath() << " could not be added to texture";
-					delete elem;
-					return nullptr;
-				}
-			}
-		}
-
-		unit->addComponentUnique<GraphicsComponent>(elem);
-		return elem;
-	}
+	}	
 }

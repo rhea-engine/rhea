@@ -2,7 +2,10 @@
 #define RHEA_GPAPHICS_MESHMANAGER_H
 
 #include "GraphicsManager.h"
-#include "MeshElement.h"
+
+#include <Poseidon/Core.h>
+#include <Poseidon/Mesh.h>
+#include <Rhea/Fabrics/3D/Mesh.h>
 
 namespace Rhea
 {
@@ -14,7 +17,7 @@ namespace Rhea
 		{}
 
 		// create an element for this unit
-		GraphicsElement* createElement(Poseidon::Core* core, Unit* unit);
+		bool Ensure(Poseidon::Core* core, Unit* unit);
 
 		// handle frame update
 		void onFrame() {}
@@ -23,9 +26,9 @@ namespace Rhea
 		bool onUpdate(Event* ev, Unit* unit);
 		bool onDelete(Event* ev, Unit* unit);
 
-	protected:
-		std::vector<GraphicsMesh*> m_elements;
+		bool FillPoseidonMesh(Poseidon::Core* core, Mesh* mesh, Poseidon::Mesh* out);
 
+	protected:
 		bool ensureMaterialElement(Material* material);
 	};
 }

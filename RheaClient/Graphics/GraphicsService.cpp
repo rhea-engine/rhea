@@ -1,5 +1,4 @@
 #include "GraphicsService.h"
-#include "GraphicsService.h"
 #include <functional>
 
 #include <Rhea/Platform/PlatformService.h>
@@ -22,6 +21,7 @@
 #include "MaterialManager.h"
 #include "CameraManager.h"
 #include "MeshManager.h"
+
 #include <Rhea/Physics/PhysicsService.h>
 #include <Rhea/EventInput.h>
 
@@ -86,7 +86,7 @@ namespace Rhea
 		auto it = m_managers.find(unit->getType());
 		if (it != m_managers.end()) {
 			GraphicsManager* mgr = it->second.get();
-			mgr->createElement(m_core.get(), unit);
+			mgr->Ensure(m_core.get(), unit);
 			return true;
 		}
 		return false;
@@ -99,54 +99,43 @@ namespace Rhea
 
 	bool GraphicsService::onAddItem(Event* ev, Unit* unit)
 	{
-		ev->getTarget()->traverse([&](std::string& name, Component* unit)->bool {
-			Unit* u = doCast<Unit>(unit);
-			if (u && !u->getComponent<GraphicsComponent>()) {
-				printf("GraphicsService::onAddItem: add typename: %s\n", unit->getTypeName().c_str());
+		Unit* root = doCast<Unit>(ev->getTarget());
+		if (!root) return false;
 
-				// try manager
-				GraphicsManager* mgr = getManager(unit->getType());
-				if (mgr) {
-					mgr->createElement(m_core.get(), u);
-				}
-				else if (doCast<Item>(unit)) {
-					getManager<Item>()->createElement(m_core.get(), u);
-				}
+		root->traverse([&](std::string& name, Component* c)->bool {
+
+			// Items -> create render instance state
+			if (Item* item = doCast<Item>(c)) {
+				getManager<Item>()->Ensure(m_core.get(), item);
+				return true;
 			}
-		return true;
+
+			// we do not create assets here - could be added if we want eager creation
+
+			return true;
 			});
+
 		return false;
+
 	}
 
 	void GraphicsService::addItem(std::string render_context, Item* item)
 	{
 		Poseidon::Viewport* viewport = m_core->get_scene_manager()->getViewport();
-		if (viewport) {
-			Poseidon::RenderContext* context = viewport->getRenderContext(render_context);
-			if (context) {
-				context->addRenderChild(item);
-				// add elements
-				item->traverse([&](std::string name, Component* u)->bool {
-					Item* item = doCast<Item>(u);
-					if (!item)
-						return true;
-				// try manager
-				GraphicsManager* mgr = getManager(item->getType());
-				if (mgr) {
-					mgr->createElement(m_core.get(), item);
-				}
-				else {
-					mgr = getManager<Item>();
-					mgr->createElement(m_core.get(), item);
-				}
-				return true;
-					});
+		if (!viewport) abort();
+
+		Poseidon::RenderContext* context = viewport->getRenderContext(render_context);
+		if (!context) abort();
+
+		context->addRenderChild(item);
+
+		// Create instance elements for all items in subtree
+		item->traverse([&](std::string name, Component* c)->bool {
+			if (Item* it = doCast<Item>(c)) {
+				getManager<Item>()->Ensure(m_core.get(), it);
 			}
-			else
-				abort();
-		}
-		else
-			abort();
+			return true;
+			});
 	}
 
 	void GraphicsService::onInit()
@@ -206,10 +195,9 @@ namespace Rhea
 		m_scenes.push_back(scene);
 
 		// try manager
-		GraphicsManager* mgr = getManager(scene->getType());
-		GraphicsElement* el = nullptr;
+		GraphicsManager* mgr = getManager(scene->getType());		
 		if (mgr) {
-			el = mgr->createElement(m_core.get(), scene);
+			mgr->Ensure(m_core.get(), scene);
 		}
 		else {
 			LOG(LOG_ERROR) << "no graphics scene manager defined.";
@@ -235,13 +223,6 @@ namespace Rhea
 		}
 
 		m_scenes.erase(std::remove(m_scenes.begin(), m_scenes.end(), scene));
-		scene->deleteComponent<GraphicsComponent>();
-		scene->traverse([](std::string& name, Component* unit)->bool {
-			Unit* u = doCast<Unit>(unit);
-			if (u)
-				u->deleteComponent<GraphicsComponent>();
-			return true;
-			});
 	}
 
 	void GraphicsService::showScene(Scene* scene)

@@ -6,7 +6,6 @@
 #include <Poseidon/RenderContext.h>
 
 #include <Rhea/Element.h>
-#include "RenderElement.h"
 #include "GraphicsManager.h"
 
 namespace Rhea
@@ -23,7 +22,7 @@ namespace Rhea
 		~GraphicsItemManager();
 
 		// create an element for this unit
-		GraphicsElement* createElement(Poseidon::Core* core, Unit* unit);
+		bool Ensure(Poseidon::Core* core, Unit* unit);
 
 		// handle update event
 		bool onUpdate(Event* ev, Unit* unit);
@@ -33,9 +32,6 @@ namespace Rhea
 
 		// handle deletion event
 		bool onItemDelete(Event* ev, Unit* unit);
-
-	protected:
-		std::vector<GraphicsRenderElement*> m_elements;
 	};
 }
 

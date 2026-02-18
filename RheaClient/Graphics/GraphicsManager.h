@@ -3,8 +3,7 @@
 
 #include <Poseidon/Core.h>
 #include <Poseidon/Node.h>
-
-#include "GraphicsElement.h"
+#include <Rhea/Components/RenderComponent.h>
 
 namespace Rhea
 {
@@ -12,7 +11,6 @@ namespace Rhea
 	class Unit;
 	class GraphicsService;
 	class Material;
-	class GraphicsRenderElement;
 
 	/** base class for all managers
 	*   in the graphics system. managers are subservices of the graphicsservice
@@ -27,8 +25,8 @@ namespace Rhea
 		{}
 		virtual ~GraphicsManager() {}
 
-		// create an element for this unit
-		virtual GraphicsElement* createElement(Poseidon::Core* core, Unit* unit) = 0;
+		// Ensures this unit is ready for the graphics pipeline
+		virtual bool Ensure(Poseidon::Core* core, Unit* unit) = 0;
 
 		// handle frame update
 		virtual void onFrame() = 0;
@@ -36,23 +34,13 @@ namespace Rhea
 		// renderables utility functions
 
 		// create a renderable mesh
-		Poseidon::Node* createRenderable(GraphicsRenderElement* elem, Poseidon::Core* core, Unit* item, std::string render_context_name, bool dynamic_usage);
+		Poseidon::Node* createRenderable(RenderComponent* rc, Poseidon::Core* core, Unit* item, Poseidon::Mesh* mesh, std::string render_context_name);
 		
 		// create an entity
-		Poseidon::Node* createEntity(GraphicsRenderElement* elem, Poseidon::Core* core, Unit* item, std::string render_context_name, bool dynamic_usage);
-
-		// remove renderable from engine
-		void removeRenderable(Item* elem);
+		Poseidon::Node* createEntity(RenderComponent* rc, Poseidon::Core* core, Unit* item, std::string render_context_name, bool dynamic_usage);
 
 		// set position from values to transform t
-		void setPosition(Unit* u, Transform* t);
-
-		// set material
-		void setMaterial(Poseidon::Core* core, Material* material);
-
-		// default event functions
-		bool onHide(Event* ev, Unit* unit);
-		bool onShow(Event* ev, Unit* unit);
+		void setPosition(Unit* u, Transform* t);		
 
 	protected:
 		GraphicsService* m_service;

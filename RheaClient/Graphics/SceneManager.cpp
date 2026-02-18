@@ -16,31 +16,14 @@
 
 namespace Rhea
 {
-	void GraphicsSceneManager::createScene(Poseidon::Core* core, GraphicsScene *elem, Scene* scene)
+	const std::vector<Item*>& SceneRenderState::getItems()
 	{
-		Poseidon::SceneManager* scene_mgr = core->get_scene_manager();
-		m_core = core;
-
-		if (!scene) {
-			LOG(LOG_ERROR) << "GraphicsSceneManager::createScene: no scene.";
-			return;
+		if (!m_items_valid) {
+			m_items = m_scene->getItems(); // your existing Scene API
+			m_items_valid = true;
 		}
-
-		// add my items
-		scene->traverse([&](std::string& name, Component* unit)->bool {
-			{
-				Unit* u = doCast<Unit>(unit);
-				if (u && unit != scene) {
-					addItem(u);
-				}
-				return true;
-			}
-			});
-		scene->addComponentUnique<GraphicsComponent>(elem);
-
-		// listen to add item event		
-		scene->registerEventHandler("add_item", this, std::bind(&GraphicsSceneManager::onItemAdd, this, std::placeholders::_1, std::placeholders::_2));
-	}
+		return m_items;
+	}	
 
 	void GraphicsSceneManager::addItem(Unit* item)
 	{
@@ -49,11 +32,11 @@ namespace Rhea
 		// try manager
 		GraphicsManager* mgr = m_service->getManager(item->getType());
 		if (mgr) {
-			mgr->createElement(m_core, item);
+			mgr->Ensure(m_core, item);
 		}
 		else if (doCast<Item>(item)) {
 			mgr = m_service->getManager<Item>();
-			mgr->createElement(m_core, item);
+			mgr->Ensure(m_core, item);
 		}
 		else if (doCast<Lighting>(item)) {
 			Poseidon::SceneManager* scene_mgr = m_core->get_scene_manager();
@@ -73,34 +56,36 @@ namespace Rhea
 		return false;
 	}
 
-	GraphicsElement* GraphicsSceneManager::createElement(Poseidon::Core* core, Unit* unit)
+	bool GraphicsSceneManager::Ensure(Poseidon::Core* core, Unit* unit)
 	{
 		Scene* scene = doCast<Scene>(unit);
 		if (!scene) {
-			LOG(LOG_ERROR) << "GraphicsSceneManager::createElement: no scene";
-			return nullptr;
+			LOG(LOG_ERROR) << "GraphicsSceneManager::Ensure: unit is not a scene ";
+			return false;
 		}
 
-		// check if already created
-		GraphicsComponent* el = scene->getComponent<GraphicsComponent>();
-		if (el)
-			return el->getElement();
-
-		// create it
-		GraphicsScene* scene_elem = new GraphicsScene(scene);
-		createScene(core, scene_elem, scene);
-
-		return scene_elem;
-	}
-	
-	std::vector<Item*> GraphicsScene::getItems()
-	{
-		if (!m_items_valid) {
-			// get items from scene tree
-			m_items = m_scene->getItems();
-
-			m_items_valid = true;
+		// Already initialized? Use SceneRenderState as the marker.
+		if (scene->getComponent<SceneRenderState>()) {
+			return false;
 		}
-		return m_items;
+
+		// Create scene render state
+		scene->addComponentUnique<SceneRenderState>(scene);
+
+		// Initialize: add existing items + register handler
+		m_core = core;
+
+		scene->traverse([&](std::string& name, Component* c)->bool {
+			Unit* u = doCast<Unit>(c);
+			if (u && c != scene) addItem(u);
+			return true;
+			});
+
+		scene->registerEventHandler(
+			"add_item", this,
+			std::bind(&GraphicsSceneManager::onItemAdd, this, std::placeholders::_1, std::placeholders::_2)
+		);
+
+		return true;
 	}
 }

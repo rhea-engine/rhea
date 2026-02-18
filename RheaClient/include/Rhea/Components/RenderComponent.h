@@ -1,12 +1,17 @@
 #ifndef RHEA_RENDERCOMPONENT_H
 #define RHEA_RENDERCOMPONENT_H
 
+namespace Poseidon
+{
+	class Node;
+	class RenderContext;
+	class Mesh;
+}
 namespace Rhea
 {
 	class Mesh;
 	class Material;
 	class Skeleton;
-	class GraphicsMesh;
 
 	class RenderComponent : public Component
 	{
@@ -14,20 +19,23 @@ namespace Rhea
 	public:
 		RenderComponent(std::string name, std::string type_name) :			
 			mesh(nullptr),
-			skeleton(nullptr),
-			gfxMesh(nullptr),
+			entity(nullptr),
 			Component(name, type_name)
 		{}
 
 		Mesh* getMesh() { return mesh; }
-		void setMesh(Mesh* m) { mesh = m; }
-		GraphicsMesh* getGraphicsMesh() { return gfxMesh; }
+		void setMesh(Mesh* m) { mesh = m; }		
 
 	public:
-		bool hidden = false;           // optional local override
-		Mesh* mesh; // resolved asset (client)
-		Skeleton* skeleton; // cached pointer (non-owning!)
-		GraphicsMesh* gfxMesh; // cached element (non-owning!)
+		Mesh* mesh = nullptr;                    // resolved asset unit (optional)
+		Poseidon::Node* entity = nullptr;        // non-owning (Poseidon owns)		
+		Poseidon::RenderContext* ctx = nullptr;  // non-owning (Poseidon owns)
+
+		// Cached asset GPU resources (non-owning, owned by caches)
+		Poseidon::Mesh* gpuMesh = nullptr;
+
+		Rhea::Skeleton* skeleton = nullptr;
+
 	};
 }
 

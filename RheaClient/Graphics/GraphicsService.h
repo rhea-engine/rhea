@@ -6,6 +6,9 @@
 
 #include <Rhea/Service.h>
 #include <Rhea/Core/Scene.h>
+#include "MeshGpuCache.h"
+#include "TextureGpuCache.h"
+#include "MaterialGpuCache.h"
 
 namespace Poseidon
 {
@@ -75,6 +78,10 @@ namespace Rhea
 		// create element for the unit
 		bool addElement(Unit* unit);
 
+		MeshGpuCache& meshCache() { return m_meshCache; }
+		TextureGpuCache& textureCache() { return m_textureCache; }
+		MaterialGpuCache& materialCache() { return m_materialCache; }
+
 	protected:
 		std::unique_ptr<Poseidon::Core> m_core;
 		Service* m_platform;
@@ -99,6 +106,10 @@ namespace Rhea
 		bool m_fullscreen;
 
 		Unit* pick();
+
+		MeshGpuCache m_meshCache; 
+		TextureGpuCache m_textureCache;
+		MaterialGpuCache m_materialCache;
 	};
 }
 

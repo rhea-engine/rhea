@@ -10,7 +10,6 @@
 #include <Rhea/UnitTree.h>
 #include <Rhea/Resources/ResourceList.h>
 #include <Rhea/Resources/ResourceService.h>
-#include <Rhea/Graphics/GraphicsComponent.h>
 
 using Rhea::GraphicsService;
 using Rhea::Service;

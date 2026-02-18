@@ -3,7 +3,7 @@
 
 #include <Poseidon/Core.h>
 
-#include "GraphicsComponent.h"
+#include <Rhea/Component.h>
 #include <Rhea/Core/Scene.h>
 
 #include "GraphicsManager.h"
@@ -12,21 +12,29 @@ namespace Rhea
 {
 	class Item;
 
-	class GraphicsScene : public GraphicsElement
-	{
+	class SceneRenderState : public Component {
+		RECLASS(SceneRenderState, Component, "//meworla/scenerenderstate")
 	public:
-		GraphicsScene(Scene* scene) :
+		SceneRenderState::SceneRenderState(std::string name, std::string type_name) :
+			m_scene(nullptr),
+			m_items_valid(false),
+			Component(name, type_name)
+		{
+		}
+		SceneRenderState::SceneRenderState(Scene* scene) : 
 			m_scene(scene),
-			m_items_valid(false)
+			m_items_valid(false),
+			Component("scene_render_state", "//meworla/scenerenderstate")
 		{}
-		~GraphicsScene() {}
 
-		// get my currently active items
-		std::vector<Item*> getItems();
-	protected:
+		void invalidate() { m_items_valid = false; }
+
+		const std::vector<Item*>& getItems(); // cached
+
+	private:
+		Scene* m_scene;
 		bool m_items_valid;
 		std::vector<Item*> m_items;
-		Scene* m_scene;
 	};
 
 	class GraphicsSceneManager : public GraphicsManager
@@ -36,16 +44,14 @@ namespace Rhea
 			GraphicsManager(service),
 			m_core(nullptr)
 		{}
-
-		void createScene(Poseidon::Core* core, GraphicsScene* elem, Scene* scene);
-
+		
 		// add one item to the scene (creating the corresponding element)
 		void addItem(Unit* item);
 
 		// handle add item event
 		bool onItemAdd(Event* ev, Unit* unit);
 
-		GraphicsElement* createElement(Poseidon::Core* core, Unit* unit);	
+		bool Ensure(Poseidon::Core* core, Unit* unit);	
 
 		void onFrame() {}
 	

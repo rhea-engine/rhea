@@ -2,7 +2,6 @@
 #include "Application.h"
 #include "UnitTree.h"
 #include <Rhea/Fabrics/3D/Mesh.h>
-#include "Graphics/RenderElement.h"
 #include "Physics/Body.h"
 #include <Rhea/Fabrics/Network/NetworkComponent.h>
 #include <Psio/Log.h>

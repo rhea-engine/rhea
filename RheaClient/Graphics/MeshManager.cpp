@@ -8,133 +8,151 @@
 #include "GraphicsService.h"
 #include <Rhea/Resources/VertexBuffer.h>
 #include "MaterialManager.h"
-#include "GraphicsComponent.h"
 
 namespace Rhea
 {
-	GraphicsElement* GraphicsMeshManager::createElement(Poseidon::Core* core, Unit* unit)
+	bool GraphicsMeshManager::Ensure(Poseidon::Core* core, Unit* unit)
 	{
-		// check if already created
-		GraphicsComponent* el = unit->getComponent<GraphicsComponent>();
-		if (el)
-			return el->getElement();
-		
-		// create the element
-		Mesh* mesh_res = doCast<Mesh>(unit);
-		if (!mesh_res) {
-			LOG(LOG_ERROR) << "GraphicsMeshManager::createElement: No mesh.";
-			return nullptr;
-		}
-		bool dynamic_usage = mesh_res->isDynamic();
-		GraphicsMesh* mesh_el = new GraphicsMesh();
-		Poseidon::SceneManager* scene_mgr = core->get_scene_manager();
+		Mesh* r_mesh = doCast<Mesh>(unit);
+		if (!r_mesh) return false;
 
-		Poseidon::Mesh* mesh = new Poseidon::Mesh(dynamic_usage);
-		mesh->setViewport(scene_mgr
-			->getViewport());
-		mesh_el->m_mesh = mesh;
-
-		// make sure the materials of all submeshes have a graphics element
-		for (size_t i = 0; i < mesh_res->getNumSubmeshes(); i++) {
-			Material* material = mesh_res->getMaterial(i);
-			if (!material) {
-				LOG(LOG_ERROR) << "GraphicsMeshManager::createElement: No material for submesh " << i;
-				delete el;
-				return nullptr;
-			}
-			if (!material->getComponent<GraphicsComponent>()) {
-				if (!m_service->addElement(material)) {
-					LOG(LOG_ERROR) << "GraphicsItemManager::createElement: could not create element for material";
-					delete el;
-					return nullptr;
-				}
-			}
-			// set the material in core
-			setMaterial(core, material);
-		}		
-
-		unit->addComponentUnique<GraphicsComponent>(mesh_el);		
-
-		// initial initialization
-		onUpdate(nullptr, unit);
+		Poseidon::Mesh* gpu = m_service->meshCache().getOrCreate(
+			core, r_mesh, r_mesh->isDynamic(),
+			[&](Poseidon::Core* c, Mesh* m, Poseidon::Mesh* out) {
+				return FillPoseidonMesh(c, m, out);
+			});
 
 		unit->registerEventHandler("update", this, std::bind(&GraphicsMeshManager::onUpdate, this, std::placeholders::_1, std::placeholders::_2));
 		//unit->registerEventHandler("delete", this, std::bind(&GraphicsMeshManager::onDelete, this, std::placeholders::_1, std::placeholders::_2));
 
-		return mesh_el;
+		return true;
 	}
 
 	bool GraphicsMeshManager::ensureMaterialElement(Material* material)
 	{
-		if (material) {
-			if (!material->getComponent<GraphicsComponent>()) {
-				if (!m_service->addElement(material)) {
-					LOG(LOG_ERROR) << "GraphicsMeshManager::ensureMaterialElement: could not create element for material";
-					return false;
-				}
-				setMaterial(m_service->getEngine(), material);
-			}
-			return true;
-		}
-		else
+		if (!material)
 			return false;
+
+		Poseidon::Core* core = m_service->getEngine();
+		if (!core)
+			return false;
+
+		// Ask cache to create or reuse GPU material
+		auto* meshMgr = static_cast<GraphicsMaterialManager*>(m_service->getManager<Material>());
+		Poseidon::Material* gpuMat =
+			m_service->materialCache().getOrCreate(
+				core,
+				material,
+				[&](Poseidon::Core* c, Material* mat_unit, Poseidon::Material* out, bool fresh) -> bool
+				{
+					return meshMgr->FillPoseidonMaterial(c, mat_unit, out, fresh);
+				});
+
+		return gpuMat != nullptr;		
 	}
 
 	bool GraphicsMeshManager::onUpdate(Event* ev, Unit* unit)
 	{
-		GraphicsComponent* g_component = unit->getComponent<GraphicsComponent>();
-		if (!g_component)
-			return false;
-		GraphicsMesh* mesh_el = (GraphicsMesh*)g_component->getElement();
-		Mesh* mesh = doCast<Mesh>(unit);
-		if (!mesh) {
-			LOG(LOG_ERROR) << "GraphicsMeshManager::onUpdate: No mesh.";
-			return false;
+		Mesh* meshUnit = doCast<Mesh>(unit);
+		if (!meshUnit) return true;
+
+		// Try to get cached GPU mesh
+		Poseidon::Mesh* gpu = m_service->meshCache().find(meshUnit);
+		if (!gpu) {
+			gpu = m_service->meshCache().getOrCreate(
+				m_service->getEngine(),
+				meshUnit,
+				meshUnit->isDynamic(),
+				[&](Poseidon::Core* c, Mesh* m, Poseidon::Mesh* out) {
+					return FillPoseidonMesh(c, m, out);
+				});
+			if (!gpu) return true;
 		}
+		
+		// Refill cached poseidon mesh buffers
+		FillPoseidonMesh(m_service->getEngine(), meshUnit, gpu);
+		
+		return false;		
+	}
+
+	bool GraphicsMeshManager::FillPoseidonMesh(Poseidon::Core* core, Mesh* mesh, Poseidon::Mesh* out)
+	{
+		if (!mesh || !out) return false;
 
 		// add vertex and index buffer
 		VertexBuffer* vbuf = mesh->getVertexBuffer();
 		if (vbuf && vbuf->size()) {
-			mesh_el->m_mesh->setVertices(vbuf->getVertexSize(), vbuf->size(), vbuf->data());
+			out->setVertices(vbuf->getVertexSize(), vbuf->size(), vbuf->data());
 			for (size_t idx = 0; idx < mesh->getNumSubmeshes(); idx++) {
 				std::vector<unsigned long> v_indices = mesh->getIndices(idx);
 				// Check if v_indices is valid and has a multiple of 3 elements
-				if (v_indices.size() && v_indices.size() % 3 == 0) {
-					GraphicsComponent* mat_component = mesh->getMaterial(idx)->getComponent<GraphicsComponent>();
-					if (mat_component)
-					  mesh_el->m_mesh->setMesh(idx, sizeof(unsigned long), v_indices.size() / 3, v_indices.data(), ((GraphicsMaterial*)(mat_component->getElement()))->m_material);
-				}
-				else {
+				if (!v_indices.size() || (v_indices.size() % 3 != 0)) {
 					LOG(LOG_ERROR) << "Invalid index buffer";
-					return true;
+					return false;
 				}
+
+				Material* mat = mesh->getMaterial(idx);
+				if (!mat) {
+					LOG(LOG_ERROR) << "GraphicsMeshManager::FillPoseidonMesh: No material for submesh " << idx;
+					return false;
+				}
+				Poseidon::Material* gpuMat =
+					m_service->materialCache().getOrCreate(
+						core,
+						mat,
+						[&](Poseidon::Core* c, Material* m, Poseidon::Material* outMat, bool fresh) -> bool {							
+							auto* meshMgr = static_cast<GraphicsMaterialManager*>(m_service->getManager<Material>());
+							return meshMgr->FillPoseidonMaterial(c, m, outMat, fresh);
+						}
+					);
+				if (!gpuMat) {
+					LOG(LOG_ERROR) << "GraphicsMeshManager::FillPoseidonMesh: Failed to build GPU material for " << mat->getPathName();
+					return false;
+				}				
+				out->setMesh(idx, sizeof(unsigned long), v_indices.size() / 3, v_indices.data(), gpuMat);
 			}
 		}
 		else {
+			// Fallback path: CPU vertices + indices
 			std::vector<Mesh::vertex> vertices;
 			std::vector<unsigned long> v_indices;
 
 			mesh->getBuffers(vertices, v_indices);
 
 			if (!vertices.size() || !v_indices.size()) {
-				printf("Vertex is empty\n");
+				LOG(LOG_ERROR) << "Vertex is empty";
 				return true;
 			}
 
 			std::vector<Hippios::vertex_uv> hippios_vertices;
-			for (auto it = vertices.begin(); it != vertices.end(); ++it) {
-				Mesh::vertex v = *it;
+			for (auto& v: vertices) {				
 				hippios_vertices.push_back(Hippios::vertex_uv(v.x, v.y, v.z, v.u, v.v));
 			}
 
-			mesh_el->m_mesh->setVertices(sizeof(Hippios::vertex_uv), hippios_vertices.size(), hippios_vertices.data());
-			ensureMaterialElement(mesh->getMaterial());
-			GraphicsComponent* mat_component = mesh->getMaterial(0)->getComponent<GraphicsComponent>();
-			if (mat_component)
-				mesh_el->m_mesh->setMesh(0, sizeof(unsigned long), v_indices.size() / 3, v_indices.data(), ((GraphicsMaterial*)(mat_component->getElement()))->m_material);
+			out->setVertices(sizeof(Hippios::vertex_uv), hippios_vertices.size(), hippios_vertices.data());
+			
+			Material* mat0 = mesh->getMaterial(0);
+			if (!mat0) {
+				LOG(LOG_ERROR) << "GraphicsMeshManager::FillPoseidonMesh: No material(0) ";
+				return false;
+			}
+			Poseidon::Material* gpuMat0 =
+				m_service->materialCache().getOrCreate(
+					core,
+					mat0,
+					[&](Poseidon::Core* c, Material* m, Poseidon::Material* outMat, bool fresh) -> bool {
+						auto* meshMgr = static_cast<GraphicsMaterialManager*>(m_service->getManager<Material>());
+						return meshMgr->FillPoseidonMaterial(c, m, outMat, fresh);
+					}
+				);
+			if (!gpuMat0) {
+				LOG(LOG_ERROR) << "GraphicsMeshManager::FillPoseidonMesh: Failed to build GPU material for " << mat0->getPathName();
+				return false;
+			}
+			out->setMesh(0, sizeof(unsigned long), v_indices.size() / 3, v_indices.data(), gpuMat0);
 		}
-		return false;
-	}
+		return true;
+	}	
 
 	bool GraphicsMeshManager::onDelete(Event* ev, Unit* unit)
 	{

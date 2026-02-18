@@ -17,7 +17,6 @@
 // If GraphicsService is now in RheaClient:
 #include <Rhea/Graphics/GraphicsService.h> // via shim or new include path
 #include <Rhea/Platform/PlatformService.h>
-#include <Rhea/Graphics/GraphicsComponent.h>
 #include <Rhea/Components/RenderComponent.h>
 
 namespace Rhea
@@ -26,7 +25,6 @@ namespace Rhea
     {
         // register services
         SimpleParser::Type::registerType<GraphicsService>("//meworla/graphicsservice");
-        GraphicsComponent::_register_GraphicsComponent();
         /*
      // --- register types (moved from Application::init) ---
      SimpleParser::Type::registerType<Mesh>("//meworla/mesh");

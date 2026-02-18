@@ -49,7 +49,7 @@ namespace Rhea
 		GraphicsService* gs = static_cast<GraphicsService*>(m_app->getService("graphics"));
 		GraphicsManager* mgr = gs->getManager<Camera>();
 		//GraphicsCamera::createElement(core, m_view);
-		mgr->createElement(gs->getEngine(), m_view);
+		mgr->Ensure(gs->getEngine(), m_view);
 
 		// get target
 		

@@ -2,7 +2,6 @@
 //#include "Renderable.h"
 #include "RenderQueue.h"
 #include "Camera.h"
-#include <Rhea/Graphics/RenderElement.h>
 #include <Rhea/Components/RenderComponent.h>
 
 namespace Poseidon

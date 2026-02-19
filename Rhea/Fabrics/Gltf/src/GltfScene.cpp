@@ -9,6 +9,7 @@
 #include <Rhea/Core/Material.h>
 #include <Rhea/Animation/Animation.h>
 #include <Rhea/Animation/Skeleton.h>
+#include <Math/Vector3.h>
 #include <Math/Vector4.h>
 #undef max
 #include <algorithm>
@@ -126,13 +127,13 @@ namespace Rhea
 				//mat->setColor(ambient_id, Math::Vector3(material.ambient[0], material.ambient[1], material.ambient[2]));
 				// pbr to traditional specular - not implemented
 				//mat->setColor(specular_id, Math::Vector3(material.specular[0], material.specular[1], material.specular[2]));
-				Vector3 diffuse(
+				Math::Vector3 diffuse(
 					(float)material.pbrMetallicRoughness.baseColorFactor[0],
 					(float)material.pbrMetallicRoughness.baseColorFactor[1],
 					(float)material.pbrMetallicRoughness.baseColorFactor[2]
 				);
 				mat->setColor(diffuse_id, diffuse);
-				Vector3 emmissive(
+				Math::Vector3 emmissive(
 					(float)material.emissiveFactor[0],
 					(float)material.emissiveFactor[1],
 					(float)material.emissiveFactor[2]
@@ -180,8 +181,8 @@ namespace Rhea
 			mat->setShaderRes(shader_res);
 			mat->setValue("shader", shader_name);
 
-			mat->setColor(diffuse_id, Vector3(0.8f, 0.8f, 0.8f));
-			mat->setColor(emmission_id, Vector3(0.0f, 0.0f, 0.0f));
+			mat->setColor(diffuse_id, Math::Vector3(0.8f, 0.8f, 0.8f));
+			mat->setColor(emmission_id, Math::Vector3(0.0f, 0.0f, 0.0f));
 
 			if (diffuse_maps.size() > 0)
 				mat->setTexture(basecolor_id, diffuse_maps[0]);
@@ -256,24 +257,24 @@ namespace Rhea
 			}
 			else {
 				// Otherwise, construct the matrix from translation, rotation, and scale
-				Vector3 translation;
-				Quaternion rotation;
-				Vector3 scale;
+				Math::Vector3 translation;
+				Math::Quaternion rotation;
+				Math::Vector3 scale;
 				if (node.translation.size() < 3)
-					translation = Vector3(0.0f, 0.0f, 0.0f);
+					translation = Math::Vector3(0.0f, 0.0f, 0.0f);
 				else
-					translation = Vector3((float)node.translation[0], (float)node.translation[1], (float)node.translation[2]);
+					translation = Math::Vector3((float)node.translation[0], (float)node.translation[1], (float)node.translation[2]);
 				if (node.rotation.size() < 4)
-					rotation = Quaternion(0.0f, 0.0f, 0.0f, 1.0f);
+					rotation = Math::Quaternion(0.0f, 0.0f, 0.0f, 1.0f);
 				else {
 					// attention: gltf defines the rotation as [x,y,z,w]
-					rotation = Quaternion((float)node.rotation[3], (float)node.rotation[0], (float)node.rotation[1], (float)node.rotation[2]);
+					rotation = Math::Quaternion((float)node.rotation[3], (float)node.rotation[0], (float)node.rotation[1], (float)node.rotation[2]);
 					rotation.normalize();
 				}
 				if (node.scale.size() < 3)
-					scale = Vector3(1.0f,1.0f,1.0f);
+					scale = Math::Vector3(1.0f,1.0f,1.0f);
 				else
-					scale = Vector3((float)node.scale[0], (float)node.scale[1], (float)node.scale[2]);
+					scale = Math::Vector3((float)node.scale[0], (float)node.scale[1], (float)node.scale[2]);
 
 				localTransform = Math::Matrix4::compose(translation, rotation, scale); 				
 			}

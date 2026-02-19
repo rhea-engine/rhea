@@ -9,7 +9,7 @@
 #define TINYGLTF_NO_INCLUDE_STB_IMAGE
 #define TINYGLTF_NO_STB_IMAGE
 #define TINIGLTF_NO_FS
-#include "stb_image/stb_image.h"
+#include <stb_image.h>
 #include <nlohmann/json.hpp>
 #include <ThirdParty/tiny_gltf_loader/tiny_gltf.h>
 #include <Components/Math/Vector2.h>

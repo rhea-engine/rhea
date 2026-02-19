@@ -13,3 +13,11 @@ target_link_libraries(Poseidon
     Meworla::Hippios
     Rhea::Client
 )
+target_compile_options(Poseidon PRIVATE /showIncludes)
+
+target_include_directories(Poseidon PRIVATE
+  $<TARGET_PROPERTY:Meworla::HippiosHeaders,INTERFACE_INCLUDE_DIRECTORIES>
+)
+
+get_target_property(_hip_inc Meworla::HippiosHeaders INTERFACE_INCLUDE_DIRECTORIES)
+message(STATUS "Hippios include dirs seen by consumers: ${_hip_inc}")

@@ -9,6 +9,8 @@ add_library (Hermes "ServerStream.h" "ServerStream.cpp" "ClientStream.h" "Client
 "Messages/MessageDestroy.cpp" "Messages/MessageEnterFailed.h" "Messages/MessageEnterFailed.cpp" "Messages/MessageLogin.h" "Messages/MessageLogin.cpp" 
 "Messages/MessageConnect.h" "Messages/MessageConnect.cpp" "Messages/MessageLoginFailed.h" "Messages/MessageLoginFailed.cpp" "Messages/MessageCreateUser.h" 
 "Messages/MessageCreateUser.cpp" "Messages/MessageCreateAvatar.h" "Messages/MessageCreateAvatar.cpp" )
+target_link_libraries(Hermes Meworla::Psio)
+add_library(Meworla::Hermes ALIAS Hermes)
 
 # GTest
 

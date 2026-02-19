@@ -1,6 +1,7 @@
 #include <Rhea/Lobby/CredentialsService.h>
 #include <Rhea/Application.h>
 #include <Orion/FileStream.h>
+#include <nlohmann/json.hpp>
 
 namespace Meworla
 {
@@ -18,15 +19,15 @@ namespace Meworla
 			if (stream->Read(buf.get())) {
 				const char* ptr = buf->reader();
 				size_t len = buf->Remaining();
-				json prefs = json::parse(ptr, ptr + len, nullptr, false);
+				nlohmann::json prefs = nlohmann::json::parse(ptr, ptr + len, nullptr, false);
 
 				// check if the world exists
 				if (prefs.contains(world_name)) {
-					json cred = prefs[world_name];
+					nlohmann::json cred = prefs[world_name];
 					// check if the given method exists
 					for (auto& method : methods) {
 						if (cred.contains(method)) {
-							json cred_method = cred[method];
+							nlohmann::json cred_method = cred[method];
 							if (cred_method.contains("username") && cred_method.contains("secrets")) {
 								Credential* c = new Credential();
 								c->method = method;

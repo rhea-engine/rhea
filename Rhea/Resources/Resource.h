@@ -4,7 +4,7 @@
 #include <functional>
 #include <vector>
 
-#include "Orion/ResourceRequest.h"
+#include <Orion/ResourceRequest.h>
 
 #include "../Unit.h"
 

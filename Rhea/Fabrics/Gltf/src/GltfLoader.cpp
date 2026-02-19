@@ -10,7 +10,7 @@
 #define TINYGLTF_NO_STB_IMAGE
 #define TINIGLTF_NO_FS
 #define TINYGLTF_IMPLEMENTATION
-#include "stb_image/stb_image.h"
+#include <stb_image.h>
 #include <nlohmann/json.hpp>
 #include <ThirdParty/tiny_gltf_loader/tiny_gltf.h>
 #include <Psio/Log.h>

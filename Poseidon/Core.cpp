@@ -12,6 +12,8 @@
 #include <Psio/Log.h>
 #include <Hippios/D3D11Renderer/D3D11Renderer.h>
 
+#include <Hippios/Renderer.h>
+
 using Hippios::SamplerDesc;
 
 namespace Poseidon

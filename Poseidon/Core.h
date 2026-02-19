@@ -8,7 +8,7 @@
 #include <memory>
 #include <unordered_map>
 
-#include "Hippios/Renderer.h"
+namespace Hippios { class Renderer; class GraphicsBuffer; }
 
 #include "Node.h"
 

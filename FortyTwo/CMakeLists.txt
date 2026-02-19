@@ -1,4 +1,13 @@
-cmake_minimum_required(VERSION 3.18)
+if(NOT TARGET nlohmann_json::nlohmann_json)
+  include(FetchContent)
+
+  FetchContent_Declare(
+    nlohmann_json
+    URL https://github.com/nlohmann/json/releases/download/v3.11.2/json.tar.xz
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+  )
+  FetchContent_MakeAvailable(nlohmann_json)
+endif()
 
 if (OPENSSL_FOUND)
 	INCLUDE_DIRECTORIES( ${OPENSSL_INCLUDE_DIR} ${PROJECT_SOURCE_DIR} ${PROJECT_SOURCE_DIR}/Components)
@@ -11,7 +20,7 @@ add_executable (fortytwo "FortyTwo.cpp" "World.h" "World.cpp" "FortyTwo.h" "Acco
 "Authorization/Authorization.h" "Authorization/AuthorizationService.cpp" "Authorization/AuthorizationService.h" "Authorization/AuthorizationTrust.h"
 "Authorization/AuthorizationTrust.cpp" "Authorization/AuthInfo.h" "Authorization/AuthorizationSession.h" "Authorization/AuthorizationSession.cpp"
 "Authorization/AuthBackend.h" "Authorization/AuthBackendFile.h" "Authorization/AuthBackendFile.cpp" "AuthHandler.cpp" "AuthHandler.h" "ConnectionHandler.h" "ConnectionHandler.cpp")
-target_link_libraries(fortytwo Psio Rhea Hermes)
+target_link_libraries(fortytwo Meworla::Psio Rhea Meworla::Hermes nlohmann_json::nlohmann_json)
 
 # Tests
 

@@ -36,8 +36,8 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
                 
 # json library
-FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.2/json.tar.xz DOWNLOAD_EXTRACT_TIMESTAMP)
-FetchContent_MakeAvailable(json)
+FetchContent_Declare(nlohmann_json URL https://github.com/nlohmann/json/releases/download/v3.11.2/json.tar.xz DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
+FetchContent_MakeAvailable(nlohmann_json)
 
 # Target definition
 add_library(RheaEngine INTERFACE)
@@ -46,13 +46,14 @@ target_include_directories(RheaEngine INTERFACE ${CMAKE_CURRENT_SOURCE_DIR} ${CM
 # bullet 
 option(USE_PHYSICS_BULLET "Enable Bullet physics" ON)
 add_subdirectory (ThirdParty/bullet)
+include_directories(${PROJECT_SOURCE_DIR}/ThirdParty/ ${PROJECT_SOURCE_DIR}/ThirdParty/bullet/src)
 
 # Static Library Link to make .exe copyable under Windows
 if(WIN32)
 #  set(CMAKE_EXE_LINKER_FLAGS -static)
 endif()
 
-include_directories(${PROJECT_SOURCE_DIR} ${PROJECT_SOURCE_DIR}/Components/ ${json_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/ThirdParty/ ${PROJECT_SOURCE_DIR}/ThirdParty/bullet/src)
+#include_directories(${PROJECT_SOURCE_DIR} ${PROJECT_SOURCE_DIR}/Components/ ${json_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/ThirdParty/ ${PROJECT_SOURCE_DIR}/ThirdParty/bullet/src)
 
 # Detect if we are the top-level project
 if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
@@ -73,8 +74,8 @@ set(engine_dirs Components)
 set(engine_targets Meworla::Components)
 set(targetdirs FortyTwo)
 if(WIN32)
-    list(APPEND engine_dirs Poseidon Hermes Hippios Orion Rhea RheaClient)
-    list(APPEND engine_targets Meworla::Poseidon Hermes Meworla::Hippios Meworla::Orion Rhea::Core Rhea::Client)
+    list(APPEND engine_dirs Hermes Hippios Orion Poseidon Rhea RheaClient)
+    list(APPEND engine_targets Hermes Meworla::Hippios Meworla::Orion Meworla::Poseidon Rhea::Core Rhea::Client)
   #  if(DEV_BUILD_CETO)
         list(APPEND targetdirs Ceto)
     #endif()
@@ -99,7 +100,7 @@ if(RHEA_BUILD_ENGINE)
         target_link_libraries(RheaEngine INTERFACE ${tgt})
     endforeach()
 
-    target_include_directories(Orion PUBLIC ${json_SOURCE_DIR}/include)
+    #target_include_directories(Orion PUBLIC ${json_SOURCE_DIR}/include)
 endif()
 
 if(RHEA_BUILD_EXTRAS)

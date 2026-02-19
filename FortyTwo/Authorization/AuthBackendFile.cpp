@@ -1,6 +1,7 @@
 #include "AuthBackendFile.h"
 #include <Orion/FileStream.h>
 #include <Psio/Log.h>
+#include <nlohmann/json.hpp>
 
 void AuthBackendFile::setup(Rhea::Application* app)
 {
@@ -105,7 +106,7 @@ void AuthBackendFile::loadUsers()
 			const char* ptr = buf->reader();
 			size_t len = buf->Remaining();
 			try {
-				json auths = json::parse(ptr, ptr + len, nullptr, false);
+				nlohmann::json auths = nlohmann::json::parse(ptr, ptr + len, nullptr, false);
 				LOG(LOG_INFO) << "Loaded " << auths.size() << " users from auth file";
 				for (auto& auth : auths) {
 					m_store.m_users.push_back({ auth["user_id"], auth["username"], auth["ext_id"], auth["name"], auth["password"] });
@@ -133,8 +134,8 @@ void AuthBackendFile::saveUsers()
 
 // json function for userinfo
 
-void to_json(json& j, const UserInfo& p) {
-	j = json{
+void to_json(nlohmann::json& j, const UserInfo& p) {
+	j = nlohmann::json{
 		{"user_id", p.user_id},
 		{"username", p.user_id},
 		{"name", p.name},

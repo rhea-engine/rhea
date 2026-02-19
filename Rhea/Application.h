@@ -1,10 +1,9 @@
 #ifndef RHEA_H
 #define RHEA_H
 
-#include "Poseidon/Core.h"
 #include "Psio/InputEvent.h"
-#include "Orion/Orion.h"
-#include "Orion/ResourceRequest.h"
+#include <Orion/Orion.h>
+#include <Orion/ResourceRequest.h>
 #include "Resources/ResourceLoader.h"
 #include "ModuleSystem.h"
 

@@ -17,7 +17,7 @@ target_include_directories(RheaGltf PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_link_libraries(RheaGltf PRIVATE Meworla::Math RheaEngine Meworla::StbImage nlohmann_json::nlohmann_json)
+target_link_libraries(RheaGltf PRIVATE Meworla::Math Rhea::TinyGltf RheaEngine Meworla::StbImage nlohmann_json::nlohmann_json)
 
 # register for auto registry generation
 rhea_register_fabric_module("${CMAKE_CURRENT_SOURCE_DIR}/module.json")

@@ -13,7 +13,7 @@ add_library (RheaFabrics
 
 add_subdirectory (Network)
 #add_subdirectory(Animation)
-target_link_libraries(RheaFabrics RheaFabricsNet Animation)
+target_link_libraries(RheaFabrics RheaFabricsNet Animation Rhea::TinyObj)
 
 # add internal fabrics
 add_subdirectory(Animation EXCLUDE_FROM_ALL)

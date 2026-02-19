@@ -1,4 +1,4 @@
-#include "Renderer.h"
+#include <Hippios/Renderer.h>
 
 namespace Hippios
 {

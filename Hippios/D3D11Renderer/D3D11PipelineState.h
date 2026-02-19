@@ -1,12 +1,12 @@
 #ifndef HIPPIOS_D3D11_PIPELINESTATE_H
 #define HIPPIOS_D3D11_PIPELINESTATE_H
 
-#include "../PipelineState.h"
-#include "../Renderer.h"
-#include <D3D11StencilState.h>
-#include <D3D11BlendState.h>
+#include <Hippios/PipelineState.h>
+#include <Hippios/Renderer.h>
+#include "D3D11StencilState.h"
+#include "D3D11BlendState.h"
 #include <memory>
-#include <D3D11Renderer.h>
+#include "D3D11Renderer.h"
 
 namespace Hippios
 {

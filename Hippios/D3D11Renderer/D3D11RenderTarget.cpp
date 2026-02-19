@@ -1,8 +1,8 @@
 #include "D3D11RenderTarget.h"
 
 #include <d3d11.h>
-#include <D3D11SwapChain.h>
-#include <D3D11Renderer.h>
+#include "D3D11SwapChain.h"
+#include "D3D11Renderer.h"
 
 namespace Hippios
 {

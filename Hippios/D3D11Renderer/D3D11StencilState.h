@@ -1,7 +1,7 @@
 #ifndef HIPPIOS_D3D11_STENCILSTATE_H
 #define HIPPIOS_D3D11_STENCILSTATE_H
 
-#include "../StencilState.h"
+#include <Hippios/StencilState.h>
 #include <d3d11.h>
 
 namespace Hippios

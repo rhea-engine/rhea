@@ -3,7 +3,7 @@
 
 #include <d3d11.h>
 
-#include "Hippios/DepthBuffer.h"
+#include <Hippios/DepthBuffer.h>
 
 namespace Hippios
 {

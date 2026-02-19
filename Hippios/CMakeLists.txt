@@ -1,15 +1,25 @@
-# for now only Direct3dDX11 is supported
+add_library(HippiosHeaders INTERFACE)
+add_library(Meworla::HippiosHeaders ALIAS HippiosHeaders)
+
+target_include_directories(HippiosHeaders INTERFACE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+)
 
 add_library(Hippios STATIC)
-target_sources(Hippios PRIVATE "Renderer.h" "Renderer.cpp" "GPUProgram.h" "StencilState.h" "TextureDesc.h" "PipelineState.h" "BlendState.h" "BaseTypes.h" 
-"Sampler.h" "SwapChain.h" "SwapChain.h" "RenderTarget.h")
 add_library(Meworla::Hippios ALIAS Hippios)
-target_include_directories(Hippios PUBLIC
-  ${CMAKE_CURRENT_SOURCE_DIR}
+
+target_sources(Hippios PRIVATE
+  Renderer.cpp
 )
-target_link_libraries(Hippios PUBLIC Meworla::Components)
+
+target_link_libraries(Hippios PUBLIC
+  Meworla::Components
+  Meworla::HippiosHeaders
+)
 
 # search only if right platform
+# for now only Direct3dDX11 is supported
 if(WIN32)
 
 	if(MSVC)

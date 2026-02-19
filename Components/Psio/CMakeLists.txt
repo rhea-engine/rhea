@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.18)
-
 add_library(Psio STATIC Psio.cpp  Window.cpp "InputEvent.cpp"  "Net/UrlRequest/UrlRequest.cpp" 
 "Net/Http/HttpTransaction.h" "Net/Http/HttpNetworkTransaction.h" "Net/Http/HttpNetworkTransaction.cpp"
 "Net/Network.h" "Net/Socket/Socket.h" "Net/Socket/TCPSocket.h" "Net/Platform.h" "Net/Socket/SocketAddress.h" 
@@ -12,6 +10,11 @@ add_library(Psio STATIC Psio.cpp  Window.cpp "InputEvent.cpp"  "Net/UrlRequest/U
 "Image/Image.h" "Image/Image.cpp" "IPC/NamedPipe.h" "IPC/NamedPipe.cpp" "IPC/Process.h" "IPC/Process.cpp" "IPC/Pipe.h" "IPC/Pipe.cpp" "IPC/IO.h" "IPC/IO.cpp" "Fs/Fs.h" "Fs/Fs.cpp")
 
 add_library(Meworla::Psio ALIAS Psio)
+target_include_directories(Psio PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..>
+  $<INSTALL_INTERFACE:include>
+)
+target_link_libraries(Psio PRIVATE Meworla::StbImage)
 
 if (WIN32)
 	target_sources(Psio PRIVATE 

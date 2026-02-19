@@ -2,8 +2,8 @@
 
 #pragma once
 
-#include "Math/Vector3.h" 
-#include "Math/Quaternion.h"
+#include <Math/Vector3.h>
+#include <Math/Quaternion.h>
 
 namespace Math
 {

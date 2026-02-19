@@ -1,9 +1,9 @@
 #ifndef ORION_RESOURCECACHE_H
 #define ORION_RESOURCECACHE_H
 
-#include "ResolverInterface.h"
+#include <Orion/ResolverInterface.h>
 
-#include "Orion.h"
+#include <Orion/Orion.h>
 
 namespace Orion
 {

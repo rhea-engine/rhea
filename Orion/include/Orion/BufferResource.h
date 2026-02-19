@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include "Resource.h"
+#include <Orion/Resource.h>
 
 using std::string;
 

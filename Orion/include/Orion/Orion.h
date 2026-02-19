@@ -5,13 +5,11 @@
 #include <string>
 #include <functional>
 
-using std::string;
-
-#include "Collection.h"
+#include <Orion/Collection.h>
 #include <Psio/Fs/Fs.h>
-#include "Realms.h"
+#include <Orion/Realms.h>
 #include <Psio/Psio.h>
-#include "ResolverInterface.h"
+#include <Orion/ResolverInterface.h>
 
 namespace Orion
 {	
@@ -21,29 +19,29 @@ namespace Orion
 	class Orion
 	{
 	public:
-		Orion(Psio::Engine* engine, string appname);
+		Orion(Psio::Engine* engine, std::string appname);
 		~Orion();
 
 		// Poll the requests
 		bool poll();
 
 		// if we have the url for a resource get it
-		ResourceRequest* getResourceByUrl(const string url);
+		ResourceRequest* getResourceByUrl(const std::string url);
 		
 		// if we have the rid we have to resolve the Resource and then get it
-		ResourceRequest* getResourceByRid(const string rid);
+		ResourceRequest* getResourceByRid(const std::string rid);
 
 		// get by cache
-		std::unique_ptr<ResourceStream> getResourceFromCache(const string realm_name, const string resource_path);
+		std::unique_ptr<ResourceStream> getResourceFromCache(const std::string realm_name, const std::string resource_path);
 
 		// check in cache
-		bool checkResourceFromCache(const string realm_name, const string resource_path);
+		bool checkResourceFromCache(const std::string realm_name, const std::string resource_path);
 
 		// force closing a request
 		void close(ResourceRequest* req);
 
 		// callback for resolved resource
-		int resolve(string rid, ResourceRequest** resourceId);		
+		int resolve(std::string rid, ResourceRequest** resourceId);		
 		// Fs getter
 		Psio::Fs* getFs() { return m_fs; }
 
@@ -73,7 +71,7 @@ namespace Orion
 		Psio::Fs* m_fs;
 
 		// the appname is used for default paths
-		string m_appname;
+		std::string m_appname;
 
 		// the input output engine - used for network
 		Psio::Engine* m_engine;

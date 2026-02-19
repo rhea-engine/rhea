@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include "Collection.h"
+#include <Orion/Collection.h>
 
 namespace Orion
 {

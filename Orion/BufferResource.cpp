@@ -1,6 +1,6 @@
 #include <string.h>
 
-#include "BufferResource.h"
+#include <Orion/BufferResource.h>
 
 namespace Orion
 {

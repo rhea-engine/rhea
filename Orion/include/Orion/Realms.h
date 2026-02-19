@@ -5,9 +5,11 @@
 #include <deque>
 #include <unordered_map>
 #include <functional>
+#include <ctime>
+#include <string>
 
-#include "Realm.h"
-#include "Event.h"
+#include <Orion/Realm.h>
+#include <Orion/Event.h>
 
 namespace Orion
 {
@@ -22,9 +24,9 @@ namespace Orion
 
 		Realms(Orion* orion);
 		// get realm from cached realm list
-		Realm* getRealmCached(string name);
+		Realm* getRealmCached(std::string name);
 		// get realm asynchronously from server
-		int getRealm(string name, ResolveHandler handler);
+		int getRealm(std::string name, ResolveHandler handler);
 		// add realm to realm list
 		void addRealm(Realm* realm);
 
@@ -32,7 +34,7 @@ namespace Orion
 		Orion* m_orion;
 		std::vector<Realm*> m_realms;
 		std::vector<Realm*> m_file_realms;
-		time_t m_realms_lastmod = 0;
+		std::time_t m_realms_lastmod = 0;
 
 		typedef std::function<void(Realm*, int err)> ResolveHandler;
 

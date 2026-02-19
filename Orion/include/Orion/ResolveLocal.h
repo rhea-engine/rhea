@@ -1,7 +1,7 @@
 #ifndef ORION_RESOLVE_LOCAL_H
 #define ORION_RESOLVE_LOCAL_H
 
-#include "ResolverInterface.h"
+#include <Orion/ResolverInterface.h>
 
 namespace Orion
 {

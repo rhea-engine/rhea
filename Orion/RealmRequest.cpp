@@ -1,6 +1,9 @@
-#include "RealmRequest.h"
-#include "Orion.h"
+#include <Orion/RealmRequest.h>
+#include <Orion/Orion.h>
+
 #include <nlohmann/json.hpp>
+
+#include "RealmJson.h"
 
 namespace Orion
 {
@@ -33,11 +36,11 @@ namespace Orion
 				std::string response = std::string(buf->data(), bytes_read);
 				delete buf;
 				try {
-					json j = json::parse(response);
+					nlohmann::json j = nlohmann::json::parse(response);
 					Realm* realm = new Realm(j.get<Realm>());
 					handler(realm, 0);
 				}
-				catch (json::exception e) {
+				catch (const nlohmann::json::exception& e) {
 					handler(nullptr, -1);
 				}
 				});

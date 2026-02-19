@@ -1,14 +1,14 @@
-#include "Orion.h"
+#include <Orion/Orion.h>
 
-#include "ResourceCache.h"
-#include "ResourceRequest.h"
-#include "ResourceStream.h"
-#include "Realm.h"
-#include "ResolveLocal.h"
+#include <Orion/ResourceCache.h>
+#include <Orion/ResourceRequest.h>
+#include <Orion/ResourceStream.h>
+#include <Orion/Realm.h>
+#include <Orion/ResolveLocal.h>
 
 namespace Orion
 {	
-	Orion::Orion(Psio::Engine* engine, string appname)
+	Orion::Orion(Psio::Engine* engine, std::string appname)
 	{
 		m_appname = appname;
 		m_fs = engine->getFs();
@@ -45,7 +45,7 @@ namespace Orion
 		return false;
 	}
 
-	ResourceRequest* Orion::getResourceByUrl(const string url)
+	ResourceRequest* Orion::getResourceByUrl(const std::string url)
 	{
 		// get the file via resource cache
 		
@@ -55,7 +55,7 @@ namespace Orion
 		return NULL;
 	}
 
-	ResourceRequest* Orion::getResourceByRid(const string rid)
+	ResourceRequest* Orion::getResourceByRid(const std::string rid)
 	{
 		ResourceRequest* res_id;
 		
@@ -65,7 +65,7 @@ namespace Orion
 		return res_id;		
 	}
 
-	std::unique_ptr<ResourceStream> Orion::getResourceFromCache(const string realm_name, const string resource_path)
+	std::unique_ptr<ResourceStream> Orion::getResourceFromCache(const std::string realm_name, const std::string resource_path)
 	{
 		// try resolvers
 		std::unique_ptr<ResourceStream> stream;
@@ -81,7 +81,7 @@ namespace Orion
 		return nullptr;
 	}
 
-	bool Orion::checkResourceFromCache(const string realm_name, const string resource_path)
+	bool Orion::checkResourceFromCache(const std::string realm_name, const std::string resource_path)
 	{
 		// try resolvers
 		

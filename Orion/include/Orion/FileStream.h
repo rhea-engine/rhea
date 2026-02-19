@@ -1,7 +1,7 @@
 #ifndef ORION_FILESTREAM_H
 #define ORION_FILESTREAM_H
 
-#include "ResourceStream.h"
+#include <Orion/ResourceStream.h>
 
 #include <string>
 #include <memory>

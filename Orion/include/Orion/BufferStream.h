@@ -1,7 +1,7 @@
 #ifndef ORION_BUFFERSTREAM_H
 #define ORION_BUFFERSTREAM_H
 
-#include "ResourceStream.h"
+#include <Orion/ResourceStream.h>
 
 namespace Orion
 {

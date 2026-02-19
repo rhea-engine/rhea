@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include "ResourceStream.h"
+#include <Orion/ResourceStream.h>
 
 namespace Orion
 {

@@ -1,7 +1,7 @@
 #ifndef ORION_URLRESPONSESTREAM_H
 #define ORION_URLRESPONSESTREAM_H
 
-#include "ResourceStream.h"
+#include <Orion/ResourceStream.h>
 #include <Psio/Net/UrlRequest/UrlResponse.h>
 #include <memory>
 

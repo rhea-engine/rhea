@@ -1,7 +1,7 @@
 #ifndef ORION_EVENT_HANDLER
 #define ORION_EVENT_HANDLER
 
-#include "Event.h"
+#include <Orion/Event.h>
 
 namespace Orion
 {

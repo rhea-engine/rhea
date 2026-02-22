@@ -4,6 +4,7 @@
 #include <Math/Vector3.h>
 #include <Rhea/Core/Position.h>
 #include <Rhea/Component.h>
+#include <Rhea/Components/MovementListenerComponent.h>
 #include "NetworkDelegate.h"
 
 #define NET_ROLE_NONE 0
@@ -15,9 +16,9 @@ namespace Rhea
 {
 	class Item;
 
-	class NetworkComponent : public Component
+	class NetworkComponent : public MovementListenerComponent
 	{
-		MECLASS_VIRTUAL(NetworkComponent, Component)
+		MECLASS_VIRTUAL(NetworkComponent, MovementListenerComponent)
 	public:
 		NetworkComponent(Item* item, int nuid, int role) :
 			m_NUID(nuid),
@@ -25,7 +26,7 @@ namespace Rhea
 			m_role(role),
 			m_dirty(false),
 			m_delegate(nullptr),
-			Component("network", "//meworla/networkcomponent")
+			MovementListenerComponent("network", "//meworla/networkcomponent")
 		{}
 
 		int NUID() { return m_NUID; }
@@ -34,8 +35,8 @@ namespace Rhea
 		void setDelegate(NetworkDelegate* delegate) { m_delegate = delegate; }
 
 		// handle movement requests
-		void setMovement(Math::Vector3 move);
-		void setTurn(float turn);
+		void onMovementChanged(const Math::Vector3& move) override;
+		void onTurnChanged(float turn) override;		
 
 		// handle authoritative position setting
 

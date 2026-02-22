@@ -1,0 +1,8 @@
+{
+  "enabled_fabrics": [
+    "Meworla/Rhea:GUI",
+    "Meworla/Rhea:Gltf",
+    "Meworla/Rhea:Controller",
+    "Meworla/Rhea:Character"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "vendor": "Meworla",
+  "package": "RheaPhysics",
+  "name": "Rhea Physics Fabric",
+  "version": "0.9.0",
+  "class": "Rhea::RheaPhysicsFabric",
+  "include": "RheaPhysics/RheaPhysicsFabric.h",
+  "cmake_target": "Meworla::RheaPhysics"
+}

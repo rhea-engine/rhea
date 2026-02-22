@@ -1,0 +1,9 @@
+{
+  "vendor": "Meworla",
+  "package": "RheaPhysicsBullet",
+  "name": "Rhea Bullet Physics Fabric",
+  "version": "0.9.0",
+  "class": "Rhea::RheaPhysicsBulletFabric",
+  "include": "RheaPhysicsBullet/RheaPhysicsBulletFabric.h",
+  "cmake_target": "Meworla::RheaPhysicsBullet"
+}

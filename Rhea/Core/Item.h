@@ -9,6 +9,7 @@
 #include <Math/Vector3.h>
 #include <Rhea/Core/Transform.h>
 #include <Rhea/Components/VisualComponent.h>
+#include <Rhea/Components/MovementListenerComponent.h>
 
 namespace Rhea
 {
@@ -79,12 +80,17 @@ namespace Rhea
 		bool isVisible() { if (getComponent<VisualComponent>()) return getComponent<VisualComponent>()->isVisible(); else return false; }
 
 		// physics
-		PhysicsBody* getPhysicsBody();
+		PhysicsBody* getPhysicsBody() const { return m_physics_body; }
+		void setPhysicsBody(PhysicsBody* body) { m_physics_body = body; }
+
+		void addComponent(Component* component) override;
+		virtual void removeComponent(Component* component) override;
 
 	protected:
-		PhysicsBody* m_physics_body;
+		PhysicsBody* m_physics_body; // cached - not owned
 		Math::Vector3 m_movement;
 		float m_turn;				
+		std::vector<MovementListenerComponent*> m_movement_listeners;
 
 		Transform m_transform;
 	};

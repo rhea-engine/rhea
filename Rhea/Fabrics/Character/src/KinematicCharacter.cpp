@@ -3,11 +3,11 @@
 #include <Rhea/Character/KinematicCharacter.h>
 #include <Rhea/Application.h>
 #include <Rhea/Service.h>
-#include <Rhea/Physics/Body.h>
+#include <Rhea/Physics/PhysicsBody.h>
 #include <Rhea/Physics/PhysicsEvent.h>
-#include <Rhea/Physics/PhysicsManager.h>
-#include <Rhea/Physics/Bullet/BtGhost.h>
-#include <Rhea/Physics/PhysicsCharacter.h>
+#include <Rhea/Physics/PhysicsManagerService.h>
+#include <Rhea/Physics/PhysicsService.h>
+#include <Rhea/Physics/IPhysicsCharacter.h>
 #include <Rhea/Core/Transform.h>
 #include <Rhea/Fabrics/Network/NetworkComponent.h>
 
@@ -21,7 +21,9 @@ namespace Rhea
 {
 	KinematicCharacter::~KinematicCharacter()
 	{
-		Service* phy_srv = m_app->getService("physics");
+		auto* mgr = doCast<PhysicsManagerService>(m_app->getService("physics_mgr"));
+		if (!mgr) return;
+		PhysicsService* phy_srv = mgr->getPhysicsService();		
 		if (phy_srv)
 			phy_srv->unregisterEventHandler("pre_physics", this);
 	}
@@ -37,7 +39,7 @@ namespace Rhea
 		}
 
 		float delta = static_cast<PhysicsEvent*>(ev)->getDelta();		
-		auto* character = m_physics_body->query<PhysicsCharacterInterface>("PhysicsCharacter");
+		auto* character = m_physics_body->query<IPhysicsCharacter>("PhysicsCharacter");
 		if (!character) {
 			return false;
 		}
@@ -131,7 +133,11 @@ namespace Rhea
 
 			Math::Vector3 pos = m_position->get_worldspace();
 			m_jump_start_y = pos.y;
-			if (static_cast<PhysicsCharacter*>(m_physics_body)->jump(pos)) {
+			auto* character = m_physics_body->query<IPhysicsCharacter>("PhysicsCharacter");
+			if (!character) {
+				return;
+			}
+			if (character->jump(pos)) {
 				// jumping is possible
 				m_position->setPosition(pos);
 				m_move_state = MoveState::JUMP;
@@ -149,7 +155,9 @@ namespace Rhea
 		m_values["body_type"] = "ghost";
 
 		// register to physics step
-		Service* phy_srv = m_app->getService("physics");
+		auto* mgr = doCast<PhysicsManagerService>(m_app->getService("physics_mgr"));
+		if (!mgr) return;
+		PhysicsService* phy_srv = mgr->getPhysicsService();
 		// bind our physics loop
 		if (phy_srv) {
 			m_phy_pre_handler = std::bind(&KinematicCharacter::doPhysics, this, std::placeholders::_1, std::placeholders::_2);
@@ -167,7 +175,9 @@ namespace Rhea
 
 	bool KinematicCharacter::onSceneReady(Event* ev, Unit* unit)
 	{
-		Service* phy_srv = m_app->getService("physics");
+		auto* mgr = doCast<PhysicsManagerService>(m_app->getService("physics_mgr"));
+		if (!mgr) return true;
+		PhysicsService* phy_srv = mgr->getPhysicsService();
 		// bind our physics loop
 		if (phy_srv) {
 			m_phy_pre_handler = std::bind(&KinematicCharacter::doPhysics, this, std::placeholders::_1, std::placeholders::_2);

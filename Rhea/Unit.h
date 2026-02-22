@@ -53,7 +53,7 @@ namespace Rhea
 		// add component
 		// a component is a child which is stored in the type lookup table
 		// this is allows lookup by type
-		void addComponent(Component* component);		
+		virtual void addComponent(Component* component);
 
 		// create and add component
 		template <typename T, typename... Args>
@@ -70,7 +70,7 @@ namespace Rhea
 		}
 
 		// remove a component
-		void removeComponent(Component* component);
+		virtual void removeComponent(Component* component);
 
 		template <typename T>
 		void deleteComponent() {

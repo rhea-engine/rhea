@@ -2,11 +2,8 @@
 #include "Application.h"
 #include "UnitTree.h"
 #include <Rhea/Fabrics/3D/Mesh.h>
-#include "Physics/Body.h"
-#include <Rhea/Fabrics/Network/NetworkComponent.h>
 #include <Psio/Log.h>
 #include <Math/Math.h>
-#include <Physics/PhysicsComponent.h>
 
 namespace Rhea
 {
@@ -127,40 +124,36 @@ namespace Rhea
 		m_transform.get_position()->lookAt(look_at);
 		m_transform.update();
 	}
-	
-	PhysicsBody* Item::getPhysicsBody()
-	{
-		if (m_physics_body)
-			return m_physics_body;
-
-		PhysicsComponent* physics = getComponent<PhysicsComponent>();
-		if (physics) {
-			m_physics_body = physics->getBody();
-			return m_physics_body;
-		}
-		else
-			return nullptr;		
-	}
-
+		
 	void Item::setMovement(Math::Vector3 move)
 	{
 		m_movement = move;
-		if (getComponent<Rhea::NetworkComponent>())
-			getComponent<Rhea::NetworkComponent>()->setMovement(move);
-		if (!m_physics_body)
-			if (!getPhysicsBody())
-				return;
-		m_physics_body->move(move);
-	}
+		for (auto* l : m_movement_listeners) {
+			l->onMovementChanged(move);
+		}		
+	}	
 
 	void Item::setTurn(float turn)
 	{
 		m_turn = turn;
-		if (getComponent<Rhea::NetworkComponent>())
-			getComponent<Rhea::NetworkComponent>()->setTurn(turn);
-		if (!m_physics_body)
-			if (!getPhysicsBody())
-				return;
-		m_physics_body->turn(turn);
+		for (auto* l : m_movement_listeners) {
+			l->onTurnChanged(turn);
+		}
 	}	
+
+	void Item::addComponent(Component* c)
+	{
+		Unit::addComponent(c);
+		if (auto* l = doCast<MovementListenerComponent>(c))
+			m_movement_listeners.push_back(l);
+	}
+
+	void Item::removeComponent(Component* c)
+	{
+		if (auto* l = doCast<MovementListenerComponent>(c)) {
+			auto it = std::remove(m_movement_listeners.begin(), m_movement_listeners.end(), l);
+			m_movement_listeners.erase(it, m_movement_listeners.end());
+		}
+		Unit::removeComponent(c);
+	}
 }

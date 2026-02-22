@@ -110,8 +110,12 @@ namespace Rhea
 		auto target_it = m_values.find("target");		
 		if (target_it != m_values.end()) {
 			Item* target = doCast<Item>(m_app->getUnitTree()->find(target_it->second, m_attributes["basepath"], false));
-			if (target)
-				connect(target);
+			if (!target) {
+				std::string name = target_it->second;
+				LOG(LOG_ERROR) << "Controller " << m_pathname << ": target " << name << " not found";
+				return;
+			}
+			connect(target);
 		}
 		_registerEvent(m_app->getUnitTree());
 	}

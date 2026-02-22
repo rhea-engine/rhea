@@ -34,6 +34,7 @@
 #include <Rhea/Fabrics/3D/Camera.h>
 
 #include <Psio/Log.h>
+#include <Rhea/Physics/PhysicsManagerService.h>
 
 namespace Rhea
 {
@@ -374,21 +375,24 @@ namespace Rhea
 		static Poseidon::Mesh* m_mesh = nullptr;
 
 		// ray tracing to current hover object
-		PhysicsService* phys = static_cast<PhysicsService*>(m_app->getService("physics"));
+		auto* mgr = doCast<PhysicsManagerService>(m_app->getService("physics_mgr"));
+		if (!mgr) return nullptr;
+		PhysicsService* phys = mgr->getPhysicsService();
+		if (!phys) return nullptr;
 		std::string def = "default";
 		Poseidon::Camera* camera = m_core->get_scene_manager()->getViewport()->getRenderContext(def)->get_camera();
-		if (phys && camera) {
+		if (!camera) return nullptr;
 			
-			// compute the ray
-			Math::Ray ray = camera->getPickingRay((float)m_mx, (float)m_my, m_viewport_width, m_viewport_height);
+		// compute the ray
+		Math::Ray ray = camera->getPickingRay((float)m_mx, (float)m_my, m_viewport_width, m_viewport_height);
 
-			Math::Vector3 ray_from = ray.getOrigin();
-			Math::Vector3 ray_dir = ray.getDirection();
-			ray_dir *= 1000.0f;
-			Math::Vector3 ray_to = ray.getOrigin() + ray_dir;
+		Math::Vector3 ray_from = ray.getOrigin();
+		Math::Vector3 ray_dir = ray.getDirection();
+		ray_dir *= 1000.0f;
+		Math::Vector3 ray_to = ray.getOrigin() + ray_dir;
 
-			// call ray test from physics service
-			return phys->ray(ray_from, ray_to);
+		// call ray test from physics service
+		return phys->ray(ray_from, ray_to);
 
 #ifdef PICK3D_DEBUG
 			if (!m_mesh) {
@@ -422,7 +426,5 @@ namespace Rhea
 			DLOG(LOG_DEBUG) << "deb1: " << std::to_string(deb1.x) << "/" + std::to_string(deb1.y) << "/" + std::to_string(deb1.z);
 			DLOG(LOG_DEBUG) << "deb2: " << std::to_string(deb2.x) << "/" + std::to_string(deb2.y) << "/" + std::to_string(deb2.z);
 #endif
-		}
-		return nullptr;
 	}
 }

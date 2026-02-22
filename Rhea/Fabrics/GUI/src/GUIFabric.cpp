@@ -13,6 +13,8 @@
 #include <Rhea/GUI/Column.h>
 #include <Rhea/GUI/Row.h>
 #include <Rhea/GUI/TextInput.h>
+#include <Rhea/Physics/PhysicsManagerService.h>
+#include <Rhea/Fabrics/Text/TextWidget.h>
 
 namespace Rhea
 {
@@ -44,5 +46,13 @@ namespace Rhea
 		GuiService* service = SimpleParser::Type::create<GuiService>("GuiService");
 		service->setup(app);
 		app->registerService("gui", service);
+
+		// no physics
+		auto* mgr = static_cast<PhysicsManagerService*>(app->getService("physics_mgr"));
+		if (mgr) {
+			PhysicsBodyDesc none;
+			none.kind = ""; // means disabled
+			mgr->registerBodyForType(TextWidget::staticType(), none);
+		}
 	}
 }

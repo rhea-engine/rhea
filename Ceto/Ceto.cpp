@@ -8,7 +8,8 @@
 #include <Rhea/Graphics/GraphicsManager.h>
 #include <Rhea/Graphics/CameraManager.h>
 #include "Rhea/Fabrics/3D/Camera.h"
-#include "Rhea/Physics/PhysicsManager.h"
+#include "Rhea/Physics/PhysicsManagerService.h"
+#include "Rhea/Physics/PhysicsService.h"
 
 #include "Poseidon/Material.h"
 #include "Poseidon/Shader.h"
@@ -294,19 +295,35 @@ void Ceto::setScene(bool mark_preferrences)
 void Ceto::showScene(Rhea::Scene* scene)
 {
 	// initialize physics
-	Rhea::PhysicsService* physics = static_cast<Rhea::PhysicsService*>(m_services["physics"]);
-	if (!physics) {
-		Variant phy = scene->getValue("physics");
-		if (phy == std::string("none")) {
-			physics = static_cast<Rhea::PhysicsManagerService*>(m_services["physics_mgr"])->createPhysicsService(Rhea::PhysicsManagerService::Types::NONE);
+	auto* mgr = static_cast<Rhea::PhysicsManagerService*>(m_services["physics_mgr"]);
+	if (!mgr) {
+		LOG(LOG_ERROR) << "No physics manager service found. Physics will be disabled.";		
+	}
+	else { 
+		std::string backend = "none";
+		std::string phy = scene->getValue("physics", "none");
+		if (phy == std::string("world") || phy == std::string("bullet")) {
+			backend = "world";
 		}
-		else {
-			physics = static_cast<Rhea::PhysicsManagerService*>(m_services["physics_mgr"])->createPhysicsService(Rhea::PhysicsManagerService::Types::WORLD);
+		else if (phy == std::string("none")) {
+			backend = "none";
 		}
-		physics->onInit();
-		m_services["physics"] = physics;
-		// store in local "cache" var
-		m_physics = physics;
+		else if (!phy.empty()) {
+			// allow future backends by id, e.g. "physx"
+			backend = phy;
+		}
+
+		// create service by id (manager handles fallback to "none" if unknown/unavailable)
+		Rhea::PhysicsService* physics = mgr->createPhysicsService(backend);
+		if (!physics) {
+			// last-resort fallback if the manager doesn't already do it
+			physics = mgr->createPhysicsService("none");
+		}
+
+		if (physics) {
+			physics->onInit();			
+			m_physics = physics;
+		}		
 	}
 
 	// search for a camera			

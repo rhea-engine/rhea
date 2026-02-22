@@ -4,7 +4,7 @@
 
 namespace Rhea
 {
-	void NetworkComponent::setMovement(Math::Vector3 move)
+	void NetworkComponent::onMovementChanged(const Math::Vector3& move)
 	{
 		if (m_role==NET_ROLE_CLIENT) {
 			// send the movement to the network
@@ -14,7 +14,7 @@ namespace Rhea
 		}
 	}
 	
-	void NetworkComponent::setTurn(float turn)
+	void NetworkComponent::onTurnChanged(float turn)
 	{
 		if (m_role == NET_ROLE_CLIENT) {
 			// send the turning to the network

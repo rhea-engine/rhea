@@ -14,10 +14,10 @@ add_library(RheaBase "Unit.cpp" "UnitTree.cpp" "Realm.cpp" "InputMap.cpp" "Dispa
  "EventInput.cpp" "Error.h" "Application.cpp" "Component.h" "Component.cpp"
 "Core/Material.h" "Core/Material.cpp" "Core/SceneLoader.cpp" "Core/Scene.cpp" "Core/Avatar.h" "Core/Avatar.cpp" "Core/Position.h" "Core/Position.cpp"
 "Core/Transform.h" "Core/Transform.cpp" "Core/Geometry.h" "Core/Shader.h"  "Core/Shader.cpp" "Core/Item.h" "Core/Item.cpp" "Core/Controller.h"
-"Core/WorldService.h" "Core/WorldService.cpp" "Core/Lighting.cpp" "Core/Lighting.h" "Core/Lighting.cpp" "ModuleSystem.h")
+"Core/WorldService.h" "Core/WorldService.cpp" "Core/Lighting.cpp" "Core/Lighting.h" "Core/Lighting.cpp" "ModuleSystem.h" "Physics/IPhysicsCharacter.h" "Components/MovementListenerComponent.h" "Physics/PhysicsManagerService.h" "Physics/PhysicsManagerService.cpp")
 add_library(Rhea::Core ALIAS RheaBase)
 
-target_link_libraries(RheaBase PUBLIC PoseidonMath Meworla::Orion SimpleParser RheaResources RheaPhysics RheaFabrics  Psio)
+target_link_libraries(RheaBase PUBLIC Meworla::Math Meworla::Orion SimpleParser RheaResources Rhea::Physics RheaFabrics  Psio)
 
 # helpers for consumers
 set(RHEA_CMAKE_DIR "${CMAKE_CURRENT_LIST_DIR}/cmake" CACHE INTERNAL "")

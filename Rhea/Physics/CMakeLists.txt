@@ -1,11 +1,11 @@
-cmake_minimum_required (VERSION 3.9.2)
+add_library(RheaPhysicsAPI STATIC 
+	PhysicsManagerService.cpp
+ "PhysicsBodyDescriptor.h")
+add_library(Rhea::Physics ALIAS RheaPhysicsAPI)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ ${CMAKE_SOURCE_DIR} ${CMAKE_SOURCE_DIR}/Rhea/ ${CMAKE_SOURCE_DIR}/ThirdParty/bullet/src)
+#target_include_directories(RheaPhysicsAPI PUBLIC
+#  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+#  $<INSTALL_INTERFACE:include>
+#)
 
-add_library (RheaPhysics "PhysicsService.cpp" "Bullet/BtPhysicsService.cpp" "Bullet/BtBody.cpp" "Body.cpp" "PhysicsManager.cpp" "PhysicsHeightmap.h"
-"PhysicsEvent.h" "Bullet/BtCharacter.h" "Bullet/BtCharacter.cpp" "Bullet/BtGhost.cpp" "PhysicsCharacter.h" "PhysicsCharacter.cpp" 
-"PhysicsComponent.h"  )
-
-add_library(RheaPhysicsDebug "Bullet/BtDebugDraw.h" "Bullet/BtDebugDraw.cpp")
-
-target_link_libraries(RheaPhysics BulletDynamics BulletCollision LinearMath)
+target_link_libraries(RheaPhysicsAPI PRIVATE Meworla::Math Rhea::Core)

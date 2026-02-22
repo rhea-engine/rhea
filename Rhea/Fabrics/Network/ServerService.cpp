@@ -9,6 +9,7 @@
 #include <Rhea/Physics/PhysicsService.h>
 #include <Rhea/Platform/PlatformService.h>
 #include "NetworkComponent.h"
+#include <Physics/PhysicsManagerService.h>
 
 namespace Rhea
 {
@@ -154,12 +155,13 @@ namespace Rhea
 				msg.NUID = net_com->NUID();
 				broadcast(&msg, connection);
 				// remove from scene
-				Rhea::Service* phy_srv = m_app->getService("physics");
-				// add to physics					
 				m_scene->removeItem(item);
 				m_scene->removeChild(item);
-				if (phy_srv) {
-					((Rhea::PhysicsService*)phy_srv)->removeItem(item);
+				auto* mgr = doCast<PhysicsManagerService>(m_app->getService("physics_mgr"));
+				if (mgr) {
+					PhysicsService* phy_srv = mgr->getPhysicsService();
+					if (phy_srv)
+						phy_srv->removeItem(item);
 				}
 			}
 			delete item;

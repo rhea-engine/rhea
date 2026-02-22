@@ -4,12 +4,14 @@
 #include <Rhea/Graphics/GraphicsService.h>
 #include <Rhea/Core/Controller.h>
 #include <Psio/Log.h>
-#include <Rhea/Physics/Bullet/BtPhysicsService.h>
 #include <Rhea/Fabrics/Network/NetworkFabrics.h>
 #include <Rhea/Platform/PlatformService.h>
 #include <Rhea/UnitTree.h>
 #include <Rhea/Resources/ResourceList.h>
 #include <Rhea/Resources/ResourceService.h>
+#include <Rhea/Physics/PhysicsManagerService.h>
+#include <Rhea/Physics/IPhysicsDebugDraw.h>
+#include <Rhea/Physics/PhysicsService.h>
 
 using Rhea::GraphicsService;
 using Rhea::Service;
@@ -76,9 +78,11 @@ namespace Poseidon
 		m_phys_debug = scene->getValue("debug_physics");
 
 		if (m_phys_debug) {
-			Rhea::BulletPhysicsService* ps = doCast<Rhea::BulletPhysicsService>(getService("physics"));
-			if (ps)
-				m_debug_draw = new Rhea::BulletDebugDraw(this, ps->getWorld(), core);
+
+			auto* mgr = doCast<Rhea::PhysicsManagerService>(getService("physics_mgr"));
+			auto* ps = mgr ? mgr->getPhysicsService() : nullptr;
+
+			auto* m_debug_draw = ps ? ps->debugDraw() : nullptr;			
 		}
 	}
 

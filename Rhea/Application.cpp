@@ -31,7 +31,8 @@
 #include "Resources/ResourceService.h"
 
 #include "Platform/PlatformService.h"
-#include "Physics/PhysicsManager.h"
+#include "Physics/PhysicsManagerService.h"
+#include "Physics/PhysicsService.h"
 
 #include "SimpleParser/Type.h"
 #include "SimpleParser/Method.h"
@@ -52,7 +53,7 @@
 #include <Fabrics/3D/PointLight.h>
 #include <Fabrics/3D/SpotLight.h>
 #include <Component.h>
-#include <Physics/PhysicsComponent.h>
+//#include <Physics/PhysicsComponent.h>
 
 #undef min
 
@@ -68,7 +69,7 @@ namespace Rhea
 			delete it->second;
 		}
 		m_services.clear();
-	}
+	}	
 
 	void Application::init()
 	{		
@@ -103,8 +104,7 @@ namespace Rhea
 
 		Service* phy_mgr = (PhysicsManagerService*)SimpleParser::Type::create("PhysicsManagerService", "//meworla/physicsmanagerservice");
 		phy_mgr->setup(this);
-		m_services["physics_mgr"] = phy_mgr;
-		PhysicsComponent::_register_PhysicsComponent();
+		m_services["physics_mgr"] = phy_mgr;		
 
 		m_fs = new Orion::Orion(static_cast<PlatformService*>(psio)->getEngine(), m_appname);
 		m_unit_tree.reset((UnitTree*)SimpleParser::Type::create("/", "//core/unittree"));
@@ -223,8 +223,8 @@ namespace Rhea
 		// toggle physics service
 		esc.set(Psio::Key::CODE_F9, 0, 0);
 		if (evt->isEvent(&esc)) {
-			PhysicsService* physics = static_cast<PhysicsService*>(m_services["physics"]);
-			physics->toggleDebug();
+			PhysicsManagerService* mgr = static_cast<PhysicsManagerService*>(m_services["physics_mgr"]);
+			if (mgr && mgr->getPhysicsService()) mgr->getPhysicsService()->toggleDebug();
 		}
 
 		// pressed mouse button

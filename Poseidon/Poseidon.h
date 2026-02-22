@@ -1,5 +1,6 @@
 #include <Rhea/Application.h>
-#include <Rhea/Physics/Bullet/BtDebugDraw.h>
+#include "Core.h"
+#include <Rhea/Physics/IPhysicsDebugDraw.h>
 
 namespace Poseidon
 {
@@ -31,6 +32,6 @@ namespace Poseidon
 		Poseidon::Core* core;
 
 		bool m_phys_debug;
-		Rhea::BulletDebugDraw* m_debug_draw;
+		Rhea::IPhysicsDebugDraw* m_debug_draw;
 	};
 }

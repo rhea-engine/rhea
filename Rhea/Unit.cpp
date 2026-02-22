@@ -73,10 +73,13 @@ namespace Rhea
 		// first remove child
 		removeChild(component);
 		
-		// remove from map
+		// remove from map, but only if the stored pointer == component
 		SimpleParser::Type* type = component->getType();
 		while (type) {
-			m_unique_components.erase(type);  // Remove from map
+			auto it = m_unique_components.find(type);
+			if (it != m_unique_components.end() && it->second == component) {
+				m_unique_components.erase(it);
+			}
 			type = type->getParent();
 		}
 	}

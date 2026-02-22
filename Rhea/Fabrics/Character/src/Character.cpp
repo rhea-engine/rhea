@@ -3,9 +3,10 @@
 #include <Rhea/Character/Character.h>
 #include <Rhea/Application.h>
 #include <Rhea/Service.h>
-#include <Rhea/Physics/Body.h>
+#include <Rhea/Physics/PhysicsBody.h>
 #include <Rhea/Physics/PhysicsEvent.h>
-#include <Rhea/Physics/PhysicsManager.h>
+#include <Rhea/Physics/PhysicsManagerService.h>
+#include <Rhea/Physics/PhysicsService.h>
 
 using Math::Quaternion;
 using Math::Vector3;
@@ -13,8 +14,10 @@ using Math::Vector3;
 namespace Rhea
 {
 	Character::~Character()
-	{		
-		Service* phy_srv = m_app->getService("physics");
+	{	
+		auto* mgr = doCast<PhysicsManagerService>(m_app->getService("physics_mgr"));
+		if (!mgr) return;
+		PhysicsService* phy_srv = mgr->getPhysicsService();		
 		if (phy_srv)
 			phy_srv->unregisterEventHandler("pre_physics", this);	
 	}
@@ -22,8 +25,7 @@ namespace Rhea
 	bool Character::doPhysics(Event* ev, Unit* unit)
 	{
 		if (!m_physics_body)
-			if (!getPhysicsBody())
-				return false;
+			return false;
 		
 		if (!m_position)
 			m_position = getTransform()->get_position();
@@ -83,7 +85,9 @@ namespace Rhea
 		m_values["character"] = true;
 
 		// register to physics step
-		Service* phy_srv = m_app->getService("physics");
+		auto* mgr = doCast<PhysicsManagerService>(m_app->getService("physics_mgr"));
+		if (!mgr) return;
+		PhysicsService* phy_srv = mgr->getPhysicsService();
 		if (phy_srv) {
 			m_phy_pre_handler = std::bind(&Character::doPhysics, this, std::placeholders::_1, std::placeholders::_2);
 			phy_srv->registerEventHandler("pre_physics", this, m_phy_pre_handler);
@@ -95,7 +99,9 @@ namespace Rhea
 
 	bool Character::onSceneReady(Event* ev, Unit* unit)
 	{
-		Service* phy_srv = m_app->getService("physics");
+		auto* mgr = doCast<PhysicsManagerService>(m_app->getService("physics_mgr"));
+		if (!mgr) return true;
+		PhysicsService* phy_srv = mgr->getPhysicsService();
 		if (phy_srv) {
 			m_phy_pre_handler = std::bind(&Character::doPhysics, this, std::placeholders::_1, std::placeholders::_2);
 			phy_srv->registerEventHandler("pre_physics", this, m_phy_pre_handler);

@@ -44,9 +44,9 @@ add_library(RheaEngine INTERFACE)
 target_include_directories(RheaEngine INTERFACE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/Components)
 
 # bullet 
-option(USE_PHYSICS_BULLET "Enable Bullet physics" ON)
-add_subdirectory (ThirdParty/bullet)
-include_directories(${PROJECT_SOURCE_DIR}/ThirdParty/ ${PROJECT_SOURCE_DIR}/ThirdParty/bullet/src)
+#option(USE_PHYSICS_BULLET "Enable Bullet physics" ON)
+#add_subdirectory (ThirdParty/bullet)
+#include_directories(${PROJECT_SOURCE_DIR}/ThirdParty/ ${PROJECT_SOURCE_DIR}/ThirdParty/bullet/src)
 
 # Static Library Link to make .exe copyable under Windows
 if(WIN32)
@@ -74,8 +74,8 @@ set(engine_dirs Components)
 set(engine_targets Meworla::Components)
 set(targetdirs FortyTwo)
 if(WIN32)
-    list(APPEND engine_dirs Hermes Hippios Orion Poseidon Rhea RheaClient)
-    list(APPEND engine_targets Hermes Meworla::Hippios Meworla::Orion Meworla::Poseidon Rhea::Core Rhea::Client)
+    list(APPEND engine_dirs Hermes Hippios Orion Poseidon Rhea RheaClient RheaPhysics RheaPhysicsBullet RheaPhysicsBulletDebug)
+    list(APPEND engine_targets Hermes Meworla::Hippios Meworla::Orion Meworla::Poseidon Rhea::Core Rhea::Client Meworla::RheaPhysics Meworla::RheaPhysicsBullet Meworla::RheaPhysicsBulletDebug)
   #  if(DEV_BUILD_CETO)
         list(APPEND targetdirs Ceto)
     #endif()

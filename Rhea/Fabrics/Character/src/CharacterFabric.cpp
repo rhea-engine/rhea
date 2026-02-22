@@ -2,10 +2,7 @@
 
 #include <Rhea/Character/KinematicCharacter.h>
 #include <Psio/Log.h>
-#include <Rhea/Physics/PhysicsManager.h>
-#include <Rhea/Physics/Bullet/BtCharacter.h>
-#include <Rhea/Physics/Bullet/BtPhysicsService.h>
-
+#include <Rhea/Physics/PhysicsManagerService.h>
 
 namespace Rhea
 {
@@ -15,20 +12,16 @@ namespace Rhea
 
 		//register physics component
 		PhysicsManagerService* phy_mgr = doCast<PhysicsManagerService>(app->getService("physics_mgr"));
-		if (phy_mgr) {
-			phy_mgr->registerPhysicsComponent("KinematicCharacter", [app](Item* item) -> PhysicsBody* {
-				// get world from service
-				BulletPhysicsService* bt_service = static_cast<BulletPhysicsService*>(app->getService("physics"));
-				if (!bt_service) {
-					LOG(LOG_ERROR) << "KinematicCharacter:registerPhysicsComponent: Physics Service not found";
-					return nullptr;
-				}
-				btDynamicsWorld* world = bt_service->getWorld();
-				return new BulletPhysicsCharacter(world, item);
-				});
-		}
-		else {
+		if (!phy_mgr) {
 			LOG(LOG_ERROR) << "No physics manager found.";
+			return;
 		}
+		SimpleParser::Type* t = KinematicCharacter::staticType();		
+
+		Rhea::PhysicsBodyDesc desc;
+		desc.kind = "Meworla/RheaPhysics:Character";
+		desc.kinematic = true;
+		desc.mass = 70.0f; // optional
+		phy_mgr->registerBodyForType(t, std::move(desc));
 	}
 }

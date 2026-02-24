@@ -5,8 +5,6 @@ add_library (RheaTerrain
 "src/TerrainFabric.cpp" 
 "include/Rhea/Terrain/Terrain.h" 
 "src/Terrain.cpp"
-"../../../RheaPhysicsBullet/src/BulletHeightMap.h"
-"../../../RheaPhysicsBullet/src/BulletHeightMap.cpp"
 )
 add_library(Rhea::Terrain ALIAS RheaTerrain)
 

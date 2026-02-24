@@ -9,6 +9,7 @@
 
 #include "ConnectionHandler.h"
 #include "Accounts/AccountService.h"
+#include <Rhea/Physics/PhysicsManagerService.h>
 
 void ConnectionHandler::Initialize(Rhea::ClientConnection* connection)
 {
@@ -101,10 +102,10 @@ int ConnectionHandler::EnterWorld(Rhea::Avatar* avatar)
 	m_player->ready();
 	DLOG(LOG_DEBUG) << "player ready";
 
-	Rhea::Service* phy_srv = m_app->getService("physics");
-	// add to physics					
-	if (phy_srv) {
-		((Rhea::PhysicsService*)phy_srv)->initializeItem(m_player);
+	// get phyisc service from physics manager and initialize item
+	auto* mgr = doCast<Rhea::PhysicsManagerService>(m_app->getService("physics_mgr"));
+	if (auto* phy_srv = mgr ? mgr->getPhysicsService() : nullptr) {
+		phy_srv->initializeItem(m_player);
 	}
 
 	// inform connector

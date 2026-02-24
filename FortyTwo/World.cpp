@@ -1,11 +1,11 @@
 #include "World.h"
 #include <Psio/Log.h>
 #include <Rhea/Physics/PhysicsService.h>
-#include <Rhea/Physics/PhysicsManager.h>
 #include <Rhea/Fabrics/Network/ServerService.h>
 #include <Rhea/Platform/PlatformService.h>
 #include <Rhea/Resources/ResourceList.h>
 #include <Rhea/UnitTree.h>
+#include <Rhea/Physics/PhysicsManagerService.h>
 
 void World::setScene(std::string scene)
 {
@@ -36,17 +36,30 @@ void World::ready()
 
 	if (m_scene) {
 
-		Rhea::PhysicsService* physics = static_cast<Rhea::PhysicsService*>(m_app->getService("physics"));
-		if (!physics) {
-			Variant phy = m_scene->getValue("physics");
-			if (phy == std::string("none")) {
-				physics = static_cast<Rhea::PhysicsManagerService*>(m_app->getService("physics_mgr"))->createPhysicsService(Rhea::PhysicsManagerService::Types::NONE);
+		auto* mgr = doCast<Rhea::PhysicsManagerService>(m_app->getService("physics_mgr"));
+		if (mgr && !mgr->getPhysicsService()) {
+			std::string backend = "none";
+			std::string phy = m_scene->getValue("physics", "none");
+			if (phy == std::string("world") || phy == std::string("bullet")) {
+				backend = "world";
 			}
-			else {
-				physics = static_cast<Rhea::PhysicsManagerService*>(m_app->getService("physics_mgr"))->createPhysicsService(Rhea::PhysicsManagerService::Types::WORLD);
+			else if (phy == std::string("none")) {
+				backend = "none";
 			}
-			physics->onInit();
-			m_app->registerService("physics", physics);
+			else if (!phy.empty()) {
+				// allow future backends by id, e.g. "physx"
+				backend = phy;
+			}
+			// create service by id (manager handles fallback to "none" if unknown/unavailable)
+			Rhea::PhysicsService* physics = mgr->createPhysicsService(backend);
+			if (!physics) {
+				// last-resort fallback if the manager doesn't already do it
+				physics = mgr->createPhysicsService("none");
+			}
+
+			if (physics) {
+				physics->onInit();
+			}
 		}
 
 		m_scene->show();

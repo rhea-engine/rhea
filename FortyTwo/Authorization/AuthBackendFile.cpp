@@ -112,7 +112,7 @@ void AuthBackendFile::loadUsers()
 					m_store.m_users.push_back({ auth["user_id"], auth["username"], auth["ext_id"], auth["name"], auth["password"] });
 				}
 			}
-			catch (json::out_of_range& e) {
+			catch (nlohmann::json::out_of_range& e) {
 				LOG(LOG_ERROR) << "Error parsing auth file: " << e.what();
 			}
 		}
@@ -145,7 +145,7 @@ void to_json(nlohmann::json& j, const UserInfo& p) {
 	};
 }
 
-void from_json(const json& j, UserInfo& p) {
+void from_json(const nlohmann::json& j, UserInfo& p) {
     j.at("name").get_to(p.name);
 	j.at("ext_id").get_to(p.ext_id);
 	j.at("user_id").get_to(p.user_id);
@@ -156,6 +156,6 @@ void from_json(const json& j, UserInfo& p) {
 
 std::string AuthBackendFile::UserStore::toJSON()
 {
-	json j = m_users;
+	nlohmann::json j = m_users;
 	return j.dump(4);
 }

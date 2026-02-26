@@ -3,7 +3,7 @@
 #include <RheaPhysicsBullet/RheaPhysicsBulletService.h>
 #include "BtDebugDraw.h"
 #include <Rhea/Application.h>
-#include <Poseidon.h>
+#include <Poseidon/Poseidon.h>
 #include <Rhea/UnitTree.h>
 
 namespace Rhea

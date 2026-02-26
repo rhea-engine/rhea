@@ -11,7 +11,9 @@ target_sources(RheaPhysicsBullet PRIVATE
     "src/BtGhost.cpp"
     "src/BtPhysicsService.cpp"
     "src/ObjTriangleLoader.cpp"
-    "src/RheaPhysicsBulletFabric.cpp"  "Fabrics/include/RheaPhysicsBullet/RheaPhysicsBulletService.h")
+    "src/RheaPhysicsBulletFabric.cpp"  
+    "src/BulletHeightMap.cpp"
+    "Fabrics/include/RheaPhysicsBullet/RheaPhysicsBulletService.h")
 
 add_library(Meworla::RheaPhysicsBullet ALIAS RheaPhysicsBullet)
 
@@ -21,6 +23,6 @@ target_include_directories(RheaPhysicsBullet PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/bullet/src
 )
 
-target_link_libraries(RheaPhysicsBullet PUBLIC Meworla::RheaPhysics Rhea::Core Meworla::Orion BulletDynamics BulletSoftBody BulletCollision LinearMath)
+target_link_libraries(RheaPhysicsBullet PUBLIC Meworla::RheaPhysics Rhea::Core Rhea::Terrain Meworla::Orion BulletDynamics BulletSoftBody BulletCollision LinearMath)
 
 rhea_register_fabric_module("${CMAKE_CURRENT_SOURCE_DIR}/Fabrics/module.json")

@@ -7,6 +7,7 @@
 #include <Hippios/VertexBuffer.h>
 #include <Poseidon/Shader.h>
 #include <Poseidon/RenderContext.h>
+#include <Poseidon/Material.h>
 
 namespace Rhea
 {

@@ -11,9 +11,8 @@ add_library (RheaFabrics
 "3D/Light.h" "3D/Light.cpp" "3D/DirectionalLight.h" "3D/DirectionalLight.cpp" "3D/PointLight.h" "3D/PointLight.cpp" 
 "3D/SpotLight.h" "3D/SpotLight.cpp")
 
-add_subdirectory (Network)
 #add_subdirectory(Animation)
-target_link_libraries(RheaFabrics RheaFabricsNet Animation Rhea::TinyObj Rhea::Core Rhea::Client)
+target_link_libraries(RheaFabrics Animation Rhea::TinyObj Rhea::Core Rhea::Client)
 
 # add internal fabrics
 add_subdirectory(Animation EXCLUDE_FROM_ALL)

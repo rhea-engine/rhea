@@ -1,4 +1,4 @@
-#include "WorldClient.h"
+#include "Rhea/Network/WorldClient.h"
 #include <Hermes/Opcode.h>
 #include <Rhea/UnitTree.h>
 #include <Rhea/Core/Item.h>
@@ -12,8 +12,8 @@
 #include <Rhea/Core/Avatar.h>
 #include <Hermes/Messages/MessageEnterWorld.h>
 #include <Rhea/Application.h>
-#include "ClientService.h"
-#include "NetworkComponent.h"
+#include "Rhea/Network/ClientService.h"
+#include "Rhea/Network/NetworkComponent.h"
 
 namespace Rhea
 {

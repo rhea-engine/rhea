@@ -1,4 +1,4 @@
-#include "LobbyClient.h"
+#include "Rhea/Network/LobbyClient.h"
 #include <Psio/Log.h>
 #include <Rhea/Core/Avatar.h>
 #include <Rhea/UnitTree.h>

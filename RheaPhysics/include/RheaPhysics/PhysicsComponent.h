@@ -45,6 +45,7 @@ namespace Rhea
 			if (m_body)
 				m_body->turn(turn);
 		}
+		void onPositionChanged() override {}
 
 	protected:
 		std::unique_ptr<PhysicsBody> m_body;

@@ -14,7 +14,6 @@
 #include "Poseidon/Material.h"
 #include "Poseidon/Shader.h"
 #include "Rhea/Core/Material.h"
-#include <Rhea/Fabrics/Network/ClientService.h>
 #include <Psio/Log.h>
 #include <Psio/Keyboard.h>
 #include <Rhea/EventInput.h>
@@ -117,7 +116,7 @@ bool Ceto::onRealmSelect(Rhea::Event* ev, Rhea::Unit* unit)
 {
 	ev->stopPropagation();
 
-	Unit* target = ev->getTarget();
+	Rhea::Unit* target = ev->getTarget();
 	DLOG(LOG_DEBUG) << "target selected was '" << (std::string)target->getValue("value") << "'";
 
 	openScene((std::string)target->getValue("value"));
@@ -174,7 +173,7 @@ void Ceto::setup()
 	std::unordered_map<std::string, Variant> values;
 
 	// create a representation for the engine
-	Unit* engine = m_unit_tree->createUnit("engine", "//core/types/unit", attributes, values);
+	Rhea::Unit* engine = m_unit_tree->createUnit("engine", "//core/types/unit", attributes, values);
 	m_unit_tree->addChild(engine);
 
 	// create a user unit
@@ -187,7 +186,7 @@ void Ceto::setup()
 		}
 		values["lastused"] = lastused_arr;
 	}
-	Unit* user = m_unit_tree->createUnit("user", "//core/types/unit", attributes, values);
+	Rhea::Unit* user = m_unit_tree->createUnit("user", "//core/types/unit", attributes, values);
 	engine->addChild(user);
 
 	// a color material

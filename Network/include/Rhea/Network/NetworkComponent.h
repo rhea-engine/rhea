@@ -44,7 +44,7 @@ namespace Rhea
 		void setPosition(Position& position);
 
 		// on Position change (used by server physics)
-		void onPositionChange();
+		void onPositionChanged() override;
 
 		// update role
 		void setRole(int role) { m_role = role; }

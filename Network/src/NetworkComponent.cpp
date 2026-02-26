@@ -1,4 +1,4 @@
-#include "NetworkComponent.h"
+#include "Rhea/Network/NetworkComponent.h"
 #include <Rhea/Core/Item.h>
 #include <Psio/Log.h>
 
@@ -29,7 +29,7 @@ namespace Rhea
 		m_item->setPosition(position);
 	}
 	
-	void NetworkComponent::onPositionChange()
+	void NetworkComponent::onPositionChanged()
 	{
 		if (m_role == NET_ROLE_SERVER) {
 			m_dirty = true;

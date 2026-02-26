@@ -1,6 +1,6 @@
 #include "gtest/gtest.h"
 #include <gmock/gmock.h>
-#include "ClientConnection.h"
+#include "Rhea/Network/ClientConnection.h"
 #include <Rhea/Realm.h>
 #include <Rhea/UnitTree.h>
 #include <Rhea/Core/Scene.h>
@@ -12,7 +12,7 @@
 #include <Hermes/Messages/MessageMove.h>
 #include <Hermes/Messages/MessageTurn.h>
 #include <Rhea/Core/Avatar.h>
-#include "ServerService.h"
+#include "Rhea/Network/ServerService.h"
 #include "Accounts/Provider.h"
 #include "Accounts/AccountService.h"
 #include "Accounts/ProviderMemory.h"

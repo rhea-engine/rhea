@@ -1,0 +1,9 @@
+{
+  "vendor": "Meworla",
+  "package": "Network",
+  "name": "RheaNetwork",
+  "version": "0.9.0",
+  "class": "Rhea::NetworkFabric",
+  "include": "Rhea/Network/NetworkFabric.h",
+  "cmake_target": "Rhea::Network"
+}

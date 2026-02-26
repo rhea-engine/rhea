@@ -4,7 +4,6 @@
 #include <Rhea/Graphics/GraphicsService.h>
 #include <Rhea/Core/Controller.h>
 #include <Psio/Log.h>
-#include <Rhea/Fabrics/Network/NetworkFabrics.h>
 #include <Rhea/Platform/PlatformService.h>
 #include <Rhea/UnitTree.h>
 #include <Rhea/Resources/ResourceList.h>
@@ -30,9 +29,6 @@ namespace Poseidon
 			core = g_service->getEngine();
 			core->setAppname(m_appname);
 		}
-
-		// register network fabrics
-		Rhea::NetworkFabrics::Register(this);
 
 		// create a representation for the engine
 		std::unordered_map<std::string, std::string> attributes;

@@ -1,4 +1,4 @@
-#include "LobbyServer.h"
+#include "Rhea/Network/LobbyServer.h"
 #include <Psio/Log.h>
 #include <Hermes/Messages/MessageAvatarList.h>
 #include <Rhea/Core/Avatar.h>

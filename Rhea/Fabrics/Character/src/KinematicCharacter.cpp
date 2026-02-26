@@ -9,7 +9,6 @@
 #include <Rhea/Physics/PhysicsService.h>
 #include <Rhea/Physics/IPhysicsCharacter.h>
 #include <Rhea/Core/Transform.h>
-#include <Rhea/Fabrics/Network/NetworkComponent.h>
 
 #include <algorithm>
 #include <Psio/Log.h>
@@ -116,9 +115,11 @@ namespace Rhea
 			dirty = true;
 			m_physics_body->setOrientation(m_orientation);
 		}
-		if (dirty && getComponent<Rhea::NetworkComponent>())
-			getComponent<Rhea::NetworkComponent>()->onPositionChange();
-
+		if (dirty) {
+			for (auto* l : m_movement_listeners) {
+				l->onPositionChanged();
+			}
+		}
 		return false;
 	}
 

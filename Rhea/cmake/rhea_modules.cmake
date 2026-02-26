@@ -14,7 +14,7 @@ endif()
 # Where to write the generated file
 set(RHEA_GENERATED_CPP "${CMAKE_BINARY_DIR}/GeneratedModules.cpp" CACHE FILEPATH "")
 
-# Accumulated module.json paths (enabled modules only)
+# Accumulated module.json or fabric.json paths (enabled modules only)
 set(RHEA_FABRIC_MODULE_JSONS "")
 
 # Register a fabric module (call from module CMakeLists.txt)
@@ -26,7 +26,7 @@ function(rhea_register_fabric_module module_json_path)
 
   get_filename_component(_abs "${module_json_path}" ABSOLUTE)
   if(NOT EXISTS "${_abs}")
-    message(FATAL_ERROR "rhea_register_fabric_module: module.json not found: ${_abs}")
+    message(FATAL_ERROR "rhea_register_fabric_module: manifest not found: ${_abs}")
   endif()
 
   # Keep a global list of registered module.json files. We use a global property to avoid issues with variable scope across subdirectories.
@@ -93,7 +93,7 @@ function(rhea_modules_end)
    endif()
 
    if(NOT _v OR NOT _p OR NOT _n)
-     message(FATAL_ERROR "Fabric module.json missing vendor/package/name: ${json_file}")
+     message(FATAL_ERROR "Fabric manifest json missing vendor/package/name: ${json_file}")
    endif()
 
    set(_id "${_v}/${_p}:${_n}")

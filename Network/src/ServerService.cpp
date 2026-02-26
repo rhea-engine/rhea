@@ -1,4 +1,4 @@
-#include "ServerService.h"
+#include "Rhea/Network/ServerService.h"
 #include <Psio/Log.h>
 #include <Hermes/ServerStream.h>
 #include <Rhea/Application.h>
@@ -8,7 +8,7 @@
 #include <Hermes/Messages/MessageDestroy.h>
 #include <Rhea/Physics/PhysicsService.h>
 #include <Rhea/Platform/PlatformService.h>
-#include "NetworkComponent.h"
+#include "Rhea/Network/NetworkComponent.h"
 #include <Rhea/Physics/PhysicsManagerService.h>
 
 namespace Rhea

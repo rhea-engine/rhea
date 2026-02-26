@@ -1,4 +1,4 @@
-#include "ClientConnection.h"
+#include "Rhea/Network/ClientConnection.h"
 #include <Rhea/UnitTree.h>
 #include <Rhea/Core/Item.h>
 #include <Rhea/Physics/PhysicsService.h>
@@ -10,7 +10,7 @@
 #include <Hermes/Messages/MessageEnterWorld.h>
 #include <Rhea/Core/Avatar.h>
 #include <Psio/Log.h>
-#include "ServerService.h"
+#include "Rhea/Network/ServerService.h"
 #include <Hermes/Messages/MessageEnterFailed.h>
 #include <Hermes/Messages/MessageLogin.h>
 #include <Hermes/Messages/MessageCreateAvatar.h>

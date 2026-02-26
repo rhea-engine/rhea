@@ -2,7 +2,7 @@
 #include <Psio/Fs/Fs.h>
 
 #include "TextLoader.h"
-#include "Resources/TextResource.h"
+#include "Rhea/Resources/TextResource.h"
 
 namespace Rhea
 {

@@ -1,12 +1,12 @@
-#include "Scene.h"
+#include "Rhea/Core/Scene.h"
 
 #include <memory>
 
-#include "Item.h"
-#include "SceneLoader.h"
-#include "Event.h"
-#include "Application.h"
-#include "UnitTree.h"
+#include "Rhea/Core/Item.h"
+#include "Rhea/Core/SceneLoader.h"
+#include "Rhea/Event.h"
+#include "Rhea/Application.h"
+#include "Rhea/UnitTree.h"
 #include <Psio/Log.h>
 
 namespace Rhea

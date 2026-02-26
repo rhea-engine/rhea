@@ -1,6 +1,5 @@
 add_library(RheaPhysicsAPI STATIC 
-	PhysicsManagerService.cpp
- "PhysicsBodyDescriptor.h")
+	PhysicsManagerService.cpp)
 add_library(Rhea::Physics ALIAS RheaPhysicsAPI)
 
 #target_include_directories(RheaPhysicsAPI PUBLIC

@@ -3,9 +3,9 @@
 #include <string>
 
 #include "BitmapFont.h"
-#include "Resources/ResourceList.h"
-#include "Application.h"
-#include "UnitTree.h"
+#include "Rhea/Resources/ResourceList.h"
+#include "Rhea/Application.h"
+#include "Rhea/UnitTree.h"
 #include "Fabrics/Media/ImageResource.h"
 #include "Orion/ResourceStream.h"
 #include <Psio/Fs/Fs.h>

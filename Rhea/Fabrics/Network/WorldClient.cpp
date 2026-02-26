@@ -11,7 +11,7 @@
 #include <Hermes/Messages/MessageAvatarList.h>
 #include <Rhea/Core/Avatar.h>
 #include <Hermes/Messages/MessageEnterWorld.h>
-#include <Application.h>
+#include <Rhea/Application.h>
 #include "ClientService.h"
 #include "NetworkComponent.h"
 

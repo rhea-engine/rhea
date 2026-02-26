@@ -1,7 +1,7 @@
 #include "NetworkFabrics.h"
 #include <SimpleParser/Type.h>
-#include <ClientService.h>
-#include <NetworkComponent.h>
+#include "ClientService.h"
+#include "NetworkComponent.h"
 
 void Rhea::NetworkFabrics::Register(Application* app)
 {

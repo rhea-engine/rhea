@@ -2,7 +2,7 @@
 #define RHEA_BITMAPFONT_H
 
 #include "Font.h"
-#include "Core/Material.h"
+#include "Rhea/Core/Material.h"
 
 namespace Rhea
 {

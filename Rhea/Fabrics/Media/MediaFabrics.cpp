@@ -1,8 +1,8 @@
 #include "MediaFabrics.h"
-#include <Components/SimpleParser/Type.h>
+#include <SimpleParser/Type.h>
 #include "ImageResource.h"
 #include "ImageLoader.h"
-#include "Application.h"
+#include "Rhea/Application.h"
 #include "CubeMap.h"
 
 namespace Rhea

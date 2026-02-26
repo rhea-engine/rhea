@@ -1,6 +1,6 @@
 #include <Rhea/Physics/PhysicsManagerService.h>
 #include <Rhea/Physics/PhysicsService.h>
-#include "PhysicsBody.h"
+#include <Rhea/Physics/PhysicsBody.h>
 #include <Rhea/Core/Item.h>
 
 namespace Rhea

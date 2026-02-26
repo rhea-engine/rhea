@@ -1,4 +1,4 @@
-#include "WorldService.h"
+#include <Rhea/Core/WorldService.h>
 
 #include <Rhea/Application.h>
 #include <Rhea/UnitTree.h>

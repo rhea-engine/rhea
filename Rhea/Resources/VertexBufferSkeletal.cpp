@@ -1,4 +1,4 @@
-#include "VertexBufferSkeletal.h"
+#include "Rhea/Resources/VertexBufferSkeletal.h"
 
 namespace Rhea
 {

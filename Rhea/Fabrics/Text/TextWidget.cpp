@@ -1,9 +1,9 @@
 #include "TextWidget.h"
-#include "Application.h"
+#include "Rhea/Application.h"
 #include "Fabrics/Media/ImageResource.h"
-#include "Resources/TextResource.h"
-#include "UnitTree.h"
-#include "Resources/ResourceList.h"
+#include "Rhea/Resources/TextResource.h"
+#include "Rhea/UnitTree.h"
+#include "Rhea/Resources/ResourceList.h"
 #include <Psio/Log.h>
 #include <Graphics/GraphicsService.h>
 #include "../GUI/include/Rhea/GUI/Widget.h"

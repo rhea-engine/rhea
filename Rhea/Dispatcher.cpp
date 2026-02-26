@@ -1,4 +1,4 @@
-#include "Dispatcher.h"
+#include "Rhea/Dispatcher.h"
 #include <cassert>
 
 namespace Rhea

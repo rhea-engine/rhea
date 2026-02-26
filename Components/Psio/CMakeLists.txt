@@ -45,7 +45,7 @@ if (OPENSSL_FOUND)
 endif()
 
 # GTest
-
+if (TARGET GTest::gtest)
 file(GLOB_RECURSE test_sources
     ${CMAKE_CURRENT_SOURCE_DIR}/*/*_test.cpp)
 add_executable(psio_test ${test_sources})
@@ -54,3 +54,4 @@ if(WIN32)
 	target_link_libraries(psio_test Winmm wsock32 Ws2_32.lib)
 endif()
 add_test(psio_test ${CMAKE_CURRENT_BINARY_DIR}/psio_test)
+endif() 

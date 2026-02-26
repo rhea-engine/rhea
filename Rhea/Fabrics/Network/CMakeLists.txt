@@ -1,5 +1,3 @@
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ ${CMAKE_SOURCE_DIR})
-
 add_library (RheaFabricsNet "ClientService.h" "ClientService.cpp" "WorldClient.h" "WorldClient.cpp" 
 "NetworkComponent.h" "NetworkComponent.cpp" "NetworkDelegate.h"
 "ServerService.h" "ServerService.cpp" "ClientConnection.h" 
@@ -7,4 +5,4 @@ add_library (RheaFabricsNet "ClientService.h" "ClientService.cpp" "WorldClient.h
 
  "IConnectionData.h" "LobbyServer.h" "LobbyServer.cpp" "WorldServer.h" "WorldServer.cpp" "LobbyClient.h" "LobbyClient.cpp" "NetworkFabrics.h" "NetworkFabrics.cpp")
 
- target_link_libraries(RheaFabricsNet PRIVATE Meworla::Orion Meworla::Hippios Rhea::Core)
+ target_link_libraries(RheaFabricsNet PRIVATE Meworla::Orion Meworla::Hippios Meworla::Hermes Rhea::Core)

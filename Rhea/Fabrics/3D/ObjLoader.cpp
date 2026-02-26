@@ -3,15 +3,15 @@
 #include <tiny_obj_loader/tiny_obj_loader.h>
 
 #include "ObjLoader.h"
-#include <Application.h>
-#include <UnitTree.h>
-#include <Resources/TextResource.h>
+#include <Rhea/Application.h>
+#include <Rhea/UnitTree.h>
+#include <Rhea/Resources/TextResource.h>
 #include <Psio/Log.h>
 #include <functional>
 #include <Rhea/Core/Shader.h>
 #include <Rhea/Core/Material.h>
 #include <Rhea/Fabrics/Media/ImageResource.h>
-#include <Resources/VertexBufferStandard.h>
+#include <Rhea/Resources/VertexBufferStandard.h>
 
 namespace Rhea
 {

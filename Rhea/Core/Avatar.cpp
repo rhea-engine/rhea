@@ -1,4 +1,4 @@
-#include "Avatar.h"
+#include "Rhea/Core/Avatar.h"
 
 namespace Rhea {
 	

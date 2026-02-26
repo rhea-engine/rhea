@@ -1,5 +1,5 @@
-#include "TextResource.h"
-#include "Application.h"
+#include <Rhea/Resources/Textresource.h>
+#include <Rhea/Application.h>
 #include "Orion/ResourceStream.h"
 
 namespace Rhea

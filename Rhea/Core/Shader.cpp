@@ -1,6 +1,6 @@
 #include <Rhea/Application.h>
 #include <Rhea/UnitTree.h>
-#include "Shader.h"
+#include <Rhea/Core/Shader.h>
 
 
 namespace Rhea

@@ -1,4 +1,4 @@
-#include "InputMap.h"
+#include "Rhea/InputMap.h"
 #include "Psio/Keyboard.h"
 
 namespace Rhea

@@ -1,4 +1,4 @@
-#include "EventInput.h"
+#include "Rhea/EventInput.h"
 
 namespace Rhea
 {

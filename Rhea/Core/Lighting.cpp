@@ -1,4 +1,4 @@
-#include "Lighting.h"
+#include "Rhea/Core/Lighting.h"
 
 namespace Rhea
 {

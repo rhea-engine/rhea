@@ -1,4 +1,4 @@
-#include "Resources.h"
+#include <Rhea/Resources/Resources.h>
 
 namespace Rhea
 {

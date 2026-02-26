@@ -1,9 +1,8 @@
-#include "Material.h"
-#include "Material.h"
+#include "Rhea/Core/Material.h"
 #include <Rhea/Application.h>
 #include <Rhea/UnitTree.h>
 #include <Psio/Log.h>
-#include "Resources/TextResource.h"
+#include "Rhea/Resources/TextResource.h"
 #include <Rhea/Core/Shader.h>
 
 namespace Rhea 

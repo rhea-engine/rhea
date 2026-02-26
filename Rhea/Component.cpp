@@ -1,5 +1,5 @@
-#include "Component.h"
-#include "Unit.h"
+#include "Rhea/Component.h"
+#include "Rhea/Unit.h"
 #include <SimpleParser/Method.h>
 
 namespace Rhea

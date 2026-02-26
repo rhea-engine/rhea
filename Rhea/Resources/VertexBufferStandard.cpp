@@ -1,4 +1,4 @@
-#include "VertexBufferStandard.h"
+#include "Rhea/Resources/VertexBufferStandard.h"
 
 namespace Rhea
 {	

@@ -9,7 +9,7 @@
 #include <Rhea/Physics/PhysicsService.h>
 #include <Rhea/Platform/PlatformService.h>
 #include "NetworkComponent.h"
-#include <Physics/PhysicsManagerService.h>
+#include <Rhea/Physics/PhysicsManagerService.h>
 
 namespace Rhea
 {

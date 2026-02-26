@@ -1,4 +1,4 @@
-#include "VertexBuffer.h"
+#include "Rhea/Resources/VertexBuffer.h"
 
 #include <cstring>
 

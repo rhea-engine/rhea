@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include "Unit.h"
+#include <Rhea/Unit.h>
 
 namespace Rhea
 {

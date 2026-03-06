@@ -10,7 +10,7 @@
 #include <Hermes/Messages/MessageEnterWorld.h>
 #include <Rhea/Core/Avatar.h>
 #include <Psio/Log.h>
-#include <Rhea/Fabrics/Network/ServerService.h>
+#include <Rhea/Network/ServerService.h>
 #include "World.h"
 #include <Hermes/Messages/MessageEnterFailed.h>
 #include <Hermes/Messages/MessageLogin.h>

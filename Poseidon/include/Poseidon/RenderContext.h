@@ -6,7 +6,7 @@
 
 #include "Node.h"
 #include <Rhea/Core/Item.h>
-#include <Rhea/Fabrics/3D/Light.h>
+#include <Rhea/Core/Light.h>
 #include <Hippios/BaseTypes.h>
 
 using Rhea::Item;

@@ -1,7 +1,7 @@
 #ifndef RHEA_LIGHTING_H
 #define RHEA_LIGHTING_H
 
-#include <Components/Math/Quaternion.h>
+#include <Math/Quaternion.h>
 
 #include <Rhea/Unit.h>
 

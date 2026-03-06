@@ -1,9 +1,10 @@
 #include "Rhea/Core/Item.h"
 #include "Rhea/Application.h"
 #include "Rhea/UnitTree.h"
-#include <Rhea/Fabrics/3D/Mesh.h>
+#include <Rhea/Core/Mesh.h>
 #include <Psio/Log.h>
 #include <Math/Math.h>
+#include <Rhea/Components/MeshComponent.h>
 
 namespace Rhea
 {
@@ -55,19 +56,14 @@ namespace Rhea
 		auto mesh_it = m_values.find("mesh");
 		if (mesh_it != m_values.end()) {
 			if (!visual_component) {
-				visual_component = addComponentUnique<VisualComponent>("visual");
+				visual_component = addComponentUnique<VisualComponent>("visual_component");
+			}
+			MeshComponent* mesh_component = getComponent<MeshComponent>();
+			if (!mesh_component) {
+				mesh_component = addComponentUnique<MeshComponent>("mesh_component");
 			}
 			// only set ref
-			visual_component->setMeshRef(mesh_it->second, m_attributes["basepath"]);
-/*			Mesh* mesh = doCast<Mesh>(m_app->getUnitTree()->find(mesh_it->second, m_attributes["basepath"], false));
-			if (mesh) {
-				mesh->ready();
-				render_component->setMesh(mesh);
-			}
-			else {
-				LOG(LOG_ERROR) << "No mesh defined for item";
-			}
-			*/
+			mesh_component->setMeshRef(mesh_it->second, m_attributes["basepath"]);
 		}			
 
 		if (visual_component && m_values.find("fabric") != m_values.end())
@@ -96,8 +92,12 @@ namespace Rhea
 			// 			RenderComponent* render_component = new_item->addComponentUnique<RenderComponent>("renderer");
 			// 			render_component->setMesh(render_component->getMesh());
 			VisualComponent* v_c = getComponent<VisualComponent>();
-			VisualComponent* visual_component = new_item->addComponentUnique<VisualComponent>("visual");
-			visual_component->setMeshRef(v_c->meshRef(), v_c->basepathRef());
+			VisualComponent* visual_component = new_item->addComponentUnique<VisualComponent>("visual_component");
+		}
+		if (getComponent<MeshComponent>()) {
+			MeshComponent* m_c = getComponent<MeshComponent>();
+			MeshComponent* mesh_component = new_item->addComponentUnique<MeshComponent>("mesh_component");
+			mesh_component->setMeshRef(m_c->meshRef(), m_c->basepathRef());
 		}
 
 		return new_item;

@@ -5,7 +5,7 @@
 
 #include <Poseidon/Core.h>
 #include <Poseidon/Mesh.h>
-#include <Rhea/Fabrics/3D/Mesh.h>
+#include <Rhea/Core/Mesh.h>
 
 namespace Rhea
 {

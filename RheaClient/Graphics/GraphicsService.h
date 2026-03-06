@@ -4,7 +4,7 @@
 #include <memory>
 #include <unordered_map>
 
-#include <Rhea/Service.h>
+#include <Rhea/Graphics/IGraphicsService.h>
 #include <Rhea/Core/Scene.h>
 #include "MeshGpuCache.h"
 #include "TextureGpuCache.h"
@@ -23,9 +23,9 @@ namespace Rhea
 	class GraphicsManager;
 	class GraphicsScene;
 
-	class GraphicsService : public Service
+	class GraphicsService : public IGraphicsService
 	{
-		MECLASS(GraphicsService, Service)
+		MECLASS(GraphicsService, IGraphicsService)
 	public:
 		GraphicsService(std::string name, std::string type_name);
 		~GraphicsService();
@@ -57,8 +57,8 @@ namespace Rhea
 		bool onAddItem(Event* ev, Unit* unit);
 
 		// get current dimensions
-		int getViewportWidth() { return m_viewport_width; }
-		int getViewportHeight() { return m_viewport_height; }
+		int getViewportWidth() const { return m_viewport_width; }
+		int getViewportHeight() const { return m_viewport_height; }
 
 		// request fullscreen
 		void ToggleFullscreen();

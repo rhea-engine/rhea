@@ -5,7 +5,6 @@
 #include <Hermes/ServerStream.h>
 #include <Rhea/Application.h>
 #include <Rhea/Core/Scene.h>
-#include <FortyTwo/Accounts/User.h>
 #include <Hermes/Messages/MessageEnterWorld.h>
 #include <Hermes/Messages/MessageMove.h>
 #include <Hermes/Messages/MessageTurn.h>
@@ -22,7 +21,6 @@ namespace Rhea
 			m_scene(scene),
 			m_player(nullptr),
 			m_world(nullptr),
-			m_user(nullptr),
 			m_hermes(std::move(stream))
 		{}
 
@@ -39,8 +37,6 @@ namespace Rhea
 		// return the item this connection is responsible for
 		Rhea::Item* getAuthItem() { return m_player; }
 
-		// start with a connected user
-		void StartConnectedUser(User* user);
 		// start with an already connected player
 		void StartEstablishedConnection(Rhea::Item* player);
 
@@ -53,7 +49,6 @@ namespace Rhea
 		Rhea::Item* m_player;
 		Rhea::Unit* m_world;
 		std::string m_username;
-		User* m_user;
 
 		std::unique_ptr<Hermes::Stream> m_hermes;
 		Psio::Network::CompletionHandler m_error_handler;

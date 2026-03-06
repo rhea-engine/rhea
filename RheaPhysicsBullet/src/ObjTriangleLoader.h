@@ -2,7 +2,7 @@
 #define RHEA_OBJTRIANGLELOADER_H
 
 #include <vector>
-#include <Components/Math/Vector3.h>
+#include <Math/Vector3.h>
 
 namespace Rhea {
 	class Application;

@@ -1,7 +1,7 @@
 #ifndef RHEA_GUI_CSSPROPERTY_H
 #define RHEA_GUI_CSSPROPERTY_H
 
-#include <Components/SimpleParser/Variant.h>
+#include <SimpleParser/Variant.h>
 
 namespace Rhea
 {

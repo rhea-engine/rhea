@@ -14,11 +14,11 @@
 #include <Rhea/Core/Material.h>
 #include <Rhea/Core/Shader.h>
 #include <Rhea/Graphics/MaterialManager.h>
-#include <Rhea/Fabrics/3D/Mesh.h>
-#include <Rhea/Fabrics/3D/DirectionalLight.h>
-#include <Rhea/Fabrics/3D/PointLight.h>
-#include <Rhea/Fabrics/3D/SpotLight.h>
-#include <Rhea/Fabrics/Animation/include/Rhea/Animation/Skeleton.h>
+#include <Rhea/Core/Mesh.h>
+#include <Rhea/Core/DirectionalLight.h>
+#include <Rhea/Core/PointLight.h>
+#include <Rhea/Core/SpotLight.h>
+#include <Rhea/Animation/Skeleton.h>
 #include <Rhea/Components/VisualComponent.h>
 #include <Rhea/Components/RenderComponent.h>
 

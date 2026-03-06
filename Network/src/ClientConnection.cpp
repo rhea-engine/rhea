@@ -54,11 +54,6 @@ namespace Rhea
 		m_hermes->Close();
 	}
 
-	void ClientConnection::StartConnectedUser(User* user)
-	{
-		m_user = user;
-	}
-
 	// helper for testing
 	void ClientConnection::StartEstablishedConnection(Rhea::Item* player)
 	{

@@ -3,9 +3,9 @@
 #include <Rhea/Core/Item.h>
 #include <Rhea/Physics/PhysicsService.h>
 #include <Psio/Log.h>
-#include <Rhea/Fabrics/Network/ServerService.h>
+#include <Rhea/Network/ServerService.h>
 #include <Hermes/Messages/MessageCreate.h>
-#include <Rhea/Fabrics/Network/NetworkComponent.h>
+#include <Rhea/Network/NetworkComponent.h>
 
 #include "ConnectionHandler.h"
 #include "Accounts/AccountService.h"

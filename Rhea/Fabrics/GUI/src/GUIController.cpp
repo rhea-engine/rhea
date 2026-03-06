@@ -15,7 +15,7 @@
 #include <Rhea/GUI/ListItem.h>
 #include <Rhea/GUI/Styles/StyleSheet.h>
 #include <Rhea/GUI/CssLoader.h>
-#include <Rhea/Graphics/GraphicsService.h>
+#include <Rhea/Graphics/IGraphicsService.h>
 #include <Psio/Log.h>
 #include <Rhea/GUI/TextInput.h>
 #include <Rhea/GUI/Box.h>
@@ -53,7 +53,7 @@ namespace Rhea
 		Widget::ready();
 		
 		// set current viewport size
-		GraphicsService* gsrv = (GraphicsService*)m_app->getService("graphics");
+		IGraphicsService* gsrv = (IGraphicsService*)m_app->getService("graphics");
 		m_viewport_width = gsrv->getViewportWidth();
 		m_viewport_height = gsrv->getViewportHeight();
 		gsrv->registerEventHandler("resize", this, [&, gsrv](Event* ev, Unit* unit) -> bool { 
@@ -143,7 +143,7 @@ namespace Rhea
 		Psio::InputEventId id = e->getEvent()->getId();
 
 		if (e->isAction("fullscreen")) {
-			GraphicsService* gsrv = doCast<GraphicsService>(m_app->getService("graphics"));
+			IGraphicsService* gsrv = doCast<IGraphicsService>(m_app->getService("graphics"));
 			if (gsrv) {
 				gsrv->ToggleFullscreen();
 			}

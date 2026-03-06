@@ -3,7 +3,7 @@
 
 #include <string>
 #include <unordered_map>
-#include <Components/SimpleParser/CssParser.h>
+#include <SimpleParser/CssParser.h>
 #include "Property.h"
 #include "CssValue.h"
 

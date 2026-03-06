@@ -26,12 +26,12 @@
 #include <Rhea/EventInput.h>
 
 #include <Rhea/Core/Item.h>
-#include <Rhea/Fabrics/3D/Mesh.h>
+#include <Rhea/Core/Mesh.h>
 #include "Poseidon/Renderable.h"
 #include "Poseidon/Entity.h"
 
 #include <Rhea/Core/Material.h>
-#include <Rhea/Fabrics/3D/Camera.h>
+#include <Rhea/Core/Camera.h>
 
 #include <Psio/Log.h>
 #include <Rhea/Physics/PhysicsManagerService.h>
@@ -45,7 +45,7 @@ namespace Rhea
 		m_mx(0),
 		m_my(0),
 		m_fullscreen(false),
-		Service(name, type_name)	
+		IGraphicsService(name, type_name)	
 	{
 		m_core = std::make_unique<Poseidon::Core>();
 
@@ -105,7 +105,6 @@ namespace Rhea
 
 		root->traverse([&](std::string& name, Component* c)->bool {
 
-			// Items -> create render instance state
 			if (Item* item = doCast<Item>(c)) {
 				getManager<Item>()->Ensure(m_core.get(), item);
 				return true;

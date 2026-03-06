@@ -18,5 +18,4 @@ target_include_directories(RheaLobby PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_link_libraries(RheaLobby PRIVATE Rhea::GUI)
-target_link_libraries(RheaLobby PUBLIC RheaEngine)
+target_link_libraries(RheaLobby PRIVATE Rhea::Core Rhea::GUI)

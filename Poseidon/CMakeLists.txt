@@ -12,6 +12,7 @@ target_link_libraries(Poseidon
     Meworla::Components
     Meworla::Hippios
     Rhea::Client
+    Rhea::Animation
 )
 target_compile_options(Poseidon PRIVATE /showIncludes)
 

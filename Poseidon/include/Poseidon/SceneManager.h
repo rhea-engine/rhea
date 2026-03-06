@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "Camera.h"
-#include <Components/Math/Vector4.h>
+#include <Math/Vector4.h>
 
 namespace Hippios
 {

@@ -8,8 +8,8 @@
 #include <Rhea/Core/Material.h>
 #include <Rhea/Core/Shader.h>
 #include <Rhea/Core/Lighting.h>
-#include <Rhea/Fabrics/3D/Mesh.h>
-#include <Rhea/Fabrics/3D/Camera.h>
+#include <Rhea/Core/Mesh.h>
+#include <Rhea/Core/Camera.h>
 // plus GUI/widget includes, etc.
 
 #include <SimpleParser/Type.h>

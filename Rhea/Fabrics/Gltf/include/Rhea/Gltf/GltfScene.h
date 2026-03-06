@@ -11,9 +11,9 @@
 #define TINIGLTF_NO_FS
 #include <stb_image.h>
 #include <nlohmann/json.hpp>
-#include <ThirdParty/tiny_gltf_loader/tiny_gltf.h>
-#include <Components/Math/Vector2.h>
-#include <Components/Math/Vector3.h>
+#include <tiny_gltf_loader/tiny_gltf.h>
+#include <Math/Vector2.h>
+#include <Math/Vector3.h>
 #include <Rhea/Animation/Skeleton.h>
 
 namespace Rhea

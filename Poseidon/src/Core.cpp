@@ -10,7 +10,6 @@
 
 #include "Poseidon/Core.h"
 #include <Psio/Log.h>
-#include <Hippios/D3D11Renderer/D3D11Renderer.h>
 
 #include <Hippios/Renderer.h>
 
@@ -40,12 +39,7 @@ namespace Poseidon
 		m_psio = psio;
 
 		// initialize render sub system
-#ifdef WIN32
-		m_renderer = std::make_unique<Hippios::D3D11Renderer>();
-#else
-		printf("Only DirectX11 on Windows is supported\n");
-		exit(-1);
-#endif // WIN32		
+		m_renderer = Hippios::Renderer::CreateRenderer();
 
 		// add a root window which is also the root viewport		
 		std::string name = "root";

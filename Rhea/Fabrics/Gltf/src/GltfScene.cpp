@@ -5,7 +5,7 @@
 #include <Rhea/UnitTree.h>
 #include <Rhea/Resources/VertexBufferStandard.h>
 #include <Rhea/Resources/VertexBufferSkeletal.h>
-#include <Rhea/Fabrics/Media/ImageResource.h>
+#include <Rhea/Resources/ImageResource.h>
 #include <Rhea/Core/Material.h>
 #include <Rhea/Animation/Animation.h>
 #include <Rhea/Animation/Skeleton.h>

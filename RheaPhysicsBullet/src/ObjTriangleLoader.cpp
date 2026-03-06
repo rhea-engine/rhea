@@ -3,10 +3,10 @@
 #include <Rhea/Application.h>
 #include <Rhea/UnitTree.h>
 #include <Psio/Log.h>
-#include <Rhea/Components/VisualComponent.h>
 #include <Rhea/Core/Item.h>
 #include <Rhea/Resources/TextResource.h>
 #include <tiny_obj_loader/tiny_obj_loader.h>
+#include <Rhea/Components/MeshComponent.h>
 
 bool ExtractTrianglesFromScene(Rhea::Application* app, Rhea::Item* item, TriangleSoup& out)
 {
@@ -22,7 +22,7 @@ bool ExtractTrianglesFromScene(Rhea::Application* app, Rhea::Item* item, Triangl
     // 1) Get mesh reference from VisualComponent (preferred)
     std::string meshRef;
     std::string basepathRef;
-    if (auto* vis = item->getComponent<Rhea::VisualComponent>()) {
+    if (auto* vis = item->getComponent<Rhea::MeshComponent>()) {
         meshRef = vis->meshRef();  // rename to your getter
         basepathRef = vis->basepathRef();
     }

@@ -1,7 +1,7 @@
 #include "World.h"
 #include <Psio/Log.h>
 #include <Rhea/Physics/PhysicsService.h>
-#include <Rhea/Fabrics/Network/ServerService.h>
+#include <Rhea/Network/ServerService.h>
 #include <Rhea/Platform/PlatformService.h>
 #include <Rhea/Resources/ResourceList.h>
 #include <Rhea/UnitTree.h>

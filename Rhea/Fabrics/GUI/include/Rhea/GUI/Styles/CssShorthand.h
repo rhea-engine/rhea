@@ -5,7 +5,7 @@
 
 #include <functional>
 #include <vector>
-#include <Components/SimpleParser/Variant.h>
+#include <SimpleParser/Variant.h>
 #include "CssValue.h"
 
 namespace Rhea

@@ -5,13 +5,6 @@
 #include "BtGhost.h"
 #include "BtCharacter.h"
 
-#include <Poseidon/Core.h>
-#include <Poseidon/Viewport.h>
-#include <Poseidon/SceneManager.h>
-#include <Hippios/VertexBuffer.h>
-#include <Poseidon/Shader.h>
-#include <Poseidon/RenderContext.h>
-
 #include <bullet/src/btBulletDynamicsCommon.h>
 #include <Psio/Log.h>
 #include <Rhea/Application.h>
@@ -19,7 +12,7 @@
 
 #include <assert.h>
 #include <RheaPhysics/PhysicsComponent.h>
-#include <Rhea/Fabrics/3D/Camera.h>
+#include <Rhea/Core/Camera.h>
 
 #include "BulletHeightMap.h"
 #include <Rhea/Physics/PhysicsManagerService.h>

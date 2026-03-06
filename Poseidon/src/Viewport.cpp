@@ -6,7 +6,6 @@
 #include "Poseidon/RenderContext.h"
 
 #include "Poseidon/Entity.h"
-#include "Hippios/D3D11Renderer/D3D11Renderer.h"
 
 namespace Poseidon
 {	
@@ -66,9 +65,17 @@ namespace Poseidon
 
 		m_width = width;
 		m_height = height;
-		// need to update render target
+
+		// Update render target
 		if (m_render_target)
-			m_render_target->create(m_width, m_height, m_swapchain);		
+			m_render_target->create(m_width, m_height, m_swapchain);	
+
+		// Update RenderContexts
+		for (auto& context : m_render_contexts) {
+			context->setSize((float)width, (float)height);
+		}
+
+		// TODO: Trigger callback/event to GraphicsService ?
 	}
 
 	void Viewport::registerNode()

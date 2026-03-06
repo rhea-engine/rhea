@@ -23,6 +23,7 @@ target_include_directories(RheaPhysicsBullet PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/bullet/src
 )
 
-target_link_libraries(RheaPhysicsBullet PUBLIC Meworla::RheaPhysics Rhea::Core Rhea::Terrain Meworla::Orion BulletDynamics BulletSoftBody BulletCollision LinearMath)
+target_link_libraries(RheaPhysicsBullet PUBLIC Meworla::RheaPhysics Rhea::Core Rhea::Terrain Meworla::Orion Rhea::TinyObj
+BulletDynamics BulletSoftBody BulletCollision LinearMath)
 
 rhea_register_fabric_module("${CMAKE_CURRENT_SOURCE_DIR}/Fabrics/module.json")

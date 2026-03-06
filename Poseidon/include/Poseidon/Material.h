@@ -4,7 +4,7 @@
 #include "Hippios/Renderer.h"
 #include "Hippios/GPUProgram.h"
 #include "Hippios/GraphicsBuffer.h"
-#include <Components/Math/Vector4.h>
+#include <Math/Vector4.h>
 #include "Shader.h"
 #include <Math/Vector2.h>
 

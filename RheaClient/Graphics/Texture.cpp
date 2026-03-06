@@ -2,7 +2,7 @@
 #include <Rhea/Unit.h>
 #include <Rhea/Resources/Resource.h>
 #include <Psio/Log.h>
-#include <Rhea/Fabrics/Media/ImageResource.h>
+#include <Rhea/Resources/ImageResource.h>
 #include <Poseidon/Texture.h>
 
 namespace Rhea

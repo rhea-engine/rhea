@@ -1,17 +1,15 @@
 #include <Rhea/Terrain/Terrain.h>
 #include <Rhea/Application.h>
-#include <Rhea/Fabrics/Media/ImageResource.h>
+#include <Rhea/Resources/ImageResource.h>
 #include <Rhea/Unit.h>
-#include <Rhea/Fabrics/3D/Mesh.h>
+#include <Rhea/Core/Mesh.h>
 #include <Rhea/UnitTree.h>
 #include <Psio/Image/Image.h>
-#include <Poseidon/SceneManager.h>
-#include <Poseidon/Shader.h>
 #include <Rhea/Core/Material.h>
 #include <Rhea/Core/Shader.h>
 #include <Psio/Log.h>
-#include <Components/Math/Vector2.h>
-#include <Rhea/Components/RenderComponent.h>
+#include <Math/Vector2.h>
+#include <Rhea/Components/MeshComponent.h>
 
 namespace Rhea
 {
@@ -140,9 +138,9 @@ namespace Rhea
 					visual_component = addComponentUnique<VisualComponent>("visual");
 				}
 
-				RenderComponent* render_component = getComponent<RenderComponent>();
-				if (!render_component) {
-					render_component = addComponentUnique<RenderComponent>("renderer");					
+				MeshComponent* mesh_component = getComponent<MeshComponent>();
+				if (!mesh_component) {
+					mesh_component = addComponentUnique<MeshComponent>("renderer");					
 				}
 
 				if (!m_material) {
@@ -163,7 +161,7 @@ namespace Rhea
 				}
 
 				// if not overwritten by mesh build from heightmap
-				if (!render_component->getMesh()) {
+				if (!mesh_component->getMesh()) {
 
 					// vertex buffers
 					std::unordered_map<std::string, VertexBuffer> vertices;
@@ -252,7 +250,7 @@ namespace Rhea
 						}
 						mesh->setBuffers(vertices, indices, vert_count);
 					}
-					render_component->setMesh(mesh);
+					mesh_component->setMesh(mesh);
 					addChild(mesh);					
 				}					
 

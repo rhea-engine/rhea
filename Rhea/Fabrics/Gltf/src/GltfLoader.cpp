@@ -12,9 +12,9 @@
 #define TINYGLTF_IMPLEMENTATION
 #include <stb_image.h>
 #include <nlohmann/json.hpp>
-#include <ThirdParty/tiny_gltf_loader/tiny_gltf.h>
+#include <tiny_gltf_loader/tiny_gltf.h>
 #include <Psio/Log.h>
-#include <Rhea/Fabrics/Media/ImageResource.h>
+#include <Rhea/Resources/ImageResource.h>
 
 namespace Rhea
 {	

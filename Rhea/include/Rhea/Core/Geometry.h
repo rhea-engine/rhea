@@ -2,7 +2,7 @@
 #define RHEA_GEOMETRY_H
 
 #include <Rhea/Unit.h>
-#include "../Fabrics/3D/Mesh.h"
+#include <Rhea/Core/Mesh.h>
 #include <Rhea/Resources/VertexAttribute.h>
 #include <Rhea/Resources/VertexBuffer.h>
 

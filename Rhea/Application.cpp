@@ -9,7 +9,6 @@
 #include "Psio/InputEvent.h"
 #include "Psio/Keyboard.h"
 #include "Psio/Log.h"
-#include "Fabrics/3D/ObjLoader.h"
 #include "Rhea/Core/SceneLoader.h"
 #include "Rhea/Unit.h"
 #include "Rhea/UnitTree.h"
@@ -17,17 +16,15 @@
 #include "Rhea/Core/Item.h"
 #include "Rhea/Core/Transform.h"
 #include "Rhea/Core/Scene.h"
-#include "Fabrics/3D/Mesh.h"
-#include "Fabrics/3D/Camera.h"
-#include "Fabrics/Canvas/Item2D.h"
+#include "Rhea/Core/Mesh.h"
+#include "Rhea/Core/Camera.h"
+#include "Rhea/Core/Item2D.h"
 #include "Rhea/Resources/TextResource.h"
-#include "Fabrics/Text/TextLoader.h"
-#include "Fabrics/Media/ImageResource.h"
+#include "Rhea/Resources/CubeMap.h"
+#include "Rhea/Resources/TextLoader.h"
+#include "Rhea/Resources/ImageResource.h"
 #include "Rhea/InputMap.h"
 #include "Rhea/Dispatcher.h"
-#include "Fabrics/Media/MediaFabrics.h"
-#include "Fabrics/GUI/include/Rhea/GUI/GUIController.h"
-#include "Fabrics/GUI/include/Rhea/GUI/GuiService.h"
 #include "Rhea/Resources/ResourceService.h"
 
 #include "Rhea/Platform/PlatformService.h"
@@ -38,21 +35,19 @@
 #include "SimpleParser/Method.h"
 
 #include "Rhea/Application.h"
-#include "Fabrics/Text/TextWidget.h"
-#include "Fabrics/Text/BitmapFont.h"
 #include <Rhea/EventInput.h>
 #include <Rhea/Core/Avatar.h>
 #include <Rhea/Resources/Resources.h>
 #include <Rhea/Resources/Collection.h>
-#include "Fabrics/3D/Skybox.h"
 #include <Rhea/Core/Shader.h>
 #include <Rhea/Core/WorldService.h>
-#include "Fabrics/3D/Light.h"
-#include "Fabrics/3D/DirectionalLight.h"
+#include "Rhea/Core/Light.h"
+#include "Rhea/Core/DirectionalLight.h"
 #include <Rhea/Core/Lighting.h>
-#include "Fabrics/3D/PointLight.h"
-#include "Fabrics/3D/SpotLight.h"
+#include "Rhea/Core/PointLight.h"
+#include "Rhea/Core/SpotLight.h"
 #include <Rhea/Component.h>
+#include <Rhea/Core/Geometry.h>
 //#include <Physics/PhysicsComponent.h>
 
 #undef min
@@ -135,21 +130,17 @@ namespace Rhea
 		Orion::MIME::RegisterExtenstion("application/vnd.meworla.scene", "shader");
 		SimpleParser::Type::registerType<Material>("//meworla/material");
 		SimpleParser::Type::registerType<Avatar>("//meworla/avatar");
-		SimpleParser::Type::registerType<Skybox>("//meworla/skybox"); 
-		MediaFabrics::Register(this);
+		
+		ImageResource::_register_ImageResource();
+		SimpleParser::Type::registerType<ImageResource>("//meworla/texture");
+		CubeMap::_register_CubeMap();
+
 		SimpleParser::Type::registerType<Camera>("//meworla/camera");
 		SimpleParser::Type::registerType<Item2D>("//meworla/widget");
-		SimpleParser::Type::registerType<TextWidget>("//meworla/textwidget");
-		SimpleParser::Type::registerType<Font>("//meworla/font");
-		SimpleParser::Type::registerType<BitmapFont>("//meworla/bitmapfont");
 		SimpleParser::Type::registerType<TextResource>("//meworla/fontinfo");
 		//GUIController::Register(this);
 		
-		// register wavefront types
-		m_resource_loader.registerLoader<TextLoader>("model/obj");
-		m_resource_loader.registerLoader<TextLoader>("model/mtl");
 		SimpleParser::Type::registerType<Geometry>("//meworla/geometry");
-		SimpleParser::Type::registerType<ObjLoader>("//meworla/wavefront");
 
 		// register mime type for shader
 		Orion::MIME::RegisterExtenstion("text/plain", "hlsl");

@@ -7,7 +7,7 @@
 #include <Rhea/Application.h>
 #include <Rhea/Unit.h>
 #include <Rhea/Core/Item.h>
-#include <Rhea/Fabrics/3D/Mesh.h>
+#include <Rhea/Core/Mesh.h>
 #include <Rhea/Core/Material.h>
 #include <Rhea/Resources/TextResource.h>
 #include <Rhea/UnitTree.h>
@@ -17,10 +17,11 @@
 #include "GraphicsService.h"
 
 #include <Psio/Log.h>
-#include <Rhea/Fabrics/3D/Light.h>
+#include <Rhea/Core/Light.h>
 #include "MaterialManager.h"
 #include <Rhea/Components/RenderComponent.h>
 #include "MeshManager.h"
+#include <Rhea/Components/MeshComponent.h>
 
 namespace Rhea
 {
@@ -49,33 +50,36 @@ namespace Rhea
 			DLOG(LOG_DEBUG) << "GraphicsItemManager::Ensure: light";			
 			Poseidon::Renderable* light_entity = static_cast<Poseidon::Renderable*>(createEntity(rc, core, unit, "default", false));			
 		}
-		else if (!rc->mesh)
-		{
-			// Resolve mesh unit from VisualComponent if needed
-			auto* v_c = item->getComponent<VisualComponent>();
-			if (!v_c) {
-				DLOG(LOG_DEBUG) << "Item has no visual component";
+		else {
+			MeshComponent* mc = item->getComponent<MeshComponent>();
+			Mesh* mesh = nullptr;
+			if (!mc) {
+				DLOG(LOG_DEBUG) << "Item has no mesh component";
 				return false;
 			}
+			if (!mc->getMesh()) {
+				// Resolve mesh unit if needed
+				
+				Application* app = m_service->getApplication();
+				if (!app) { LOG(LOG_ERROR) << "Graphics service has no app"; return false; }
 
-			Application* app = m_service->getApplication();
-			if (!app) { LOG(LOG_ERROR) << "Graphics service has no app"; return false; }
-
-			rc->mesh = doCast<Mesh>(app->getUnitTree()->find(v_c->meshRef(), v_c->basepathRef(), false));
-			if (!rc->mesh) {
-				LOG(LOG_ERROR) << "No mesh defined for item";
-				return false;
+				mesh = doCast<Mesh>(app->getUnitTree()->find(mc->meshRef(), mc->basepathRef(), false));
+				if (!mesh) {
+					LOG(LOG_ERROR) << "No mesh defined for item";
+					return false;
+				}
+				else {
+					mc->setMesh(mesh);
+				}
+				mesh->ready(); // ok for now
 			}
+			else
+				mesh = mc->getMesh();
 
-			rc->mesh->ready(); // ok for now
-		}
-		
-		auto* meshMgr = static_cast<GraphicsMeshManager*>(m_service->getManager<Mesh>());
+			auto* meshMgr = static_cast<GraphicsMeshManager*>(m_service->getManager<Mesh>());
 
-
-		if (!light && rc->mesh) {
 			// Get shared GPU mesh from cache 
-			Poseidon::Mesh* shared = m_service->meshCache().getOrCreate(core, rc->mesh, rc->mesh->isDynamic(),
+			Poseidon::Mesh* shared = m_service->meshCache().getOrCreate(core, mesh, mesh->isDynamic(),
 				[&](Poseidon::Core* core, Mesh* mesh, Poseidon::Mesh* out)->bool {
 					return meshMgr->FillPoseidonMesh(core, mesh, out);
 				});
@@ -88,9 +92,8 @@ namespace Rhea
 			// Create instance render entity using shared mesh
 			rc->entity = static_cast<Poseidon::Renderable*>(
 				createRenderable(rc, core, unit, shared, "default")
-				);			
-		}	
-		// NOTE else do nothing: this is normal for widgets that have no or transparent background defined
+				);
+		}
 		
 		// register handlers
 		unit->registerEventHandler("delete", this, std::bind(&GraphicsItemManager::onItemDelete, this, std::placeholders::_1, std::placeholders::_2));
@@ -106,8 +109,10 @@ namespace Rhea
 
 		// possible material change - check if material has element		
 		auto* rc = item->getComponent<RenderComponent>();
-		if (!rc || !rc->mesh) return false;
-		Mesh* mesh = rc->mesh;
+		if (!rc) return false;
+		MeshComponent* mc = item->getComponent<MeshComponent>();
+		if (!mc || !mc->getMesh()) return false;
+		Mesh* mesh = mc->getMesh();
 
 		// NOTE: This assumes a changed material will actually be a new material (i.e. the old one gets destroyed)
 

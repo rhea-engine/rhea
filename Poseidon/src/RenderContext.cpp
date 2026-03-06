@@ -2,7 +2,7 @@
 //#include "Poseidon/Renderable.h"
 #include "Poseidon/RenderQueue.h"
 #include "Poseidon/Camera.h"
-#include <Rhea/Components/RenderComponent.h>
+#include <Rhea/Components/MeshComponent.h>
 
 namespace Poseidon
 {
@@ -47,8 +47,8 @@ namespace Poseidon
 					if (renderer) {
 						if (!renderer->isVisible())
 							return false;
-						Rhea::RenderComponent* rc = item->getComponent<Rhea::RenderComponent>();
-						if (rc->getMesh())
+						Rhea::MeshComponent* mc = item->getComponent<Rhea::MeshComponent>();
+						if (mc->getMesh())
 							queue->addRenderable(item);
 					}
 					return true;

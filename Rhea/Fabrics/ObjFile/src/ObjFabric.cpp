@@ -1,0 +1,16 @@
+#include "Rhea/ObjFile/ObjFabric.h"
+#include "Rhea/Application.h"
+#include <Rhea/ObjFile/ObjLoader.h>
+#include <Rhea/Resources/TextLoader.h>
+
+namespace Rhea
+{
+	void ObjFabric::Register(Application* app)
+	{
+		// register wavefront types
+		auto* resource_loader = app->getResourceLoader();
+		resource_loader->registerLoader<TextLoader>("model/obj");
+		resource_loader->registerLoader<TextLoader>("model/mtl");
+		SimpleParser::Type::registerType<ObjLoader>("//meworla/wavefront");
+	}
+}

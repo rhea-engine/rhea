@@ -1,7 +1,6 @@
 #include <assert.h> 
 
-#include "Hippios/Renderer.h"
-#include "Hippios/D3D11Renderer/D3D11Renderer.h"
+#include <Hippios/Renderer.h>
 
 #include "Poseidon/Mesh.h"
 #include "Poseidon/Material.h"

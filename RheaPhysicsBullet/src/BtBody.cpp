@@ -1,6 +1,6 @@
 #include "BtBody.h"
 #include <Rhea/Core/Item.h>
-#include <Rhea/Fabrics/3D/Mesh.h>
+#include <Rhea/Core/Mesh.h>
 #include <Psio/Log.h>
 
 #include <bullet/src/btBulletDynamicsCommon.h>

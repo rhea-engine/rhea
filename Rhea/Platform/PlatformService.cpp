@@ -1,7 +1,7 @@
 #include <Psio/Psio.h>
 #include <Psio/Net/Network.h>
 
-#include "PlatformService.h"
+#include "Rhea/Platform/PlatformService.h"
 
 namespace Rhea
 {

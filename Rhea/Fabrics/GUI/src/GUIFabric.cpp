@@ -14,7 +14,7 @@
 #include <Rhea/GUI/Row.h>
 #include <Rhea/GUI/TextInput.h>
 #include <Rhea/Physics/PhysicsManagerService.h>
-#include <Rhea/Fabrics/Text/TextWidget.h>
+#include <Rhea/Text/TextWidget.h>
 
 namespace Rhea
 {

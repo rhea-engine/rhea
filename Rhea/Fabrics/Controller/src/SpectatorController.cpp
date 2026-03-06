@@ -2,10 +2,10 @@
 #include <Rhea/Core/Item.h>
 #include <Rhea/Application.h>
 #include <Rhea/UnitTree.h>
-#include <Rhea/Fabrics/3D/Camera.h>
-#include <Rhea/Graphics/CameraManager.h>
-#include <Rhea/Graphics/GraphicsService.h>
-#include <Rhea/Graphics/GraphicsManager.h>
+#include <Rhea/Core/Camera.h>
+//#include <Rhea/Graphics/CameraManager.h>
+//#include <Rhea/Graphics/GraphicsService.h>
+//#include <Rhea/Graphics/GraphicsManager.h>
 #include <Rhea/EventInput.h>
 #include <Psio/Log.h>
 
@@ -45,11 +45,7 @@ namespace Rhea
 		std::unordered_map<std::string, Variant> values;
 
 		// create the view		
-		m_view = m_app->getUnitTree()->createUnit<Camera>("scene_view", attr, values);
-		GraphicsService* gs = static_cast<GraphicsService*>(m_app->getService("graphics"));
-		GraphicsManager* mgr = gs->getManager<Camera>();
-		//GraphicsCamera::createElement(core, m_view);
-		mgr->Ensure(gs->getEngine(), m_view);
+		m_view = m_app->getUnitTree()->createUnit<Camera>("scene_view", attr, values);	
 
 		// get target
 		
@@ -66,6 +62,10 @@ namespace Rhea
 			return;
 		}		
 
+		// Fire scene_enter event to notify Scene to add graphics components to the view
+		Event enter_event("scene_enter", m_view);
+		m_target->bubbleEvent("scene_enter", &enter_event);
+
 		// add relative position of view
 		auto it = m_values.find("position");
 		Math::Vector3 position;
@@ -76,7 +76,7 @@ namespace Rhea
 		m_view->setPosition(position);
 		m_position.setPosition(position);
 
-		//  add following
+		//  add to followed item
 		m_target->addChild(m_view);
 
 		_registerEvent(m_app->getUnitTree());

@@ -3,9 +3,7 @@
 #include "../../src/NullPhysicsService.h"
 #include <RheaPhysics/PhysicsComponent.h>
 
-#include <Rhea/Fabrics/Canvas/Item2D.h>
-#include <Rhea/Fabrics/Text/TextWidget.h>
-#include <Rhea/Fabrics/3D/Skybox.h>
+#include <Rhea/Core/Item2D.h>
 
 namespace Rhea
 {
@@ -34,7 +32,6 @@ namespace Rhea
         // opt-out: no creator - move to rheaclient/fabrics
         PhysicsBodyDesc none;
         none.kind = ""; // means disabled
-        mgr->registerBodyForType(Skybox::staticType(), none);
         mgr->registerBodyForType(Item2D::staticType(), none);
 	}
 }

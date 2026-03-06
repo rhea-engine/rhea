@@ -2,8 +2,8 @@
 #define RHEA_VERTEXBUFFER_STANDARD_H
 
 #include "VertexBuffer.h"
-#include <Components/Math/Vector3.h>
-#include <Components/Math/Vector2.h>
+#include <Math/Vector3.h>
+#include <Math/Vector2.h>
 
 namespace Rhea
 {

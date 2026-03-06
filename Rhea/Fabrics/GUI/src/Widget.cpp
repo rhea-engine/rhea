@@ -7,10 +7,10 @@
 #include <Rhea/Application.h>
 #include <Rhea/UnitTree.h>
 #include <Rhea/Core/Scene.h>
-#include <Rhea/Fabrics/Media/ImageResource.h>
+#include <Rhea/Resources/ImageResource.h>
 #include <Rhea/Core/Shader.h>
 
-#include <Rhea/Fabrics/Canvas/Item2D.h>
+#include <Rhea/Core/Item2D.h>
 
 #include <Rhea/GUI/Modifier/FillSize.h>
 #include <Rhea/GUI/Modifier/Offset.h>
@@ -24,7 +24,7 @@
 #include <Rhea/GUI/Modifier/SizePercentageWidth.h>
 #include <Rhea/GUI/Modifier/FillHeight.h>
 #include <Rhea/GUI/Modifier/SizePercentageHeight.h>
-#include <Rhea/Components/RenderComponent.h>
+#include <Rhea/Components/MeshComponent.h>
 
 namespace Rhea
 {
@@ -139,10 +139,10 @@ namespace Rhea
 			visual_component = addComponentUnique<VisualComponent>("visual");
 		}
 
-		RenderComponent* render_component = getComponent<RenderComponent>();
+		MeshComponent* mesh_component = getComponent<MeshComponent>();
 		//  widgets always need a render component
-		if (!render_component) {
-			render_component = addComponentUnique<RenderComponent>("renderer");			
+		if (!mesh_component) {
+			mesh_component = addComponentUnique<MeshComponent>("mesh");
 		}
 		
 		// if we are hidden at the beggining - send the event

@@ -7,7 +7,7 @@
 #include <Rhea/Graphics/GraphicsService.h>
 #include <Rhea/Graphics/GraphicsManager.h>
 #include <Rhea/Graphics/CameraManager.h>
-#include "Rhea/Fabrics/3D/Camera.h"
+#include "Rhea/Core/Camera.h"
 #include "Rhea/Physics/PhysicsManagerService.h"
 #include "Rhea/Physics/PhysicsService.h"
 
@@ -25,7 +25,7 @@
 #include <Rhea/Animation/Animation.h>
 #include <Rhea/Animation/Animator.h>
 #include <Rhea/GUI/GUIController.h>
-#include <Rhea/Fabrics/3D/Mesh.h>
+#include <Rhea/Core/Mesh.h>
 
 bool Ceto::onQuit(Rhea::Event* ev, Rhea::Unit* unit)
 {

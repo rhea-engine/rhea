@@ -6,7 +6,7 @@
 
 #include "CameraManager.h"
 #include <Rhea/Unit.h>
-#include <Rhea/Fabrics/3D/Camera.h>
+#include <Rhea/Core/Camera.h>
 #include <Psio/Log.h>
 #include <Rhea/Components/RenderComponent.h>
 

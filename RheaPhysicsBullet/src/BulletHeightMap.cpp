@@ -1,10 +1,7 @@
 #include "BulletHeightMap.h"
 #include <Rhea/Core/Item.h>
-#include <Rhea/Fabrics/Media/ImageResource.h>
+#include <Rhea/Resources/ImageResource.h>
 #include <Rhea/Terrain/Terrain.h>
-
-#include <Rhea/Graphics/Texture.h>
-#include <Poseidon/Texture.h>
 
 #include <bullet/src/btBulletDynamicsCommon.h>
 #include <bullet/src/BulletCollision/CollisionShapes/btHeightfieldTerrainShape.h>

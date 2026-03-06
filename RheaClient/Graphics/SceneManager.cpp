@@ -9,7 +9,7 @@
 #include "CameraManager.h"
 #include <Rhea/Unit.h>
 #include <Rhea/Core/Item.h>
-#include <Rhea/Fabrics/Canvas/Item2D.h>
+#include <Rhea/Core/Item2D.h>
 #include "GraphicsService.h"
 #include <Psio/Log.h>
 #include <Rhea/Core/Lighting.h>

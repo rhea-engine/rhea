@@ -1,5 +1,3 @@
-cmake_minimum_required (VERSION 3.9.2)
-
 add_subdirectory(ThirdParty)
 add_subdirectory(Resources)
 add_subdirectory(Physics)
@@ -11,11 +9,15 @@ option(RHEA_WITH_GRAPHICS "Enable graphics support for Rhea" ON)
 add_library(RheaBase "Unit.cpp" "UnitTree.cpp" "Realm.cpp" "InputMap.cpp" "Dispatcher.cpp"  "Platform/PlatformService.cpp" 
  "EventInput.cpp" "Application.cpp" "Component.cpp"
 "Core/Material.cpp" "Core/SceneLoader.cpp" "Core/Scene.cpp" "Core/Avatar.cpp" "Core/Position.cpp"
-"Core/Transform.cpp" "Core/Shader.cpp" "Core/Item.cpp" 
-"Core/WorldService.cpp" "Core/Lighting.cpp" "Core/Lighting.cpp" "Physics/PhysicsManagerService.cpp")
+"Core/Transform.cpp" "Core/Shader.cpp" "Core/Item.cpp" "Core/Item2D.cpp"
+"Core/WorldService.cpp" "Core/Lighting.cpp" "Core/Lighting.cpp" 
+"Core/Camera.cpp" "Core/Mesh.cpp" 
+"Core/Light.cpp" "Core/DirectionalLight.cpp" "Core/PointLight.cpp" 
+"Core/SpotLight.cpp"
+"Physics/PhysicsManagerService.cpp")
 add_library(Rhea::Core ALIAS RheaBase)
 
-target_link_libraries(RheaBase PUBLIC Meworla::Math Meworla::Orion SimpleParser RheaResources Rhea::Physics RheaFabrics  Psio)
+target_link_libraries(RheaBase PUBLIC Meworla::Math Meworla::Orion SimpleParser RheaResources Rhea::Physics Psio)
 
 target_include_directories(RheaBase PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>

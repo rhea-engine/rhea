@@ -1,5 +1,5 @@
 #include "MaterialGpuCache.h"
-#include <Rhea/Fabrics/Media/ImageResource.h>
+#include <Rhea/Resources/ImageResource.h>
 
 namespace Rhea
 {

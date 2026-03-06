@@ -41,19 +41,11 @@ FetchContent_MakeAvailable(nlohmann_json)
 
 # Target definition
 add_library(RheaEngine INTERFACE)
-target_include_directories(RheaEngine INTERFACE ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/Components)
-
-# bullet 
-#option(USE_PHYSICS_BULLET "Enable Bullet physics" ON)
-#add_subdirectory (ThirdParty/bullet)
-#include_directories(${PROJECT_SOURCE_DIR}/ThirdParty/ ${PROJECT_SOURCE_DIR}/ThirdParty/bullet/src)
 
 # Static Library Link to make .exe copyable under Windows
 if(WIN32)
 #  set(CMAKE_EXE_LINKER_FLAGS -static)
 endif()
-
-#include_directories(${PROJECT_SOURCE_DIR} ${PROJECT_SOURCE_DIR}/Components/ ${json_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/ThirdParty/ ${PROJECT_SOURCE_DIR}/ThirdParty/bullet/src)
 
 # Detect if we are the top-level project
 if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
@@ -99,8 +91,6 @@ if(RHEA_BUILD_ENGINE)
     foreach(tgt IN LISTS engine_targets)
         target_link_libraries(RheaEngine INTERFACE ${tgt})
     endforeach()
-
-    #target_include_directories(Orion PUBLIC ${json_SOURCE_DIR}/include)
 endif()
 
 if(RHEA_BUILD_EXTRAS)

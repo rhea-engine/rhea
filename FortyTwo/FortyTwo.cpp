@@ -7,7 +7,7 @@
 #include <Rhea/Core/Avatar.h>
 #include <FortyTwo/Accounts/AccountService.h>
 #include "Authorization/AuthorizationService.h"
-#include <Rhea/Fabrics/Network/ServerService.h>
+#include <Rhea/Network/ServerService.h>
 #include "ConnectionHandler.h"
 #include "AuthHandler.h"
 #include <Rhea/Physics/PhysicsManagerService.h>

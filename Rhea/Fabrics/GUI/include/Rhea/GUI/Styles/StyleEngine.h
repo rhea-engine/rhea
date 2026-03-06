@@ -8,7 +8,7 @@
 //#include "../Widget.h"
 //#include "StyleSheet.h"
 #include "Property.h"
-#include <Components/SimpleParser/Variant.h>
+#include <SimpleParser/Variant.h>
 #include "StyleRule.h"
 
 namespace Rhea

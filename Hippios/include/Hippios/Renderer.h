@@ -15,6 +15,7 @@
 #include "IndexBuffer.h"
 #include "GPUProgram.h"
 #include "RenderTarget.h"
+#include <memory>
 
 namespace Hippios
 {
@@ -231,6 +232,9 @@ namespace Hippios
 		 * @return A pointer to the initialized GraphicsBuffer.
 		 */
 		virtual GraphicsBuffer* initGPUBuffer(size_t size) = 0;
+
+		// static factory method to create a renderer instance based on the platform
+		static std::unique_ptr<Renderer> CreateRenderer();
 	};
 }
 #endif // !HIPPIOS_RENDERER_H

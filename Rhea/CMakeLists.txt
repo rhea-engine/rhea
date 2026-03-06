@@ -6,8 +6,8 @@ add_subdirectory(Fabrics)
 
 option(RHEA_WITH_GRAPHICS "Enable graphics support for Rhea" ON)
 
-add_library(RheaBase "Unit.cpp" "UnitTree.cpp" "Realm.cpp" "InputMap.cpp" "Dispatcher.cpp"  "Platform/PlatformService.cpp" 
- "EventInput.cpp" "Application.cpp" "Component.cpp"
+add_library(RheaBase "src/Unit.cpp" "src/UnitTree.cpp" "src/Realm.cpp" "src/InputMap.cpp" "src/Dispatcher.cpp"  "Platform/PlatformService.cpp" 
+ "src/EventInput.cpp" "src/Application.cpp" "src/Component.cpp"
 "Core/Material.cpp" "Core/SceneLoader.cpp" "Core/Scene.cpp" "Core/Avatar.cpp" "Core/Position.cpp"
 "Core/Transform.cpp" "Core/Shader.cpp" "Core/Item.cpp" "Core/Item2D.cpp"
 "Core/WorldService.cpp" "Core/Lighting.cpp" "Core/Lighting.cpp" 

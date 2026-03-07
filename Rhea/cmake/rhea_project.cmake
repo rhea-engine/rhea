@@ -17,6 +17,9 @@ include_guard(GLOBAL)
 # Load the module system
 include("${CMAKE_CURRENT_LIST_DIR}/rhea_modules.cmake")
 
+# load the asset helper system (optional, but common)
+include("${CMAKE_CURRENT_LIST_DIR}/rhea_assets.cmake")
+
 # Allow the project to set these BEFORE including this file:
 #   - RHEA_ENABLED_PROFILE_JSON
 #   - RHEA_ENABLED_FABRIC_IDS

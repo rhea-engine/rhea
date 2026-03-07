@@ -1,6 +1,5 @@
 add_subdirectory(ThirdParty)
 add_subdirectory(Resources)
-add_subdirectory(Physics)
 add_subdirectory(Fabrics)
 
 
@@ -17,7 +16,7 @@ add_library(RheaBase "src/Unit.cpp" "src/UnitTree.cpp" "src/Realm.cpp" "src/Inpu
 "Physics/PhysicsManagerService.cpp")
 add_library(Rhea::Core ALIAS RheaBase)
 
-target_link_libraries(RheaBase PUBLIC Meworla::Math Meworla::Orion SimpleParser RheaResources Rhea::Physics Psio)
+target_link_libraries(RheaBase PUBLIC Meworla::Math Meworla::Orion SimpleParser RheaResources Psio)
 
 target_include_directories(RheaBase PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>

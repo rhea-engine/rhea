@@ -2,6 +2,7 @@
 
 # add bullet physics engine as a subdirectory
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/ ${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/bullet/src)
+cmake_policy(SET CMP0115 OLD)
 add_subdirectory(ThirdParty/bullet)
 
 add_library(RheaPhysicsBullet)

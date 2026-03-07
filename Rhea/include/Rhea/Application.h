@@ -29,7 +29,7 @@ namespace Rhea
 	class Application
 	{
 	public:
-		~Application();
+		virtual ~Application();
 		// load and prepare all subsystems - calls setup at  
 		void init();
 		// set the applications name to appname
@@ -138,7 +138,7 @@ namespace Rhea
 	protected:
 		Orion::Orion* m_fs = 0;
 		std::string m_appname = "";
-		std::unique_ptr<UnitTree> m_unit_tree = 0;
+		std::unique_ptr<UnitTree> m_unit_tree;
 		InputMap* m_input_map = 0;
 		Dispatcher* m_dispatcher = 0;
 		Controller* m_focused_controller = 0;

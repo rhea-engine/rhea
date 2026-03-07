@@ -1,5 +1,3 @@
-cmake_minimum_required (VERSION 3.9.2)
-
 # add internal fabrics
 add_subdirectory(Animation EXCLUDE_FROM_ALL)
 add_subdirectory(Character EXCLUDE_FROM_ALL)

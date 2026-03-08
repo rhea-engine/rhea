@@ -15,6 +15,7 @@ namespace Rhea
 	BulletHeightMap::BulletHeightMap(btDynamicsWorld* world, Item* item, const PhysicsBodyDesc& desc) :
 		m_width(0),
 		m_height(0),
+		m_shape(nullptr),
 		BulletPhysicsBody(world, item, desc)
 	{
 		Unit* heightmap = static_cast<Terrain*>(item)->getHeightmap();
@@ -75,7 +76,8 @@ namespace Rhea
 		if (!maxH)
 			maxH = 255;
 		float scale = maxH / 256;
-		m_shape = new btHeightfieldTerrainShape(m_width, m_height, m_map.data(), scale, 0, maxH, 1, PHY_UCHAR, false);
+		if (m_width > 0 && m_height > 0 && m_map.size() > 0)
+			m_shape = new btHeightfieldTerrainShape(m_width, m_height, m_map.data(), scale, 0, maxH, 1, PHY_UCHAR, false);
 		btTransform startTrans = btTransform::getIdentity();
 		float offset_y = (minH + maxH) * 0.5f;
 		float offset_x = (float)m_width / 2;

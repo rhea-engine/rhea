@@ -73,6 +73,9 @@ bool ExtractTrianglesFromScene(Rhea::Application* app, Rhea::Item* item, Triangl
 
     std::string objbuf;
     std::string mtlbuf;
+
+    objbuf = obj->getAsString();
+
     tinyobj::ObjReader reader;
     tinyobj::ObjReaderConfig config;
     bool change_handedness = true;

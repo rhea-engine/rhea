@@ -1,0 +1,90 @@
+#include <MySelf/{{PROJECT_NAME}}/{{PROJECT_NAME}}.h>
+#include <Rhea/Physics/PhysicsManagerService.h>
+#include <Rhea/Physics/PhysicsService.h>
+#include <Psio/Log.h>
+
+// Implementation
+
+{{PROJECT_NAME}}::{{PROJECT_NAME}}() :
+	m_world_scene(nullptr),
+	Application()
+{
+}
+
+{{PROJECT_NAME}}::~{{PROJECT_NAME}}()
+{
+}
+
+void {{PROJECT_NAME}}::showScene(Rhea::Scene* scene)
+{
+	auto* mgr = static_cast<Rhea::PhysicsManagerService*>(getService("physics_mgr"));
+	if (!mgr) {
+		LOG(LOG_ERROR) << "physics_mgr missing";
+		return;
+	}
+
+	auto* physics = mgr->createPhysicsService("world");
+	if (!physics) {
+		LOG(LOG_ERROR) << "physics backend missing";
+		return;
+	}
+	physics->onInit();
+	m_physics = physics;
+
+	setScene(scene);
+
+	scene->show();
+}
+
+void {{PROJECT_NAME}}::onScene(Rhea::Scene* scene)
+{
+	LOG(LOG_INFO) << "scene displayed";
+	std::unique_ptr<Rhea::Event> ev_r = std::make_unique<Rhea::Event>("ready", scene);
+	scene->sendEvent(std::string("ready"), ev_r.get());
+}
+
+int main(int argc, char* argv[])
+{
+	{{PROJECT_NAME}}* app = new {{PROJECT_NAME}}();
+	app->setAppname("{{PROJECT_NAME}}");
+
+	app->init();
+
+	int argi = 1;
+	bool scene_set = false;
+	std::string home_scene;
+
+	while (argi < argc) {
+		if (!strcmp(argv[argi], "-d")) {
+			argi++;
+			app->setAppDir(argv[argi]);
+			LOG(LOG_INFO) << "Set //local to directory: " << argv[argi];
+		}
+		else {
+			home_scene = argv[argi];
+			scene_set = true;
+		}
+		argi++;
+	}
+
+	app->setup();
+
+	// Create a minimal in-memory scene
+	std::unordered_map<std::string, std::string> attributes;
+	std::unordered_map<std::string, Variant> values;
+	Rhea::Scene* world_scene = app->getUnitTree()->createUnit<Rhea::Scene>(std::string("{{PROJECT_NAME}}Scene"), attributes, values);
+
+	// add one simple test item 
+	Rhea::Item* item = app->getUnitTree()->createUnit<Rhea::Item>(std::string("TestItem"), attributes, values); 
+
+	// Show the scene
+	app->showScene(world_scene);
+
+	app->loop();
+
+	app->close();
+
+	delete app;
+
+	return 0;
+}

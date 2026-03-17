@@ -1,0 +1,20 @@
+#ifndef {{PROJECT_NAME_UPPER}}FABRIC_H
+#define {{PROJECT_NAME_UPPER}}FABRIC_H
+
+#include <Rhea/Application.h>
+#include <Rhea/ModuleSystem.h>
+
+namespace {{VENDOR}}
+{
+	/** Fabrics for {{PROJECT_NAME}}
+	*/
+	class {{PROJECT_NAME}}Fabric : public Rhea::IFabric
+	{
+	public:
+		void Register(Application* app) override;
+
+		const char* getName() const override { return "{{PROJECT_NAME}}"; }
+	};
+}
+
+#endif // {{PROJECT_NAME_UPPER}}FABRIC_H

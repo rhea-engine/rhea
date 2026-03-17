@@ -11,7 +11,7 @@ Build
 *.slo
 *.lo
 *.o
-*.obj
+#*.obj
 bin
 
 # Precompiled Headers

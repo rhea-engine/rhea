@@ -1,0 +1,56 @@
+[scene]
+name="scene1"
+start=(0.0f, 1.7f, -1.0f)
+physics="world"
+ground=true
+debug_physics=false
+startscene="//{{PROJECT_NAME_LOWER}}/scene1"
+linear_gravity=-3.0f
+
+[environment]
+type="//meworla/lighting"
+ambient=(0.8f, 0.8f, 0.8f, 1.0f)
+
+[maincamera]
+type="//meworla/camera"
+position=(2.0f, 4.0f, -10.0f)
+[controller]
+type="//meworla/controller"
+target="//{{PROJECT_NAME_LOWER}}/scene1/maincamera"
+
+[grid]
+type="//meworla/texture"
+path="//{{PROJECT_NAME_LOWER}}/grid.png"
+
+[uv_d]
+type="//meworla/texture"
+path="//{{PROJECT_NAME}}/uv_debug.png"
+
+[ground]
+type="//meworla/item"
+mesh="ground/mesh"
+position=(0.0f, -0.5f, 0.0f)
+
+[ground/mesh]
+type="//meworla/mesh"
+geometry="ground/ground_obj"
+
+[ground/ground_obj]
+type="//meworla/wavefront"
+path="//{{PROJECT_NAME}}/ground.obj"
+material="//{{PROJECT_NAME}}/ground.mtl"
+diffuse_tex=("grid")
+
+[cube2]
+type="//meworla/item"
+position=(0.0f, 4.0f, 15.0f)
+mesh="cube2/mesh"
+mass=20.0f
+[cube2/mesh]
+type="//meworla/mesh"
+geometry="cube2/cube_obj"
+[cube2/cube_obj]
+type="//meworla/wavefront"
+path="//{{PROJECT_NAME}}/cube1.obj"
+material="//{{PROJECT_NAME}}/cube1.mtl"
+diffuse_tex=("uv_d")

@@ -1,0 +1,20 @@
+{
+  "name": "fabric",
+  "required_packages": [],
+  "features": {},
+  "default_enabled_fabrics": [],
+  "files": [
+    {
+      "template": "fabric.json.in",
+      "output": "fabric.json"
+    },
+    {
+      "template": "Fabric.h.in",
+      "output": "include/{{VENDOR}}/{{PROJECT_NAME}}/{{PROJECT_NAME}}Fabric.h"
+    },
+    {
+      "template": "Fabric.cpp.in",
+      "output": "src/{{PROJECT_NAME}}Fabric.cpp"
+    }
+  ]
+}

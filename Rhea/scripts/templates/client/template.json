@@ -1,0 +1,44 @@
+{
+  "name": "client",
+  "required_packages": [
+    "Meworla/RheaClient"
+  ],
+  "features": {
+    "physics": {
+      "packages": [
+        "Meworla/RheaPhysicsBullet"
+      ],
+      "enabled_fabrics": [
+        "Meworla/RheaPhysics:Physics",
+        "Meworla/RheaPhysicsBullet:PhysicsBullet"
+      ]
+    }
+  },
+  "default_enabled_fabrics": [],
+  "files": [
+    {
+      "template": "CMakeLists.txt.in",
+      "output": "CMakeLists.txt"
+    },
+    {
+      "template": "main.cpp.in",
+      "output": "src/{{PROJECT_NAME}}.cpp"
+    },
+    {
+      "template": "main.h.in",
+      "output": "include/{{VENDOR}}/{{PROJECT_NAME}}/{{PROJECT_NAME}}.h"
+    },
+    {
+      "template": "enabled.json.in",
+      "output": "enabled.json"
+    },
+    {
+      "template": "Assets/.gitkeep",
+      "output": "Assets/.gitkeep"
+    },
+    {
+      "template": "Assets/world.scene.in",
+      "output": "Assets/world.scene"
+    }
+  ]
+}

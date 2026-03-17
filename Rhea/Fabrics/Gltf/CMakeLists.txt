@@ -20,4 +20,4 @@ target_include_directories(RheaGltf PUBLIC
 target_link_libraries(RheaGltf PRIVATE Meworla::Math Rhea::TinyGltf Rhea::Core Meworla::Orion Rhea::Animation Meworla::StbImage nlohmann_json::nlohmann_json)
 
 # register for auto registry generation
-rhea_register_fabric_module("${CMAKE_CURRENT_SOURCE_DIR}/module.json")
+rhea_register_fabric_module("${CMAKE_CURRENT_SOURCE_DIR}/fabric.json")

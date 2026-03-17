@@ -12,4 +12,4 @@ target_include_directories(RheaSkybox PUBLIC
 target_link_libraries(RheaSkybox PUBLIC Rhea::Core)
 
 # register for auto registry generation
-rhea_register_fabric_module("${CMAKE_CURRENT_SOURCE_DIR}/module.json")
+rhea_register_fabric_module("${CMAKE_CURRENT_SOURCE_DIR}/fabric.json")

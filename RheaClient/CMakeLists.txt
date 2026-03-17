@@ -32,4 +32,4 @@ target_link_libraries(RheaClientRuntime INTERFACE
 )
 
 # Register this fabric for GeneratedModules.cpp generation
-rhea_register_fabric_module("${CMAKE_CURRENT_SOURCE_DIR}/Fabrics/PoseidonGraphics/module.json")
+rhea_register_fabric_module("${CMAKE_CURRENT_SOURCE_DIR}/Fabrics/PoseidonGraphics/fabric.json")

@@ -274,87 +274,6 @@ def write_template_files(
         )
 
 
-def patch_cmakelists_for_fabric(root: Path, vendor: str, project: str, force: bool) -> None:
-    cmake_file = root / "CMakeLists.txt"
-    if not cmake_file.exists():
-        fail("missing CMakeLists.txt")
-
-    text = cmake_file.read_text(encoding="utf-8")
-    original_text = text
-
-    alias_line = f"add_library({vendor}::{project} ALIAS {project})"
-    registration_line = 'rhea_register_fabric("${CMAKE_CURRENT_SOURCE_DIR}/fabric.json")'
-    fabric_source = f"src/{project}Fabric.cpp"
-
-    changed = False
-
-    # ------------------------------------------------------------------
-    # 1) Ensure alias exists
-    # ------------------------------------------------------------------
-    if alias_line not in text:
-        # insert after add_library(project) if possible
-        add_library_pattern = re.compile(
-            rf'(^\s*add_library\(\s*{re.escape(project)}(?:\s+[^\)]*)?\)\s*$)',
-            re.MULTILINE,
-        )
-        match = add_library_pattern.search(text)
-        if match:
-            insert_pos = match.end()
-            text = text[:insert_pos] + "\n" + alias_line + text[insert_pos:]
-        else:
-            if not text.endswith("\n"):
-                text += "\n"
-            text += "\n" + alias_line + "\n"
-        changed = True
-
-    # ------------------------------------------------------------------
-    # 2) Ensure fabric source is in target_sources(project ...)
-    # ------------------------------------------------------------------
-    if fabric_source not in text:
-        # Try to patch an existing target_sources(project ...)
-        target_sources_pattern = re.compile(
-            rf'(target_sources\(\s*{re.escape(project)}\s+PRIVATE\s*)(.*?)\)',
-            re.DOTALL,
-        )
-        match = target_sources_pattern.search(text)
-        if match:
-            prefix = match.group(1)
-            body = match.group(2)
-
-            # Preserve indentation style roughly
-            if body.strip():
-                new_body = body.rstrip() + f'\n    {fabric_source}\n'
-            else:
-                new_body = f'\n    {fabric_source}\n'
-
-            replacement = prefix + new_body + ")"
-            text = text[:match.start()] + replacement + text[match.end():]
-            changed = True
-        else:
-            # No target_sources found for main target; append a small block
-            if not text.endswith("\n"):
-                text += "\n"
-            text += f'\ntarget_sources({project} PRIVATE\n    {fabric_source}\n)\n'
-            changed = True
-
-    # ------------------------------------------------------------------
-    # 3) Ensure fabric registration line exists
-    # ------------------------------------------------------------------
-    if registration_line not in text:
-        if not text.endswith("\n"):
-            text += "\n"
-        text += "\n" + registration_line + "\n"
-        changed = True
-
-    # ------------------------------------------------------------------
-    # Write back if changed
-    # ------------------------------------------------------------------
-    if changed:
-        cmake_file.write_text(text, encoding="utf-8")
-        info("updated CMakeLists.txt for fabric support")
-    else:
-        info("CMakeLists.txt already contains fabric support")
-
 def init_from_template(
     root: Path,
     kind: str,
@@ -391,14 +310,6 @@ def init_from_template(
         enabled_fabrics=enabled_fabrics,
         force=force,
     )
-
-    if kind == "fabric":
-        patch_cmakelists_for_fabric(
-            root=root,
-            vendor=values["VENDOR"],
-            project=values["PROJECT_NAME"],
-            force=force,
-        )
 
     info(f"initialized Rhea template: {kind}")
 

@@ -15,6 +15,10 @@
     {
       "template": "Fabric.cpp.in",
       "output": "src/{{PROJECT_NAME}}Fabric.cpp"
+    },
+    {
+      "template": "CMakeLists.txt.in",
+      "output": "CMakeLists.txt"
     }
   ]
 }

@@ -5,20 +5,24 @@
   "default_enabled_fabrics": [],
   "files": [
     {
-      "template": "fabric.json.in",
-      "output": "fabric.json"
+      "source": "fabric.json.in",
+      "target": "fabric.json",
+      "render": true
     },
     {
-      "template": "Fabric.h.in",
-      "output": "include/{{VENDOR}}/{{PROJECT_NAME}}/{{PROJECT_NAME}}Fabric.h"
+      "source": "Fabric.h.in",
+      "target": "include/{{VENDOR}}/{{PROJECT_NAME_LOWER}}/{{PROJECT_NAME_LOWER}}Fabric.h",
+      "render": true
     },
     {
-      "template": "Fabric.cpp.in",
-      "output": "src/{{PROJECT_NAME}}Fabric.cpp"
+      "source": "Fabric.cpp.in",
+      "target": "src/{{PROJECT_NAME_LOWER}}Fabric.cpp",
+      "render": true
     },
     {
-      "template": "CMakeLists.txt.in",
-      "output": "CMakeLists.txt"
+      "source": "CMakeLists.txt.in",
+      "target": "CMakeLists.txt",
+      "render": true
     }
   ]
 }

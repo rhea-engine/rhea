@@ -17,28 +17,29 @@
   "default_enabled_fabrics": [],
   "files": [
     {
-      "template": "CMakeLists.txt.in",
-      "output": "CMakeLists.txt"
+      "source": "CMakeLists.txt.in",
+      "target": "CMakeLists.txt",
+      "render": true
     },
     {
-      "template": "main.cpp.in",
-      "output": "src/{{PROJECT_NAME}}.cpp"
+      "source": "main.cpp.in",
+      "target": "src/{{PROJECT_NAME}}.cpp",
+      "render": true
     },
     {
-      "template": "main.h.in",
-      "output": "include/{{VENDOR}}/{{PROJECT_NAME}}/{{PROJECT_NAME}}.h"
+      "source": "main.h.in",
+      "target": "include/{{VENDOR}}/{{PROJECT_NAME}}/{{PROJECT_NAME}}.h",
+      "render": true
     },
     {
-      "template": "enabled.json.in",
-      "output": "enabled.json"
+      "source": "enabled.json.in",
+      "target": "enabled.json",
+      "render": true
     },
     {
-      "template": "Assets/.gitkeep",
-      "output": "Assets/.gitkeep"
-    },
-    {
-      "template": "Assets/world.scene.in",
-      "output": "Assets/world.scene"
+      "source": "Assets/world.scene.in",
+      "target": "Assets/world.scene",
+      "render": true
     }
   ]
 }

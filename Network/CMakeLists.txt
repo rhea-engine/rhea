@@ -18,5 +18,5 @@ target_include_directories(RheaNet PUBLIC
 
 target_link_libraries(RheaNet PRIVATE Meworla::Orion Meworla::Hippios Meworla::Hermes Rhea::Core)
 
-# Register this fabric for GeneratedModules.cpp generation
-rhea_register_fabric_module("${CMAKE_CURRENT_SOURCE_DIR}/fabric.json")
+# Register this fabric for GeneratedFabrics.cpp generation
+rhea_register_fabric("${CMAKE_CURRENT_SOURCE_DIR}/fabric.json")

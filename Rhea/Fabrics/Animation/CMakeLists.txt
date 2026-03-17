@@ -17,4 +17,4 @@ target_include_directories(Animation PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 target_link_libraries(Animation PUBLIC Rhea::Core)
 
 # register for auto registry generation
-rhea_register_fabric_module("${CMAKE_CURRENT_SOURCE_DIR}/fabric.json")
+rhea_register_fabric("${CMAKE_CURRENT_SOURCE_DIR}/fabric.json")

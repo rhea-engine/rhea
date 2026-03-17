@@ -31,4 +31,4 @@ target_include_directories(GUI PUBLIC
 target_link_libraries(GUI PUBLIC Rhea::Core Rhea::Text)
 
 # register for auto registry generation
-rhea_register_fabric_module("${CMAKE_CURRENT_SOURCE_DIR}/fabric.json")
+rhea_register_fabric("${CMAKE_CURRENT_SOURCE_DIR}/fabric.json")

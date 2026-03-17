@@ -5,7 +5,7 @@
 #include <Orion/Orion.h>
 #include <Orion/ResourceRequest.h>
 #include "Resources/ResourceLoader.h"
-#include "ModuleSystem.h"
+#include "FabricSystem.h"
 
 #include <string>
 #include <unordered_map>
@@ -130,10 +130,10 @@ namespace Rhea
 		// get fs
 		Orion::Orion* getFS() { return m_fs; }
 
-		// register a module
-		void RegisterModule(std::unique_ptr<IFabric> module);
-		// init modules
-		void InitModules(); // Call this after registering to initialize all
+		// register a fabric
+		void RegisterFabric(std::unique_ptr<IFabric> fabric);
+		// init fabrics - call this after registering to initialize all
+		void InitFabrics();
 
 	protected:
 		Orion::Orion* m_fs = 0;
@@ -153,7 +153,7 @@ namespace Rhea
 		float fps = 0.0f;
 
 	private:
-		std::vector<std::unique_ptr<IFabric>> m_modules;
+		std::vector<std::unique_ptr<IFabric>> m_fabrics;
 	};
 }
 #endif // !RHEA_H

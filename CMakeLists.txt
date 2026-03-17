@@ -77,10 +77,10 @@ endif()
 # Targets
 
 # Make the functions available to subdirectories
-include(Rhea/cmake/rhea_modules.cmake)
+include(Rhea/cmake/rhea_fabrics.cmake)
 
-# Create RheaModules target (empty for now)
-rhea_modules_begin()
+# Create RheaFabrics target (empty for now)
+rhea_fabrics_begin()
 
 
 if(RHEA_BUILD_ENGINE)
@@ -97,8 +97,8 @@ if(RHEA_BUILD_EXTRAS)
     add_subdirectory(Lobby)
 endif()
 
-# Finalize: generate registry + link enabled module targets into RheaModules
-rhea_modules_end()
+# Finalize: generate registry + link enabled fabric targets into RheaFabrics
+rhea_fabrics_end()
 
 if(RHEA_BUILD_APPS)    
     foreach (TARGET ${targetdirs})

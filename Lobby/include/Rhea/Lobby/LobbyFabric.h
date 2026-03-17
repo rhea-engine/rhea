@@ -2,7 +2,7 @@
 #define MEWORLA_LOBBYFABRIC_H
 
 #include <Rhea/Application.h>
-#include <Rhea/ModuleSystem.h>
+#include <Rhea/FabricSystem.h>
 
 namespace Meworla
 {

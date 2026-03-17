@@ -1,7 +1,7 @@
 #ifndef RHEACLIENT_POSEIDONGRAPHICSFABRIC_H
 #define RHEACLIENT_POSEIDONGRAPHICSFABRIC_H
 
-#include <Rhea/ModuleSystem.h>
+#include <Rhea/FabricSystem.h>
 
 namespace Rhea
 {

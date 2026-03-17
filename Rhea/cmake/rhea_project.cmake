@@ -3,7 +3,7 @@
 #
 # Typical usage in a consumer project:
 #   include(<path>/Rhea/cmake/rhea_project.cmake)
-#   include(mwpkg.cmake)   # adds module subdirectories; modules call rhea_register_fabric_module()
+#   include(mwpkg.cmake)   # adds module subdirectories; modules call rhea_register_fabric()
 #   rhea_project_end()
 #
 # For non-mwpkg setups:
@@ -15,7 +15,7 @@
 include_guard(GLOBAL)
 
 # Load the module system
-include("${CMAKE_CURRENT_LIST_DIR}/rhea_modules.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/rhea_fabrics.cmake")
 
 # load the asset helper system (optional, but common)
 include("${CMAKE_CURRENT_LIST_DIR}/rhea_assets.cmake")
@@ -33,7 +33,7 @@ if(NOT DEFINED RHEA_ENABLED_PROFILE_JSON)
 endif()
 
 # Start collecting registrations
-rhea_modules_begin()
+rhea_fabrics_begin()
 
 # Provide an explicit "end" hook so the project controls ordering.
 function(rhea_project_end)
@@ -42,11 +42,11 @@ function(rhea_project_end)
   get_property(_all_jsons GLOBAL PROPERTY RHEA_FABRIC_MODULE_JSONS)
   if(NOT _all_jsons)
     message(WARNING
-      "Rhea: No fabric modules registered.\n"
-      "Did you forget to add module subdirectories (e.g. include(mwpkg.cmake) or add_subdirectory(...))?\n"
+      "Rhea: No fabrics registered.\n"
+      "Did you forget to add fabric subdirectories (e.g. include(mwpkg.cmake) or add_subdirectory(...))?\n"
       "An empty registry will be generated."
     )
   endif()
 
-  rhea_modules_end()
+  rhea_fabrics_end()
 endfunction()

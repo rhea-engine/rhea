@@ -1,5 +1,5 @@
-#ifndef RHEA_MODULESYSTEM_H
-#define RHEA_MODULESYSTEM_H
+#ifndef RHEA_FABRICSYSTEM_H
+#define RHEA_FABRICSYSTEM_H
 
 namespace Rhea
 {
@@ -13,4 +13,4 @@ namespace Rhea
     };
 }
 
-#endif // !RHEA_MODULESYSTEM_H
+#endif // !RHEA_FABRICSYSTEM_H

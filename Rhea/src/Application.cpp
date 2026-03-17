@@ -52,7 +52,7 @@
 
 #undef min
 
-extern std::vector<std::unique_ptr<Rhea::IFabric>> createModules();
+extern std::vector<std::unique_ptr<Rhea::IFabric>> createFabrics();
 
 namespace Rhea
 {
@@ -145,11 +145,11 @@ namespace Rhea
 		// register mime type for shader
 		Orion::MIME::RegisterExtenstion("text/plain", "hlsl");
 
-		// register optional modules
-		for (auto& mod : createModules()) {
-			RegisterModule(std::move(mod));
+		// register optional fabrics
+		for (auto& mod : createFabrics()) {
+			RegisterFabric(std::move(mod));
 		}
-		InitModules();
+		InitFabrics();
 
 		// add a default input map
 		m_input_map = new InputMap();
@@ -464,16 +464,16 @@ namespace Rhea
 
 	}
 
-	void Application::RegisterModule(std::unique_ptr<IFabric> module) {
-		LOG(LOG_INFO) << "[Application] Registered module: " << module->getName();
-		m_modules.push_back(std::move(module));
+	void Application::RegisterFabric(std::unique_ptr<IFabric> fabric) {
+		LOG(LOG_INFO) << "[Application] Registered fabric: " << fabric->getName();
+		m_fabrics.push_back(std::move(fabric));
 	}
 
-	void Application::InitModules() {
-		LOG(LOG_INFO) << "[Application] Initializing modules...";
-		for (auto& module : m_modules) {
-			LOG(LOG_INFO) << " - Initializing: " << module->getName();
-			module->Register(this);
+	void Application::InitFabrics() {
+		LOG(LOG_INFO) << "[Application] Initializing fabrics...";
+		for (auto& fabric : m_fabrics) {
+			LOG(LOG_INFO) << " - Initializing: " << fabric->getName();
+			fabric->Register(this);
 		}
 	}
 }

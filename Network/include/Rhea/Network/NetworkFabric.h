@@ -1,7 +1,7 @@
 #ifndef RHEA_NETWORK_FABRICS_H
 #define RHEA_NETWORK_FABRICS_H
 
-#include <Rhea/ModuleSystem.h>
+#include <Rhea/FabricSystem.h>
 
 namespace Rhea
 {

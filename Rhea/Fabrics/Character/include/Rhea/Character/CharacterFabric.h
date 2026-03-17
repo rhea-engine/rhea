@@ -2,7 +2,7 @@
 #define RHEA_CHARACTERFABRIC_H
 
 #include <Rhea/Application.h>
-#include <Rhea/ModuleSystem.h>
+#include <Rhea/FabricSystem.h>
 
 namespace Rhea
 {

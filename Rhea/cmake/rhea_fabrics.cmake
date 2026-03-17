@@ -1,24 +1,24 @@
-# Rhea/cmake/rhea_modules.cmake
+# Rhea/cmake/rhea_fabrics.cmake
 # Deterministic module registry generation
-# Enabled modules are exactly those that call rhea_register_fabric_module().
+# Enabled modules are exactly those that call rhea_register_fabric().
 
 include_guard(GLOBAL)
 
 get_filename_component(RHEA_ROOT_DIR "${CMAKE_CURRENT_LIST_FILE}" DIRECTORY)
 get_filename_component(RHEA_ROOT_DIR "${RHEA_ROOT_DIR}" DIRECTORY)
-set(RHEA_GENERATOR_PY "${RHEA_ROOT_DIR}/scripts/generate_module_registry.py")
+set(RHEA_GENERATOR_PY "${RHEA_ROOT_DIR}/scripts/generate_fabrics_registry.py")
 if(NOT EXISTS "${RHEA_GENERATOR_PY}")
   message(FATAL_ERROR "Rhea generator not found at: ${RHEA_GENERATOR_PY}")
 endif()
 
 # Where to write the generated file
-set(RHEA_GENERATED_CPP "${CMAKE_BINARY_DIR}/GeneratedModules.cpp" CACHE FILEPATH "")
+set(RHEA_GENERATED_CPP "${CMAKE_BINARY_DIR}/GeneratedFabrics.cpp" CACHE FILEPATH "")
 
-# Accumulated module.json or fabric.json paths (enabled modules only)
+# Accumulated module.json or fabric.json paths (enabled fabrics only)
 set(RHEA_FABRIC_MODULE_JSONS "")
 
 # Register a fabric module (call from module CMakeLists.txt)
-function(rhea_register_fabric_module module_json_path)
+function(rhea_register_fabric module_json_path)
   if(NOT IS_ABSOLUTE "${module_json_path}")
     # allow relative paths from caller
     set(module_json_path "${CMAKE_CURRENT_LIST_DIR}/${module_json_path}")
@@ -26,7 +26,7 @@ function(rhea_register_fabric_module module_json_path)
 
   get_filename_component(_abs "${module_json_path}" ABSOLUTE)
   if(NOT EXISTS "${_abs}")
-    message(FATAL_ERROR "rhea_register_fabric_module: manifest not found: ${_abs}")
+    message(FATAL_ERROR "rhea_register_fabric: manifest not found: ${_abs}")
   endif()
 
   # Keep a global list of registered module.json files. We use a global property to avoid issues with variable scope across subdirectories.
@@ -42,10 +42,10 @@ function(rhea_register_fabric_module module_json_path)
   set_property(GLOBAL PROPERTY RHEA_FABRIC_MODULE_JSONS "${_list}")  
 endfunction()
 
-# Create (or reuse) the RheaModules target and the generation rule.
+# Create (or reuse) the RheaFabrics target and the generation rule.
 # Call this once from Rhea/CMakeLists.txt *before* adding module subdirectories.
-function(rhea_modules_begin)
-  if(TARGET RheaModules)
+function(rhea_fabrics_begin)
+  if(TARGET RheaFabrics)
     return()
   endif()
   
@@ -54,7 +54,7 @@ function(rhea_modules_begin)
 
   # Generation rule: depends on explicit JSON list (populated later),
   # so we create the command in rhea_modules_end() when the list is final.
-  add_library(RheaModules STATIC)
+  add_library(RheaFabrics STATIC)
   
   # reset list for this configure run
   set_property(GLOBAL PROPERTY RHEA_FABRIC_MODULE_JSONS "")
@@ -62,19 +62,19 @@ endfunction()
 
 # Finalize generation + link module targets.
 # Call this once from Rhea/CMakeLists.txt *after* all module subdirectories have been added.
-function(rhea_modules_end)
+function(rhea_fabrics_end)
 
-  if(NOT TARGET RheaModules)
-    message(FATAL_ERROR "rhea_modules_end: call rhea_modules_begin() first.")
+  if(NOT TARGET RheaFabrics)
+    message(FATAL_ERROR "rhea_fabrics_end: call rhea_fabrics_begin() first.")
   endif()
     
   find_package(Python3 REQUIRED COMPONENTS Interpreter)
 
-  # Read the registered json list from GLOBAL property (populated by rhea_register_fabric_module calls in subdirs)
+  # Read the registered json list from GLOBAL property (populated by rhea_register_fabric calls in subdirs)
   get_property(_all_jsons GLOBAL PROPERTY RHEA_FABRIC_MODULE_JSONS)
   if(NOT _all_jsons)
     set(_all_jsons "")
-    message(STATUS "RheaModules: no fabric modules registered; generating empty registry.")
+    message(STATUS "RheaFabrics: no fabrics registered; generating empty registry.")
   endif()
 
  # Build map: fabric_id -> (cmake_target, json_file)
@@ -152,22 +152,22 @@ function(rhea_modules_end)
       --output "${RHEA_GENERATED_CPP}"
       ${_json_args}
     DEPENDS ${_enabled_jsons} "${RHEA_GENERATOR_PY}"
-    COMMENT "Rhea: Generating central module registry (enabled fabrics)"
+    COMMENT "Rhea: Generating central fabrics registry"
     VERBATIM
   )
 
-  # Include paths for enabled modules only
+  # Include paths for enabled fabris only
   foreach(json_file IN LISTS _enabled_jsons)
     get_filename_component(module_dir "${json_file}" DIRECTORY)
     set(include_path "${module_dir}/include")
     if(EXISTS "${include_path}")
-      target_include_directories(RheaModules PUBLIC "${include_path}")
+      target_include_directories(RheaFabrics PUBLIC "${include_path}")
     endif()
   endforeach()
 
-  target_sources(RheaModules PRIVATE "${RHEA_GENERATED_CPP}")
-  add_custom_target(RheaModules_Gen DEPENDS "${RHEA_GENERATED_CPP}")
-  add_dependencies(RheaModules RheaModules_Gen)
+  target_sources(RheaFabrics PRIVATE "${RHEA_GENERATED_CPP}")
+  add_custom_target(RheaFabrics_Gen DEPENDS "${RHEA_GENERATED_CPP}")
+  add_dependencies(RheaFabrics RheaFabrics_Gen)
 
   # Link enabled module targets only
   foreach(t IN LISTS _enabled_targets)
@@ -176,7 +176,7 @@ function(rhea_modules_end)
         "Enabled fabric target '${t}' not found. Did you add_subdirectory the module?"
       )
     endif()
-    target_link_libraries(RheaModules PRIVATE ${t})
+    target_link_libraries(RheaFabrics PRIVATE ${t})
   endforeach()
 endfunction()
 

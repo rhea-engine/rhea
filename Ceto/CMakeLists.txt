@@ -9,7 +9,7 @@ add_executable (Ceto "Ceto.h" "Ceto.cpp" "UserPrefs.h" "UserPrefs.cpp")
 #include(../rhea.cmake)
 
 # add the renderer engine
-target_link_libraries(Ceto Rhea::Core RheaModules Rhea::Client  nlohmann_json::nlohmann_json)
+target_link_libraries(Ceto Rhea::Core RheaFabrics Rhea::Client  nlohmann_json::nlohmann_json)
 #RheaPhysicsDebug
 
 add_custom_command(TARGET Ceto POST_BUILD

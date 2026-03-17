@@ -12,4 +12,4 @@ target_include_directories(RheaMedia PUBLIC
 target_link_libraries(RheaMedia PUBLIC Rhea::Core Meworla::StbImage)
 
 # register for auto registry generation
-rhea_register_fabric_module("${CMAKE_CURRENT_SOURCE_DIR}/fabric.json")
+rhea_register_fabric("${CMAKE_CURRENT_SOURCE_DIR}/fabric.json")

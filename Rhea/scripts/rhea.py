@@ -283,7 +283,7 @@ def patch_cmakelists_for_fabric(root: Path, vendor: str, project: str, force: bo
     original_text = text
 
     alias_line = f"add_library({vendor}::{project} ALIAS {project})"
-    registration_line = 'rhea_register_fabric_module("${CMAKE_CURRENT_SOURCE_DIR}/fabric.json")'
+    registration_line = 'rhea_register_fabric("${CMAKE_CURRENT_SOURCE_DIR}/fabric.json")'
     fabric_source = f"src/{project}Fabric.cpp"
 
     changed = False

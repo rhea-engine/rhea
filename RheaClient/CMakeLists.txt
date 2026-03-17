@@ -31,5 +31,5 @@ target_link_libraries(RheaClientRuntime INTERFACE
   Rhea::Client
 )
 
-# Register this fabric for GeneratedModules.cpp generation
-rhea_register_fabric_module("${CMAKE_CURRENT_SOURCE_DIR}/Fabrics/PoseidonGraphics/fabric.json")
+# Register this fabric for GeneratedFabrics.cpp generation
+rhea_register_fabric("${CMAKE_CURRENT_SOURCE_DIR}/Fabrics/PoseidonGraphics/fabric.json")

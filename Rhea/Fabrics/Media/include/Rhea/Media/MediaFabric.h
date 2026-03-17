@@ -2,7 +2,7 @@
 #define RHEA_MEDIA_FABRIC_H
 
 #include <Rhea/Application.h>
-#include <Rhea/ModuleSystem.h>
+#include <Rhea/FabricSystem.h>
 
 namespace Rhea
 {

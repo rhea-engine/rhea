@@ -14,7 +14,7 @@ set(_rhea_repo_root "${RHEA_DIR}")
 get_filename_component(_rhea_repo_root "${_rhea_repo_root}" ABSOLUTE)
 
 set(RHEA_GENERATOR_PY "${RHEA_DIR}/scripts/generate_module_registry.py")
-set(RHEA_GENERATED_CPP "${CMAKE_BINARY_DIR}/GeneratedModules.cpp")
+set(RHEA_GENERATED_CPP "${CMAKE_BINARY_DIR}/GeneratedFabrics.cpp")
 
 # Ensure Python is found
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
@@ -35,7 +35,7 @@ foreach(root ${RHEA_MODULE_ROOTS})
 endforeach()
 list(REMOVE_DUPLICATES RHEA_MODULE_JSONS)
 
-set(RHEA_GENERATED_CPP "${CMAKE_BINARY_DIR}/GeneratedModules.cpp")
+set(RHEA_GENERATED_CPP "${CMAKE_BINARY_DIR}/GeneratedFabrics.cpp")
 
 # Build generator args: --module-root <root> for each existing root
 set(_gen_root_args "")
@@ -54,15 +54,15 @@ add_custom_command(
         ${_gen_root_args}
     DEPENDS ${RHEA_MODULE_JSONS} ${RHEA_GENERATOR_PY}
     WORKING_DIRECTORY ${RHEA_PROJECT_SOURCE_DIR}
-    COMMENT "Rhea: Generating central module registry"
+    COMMENT "Rhea: Generating central fabrics registry"
 )
 
-add_library(RheaModules STATIC)
-target_sources(RheaModules PRIVATE ${RHEA_GENERATED_CPP})
-add_custom_target(RheaModules_Gen DEPENDS ${RHEA_GENERATED_CPP})
-add_dependencies(RheaModules RheaModules_Gen)
+add_library(RheaFabrics STATIC)
+target_sources(RheaFabrics PRIVATE ${RHEA_GENERATED_CPP})
+add_custom_target(RheaFabrics_Gen DEPENDS ${RHEA_GENERATED_CPP})
+add_dependencies(RheaFabrics RheaFabrics_Gen)
 
-target_include_directories(RheaModules PUBLIC ${RHEA_PROJECT_SOURCE_DIR})
+target_include_directories(RheaFabrics PUBLIC ${RHEA_PROJECT_SOURCE_DIR})
 foreach(json_file ${RHEA_MODULE_JSONS})
     # Get the directory containing the module.json (i.e., the module root)
     get_filename_component(module_dir "${json_file}" DIRECTORY)
@@ -72,7 +72,7 @@ foreach(json_file ${RHEA_MODULE_JSONS})
 
     # If the include path exists, add it
     if(EXISTS "${include_path}")
-        target_include_directories(RheaModules PUBLIC "${include_path}")
+        target_include_directories(RheaFabrics PUBLIC "${include_path}")
     endif()
 
     file(READ "${json_file}" _json_text)
@@ -80,7 +80,7 @@ foreach(json_file ${RHEA_MODULE_JSONS})
     set(_tgt "${CMAKE_MATCH_1}")
 
     if(_tgt AND TARGET ${_tgt})
-        target_link_libraries(RheaModules PRIVATE ${_tgt})
+        target_link_libraries(RheaFabrics PRIVATE ${_tgt})
     endif()
 
 endforeach()

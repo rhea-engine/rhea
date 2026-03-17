@@ -19,9 +19,3 @@ target_include_directories(Orion PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
 )
-
-get_target_property(_json_inc nlohmann_json::nlohmann_json INTERFACE_INCLUDE_DIRECTORIES)
-message(STATUS "json include dirs: ${_json_inc}")
-
-get_target_property(_orion_inc Orion INCLUDE_DIRECTORIES)
-message(STATUS "Orion include dirs: ${_orion_inc}")

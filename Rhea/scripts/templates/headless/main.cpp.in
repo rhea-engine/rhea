@@ -1,6 +1,7 @@
 #include <MySelf/{{PROJECT_NAME}}/{{PROJECT_NAME}}.h>
 #include <Rhea/Physics/PhysicsManagerService.h>
 #include <Rhea/Physics/PhysicsService.h>
+#include <Rhea/Core/Item.h>
 #include <Psio/Log.h>
 
 // Implementation

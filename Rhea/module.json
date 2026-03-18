@@ -5,17 +5,5 @@
   "dependencies": {
     "Meworla/Components": "0.9.0",
     "Meworla/Orion": "0.9.0"
-  },
-  "dependencies0": {
-    "Meworla/Animation": "0.9.0",
-    "Meworla/2D": "0.9.0",
-    "Meworla/3D": "0.9.0",
-    "Meworla/Character": "0.9.0",
-    "Meworla/Gltf": "0.9.0",
-    "Meworla/GUI": "0.9.0",
-    "Meworla/Media": "0.9.0",
-    "Meworla/Network": "0.9.0",
-    "Meworla/Terrain": "0.9.0",
-    "Meworla/Text": "0.9.0"
   }
 }

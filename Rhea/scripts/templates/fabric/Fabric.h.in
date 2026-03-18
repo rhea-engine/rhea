@@ -2,7 +2,7 @@
 #define {{PROJECT_NAME_UPPER}}FABRIC_H
 
 #include <Rhea/Application.h>
-#include <Rhea/ModuleSystem.h>
+#include <Rhea/FabricSystem.h>
 
 namespace {{VENDOR}}
 {
@@ -11,7 +11,7 @@ namespace {{VENDOR}}
 	class {{PROJECT_NAME}}Fabric : public Rhea::IFabric
 	{
 	public:
-		void Register(Application* app) override;
+		void Register(Rhea::Application* app) override;
 
 		const char* getName() const override { return "{{PROJECT_NAME}}"; }
 	};

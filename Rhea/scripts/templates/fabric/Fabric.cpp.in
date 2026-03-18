@@ -1,6 +1,6 @@
-#include <Rhea/{{PROJECT_NAME}}/{{PROJECT_NAME}}Fabric.h>
+#include <{{VENDOR}}/{{PROJECT_NAME}}/{{PROJECT_NAME}}Fabric.h>
 
-void Rhea::{{PROJECT_NAME}}Fabric::Register(Application* app)
+void {{VENDOR}}::{{PROJECT_NAME}}Fabric::Register(Rhea::Application* app)
 {
 	//  Register modules here, for example:
 	//  SimpleParser::Type::registerType<{{PROJECT_NAME}}>("//{{VENDOR_LOWER}}/{{PROJECT_NAME_LOWER}}");

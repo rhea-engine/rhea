@@ -26,9 +26,12 @@ bool ExtractTrianglesFromScene(Rhea::Application* app, Rhea::Item* item, Triangl
         meshRef = vis->meshRef();  // rename to your getter
         basepathRef = vis->basepathRef();
     }
+    else {
+        // no mesh component
+    }
     
     if (meshRef.empty()) {
-        LOG(LOG_ERROR) << "ExtractTrianglesFromScene: item has no mesh ref (VisualComponent.meshRef is empty)";
+        LOG(LOG_ERROR) << "ExtractTrianglesFromScene: item has no mesh ref (MeshComponent.meshRef is empty)";
         return false;
     }
 

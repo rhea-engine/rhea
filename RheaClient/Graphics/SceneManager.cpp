@@ -6,11 +6,11 @@
 
 #include "SceneManager.h"
 #include "ItemManager.h"
-#include "CameraManager.h"
+#include <Rhea/Graphics/CameraManager.h>
 #include <Rhea/Unit.h>
 #include <Rhea/Core/Item.h>
 #include <Rhea/Core/Item2D.h>
-#include "GraphicsService.h"
+#include <Rhea/Graphics/GraphicsService.h>
 #include <Psio/Log.h>
 #include <Rhea/Core/Lighting.h>
 

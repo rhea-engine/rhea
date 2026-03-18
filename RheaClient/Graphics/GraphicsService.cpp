@@ -1,4 +1,4 @@
-#include "GraphicsService.h"
+#include <Rhea/Graphics/GraphicsService.h>
 #include <functional>
 
 #include <Rhea/Platform/PlatformService.h>
@@ -14,12 +14,12 @@
 #include "Poseidon/Camera.h"
 
 #include <Rhea/Element.h>
-#include "Texture.h"
+#include <Rhea/Graphics/Texture.h>
 #include "ItemManager.h"
 #include "SceneManager.h"
 
-#include "MaterialManager.h"
-#include "CameraManager.h"
+#include <Rhea/Graphics/MaterialManager.h>
+#include <Rhea/Graphics/CameraManager.h>
 #include "MeshManager.h"
 
 #include <Rhea/Physics/PhysicsService.h>

@@ -1,7 +1,7 @@
 #ifndef RHEA_PHYSICS_COLLIDERCOMPONENT_H
 #define RHEA_PHYSICS_COLLIDERCOMPONENT_H
 
-#include "../Component.h"
+#include <Rhea/Component.h>
 #include <Components/Math/Vector3.h>
 
 namespace Rhea {

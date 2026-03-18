@@ -13,12 +13,12 @@
 #include <Rhea/UnitTree.h>
 
 #include "ItemManager.h"
-#include "Texture.h"
-#include "GraphicsService.h"
+#include <Rhea/Graphics/Texture.h>
+#include <Rhea/Graphics/GraphicsService.h>
 
 #include <Psio/Log.h>
 #include <Rhea/Core/Light.h>
-#include "MaterialManager.h"
+#include <Rhea/Graphics/MaterialManager.h>
 #include <Rhea/Components/RenderComponent.h>
 #include "MeshManager.h"
 #include <Rhea/Components/MeshComponent.h>

@@ -8,9 +8,9 @@
 #include <Rhea/Unit.h>
 #include <Rhea/Core/Material.h>
 
-#include "GraphicsManager.h"
-#include "MaterialManager.h"
-#include "GraphicsService.h"
+#include <Rhea/Graphics/GraphicsManager.h>
+#include <Rhea/Graphics/MaterialManager.h>
+#include <Rhea/Graphics/GraphicsService.h>
 #include <Psio/Log.h>
 #include <Rhea/GUI/Widget.h>
 

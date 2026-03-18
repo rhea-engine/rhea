@@ -1,4 +1,4 @@
-#include "BtPhysicsService.h"
+#include <RheaPhysicsBullet/RheaPhysicsBulletService.h>
 #include <Rhea/Core/Item.h>
 #include <Rhea/Core/Scene.h>
 #include "BtBody.h"

@@ -6,7 +6,7 @@
 #include <Rhea/Component.h>
 #include <Rhea/Core/Scene.h>
 
-#include "GraphicsManager.h"
+#include <Rhea/Graphics/GraphicsManager.h>
 
 namespace Rhea
 {

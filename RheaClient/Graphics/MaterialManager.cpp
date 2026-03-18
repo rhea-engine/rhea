@@ -7,11 +7,11 @@
 #include <Rhea/Event.h>
 
 #include <Rhea/Core/Material.h>
-#include "MaterialManager.h"
-#include "./Texture.h"
+#include <Rhea/Graphics/MaterialManager.h>
+#include <Rhea/Graphics/Texture.h>
 #include <Psio/Log.h>
 #include <Rhea/Core/Shader.h>
-#include "GraphicsService.h"
+#include <Rhea/Graphics/GraphicsService.h>
 
 namespace Rhea
 {

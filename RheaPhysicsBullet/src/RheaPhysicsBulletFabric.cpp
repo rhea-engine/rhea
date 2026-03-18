@@ -1,6 +1,6 @@
 #include <RheaPhysicsBullet/RheaPhysicsBulletFabric.h>
 #include <Rhea/Physics/PhysicsManagerService.h>
-#include "BtPhysicsService.h"
+#include <RheaPhysicsBullet/RheaPhysicsBulletService.h>
 
 void Rhea::RheaPhysicsBulletFabric::Register(Application* app)
 {

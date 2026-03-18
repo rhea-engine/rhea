@@ -5,9 +5,9 @@
 #include <Poseidon/SceneManager.h>
 #include <Psio/Log.h>
 #include <Rhea/Core/Material.h>
-#include "GraphicsService.h"
+#include <Rhea/Graphics/GraphicsService.h>
 #include <Rhea/Resources/VertexBuffer.h>
-#include "MaterialManager.h"
+#include <Rhea/Graphics/MaterialManager.h>
 
 namespace Rhea
 {

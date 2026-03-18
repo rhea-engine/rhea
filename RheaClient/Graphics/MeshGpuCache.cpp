@@ -1,4 +1,4 @@
-#include "MeshGpuCache.h"
+#include <Rhea/Graphics/MeshGpuCache.h>
 #include <Poseidon/SceneManager.h>
 
 Poseidon::Mesh* Rhea::MeshGpuCache::getOrCreate(Poseidon::Core* core, Mesh* meshUnit, bool dynamic_usage, const Builder& builder)

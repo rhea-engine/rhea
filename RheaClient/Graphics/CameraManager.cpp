@@ -4,7 +4,7 @@
 #include <Poseidon/SceneManager.h>
 #include <Poseidon/RenderContext.h>
 
-#include "CameraManager.h"
+#include <Rhea/Graphics/CameraManager.h>
 #include <Rhea/Unit.h>
 #include <Rhea/Core/Camera.h>
 #include <Psio/Log.h>

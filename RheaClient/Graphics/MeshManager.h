@@ -1,7 +1,7 @@
 #ifndef RHEA_GPAPHICS_MESHMANAGER_H
 #define RHEA_GPAPHICS_MESHMANAGER_H
 
-#include "GraphicsManager.h"
+#include <Rhea/Graphics/GraphicsManager.h>
 
 #include <Poseidon/Core.h>
 #include <Poseidon/Mesh.h>

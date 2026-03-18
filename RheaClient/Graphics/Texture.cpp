@@ -1,4 +1,4 @@
-#include "Texture.h"
+#include <Rhea/Graphics/Texture.h>
 #include <Rhea/Unit.h>
 #include <Rhea/Resources/Resource.h>
 #include <Psio/Log.h>

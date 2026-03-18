@@ -1,4 +1,4 @@
-#include "TextureGpuCache.h"
+#include <Rhea/Graphics/TextureGpuCache.h>
 #include <Psio/Log.h>
 
 namespace Rhea

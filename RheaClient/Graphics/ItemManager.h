@@ -6,7 +6,7 @@
 #include <Poseidon/RenderContext.h>
 
 #include <Rhea/Element.h>
-#include "GraphicsManager.h"
+#include <Rhea/Graphics/GraphicsManager.h>
 
 namespace Rhea
 {

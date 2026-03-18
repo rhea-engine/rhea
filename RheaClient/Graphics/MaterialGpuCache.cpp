@@ -1,4 +1,4 @@
-#include "MaterialGpuCache.h"
+#include <Rhea/Graphics/MaterialGpuCache.h>
 #include <Rhea/Resources/ImageResource.h>
 
 namespace Rhea

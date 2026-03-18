@@ -3,9 +3,6 @@
 
 #include "AuthBackend.h"
 
-#include <nlohmann/json.hpp>
-using json = nlohmann::json;
-
 class AuthBackendFile : public AuthBackend
 {
 public:

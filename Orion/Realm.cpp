@@ -1,54 +1,40 @@
-#include "Realm.h"
+#include <Orion/Realm.h>
 #include <time.h>
+
+#include <nlohmann/json.hpp>
 
 namespace Orion
 {
-	Realm::Realm(string name)
+	Realm::Realm(std::string name)
+		: m_name(std::move(name))
+		, m_ttl(std::time(nullptr))
 	{
-		m_name = name;
-		m_resource_url = "";
-		m_ttl = 0;
 	}
 
-	Realm::Realm(string name, string resource_url, time_t ttl)
+	Realm::Realm(std::string name, std::string resource_url, std::time_t ttl)
+		: m_name(std::move(name))
+		, m_resource_url(std::move(resource_url))
+		, m_ttl(std::time(NULL) + ttl)
 	{
-		m_name = name;
-		m_resource_url = resource_url;
-		m_ttl = time(NULL) + ttl;
 	}
 
-	Realm::Realm(Realm& r)
+	void Realm::setResourceUrl(std::string url)
 	{
-		m_name = r.m_name;
-		m_resource_url = r.m_resource_url;
-		m_content_type = r.m_content_type;
-		m_ttl = r.m_ttl;
+		m_resource_url = std::move(url);
 	}
 
-	void Realm::setResourceUrl(string resource_url)
+	void Realm::setContentType(std::string contentType)
 	{
-		m_resource_url = resource_url;
+		m_content_type = std::move(contentType);
 	}
 
-	void Realm::setTTL(time_t ttl)
+	void Realm::setTTL(std::time_t ttl)
 	{
-		m_ttl = time(NULL) + ttl;
+		m_ttl = ttl;
 	}
 
-	bool Realm::isExpired()
+	bool Realm::isExpired() const
 	{		
-		return (time(NULL) - m_ttl) < 0;
+		return (std::time(NULL) - m_ttl) < 0;
 	}
-
-	void to_json(json& j, const Realm& e) {
-		j = json{ {"name", e.m_name}, {"type", e.m_content_type}, {"href", e.m_resource_url}, {"ttl", e.m_ttl}};
-	}
-
-	void from_json(const json& j, Realm& e) {
-		j.at("name").get_to(e.m_name);
-		j.at("type").get_to(e.m_content_type);
-		j.at("href").get_to(e.m_resource_url);
-		j.at("ttl").get_to(e.m_ttl);
-		e.m_ttl += time(NULL);
-	}	
 }

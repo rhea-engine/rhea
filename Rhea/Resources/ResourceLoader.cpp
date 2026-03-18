@@ -1,4 +1,4 @@
-#include "ResourceLoader.h"
+#include <Rhea/Resources/ResourceLoader.h>
 
 namespace Rhea
 {

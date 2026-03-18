@@ -2,7 +2,7 @@
 #define FORTYTWO_H
 
 #include <Rhea/Application.h>
-#include <Rhea/Fabrics/Network/ServerService.h>
+#include <Rhea/Network/ServerService.h>
 
 class FortyTwo : public Rhea::Application
 {

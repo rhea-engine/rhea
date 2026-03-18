@@ -1,31 +1,31 @@
 #include "Ceto.h"
-#include "Rhea/Fabrics/Core/Scene.h"
+#include "Rhea/Core/Scene.h"
 #include "Rhea/Unit.h"
 #include "Rhea/UnitTree.h"
 #include "Rhea/Controller/BasicController.h"
 #include "Rhea/Controller/SpectatorController.h"
-#include "Rhea/Graphics/GraphicsService.h"
-#include "Rhea/Graphics/CameraManager.h"
-#include "Rhea/Fabrics/3D/Camera.h"
-#include "Rhea/Physics/PhysicsManager.h"
-#include "Rhea/Graphics/GraphicsService.h"
-#include "Rhea/Graphics/GraphicsManager.h"
+#include <Rhea/Graphics/GraphicsService.h>
+#include <Rhea/Graphics/GraphicsManager.h>
+#include <Rhea/Graphics/CameraManager.h>
+#include "Rhea/Core/Camera.h"
+#include "Rhea/Physics/PhysicsManagerService.h"
+#include "Rhea/Physics/PhysicsService.h"
 
 #include "Poseidon/Material.h"
 #include "Poseidon/Shader.h"
-#include "Rhea/Fabrics/Core/Material.h"
-#include <Rhea/Fabrics/Network/ClientService.h>
+#include "Rhea/Core/Material.h"
 #include <Psio/Log.h>
 #include <Psio/Keyboard.h>
 #include <Rhea/EventInput.h>
-#include <Rhea/Fabrics/GUI/List.h>
+#include <Rhea/GUI/List.h>
 #include <Orion/FileStream.h>
-#include <Rhea/Fabrics/Core/Avatar.h>
+#include <Rhea/Core/Avatar.h>
 #include <Rhea/Resources/Collection.h>
 #include <Components/Math/Math.h>
-#include <Rhea/Fabrics/Animation/Animation.h>
-#include <Rhea/Fabrics/Animation/Animator.h>
-#include <Rhea/Fabrics/GUI/GUIController.h>
+#include <Rhea/Animation/Animation.h>
+#include <Rhea/Animation/Animator.h>
+#include <Rhea/GUI/GUIController.h>
+#include <Rhea/Core/Mesh.h>
 
 bool Ceto::onQuit(Rhea::Event* ev, Rhea::Unit* unit)
 {
@@ -116,7 +116,7 @@ bool Ceto::onRealmSelect(Rhea::Event* ev, Rhea::Unit* unit)
 {
 	ev->stopPropagation();
 
-	Unit* target = ev->getTarget();
+	Rhea::Unit* target = ev->getTarget();
 	DLOG(LOG_DEBUG) << "target selected was '" << (std::string)target->getValue("value") << "'";
 
 	openScene((std::string)target->getValue("value"));
@@ -173,7 +173,7 @@ void Ceto::setup()
 	std::unordered_map<std::string, Variant> values;
 
 	// create a representation for the engine
-	Unit* engine = m_unit_tree->createUnit("engine", "//core/types/unit", attributes, values);
+	Rhea::Unit* engine = m_unit_tree->createUnit("engine", "//core/types/unit", attributes, values);
 	m_unit_tree->addChild(engine);
 
 	// create a user unit
@@ -186,7 +186,7 @@ void Ceto::setup()
 		}
 		values["lastused"] = lastused_arr;
 	}
-	Unit* user = m_unit_tree->createUnit("user", "//core/types/unit", attributes, values);
+	Rhea::Unit* user = m_unit_tree->createUnit("user", "//core/types/unit", attributes, values);
 	engine->addChild(user);
 
 	// a color material
@@ -294,19 +294,35 @@ void Ceto::setScene(bool mark_preferrences)
 void Ceto::showScene(Rhea::Scene* scene)
 {
 	// initialize physics
-	Rhea::PhysicsService* physics = static_cast<Rhea::PhysicsService*>(m_services["physics"]);
-	if (!physics) {
-		Variant phy = scene->getValue("physics");
-		if (phy == std::string("none")) {
-			physics = static_cast<Rhea::PhysicsManagerService*>(m_services["physics_mgr"])->createPhysicsService(Rhea::PhysicsManagerService::Types::NONE);
+	auto* mgr = static_cast<Rhea::PhysicsManagerService*>(m_services["physics_mgr"]);
+	if (!mgr) {
+		LOG(LOG_ERROR) << "No physics manager service found. Physics will be disabled.";		
+	}
+	else { 
+		std::string backend = "none";
+		std::string phy = scene->getValue("physics", "none");
+		if (phy == std::string("world") || phy == std::string("bullet")) {
+			backend = "world";
 		}
-		else {
-			physics = static_cast<Rhea::PhysicsManagerService*>(m_services["physics_mgr"])->createPhysicsService(Rhea::PhysicsManagerService::Types::WORLD);
+		else if (phy == std::string("none")) {
+			backend = "none";
 		}
-		physics->onInit();
-		m_services["physics"] = physics;
-		// store in local "cache" var
-		m_physics = physics;
+		else if (!phy.empty()) {
+			// allow future backends by id, e.g. "physx"
+			backend = phy;
+		}
+
+		// create service by id (manager handles fallback to "none" if unknown/unavailable)
+		Rhea::PhysicsService* physics = mgr->createPhysicsService(backend);
+		if (!physics) {
+			// last-resort fallback if the manager doesn't already do it
+			physics = mgr->createPhysicsService("none");
+		}
+
+		if (physics) {
+			physics->onInit();			
+			m_physics = physics;
+		}		
 	}
 
 	// search for a camera			
@@ -319,7 +335,7 @@ void Ceto::showScene(Rhea::Scene* scene)
 		Rhea::GraphicsService* gs = static_cast<Rhea::GraphicsService*>(getService("graphics"));
 		Rhea::GraphicsManager* mgr = gs->getManager<Rhea::Camera>();
 		//Rhea::GraphicsCamera::createElement(core, m_view);
-		mgr->createElement(core, m_view);
+		mgr->Ensure(core, m_view);
 		Variant pos = scene->getValue("start");
 		if (pos != Variant()) {
 			Math::Vector3 start_pos(pos[0], pos[1], pos[2]);

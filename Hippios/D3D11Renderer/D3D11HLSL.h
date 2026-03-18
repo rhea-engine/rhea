@@ -2,7 +2,7 @@
 #include <d3d11shader.h>
 #include <d3dcompiler.h>
 
-#include "../GPUProgram.h"
+#include <Hippios/GPUProgram.h>
 
 namespace Hippios
 {

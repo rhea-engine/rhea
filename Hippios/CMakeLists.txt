@@ -1,14 +1,33 @@
-# for now only Direct3dDX11 is supported
+add_library(HippiosHeaders INTERFACE)
+add_library(Meworla::HippiosHeaders ALIAS HippiosHeaders)
 
-add_library(HippiosEngine STATIC)
-target_sources(HippiosEngine PRIVATE "Renderer.h" "Renderer.cpp" "GPUProgram.h" "StencilState.h" "TextureDesc.h" "PipelineState.h" "BlendState.h" "BaseTypes.h" 
-"Sampler.h" "SwapChain.h" "SwapChain.h" "RenderTarget.h")
-include_directories(${PROJECT_SOURCE_DIR}/ ${PROJECT_SOURCE_DIR}/Components)
+target_include_directories(HippiosHeaders INTERFACE
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+)
+
+add_library(Hippios STATIC)
+add_library(Meworla::Hippios ALIAS Hippios)
+
+target_sources(Hippios PRIVATE
+  Renderer.cpp
+)
+
+target_link_libraries(Hippios PUBLIC
+  Meworla::Components
+  Meworla::HippiosHeaders
+)
 
 # search only if right platform
+# for now only Direct3dDX11 is supported
 if(WIN32)
 
-	if( NOT MSVC90 )
+	if(MSVC)
+		# Visual Studio 2015 is 1900, 2017 is 1910-1916, 2019 is 1920-1929, 2022 is 1930+
+		if(MSVC_VERSION LESS 1900)
+		  message(FATAL_ERROR "MSVC too old")
+		endif()
+
 		# Windows 10.x SDK
 		get_filename_component(kit10_dir "[HKEY_LOCAL_MACHINE\\SOFTWARE\\Microsoft\\Windows Kits\\Installed Roots;KitsRoot10]" REALPATH)
 		file(GLOB W10SDK_VERSIONS RELATIVE ${kit10_dir}/Include ${kit10_dir}/Include/10.*) 			# enumerate pre-release and not yet known release versions
@@ -44,7 +63,7 @@ if(WIN32)
 		message(STATUS "Found DirectX11 headers: ${DirectX11_INCLUDE_DIR}")
 	
 		add_subdirectory(D3D11Renderer)
-		target_link_libraries(HippiosEngine D3D11Renderer)
+		target_link_libraries(Hippios PUBLIC D3D11Renderer)
 
 	endif()
 	

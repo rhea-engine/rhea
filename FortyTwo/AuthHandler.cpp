@@ -1,6 +1,6 @@
 #include "AuthHandler.h"
 #include <Rhea/UnitTree.h>
-#include <Rhea/Fabrics/Core/Item.h>
+#include <Rhea/Core/Item.h>
 #include <Rhea/Physics/PhysicsService.h>
 #include <Hermes/Messages/MessageCreate.h>
 #include <Hermes/Messages/MessageMove.h>
@@ -8,9 +8,9 @@
 #include <Hermes/Messages/MessagePosition.h>
 #include <Hermes/Messages/MessageAvatarList.h>
 #include <Hermes/Messages/MessageEnterWorld.h>
-#include <Rhea/Fabrics/Core/Avatar.h>
+#include <Rhea/Core/Avatar.h>
 #include <Psio/Log.h>
-#include <Rhea/Fabrics/Network/ServerService.h>
+#include <Rhea/Network/ServerService.h>
 #include "World.h"
 #include <Hermes/Messages/MessageEnterFailed.h>
 #include <Hermes/Messages/MessageLogin.h>

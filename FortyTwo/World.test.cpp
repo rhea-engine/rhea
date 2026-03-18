@@ -2,7 +2,7 @@
 #include "World.h"
 #include <Rhea/Realm.h>
 #include <Rhea/UnitTree.h>
-#include <Rhea/Fabrics/Core/Avatar.h>
+#include <Rhea/Core/Avatar.h>
 
 class TestApp : public Rhea::Application
 {

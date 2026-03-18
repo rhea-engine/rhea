@@ -1,0 +1,10 @@
+{
+  "name": "Text",
+  "version": "0.9.0",
+  "vendor": "Meworla",
+  "package": "Rhea",
+  "description": "Rhea text",
+  "class": "Rhea::TextFabric",
+  "include": "Rhea/Text/TextFabric.h",
+  "cmake_target": "Rhea::Text"
+}

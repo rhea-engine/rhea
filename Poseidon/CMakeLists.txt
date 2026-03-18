@@ -1,18 +1,22 @@
-﻿# CMakeList.txt: CMake-Projekt für "Poseidon". Schließen Sie die Quelle ein, und definieren Sie
-# projektspezifische Logik hier.
-#
-cmake_minimum_required (VERSION 3.9.2)
+﻿# define the main library
+add_library (Poseidon STATIC "src/Core.cpp" "src/Node.cpp" "src/Mesh.cpp" "src/Viewport.cpp" 
+"src/Texture.cpp" "src/Material.cpp" "src/Camera.cpp" "src/Entity.cpp" "src/RenderQueue.cpp" "src/SceneManager.cpp"
+ "src/SceneManager.cpp" "src/Window.cpp" "src/Shader.cpp" "src/RenderContext.cpp" "src/Poseidon.cpp" "src/Cubemap.cpp")
+add_library(Meworla::Poseidon ALIAS Poseidon)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ ${CMAKE_SOURCE_DIR}/ ${CMAKE_SOURCE_DIR}/Components ${CMAKE_SOURCE_DIR}/ThirdParty ${CMAKE_SOURCE_DIR}/ThirdParty/bullet/src)
+target_include_directories(Poseidon PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-# define the main library
-add_library (Poseidon "Core.cpp" "Node.cpp" "Mesh.cpp" "Viewport.cpp" 
-"Texture.cpp" "Material.cpp" "Camera.cpp" "Entity.cpp" "RenderQueue.cpp" "SceneManager.cpp"
- "SceneManager.cpp" "Window.cpp" "Shader.h" "Shader.cpp" "RenderContext.h" "RenderContext.cpp" "Poseidon.cpp" "Cubemap.h" "Cubemap.cpp")
+# Link Poseidon’s real dependencies as targets
+target_link_libraries(Poseidon
+  PUBLIC
+    Meworla::Components
+    Meworla::Hippios
+    Rhea::Client
+    Rhea::Animation
+)
+target_compile_options(Poseidon PRIVATE /showIncludes)
 
-# build the components
-#target_link_libraries(Poseidon Psio)
+target_include_directories(Poseidon PRIVATE
+  $<TARGET_PROPERTY:Meworla::HippiosHeaders,INTERFACE_INCLUDE_DIRECTORIES>
+)
 
-
-# add the renderer engine
-target_link_libraries(Poseidon HippiosEngine Hermes)

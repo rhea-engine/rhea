@@ -1,0 +1,9 @@
+{
+  "vendor": "Meworla",
+  "name": "RheaNet",
+  "version": "0.9.0",
+  "dependencies": {
+    "Meworla/Rhea": "0.9.0",
+    "Meworla/Hermes": "0.9.0"
+  }
+}

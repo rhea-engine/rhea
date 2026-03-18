@@ -1,5 +1,5 @@
-#include "Resource.h"
-#include "ResourceList.h"
+#include <Rhea/Resources/Resource.h>
+#include <Rhea/Resources/ResourceList.h>
 #include <Psio/Log.h>
 
 namespace Rhea {

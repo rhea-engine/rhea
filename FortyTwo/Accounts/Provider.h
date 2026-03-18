@@ -3,7 +3,7 @@
 
 #include <Rhea/Application.h>
 #include <FortyTwo/Authorization/AuthInfo.h>
-#include <Rhea/Fabrics/Core/Avatar.h>
+#include <Rhea/Core/Avatar.h>
 
 class User;
 

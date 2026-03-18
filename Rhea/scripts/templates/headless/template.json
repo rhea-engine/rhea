@@ -1,0 +1,40 @@
+{
+  "name": "headless",
+  "required_packages": [
+    "Meworla/Rhea"
+  ],
+  "features": {
+    "physics": {
+      "packages": [
+        "Meworla/RheaPhysicsBullet"
+      ],
+      "enabled_fabrics": [
+        "Meworla/RheaPhysics:Physics",
+        "Meworla/RheaPhysicsBullet:PhysicsBullet"
+      ]
+    }
+  },
+  "default_enabled_fabrics": [],
+  "files": [
+    {
+      "source": "CMakeLists.txt.in",
+      "target": "CMakeLists.txt",
+      "render": true
+    },
+    {
+      "source": "main.cpp.in",
+      "target": "src/{{PROJECT_NAME}}.cpp",
+      "render": true
+    },
+    {
+      "source": "main.h.in",
+      "target": "include/{{VENDOR}}/{{PROJECT_NAME}}/{{PROJECT_NAME}}.h",
+      "render": true
+    },
+    {
+      "source": "enabled.json.in",
+      "target": "enabled.json",
+      "render": true
+    }
+  ]
+}

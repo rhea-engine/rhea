@@ -1,6 +1,6 @@
-#include "ResourceList.h"
-#include "UnitTree.h"
-#include "Application.h"
+#include <Rhea/Resources/ResourceList.h>
+#include <Rhea/UnitTree.h>
+#include <Rhea/Application.h>
 #include <Psio/Log.h>
 
 #include <cassert>

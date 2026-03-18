@@ -1,0 +1,10 @@
+{
+  "name": "Character",
+  "version": "0.9.0",
+  "vendor": "Meworla",
+  "package": "Rhea",
+  "description": "Rhea default Character",
+  "class": "Rhea::CharacterFabric",
+  "include": "Rhea/Character/CharacterFabric.h",
+  "cmake_target": "Rhea::Character"
+}

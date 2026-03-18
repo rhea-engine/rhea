@@ -1,0 +1,9 @@
+{
+  "vendor": "Meworla",
+  "package": "RheaClient",
+  "name": "GraphicsPoseidon",
+  "version": "0.9.0",
+  "class": "Rhea::PoseidonGraphicsFabric",
+  "include": "Rhea/PoseidonGraphicsFabric.h",
+  "cmake_target": "Rhea::Client"
+}

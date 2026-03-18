@@ -2,7 +2,7 @@
 #define HIPPIOS_D3D11_SWAPCHAIN_H
 
 #include <d3d11.h>
-#include "../SwapChain.h"
+#include <Hippios/SwapChain.h>
 
 namespace Hippios
 {

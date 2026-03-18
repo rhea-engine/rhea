@@ -5,9 +5,7 @@
 #include <unordered_map>
 #include <memory>
 
-#include <nlohmann/json.hpp>
-using json = nlohmann::json;
-
+namespace nlohmann { class json; }
 
 class Entry
 {
@@ -22,8 +20,8 @@ public:
 	// set attribute value
 	void setValue(std::string key, std::string value) { m_values[key] = value; }
 protected:
-	friend void to_json(json& j, const Entry& e);
-	friend void from_json(const json& j, Entry& p);
+	friend void to_json(nlohmann::json& j, const Entry& e);
+	friend void from_json(const nlohmann::json& j, Entry& p);
 	std::string m_name;
 	std::string m_content_type;
 	std::unordered_map<std::string, std::string> m_values;

@@ -11,7 +11,7 @@ Build
 *.slo
 *.lo
 *.o
-*.obj
+#*.obj
 bin
 
 # Precompiled Headers
@@ -40,3 +40,8 @@ bin
 /out/install/x64-Debug
 /Samples/XPlain
 /html/doxygen_crawl.html
+
+# Modules
+MwpkgModules
+mwpkg.cmake
+/Ceto/mwpkg.cmake

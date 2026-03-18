@@ -15,7 +15,7 @@ using namespace std;
 #include "D3D11VertexBuffer.h"
 #include "D3D11IndexBuffer.h"
 #include "D3D11GraphicsBuffer.h"
-#include "../Texture.h"
+#include <Hippios/Texture.h>
 #include "D3D11Texture.h"
 #include "D3D11StencilState.h"
 #include "D3D11PipelineState.h"

@@ -1,0 +1,9 @@
+{
+  "vendor": "Meworla",
+  "name": "RheaClient",
+  "version": "0.9.0",
+  "dependencies": {
+    "Meworla/Rhea": "0.9.0",
+    "Meworla/Poseidon": "0.9.0"
+  }
+}

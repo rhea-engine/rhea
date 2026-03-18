@@ -1,0 +1,10 @@
+{
+  "name": "Media",
+  "version": "0.9.0",
+  "vendor": "Meworla",
+  "package": "Rhea",
+  "description": "Rhea Media Loader",
+  "class": "Rhea::MediaFabric",
+  "include": "Rhea/Media/MediaFabric.h",
+  "cmake_target": "Rhea::Media"
+}

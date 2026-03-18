@@ -1,8 +1,8 @@
-#include "Realms.h"
-#include "Orion.h"
-#include "FileStream.h"
-#include "ResourceStream.h"
-#include "RealmRequest.h"
+#include <Orion/Realms.h>
+#include <Orion/Orion.h>
+#include <Orion/FileStream.h>
+#include <Orion/ResourceStream.h>
+#include <Orion/RealmRequest.h>
 
 namespace Orion
 {
@@ -11,7 +11,7 @@ namespace Orion
 		LoadIrisServers();
 	}
 
-	Realm* Realms::getRealmCached(string name)
+	Realm* Realms::getRealmCached(std::string name)
 	{
 		std::vector<Realm*>::iterator it;
 
@@ -23,8 +23,8 @@ namespace Orion
 		}
 
 		// get from realms.conf
-		string path = m_orion->getFs()->getInstallDataDir();
-		path += string("/Meworla/Core/realms.conf");
+		std::string path = m_orion->getFs()->getInstallDataDir();
+		path += std::string("/Meworla/Core/realms.conf");
 		if (Psio::Fs::fileExists(path))
 		{
 			FileResourceStream* res = new FileResourceStream(path);
@@ -37,7 +37,7 @@ namespace Orion
 				m_file_realms.clear();
 
 				while (!res->eof()) {
-					string s = res->getLine();
+					std::string s = res->getLine();
 
 					// remove leading whitespace
 					s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
@@ -50,10 +50,10 @@ namespace Orion
 
 					// parse the line
 					size_t pos = s.find_first_of(" \t");
-					if (pos != string::npos) {
+					if (pos != std::string::npos) {
 						// parse successful, store it to file realms list
-						string realmname = s.substr(0, pos);
-						string url = s.substr(pos + 1, string::npos);
+						std::string realmname = s.substr(0, pos);
+						std::string url = s.substr(pos + 1, std::string::npos);
 						Realm* realm = new Realm(realmname, url, 0);						
 						m_file_realms.push_back(realm);
 					}
@@ -87,7 +87,7 @@ namespace Orion
 		return NULL;
 	}
 
-	int Realms::getRealm(string name, ResolveHandler handler)
+	int Realms::getRealm(std::string name, ResolveHandler handler)
 	{
 		// no check of realms list - we assume that was done before by the client
 		

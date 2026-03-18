@@ -2,7 +2,7 @@
 #define HIPPIOS_D3D11_RENDERTARGET_H
 
 #include "D3D11Renderer.h"
-#include "../RenderTarget.h"
+#include <Hippios/RenderTarget.h>
 
 #include <d3d11.h>
 

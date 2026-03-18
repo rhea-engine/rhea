@@ -1,7 +1,7 @@
 #ifndef HIPPIOS_D3D11_BASETYPES_H
 #define HIPPIOS_D3D11_BASETYPES_H
 
-#include "../BaseTypes.h"
+#include <Hippios/BaseTypes.h>
 #include <unordered_map>
 #include <d3d11.h>
 

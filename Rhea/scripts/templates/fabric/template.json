@@ -1,0 +1,28 @@
+{
+  "name": "fabric",
+  "required_packages": [],
+  "features": {},
+  "default_enabled_fabrics": [],
+  "files": [
+    {
+      "source": "fabric.json.in",
+      "target": "fabric.json",
+      "render": true
+    },
+    {
+      "source": "Fabric.h.in",
+      "target": "include/{{VENDOR}}/{{PROJECT_NAME}}/{{PROJECT_NAME}}Fabric.h",
+      "render": true
+    },
+    {
+      "source": "Fabric.cpp.in",
+      "target": "src/{{PROJECT_NAME}}Fabric.cpp",
+      "render": true
+    },
+    {
+      "source": "CMakeLists.txt.in",
+      "target": "CMakeLists.txt",
+      "render": true
+    }
+  ]
+}

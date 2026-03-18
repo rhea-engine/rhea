@@ -1,0 +1,9 @@
+{
+  "vendor": "Meworla",
+  "name": "Poseidon",
+  "version": "0.9.0",
+  "dependencies": {
+    "Meworla/Components": "0.9.0",
+    "Meworla/Hippios": "0.9.0"
+  }
+}

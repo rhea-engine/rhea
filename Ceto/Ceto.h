@@ -4,8 +4,8 @@
 #include <string>
 
 #include <Poseidon/Poseidon.h>
-#include <Rhea/Fabrics/3D/Camera.h>
-#include <Rhea/Fabrics/GUI/Label.h>
+#include <Rhea/Core/Camera.h>
+#include <Rhea/GUI/Label.h>
 #include "UserPrefs.h"
 
 using std::string;

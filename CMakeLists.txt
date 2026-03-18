@@ -17,13 +17,6 @@ message("MSVC_VERSION: ${MSVC_VERSION}")
 message("MSVC_TOOLSET_VERSION: ${MSVC_TOOLSET_VERSION}")
 include(InstallRequiredSystemLibraries)
 
-# options of fabrics
-option(USE_RHEA_GLTF_LOADER "Use the provided gltf loader" ON)
-set(USE_RHEA_GLTF_LOADER ${USE_RHEA_GLTF_LOADER} CACHE BOOL "Use the provided GLTF loader")
-if (USE_RHEA_GLTF_LOADER)
-    add_definitions(-DUSE_RHEA_GLTF_LOADER)
-endif()
-
 # add some warnings
 enable_testing()
 
@@ -43,31 +36,77 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
                 
 # json library
-FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.11.2/json.tar.xz DOWNLOAD_EXTRACT_TIMESTAMP)
-FetchContent_MakeAvailable(json)
+FetchContent_Declare(nlohmann_json URL https://github.com/nlohmann/json/releases/download/v3.11.2/json.tar.xz DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
+FetchContent_MakeAvailable(nlohmann_json)
 
-# bullet 
-add_subdirectory (ThirdParty/bullet)
+# Target definition
+add_library(RheaEngine INTERFACE)
 
 # Static Library Link to make .exe copyable under Windows
 if(WIN32)
 #  set(CMAKE_EXE_LINKER_FLAGS -static)
 endif()
 
-include_directories(${PROJECT_SOURCE_DIR} ${PROJECT_SOURCE_DIR}/Components/ ${json_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/ThirdParty/ ${PROJECT_SOURCE_DIR}/ThirdParty/bullet/src)
+# Detect if we are the top-level project
+if (CMAKE_SOURCE_DIR STREQUAL PROJECT_SOURCE_DIR)
+#if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+    set(RHEA_IS_TOPLEVEL ON)
+else()
+    set(RHEA_IS_TOPLEVEL OFF)
+endif()
+
+option(RHEA_BUILD_ENGINE   "Build Rhea core" ON)
+# Only add modules and apps if in top-level directory
+option(RHEA_BUILD_EXTRAS  "Build bundled extras" ${RHEA_IS_TOPLEVEL})
+option(RHEA_BUILD_APPS     "Build engine apps (Ceto etc.)" ${RHEA_IS_TOPLEVEL})
+option(RHEA_BUILD_SAMPLES     "Build samples" ${RHEA_IS_TOPLEVEL})
 
 # Cross-Compiling works only for some projects
-set(targetdirs Components FortyTwo)
+set(engine_dirs Components)
+set(engine_targets Meworla::Components)
+set(targetdirs FortyTwo)
 if(WIN32)
-    list(APPEND targetdirs Poseidon Hippios Orion Rhea Ceto Hermes Iris Meworla)    
+    list(APPEND engine_dirs Hermes Hippios Orion Poseidon Rhea RheaClient RheaPhysics RheaPhysicsBullet RheaPhysicsBulletDebug Network)
+    list(APPEND engine_targets Hermes Meworla::Hippios Meworla::Orion Meworla::Poseidon Rhea::Core Rhea::Client Meworla::RheaPhysics Meworla::RheaPhysicsBullet Meworla::RheaPhysicsBulletDebug Rhea::Network)
+  #  if(DEV_BUILD_CETO)
+        list(APPEND targetdirs Ceto)
+    #endif()
+    list(APPEND targetdirs Iris)    
 endif()
 
 # Targets
-foreach (TARGET ${targetdirs})
-	add_subdirectory(${TARGET})	
-endforeach ()
 
-target_include_directories(Orion PUBLIC ${json_SOURCE_DIR}/include)
+# Make the functions available to subdirectories
+include(Rhea/cmake/rhea_fabrics.cmake)
+
+# Create RheaFabrics target (empty for now)
+rhea_fabrics_begin()
+
+
+if(RHEA_BUILD_ENGINE)
+    foreach(dir IN LISTS engine_dirs)
+        add_subdirectory(${dir})
+    endforeach()
+
+    foreach(tgt IN LISTS engine_targets)
+        target_link_libraries(RheaEngine INTERFACE ${tgt})
+    endforeach()
+endif()
+
+if(RHEA_BUILD_EXTRAS)
+    add_subdirectory(Lobby)
+endif()
+
+# Finalize: generate registry + link enabled fabric targets into RheaFabrics
+rhea_fabrics_end()
+
+if(RHEA_BUILD_APPS)    
+    foreach (TARGET ${targetdirs})
+	    add_subdirectory(${TARGET})	
+    endforeach ()
+ endif()
 
 # Setup samples
-add_subdirectory(Samples)
+if(RHEA_BUILD_SAMPLES)
+    add_subdirectory(Samples)
+endif()

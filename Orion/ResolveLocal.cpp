@@ -1,6 +1,6 @@
-#include "ResolveLocal.h"
+#include <Orion/ResolveLocal.h>
 #include <Psio/Fs/Fs.h>
-#include "FileStream.h"
+#include <Orion/FileStream.h>
 
 std::unique_ptr<Orion::ResourceStream> Orion::ResolveLocal::getResource(std::string realm_name, std::string resource_path)
 {

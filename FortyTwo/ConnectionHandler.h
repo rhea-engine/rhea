@@ -1,11 +1,11 @@
 #ifndef FORTYTWO_CONNECTIONHANDLER_H
 #define FORTYTWO_CONNECTIONHANDLER_H
 
-#include <Rhea/Fabrics/Network/IConnectionData.h>
-#include <Rhea/Fabrics/Network/ClientConnection.h>
+#include <Rhea/Network/IConnectionData.h>
+#include <Rhea/Network/ClientConnection.h>
 #include "AuthHandler.h"
-#include <Rhea/Fabrics/Network/LobbyServer.h>
-#include <Rhea/Fabrics/Network/WorldServer.h>
+#include <Rhea/Network/LobbyServer.h>
+#include <Rhea/Network/WorldServer.h>
 
 class ConnectionHandler : public Rhea::IConnectionData
 {

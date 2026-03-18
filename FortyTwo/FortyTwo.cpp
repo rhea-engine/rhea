@@ -4,12 +4,13 @@
 #include <string>
 #include <Psio/Log.h>
 #include <Rhea/UnitTree.h>
-#include <Rhea/Fabrics/Core/Avatar.h>
+#include <Rhea/Core/Avatar.h>
 #include <FortyTwo/Accounts/AccountService.h>
 #include "Authorization/AuthorizationService.h"
-#include <Rhea/Fabrics/Network/ServerService.h>
+#include <Rhea/Network/ServerService.h>
 #include "ConnectionHandler.h"
 #include "AuthHandler.h"
+#include <Rhea/Physics/PhysicsManagerService.h>
 
 void FortyTwo::init()
 {
@@ -119,7 +120,9 @@ void FortyTwo::setup()
 			}
 
 			// set physics cache
-			m_physics = (Rhea::PhysicsService*)m_services["physics"];
+			auto* mgr = doCast<Rhea::PhysicsManagerService>(m_services["physics_mgr"]);
+			if (mgr)
+				m_physics = mgr->getPhysicsService();
 		}
 		else {
 			LOG(LOG_FATAL) << "FortyTwo::setup: could not load scene " << m_server_name;

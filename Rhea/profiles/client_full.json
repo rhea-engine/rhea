@@ -1,0 +1,11 @@
+{
+  "enabled_fabrics": [
+    "Meworla/Rhea:Animation",
+    "Meworla/Rhea:Canvas",
+    "Meworla/Rhea:Character",
+    "Meworla/Rhea:Controller",
+    "Meworla/Rhea:GUI",
+    "Meworla/Rhea:Gltf",
+    "Meworla/Rhea:Terrain"
+  ]
+}

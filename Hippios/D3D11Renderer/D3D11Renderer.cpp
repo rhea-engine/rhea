@@ -1,3 +1,4 @@
+#include "D3D11Renderer.h"
 #include <d3d11shader.h>
 #include <d3dcompiler.h>
 #include <wrl/client.h>
@@ -53,8 +54,8 @@ namespace Hippios {
 		m_current_pso = nullptr;
 		m_current_stencil_state = nullptr;
 		m_current_raster_state = nullptr;
-	}	
-		
+	}
+	
 	HRESULT D3D11Renderer::createDeviceAndSwapChain(D3D_DRIVER_TYPE driverType, D3D_FEATURE_LEVEL minFL, D3D_FEATURE_LEVEL maxFL, D3D_FEATURE_LEVEL* pFeatureLevel, NativeWindow* win, IDXGISwapChain** swap_chain)
 	{
 		//IDXGIAdapter* pAdapter = (d3dDriver && driverType == D3D_DRIVER_TYPE_HARDWARE) ? d3dDriver->getDeviceAdapter() : NULL;
@@ -267,30 +268,19 @@ namespace Hippios {
 		}
 	}
 
-	VertexBuffer* D3D11Renderer::createVertexBuffer(size_t vertexSize, size_t numVertices, bool dynamic)
+	std::unique_ptr<VertexBuffer> D3D11Renderer::createVertexBuffer(size_t vertexSize, size_t numVertices, bool dynamic)
 	{
-		D3D11VertexBuffer* buf;
-
-		//assert(!m_vb && "TODO: only one vertex buffer allowed");
-		buf = new D3D11VertexBuffer(m_device, m_device_context, vertexSize, numVertices, dynamic);
-		return (VertexBuffer*)buf;
+		return std::make_unique<D3D11VertexBuffer>(m_device, m_device_context, vertexSize, numVertices, dynamic);
 	}
 	
-	IndexBuffer* D3D11Renderer::createIndexBuffer(size_t vertex_size, size_t num_faces, bool dynamic)
+	std::unique_ptr<IndexBuffer> D3D11Renderer::createIndexBuffer(size_t vertex_size, size_t num_faces, bool dynamic)
 	{
-		D3D11IndexBuffer* buf;
-
-		//assert(!m_ib && "TODO: only one index buffer allowed");
-		buf = new D3D11IndexBuffer(m_device, m_device_context, vertex_size, num_faces, dynamic);
-		return (IndexBuffer*)buf;
+		return std::make_unique<D3D11IndexBuffer>(m_device, m_device_context, vertex_size, num_faces, dynamic);
 	}
 
-	GraphicsBuffer* D3D11Renderer::createGraphicsBuffer(size_t size_in_bytes)
+	std::unique_ptr<GraphicsBuffer> D3D11Renderer::createGraphicsBuffer(size_t size_in_bytes)
 	{
-		D3D11GraphicsBuffer* buf;
-
-		buf = new D3D11GraphicsBuffer(m_device, m_device_context, D3D11_BIND_CONSTANT_BUFFER, size_in_bytes, false, 0);
-		return (GraphicsBuffer*)buf;
+		return std::make_unique<D3D11GraphicsBuffer>(m_device, m_device_context, D3D11_BIND_CONSTANT_BUFFER, size_in_bytes, false, 0);
 	}
 
 	D3D11Renderer::~D3D11Renderer()
@@ -314,21 +304,18 @@ namespace Hippios {
 		m_device_context->Release();
 	}
 
-	RenderTarget* D3D11Renderer::createRenderTarget(int width, int height, SwapChain* swap_chain)
+	std::unique_ptr<RenderTarget> D3D11Renderer::createRenderTarget(int width, int height, SwapChain* swap_chain)
 	{
-		D3D11RenderTarget* target = new D3D11RenderTarget();
+		auto target = std::make_unique<D3D11RenderTarget>();
 		if (target->create(this, width, height, swap_chain))
 			return target;
-		else {
-			delete target;
+		else
 			return nullptr;
-		}
 	}
 
-	Texture* D3D11Renderer::createTexture(TextureDesc& desc)
+	std::unique_ptr<Texture> D3D11Renderer::createTexture(TextureDesc& desc)
 	{
-		D3D11Texture* texture = new D3D11Texture(desc, this);
-		return texture;
+		return std::make_unique<D3D11Texture>(desc, this);
 	}
 
 	GPUProgram* D3D11Renderer::addMaterial(std::string filename, char* shader_type, char* entry_point)
@@ -354,7 +341,7 @@ namespace Hippios {
 				return nullptr;
 			}
 			return mPShader;
-		}		
+		}
 	}
 
 	GPUProgram* D3D11Renderer::addMaterial(unsigned char* buf, int buflen, char* shader_type, char* entry_point)
@@ -383,15 +370,14 @@ namespace Hippios {
 		}
 	}
 
-	SwapChain* D3D11Renderer::createSwapChain(NativeWindow* win)
+	std::unique_ptr<SwapChain> D3D11Renderer::createSwapChain(NativeWindow* win)
 	{
 		if (!m_device) {
 			// create device and context in one step
 			IDXGISwapChain* d3_swap_chain;
 			HRESULT hr = createDeviceAndSwapChain(mDriverType, mMinRequestedFeatureLevel, mMaxRequestedFeatureLevel, 0, win, &d3_swap_chain);
 			if (SUCCEEDED(hr)) {
-				SwapChain* swap_chain = new D3D11SwapChain(d3_swap_chain);
-				return swap_chain;
+				return std::make_unique<D3D11SwapChain>(d3_swap_chain);
 			}
 		}
 
@@ -402,11 +388,9 @@ namespace Hippios {
 	{
 		m_device_context->OMSetBlendState(static_cast<D3D11BlendState*>(state)->getBlendState(), blend_factor, mask);
 	}
-
-	PipelineStateObject* D3D11Renderer::createPipelineState(PipelineStateObjectDesc* desc)
+	std::unique_ptr<PipelineStateObject> D3D11Renderer::createPipelineState(PipelineStateObjectDesc* desc)
 	{
-		D3D11PipelineStateObject* pso = new D3D11PipelineStateObject(this, desc);
-		return pso;
+		return std::make_unique<D3D11PipelineStateObject>(this, desc);
 	}
 
 	void D3D11Renderer::setPipelineState(PipelineStateObject* pso)

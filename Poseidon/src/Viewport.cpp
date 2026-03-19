@@ -50,7 +50,7 @@ namespace Poseidon
 		m_width = width;
 		m_height = height;
 		m_swapchain = swap_chain;
-		m_render_target.reset(m_renderer->createRenderTarget(width, height, swap_chain));
+		m_render_target = m_renderer->createRenderTarget(width, height, swap_chain);
 		// create a default context
 		m_render_contexts.clear();
 		std::string name = "default";

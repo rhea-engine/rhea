@@ -30,28 +30,14 @@ namespace Poseidon
 
 	SceneManager::SceneManager() :
 		m_renderer(nullptr),
-		m_current_material(nullptr),
-		m_frame_buffer(nullptr),
-		m_object_buffer(nullptr),
-		m_light_buffer(nullptr),
-		m_object_buffer_wvp(nullptr),
-		m_bone_buffer(nullptr)
+		m_current_material(nullptr)
 	{
 		m_rend_queue = new RenderQueue();
 	}
 
 	SceneManager::~SceneManager()
 	{
-		if (m_frame_buffer)
-			delete m_frame_buffer;
-		if (m_object_buffer)
-			delete m_object_buffer;
-		if (m_object_buffer_wvp)
-			delete m_object_buffer_wvp;
-		if (m_light_buffer)
-			delete m_light_buffer;
-		if (m_object_buffer)
-			delete m_object_buffer;
+		// unique_ptrs handle cleanup of graphics buffers automatically
 	}
 
 	Node* SceneManager::get_root()
@@ -68,11 +54,11 @@ namespace Poseidon
 
 		//initialize graphic buffers
 		m_frame_buffer = m_renderer->createGraphicsBuffer(sizeof(cbPerFrame));
-		m_renderer->bindGPUBuffer(m_frame_buffer, 0, "VS");
+		m_renderer->bindGPUBuffer(m_frame_buffer.get(), 0, "VS");
 		m_object_buffer = m_renderer->createGraphicsBuffer(sizeof(cbPerObject));
-		//m_renderer->bindGPUBuffer(m_object_buffer, 1, "VS");
+		//m_renderer->bindGPUBuffer(m_object_buffer.get(), 1, "VS");
 		m_light_buffer = m_renderer->createGraphicsBuffer(sizeof(cbLight));
-		m_renderer->bindGPUBuffer(m_light_buffer, 2, "PS");		
+		m_renderer->bindGPUBuffer(m_light_buffer.get(), 2, "PS");		
 		m_bone_buffer = m_renderer->createGraphicsBuffer(sizeof(BoneBuffer));
 	}
 
@@ -184,7 +170,7 @@ namespace Poseidon
 				}
 				light_buf.num_lights = (float)idx;
 				m_light_buffer->update((void*)&light_buf);
-				m_renderer->bindGPUBuffer(m_light_buffer, 2, "PS");
+				m_renderer->bindGPUBuffer(m_light_buffer.get(), 2, "PS");
 
 				Item* renderable = m_rend_queue->first();
 				for (Item* renderable = m_rend_queue->first(); renderable != NULL; renderable = m_rend_queue->next()) {
@@ -212,7 +198,7 @@ namespace Poseidon
 						per_obj_buf.inverse = per_obj_buf.world_matrix.inverse().transpose();
 
 						m_object_buffer->update((void*)&per_obj_buf);
-						m_renderer->bindGPUBuffer(m_object_buffer, 1, "VS");
+						m_renderer->bindGPUBuffer(m_object_buffer.get(), 1, "VS");
 					}
 
 					// get render mesh
@@ -235,7 +221,7 @@ namespace Poseidon
 
 						// Update the bone matrix buffer
 						m_bone_buffer->update((void*)&boneBuffer);
-						m_renderer->bindGPUBuffer(m_bone_buffer, 4, "VS"); // Bind bone buffer to slot 4 for vertex shader
+						m_renderer->bindGPUBuffer(m_bone_buffer.get(), 4, "VS"); // Bind bone buffer to slot 4 for vertex shader
 					}
 
 					// iterate over submeshes

@@ -38,32 +38,32 @@ namespace Hippios
 		 * @param vertexSize The size (in bytes) of a single vertex.
 		 * @param numVertices The total number of vertices in the buffer.
 		 * @param dynamic If true, the buffer is dynamic and can be updated frequently.
-		 * @return A pointer to the created VertexBuffer.
+		 * @return A unique_ptr to the created VertexBuffer.
 		 */
-		virtual VertexBuffer* createVertexBuffer(size_t vertexSize, size_t numVertices, bool dynamic) = 0;
+		virtual std::unique_ptr<VertexBuffer> createVertexBuffer(size_t vertexSize, size_t numVertices, bool dynamic) = 0;
 
 		/**
 		 * @brief Creates an index buffer.
 		 * @param vertex_size The size of each index entry.
 		 * @param num_faces The total number of faces (triangles/quads) in the buffer.
 		 * @param dynamic If true, the buffer is dynamic and can be updated frequently.
-		 * @return A pointer to the created IndexBuffer.
+		 * @return A unique_ptr to the created IndexBuffer.
 		 */
-		virtual IndexBuffer* createIndexBuffer(size_t vertex_size, size_t num_faces, bool dynamic) = 0;
+		virtual std::unique_ptr<IndexBuffer> createIndexBuffer(size_t vertex_size, size_t num_faces, bool dynamic) = 0;
 
 		/**
 		 * @brief Creates a generic graphics buffer.
 		 * @param size_in_bytes The total size of the buffer in bytes.
-		 * @return A pointer to the created GraphicsBuffer.
+		 * @return A unique_ptr to the created GraphicsBuffer.
 		 */
-		virtual GraphicsBuffer* createGraphicsBuffer(size_t size_in_bytes) = 0;
+		virtual std::unique_ptr<GraphicsBuffer> createGraphicsBuffer(size_t size_in_bytes) = 0;
 
 		/**
 		 * @brief Creates a texture.
 		 * @param desc The descriptor structure defining the texture properties.
-		 * @return A pointer to the created Texture.
+		 * @return A unique_ptr to the created Texture.
 		 */
-		virtual Texture* createTexture(TextureDesc& desc) = 0;
+		virtual std::unique_ptr<Texture> createTexture(TextureDesc& desc) = 0;
 
 		/**
 		 * @brief Clears the given render target.
@@ -100,25 +100,25 @@ namespace Hippios
 		/**
 		 * @brief Creates a swap chain for rendering to a window.
 		 * @param win The native window handle.
-		 * @return A pointer to the created SwapChain.
+		 * @return A unique_ptr to the created SwapChain.
 		 */
-		virtual SwapChain* createSwapChain(NativeWindow* win) = 0;
+		virtual std::unique_ptr<SwapChain> createSwapChain(NativeWindow* win) = 0;
 
 		/**
 		 * @brief Creates a render target associated with a swap chain.
 		 * @param width The width of the render target in pixels.
 		 * @param height The height of the render target in pixels.
 		 * @param swap_chain The associated swap chain.
-		 * @return A pointer to the created RenderTarget.
+		 * @return A unique_ptr to the created RenderTarget.
 		 */
-		virtual RenderTarget* createRenderTarget(int width, int height, SwapChain* swap_chain) = 0;
+		virtual std::unique_ptr<RenderTarget> createRenderTarget(int width, int height, SwapChain* swap_chain) = 0;
 
 		/**
 		 * @brief Creates a pipeline state object.
 		 * @param desc A descriptor structure defining the pipeline state properties.
-		 * @return A pointer to the created PipelineStateObject.
+		 * @return A unique_ptr to the created PipelineStateObject.
 		 */
-		virtual PipelineStateObject* createPipelineState(PipelineStateObjectDesc* desc) = 0;
+		virtual std::unique_ptr<PipelineStateObject> createPipelineState(PipelineStateObjectDesc* desc) = 0;
 
 		/**
 		 * @brief Sets the active pipeline state.

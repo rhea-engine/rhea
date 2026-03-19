@@ -1,10 +1,13 @@
 #ifndef HIPPIOS_RENDERTARGET_H
 #define HIPPIOS_RENDERTARGET_H
 
-#include "Renderer.h"
+#include "BaseTypes.h"
 
 namespace Hippios
 {
+	class Renderer;
+	class SwapChain;
+
 	class RenderTarget
 	{
 	public:

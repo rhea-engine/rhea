@@ -106,7 +106,7 @@ namespace Poseidon
 				return lhs.facility == rhs.facility && lhs.size == rhs.size;
 			}
 		};
-		std::unordered_map<BufferDescription, Hippios::GraphicsBuffer*, BufferDescriptionHash, BufferDescriptionEqual> m_buffer_pool;
+		std::unordered_map<BufferDescription, std::unique_ptr<Hippios::GraphicsBuffer>, BufferDescriptionHash, BufferDescriptionEqual> m_buffer_pool;
 	};
 }
 #endif // !POSEIDON_CORE_H

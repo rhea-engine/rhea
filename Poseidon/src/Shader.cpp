@@ -144,7 +144,7 @@ namespace Poseidon
 			}
 
 			// create the state
-			m_pso.reset(m_renderer->createPipelineState(&pso_desc));
+			m_pso = m_renderer->createPipelineState(&pso_desc);
 		}
 	}
 

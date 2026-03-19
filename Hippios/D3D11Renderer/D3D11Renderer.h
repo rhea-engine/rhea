@@ -53,7 +53,7 @@ namespace Hippios
 		~D3D11Renderer();
 
 		// steps for initializing Renderer		
-		RenderTarget* createRenderTarget(int width, int height, SwapChain* swap_chain) override;
+		std::unique_ptr<RenderTarget> createRenderTarget(int width, int height, SwapChain* swap_chain) override;
 
 		// getters
 		ID3D11DeviceContext* get_device_context() { return m_device_context; }
@@ -68,18 +68,18 @@ namespace Hippios
 		
 		// create and use objects
 
-		VertexBuffer* createVertexBuffer(size_t vertexSize, size_t numVertices, bool dynamic = false) override;
-		IndexBuffer* createIndexBuffer(size_t vertex_size, size_t num_faces, bool dynamic = false) override;
-		GraphicsBuffer* createGraphicsBuffer(size_t size_in_bytes) override;
-		Texture* createTexture(TextureDesc& desc) override;
+		std::unique_ptr<VertexBuffer> createVertexBuffer(size_t vertexSize, size_t numVertices, bool dynamic = false) override;
+		std::unique_ptr<IndexBuffer> createIndexBuffer(size_t vertex_size, size_t num_faces, bool dynamic = false) override;
+		std::unique_ptr<GraphicsBuffer> createGraphicsBuffer(size_t size_in_bytes) override;
+		std::unique_ptr<Texture> createTexture(TextureDesc& desc) override;
 		GPUProgram* addMaterial(std::string filename, char* shader_type, char* entry_point) override;
 		GPUProgram* addMaterial(unsigned char* buf, int buflen, char* shader_type, char* entry_point) override;
 
-		SwapChain* createSwapChain(NativeWindow* win) override;
+		std::unique_ptr<SwapChain> createSwapChain(NativeWindow* win) override;
 
 		void setBlendState(BlendState* state, float* blend_factor, unsigned int mask) override;
 
-		virtual PipelineStateObject* createPipelineState(PipelineStateObjectDesc* desc) override;
+		std::unique_ptr<PipelineStateObject> createPipelineState(PipelineStateObjectDesc* desc) override;
 		void setPipelineState(PipelineStateObject* pso) override;
 
 		// set current material

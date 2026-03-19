@@ -9,11 +9,7 @@ namespace Poseidon
 {
 	Mesh::~Mesh()
 	{
-		if (m_vbuffer)
-			delete m_vbuffer;
-		for (auto it = m_submeshes.begin(); it != m_submeshes.end(); ++it)
-			if (it->ibuffer)
-			delete it->ibuffer;
+		// unique_ptrs handle cleanup automatically
 	}
 
 	void Mesh::setVertices(size_t vertex_size, size_t num_vertices, const void* source)
@@ -21,7 +17,6 @@ namespace Poseidon
 		assert(m_viewport && "viewport must be initialized before");
 		if (m_vbuffer) {			
 			if (m_vbuffer->getLength() < vertex_size * num_vertices) {
-				delete m_vbuffer;
 				m_vbuffer = m_renderer->createVertexBuffer(vertex_size, num_vertices, m_dynamic_buffer);
 			}
 		}
@@ -42,7 +37,7 @@ namespace Poseidon
 
 		submesh.ibuffer->WriteData(0, vertex_size * num_faces * 3, source, false);
 
-		m_submeshes.push_back(submesh);
+		m_submeshes.push_back(std::move(submesh));
 		m_num_meshes++;
 		return m_submeshes.size() - 1;
 	}
@@ -56,7 +51,6 @@ namespace Poseidon
 
 		if (m_submeshes[mesh_idx].ibuffer) {
 			if (m_submeshes[mesh_idx].ibuffer->getLength() < vertex_size * num_faces * 3) {
-				delete m_submeshes[mesh_idx].ibuffer;
 				m_submeshes[mesh_idx].ibuffer = m_renderer->createIndexBuffer(vertex_size, num_faces, m_dynamic_buffer);
 				m_submeshes[mesh_idx].num_indices = num_faces * 3;
 			}
@@ -69,12 +63,9 @@ namespace Poseidon
 		m_submeshes[mesh_idx].ibuffer->WriteData(0, vertex_size * num_faces * 3, source, false);
 	}
 
-	void Mesh::addVertexBuffer(Hippios::VertexBuffer* vbuffer)
+	void Mesh::addVertexBuffer(std::unique_ptr<Hippios::VertexBuffer> vertex_buffer)
 	{
-		if (m_vbuffer) {
-			delete m_vbuffer;
-		}
-		m_vbuffer = vbuffer;
+		m_vbuffer = std::move(vertex_buffer);
 	}
 
 	void Mesh::getRenderInput(size_t mesh_idx, Hippios::VertexBuffer** pvb, Hippios::IndexBuffer** pib, int& num_indices)

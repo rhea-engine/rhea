@@ -2,6 +2,7 @@
 #define POSEIDON_SCENEMANAGER_H
 
 #include <vector>
+#include <memory>
 
 #include "Camera.h"
 #include <Math/Vector4.h>
@@ -120,11 +121,11 @@ namespace Poseidon
 		cbPerObjectTerrain cbPerObjTerrain;
 		cbLight light_buf;
 
-		Hippios::GraphicsBuffer* m_frame_buffer;
-		Hippios::GraphicsBuffer* m_object_buffer;
-		Hippios::GraphicsBuffer* m_object_buffer_wvp;
-		Hippios::GraphicsBuffer* m_light_buffer;
-		Hippios::GraphicsBuffer* m_bone_buffer;
+		std::unique_ptr<Hippios::GraphicsBuffer> m_frame_buffer;
+		std::unique_ptr<Hippios::GraphicsBuffer> m_object_buffer;
+		std::unique_ptr<Hippios::GraphicsBuffer> m_object_buffer_wvp;
+		std::unique_ptr<Hippios::GraphicsBuffer> m_light_buffer;
+		std::unique_ptr<Hippios::GraphicsBuffer> m_bone_buffer;
 	};
 }
 #endif // !POSEIDON_SCENEMANAGER_H

@@ -213,11 +213,12 @@ namespace Poseidon
 		// check if buffer exists already
 		auto it = m_buffer_pool.find(desc);
 		if (it != m_buffer_pool.end())
-			return it->second;
+			return it->second.get();
 
 		// no such buffer in the pool, create a new one
-		Hippios::GraphicsBuffer* newBuffer = m_renderer->createGraphicsBuffer(size);
-		m_buffer_pool[desc] = newBuffer;
-		return newBuffer;
+		auto newBuffer = m_renderer->createGraphicsBuffer(size);
+		auto* raw = newBuffer.get();
+		m_buffer_pool[desc] = std::move(newBuffer);
+		return raw;
 	}
 }

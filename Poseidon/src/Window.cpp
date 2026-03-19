@@ -19,7 +19,7 @@ namespace Poseidon
 		win.height = m_native_win->GetHeight();
 		win.native_win_handle = m_native_win->getHandle();
 
-		m_swap_chain.reset(m_renderer->createSwapChain(&win));
+		m_swap_chain = m_renderer->createSwapChain(&win);
 		// create my own render target
 		createRenderTarget(win.width, win.height, m_swap_chain.get());
 	}

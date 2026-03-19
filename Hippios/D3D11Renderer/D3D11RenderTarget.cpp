@@ -14,13 +14,14 @@ namespace Hippios
 
 	bool D3D11RenderTarget::create(Renderer* renderer, int width, int height, SwapChain* swap_chain)
 	{		
-		m_renderer = renderer;
-		return create(width, height, swap_chain);
+		m_renderer = static_cast<D3D11Renderer*>(renderer);
+		m_swap_chain = swap_chain;
+		return resize(width, height);
 	}
 
-	bool D3D11RenderTarget::create(int width, int height, SwapChain* swap_chain)
+	bool D3D11RenderTarget::resize(int width, int height)
 	{
-		IDXGISwapChain* d3_swap_chain = static_cast<D3D11SwapChain*>(swap_chain)->getNativeSwapChain();
+		IDXGISwapChain* d3_swap_chain = static_cast<D3D11SwapChain*>(m_swap_chain)->getNativeSwapChain();
 		ID3D11Device* d3_device = static_cast<D3D11Renderer*>(m_renderer)->get_device();
 		ID3D11DeviceContext* d3_device_context = static_cast<D3D11Renderer*>(m_renderer)->get_device_context();
 
@@ -38,6 +39,62 @@ namespace Hippios
 
 		// create the depth buffer
 		m_depth_buffer = std::make_unique<D3D11DepthBuffer>(d3_device, 24, width, height);
+
+		return true;
+	}
+
+	bool D3D11RenderTarget::create(Renderer* renderer, const RenderTargetDesc& desc)
+	{
+		m_renderer = static_cast<D3D11Renderer*>(renderer);
+		m_width = desc.width;
+		m_height = desc.height;
+
+		ID3D11Device* device = m_renderer->get_device();
+
+		Release();
+
+		if (desc.type == RenderTargetType::SwapChain)
+		{
+			// backbuffer from swap chain
+			IDXGISwapChain* d3_swap_chain = static_cast<D3D11SwapChain*>(desc.swap_chain)->getNativeSwapChain();
+			ID3D11Texture2D* pBackBuffer;
+			d3_swap_chain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&pBackBuffer);
+			if (!pBackBuffer)
+				return false;
+
+			device->CreateRenderTargetView(pBackBuffer, NULL, &m_backbuffer);
+			pBackBuffer->Release();
+			m_swap_chain = desc.swap_chain;
+		}
+		else
+		{
+			// offscreen texture render target
+			D3D11_TEXTURE2D_DESC texDesc = {};
+			texDesc.Width = desc.width;
+			texDesc.Height = desc.height;
+			texDesc.MipLevels = 1;
+			texDesc.ArraySize = 1;
+			texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+			texDesc.SampleDesc.Count = 1;
+			texDesc.Usage = D3D11_USAGE_DEFAULT;
+			texDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+
+			ID3D11Texture2D* tex = nullptr;
+			HRESULT hr = device->CreateTexture2D(&texDesc, nullptr, &tex);
+			if (FAILED(hr))
+				return false;
+
+			hr = device->CreateRenderTargetView(tex, nullptr, &m_backbuffer);
+			tex->Release();
+			if (FAILED(hr))
+				return false;
+
+			m_swap_chain = nullptr;
+		}
+
+		// depth buffer (optional)
+		if (desc.depth_bits > 0)
+			m_depth_buffer = std::make_unique<D3D11DepthBuffer>(device, desc.depth_bits, desc.width, desc.height);
 
 		return true;
 	}

@@ -8,20 +8,33 @@ namespace Hippios
 	class Renderer;
 	class SwapChain;
 
+	enum class RenderTargetType
+	{
+		SwapChain,		// backbuffer from swap chain
+		Texture			// offscreen texture render target
+	};
+
+	struct RenderTargetDesc
+	{
+		RenderTargetType type = RenderTargetType::SwapChain;
+		int width = 0;
+		int height = 0;
+		int depth_bits = 24;		// 0 = no depth buffer, 16, 24, 32
+		SwapChain* swap_chain = nullptr;	// required for SwapChain type
+		// future: format, sample count, etc.
+	};
+
 	class RenderTarget
 	{
 	public:
 		virtual ~RenderTarget() {}
 
-		virtual bool create(Renderer* renderer, int width, int height, SwapChain* swap_chain) = 0;
+		virtual bool create(Renderer* renderer, const RenderTargetDesc& desc) = 0;
 
-		// resize the render target to new width/height
-		// also updates depth buffers
-		virtual bool create(int width, int height, SwapChain* swap_chain) = 0;
+		// recreate with new dimensions (e.g. on resize)
+		virtual bool resize(int width, int height) = 0;
 
-		// Release the buffer
 		virtual void Release() = 0;
-
 		virtual void setActive() = 0;
 		virtual void clearPass() = 0;
 		virtual void setViewport(ViewportDesc* desc) = 0;

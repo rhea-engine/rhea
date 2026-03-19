@@ -55,6 +55,7 @@ namespace Hippios
 
 		// steps for initializing Renderer		
 		std::unique_ptr<RenderTarget> createRenderTarget(int width, int height, SwapChain* swap_chain) override;
+		std::unique_ptr<RenderTarget> createRenderTarget(const RenderTargetDesc& desc) override;
 
 		// getters
 		ID3D11DeviceContext* get_device_context() { return m_device_context; }

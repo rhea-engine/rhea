@@ -1,4 +1,5 @@
 #include "D3D11Renderer.h"
+#include "D3D11Renderer.h"
 #include <d3d11shader.h>
 #include <d3dcompiler.h>
 #include <wrl/client.h>
@@ -273,6 +274,15 @@ namespace Hippios {
 	{
 		auto target = std::make_unique<D3D11RenderTarget>();
 		if (target->create(this, width, height, swap_chain))
+			return target;
+		else
+			return nullptr;
+	}
+
+	std::unique_ptr<RenderTarget> D3D11Renderer::createRenderTarget(const RenderTargetDesc& desc)
+	{
+		auto target = std::make_unique<D3D11RenderTarget>();
+		if (target->create(this, desc))
 			return target;
 		else
 			return nullptr;

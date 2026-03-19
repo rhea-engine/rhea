@@ -114,6 +114,13 @@ namespace Hippios
 		virtual std::unique_ptr<RenderTarget> createRenderTarget(int width, int height, SwapChain* swap_chain) = 0;
 
 		/**
+		 * @brief Creates a render target from a descriptor.
+		 * @param desc The descriptor defining the render target properties.
+		 * @return A unique_ptr to the created RenderTarget.
+		 */
+		virtual std::unique_ptr<RenderTarget> createRenderTarget(const RenderTargetDesc& desc) = 0;
+
+		/**
 		 * @brief Creates a pipeline state object.
 		 * @param desc A descriptor structure defining the pipeline state properties.
 		 * @return A unique_ptr to the created PipelineStateObject.

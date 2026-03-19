@@ -33,5 +33,13 @@ namespace Hippios
 		float min_depth;
 		float max_depth;
 	};
+
+	enum class ShaderStage
+	{
+		Vertex,
+		Fragment,
+		Geometry,
+		Compute
+	};
 }
 #endif // !HIPPIOS_BASETYPES_H

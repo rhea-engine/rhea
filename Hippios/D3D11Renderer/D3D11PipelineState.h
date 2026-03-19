@@ -7,13 +7,14 @@
 #include "D3D11BlendState.h"
 #include <memory>
 #include "D3D11Renderer.h"
+#include "D3D11ShaderProgram.h"
 
 namespace Hippios
 {
 	class D3D11PipelineStateObject : public PipelineStateObject
 	{
 	public:
-		D3D11PipelineStateObject(Renderer* renderer, PipelineStateObjectDesc* desc);
+		D3D11PipelineStateObject(Renderer* renderer, const PipelineStateObjectDesc& desc);
 		~D3D11PipelineStateObject();
 
 		void SetState() override;
@@ -22,9 +23,7 @@ namespace Hippios
 		D3D11StencilState* m_stencil_state;
 		std::unique_ptr<D3D11BlendState> m_blend_state;
 		D3D11Renderer* m_renderer;
-		// legacy
-		GPUProgram* m_vertex_shader;
-		GPUProgram* m_pixel_shader;
+		D3D11ShaderProgram* m_shader_program;
 		D3D_PRIMITIVE_TOPOLOGY m_topology;
 		CullMode m_cull_mode;
 		ID3D11RasterizerState* m_raster_state;

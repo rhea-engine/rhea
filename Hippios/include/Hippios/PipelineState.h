@@ -2,7 +2,7 @@
 #define HIPPIOS_PSO_H
 
 #include "StencilState.h"
-#include "GPUProgram.h"
+#include "ShaderProgram.h"
 
 namespace Hippios
 {
@@ -78,12 +78,7 @@ namespace Hippios
 		bool alphaToCoverageEnable = false;
 		bool independentBlendEnable = false;
 		RenderTargetBlendDesc renderTarget[8];
-	};
-	
-	struct ShaderProgramDesc { 
-		GPUProgram* vertex_shader = nullptr;
-		GPUProgram* pixel_shader = nullptr;
-	};
+	};	
 	
 	enum class InputLayoutFormat {
 		FORMAT_UNKNOWN = 0,
@@ -138,7 +133,7 @@ namespace Hippios
 		DepthStencilStateDesc depthStencilState;
 		RasterizerStateDesc rasterizerState;
 		BlendStateDesc blendState;
-		ShaderProgramDesc shaderProgram;
+		ShaderProgram* shaderProgram = nullptr;
 		PrimitiveTopology vertexLayout = PrimitiveTopology::TriangleList;
 		bool m_alpha_blending = false;
 		InputLayoutDesc inputLayout;

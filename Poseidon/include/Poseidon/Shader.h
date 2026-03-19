@@ -4,7 +4,7 @@
 #include <string>
 
 #include "Hippios/Renderer.h"
-#include <Hippios/GPUProgram.h>
+#include <Hippios/ShaderProgram.h>
 #include <Hippios/GraphicsBuffer.h>
 #include <Hippios/PipelineState.h>
 #include <Poseidon/Core.h>
@@ -29,11 +29,8 @@ namespace Poseidon
 		// load a shader from a char buffer
 		bool loadFromBuffer(unsigned char* buf, size_t buflen, char* vs_entry_point, char* ps_entry_point);
 
-		// return the vertex shader
-		Hippios::GPUProgram* getVShader() { return m_vshader; }
-
-		// return the pixel shader
-		Hippios::GPUProgram* getPShader() { return m_pshader; }
+		// return the shader program
+		Hippios::ShaderProgram* getShaderProgram() { return m_shader; }
 
 		// set alpha blending
 		void setAlphaBlending(bool enable) { m_alpha_blending = enable; }
@@ -103,8 +100,7 @@ namespace Poseidon
 		int m_vertex_type;
 
 		Hippios::Renderer* m_renderer;
-		Hippios::GPUProgram* m_vshader;
-		Hippios::GPUProgram* m_pshader;
+		Hippios::ShaderProgram* m_shader;		
 
 		bool m_alpha_blending;
 		std::unique_ptr<Hippios::PipelineStateObject> m_pso;

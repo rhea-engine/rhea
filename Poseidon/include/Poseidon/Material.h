@@ -2,7 +2,7 @@
 #define POSEIDON_MATERIAL_H
 
 #include "Hippios/Renderer.h"
-#include "Hippios/GPUProgram.h"
+#include "Hippios/ShaderProgram.h"
 #include "Hippios/GraphicsBuffer.h"
 #include <Math/Vector4.h>
 #include "Shader.h"
@@ -40,8 +40,7 @@ namespace Poseidon
 		// return the list of textures
 		std::vector<Texture*>& getTextures() { return m_textures; }
 
-		Hippios::GPUProgram* getVShader();
-		Hippios::GPUProgram* getPShader();	
+		Hippios::ShaderProgram* getShaderProgram();		
 		
 		void SetColor(int slot, const Math::Vector4& color);
 		void SetFloat(int slot, float value);

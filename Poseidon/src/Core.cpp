@@ -51,8 +51,8 @@ namespace Poseidon
 
 		// create the default stencil states
 		Hippios::DepthStencilStateDesc desc;
-		m_renderer->createStencilState("default", nullptr);
-		m_renderer->createStencilState("disabled", &desc);
+		m_renderer->createStencilState("default");
+		m_renderer->createStencilState("disabled", desc);
 
 		// create default samplers
 
@@ -66,7 +66,7 @@ namespace Poseidon
 		sampler_desc.comparison_func = Hippios::ComparisonFunction::COMPARE_NEVER;
 		sampler_desc.min_lod = 0;
 		sampler_desc.max_lod = FLT_MAX;
-		if (!m_renderer->createSampler("linear", &sampler_desc))
+		if (!m_renderer->createSampler("linear", sampler_desc))
 			LOG(LOG_ERROR) << "Could not create linear sampler";
 		
 		// nearest sampler
@@ -78,7 +78,7 @@ namespace Poseidon
 		sampler_desc.comparison_func = Hippios::ComparisonFunction::COMPARE_NEVER;
 		sampler_desc.min_lod = 0;
 		sampler_desc.max_lod = FLT_MAX;
-		if (!m_renderer->createSampler("nearest", &sampler_desc))
+		if (!m_renderer->createSampler("nearest", sampler_desc))
 			LOG(LOG_ERROR) << "Could not create nearest sampler";
 
 		// add a scene manager 

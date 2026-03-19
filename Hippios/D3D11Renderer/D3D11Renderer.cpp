@@ -8,11 +8,9 @@
 #endif
 #include <iostream>
 #include <assert.h>
-using namespace std;
 
 #include "D3D11Renderer.h"
 #include "D3D11BaseTypes.h"
-#include "D3D11HLSL.h"
 #include "D3D11VertexBuffer.h"
 #include "D3D11IndexBuffer.h"
 #include "D3D11GraphicsBuffer.h"
@@ -22,6 +20,8 @@ using namespace std;
 #include "D3D11PipelineState.h"
 #include "D3D11SwapChain.h"
 #include "D3D11RenderTarget.h"
+#include "D3D11BlendState.h"
+#include "D3D11ShaderProgram.h"
 
 #pragma comment (lib, "d3d11.lib")
 
@@ -58,10 +58,8 @@ namespace Hippios {
 	
 	HRESULT D3D11Renderer::createDeviceAndSwapChain(D3D_DRIVER_TYPE driverType, D3D_FEATURE_LEVEL minFL, D3D_FEATURE_LEVEL maxFL, D3D_FEATURE_LEVEL* pFeatureLevel, NativeWindow* win, IDXGISwapChain** swap_chain)
 	{
-		//IDXGIAdapter* pAdapter = (d3dDriver && driverType == D3D_DRIVER_TYPE_HARDWARE) ? d3dDriver->getDeviceAdapter() : NULL;
 		IDXGIAdapter* pAdapter = NULL;
 
-		// determine deviceFlags
 		UINT deviceFlags = 0;
 #if defined(DEBUG) || defined(_DEBUG)
 		deviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
@@ -77,37 +75,11 @@ namespace Hippios {
 			D3D_FEATURE_LEVEL_11_1
 		};
 		D3D_FEATURE_LEVEL* pFirstFL = d3dLevels, * pLastFL = pFirstFL + ARRAYSIZE(d3dLevels) - 1;
-	/*	for (unsigned int i = 0; i < ARRAYSIZE(d3dLevels); i++)
-		{
-			if (minFL == d3dLevels[i])
-				pLastFL = &d3dLevels[i];
-			if (maxFL == d3dLevels[i])
-				pFirstFL = &d3dLevels[i];
-		}
-		if (pLastFL < pFirstFL)
-		{
-			cout << " min level larger than max level for direct 3d 11";
-			return 0;
-		}
-		*/
 
-		// create device				
-/*
-		HRESULT hr = D3D11CreateDevice(pAdapter, 
-			driverType, 
-			NULL, 
-			deviceFlags, 
-			pFirstFL, 
-			ARRAYSIZE(d3dLevels),
-			D3D11_SDK_VERSION, 
-			&m_device, 
-			pFeatureLevel, 
-			0);
-*/
 		DXGI_SWAP_CHAIN_DESC desc;
 		ZeroMemory(&desc, sizeof(DXGI_SWAP_CHAIN_DESC));
 				
-		desc.BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM; // use 32-bit color
+		desc.BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
 		desc.BufferDesc.Width = win->width;
 		desc.BufferDesc.Height = win->height;
 		desc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
@@ -148,11 +120,10 @@ namespace Hippios {
 			// Handle device interface creation failure if it occurs.
 			// For example, reduce the feature level requirement, or fail over 
 			// to WARP rendering.
-			cout << "could not create d3d11 device";
+			std::cout << "could not create d3d11 device";
 			return hr;
 		}
 
-		// Store pointers to the Direct3D 11.1 API device
 		return hr;
 	}
 
@@ -214,20 +185,20 @@ namespace Hippios {
 		}
 	}
 
-	bool D3D11Renderer::createSampler(std::string name, SamplerDesc* desc)
+	bool D3D11Renderer::createSampler(const std::string& name, const SamplerDesc& desc)
 	{
 		// Create default sampler states
 		D3D11_SAMPLER_DESC sampDesc;
 
 		// linear sampler
 		ZeroMemory(&sampDesc, sizeof(sampDesc));
-		sampDesc.Filter = _sampler_filters[desc->filter];
-		sampDesc.AddressU = _address_modes[desc->address_u];
-		sampDesc.AddressV = _address_modes[desc->address_v];
-		sampDesc.AddressW = _address_modes[desc->address_w];
-		sampDesc.ComparisonFunc = _comparison_functions[desc->comparison_func];
-		sampDesc.MinLOD = desc->min_lod;
-		sampDesc.MaxLOD = desc->max_lod;
+		sampDesc.Filter = _sampler_filters[desc.filter];
+		sampDesc.AddressU = _address_modes[desc.address_u];
+		sampDesc.AddressV = _address_modes[desc.address_v];
+		sampDesc.AddressW = _address_modes[desc.address_w];
+		sampDesc.ComparisonFunc = _comparison_functions[desc.comparison_func];
+		sampDesc.MinLOD = desc.min_lod;
+		sampDesc.MaxLOD = desc.max_lod;
 
 		// Create the Sample State
 		ID3D11SamplerState* sampler_state;
@@ -242,7 +213,7 @@ namespace Hippios {
 		return false;
 	}
 
-	GPUHandle* D3D11Renderer::getSampler(std::string name)
+	GPUHandle* D3D11Renderer::getSampler(std::string& name)
 	{
 		if (m_samplers.find(name) != m_samplers.end())
 			return (GPUHandle*)(&m_samplers[name].handle);
@@ -294,12 +265,6 @@ namespace Hippios {
 		for (auto it = m_input_layouts.begin(); it != m_input_layouts.end(); ++it)
 			(*it)->Release();
 
-		// release the swap chain
-		//m_pDXGISwapChain->Release();
-
-		// release the back buffer
-		//mBackbuffer->Release();
-
 		m_device->Release();
 		m_device_context->Release();
 	}
@@ -318,56 +283,40 @@ namespace Hippios {
 		return std::make_unique<D3D11Texture>(desc, this);
 	}
 
-	GPUProgram* D3D11Renderer::addMaterial(std::string filename, char* shader_type, char* entry_point)
+	ShaderProgram* D3D11Renderer::createShader(const ShaderProgramDesc& desc)
 	{
-		if (!strcmp(shader_type, "vs")) {
-			mVShader = new D3D11HLSL(m_device, m_device_context);
-			HRESULT hr = mVShader->LoadFromFile(filename, entry_point, "vs", "vs_5_0");
-			//HRESULT hr = mVShader->defaultShader("VShader", "vs", "vs_5_0");
-			if (FAILED(hr))
-			{
-				printf("Failed compiling vertex shader %08X\n", hr);
-				return nullptr;
-			}
-			return mVShader;
+		auto* program = new D3D11ShaderProgram(m_device);
+
+		if (!program->loadFromFiles(
+			desc.vertexFile,
+			desc.vertexEntry,
+			desc.pixelFile,
+			desc.pixelEntry))
+		{
+			delete program;
+			return nullptr;
 		}
-		else {
-			mPShader = new D3D11HLSL(m_device, m_device_context);
-			HRESULT hr = mPShader->LoadFromFile(filename, entry_point, "ps", "ps_5_0");
-			//hr = mPShader->defaultShader("PShader", "ps", "ps_5_0");
-			if (FAILED(hr))
-			{
-				printf("Failed compiling particle shader %08X\n", hr);
-				return nullptr;
-			}
-			return mPShader;
-		}
+
+		return program;
 	}
 
-	GPUProgram* D3D11Renderer::addMaterial(unsigned char* buf, int buflen, char* shader_type, char* entry_point)
+	ShaderProgram* D3D11Renderer::createShader(const ShaderProgramSourceDesc& desc)
 	{
-		if (!strcmp(shader_type, "vs")) {
-			mVShader = new D3D11HLSL(m_device, m_device_context);
-			HRESULT hr = mVShader->LoadFromBuffer(buf, buflen, entry_point, "vs", "vs_5_0");
-			//HRESULT hr = mVShader->defaultShader("VShader", "vs", "vs_5_0");
-			if (FAILED(hr))
-			{
-				printf("Failed compiling vertex shader %08X\n", hr);
-				return nullptr;
-			}
-			return mVShader;
+		auto* program = new D3D11ShaderProgram(m_device);
+
+		if (!program->loadFromSource(
+			desc.vertexSource,
+			desc.vertexSourceLength,
+			desc.vertexEntry,
+			desc.pixelSource,
+			desc.pixelSourceLength,
+			desc.pixelEntry))
+		{
+			delete program;
+			return nullptr;
 		}
-		else {
-			mPShader = new D3D11HLSL(m_device, m_device_context);
-			HRESULT hr = mPShader->LoadFromBuffer(buf, buflen, entry_point, "ps", "ps_5_0");
-			//hr = mPShader->defaultShader("PShader", "ps", "ps_5_0");
-			if (FAILED(hr))
-			{
-				printf("Failed compiling particle shader %08X\n", hr);
-				return nullptr;
-			}
-			return mPShader;
-		}
+
+		return program;
 	}
 
 	std::unique_ptr<SwapChain> D3D11Renderer::createSwapChain(NativeWindow* win)
@@ -388,7 +337,8 @@ namespace Hippios {
 	{
 		m_device_context->OMSetBlendState(static_cast<D3D11BlendState*>(state)->getBlendState(), blend_factor, mask);
 	}
-	std::unique_ptr<PipelineStateObject> D3D11Renderer::createPipelineState(PipelineStateObjectDesc* desc)
+
+	std::unique_ptr<PipelineStateObject> D3D11Renderer::createPipelineState(const PipelineStateObjectDesc& desc)
 	{
 		return std::make_unique<D3D11PipelineStateObject>(this, desc);
 	}
@@ -402,20 +352,7 @@ namespace Hippios {
 		}
 	}
 
-	void D3D11Renderer::setVertexShader(GPUProgram* material)
-	{
-		mVShader = static_cast<D3D11HLSL*>(material);		
-		m_device_context->VSSetShader(mVShader->getVertexShader(), 0, 0);
-	}
-
-	void D3D11Renderer::setPixelShader(GPUProgram* material)
-	{
-		mPShader = static_cast<D3D11HLSL*>(material);
-		m_device_context->PSSetShader(mPShader->getPixelShader(), 0, 0);
-		
-	}
-
-	StencilState* D3D11Renderer::getStencilState(std::string name)
+	StencilState* D3D11Renderer::getStencilState(const std::string& name)
 	{
 		auto state = m_stencil_states.find(name);
 		if (state != m_stencil_states.end()) {
@@ -426,7 +363,17 @@ namespace Hippios {
 		}
 	}
 
-	StencilState* D3D11Renderer::createStencilState(std::string name, DepthStencilStateDesc* desc)
+	StencilState* D3D11Renderer::createStencilState(const std::string& name)
+	{
+		D3D11StencilState* state = new D3D11StencilState(m_device, m_device_context);
+		if (state) {
+			m_stencil_states[name].reset(state);
+			return m_stencil_states[name].get();
+		}
+		return nullptr;
+	}
+
+	StencilState* D3D11Renderer::createStencilState(const std::string& name, const DepthStencilStateDesc& desc)
 	{
 		D3D11StencilState* state = new D3D11StencilState(m_device, m_device_context, desc);
 		if (state) {
@@ -489,12 +436,12 @@ namespace Hippios {
 		return buf;
 	}
 	
-	void D3D11Renderer::bindGPUBuffer(GraphicsBuffer* buffer, int slot, char* stage)
+	void D3D11Renderer::bindGPUBuffer(GraphicsBuffer* buffer, int slot, ShaderStage stage)
 	{
 		ID3D11Buffer* cb_buffer = static_cast<D3D11GraphicsBuffer*>(buffer)->get_buffer();
-		if (!strcmp(stage, "VS"))
+		if (stage == ShaderStage::Vertex)
 			m_device_context->VSSetConstantBuffers(slot, 1, &cb_buffer);
-		else if (!strcmp(stage, "PS"))
+		else if (stage == ShaderStage::Fragment)
 			m_device_context->PSSetConstantBuffers(slot, 1, &cb_buffer);
 	}
 }

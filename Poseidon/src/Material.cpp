@@ -39,13 +39,13 @@ namespace Poseidon
 		if (m_material_buffer && mat_buf_register > 0) {
 			// bind the material buffer
 			m_material_buffer->update((void*)&per_mat_buf);
-			m_grahpics_core->get_renderer()->bindGPUBuffer(m_material_buffer, mat_buf_register, "PS");
+			m_grahpics_core->get_renderer()->bindGPUBuffer(m_material_buffer, mat_buf_register, Hippios::ShaderStage::Fragment);
 		}
 
 		if (m_material_buffer_vs && mat_buf_register_vs > 0 && m_mat_buffer_vs) {
 			if (m_mat_buf_vs_dirty)
 				m_material_buffer_vs->update(m_mat_buffer_vs);
-			m_grahpics_core->get_renderer()->bindGPUBuffer(m_material_buffer_vs, mat_buf_register_vs, "VS");
+			m_grahpics_core->get_renderer()->bindGPUBuffer(m_material_buffer_vs, mat_buf_register_vs, Hippios::ShaderStage::Vertex);
 		}
 	}
 
@@ -112,18 +112,11 @@ namespace Poseidon
 		per_mat_buf.num_textures = (int)m_textures.size();
 	}
 
-	Hippios::GPUProgram* Material::getVShader()
+	Hippios::ShaderProgram* Material::getShaderProgram()
 	{
 		if (!m_shader)
 			return nullptr;
-		return m_shader->getVShader();
-	}
-
-	Hippios::GPUProgram* Material::getPShader()
-	{
-		if (!m_shader)
-			return nullptr;
-		return m_shader->getPShader();
+		return m_shader->getShaderProgram();
 	}
 
 	void Material::SetColor(int slot, const Math::Vector4& color)

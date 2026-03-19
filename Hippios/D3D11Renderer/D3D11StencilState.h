@@ -9,7 +9,8 @@ namespace Hippios
 	class D3D11StencilState : public StencilState
 	{
 	public:
-		D3D11StencilState(ID3D11Device* device, ID3D11DeviceContext* device_context, DepthStencilStateDesc* desc);
+		D3D11StencilState(ID3D11Device* device, ID3D11DeviceContext* device_context);
+		D3D11StencilState(ID3D11Device* device, ID3D11DeviceContext* device_context, const DepthStencilStateDesc& desc);
 		~D3D11StencilState();
 
 		void initialize();

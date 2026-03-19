@@ -41,7 +41,7 @@ namespace Rhea
 		size_t buflen;
 		shader_code->getRaw(&buf, &buflen);
 		shader = core->createShader(shader_name);
-		if (shader->loadFromBuffer((unsigned char*)buf, buflen, "VShader", "PShader"))
+		if (!shader->loadFromBuffer((unsigned char*)buf, buflen, "VShader", "PShader"))
 			exit(-1);
 
 		// set transparency

@@ -1,6 +1,6 @@
 #include "D3D11PipelineState.h"
 #include "D3D11Renderer.h"
-#include "D3D11HLSL.h"
+#include "D3D11ShaderProgram.h"
 #include <cassert>
 #include <Psio/Log.h>
 
@@ -57,28 +57,27 @@ namespace Hippios
 		}
 	}
 
-	D3D11PipelineStateObject::D3D11PipelineStateObject(Renderer* renderer, PipelineStateObjectDesc* desc)
+	D3D11PipelineStateObject::D3D11PipelineStateObject(Renderer* renderer, const PipelineStateObjectDesc& desc)
 	{
 		m_renderer = (D3D11Renderer*)renderer;
 
 		// initialize dpeth stencil state
-		m_stencil_state = static_cast<D3D11StencilState*>(m_renderer->getStencilState(desc->depthStencilState.name));		
+		m_stencil_state = static_cast<D3D11StencilState*>(m_renderer->getStencilState(desc.depthStencilState.name));		
 		if (!m_stencil_state)
-			m_stencil_state = static_cast<D3D11StencilState*>(m_renderer->createStencilState(desc->depthStencilState.name, &desc->depthStencilState));
+			m_stencil_state = static_cast<D3D11StencilState*>(m_renderer->createStencilState(desc.depthStencilState.name, desc.depthStencilState));
 		
 		// initialize rasterizer state
 
 
 		// initialize blend state
-		m_blend_state = std::make_unique<D3D11BlendState>(m_renderer->get_device(), desc->blendState);
+		m_blend_state = std::make_unique<D3D11BlendState>(m_renderer->get_device(), desc.blendState);
 
 		// initialize input layout
 
 		// initialize primitive topology		
-		m_vertex_shader = desc->shaderProgram.vertex_shader;
-		m_pixel_shader = desc->shaderProgram.pixel_shader;
+		m_shader_program = static_cast<D3D11ShaderProgram*>(desc.shaderProgram);
 
-		m_cull_mode = desc->rasterizerState.cull_mode;
+		m_cull_mode = desc.rasterizerState.cull_mode;
 
 		D3D11_RASTERIZER_DESC cmdesc = {};
 		bool set_raster = false;
@@ -91,9 +90,9 @@ namespace Hippios
 			cmdesc.CullMode = D3D11_CULL_FRONT;
 			set_raster = true;
 		}
-		if (desc->rasterizerState.fill_mode == FillMode::SOLID) 
+		if (desc.rasterizerState.fill_mode == FillMode::SOLID) 
 			cmdesc.FillMode = D3D11_FILL_SOLID;
-		else if (desc->rasterizerState.fill_mode == FillMode::WIREFRAME) {
+		else if (desc.rasterizerState.fill_mode == FillMode::WIREFRAME) {
 			cmdesc.FillMode = D3D11_FILL_WIREFRAME;
 			set_raster = true;
 		}
@@ -106,25 +105,32 @@ namespace Hippios
 
 		// vertex input layout
 		D3D11_INPUT_ELEMENT_DESC* ied;
-		ied = new D3D11_INPUT_ELEMENT_DESC[desc->inputLayout.num_elements];
-		assert(desc->inputLayout.num_elements > 0);
-		for (int i = 0; i < desc->inputLayout.num_elements; i++) {
-			ied[i].SemanticName = desc->inputLayout.elements[i].semantic_name;
+		ied = new D3D11_INPUT_ELEMENT_DESC[desc.inputLayout.num_elements];
+		assert(desc.inputLayout.num_elements > 0);
+		for (int i = 0; i < desc.inputLayout.num_elements; i++) {
+			ied[i].SemanticName = desc.inputLayout.elements[i].semantic_name;
 			ied[i].SemanticIndex = 0;
-			ied[i].Format = D3D11RendererGetFormat(desc->inputLayout.elements[i].format);
+			ied[i].Format = D3D11RendererGetFormat(desc.inputLayout.elements[i].format);
 			ied[i].InputSlot = 0;
-			ied[i].AlignedByteOffset = desc->inputLayout.elements[i].aligned_byte_offset;
+			ied[i].AlignedByteOffset = desc.inputLayout.elements[i].aligned_byte_offset;
 			ied[i].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
 			ied[i].InstanceDataStepRate = 0;
 		}
-		HRESULT HR = m_renderer->get_device()->CreateInputLayout(ied, desc->inputLayout.num_elements, ((D3D11HLSL*)m_vertex_shader)->getBuffer(), ((D3D11HLSL*)m_vertex_shader)->getBufferSize(), &m_input_layout);
+		// use the vertex blob from D3D11ShaderProgram for input layout creation
+		ID3DBlob* vs_blob = m_shader_program->getVertexBlob();
+		HRESULT HR = m_renderer->get_device()->CreateInputLayout(
+			ied,
+			desc.inputLayout.num_elements,
+			vs_blob->GetBufferPointer(),
+			vs_blob->GetBufferSize(),
+			&m_input_layout);
 		if (FAILED(HR)) {
 			LOG(LOG_DEBUG) << "CreateInputLayout: HRESULT: 0x" << std::hex << HR;
 			LOG(LOG_ERROR) << "D3D11PipelineStateObject: Could not create input layout for shader - expect shader to fail.";
 		}
 		delete[] ied;
 
-		switch (desc->vertexLayout) {
+		switch (desc.vertexLayout) {
 		case PrimitiveTopology::LineList:
 			m_topology = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
 			break;
@@ -165,7 +171,7 @@ namespace Hippios
 		m_renderer->setBlendState(m_blend_state.get(), blend_factor, blend_mask);
 		m_renderer->get_device_context()->IASetInputLayout(m_input_layout);
 		m_renderer->get_device_context()->IASetPrimitiveTopology(m_topology);
-		m_renderer->setVertexShader(m_vertex_shader);
-		m_renderer->setPixelShader(m_pixel_shader);
+		m_renderer->get_device_context()->VSSetShader(m_shader_program->getVertexShader(), nullptr, 0);
+		m_renderer->get_device_context()->PSSetShader(m_shader_program->getPixelShader(), nullptr, 0);
 	}
 }

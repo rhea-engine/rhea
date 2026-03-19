@@ -6,8 +6,7 @@ namespace Poseidon
 {
 	Shader::Shader(Core* core) :
 		m_grahpics_core(core),
-		m_vshader(nullptr),
-		m_pshader(nullptr),
+		m_shader(nullptr),		
 		m_vertex_type(1),
 		m_alpha_blending(false),
 		m_pso(nullptr),
@@ -27,26 +26,37 @@ namespace Poseidon
 
 	Shader::~Shader()
 	{
-		if (m_vshader)
-			delete m_vshader;
-		if (m_pshader)
-			delete m_pshader;
+		if (m_shader)
+			delete m_shader;		
 	}
 
 	bool Shader::loadFromFile(std::string filename, char* vs_entry_point, char* ps_entry_point)
 	{
-		m_vshader = m_renderer->addMaterial(filename, "vs", vs_entry_point);
-		m_pshader = m_renderer->addMaterial(filename, "ps", ps_entry_point);
+		Hippios::ShaderProgramDesc desc;
+		desc.vertexFile = filename;
+		desc.vertexEntry = vs_entry_point ? vs_entry_point : "VSMain";
+		desc.pixelFile = filename;
+		desc.pixelEntry = ps_entry_point ? ps_entry_point : "PSMain";
 
-		return (m_pshader == nullptr || m_vshader == nullptr);
+		m_shader = m_renderer->createShader(desc);
+
+		return (m_shader != nullptr);
 	}
 
 	bool Shader::loadFromBuffer(unsigned char* buf, size_t buflen, char* vs_entry_point, char* ps_entry_point)
 	{
-		m_vshader = m_renderer->addMaterial(buf, (int)buflen, "vs", vs_entry_point);
-		m_pshader = m_renderer->addMaterial(buf, (int)buflen, "ps", ps_entry_point);
+		Hippios::ShaderProgramSourceDesc desc;
+		desc.vertexSource = buf;
+		desc.vertexSourceLength = buflen;
+		desc.vertexEntry = vs_entry_point ? vs_entry_point : "VSMain";
 
-		return (m_pshader == nullptr || m_vshader == nullptr);
+		desc.pixelSource = buf;
+		desc.pixelSourceLength = buflen;
+		desc.pixelEntry = ps_entry_point ? ps_entry_point : "PSMain";
+
+		m_shader = m_renderer->createShader(desc);
+
+		return (m_shader != nullptr);
 	}
 
 	void Shader::finalize()
@@ -82,8 +92,7 @@ namespace Poseidon
 				LOG(LOG_ERROR) << "Sampler " << m_sampler_name << " not found";
 
 			// shader programs
-			pso_desc.shaderProgram.vertex_shader = getVShader();
-			pso_desc.shaderProgram.pixel_shader = getPShader();
+			pso_desc.shaderProgram = getShaderProgram();			
 
 			// layout
 
@@ -144,7 +153,7 @@ namespace Poseidon
 			}
 
 			// create the state
-			m_pso = m_renderer->createPipelineState(&pso_desc);
+			m_pso = m_renderer->createPipelineState(pso_desc);
 		}
 	}
 

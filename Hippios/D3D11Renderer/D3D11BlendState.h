@@ -10,7 +10,7 @@ namespace Hippios
 	class D3D11BlendState : public BlendState
 	{
 	public:
-		D3D11BlendState(ID3D11Device* device, BlendStateDesc& desc);
+		D3D11BlendState(ID3D11Device* device, const BlendStateDesc& desc);
 		~D3D11BlendState();
 
 		ID3D11BlendState* getBlendState() { return m_state; }

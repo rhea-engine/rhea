@@ -54,11 +54,11 @@ namespace Poseidon
 
 		//initialize graphic buffers
 		m_frame_buffer = m_renderer->createGraphicsBuffer(sizeof(cbPerFrame));
-		m_renderer->bindGPUBuffer(m_frame_buffer.get(), 0, "VS");
+		m_renderer->bindGPUBuffer(m_frame_buffer.get(), 0, Hippios::ShaderStage::Vertex);
 		m_object_buffer = m_renderer->createGraphicsBuffer(sizeof(cbPerObject));
-		//m_renderer->bindGPUBuffer(m_object_buffer.get(), 1, "VS");
+		//m_renderer->bindGPUBuffer(m_object_buffer.get(), 1, Hippios::ShaderStage::Vertex);
 		m_light_buffer = m_renderer->createGraphicsBuffer(sizeof(cbLight));
-		m_renderer->bindGPUBuffer(m_light_buffer.get(), 2, "PS");		
+		m_renderer->bindGPUBuffer(m_light_buffer.get(), 2, Hippios::ShaderStage::Fragment);		
 		m_bone_buffer = m_renderer->createGraphicsBuffer(sizeof(BoneBuffer));
 	}
 
@@ -170,7 +170,7 @@ namespace Poseidon
 				}
 				light_buf.num_lights = (float)idx;
 				m_light_buffer->update((void*)&light_buf);
-				m_renderer->bindGPUBuffer(m_light_buffer.get(), 2, "PS");
+				m_renderer->bindGPUBuffer(m_light_buffer.get(), 2, Hippios::ShaderStage::Fragment);
 
 				Item* renderable = m_rend_queue->first();
 				for (Item* renderable = m_rend_queue->first(); renderable != NULL; renderable = m_rend_queue->next()) {
@@ -198,7 +198,7 @@ namespace Poseidon
 						per_obj_buf.inverse = per_obj_buf.world_matrix.inverse().transpose();
 
 						m_object_buffer->update((void*)&per_obj_buf);
-						m_renderer->bindGPUBuffer(m_object_buffer.get(), 1, "VS");
+						m_renderer->bindGPUBuffer(m_object_buffer.get(), 1, Hippios::ShaderStage::Vertex);
 					}
 
 					// get render mesh
@@ -221,7 +221,7 @@ namespace Poseidon
 
 						// Update the bone matrix buffer
 						m_bone_buffer->update((void*)&boneBuffer);
-						m_renderer->bindGPUBuffer(m_bone_buffer.get(), 4, "VS"); // Bind bone buffer to slot 4 for vertex shader
+						m_renderer->bindGPUBuffer(m_bone_buffer.get(), 4, Hippios::ShaderStage::Vertex); // Bind bone buffer to slot 4 for vertex shader
 					}
 
 					// iterate over submeshes

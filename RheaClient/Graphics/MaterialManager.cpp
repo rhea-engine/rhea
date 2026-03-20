@@ -61,7 +61,8 @@ namespace Rhea
 
 		// sampler state
 		std::string sampler_name = shader_res->getValue("sampler", "linear");
-		shader->setSampler(sampler_name);
+		Hippios::SamplerState* sampler = core->getSamplerState(sampler_name);
+		shader->setSamplerState(sampler);
 
 		// input layout
 		std::string input_layout = shader_res->getValue("input", "");

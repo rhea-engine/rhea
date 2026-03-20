@@ -25,6 +25,12 @@ namespace Hippios
 		float min_lod = 0;
 		float max_lod = FLT_MAX;
 	};
+
+	class SamplerState
+	{
+	public:
+		virtual ~SamplerState() = default;
+	};
 }
 
 #endif // !HIPPIOS_SAMPLER_H

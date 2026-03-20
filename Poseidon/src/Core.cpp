@@ -66,8 +66,11 @@ namespace Poseidon
 		sampler_desc.comparison_func = Hippios::ComparisonFunction::COMPARE_NEVER;
 		sampler_desc.min_lod = 0;
 		sampler_desc.max_lod = FLT_MAX;
-		if (!m_renderer->createSampler("linear", sampler_desc))
+		Hippios::SamplerState* linear_sampler = m_renderer->createSampler(sampler_desc);
+		if (!linear_sampler)
 			LOG(LOG_ERROR) << "Could not create linear sampler";
+		else
+			m_sampler_states["linear"] = linear_sampler;
 		
 		// nearest sampler
 		memset(&sampler_desc, 0, sizeof(sampler_desc));
@@ -78,7 +81,10 @@ namespace Poseidon
 		sampler_desc.comparison_func = Hippios::ComparisonFunction::COMPARE_NEVER;
 		sampler_desc.min_lod = 0;
 		sampler_desc.max_lod = FLT_MAX;
-		if (!m_renderer->createSampler("nearest", sampler_desc))
+		Hippios::SamplerState* nearest_sampler = m_renderer->createSampler(sampler_desc);
+		if (nearest_sampler)
+			m_sampler_states["nearest"] = nearest_sampler;
+		 else
 			LOG(LOG_ERROR) << "Could not create nearest sampler";
 
 		// add a scene manager 
@@ -199,6 +205,14 @@ namespace Poseidon
 	{
 		Camera* camera = new Poseidon::Camera(m_renderer.get());
 		return camera;
+	}
+
+	Hippios::SamplerState* Core::getSamplerState(std::string name)
+	{
+		if (m_sampler_states.find(name) != m_sampler_states.end())
+			return m_sampler_states[name];
+		else
+			return nullptr;
 	}
 
 	void Core::SetFullscreen(bool mode)

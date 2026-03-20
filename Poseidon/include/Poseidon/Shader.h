@@ -7,6 +7,7 @@
 #include <Hippios/ShaderProgram.h>
 #include <Hippios/GraphicsBuffer.h>
 #include <Hippios/PipelineState.h>
+#include <Hippios/SamplerState.h>
 #include <Poseidon/Core.h>
 
 namespace Poseidon
@@ -42,7 +43,7 @@ namespace Poseidon
 		void setCullMode(bool enabled) { m_cull_mode = enabled; }
 
 		// sampler reference
-		void setSampler(std::string name) { m_sampler_name = name; }
+		void setSamplerState(Hippios::SamplerState* sampler_state) { m_sampler_state = sampler_state; }
 
 		// setup is complete, finalize
 		void finalize();
@@ -107,8 +108,7 @@ namespace Poseidon
 		std::string m_stencil_test;
 		int m_topology_type;
 		bool m_cull_mode;
-		std::string m_sampler_name;
-		Hippios::GPUHandle* m_sampler_handle;
+		Hippios::SamplerState* m_sampler_state;
 
 		// pixel shader material buffer
 		std::vector<MatBufferLayoutElement> m_matbuf_layout;

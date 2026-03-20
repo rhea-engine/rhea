@@ -7,7 +7,7 @@
 #include "TextureDesc.h"
 #include "PipelineState.h"
 #include "BlendState.h"
-#include "Sampler.h"
+#include "SamplerState.h"
 #include "SwapChain.h"
 #include "Texture.h"
 #include "GraphicsBuffer.h"
@@ -213,24 +213,16 @@ namespace Hippios
 
 		/**
 		 * @brief Creates a new sampler state.
-		 * @param name The name for the sampler.
 		 * @param desc The descriptor defining the sampler properties.
-		 * @return True if the sampler was successfully created, false otherwise.
+		 * @return A pointer to the created SamplerState.
 		 */
-		virtual bool createSampler(const std::string& name, const SamplerDesc& desc) = 0;
-
-		/**
-		 * @brief Retrieves a sampler handle by name.
-		 * @param name The name of the sampler.
-		 * @return A pointer to the GPUHandle representing the sampler.
-		 */
-		virtual GPUHandle* getSampler(std::string& name) = 0;
+		virtual SamplerState* createSampler(const SamplerDesc& desc) = 0;
 
 		/**
 		 * @brief Sets the active sampler.
 		 * @param handle The handle to the sampler.
 		 */
-		virtual void setSampler(GPUHandle* handle) = 0;
+		virtual void setSampler(int slot, SamplerState* sampler, ShaderStage stage) = 0;
 
 		/**
 		 * @brief Binds a graphics buffer to a specific shader stage.

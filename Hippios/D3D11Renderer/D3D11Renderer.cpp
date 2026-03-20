@@ -23,6 +23,7 @@
 #include "D3D11RenderTarget.h"
 #include "D3D11BlendState.h"
 #include "D3D11ShaderProgram.h"
+#include "D3D11SamplerState.h"
 
 #pragma comment (lib, "d3d11.lib")
 
@@ -186,7 +187,7 @@ namespace Hippios {
 		}
 	}
 
-	bool D3D11Renderer::createSampler(const std::string& name, const SamplerDesc& desc)
+	SamplerState* D3D11Renderer::createSampler(const SamplerDesc& desc)
 	{
 		// Create default sampler states
 		D3D11_SAMPLER_DESC sampDesc;
@@ -204,31 +205,30 @@ namespace Hippios {
 		// Create the Sample State
 		ID3D11SamplerState* sampler_state;
 		HRESULT HR = m_device->CreateSamplerState(&sampDesc, &sampler_state);
-		if (SUCCEEDED(HR)) {
-			m_sampler_states.push_back(sampler_state);
-			D3D11GPUHandle handle;
-			handle.handle = m_sampler_states.size()-1;
-			m_samplers[name] = handle;
-			return true;
-		}
-		return false;
-	}
 
-	GPUHandle* D3D11Renderer::getSampler(std::string& name)
-	{
-		if (m_samplers.find(name) != m_samplers.end())
-			return (GPUHandle*)(&m_samplers[name].handle);
-		else
+		if (FAILED(HR))
 			return nullptr;
+
+		auto* sampler = new D3D11SamplerState();
+		sampler->state = sampler_state;
+		return sampler;
 	}
 
-	void D3D11Renderer::setSampler(GPUHandle* handle)
+	void D3D11Renderer::setSampler(int slot, SamplerState* sampler, ShaderStage stage)
 	{
-		static size_t last_handle = -1;
-		size_t idx = static_cast<D3D11GPUHandle*>(handle)->handle;
-		if (handle && m_sampler_states.size() > idx && idx != last_handle) {
-			last_handle = idx;
-			m_device_context->PSSetSamplers(0, 1, &m_sampler_states[idx]);
+		auto* d3dSampler = static_cast<D3D11SamplerState*>(sampler);
+		ID3D11SamplerState* native = d3dSampler ? d3dSampler->state : nullptr;
+
+		switch (stage)
+		{
+		case ShaderStage::Vertex:
+			m_device_context->VSSetSamplers(slot, 1, &native);
+			break;
+		case ShaderStage::Fragment:
+			m_device_context->PSSetSamplers(slot, 1, &native);
+			break;
+		default:
+			break;
 		}
 	}
 

@@ -91,10 +91,9 @@ namespace Hippios
 		void setStencilState(StencilState* state, int stencil_ref) override;
 
 		// create a new sampler
-		bool createSampler(const std::string& name, const SamplerDesc& desc) override;
-		// get a sampler
-		GPUHandle* getSampler(std::string& name) override;
-		virtual void setSampler(GPUHandle* handle) override;
+		SamplerState* createSampler(const SamplerDesc& desc) override;
+		// set sampler to a slot and shader stage
+		virtual void setSampler(int slot, SamplerState* sampler, ShaderStage stage) override;
 
 		// rasterizer state
 		void setRasterizerState(ID3D11RasterizerState* state);

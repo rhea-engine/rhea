@@ -8,7 +8,7 @@
 #include <memory>
 #include <unordered_map>
 
-namespace Hippios { class Renderer; class GraphicsBuffer; }
+namespace Hippios { class Renderer; class GraphicsBuffer; class SamplerState; }
 
 #include "Node.h"
 
@@ -62,6 +62,9 @@ namespace Poseidon
 		Entity* createEntity(Mesh* mesh);
 		Camera* createCamera();		
 
+		// get sampler state by name
+		Hippios::SamplerState* getSamplerState(std::string name);
+
 		// set application name
 		void setAppname(std::string appname) { m_appname = appname; }
 
@@ -80,6 +83,7 @@ namespace Poseidon
 		Psio::Engine* m_psio;
 		std::unordered_map<std::string, Material*> m_materials;
 		std::unordered_map<std::string, Shader*> m_shaders;
+		std::unordered_map<std::string, Hippios::SamplerState*> m_sampler_states;
 
 		Material* m_default_material = 0;
 

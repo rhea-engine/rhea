@@ -19,7 +19,7 @@ namespace Poseidon
 		m_matbuf_layout(),
 		m_material_buffer_vs(nullptr),
 		m_renderer(nullptr),
-		m_sampler_handle(nullptr)
+		m_sampler_state(nullptr)
 	{
 		m_renderer = m_grahpics_core->get_renderer();
 	}
@@ -47,11 +47,11 @@ namespace Poseidon
 	{
 		Hippios::ShaderProgramSourceDesc desc;
 		desc.vertexSource = buf;
-		desc.vertexSourceLength = buflen;
+		desc.vertexSourceLength = (int)buflen;
 		desc.vertexEntry = vs_entry_point ? vs_entry_point : "VSMain";
 
 		desc.pixelSource = buf;
-		desc.pixelSourceLength = buflen;
+		desc.pixelSourceLength = (int)buflen;
 		desc.pixelEntry = ps_entry_point ? ps_entry_point : "PSMain";
 
 		m_shader = m_renderer->createShader(desc);
@@ -85,11 +85,6 @@ namespace Poseidon
 			// cull mode in raster state
 			if (!m_cull_mode)
 				pso_desc.rasterizerState.cull_mode = Hippios::CullMode::NONE;
-
-			// sampler
-			m_sampler_handle = m_renderer->getSampler(m_sampler_name);
-			if (!m_sampler_handle)
-				LOG(LOG_ERROR) << "Sampler " << m_sampler_name << " not found";
 
 			// shader programs
 			pso_desc.shaderProgram = getShaderProgram();			
@@ -183,7 +178,7 @@ namespace Poseidon
 	{
 		assert(m_pso != nullptr);
 		m_grahpics_core->get_renderer()->setPipelineState(m_pso.get());
-		m_grahpics_core->get_renderer()->setSampler(m_sampler_handle);
+		m_grahpics_core->get_renderer()->setSampler(0, m_sampler_state, Hippios::ShaderStage::Fragment);
 	}
 
 }

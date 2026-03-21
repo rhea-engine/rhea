@@ -270,15 +270,6 @@ namespace Hippios {
 		m_device_context->Release();
 	}
 
-	std::unique_ptr<RenderTarget> D3D11Renderer::createRenderTarget(int width, int height, SwapChain* swap_chain)
-	{
-		auto target = std::make_unique<D3D11RenderTarget>();
-		if (target->create(this, width, height, swap_chain))
-			return target;
-		else
-			return nullptr;
-	}
-
 	std::unique_ptr<RenderTarget> D3D11Renderer::createRenderTarget(const RenderTargetDesc& desc)
 	{
 		auto target = std::make_unique<D3D11RenderTarget>();
@@ -432,7 +423,7 @@ namespace Hippios {
 		cbbd.Usage = D3D11_USAGE_DEFAULT;
 		// make sure size is a multiple of 16
 		if (size % 16) {
-			size_t base = size % 16;
+			size_t base = size / 16;
 			size = (base + 1) * 16;
 		}
 		cbbd.ByteWidth = (UINT)size;

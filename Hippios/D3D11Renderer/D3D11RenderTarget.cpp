@@ -12,13 +12,6 @@ namespace Hippios
 			m_backbuffer->Release();
 	}
 
-	bool D3D11RenderTarget::create(Renderer* renderer, int width, int height, SwapChain* swap_chain)
-	{		
-		m_renderer = static_cast<D3D11Renderer*>(renderer);
-		m_swap_chain = swap_chain;
-		return resize(width, height);
-	}
-
 	bool D3D11RenderTarget::resize(int width, int height)
 	{
 		IDXGISwapChain* d3_swap_chain = static_cast<D3D11SwapChain*>(m_swap_chain)->getNativeSwapChain();

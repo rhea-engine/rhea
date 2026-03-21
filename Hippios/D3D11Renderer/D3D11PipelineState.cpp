@@ -108,13 +108,34 @@ namespace Hippios
 		ied = new D3D11_INPUT_ELEMENT_DESC[desc.inputLayout.num_elements];
 		assert(desc.inputLayout.num_elements > 0);
 		for (int i = 0; i < desc.inputLayout.num_elements; i++) {
-			ied[i].SemanticName = desc.inputLayout.elements[i].semantic_name;
-			ied[i].SemanticIndex = 0;
-			ied[i].Format = D3D11RendererGetFormat(desc.inputLayout.elements[i].format);
-			ied[i].InputSlot = 0;
-			ied[i].AlignedByteOffset = desc.inputLayout.elements[i].aligned_byte_offset;
-			ied[i].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-			ied[i].InstanceDataStepRate = 0;
+			const auto& elem = desc.inputLayout.elements[i];
+
+			const InputBindingDesc* bindingDesc = nullptr;
+			for (int b = 0; b < desc.inputLayout.num_bindings; ++b)
+			{
+				if (desc.inputLayout.bindings[b].inputSlot == elem.input_slot)
+				{
+					bindingDesc = &desc.inputLayout.bindings[b];
+					break;
+				}
+			}
+
+			ied[i].SemanticName = elem.semantic_name;
+			ied[i].SemanticIndex = elem.semantic_index;
+			ied[i].Format = D3D11RendererGetFormat(elem.format);
+			ied[i].InputSlot = elem.input_slot;
+			ied[i].AlignedByteOffset = elem.aligned_byte_offset;
+
+			if (bindingDesc && bindingDesc->instanceStepRate > 0)
+			{
+				ied[i].InputSlotClass = D3D11_INPUT_PER_INSTANCE_DATA;
+				ied[i].InstanceDataStepRate = bindingDesc->instanceStepRate;
+			}
+			else
+			{
+				ied[i].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+				ied[i].InstanceDataStepRate = 0;
+			}
 		}
 		// use the vertex blob from D3D11ShaderProgram for input layout creation
 		ID3DBlob* vs_blob = m_shader_program->getVertexBlob();
@@ -130,7 +151,7 @@ namespace Hippios
 		}
 		delete[] ied;
 
-		switch (desc.vertexLayout) {
+		switch (desc.primitiveTopology) {
 		case PrimitiveTopology::LineList:
 			m_topology = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
 			break;

@@ -114,17 +114,60 @@ namespace Hippios
 		R8_SINT
 
 	};
+
+	static bool isIntegerFormat(InputLayoutFormat format)
+	{
+		switch (format)
+		{
+		case InputLayoutFormat::R32_UINT:
+		case InputLayoutFormat::R32G32_UINT:
+		case InputLayoutFormat::R32G32B32_UINT:
+		case InputLayoutFormat::R32G32B32A32_UINT:
+		case InputLayoutFormat::R32_SINT:
+		case InputLayoutFormat::R32G32_SINT:
+		case InputLayoutFormat::R32G32B32_SINT:
+		case InputLayoutFormat::R32G32B32A32_SINT:
+		case InputLayoutFormat::R16G16B16A16_UINT:
+		case InputLayoutFormat::R16G16_UINT:
+		case InputLayoutFormat::R16_UINT:
+		case InputLayoutFormat::R16G16B16A16_SINT:
+		case InputLayoutFormat::R16G16_SINT:
+		case InputLayoutFormat::R16_SINT:
+		case InputLayoutFormat::R8G8B8A8_UINT:
+		case InputLayoutFormat::R8G8_UINT:
+		case InputLayoutFormat::R8_UINT:
+		case InputLayoutFormat::R8G8B8A8_SINT:
+		case InputLayoutFormat::R8G8_SINT:
+		case InputLayoutFormat::R8_SINT:
+			return true;
+
+		default:
+			return false;
+		}
+	}
+
 	struct InputLayoutElement {
 		const char* semantic_name = "ATTRIB";
 		int semantic_index = 0;
+		int location = 0; // shader location
 		InputLayoutFormat format = InputLayoutFormat::FORMAT_UNKNOWN;
 		int input_slot = 0;
 		int aligned_byte_offset = 0;
 		int instance_data_step_rate = 0;
 	};
+
+	struct InputBindingDesc
+	{
+		uint32_t inputSlot;
+		uint32_t stride;
+		uint32_t instanceStepRate;  // 0 = per-vertex, >0 = per-instance
+	};
+
 	struct InputLayoutDesc {
 		InputLayoutElement* elements = nullptr;
 		int num_elements = 0;
+		InputBindingDesc* bindings = nullptr;
+		int num_bindings = 0;
 	};
 
 
@@ -134,7 +177,7 @@ namespace Hippios
 		RasterizerStateDesc rasterizerState;
 		BlendStateDesc blendState;
 		ShaderProgram* shaderProgram = nullptr;
-		PrimitiveTopology vertexLayout = PrimitiveTopology::TriangleList;
+		PrimitiveTopology primitiveTopology = PrimitiveTopology::TriangleList;
 		bool m_alpha_blending = false;
 		InputLayoutDesc inputLayout;
 	};

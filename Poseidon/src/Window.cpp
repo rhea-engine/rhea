@@ -1,6 +1,7 @@
 #include "Poseidon/Window.h"
 #include <memory>
 #include <Hippios/Renderer.h>
+#include <Psio/Log.h>
 
 namespace Poseidon
 {
@@ -20,6 +21,10 @@ namespace Poseidon
 		win.native_win_handle = m_native_win->getHandle();
 
 		m_swap_chain = m_renderer->createSwapChain(&win);
+		if (!m_swap_chain) {
+			LOG(LOG_ERROR) << "Failed to create swap chain and initialize graphics context";
+			return; // oder throw exception
+		}
 		// create my own render target
 		createRenderTarget(win.width, win.height, m_swap_chain.get());
 	}

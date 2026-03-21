@@ -92,59 +92,81 @@ namespace Poseidon
 			// layout
 
 			Hippios::InputLayoutElement elements_pos_uv[] = {
-				{ "POSITION", 0, Hippios::InputLayoutFormat::R32G32B32_FLOAT, 0, 0 },
-				{ "TEXCOORD", 0, Hippios::InputLayoutFormat::R32G32_FLOAT, 0, 12 }
+				{ "POSITION", 0, 0, Hippios::InputLayoutFormat::R32G32B32_FLOAT, 0, 0 },
+				{ "TEXCOORD", 0, 1, Hippios::InputLayoutFormat::R32G32_FLOAT, 0, 12 }
+			};
+			Hippios::InputBindingDesc binding_pos_uv[] = {
+				{ 0, sizeof(float) * (3 + 2), 0}
 			};
 			Hippios::InputLayoutElement elements_pos_norm_uv[] = {
-				{ "POSITION", 0, Hippios::InputLayoutFormat::R32G32B32_FLOAT, 0, 0 },
-				{ "NORMAL", 0, Hippios::InputLayoutFormat::R32G32B32_FLOAT, 0, 12},
-				{ "TEXCOORD", 0, Hippios::InputLayoutFormat::R32G32_FLOAT, 0, 24 }
+				{ "POSITION", 0, 0, Hippios::InputLayoutFormat::R32G32B32_FLOAT, 0, 0 },
+				{ "NORMAL", 0, 1, Hippios::InputLayoutFormat::R32G32B32_FLOAT, 0, 12},
+				{ "TEXCOORD", 0, 2, Hippios::InputLayoutFormat::R32G32_FLOAT, 0, 24 }
+			};
+			Hippios::InputBindingDesc binding_pos_norm_uv[] = {
+				{ 0, sizeof(float) * (3 + 3 + 2), 0 }
 			};
 			Hippios::InputLayoutElement elements_pos_norm_uv_tangent[] = {
-				{ "POSITION", 0, Hippios::InputLayoutFormat::R32G32B32_FLOAT, 0, 0 },
-				{ "NORMAL", 0, Hippios::InputLayoutFormat::R32G32B32_FLOAT, 0, 12},
-				{ "TEXCOORD", 0, Hippios::InputLayoutFormat::R32G32_FLOAT, 0, 24 },
-				{ "TANGENT", 0, Hippios::InputLayoutFormat::R32G32B32_FLOAT, 0, 32 }
+				{ "POSITION", 0, 0, Hippios::InputLayoutFormat::R32G32B32_FLOAT, 0, 0 },
+				{ "NORMAL", 0, 1, Hippios::InputLayoutFormat::R32G32B32_FLOAT, 0, 12},
+				{ "TEXCOORD", 0, 2, Hippios::InputLayoutFormat::R32G32_FLOAT, 0, 24 },
+				{ "TANGENT", 0, 3, Hippios::InputLayoutFormat::R32G32B32_FLOAT, 0, 32 }
+			};
+			Hippios::InputBindingDesc binding_pos_norm_uv_tangent[] = {
+				{ 0, sizeof(float) * (3 + 3 + 2 + 3), 0 }
 			};
 			Hippios::InputLayoutElement elements_pos_norm_uv_tangent_skeletal[] = {
-				{ "POSITION", 0, Hippios::InputLayoutFormat::R32G32B32_FLOAT, 0, 0 },
-				{ "NORMAL", 0, Hippios::InputLayoutFormat::R32G32B32_FLOAT, 0, 12 },
-				{ "TEXCOORD", 0, Hippios::InputLayoutFormat::R32G32_FLOAT, 0, 24 },
-				{ "TANGENT", 0, Hippios::InputLayoutFormat::R32G32B32_FLOAT, 0, 32 },
-				{ "JOINTS", 0, Hippios::InputLayoutFormat::R16G16B16A16_UINT, 0, 44 }, // Bone indices
-				{ "WEIGHTS", 0, Hippios::InputLayoutFormat::R32G32B32A32_FLOAT, 0, 52 } // Bone weights
+				{ "POSITION", 0, 0, Hippios::InputLayoutFormat::R32G32B32_FLOAT, 0, 0 },
+				{ "NORMAL", 0, 1, Hippios::InputLayoutFormat::R32G32B32_FLOAT, 0, 12 },
+				{ "TEXCOORD", 0, 2, Hippios::InputLayoutFormat::R32G32_FLOAT, 0, 24 },
+				{ "TANGENT", 0, 3, Hippios::InputLayoutFormat::R32G32B32_FLOAT, 0, 32 },
+				{ "JOINTS", 0, 4, Hippios::InputLayoutFormat::R16G16B16A16_UINT, 0, 44 }, // Bone indices
+				{ "WEIGHTS", 0, 5, Hippios::InputLayoutFormat::R32G32B32A32_FLOAT, 0, 52 } // Bone weights
 			};
+			Hippios::InputBindingDesc binding_pos_norm_uv_tangent_skeletal[] = {
+				{ 0, sizeof(float) * (3 + 3 + 2 + 3) + sizeof(uint16_t) * 4 + sizeof(float) * 4, 0 }
+			};			
 			switch (m_vertex_type) {
 			case 0: // default
 				pso_desc.inputLayout.elements = &elements_pos_norm_uv[0];
 				pso_desc.inputLayout.num_elements = 3;
+				pso_desc.inputLayout.bindings = &binding_pos_norm_uv[0];
+				pso_desc.inputLayout.num_bindings = 1;
 				break;
 			case 1: // short (no normals)
 				pso_desc.inputLayout.elements = &elements_pos_uv[0];
 				pso_desc.inputLayout.num_elements = 2;
+				pso_desc.inputLayout.bindings = &binding_pos_uv[0];
+				pso_desc.inputLayout.num_bindings = 1;
 				break;
 			case 2: // color
 				// TODO
 			case 3:
 				pso_desc.inputLayout.elements = &elements_pos_norm_uv_tangent[0];
 				pso_desc.inputLayout.num_elements = 4;
+				pso_desc.inputLayout.bindings = &binding_pos_norm_uv_tangent[0];
+				pso_desc.inputLayout.num_bindings = 1;
 				break;
 			case 4:
 				pso_desc.inputLayout.elements = &elements_pos_norm_uv_tangent_skeletal[0];
 				pso_desc.inputLayout.num_elements = 6;
+				pso_desc.inputLayout.bindings = &binding_pos_norm_uv_tangent_skeletal[0];
+				pso_desc.inputLayout.num_bindings = 1;
 				break;
 			case 5: // custom
 				// TODO
 			default: // default
 				pso_desc.inputLayout.elements = &elements_pos_norm_uv[0];
 				pso_desc.inputLayout.num_elements = 3;
+				pso_desc.inputLayout.bindings = &binding_pos_norm_uv[0];
+				pso_desc.inputLayout.num_bindings = 1;
 			}
 			switch (m_topology_type) {
 			case 1:
-				pso_desc.vertexLayout = Hippios::PrimitiveTopology::LineList;
+				pso_desc.primitiveTopology = Hippios::PrimitiveTopology::LineList;
 				break;
 			default:
-				pso_desc.vertexLayout = Hippios::PrimitiveTopology::TriangleList;
+				pso_desc.primitiveTopology = Hippios::PrimitiveTopology::TriangleList;
 			}
 
 			// create the state

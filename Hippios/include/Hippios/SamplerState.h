@@ -2,6 +2,7 @@
 #define HIPPIOS_SAMPLER_H
 
 #include "BaseTypes.h"
+#include <cfloat>
 
 namespace Hippios
 {	

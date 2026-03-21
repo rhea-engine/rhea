@@ -12,8 +12,7 @@ namespace Hippios
 	{
 	public:
 		~D3D11RenderTarget();
-
-		bool create(Renderer* renderer, int width, int height, SwapChain* swap_chain);		
+			
 		bool resize(int width, int height);
 
 		bool create(Renderer* renderer, const RenderTargetDesc& desc) override;

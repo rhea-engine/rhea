@@ -7,7 +7,6 @@ namespace Poseidon
 	Shader::Shader(Core* core) :
 		m_grahpics_core(core),
 		m_shader(nullptr),		
-		m_vertex_type(1),
 		m_alpha_blending(false),
 		m_pso(nullptr),
 		m_stencil_test("default"),
@@ -28,6 +27,20 @@ namespace Poseidon
 	{
 		if (m_shader)
 			delete m_shader;		
+	}
+
+	void Shader::setInputLayout(const std::vector<VertexInputAttribute>& elements, uint32_t stride)
+	{
+		m_input_layout = elements;
+		m_input_bindings.clear();
+		m_input_bindings.push_back({ 0, stride, 0 });
+	}
+
+	void Shader::setInputLayout(const std::vector<VertexInputAttribute>& elements,
+		const std::vector<Hippios::InputBindingDesc>& bindings)
+	{
+		m_input_layout = elements;
+		m_input_bindings = bindings;
 	}
 
 	bool Shader::loadFromFile(std::string filename, char* vs_entry_point, char* ps_entry_point)
@@ -56,6 +69,19 @@ namespace Poseidon
 
 		m_shader = m_renderer->createShader(desc);
 
+		return (m_shader != nullptr);
+	}
+
+	bool Shader::loadFromSourceDesc(const ShaderProgramSourceDesc& desc)
+	{
+		Hippios::ShaderProgramSourceDesc source_desc;
+		source_desc.vertexSource = desc.vertexSource;
+		source_desc.vertexSourceLength = desc.vertexSourceLength;
+		source_desc.vertexEntry = desc.vertexEntry;
+		source_desc.pixelSource = desc.pixelSource;
+		source_desc.pixelSourceLength = desc.pixelSourceLength;
+		source_desc.pixelEntry = desc.pixelEntry;
+		m_shader = m_renderer->createShader(source_desc);
 		return (m_shader != nullptr);
 	}
 
@@ -90,7 +116,7 @@ namespace Poseidon
 			pso_desc.shaderProgram = getShaderProgram();			
 
 			// layout
-
+			/*
 			Hippios::InputLayoutElement elements_pos_uv[] = {
 				{ "POSITION", 0, 0, Hippios::InputLayoutFormat::R32G32B32_FLOAT, 0, 0 },
 				{ "TEXCOORD", 0, 1, Hippios::InputLayoutFormat::R32G32_FLOAT, 0, 12 }
@@ -125,7 +151,28 @@ namespace Poseidon
 			};
 			Hippios::InputBindingDesc binding_pos_norm_uv_tangent_skeletal[] = {
 				{ 0, sizeof(float) * (3 + 3 + 2 + 3) + sizeof(uint16_t) * 4 + sizeof(float) * 4, 0 }
-			};			
+			};
+			*/
+			std::vector<Hippios::InputLayoutElement> native_elements;
+			native_elements.reserve(m_input_layout.size());
+
+			for (const auto& e : m_input_layout) {
+				Hippios::InputLayoutElement native{};
+				native.semantic_name = e.semantic.c_str();
+				native.semantic_index = e.semanticIndex;
+				native.location = e.location;
+				native.format = e.format;
+				native.input_slot = e.inputSlot;
+				native.aligned_byte_offset = e.alignedByteOffset;
+				native_elements.push_back(native);
+			}
+
+			pso_desc.inputLayout.elements = native_elements.data();
+			pso_desc.inputLayout.num_elements = (int)native_elements.size();
+			pso_desc.inputLayout.bindings = m_input_bindings.data();
+			pso_desc.inputLayout.num_bindings = (int)m_input_bindings.size();
+
+			/*
 			switch (m_vertex_type) {
 			case 0: // default
 				pso_desc.inputLayout.elements = &elements_pos_norm_uv[0];
@@ -168,7 +215,7 @@ namespace Poseidon
 			default:
 				pso_desc.primitiveTopology = Hippios::PrimitiveTopology::TriangleList;
 			}
-
+			*/
 			// create the state
 			m_pso = m_renderer->createPipelineState(pso_desc);
 		}

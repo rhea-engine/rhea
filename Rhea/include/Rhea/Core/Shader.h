@@ -7,6 +7,19 @@
 
 namespace Rhea
 {
+	enum class ShaderBackend
+	{
+		Unknown,
+		D3D11,
+		OpenGL
+	};
+
+	enum class ShaderStage
+	{
+		Vertex,
+		Fragment
+	};
+
 	class Shader : public Unit
 	{
 		MECLASS(Shader, Unit)
@@ -38,7 +51,11 @@ namespace Rhea
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
 		std::vector<Unit::Export> getReferences();
 
+		// get shader code for specified backend and stage
 		TextResource* getShaderCode();
+		TextResource* getShaderCode(ShaderBackend backend, ShaderStage stage);
+		std::string getEntryPoint(ShaderBackend backend, ShaderStage stage) const;
+		bool hasShaderCode(ShaderBackend backend, ShaderStage stage) const;
 
 		// stencil testing		
 		void setStencilTest(std::string test_name) { m_stencil_test = test_name; }

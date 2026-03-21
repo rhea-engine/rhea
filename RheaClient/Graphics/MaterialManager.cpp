@@ -15,6 +15,23 @@
 
 namespace Rhea
 {
+	static Hippios::InputLayoutFormat ConvertVertexFormat(const Rhea::VertexAttribute& a)
+	{
+		if (a.element_size == 4 && a.element_count == 2)
+			return Hippios::InputLayoutFormat::R32G32_FLOAT;
+		if (a.element_size == 4 && a.element_count == 3)
+			return Hippios::InputLayoutFormat::R32G32B32_FLOAT;
+		if (a.element_size == 4 && a.element_count == 4) {
+			if (a.type == Rhea::VertexAttributeType::JOINTS)
+				return Hippios::InputLayoutFormat::R32G32B32A32_UINT; // if joints are really uint32
+			return Hippios::InputLayoutFormat::R32G32B32A32_FLOAT;
+		}
+		if (a.element_size == 2 && a.element_count == 4 && a.type == Rhea::VertexAttributeType::JOINTS)
+			return Hippios::InputLayoutFormat::R16G16B16A16_UINT;
+
+		return Hippios::InputLayoutFormat::FORMAT_UNKNOWN;
+	}
+
 	Poseidon::Shader* GraphicsMaterialManager::EnsurePoseidonShader(Poseidon::Core* core, Rhea::Material* material_res, Rhea::Shader* shader_res)
 	{
 		if (!material_res || !shader_res)
@@ -28,21 +45,51 @@ namespace Rhea
 		if (shader)
 			return shader;
 
-		// shader not yet defined in core - search from resources and create the shader			
-		TextResource* shader_code;
-		shader_code = shader_res->getShaderCode();
+		// shader not yet defined in core - search from resources and create the shader		
+		auto backend = core->getRendererBackend();
 
-		if (!shader_code) {
-			LOG(LOG_ERROR) << "Shader code not found";
+		TextResource* vs_res = nullptr;
+		TextResource* fs_res = nullptr;
+		ShaderBackend shader_backend = ShaderBackend::Unknown;
+
+		if (backend == "d3d11") {
+			vs_res = shader_res->getShaderCode(ShaderBackend::D3D11, ShaderStage::Vertex);
+			fs_res = shader_res->getShaderCode(ShaderBackend::D3D11, ShaderStage::Fragment);
+			shader_backend = ShaderBackend::D3D11;
+
+		}
+		else if (backend == "opengl") {
+			vs_res = shader_res->getShaderCode(ShaderBackend::OpenGL, ShaderStage::Vertex);
+			fs_res = shader_res->getShaderCode(ShaderBackend::OpenGL, ShaderStage::Fragment);
+			shader_backend = ShaderBackend::OpenGL;
+		}
+
+		if (!vs_res || !fs_res) {
+			LOG(LOG_ERROR) << "GraphicsMaterialManager::EnsurePoseidonShader: Shader code not found for backend \"" << backend << "\"";
 			return nullptr;
 		}
 
-		char* buf;
-		size_t buflen;
-		shader_code->getRaw(&buf, &buflen);
+		char* vs_buf = nullptr;
+		size_t vs_len = 0;
+		vs_res->getRaw(&vs_buf, &vs_len);
+
+		char* fs_buf = nullptr;
+		size_t fs_len = 0;
+		fs_res->getRaw(&fs_buf, &fs_len);
+
+		Poseidon::ShaderProgramSourceDesc desc;
+		desc.vertexSource = reinterpret_cast<const unsigned char*>(vs_buf);
+		desc.vertexSourceLength = vs_len;
+		desc.pixelSource = reinterpret_cast<const unsigned char*>(fs_buf);
+		desc.pixelSourceLength = fs_len;
+		desc.vertexEntry = shader_res->getEntryPoint(shader_backend, ShaderStage::Vertex);
+		desc.pixelEntry = shader_res->getEntryPoint(shader_backend, ShaderStage::Fragment);
+
 		shader = core->createShader(shader_name);
-		if (!shader->loadFromBuffer((unsigned char*)buf, buflen, "VShader", "PShader"))
-			exit(-1);
+		if (!shader->loadFromSourceDesc(desc)) {
+			LOG(LOG_ERROR) << "Could not compile shader";
+			return nullptr;
+		}
 
 		// set transparency
 		if (shader_res)
@@ -65,23 +112,29 @@ namespace Rhea
 		shader->setSamplerState(sampler);
 
 		// input layout
-		std::string input_layout = shader_res->getValue("input", "");
-		if (input_layout == "default") {
-			shader->setVertexType(0);
-		}
-		else if (input_layout == "standard") {
-			shader->setVertexType(3);
-		}
-		else if (input_layout == "short") {
-			shader->setVertexType(1);
-		}
-		else if (input_layout == "color") {
-			shader->setVertexType(2);
-		}
-		else if (input_layout == "skeletal") {
-			shader->setVertexType(4);
+		std::vector<Poseidon::VertexInputAttribute> input_elements;
+		const auto& src_layout = shader_res->getVertexLayout();
+
+		for (size_t i = 0; i < src_layout.size(); ++i) {
+			const auto& a = src_layout[i];
+
+			Poseidon::VertexInputAttribute e;
+			e.semantic = a.name;
+			e.semanticIndex = 0;
+			e.location = (a.location >= 0) ? static_cast<uint32_t>(a.location) : 0;
+			e.format = ConvertVertexFormat(a);
+			e.inputSlot = 0;
+			e.alignedByteOffset = static_cast<uint32_t>(a.offset);
+			e.perInstance = false;
+			e.instanceStepRate = 0;
+
+			input_elements.push_back(e);
 		}
 
+		shader->setInputLayout(
+			input_elements,
+			{ Hippios::InputBindingDesc{ 0, (uint32_t)shader_res->getVertexSize(), 0 } }
+		);		
 		// material buffer layout
 		std::string light_type = shader_res->getValue("light_type", "none");
 		if (light_type == "vertex") {

@@ -1,4 +1,4 @@
-#include "MeshManager.h"
+﻿#include "MeshManager.h"
 #include <Rhea/Core/Item.h>
 #include <Rhea/Core/Mesh.h>
 #include <Poseidon/Mesh.h>
@@ -16,11 +16,24 @@ namespace Rhea
 		Mesh* r_mesh = doCast<Mesh>(unit);
 		if (!r_mesh) return false;
 
+		// Check if this mesh has already failed
+		std::string meshKey = r_mesh->getPath();
+		if (m_failed_meshes.count(meshKey)) {
+			return false;
+		}
+
 		Poseidon::Mesh* gpu = m_service->meshCache().getOrCreate(
 			core, r_mesh, r_mesh->isDynamic(),
 			[&](Poseidon::Core* c, Mesh* m, Poseidon::Mesh* out) {
 				return FillPoseidonMesh(c, m, out);
 			});
+
+		if (!gpu) {
+			// Build failed -> add to negative cache
+			m_failed_meshes.insert(meshKey);
+			LOG(LOG_ERROR) << "GraphicsMeshManager::Ensure: GPU mesh creation failed for '" << meshKey << "', will not retry automatically.";
+			return false;
+		}
 
 		unit->registerEventHandler("update", this, std::bind(&GraphicsMeshManager::onUpdate, this, std::placeholders::_1, std::placeholders::_2));
 		//unit->registerEventHandler("delete", this, std::bind(&GraphicsMeshManager::onDelete, this, std::placeholders::_1, std::placeholders::_2));
@@ -56,6 +69,13 @@ namespace Rhea
 		Mesh* meshUnit = doCast<Mesh>(unit);
 		if (!meshUnit) return true;
 
+		std::string meshKey = meshUnit->getPath();
+
+		// If already marked as failed, do not retry
+		if (m_failed_meshes.count(meshKey)) {
+			return false;
+		}
+
 		// Try to get cached GPU mesh
 		Poseidon::Mesh* gpu = m_service->meshCache().find(meshUnit);
 		if (!gpu) {
@@ -66,11 +86,18 @@ namespace Rhea
 				[&](Poseidon::Core* c, Mesh* m, Poseidon::Mesh* out) {
 					return FillPoseidonMesh(c, m, out);
 				});
-			if (!gpu) return true;
+			if (!gpu) {
+				m_failed_meshes.insert(meshKey);
+				LOG(LOG_ERROR) << "GraphicsMeshManager::onUpdate: GPU mesh creation failed for '" << meshKey << "', will not retry.";
+				return false;
+			}
 		}
 		
 		// Refill cached poseidon mesh buffers
-		FillPoseidonMesh(m_service->getEngine(), meshUnit, gpu);
+		if (!FillPoseidonMesh(m_service->getEngine(), meshUnit, gpu)) {
+			LOG(LOG_ERROR) << "GraphicsMeshManager::onUpdate: FillPoseidonMesh failed for '" << meshKey << "'";
+			return false;
+		}
 		
 		return false;		
 	}
@@ -79,7 +106,7 @@ namespace Rhea
 	{
 		if (!mesh || !out) return false;
 
-		// add vertex and index buffer
+		// Add vertex and index buffer
 		VertexBuffer* vbuf = mesh->getVertexBuffer();
 		if (vbuf && vbuf->size()) {
 			out->setVertices(vbuf->getVertexSize(), vbuf->size(), vbuf->data());
@@ -121,7 +148,7 @@ namespace Rhea
 
 			if (!vertices.size() || !v_indices.size()) {
 				LOG(LOG_ERROR) << "Vertex is empty";
-				return true;
+				return false; 
 			}
 
 			std::vector<Hippios::vertex_uv> hippios_vertices;
@@ -156,6 +183,10 @@ namespace Rhea
 
 	bool GraphicsMeshManager::onDelete(Event* ev, Unit* unit)
 	{
+		// On deletion, also remove from negative cache
+		if (Mesh* meshUnit = doCast<Mesh>(unit)) {
+			m_failed_meshes.erase(meshUnit->getPath());
+		}
 		return false;
 	}
 }

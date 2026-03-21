@@ -18,11 +18,11 @@ namespace Hippios
     struct ShaderProgramSourceDesc
     {
         const unsigned char* vertexSource = nullptr;
-        int vertexSourceLength = 0;
+        size_t vertexSourceLength = 0;
         std::string vertexEntry = "VSMain";
 
         const unsigned char* pixelSource = nullptr;
-        int pixelSourceLength = 0;
+        size_t pixelSourceLength = 0;
         std::string pixelEntry = "PSMain";
     };
 

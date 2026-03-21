@@ -12,23 +12,50 @@
 
 namespace Poseidon
 {
+	struct ShaderProgramSourceDesc
+	{
+		const unsigned char* vertexSource = nullptr;
+		size_t vertexSourceLength = 0;
+
+		const unsigned char* pixelSource = nullptr;
+		size_t pixelSourceLength = 0;
+
+		std::string vertexEntry; // used by D3D11
+		std::string pixelEntry;  // used by D3D11
+	};
+
+	struct VertexInputAttribute
+	{
+		std::string semantic;
+		uint32_t semanticIndex = 0;
+		uint32_t location = 0;
+		Hippios::InputLayoutFormat format = Hippios::InputLayoutFormat::FORMAT_UNKNOWN;
+		uint32_t inputSlot = 0;
+		uint32_t alignedByteOffset = 0;
+		bool perInstance = false;
+		uint32_t instanceStepRate = 0;
+	};
+
 	class Shader
 	{
 	public:
 		Shader(Core* core);
 		~Shader();
 
-		// set the vertex type
-		void setVertexType(int type) { m_vertex_type = type; }
-
-		// get the vertex type
-		int getVertexType() const { return m_vertex_type; }
+		// set the vertex input layout for this shader, with a single input slot and given stride
+		void setInputLayout(const std::vector<VertexInputAttribute>& elements, uint32_t stride);
+		// set the vertex input layout for this shader, with multiple input slots and given bindings
+		void setInputLayout(const std::vector<VertexInputAttribute>& elements,
+			const std::vector<Hippios::InputBindingDesc>& bindings);
 
 		// load a shader from file returns true on success
 		bool loadFromFile(std::string filename, char* vs_entry_point, char* ps_entry_point);
 
 		// load a shader from a char buffer
 		bool loadFromBuffer(unsigned char* buf, size_t buflen, char* vs_entry_point, char* ps_entry_point);
+
+		// load a shader from description
+		bool loadFromSourceDesc(const ShaderProgramSourceDesc& desc);
 
 		// return the shader program
 		Hippios::ShaderProgram* getShaderProgram() { return m_shader; }
@@ -98,7 +125,8 @@ namespace Poseidon
 	protected:
 		Core* m_grahpics_core;
 
-		int m_vertex_type;
+		std::vector<VertexInputAttribute> m_input_layout;
+		std::vector<Hippios::InputBindingDesc> m_input_bindings;
 
 		Hippios::Renderer* m_renderer;
 		Hippios::ShaderProgram* m_shader;		

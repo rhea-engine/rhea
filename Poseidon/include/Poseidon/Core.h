@@ -41,7 +41,8 @@ namespace Poseidon
 		// get psio engine
 		Psio::Engine* getPsio() { return m_psio; }
 
-		Hippios::Renderer* get_renderer() { return m_renderer.get(); }		
+		Hippios::Renderer* get_renderer() { return m_renderer.get(); }
+		std::string getRendererBackend() { return m_renderer_backend; }
 
 		// create various items
 
@@ -79,6 +80,7 @@ namespace Poseidon
 		Window* m_window = 0;
 		SceneManager* m_scene_manager = 0;
 		std::string m_appname;
+		std::string m_renderer_backend;
 
 		Psio::Engine* m_psio;
 		std::unordered_map<std::string, Material*> m_materials;

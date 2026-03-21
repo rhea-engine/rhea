@@ -38,14 +38,16 @@ namespace Poseidon
 		// initialize the psio subsystem
 		m_psio = psio;
 
-		// initialize render sub system
+		// initialize render sub system		
 		Hippios::RendererBackend renderer_backend;
 		if (backend == "d3d11") {
 #if defined(_WIN32) || defined(_WIN64)
 			renderer_backend = Hippios::RendererBackend::D3D11;
+			m_renderer_backend = backend;
 #else
 			LOG(LOG_INFO) << "D3D11 is not supported on this platform, defaulting to OpenGL";
 			renderer_backend = Hippios::RendererBackend::OpenGL;
+			m_renderer_backend = "opengl";
 #endif
 		}
 		else if (backend == "opengl")
@@ -54,9 +56,11 @@ namespace Poseidon
 			LOG(LOG_INFO) << "Unknown renderer backend: " << backend << ", defaulting to D3D11";
 #if defined(_WIN32) || defined(_WIN64)
 			renderer_backend = Hippios::RendererBackend::D3D11;
+			m_renderer_backend = backend;
 #else
 			LOG(LOG_INFO) << "D3D11 is not supported on this platform, defaulting to OpenGL";
 			renderer_backend = Hippios::RendererBackend::OpenGL;
+			m_renderer_backend = "opengl";
 #endif
 		}
 		m_renderer = Hippios::Renderer::CreateRenderer(renderer_backend);

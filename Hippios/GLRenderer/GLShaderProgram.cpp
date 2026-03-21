@@ -35,10 +35,10 @@ namespace Hippios
 
 	bool GLShaderProgram::loadFromSource(
 		const unsigned char* vertexSource,
-		int vertexLength,
+		size_t vertexLength,
 		const std::string& vertexEntry,
 		const unsigned char* pixelSource,
-		int pixelLength,
+		size_t pixelLength,
 		const std::string& pixelEntry)
 	{
 		m_vertex_shader = std::make_unique<GLShader>();

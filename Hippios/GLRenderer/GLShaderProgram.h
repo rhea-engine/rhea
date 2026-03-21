@@ -24,10 +24,10 @@ namespace Hippios
 
 		bool loadFromSource(
 			const unsigned char* vertexSource,
-			int vertexLength,
+			size_t vertexLength,
 			const std::string& vertexEntry,
 			const unsigned char* pixelSource,
-			int pixelLength,
+			size_t pixelLength,
 			const std::string& pixelEntry);
 
 		GLuint getProgram() const { return m_program; }

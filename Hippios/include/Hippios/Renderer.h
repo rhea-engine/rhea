@@ -19,6 +19,12 @@
 
 namespace Hippios
 {
+	enum class RendererBackend
+	{
+		D3D11,
+		OpenGL
+	};
+
 	/**
 	* @class Renderer
 	* @brief Abstract base class defining a rendering API interface.
@@ -103,15 +109,6 @@ namespace Hippios
 		 * @return A unique_ptr to the created SwapChain.
 		 */
 		virtual std::unique_ptr<SwapChain> createSwapChain(NativeWindow* win) = 0;
-
-		/**
-		 * @brief Creates a render target associated with a swap chain.
-		 * @param width The width of the render target in pixels.
-		 * @param height The height of the render target in pixels.
-		 * @param swap_chain The associated swap chain.
-		 * @return A unique_ptr to the created RenderTarget.
-		 */
-		virtual std::unique_ptr<RenderTarget> createRenderTarget(int width, int height, SwapChain* swap_chain) = 0;
 
 		/**
 		 * @brief Creates a render target from a descriptor.
@@ -240,7 +237,7 @@ namespace Hippios
 		virtual GraphicsBuffer* initGPUBuffer(size_t size) = 0;
 
 		// static factory method to create a renderer instance based on the platform
-		static std::unique_ptr<Renderer> CreateRenderer();
+		static std::unique_ptr<Renderer> CreateRenderer(RendererBackend backend);
 	};
 }
 #endif // !HIPPIOS_RENDERER_H

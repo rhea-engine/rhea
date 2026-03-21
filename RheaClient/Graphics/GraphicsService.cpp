@@ -145,7 +145,8 @@ namespace Rhea
 			return;
 		}
 		else
-			m_core->init(static_cast<PlatformService*>(m_platform)->getEngine());
+			// TODO: make configurable
+			m_core->init(static_cast<PlatformService*>(m_platform)->getEngine(), "opengl");
 
 		// create a render context for HUD / GUI
 		Poseidon::Viewport* viewport = m_core->get_scene_manager()->getViewport();

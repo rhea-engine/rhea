@@ -33,13 +33,33 @@ namespace Poseidon
 		m_shaders.clear();
 	}
 
-	void Core::init(Psio::Engine* psio)
+	void Core::init(Psio::Engine* psio, std::string backend)
 	{
 		// initialize the psio subsystem
 		m_psio = psio;
 
 		// initialize render sub system
-		m_renderer = Hippios::Renderer::CreateRenderer();
+		Hippios::RendererBackend renderer_backend;
+		if (backend == "d3d11") {
+#if defined(_WIN32) || defined(_WIN64)
+			renderer_backend = Hippios::RendererBackend::D3D11;
+#else
+			LOG(LOG_INFO) << "D3D11 is not supported on this platform, defaulting to OpenGL";
+			renderer_backend = Hippios::RendererBackend::OpenGL;
+#endif
+		}
+		else if (backend == "opengl")
+			renderer_backend = Hippios::RendererBackend::OpenGL;
+		else {
+			LOG(LOG_INFO) << "Unknown renderer backend: " << backend << ", defaulting to D3D11";
+#if defined(_WIN32) || defined(_WIN64)
+			renderer_backend = Hippios::RendererBackend::D3D11;
+#else
+			LOG(LOG_INFO) << "D3D11 is not supported on this platform, defaulting to OpenGL";
+			renderer_backend = Hippios::RendererBackend::OpenGL;
+#endif
+		}
+		m_renderer = Hippios::Renderer::CreateRenderer(renderer_backend);
 
 		// add a root window which is also the root viewport		
 		std::string name = "root";

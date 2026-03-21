@@ -31,7 +31,7 @@ namespace Poseidon
 	public:
 		Core();
 		~Core();
-		void init(Psio::Engine* psio);
+		void init(Psio::Engine* psio, std::string backend);
 		SceneManager* get_scene_manager() { return m_scene_manager; }
 		// handle one frame
 		int iterate();

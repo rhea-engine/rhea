@@ -232,7 +232,7 @@ namespace Rhea
 		Component::setName(name);
 	}
 	
-	Variant Unit::getValue(std::string name)
+	Variant Unit::getValue(std::string name) const
 	{
 		if (name != "") {
 			auto val = m_values.find(name);
@@ -243,7 +243,7 @@ namespace Rhea
 		return Variant();
 	}
 
-	Variant Unit::getValue(std::string name, Variant default_val)
+	Variant Unit::getValue(std::string name, Variant default_val) const
 	{
 		auto val = m_values.find(name);
 		if (val != m_values.end()) {

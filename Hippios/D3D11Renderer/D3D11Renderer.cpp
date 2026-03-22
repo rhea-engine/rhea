@@ -245,9 +245,9 @@ namespace Hippios {
 		return std::make_unique<D3D11VertexBuffer>(m_device, m_device_context, vertexSize, numVertices, dynamic);
 	}
 	
-	std::unique_ptr<IndexBuffer> D3D11Renderer::createIndexBuffer(size_t vertex_size, size_t num_faces, bool dynamic)
+	std::unique_ptr<IndexBuffer> D3D11Renderer::createIndexBuffer(size_t index_stride, size_t num_faces, bool dynamic)
 	{
-		return std::make_unique<D3D11IndexBuffer>(m_device, m_device_context, vertex_size, num_faces, dynamic);
+		return std::make_unique<D3D11IndexBuffer>(m_device, m_device_context, index_stride, num_faces, dynamic);
 	}
 
 	std::unique_ptr<GraphicsBuffer> D3D11Renderer::createGraphicsBuffer(size_t size_in_bytes)

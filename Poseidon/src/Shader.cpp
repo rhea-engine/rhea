@@ -1,4 +1,4 @@
-#include "Poseidon/Shader.h"
+﻿#include "Poseidon/Shader.h"
 #include <cassert>
 #include <Psio/Log.h>
 
@@ -88,11 +88,21 @@ namespace Poseidon
 	void Shader::finalize()
 	{
 		if (!m_pso) {
+			//  no compiled shader program, skipping PSO creation
+			if (!m_shader) {
+				LOG(LOG_ERROR) << "Shader::finalize: no compiled shader program, skipping PSO creation";
+				return;
+			}
 
 			Hippios::PipelineStateObjectDesc pso_desc;
 
 			// stencil state
 			pso_desc.depthStencilState.name = m_stencil_test;
+			pso_desc.depthStencilState.depth_enable = m_depth_test;
+			pso_desc.depthStencilState.depth_write_mask =
+				m_depth_write ? Hippios::DepthWriteMask::DEPTH_WRITE_ALL
+				: Hippios::DepthWriteMask::DEPTH_WRITE_ZERO;
+
 			// defaults
 			pso_desc.blendState.renderTarget[0].src_blend = Hippios::BlendFactor::BLEND_SRC_ALPHA;//Hippios::BlendFactor::BLEND_ONE;
 			pso_desc.blendState.renderTarget[0].dest_blend = Hippios::BlendFactor::BLEND_INV_SRC_ALPHA;
@@ -103,9 +113,6 @@ namespace Poseidon
 			pso_desc.blendState.renderTarget[0].render_target_write_mask = 0x0f;
 			if (m_alpha_blending) {
 				pso_desc.blendState.renderTarget[0].blend_enable = true;
-
-				pso_desc.depthStencilState.depth_enable = true;
-				
 			}
 
 			// cull mode in raster state
@@ -115,44 +122,6 @@ namespace Poseidon
 			// shader programs
 			pso_desc.shaderProgram = getShaderProgram();			
 
-			// layout
-			/*
-			Hippios::InputLayoutElement elements_pos_uv[] = {
-				{ "POSITION", 0, 0, Hippios::InputLayoutFormat::R32G32B32_FLOAT, 0, 0 },
-				{ "TEXCOORD", 0, 1, Hippios::InputLayoutFormat::R32G32_FLOAT, 0, 12 }
-			};
-			Hippios::InputBindingDesc binding_pos_uv[] = {
-				{ 0, sizeof(float) * (3 + 2), 0}
-			};
-			Hippios::InputLayoutElement elements_pos_norm_uv[] = {
-				{ "POSITION", 0, 0, Hippios::InputLayoutFormat::R32G32B32_FLOAT, 0, 0 },
-				{ "NORMAL", 0, 1, Hippios::InputLayoutFormat::R32G32B32_FLOAT, 0, 12},
-				{ "TEXCOORD", 0, 2, Hippios::InputLayoutFormat::R32G32_FLOAT, 0, 24 }
-			};
-			Hippios::InputBindingDesc binding_pos_norm_uv[] = {
-				{ 0, sizeof(float) * (3 + 3 + 2), 0 }
-			};
-			Hippios::InputLayoutElement elements_pos_norm_uv_tangent[] = {
-				{ "POSITION", 0, 0, Hippios::InputLayoutFormat::R32G32B32_FLOAT, 0, 0 },
-				{ "NORMAL", 0, 1, Hippios::InputLayoutFormat::R32G32B32_FLOAT, 0, 12},
-				{ "TEXCOORD", 0, 2, Hippios::InputLayoutFormat::R32G32_FLOAT, 0, 24 },
-				{ "TANGENT", 0, 3, Hippios::InputLayoutFormat::R32G32B32_FLOAT, 0, 32 }
-			};
-			Hippios::InputBindingDesc binding_pos_norm_uv_tangent[] = {
-				{ 0, sizeof(float) * (3 + 3 + 2 + 3), 0 }
-			};
-			Hippios::InputLayoutElement elements_pos_norm_uv_tangent_skeletal[] = {
-				{ "POSITION", 0, 0, Hippios::InputLayoutFormat::R32G32B32_FLOAT, 0, 0 },
-				{ "NORMAL", 0, 1, Hippios::InputLayoutFormat::R32G32B32_FLOAT, 0, 12 },
-				{ "TEXCOORD", 0, 2, Hippios::InputLayoutFormat::R32G32_FLOAT, 0, 24 },
-				{ "TANGENT", 0, 3, Hippios::InputLayoutFormat::R32G32B32_FLOAT, 0, 32 },
-				{ "JOINTS", 0, 4, Hippios::InputLayoutFormat::R16G16B16A16_UINT, 0, 44 }, // Bone indices
-				{ "WEIGHTS", 0, 5, Hippios::InputLayoutFormat::R32G32B32A32_FLOAT, 0, 52 } // Bone weights
-			};
-			Hippios::InputBindingDesc binding_pos_norm_uv_tangent_skeletal[] = {
-				{ 0, sizeof(float) * (3 + 3 + 2 + 3) + sizeof(uint16_t) * 4 + sizeof(float) * 4, 0 }
-			};
-			*/
 			std::vector<Hippios::InputLayoutElement> native_elements;
 			native_elements.reserve(m_input_layout.size());
 
@@ -172,52 +141,12 @@ namespace Poseidon
 			pso_desc.inputLayout.bindings = m_input_bindings.data();
 			pso_desc.inputLayout.num_bindings = (int)m_input_bindings.size();
 
-			/*
-			switch (m_vertex_type) {
-			case 0: // default
-				pso_desc.inputLayout.elements = &elements_pos_norm_uv[0];
-				pso_desc.inputLayout.num_elements = 3;
-				pso_desc.inputLayout.bindings = &binding_pos_norm_uv[0];
-				pso_desc.inputLayout.num_bindings = 1;
-				break;
-			case 1: // short (no normals)
-				pso_desc.inputLayout.elements = &elements_pos_uv[0];
-				pso_desc.inputLayout.num_elements = 2;
-				pso_desc.inputLayout.bindings = &binding_pos_uv[0];
-				pso_desc.inputLayout.num_bindings = 1;
-				break;
-			case 2: // color
-				// TODO
-			case 3:
-				pso_desc.inputLayout.elements = &elements_pos_norm_uv_tangent[0];
-				pso_desc.inputLayout.num_elements = 4;
-				pso_desc.inputLayout.bindings = &binding_pos_norm_uv_tangent[0];
-				pso_desc.inputLayout.num_bindings = 1;
-				break;
-			case 4:
-				pso_desc.inputLayout.elements = &elements_pos_norm_uv_tangent_skeletal[0];
-				pso_desc.inputLayout.num_elements = 6;
-				pso_desc.inputLayout.bindings = &binding_pos_norm_uv_tangent_skeletal[0];
-				pso_desc.inputLayout.num_bindings = 1;
-				break;
-			case 5: // custom
-				// TODO
-			default: // default
-				pso_desc.inputLayout.elements = &elements_pos_norm_uv[0];
-				pso_desc.inputLayout.num_elements = 3;
-				pso_desc.inputLayout.bindings = &binding_pos_norm_uv[0];
-				pso_desc.inputLayout.num_bindings = 1;
-			}
-			switch (m_topology_type) {
-			case 1:
-				pso_desc.primitiveTopology = Hippios::PrimitiveTopology::LineList;
-				break;
-			default:
-				pso_desc.primitiveTopology = Hippios::PrimitiveTopology::TriangleList;
-			}
-			*/
 			// create the state
 			m_pso = m_renderer->createPipelineState(pso_desc);
+
+			if (!m_pso) {
+				LOG(LOG_ERROR) << "Shader::finalize: failed to create pipeline state object";
+			}
 		}
 	}
 
@@ -242,10 +171,16 @@ namespace Poseidon
 			m_matbuf_layout_map_vs[layout[i].name] = static_cast<int>(i);
 		}
 	}
-
+	
 	void Shader::activate()
 	{
-		assert(m_pso != nullptr);
+		if (!m_pso) {
+			if (!m_activate_error_logged) {
+				LOG(LOG_ERROR) << "Shader::activate: no valid pipeline state, skipping activation";
+				m_activate_error_logged = true;
+			}
+			return;
+		}
 		m_grahpics_core->get_renderer()->setPipelineState(m_pso.get());
 		m_grahpics_core->get_renderer()->setSampler(0, m_sampler_state, Hippios::ShaderStage::Fragment);
 	}

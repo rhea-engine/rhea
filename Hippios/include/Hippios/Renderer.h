@@ -50,12 +50,12 @@ namespace Hippios
 
 		/**
 		 * @brief Creates an index buffer.
-		 * @param vertex_size The size of each index entry.
-		 * @param num_faces The total number of faces (triangles/quads) in the buffer.
+		 * @param index_stride The size (in bytes) of each index entry.
+		 * @param num_faces The total number of faces (triangles) in the buffer.
 		 * @param dynamic If true, the buffer is dynamic and can be updated frequently.
 		 * @return A unique_ptr to the created IndexBuffer.
 		 */
-		virtual std::unique_ptr<IndexBuffer> createIndexBuffer(size_t vertex_size, size_t num_faces, bool dynamic) = 0;
+		virtual std::unique_ptr<IndexBuffer> createIndexBuffer(size_t index_stride, size_t num_faces, bool dynamic) = 0;
 
 		/**
 		 * @brief Creates a generic graphics buffer.

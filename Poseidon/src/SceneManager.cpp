@@ -81,7 +81,7 @@ namespace Poseidon
 
 			if (!viewport->getRenderTarget())
 				continue;
-
+			
 			// set render target as active
 			viewport->getRenderTarget()->setActive();
 			// clear with background color

@@ -12,7 +12,7 @@ namespace Hippios
 	public:
 		bool is_dirty;
 
-		GLIndexBuffer(size_t vertex_size, size_t num_faces, bool dynamic);
+		GLIndexBuffer(size_t index_stride, size_t num_faces, bool dynamic);
 
 		void* Lock(size_t offset, size_t length) override;
 		void Unlock() override;
@@ -21,9 +21,11 @@ namespace Hippios
 		void update(const void* source) override;
 
 		GLuint get_buffer() const { return m_buffer->get_buffer(); }
+		GLenum getIndexType() const { return m_index_type; }
 
 	private:
 		std::unique_ptr<GLGraphicsBuffer> m_buffer;
+		GLenum m_index_type = GL_UNSIGNED_INT;
 	};
 }
 #endif // !GL_INDEXBUFFER_H

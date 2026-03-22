@@ -2,12 +2,16 @@
 
 namespace Hippios
 {
-	GLIndexBuffer::GLIndexBuffer(size_t vertex_size, size_t num_faces, bool dynamic) :
+	GLIndexBuffer::GLIndexBuffer(size_t index_stride, size_t num_faces, bool dynamic) :
 		is_dirty(true)
 	{
-		m_vertex_size = vertex_size;
+		m_index_stride = index_stride;
 		m_num_faces = num_faces;
-		m_size_in_bytes = vertex_size * num_faces * 3;
+		m_size_in_bytes = index_stride * num_faces * 3;
+		if (index_stride == 2)
+			m_index_type = GL_UNSIGNED_SHORT;
+		else
+			m_index_type = GL_UNSIGNED_INT;
 		m_buffer = std::make_unique<GLGraphicsBuffer>(GL_ELEMENT_ARRAY_BUFFER, m_size_in_bytes, dynamic);
 	}
 

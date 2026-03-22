@@ -70,7 +70,7 @@ namespace Hippios
 		// create and use objects
 
 		std::unique_ptr<VertexBuffer> createVertexBuffer(size_t vertexSize, size_t numVertices, bool dynamic = false) override;
-		std::unique_ptr<IndexBuffer> createIndexBuffer(size_t vertex_size, size_t num_faces, bool dynamic = false) override;
+		std::unique_ptr<IndexBuffer> createIndexBuffer(size_t index_stride, size_t num_faces, bool dynamic = false) override;
 		std::unique_ptr<GraphicsBuffer> createGraphicsBuffer(size_t size_in_bytes) override;
 		std::unique_ptr<Texture> createTexture(TextureDesc& desc) override;
 		ShaderProgram* createShader(const ShaderProgramDesc& desc) override;

@@ -272,6 +272,6 @@ namespace Hippios
 		m_stencil_state->setState(0);
 
 		// Blend
-		m_blend_state->setState(nullptr, 0xFFFFFFFF);
+		m_blend_state->setState(nullptr, 0xFFFFFFFF);		
 	}
 }

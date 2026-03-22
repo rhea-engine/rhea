@@ -66,6 +66,10 @@ namespace Poseidon
 		// set stencil testing to stencil test with given name
 		void setStencilTest(std::string test_name) { m_stencil_test = test_name; }
 
+		// set depth testing and writing
+		void setDepthTest(bool enabled) { m_depth_test = enabled; }
+		void setDepthWrite(bool enabled) { m_depth_write = enabled; }
+
 		// cull mode
 		void setCullMode(bool enabled) { m_cull_mode = enabled; }
 
@@ -137,6 +141,8 @@ namespace Poseidon
 		int m_topology_type;
 		bool m_cull_mode;
 		Hippios::SamplerState* m_sampler_state;
+		bool m_depth_test = true;
+		bool m_depth_write = true;
 
 		// pixel shader material buffer
 		std::vector<MatBufferLayoutElement> m_matbuf_layout;
@@ -149,6 +155,8 @@ namespace Poseidon
 		size_t m_matbuf_size_vs;
 		std::unordered_map<std::string, int> m_matbuf_layout_map_vs;
 		Hippios::GraphicsBuffer* m_material_buffer_vs;
+
+		bool m_activate_error_logged = false;
 	};
 }
 

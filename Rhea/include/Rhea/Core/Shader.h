@@ -32,6 +32,8 @@ namespace Rhea
 			m_num_texture_slots(0),
 			m_vertex_size(-1),
 			m_vertex_elements(-1),
+			m_depth_test(true),
+			m_depth_write(true),
 			Unit(name, "//meworla/shader")
 		{}
 
@@ -51,8 +53,7 @@ namespace Rhea
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
 		std::vector<Unit::Export> getReferences();
 
-		// get shader code for specified backend and stage
-		TextResource* getShaderCode();
+		// get shader code for specified backend and stage		
 		TextResource* getShaderCode(ShaderBackend backend, ShaderStage stage);
 		std::string getEntryPoint(ShaderBackend backend, ShaderStage stage) const;
 		bool hasShaderCode(ShaderBackend backend, ShaderStage stage) const;
@@ -64,6 +65,14 @@ namespace Rhea
 		// alpha blending
 		bool getAlphaBlending() { return m_alpha_blending; }
 		void setAlphaBlending(bool value) { m_alpha_blending = value; }
+
+		// depth test
+		bool getDepthTest() { return m_depth_test; }
+		void setDepthTest(bool value) { m_depth_test = value; }
+
+		// depth write
+		bool getDepthWrite() { return m_depth_write; }
+		void setDepthWrite(bool value) { m_depth_write = value; }
 
 		// vertex layout
 		std::vector<VertexAttribute>& getVertexLayout() { return m_vertex_layout; }
@@ -101,6 +110,8 @@ namespace Rhea
 	protected:
 		std::string m_stencil_test;
 		bool m_alpha_blending;
+		bool m_depth_test;
+		bool m_depth_write;
 		bool m_wvp;
 		// vertex layout as a vector of element length
 		std::vector<VertexAttribute> m_vertex_layout;

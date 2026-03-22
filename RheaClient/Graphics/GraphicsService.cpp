@@ -144,9 +144,16 @@ namespace Rhea
 			LOG(LOG_ERROR) << "GraphicsService::onInit: platform not set";
 			return;
 		}
-		else
+		else {
 			// TODO: make configurable
-			m_core->init(static_cast<PlatformService*>(m_platform)->getEngine(), "opengl");
+			std::string backend = "d3d11";
+			int opengl = 1;
+			
+			if (opengl)
+				backend = "opengl";
+
+			m_core->init(static_cast<PlatformService*>(m_platform)->getEngine(), backend);
+		}
 
 		// create a render context for HUD / GUI
 		Poseidon::Viewport* viewport = m_core->get_scene_manager()->getViewport();

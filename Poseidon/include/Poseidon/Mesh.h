@@ -51,8 +51,8 @@ namespace Poseidon
 		size_t getNumVertices() { return m_num_vertices; }
 
 		// set mesh
-		size_t addMesh(size_t vertex_size, size_t num_faces, const void* source, Material* material);
-		void setMesh(size_t mesh_idx, size_t vertex_size, size_t num_faces, const void* source, Material* material);
+		size_t addMesh(size_t index_stride, size_t num_faces, const void* source, Material* material);
+		void setMesh(size_t mesh_idx, size_t index_stride, size_t num_faces, const void* source, Material* material);
 
 		// get meshes
 		const size_t getMeshCount() { return m_num_meshes; }

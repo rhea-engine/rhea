@@ -20,6 +20,13 @@ namespace Rhea
 			m_alpha_blending = m_values["alpha_blending"];
 		}
 
+		if (m_values.find("depth_test") != m_values.end()) {
+			m_depth_test = m_values["depth_test"];
+		}
+		if (m_values.find("depth_write") != m_values.end()) {
+			m_depth_write = m_values["depth_write"];
+		}
+
 		// vertex type
 		std::string vertex_layout_name = getValue("input", "short");
 		if (vertex_layout_name == "short") {
@@ -63,7 +70,7 @@ namespace Rhea
 		// setup material input slots
 		std::string light_type = getValue("light_type", "none");		
 		if (light_type == "vertex") {
-			m_property_names = { "AMBIENT", "DIFFUSE", "SPECULAR", "EMMISSIVE" };
+			m_property_names = { "AMBIENT", "DIFFUSE", "SPECULAR", "EMISSIVE" };
 			m_input_slots["AMBIENT"] = 0;
 			m_input_slots["DIFFUSE"] = 1;
 			m_input_slots["SPECULAR"] = 2;
@@ -118,15 +125,6 @@ namespace Rhea
 			refs.push_back({ "code", "//meworla/shader", m_values["code"] });
 		}
 		return refs;
-	}
-
-	TextResource* Rhea::Shader::getShaderCode()
-	{
-		if (m_values.find("code") != m_values.end()) {
-			TextResource* res = doCast<TextResource>(m_app->getUnitTree()->find(m_values["code"], m_attributes["basepath"], false));
-			return res;
-		}
-		return nullptr;
 	}
 
 	TextResource* Rhea::Shader::getShaderCode(ShaderBackend backend, ShaderStage stage)

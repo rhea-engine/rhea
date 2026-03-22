@@ -24,6 +24,8 @@ namespace Hippios
 		GLuint getVAO() const { return m_vao; }
 		const InputLayoutDesc& getInputLayout() const { return m_inputLayout; }
 
+		GLenum getTopology() const { return m_topology; }
+
 	private:
 		void createInputLayout(const InputLayoutDesc& layout);
 		

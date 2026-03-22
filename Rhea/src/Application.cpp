@@ -144,6 +144,7 @@ namespace Rhea
 
 		// register mime type for shader
 		Orion::MIME::RegisterExtenstion("text/plain", "hlsl");
+		Orion::MIME::RegisterExtenstion("text/plain", "glsl");
 
 		// register optional fabrics
 		for (auto& mod : createFabrics()) {

@@ -67,6 +67,8 @@ namespace Hippios
 
 		GLVertexBuffer* m_last_vb = nullptr;
 		GLIndexBuffer* m_last_ib = nullptr;
+		GLenum m_current_index_type = GL_UNSIGNED_INT;
+		size_t m_current_index_size = sizeof(uint32_t);
 
 		Texture* m_current_texture = nullptr;
 		PipelineStateObject* m_current_pso = nullptr;

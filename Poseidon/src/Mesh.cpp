@@ -28,21 +28,21 @@ namespace Poseidon
 		m_num_vertices = num_vertices;
 	}
 
-	size_t Mesh::addMesh(size_t vertex_size, size_t num_faces, const void* source, Material* material)
+	size_t Mesh::addMesh(size_t index_stride, size_t num_faces, const void* source, Material* material)
 	{
 		SubMesh submesh;
 		submesh.material = material;
 		submesh.num_indices = num_faces * 3;
-		submesh.ibuffer = m_renderer->createIndexBuffer(vertex_size, num_faces, m_dynamic_buffer);
+		submesh.ibuffer = m_renderer->createIndexBuffer(index_stride, num_faces, m_dynamic_buffer);
 
-		submesh.ibuffer->WriteData(0, vertex_size * num_faces * 3, source, false);
+		submesh.ibuffer->WriteData(0, index_stride * num_faces * 3, source, false);
 
 		m_submeshes.push_back(std::move(submesh));
 		m_num_meshes++;
 		return m_submeshes.size() - 1;
 	}
 
-	void Mesh::setMesh(size_t mesh_idx, size_t vertex_size, size_t num_faces, const void* source, Material* material)
+	void Mesh::setMesh(size_t mesh_idx, size_t index_stride, size_t num_faces, const void* source, Material* material)
 	{
 		if (mesh_idx >= m_submeshes.size()) {
 			m_submeshes.resize(mesh_idx + 1);
@@ -50,17 +50,17 @@ namespace Poseidon
 		}
 
 		if (m_submeshes[mesh_idx].ibuffer) {
-			if (m_submeshes[mesh_idx].ibuffer->getLength() < vertex_size * num_faces * 3) {
-				m_submeshes[mesh_idx].ibuffer = m_renderer->createIndexBuffer(vertex_size, num_faces, m_dynamic_buffer);
+			if (m_submeshes[mesh_idx].ibuffer->getLength() < index_stride * num_faces * 3) {
+				m_submeshes[mesh_idx].ibuffer = m_renderer->createIndexBuffer(index_stride, num_faces, m_dynamic_buffer);
 				m_submeshes[mesh_idx].num_indices = num_faces * 3;
 			}
 		}
 		else {
-			m_submeshes[mesh_idx].ibuffer = m_renderer->createIndexBuffer(vertex_size, num_faces, m_dynamic_buffer);
+			m_submeshes[mesh_idx].ibuffer = m_renderer->createIndexBuffer(index_stride, num_faces, m_dynamic_buffer);
 			m_submeshes[mesh_idx].num_indices = num_faces * 3;
 		}	
 		m_submeshes[mesh_idx].material = material;
-		m_submeshes[mesh_idx].ibuffer->WriteData(0, vertex_size * num_faces * 3, source, false);
+		m_submeshes[mesh_idx].ibuffer->WriteData(0, index_stride * num_faces * 3, source, false);
 	}
 
 	void Mesh::addVertexBuffer(std::unique_ptr<Hippios::VertexBuffer> vertex_buffer)

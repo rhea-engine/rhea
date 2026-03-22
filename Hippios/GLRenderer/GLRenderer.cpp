@@ -15,6 +15,7 @@
 #include <cassert>
 #include <cstdio>
 #include <cstring>
+#include <Psio/Log.h>
 
 // WGL extension function pointers (not provided by GLAD)
 static PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = nullptr;
@@ -50,7 +51,7 @@ namespace Hippios
 
 		int format = ChoosePixelFormat(m_hdc, &pfd);
 		if (!format) {
-			printf("ChoosePixelFormat failed\n");
+			LOG(LOG_ERROR) << "ChoosePixelFormat failed";
 			return false;
 		}
 		SetPixelFormat(m_hdc, format, &pfd);
@@ -79,7 +80,7 @@ namespace Hippios
 			wglDeleteContext(temp_context);
 
 			if (!m_glrc) {
-				printf("Failed to create OpenGL 4.5 context\n");
+				LOG(LOG_ERROR) << "Failed to create OpenGL 4.5 context";
 				return false;
 			}
 			wglMakeCurrent(m_hdc, m_glrc);
@@ -103,15 +104,17 @@ namespace Hippios
 			}
 			return proc;
 		})) {
-			printf("Failed to initialize GLAD\n");
+			LOG(LOG_ERROR) << "Failed to initialize GLAD";
 			return false;
 		}
 
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
 
-		printf("OpenGL Renderer: %s\n", glGetString(GL_RENDERER));
-		printf("OpenGL Version: %s\n", glGetString(GL_VERSION));
+		// Match D3D11 winding order: clockwise = front face
+		glFrontFace(GL_CW);
+		
+		LOG(LOG_INFO) << "OpenGL Renderer: " << glGetString(GL_RENDERER) << ", OpenGL Version: " << glGetString(GL_VERSION);
 
 		return true;
 	}
@@ -187,6 +190,8 @@ namespace Hippios
 			m_current_pso = pso;
 			pso->SetState();
 		}
+		auto* glPso = static_cast<GLPipelineStateObject*>(pso);
+		m_current_topology = glPso->getTopology();
 	}
 
 	void GLRenderer::setBlendState(BlendState* state, float* blend_factor, unsigned int mask)
@@ -295,12 +300,18 @@ namespace Hippios
 		if (glIb)
 		{
 			glVertexArrayElementBuffer(vao, glIb->get_buffer());
+			m_last_ib = glIb;
+			m_current_index_type = glIb->getIndexType();
+			m_current_index_size = glIb->getIndexSize();
 		}
 		else
 		{
 			// Optional: clear the element buffer if you want indexed and non-indexed
 			// draws to be fully explicit.
 			glVertexArrayElementBuffer(vao, 0);
+			m_last_ib = nullptr;
+			m_current_index_type = GL_UNSIGNED_INT;
+			m_current_index_size = sizeof(uint32_t);
 		}
 	}
 
@@ -316,7 +327,7 @@ namespace Hippios
 
 		GLSwapChain* gl_swap = static_cast<GLSwapChain*>(swap_chain);
 		if (!SwapBuffers(gl_swap->getHDC())) {
-			printf("SwapBuffers failed\n");
+			LOG(LOG_ERROR) << "SwapBuffers failed";
 			return -1;
 		}
 		return 0;
@@ -332,8 +343,8 @@ namespace Hippios
 		glDrawElementsBaseVertex(
 			m_current_topology,
 			size,
-			GL_UNSIGNED_INT,
-			reinterpret_cast<void*>(static_cast<uintptr_t>(start_idx * sizeof(GLuint))),
+			m_current_index_type,
+			reinterpret_cast<void*>(static_cast<uintptr_t>(start_idx * m_current_index_size)),
 			start_vtx);
 	}
 

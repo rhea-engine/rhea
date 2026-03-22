@@ -36,7 +36,7 @@ namespace Rhea
 	{
 		if (!material_res || !shader_res)
 			return nullptr;
-		std::string shader_name = material_res->getValue("shader");
+		std::string shader_name = material_res->getValue("shader", "");
 		if (shader_name.empty()) {
 			LOG(LOG_ERROR) << "EnsurePoseidonShader: material has empty shader name";
 			return nullptr;
@@ -87,7 +87,8 @@ namespace Rhea
 
 		shader = core->createShader(shader_name);
 		if (!shader->loadFromSourceDesc(desc)) {
-			LOG(LOG_ERROR) << "Could not compile shader";
+			LOG(LOG_ERROR) << "EnsurePoseidonShader: Could not compile shader '" << shader_name 
+			               << "' (resource: " << shader_res->getPathName() << ")";
 			return nullptr;
 		}
 
@@ -104,6 +105,12 @@ namespace Rhea
 			if (cull_mode == "none") {
 				shader->setCullMode(false);
 			}
+		}
+
+		// set depth testing
+		if (shader_res) {
+			shader->setDepthTest(shader_res->getDepthTest());
+			shader->setDepthWrite(shader_res->getDepthWrite());
 		}
 
 		// sampler state

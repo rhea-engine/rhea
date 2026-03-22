@@ -54,6 +54,7 @@ namespace Rhea
 				// create dummy material
 				m_material = new Material(m_path + "_material");
 				m_material->setup(m_app);
+				m_material->setValue("shader", m_values["shader"]);
 
 				// get the shader
 				Shader* shader_res = doCast<Shader>(m_app->getUnitTree()->find(m_values["shader"], m_attributes["basepath"], false));

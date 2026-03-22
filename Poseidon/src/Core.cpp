@@ -50,8 +50,10 @@ namespace Poseidon
 			m_renderer_backend = "opengl";
 #endif
 		}
-		else if (backend == "opengl")
+		else if (backend == "opengl") {
 			renderer_backend = Hippios::RendererBackend::OpenGL;
+			m_renderer_backend = backend;
+		}
 		else {
 			LOG(LOG_INFO) << "Unknown renderer backend: " << backend << ", defaulting to D3D11";
 #if defined(_WIN32) || defined(_WIN64)

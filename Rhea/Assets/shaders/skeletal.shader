@@ -1,7 +1,9 @@
 [scene]
 type="//meworla/shader"
 name="skeletal"
-code="//rhea/shaders/skeletal.hlsl"
+code_hlsl="//rhea/shaders/skeletal.hlsl"
+code_glsl_vs="//rhea/shaders/skeletal_vs.glsl"
+code_glsl_fs="//rhea/shaders/skeletal_fs.glsl"
 input="skeletal"
 light_type="vertex"
 texture_type="standard"

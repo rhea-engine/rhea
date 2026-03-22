@@ -38,6 +38,9 @@ namespace Hippios
 		else {
 			glDisable(GL_DEPTH_TEST);
 		}
+		
+//		glDepthMask(GL_FALSE);
+//		glDisable(GL_DEPTH_TEST);
 
 		// Stencil
 		if (m_desc.stencil_enable) {

@@ -1,9 +1,37 @@
 #include "GLShaderProgram.h"
 #include "GLShader.h"
-#include <cstdio>
+#include <Psio/Log.h>
 
 namespace Hippios
 {
+	/*
+	CPU matrices are row - major / row - vector style
+	GLSL therefore uses position * VP
+	translation is read from[0][3], [1][3]
+	*/
+
+	static void bindUniformBlock(GLuint program, const char* blockName, GLuint binding)
+	{
+		GLuint blockIndex = glGetUniformBlockIndex(program, blockName);
+		if (blockIndex == GL_INVALID_INDEX) {
+			// Block not present in this shader; that's okay.
+			return;
+		}
+
+		glUniformBlockBinding(program, blockIndex, binding);
+	}
+
+	static void bindSampler(GLuint program, const char* uniformName, GLint textureUnit)
+	{
+		GLint location = glGetUniformLocation(program, uniformName);
+		if (location == -1) {
+			return; // uniform not used in this shader
+		}
+
+		glUseProgram(program);
+		glUniform1i(location, textureUnit);
+	}
+
 	GLShaderProgram::GLShaderProgram() = default;
 
 	GLShaderProgram::~GLShaderProgram()
@@ -20,13 +48,11 @@ namespace Hippios
 	{
 		m_vertex_shader = std::make_unique<GLShader>();
 		if (!m_vertex_shader->loadFromFile(vertexFile, vertexEntry, GL_VERTEX_SHADER)) {
-			printf("GLShaderProgram: Failed to compile vertex shader: %s\n", vertexFile.c_str());
 			return false;
 		}
 
 		m_pixel_shader = std::make_unique<GLShader>();
 		if (!m_pixel_shader->loadFromFile(pixelFile, pixelEntry, GL_FRAGMENT_SHADER)) {
-			printf("GLShaderProgram: Failed to compile fragment shader: %s\n", pixelFile.c_str());
 			return false;
 		}
 
@@ -43,13 +69,13 @@ namespace Hippios
 	{
 		m_vertex_shader = std::make_unique<GLShader>();
 		if (!m_vertex_shader->loadFromSource(vertexSource, vertexLength, vertexEntry, GL_VERTEX_SHADER)) {
-			printf("GLShaderProgram: Failed to compile vertex shader from source\n");
+			LOG(LOG_ERROR) << "GLShaderProgram: Vertex shader compilation failed";
 			return false;
 		}
 
 		m_pixel_shader = std::make_unique<GLShader>();
 		if (!m_pixel_shader->loadFromSource(pixelSource, pixelLength, pixelEntry, GL_FRAGMENT_SHADER)) {
-			printf("GLShaderProgram: Failed to compile fragment shader from source\n");
+			LOG(LOG_ERROR) << "GLShaderProgram: Fragment shader compilation failed";
 			return false;
 		}
 
@@ -70,14 +96,36 @@ namespace Hippios
 		GLint success;
 		glGetProgramiv(m_program, GL_LINK_STATUS, &success);
 		if (!success) {
-			char info_log[512];
-			glGetProgramInfoLog(m_program, 512, nullptr, info_log);
-			printf("GLShaderProgram: Linking failed: %s\n", info_log);
+			GLint log_length = 0;
+			glGetProgramiv(m_program, GL_INFO_LOG_LENGTH, &log_length);
+			std::string info_log(log_length > 0 ? log_length : 512, '\0');
+			glGetProgramInfoLog(m_program, (GLsizei)info_log.size(), nullptr, &info_log[0]);
+			LOG(LOG_ERROR) << "GLShaderProgram: Linking failed:\n" << info_log;
 			glDeleteProgram(m_program);
 			m_program = 0;
 			return false;
 		}
 
+		bindUniformBlock(m_program, "cbPerFrame", 0);
+		bindUniformBlock(m_program, "cbPerObject", 1);
+		bindUniformBlock(m_program, "cbLight", 2);
+		bindUniformBlock(m_program, "cbMaterial", 3);
+		bindUniformBlock(m_program, "cbBone", 4);
+		bindUniformBlock(m_program, "cbBackground", 5);
+
+		bindSampler(m_program, "ObjTexture", 0);
+
+		bindSampler(m_program, "BaseColorTexture", 0);
+		bindSampler(m_program, "NormalMap", 1);
+
+		bindSampler(m_program, "SkyMap", 1);
+
+		bindSampler(m_program, "Texture0", 0);
+		bindSampler(m_program, "Texture1", 1);
+		bindSampler(m_program, "Texture2", 2);
+		bindSampler(m_program, "Texture3", 3);
+		bindSampler(m_program, "Texture4", 4);
+		
 		return true;
 	}
 }

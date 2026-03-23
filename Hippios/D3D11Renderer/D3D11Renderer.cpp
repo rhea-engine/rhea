@@ -1,5 +1,6 @@
 #include "D3D11Renderer.h"
 #include "D3D11Renderer.h"
+#include "D3D11Renderer.h"
 #include <d3d11shader.h>
 #include <d3dcompiler.h>
 #include <wrl/client.h>
@@ -177,6 +178,16 @@ namespace Hippios {
 			return -1;
 		}
 		return 0;
+	}
+
+	bool D3D11Renderer::getStencilStateDesc(const std::string& name, DepthStencilStateDesc& outDesc)
+	{
+		D3D11StencilState* state = static_cast<D3D11StencilState*>(getStencilState(name));
+		if (state) {
+			outDesc = state->getDesc();
+			return true;
+		}
+		return false;
 	}
 	
 	void D3D11Renderer::setStencilState(StencilState* state, int stencil_ref)
@@ -362,16 +373,6 @@ namespace Hippios {
 		else {
 			return nullptr;
 		}
-	}
-
-	StencilState* D3D11Renderer::createStencilState(const std::string& name)
-	{
-		D3D11StencilState* state = new D3D11StencilState(m_device, m_device_context);
-		if (state) {
-			m_stencil_states[name].reset(state);
-			return m_stencil_states[name].get();
-		}
-		return nullptr;
 	}
 
 	StencilState* D3D11Renderer::createStencilState(const std::string& name, const DepthStencilStateDesc& desc)

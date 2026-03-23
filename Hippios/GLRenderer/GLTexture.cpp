@@ -1,5 +1,7 @@
 #include "GLTexture.h"
 #include <cstdio>
+#include <Psio/Log.h>
+#include <vector>
 
 extern PFNGLGENTEXTURESPROC glGenTextures_; // avoid name collision, or use GLAD
 extern PFNGLDELETETEXTURESPROC glDeleteTextures_;
@@ -38,8 +40,16 @@ namespace Hippios
 
 		glTexParameteri(m_gl_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(m_gl_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(m_gl_target, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(m_gl_target, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+		if (m_gl_target == GL_TEXTURE_CUBE_MAP) {
+			glTexParameteri(m_gl_target, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(m_gl_target, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glTexParameteri(m_gl_target, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+		}
+		else {
+			glTexParameteri(m_gl_target, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(m_gl_target, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		}
 
 		glBindTexture(m_gl_target, 0);
 	}
@@ -66,15 +76,47 @@ namespace Hippios
 
 	void GLTexture::loadCubemapFace(int faceIndex, Texture* src_texture)
 	{
-		// For cubemap: copy pixel data from source texture into this cubemap face
-		// A full implementation would use glCopyImageSubData (GL 4.3+) or FBO blit
 		GLTexture* source = static_cast<GLTexture*>(src_texture);
 		if (!source || !m_texture || !source->m_texture)
 			return;
 
-		// TODO: use glCopyImageSubData for GPU-side copy (requires GL 4.3)
-		// glCopyImageSubData(source->m_texture, GL_TEXTURE_2D, 0, 0, 0, 0,
-		//                    m_texture, GL_TEXTURE_CUBE_MAP, 0, 0, 0, faceIndex,
-		//                    m_desc.width, m_desc.height, 1);
+		if (faceIndex < 0 || faceIndex >= 6) {
+			LOG(LOG_ERROR) << "GLTexture::loadCubemapFace: invalid face index " << faceIndex;
+			return;
+		}
+
+		// Read pixel data from the source 2D texture and upload into the cubemap face.
+		// This avoids compatibility issues with glCopyImageSubData across different
+		// internal-format combinations and driver quirks.
+		GLsizei w = static_cast<GLsizei>(m_desc.width);
+		GLsizei h = static_cast<GLsizei>(m_desc.height);
+
+		std::vector<unsigned char> pixels(static_cast<size_t>(w) * h * 4);
+
+		// Read from source texture via FBO
+		GLuint fbo = 0;
+		glGenFramebuffers(1, &fbo);
+		glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, source->m_texture, 0);
+
+		GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+		if (status != GL_FRAMEBUFFER_COMPLETE) {
+			LOG(LOG_ERROR) << "GLTexture::loadCubemapFace: framebuffer incomplete (status 0x"
+				<< std::hex << status << std::dec << ")";
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			glDeleteFramebuffers(1, &fbo);
+			return;
+		}
+
+		glReadPixels(0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glDeleteFramebuffers(1, &fbo);
+
+		// Upload into the cubemap face
+		glBindTexture(GL_TEXTURE_CUBE_MAP, m_texture);
+		glTexSubImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + faceIndex,
+			0, 0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
+		glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 	}
 }

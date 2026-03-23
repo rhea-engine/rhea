@@ -9,11 +9,11 @@ namespace Rhea
 	{
 		Unit::setup(app, attributes, values);
 
-		if (m_values.find("stencil_test") != m_values.end()) {
-			m_stencil_test = m_values["stencil_test"];
+		if (m_values.find("depth_stencil_state") != m_values.end()) {
+			m_depth_stencil_state = m_values["depth_stencil_state"];
 		}
 		else {
-			m_stencil_test = "default";
+			m_depth_stencil_state = "default";
 		}
 
 		if (m_values.find("alpha_blending") != m_values.end()) {
@@ -97,14 +97,24 @@ namespace Rhea
 		// setup texture slots
 		std::string texture_type = getValue("texture_type", "none");
 		if (texture_type == "standard") {
-			m_texture_slots["BASECOLOR"] = 0;
-			m_texture_slots["NORMAL"] = 1;
+			m_texture_slot_descs.push_back({ "BASECOLOR", "BaseColorTexture", 0 });
+			m_texture_slot_descs.push_back({ "NORMALMAP", "NormalMap", 1 });
+		}
+		else if (texture_type == "terrain") {
+			m_texture_slot_descs.push_back({ "BLENDMAP", "Texture0", 0 });
+			m_texture_slot_descs.push_back({ "TEXTURE1", "Texture1", 1 });
+			m_texture_slot_descs.push_back({ "TEXTURE2", "Texture2", 2 });
+			m_texture_slot_descs.push_back({ "TEXTURE3", "Texture3", 3 });
+			m_texture_slot_descs.push_back({ "TEXTURE4", "Texture4", 4 });
+		}
+		else if (texture_type == "skybox") {
+			m_texture_slot_descs.push_back({ "BASECOLOR", "SkyMap", 0 });
 		}
 		else {
 			// default has at least the base color
-			m_texture_slots["BASECOLOR"] = 0;
+			m_texture_slot_descs.push_back({ "BASECOLOR", "BaseColorTexture", 0 });
 		}
-		m_num_texture_slots = (int)m_texture_slots.size();
+		m_num_texture_slots = (int)m_texture_slot_descs.size();
 	}
 
 	std::vector<Unit::Export> Rhea::Shader::getReferences()

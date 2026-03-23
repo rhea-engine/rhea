@@ -9,7 +9,6 @@ namespace Hippios
 	class GLStencilState : public StencilState
 	{
 	public:
-		GLStencilState();
 		GLStencilState(const DepthStencilStateDesc& desc);
 
 		void setState(int stencil_ref);

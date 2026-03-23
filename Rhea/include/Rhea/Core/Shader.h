@@ -20,6 +20,13 @@ namespace Rhea
 		Fragment
 	};
 
+	struct TextureSlotDesc
+	{
+		std::string propertyName;   // e.g. "BASECOLOR"
+		std::string shaderName;     // e.g. "BaseColorTexture"
+		int slot;                   // e.g. 0
+	};
+
 	class Shader : public Unit
 	{
 		MECLASS(Shader, Unit)
@@ -58,9 +65,9 @@ namespace Rhea
 		std::string getEntryPoint(ShaderBackend backend, ShaderStage stage) const;
 		bool hasShaderCode(ShaderBackend backend, ShaderStage stage) const;
 
-		// stencil testing		
-		void setStencilTest(std::string test_name) { m_stencil_test = test_name; }
-		std::string getStencilTest() { return m_stencil_test; }
+		// stencil/depth testing		
+		void setDepthStencilState(std::string test_name) { m_depth_stencil_state = test_name; }
+		std::string getDepthStencilState() { return m_depth_stencil_state; }
 
 		// alpha blending
 		bool getAlphaBlending() { return m_alpha_blending; }
@@ -96,7 +103,13 @@ namespace Rhea
 		std::vector<std::string>& getInputSlotNamesVS() { return m_property_names_vs; }
 
 		// get texture input slot id by name
-		int getTextureSlotId(std::string name) { if (m_texture_slots.find(name) != m_texture_slots.end()) return m_texture_slots[name]; else return -1; }
+		int getTextureSlotId(std::string name) {
+			for (const auto& desc : m_texture_slot_descs) {
+				if (desc.propertyName == name)
+					return desc.slot;
+			}
+			return -1;
+		}
 
 		// get max texture input slot
 		int getNumTextureSlots() const { return m_num_texture_slots; }
@@ -107,8 +120,11 @@ namespace Rhea
 		// get vertex element count for input layout
 		int getVertexElements();
 
+		// get texture slot descriptions
+		const std::vector<TextureSlotDesc>& getTextureSlots() const { return m_texture_slot_descs; }
+
 	protected:
-		std::string m_stencil_test;
+		std::string m_depth_stencil_state;
 		bool m_alpha_blending;
 		bool m_depth_test;
 		bool m_depth_write;
@@ -124,14 +140,15 @@ namespace Rhea
 		size_t m_num_input_slots_vs;
 		std::vector<std::string> m_property_names_vs;
 
-		// texture input slots
-		std::map<std::string, int> m_texture_slots;
 		int m_num_texture_slots;
 
 		// vertex size cache
 		int m_vertex_size;
 		// vertex element count cache
 		int m_vertex_elements;
+
+		// texture slot descriptions
+		std::vector<TextureSlotDesc> m_texture_slot_descs;
 	};
 }
 

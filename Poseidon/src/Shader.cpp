@@ -9,7 +9,7 @@ namespace Poseidon
 		m_shader(nullptr),		
 		m_alpha_blending(false),
 		m_pso(nullptr),
-		m_stencil_test("default"),
+		m_depth_stencil_state("default"),
 		m_topology_type(0),
 		m_cull_mode(true),
 		m_matbuf_size(0),
@@ -81,6 +81,14 @@ namespace Poseidon
 		source_desc.pixelSource = desc.pixelSource;
 		source_desc.pixelSourceLength = desc.pixelSourceLength;
 		source_desc.pixelEntry = desc.pixelEntry;
+		// set samplerBindings by iterating over desc.samplerBindings and converting them to Hippios::ShaderSamplerBinding
+		source_desc.samplerBindings.reserve(desc.sampler_bindings.size());
+		for (const auto& sb : desc.sampler_bindings) {
+			Hippios::SamplerBindingDesc binding;
+			binding.uniformName = sb.uniformName;
+			binding.slot = sb.slot;
+			source_desc.samplerBindings.push_back(binding);
+		}		
 		m_shader = m_renderer->createShader(source_desc);
 		return (m_shader != nullptr);
 	}
@@ -97,11 +105,30 @@ namespace Poseidon
 			Hippios::PipelineStateObjectDesc pso_desc;
 
 			// stencil state
-			pso_desc.depthStencilState.name = m_stencil_test;
-			pso_desc.depthStencilState.depth_enable = m_depth_test;
-			pso_desc.depthStencilState.depth_write_mask =
-				m_depth_write ? Hippios::DepthWriteMask::DEPTH_WRITE_ALL
-				: Hippios::DepthWriteMask::DEPTH_WRITE_ZERO;
+			// start from default preset
+			Hippios::DepthStencilStateDesc dsDesc;
+			if (!m_grahpics_core->get_renderer()->getStencilStateDesc("default", dsDesc)) {
+				dsDesc = Hippios::DepthStencilStateDesc{};
+			}
+
+			// apply named preset if present
+			if (!m_depth_stencil_state.empty()) {
+				Hippios::DepthStencilStateDesc presetDesc;
+				if (m_grahpics_core->get_renderer()->getStencilStateDesc(m_depth_stencil_state, presetDesc)) {
+					dsDesc = presetDesc;
+				}
+			}
+			pso_desc.depthStencilState = dsDesc;
+
+			if (m_has_depth_test_override) {
+				// override depth test enable and write mask based on shader settings, but keep other stencil state settings from the preset
+				pso_desc.depthStencilState.depth_enable = m_depth_test;
+			}
+			if (m_has_depth_write_override) {
+				pso_desc.depthStencilState.depth_write_mask =
+					m_depth_write ? Hippios::DepthWriteMask::DEPTH_WRITE_ALL
+					: Hippios::DepthWriteMask::DEPTH_WRITE_ZERO;
+			}
 
 			// defaults
 			pso_desc.blendState.renderTarget[0].src_blend = Hippios::BlendFactor::BLEND_SRC_ALPHA;//Hippios::BlendFactor::BLEND_ONE;

@@ -194,13 +194,6 @@ namespace Hippios
 		virtual StencilState* getStencilState(const std::string& name) = 0;
 
 		/**
-		 * @brief Creates a new default stencil state.
-		 * @param name The name for the stencil state.		 
-		 * @return A pointer to the created StencilState.
-		 */
-		virtual StencilState* createStencilState(const std::string& name) = 0;
-
-		/**
 		 * @brief Creates a new stencil state.
 		 * @param name The name for the stencil state.
 		 * @param desc The descriptor defining the stencil state properties.
@@ -235,6 +228,14 @@ namespace Hippios
 		 * @return A pointer to the initialized GraphicsBuffer.
 		 */
 		virtual GraphicsBuffer* initGPUBuffer(size_t size) = 0;
+
+		/**
+		 * @brief Retrieves the descriptor of a stencil state.
+		 * @param name The name of the stencil state.
+		 * @param outDesc The output descriptor structure to be filled.
+		 * @return True if the stencil state descriptor is found, false otherwise.
+		 */
+		virtual bool getStencilStateDesc(const std::string& name, DepthStencilStateDesc& outDesc) = 0;
 
 		// static factory method to create a renderer instance based on the platform
 		static std::unique_ptr<Renderer> CreateRenderer(RendererBackend backend);

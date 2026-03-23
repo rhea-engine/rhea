@@ -12,6 +12,12 @@
 
 namespace Poseidon
 {
+	struct SamplerBindingDesc
+	{
+		std::string uniformName;
+		int slot = 0;
+	};
+
 	struct ShaderProgramSourceDesc
 	{
 		const unsigned char* vertexSource = nullptr;
@@ -22,6 +28,8 @@ namespace Poseidon
 
 		std::string vertexEntry; // used by D3D11
 		std::string pixelEntry;  // used by D3D11
+
+		std::vector<SamplerBindingDesc> sampler_bindings;
 	};
 
 	struct VertexInputAttribute
@@ -64,11 +72,11 @@ namespace Poseidon
 		void setAlphaBlending(bool enable) { m_alpha_blending = enable; }
 
 		// set stencil testing to stencil test with given name
-		void setStencilTest(std::string test_name) { m_stencil_test = test_name; }
+		void setStencilTest(std::string test_name) { m_depth_stencil_state = test_name; }
 
 		// set depth testing and writing
-		void setDepthTest(bool enabled) { m_depth_test = enabled; }
-		void setDepthWrite(bool enabled) { m_depth_write = enabled; }
+		void setDepthTest(bool enabled) { m_depth_test = enabled; m_has_depth_test_override = true; }
+		void setDepthWrite(bool enabled) { m_depth_write = enabled; m_has_depth_write_override = true; }
 
 		// cull mode
 		void setCullMode(bool enabled) { m_cull_mode = enabled; }
@@ -137,12 +145,14 @@ namespace Poseidon
 
 		bool m_alpha_blending;
 		std::unique_ptr<Hippios::PipelineStateObject> m_pso;
-		std::string m_stencil_test;
+		std::string m_depth_stencil_state;
 		int m_topology_type;
 		bool m_cull_mode;
 		Hippios::SamplerState* m_sampler_state;
 		bool m_depth_test = true;
+		bool m_has_depth_test_override = false;
 		bool m_depth_write = true;
+		bool m_has_depth_write_override = false;
 
 		// pixel shader material buffer
 		std::vector<MatBufferLayoutElement> m_matbuf_layout;

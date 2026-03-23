@@ -85,7 +85,6 @@ namespace Hippios
 
 		// stencil states
 		StencilState* getStencilState(const std::string& name) override;
-		StencilState* createStencilState(const std::string& name);
 		StencilState* createStencilState(const std::string& name, const DepthStencilStateDesc& desc) override;
 		void setStencilState(StencilState* state, int stencil_ref) override;
 
@@ -115,6 +114,8 @@ namespace Hippios
 		void bindBuffers(VertexBuffer* vb, IndexBuffer* ib) override;
 		void clearPass(RenderTarget* render_target) override;
 		int presentPass(SwapChain* swap_chain) override;
+
+		bool getStencilStateDesc(const std::string& name, DepthStencilStateDesc& outDesc) override;
 
 	protected:
 		Texture* m_current_texture;		

@@ -77,8 +77,24 @@ namespace Poseidon
 
 		// create the default stencil states
 		Hippios::DepthStencilStateDesc desc;
-		m_renderer->createStencilState("default");
+		desc.depth_enable = true;
+		desc.depth_write_mask = Hippios::DepthWriteMask::DEPTH_WRITE_ALL;
+		desc.depth_func = Hippios::ComparisonFunction::COMPARE_LESS;
+		desc.stencil_enable = false;
+		m_renderer->createStencilState("default", desc);
+
+		desc.depth_enable = false;
+		desc.depth_write_mask = Hippios::DepthWriteMask::DEPTH_WRITE_ZERO;
+		desc.depth_func = Hippios::ComparisonFunction::COMPARE_ALWAYS;
+		desc.stencil_enable = false;
 		m_renderer->createStencilState("disabled", desc);
+		
+		desc.depth_enable = true;
+		desc.depth_write_enable = false;
+		desc.depth_write_mask = Hippios::DepthWriteMask::DEPTH_WRITE_ZERO;
+		desc.depth_func = Hippios::ComparisonFunction::COMPARE_LESS_EQUAL;
+		desc.stencil_enable = false;
+		m_renderer->createStencilState("skybox", desc);
 
 		// create default samplers
 

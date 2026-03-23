@@ -3,6 +3,7 @@
 
 #include <string>
 #include <Hippios/BaseTypes.h>
+#include <vector>
 
 namespace Hippios
 {
@@ -15,6 +16,12 @@ namespace Hippios
         std::string pixelEntry = "PSMain";
     };
 
+    struct SamplerBindingDesc
+    {
+        std::string uniformName;
+        int slot = 0;
+    };
+
     struct ShaderProgramSourceDesc
     {
         const unsigned char* vertexSource = nullptr;
@@ -24,6 +31,8 @@ namespace Hippios
         const unsigned char* pixelSource = nullptr;
         size_t pixelSourceLength = 0;
         std::string pixelEntry = "PSMain";
+
+        std::vector<SamplerBindingDesc> samplerBindings;
     };
 
     class ShaderProgram

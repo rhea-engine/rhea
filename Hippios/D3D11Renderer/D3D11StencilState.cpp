@@ -21,7 +21,8 @@ namespace Hippios {
     D3D11StencilState::D3D11StencilState(ID3D11Device* device, ID3D11DeviceContext* device_context, const DepthStencilStateDesc& desc) :
         m_depth_stencil_state(nullptr),
         m_device(device),
-        m_device_context(device_context)
+        m_device_context(device_context),
+		m_desc(desc)
     {
         ZeroMemory(&m_depth_stencil_desc, sizeof(D3D11_DEPTH_STENCIL_DESC));
 
@@ -43,15 +44,6 @@ namespace Hippios {
         HRESULT result = m_device->CreateDepthStencilState(&m_depth_stencil_desc, &m_depth_stencil_state);
         if (FAILED(result))
             LOG(LOG_ERROR) << "D3D11StencilState: Could not create stencil state";
-    }
-
-	D3D11StencilState::D3D11StencilState(ID3D11Device* device, ID3D11DeviceContext* device_context) : 
-        m_depth_stencil_desc(),
-        m_device(device), 
-        m_device_context(device_context)
-    {
-        // Create a default state
-        m_depth_stencil_state = nullptr;
     }
 
     D3D11StencilState::~D3D11StencilState()

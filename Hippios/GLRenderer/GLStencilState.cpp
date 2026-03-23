@@ -18,10 +18,6 @@ namespace Hippios
 		}
 	}
 
-	GLStencilState::GLStencilState()
-	{
-	}
-
 	GLStencilState::GLStencilState(const DepthStencilStateDesc& desc) :
 		m_desc(desc)
 	{
@@ -38,9 +34,6 @@ namespace Hippios
 		else {
 			glDisable(GL_DEPTH_TEST);
 		}
-		
-//		glDepthMask(GL_FALSE);
-//		glDisable(GL_DEPTH_TEST);
 
 		// Stencil
 		if (m_desc.stencil_enable) {

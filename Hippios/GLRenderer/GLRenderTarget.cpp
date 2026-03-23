@@ -132,6 +132,13 @@ namespace Hippios
 	void GLRenderTarget::clearPass()
 	{
 		glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
+
+		// Ensure depth writes are enabled — glClear respects glDepthMask.
+		// Without this, if the previous frame's last PSO had depth writes
+		// disabled (e.g. skybox with DEPTH_WRITE_ZERO), the depth buffer
+		// will NOT be cleared, causing stale depth values and z-fighting.
+		glDepthMask(GL_TRUE);
+
 		glClearColor(0.0f, 0.0f, 0.5f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	}

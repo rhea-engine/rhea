@@ -25,6 +25,15 @@ namespace Hippios
 		StencilOp depth_fail_op = StencilOp::STENCIL_KEEP;
 		StencilOp pass_op = StencilOp::STENCIL_KEEP;
 		ComparisonFunction stencil_func = ComparisonFunction::COMPARE_ALWAYS;
+
+		bool operator==(const StencilOpDesc& o) const
+		{
+			return stencil_fail_op == o.stencil_fail_op
+				&& depth_fail_op == o.depth_fail_op
+				&& pass_op == o.pass_op
+				&& stencil_func == o.stencil_func;
+		}
+		bool operator!=(const StencilOpDesc& o) const { return !(*this == o); }
 	};
 
 	enum class DepthWriteMask
@@ -36,25 +45,25 @@ namespace Hippios
 
 	struct DepthStencilStateDesc
 	{
-		// name of this sate
+		// name of this state
 		std::string name;
 
-		// wheter or not to enable depth
-		bool depth_enable = false;
+		// whether or not to enable depth
+		bool depth_enable = true;
 
-		// wheter or not to write to the depth buffer
-		bool depth_write_enable = false;
+		// whether or not to write to the depth buffer
+		bool depth_write_enable = true;
 
 		// define depth write mask
-		DepthWriteMask depth_write_mask = DepthWriteMask::DEPTH_WRITE_ZERO;
+		DepthWriteMask depth_write_mask = DepthWriteMask::DEPTH_WRITE_ALL;
 
 		// define bits for stencil read mask
-		uint8_t stencil_read_mask = 0x00;
+		uint8_t stencil_read_mask = 0xFF;
 
 		// define bits for stencil write mask
-		uint8_t stencil_write_mask = 0x00;
+		uint8_t stencil_write_mask = 0xFF;
 
-		// wheter or not to enable stencil
+		// whether or not to enable stencil
 		bool stencil_enable = false;
 
 		// the depth comparison function
@@ -62,6 +71,20 @@ namespace Hippios
 
 		StencilOpDesc front_face;
 		StencilOpDesc back_face;
+
+		/// Compare all fields that affect the GPU state (ignores name).
+		bool matches(const DepthStencilStateDesc& o) const
+		{
+			return depth_enable == o.depth_enable
+				&& depth_write_enable == o.depth_write_enable
+				&& depth_write_mask == o.depth_write_mask
+				&& stencil_read_mask == o.stencil_read_mask
+				&& stencil_write_mask == o.stencil_write_mask
+				&& stencil_enable == o.stencil_enable
+				&& depth_func == o.depth_func
+				&& front_face == o.front_face
+				&& back_face == o.back_face;
+		}
 	};
 
 	class StencilState

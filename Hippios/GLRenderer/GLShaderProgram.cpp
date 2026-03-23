@@ -32,6 +32,16 @@ namespace Hippios
 		glUniform1i(location, textureUnit);
 	}
 
+	void GLShaderProgram::bindSampler(const char* uniformName, int slot)
+	{
+		GLint location = glGetUniformLocation(m_program, uniformName);
+		if (location == -1)
+			return;
+
+		glUseProgram(m_program);
+		glUniform1i(location, slot);
+	}
+
 	GLShaderProgram::GLShaderProgram() = default;
 
 	GLShaderProgram::~GLShaderProgram()
@@ -113,19 +123,10 @@ namespace Hippios
 		bindUniformBlock(m_program, "cbBone", 4);
 		bindUniformBlock(m_program, "cbBackground", 5);
 
-		bindSampler(m_program, "ObjTexture", 0);
+		for (const auto& b : m_sampler_bindings) {
+			bindSampler(b.uniformName.c_str(), static_cast<int>(b.slot));
+		}
 
-		bindSampler(m_program, "BaseColorTexture", 0);
-		bindSampler(m_program, "NormalMap", 1);
-
-		bindSampler(m_program, "SkyMap", 1);
-
-		bindSampler(m_program, "Texture0", 0);
-		bindSampler(m_program, "Texture1", 1);
-		bindSampler(m_program, "Texture2", 2);
-		bindSampler(m_program, "Texture3", 3);
-		bindSampler(m_program, "Texture4", 4);
-		
 		return true;
 	}
 }

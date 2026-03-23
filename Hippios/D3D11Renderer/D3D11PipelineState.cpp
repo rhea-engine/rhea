@@ -1,4 +1,4 @@
-#include "D3D11PipelineState.h"
+﻿#include "D3D11PipelineState.h"
 #include "D3D11Renderer.h"
 #include "D3D11ShaderProgram.h"
 #include <cassert>
@@ -59,13 +59,33 @@ namespace Hippios
 
 	D3D11PipelineStateObject::D3D11PipelineStateObject(Renderer* renderer, const PipelineStateObjectDesc& desc)
 	{
+		static int _internal_counter = 0;
 		m_renderer = (D3D11Renderer*)renderer;
 
-		// initialize dpeth stencil state
-		m_stencil_state = static_cast<D3D11StencilState*>(m_renderer->getStencilState(desc.depthStencilState.name));		
-		if (!m_stencil_state)
-			m_stencil_state = static_cast<D3D11StencilState*>(m_renderer->createStencilState(desc.depthStencilState.name, desc.depthStencilState));
+		// initialize depth stencil state
+		// Look up by name first. If found, verify that the GPU-relevant fields match.
+		// If they don't match (e.g. overrides changed depth_enable), create a new
+		// uniquely-named state so we don't corrupt the original preset.
+		m_stencil_state = static_cast<D3D11StencilState*>(
+			m_renderer->getStencilState(desc.depthStencilState.name));
+
+		if (m_stencil_state) {
+			// Existing state found – does it match what we need?
+			if (!m_stencil_state->getDesc().matches(desc.depthStencilState)) {
+				// Overrides differ from the stored preset → create a new variant
+				std::string uniqueName = desc.depthStencilState.name
+					+ "_pso_" + std::to_string(_internal_counter++);
+				m_stencil_state = static_cast<D3D11StencilState*>(
+					m_renderer->createStencilState(uniqueName, desc.depthStencilState));
+			}
+		}
+		else {
+			// No state with this name exists yet → create it
+			m_stencil_state = static_cast<D3D11StencilState*>(
+				m_renderer->createStencilState(desc.depthStencilState.name, desc.depthStencilState));
+		}
 		
+
 		// initialize rasterizer state
 
 

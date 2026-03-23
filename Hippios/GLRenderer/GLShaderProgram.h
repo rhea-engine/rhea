@@ -33,6 +33,14 @@ namespace Hippios
 		GLuint getProgram() const { return m_program; }
 		GLShader* getVertexShader() const { return m_vertex_shader.get(); }
 		GLShader* getPixelShader() const { return m_pixel_shader.get(); }
+		
+		// Binds a texture sampler uniform to a specific texture slot (0-based).
+		void bindSampler(const char* uniformName, int slot);
+
+		void setSamplerBindings(const std::vector<SamplerBindingDesc>& bindings)
+		{
+			m_sampler_bindings = bindings;
+		}
 
 	private:
 		bool linkProgram();
@@ -40,6 +48,8 @@ namespace Hippios
 		GLuint m_program = 0;
 		std::unique_ptr<GLShader> m_vertex_shader;
 		std::unique_ptr<GLShader> m_pixel_shader;
+
+		std::vector<SamplerBindingDesc> m_sampler_bindings;
 	};
 }
 

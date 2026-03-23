@@ -21,6 +21,7 @@
 #include <Rhea/Animation/Skeleton.h>
 #include <Rhea/Components/VisualComponent.h>
 #include <Rhea/Components/RenderComponent.h>
+#include <Psio/Log.h>
 
 namespace Poseidon
 {
@@ -233,6 +234,11 @@ namespace Poseidon
 
 						Material* mat = submesh->material;
 
+						if (!mat) {
+							DLOG(LOG_DEBUG) << "SceneManager::render: submesh " << i << " has no material - SKIPPING";
+							continue;
+						}
+
 						if (mat != m_current_material && mat) {
 							m_current_material = mat;
 							mat->activate(3, 5);
@@ -260,6 +266,11 @@ namespace Poseidon
 
 						mesh->getRenderInput(i, &vb, &ib, num_indices);
 
+						if (!vb) {
+							DLOG(LOG_DEBUG) << "SceneManager::render: submesh " << i << " has no vertex buffer";
+							continue;
+						}
+
 						if (!mesh->isIndexed()) {
 							if (vb) {
 								m_renderer->bindBuffers(vb, ib);
@@ -270,6 +281,9 @@ namespace Poseidon
 							if (vb && num_indices) {
 								m_renderer->bindBuffers(vb, ib);
 								m_renderer->drawIndexed(num_indices, 0, 0);
+							}
+							else {
+								DLOG(LOG_DEBUG) << "SceneManager::render: indexed mesh but num_indices=0 or no vb";
 							}
 						}
 					}

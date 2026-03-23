@@ -1,5 +1,6 @@
 #include "GLRenderer.h"
 #include "GLRenderer.h"
+#include "GLRenderer.h"
 #include "GLVertexBuffer.h"
 #include "GLIndexBuffer.h"
 #include "GLGraphicsBuffer.h"
@@ -170,6 +171,7 @@ namespace Hippios
 	ShaderProgram* GLRenderer::createShader(const ShaderProgramSourceDesc& desc)
 	{
 		auto* program = new GLShaderProgram();
+		program->setSamplerBindings(desc.samplerBindings);
 		if (!program->loadFromSource(
 			desc.vertexSource, desc.vertexSourceLength, desc.vertexEntry,
 			desc.pixelSource, desc.pixelSourceLength, desc.pixelEntry)) {
@@ -205,13 +207,6 @@ namespace Hippios
 		if (it != m_stencil_states.end())
 			return it->second.get();
 		return nullptr;
-	}
-
-	StencilState* GLRenderer::createStencilState(const std::string& name)
-	{
-		auto state = new GLStencilState();
-		m_stencil_states[name].reset(state);
-		return state;
 	}
 
 	StencilState* GLRenderer::createStencilState(const std::string& name, const DepthStencilStateDesc& desc)
@@ -331,6 +326,16 @@ namespace Hippios
 			return -1;
 		}
 		return 0;
+	}
+
+	bool GLRenderer::getStencilStateDesc(const std::string& name, DepthStencilStateDesc& outDesc)
+	{
+		GLStencilState* state = static_cast<GLStencilState*>(getStencilState(name));
+		if (state) {
+			outDesc = state->getDesc();
+			return true;
+		}
+		return false;
 	}
 
 	void GLRenderer::draw(int size, int start_vtx)

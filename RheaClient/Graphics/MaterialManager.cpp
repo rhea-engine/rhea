@@ -65,7 +65,7 @@ namespace Rhea
 		}
 
 		if (!vs_res || !fs_res) {
-			LOG(LOG_ERROR) << "GraphicsMaterialManager::EnsurePoseidonShader: Shader code not found for backend \"" << backend << "\"";
+			LOG(LOG_ERROR) << "GraphicsMaterialManager::EnsurePoseidonShader: Shader code not found for backend \"" << backend << "\" shader: \"" << shader_name << "\"";
 			return nullptr;
 		}
 
@@ -77,6 +77,11 @@ namespace Rhea
 		size_t fs_len = 0;
 		fs_res->getRaw(&fs_buf, &fs_len);
 
+		if (!vs_buf || !vs_len || !fs_buf || !fs_len) {
+			LOG(LOG_ERROR) << "EnsurePoseidonShader: Empty shader source for '" << shader_name << "'";
+			return nullptr;
+		}
+
 		Poseidon::ShaderProgramSourceDesc desc;
 		desc.vertexSource = reinterpret_cast<const unsigned char*>(vs_buf);
 		desc.vertexSourceLength = vs_len;
@@ -84,6 +89,9 @@ namespace Rhea
 		desc.pixelSourceLength = fs_len;
 		desc.vertexEntry = shader_res->getEntryPoint(shader_backend, ShaderStage::Vertex);
 		desc.pixelEntry = shader_res->getEntryPoint(shader_backend, ShaderStage::Fragment);
+		for (const auto& texSlot : shader_res->getTextureSlots()) {
+			desc.sampler_bindings.push_back({ texSlot.shaderName, texSlot.slot });
+		}
 
 		shader = core->createShader(shader_name);
 		if (!shader->loadFromSourceDesc(desc)) {
@@ -98,7 +106,7 @@ namespace Rhea
 
 		// set stencil testing
 		if (shader_res) {
-			shader->setStencilTest(shader_res->getStencilTest());
+			shader->setStencilTest(shader_res->getDepthStencilState());
 
 			// cull mode
 			std::string cull_mode = shader_res->getValue("cull_mode", "back");

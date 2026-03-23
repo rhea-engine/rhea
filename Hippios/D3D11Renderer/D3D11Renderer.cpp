@@ -153,7 +153,7 @@ namespace Hippios {
 		// set index buffer
 		if (m_last_ib && m_last_ib->is_dirty) {
 			ID3D11Buffer* buffer = m_last_ib->get_buffer();
-			m_device_context->IASetIndexBuffer(buffer, DXGI_FORMAT_R32_UINT, 0);
+			m_device_context->IASetIndexBuffer(buffer, m_last_ib->getIndexFormat(), 0);
 			m_last_ib->is_dirty = false;
 		}
 	}

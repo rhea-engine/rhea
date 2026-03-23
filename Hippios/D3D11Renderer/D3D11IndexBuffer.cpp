@@ -19,6 +19,11 @@ namespace Hippios
 		m_index_stride = index_stride;
 		m_num_faces = num_faces;
 
+		if (index_stride == 2)
+			m_index_format = DXGI_FORMAT_R16_UINT;
+		else
+			m_index_format = DXGI_FORMAT_R32_UINT;
+
 		m_buffer = std::make_unique<D3D11GraphicsBuffer>(m_device, m_device_context, D3D11_BIND_INDEX_BUFFER, m_size_in_bytes, dynamic);
 	}
 

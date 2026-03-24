@@ -201,24 +201,26 @@ namespace Poseidon
 						m_object_buffer->update((void*)&per_obj_buf);
 						m_renderer->bindGPUBuffer(m_object_buffer.get(), 1, Hippios::ShaderStage::Vertex);
 					}
-
+					
 					// get render mesh
 					// Ensure GPU mesh is available
 					Poseidon::Mesh* mesh = r_comp->gpuMesh;
 					if (!mesh) {
 						continue;
 					}
-
+					
 					// skeleton handling if any
 					Rhea::Skeleton* skeleton = r_comp->skeleton;
 					if (skeleton) {
 						// Fill the bone buffer
-						BoneBuffer boneBuffer;
+						BoneBuffer boneBuffer{};
+						for (int i = 0; i < 100; ++i)
+						{
+							boneBuffer.boneMatrices[i] = Math::Matrix4::IDENTITY;
+						}
 						const auto& boneMatrices = skeleton->getBoneMatrices();
 						size_t max_bones = min(boneMatrices.size(), static_cast<size_t>(100)); // Ensure we do not exceed buffer capacity.
-						for (size_t i = 0; i < max_bones; ++i) {
-							boneBuffer.boneMatrices[i] = boneMatrices[i];
-						}
+						m_renderer->prepareMatricesForShader(boneBuffer.boneMatrices, boneMatrices.data(), max_bones);
 
 						// Update the bone matrix buffer
 						m_bone_buffer->update((void*)&boneBuffer);

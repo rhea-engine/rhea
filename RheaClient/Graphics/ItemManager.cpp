@@ -11,6 +11,7 @@
 #include <Rhea/Core/Material.h>
 #include <Rhea/Resources/TextResource.h>
 #include <Rhea/UnitTree.h>
+#include <Rhea/Animation/Skeleton.h>
 
 #include "ItemManager.h"
 #include <Rhea/Graphics/Texture.h>
@@ -54,7 +55,7 @@ namespace Rhea
 			MeshComponent* mc = item->getComponent<MeshComponent>();
 			Mesh* mesh = nullptr;
 			if (!mc) {
-				DLOG(LOG_DEBUG) << "Item has no mesh component";
+				LOG(LOG_DEBUG) << "  -> Item '" << item->getPathName() << "' has no MeshComponent, skipping";
 				return false;
 			}
 			if (!mc->getMesh()) {
@@ -65,7 +66,7 @@ namespace Rhea
 
 				mesh = doCast<Mesh>(app->getUnitTree()->find(mc->meshRef(), mc->basepathRef(), false));
 				if (!mesh) {
-					LOG(LOG_ERROR) << "No mesh defined for item";
+					LOG(LOG_ERROR) << "  -> FAILED: No mesh found for '" << mc->meshRef() << "'";
 					return false;
 				}
 				else {
@@ -84,15 +85,30 @@ namespace Rhea
 					return meshMgr->FillPoseidonMesh(core, mesh, out);
 				});
 			if (!shared) {
-				LOG(LOG_ERROR) << "Failed to build GPU mesh";
+				LOG(LOG_ERROR) << "  -> FAILED: GPU mesh creation failed for '" << item->getPathName() << "'";
 				return false;
 			}
 			rc->gpuMesh = shared;
-
+			Rhea::Skeleton* skeleton = mesh->getComponent<Skeleton>();
+			if (skeleton) {
+				/*Poseidon::Skeleton* gpuSkeleton = meshMgr->getOrCreateGPUSkeleton(core, skeleton);
+				if (!gpuSkeleton) {
+					LOG(LOG_ERROR) << "  -> FAILED: GPU skeleton creation failed for '" << item->getPathName() << "'";
+					return false;
+				}
+				*/
+				rc->skeleton = skeleton;
+			}
+		
 			// Create instance render entity using shared mesh
 			rc->entity = static_cast<Poseidon::Renderable*>(
 				createRenderable(rc, core, unit, shared, "default")
 				);
+
+			if (!rc->entity) {
+				LOG(LOG_ERROR) << "  -> FAILED: createRenderable returned null for '" << item->getPathName() << "'";
+				return false;
+			}
 		}
 		
 		// register handlers

@@ -34,25 +34,36 @@ out vec3 v_bitangent;
 
 void main()
 {
-    vec4 position = vec4(a_position, 1.0);
+   vec4 position = vec4(a_position, 1.0);
 
     vec4 jointWeights = a_jointWeights;
     float weightSum = jointWeights.x + jointWeights.y + jointWeights.z + jointWeights.w;
+
+    mat4 skinningTransform = mat4(1.0);
+
     if (weightSum > 0.0)
+    {
         jointWeights /= weightSum;
+        skinningTransform = mat4(0.0);
 
-    mat4 skinningTransform = mat4(0.0);
-    skinningTransform += boneMatrices[a_jointIndices.x] * jointWeights.x;
-    skinningTransform += boneMatrices[a_jointIndices.y] * jointWeights.y;
-    skinningTransform += boneMatrices[a_jointIndices.z] * jointWeights.z;
-    skinningTransform += boneMatrices[a_jointIndices.w] * jointWeights.w;
+        uvec4 ji = min(a_jointIndices, uvec4(99u));
 
-    vec4 skinnedPosition = skinningTransform * position;
-    vec3 skinnedNormal = mat3(skinningTransform) * a_normal;
-    vec3 skinnedTangent = mat3(skinningTransform) * a_tangent;
+        if (jointWeights.x > 0.0)
+            skinningTransform += boneMatrices[ji.x] * jointWeights.x;
+        if (jointWeights.y > 0.0)
+            skinningTransform += boneMatrices[ji.y] * jointWeights.y;
+        if (jointWeights.z > 0.0)
+            skinningTransform += boneMatrices[ji.z] * jointWeights.z;
+        if (jointWeights.w > 0.0)
+            skinningTransform += boneMatrices[ji.w] * jointWeights.w;
+    }
 
+    vec4 skinnedPosition = position * skinningTransform;
     vec4 worldPos = skinnedPosition * world_matrix;
     gl_Position = vec4(worldPos.xyz, 1.0) * VP;
+   
+    vec3 skinnedNormal = mat3(skinningTransform) * a_normal;
+    vec3 skinnedTangent = mat3(skinningTransform) * a_tangent;
 
     v_normal = normalize(skinnedNormal * mat3(transpose(inverse_matrix)));
     v_tex = a_texcoord;

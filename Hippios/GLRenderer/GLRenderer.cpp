@@ -369,4 +369,10 @@ namespace Hippios
 		// In OpenGL, uniform buffer binding points are shared across all stages
 		glBindBufferBase(GL_UNIFORM_BUFFER, slot, gl_buf->get_buffer());
 	}
+
+	void GLRenderer::prepareMatricesForShader(Math::Matrix4* dst, const Math::Matrix4* src, size_t count) const
+	{
+		for (size_t i = 0; i < count; ++i)
+			dst[i] = src[i].transpose();
+	}
 }

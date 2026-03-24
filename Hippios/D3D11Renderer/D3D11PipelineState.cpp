@@ -123,6 +123,21 @@ namespace Hippios
 			m_raster_state = nullptr;
 		}
 
+		switch (desc.primitiveTopology) {
+		case PrimitiveTopology::LineList:
+			m_topology = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
+			break;
+		case PrimitiveTopology::TriangleList:
+			m_topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+			break;
+		case PrimitiveTopology::TriangleStrip:
+			m_topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
+			break;
+		default:
+			m_topology = D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
+			break;
+		}
+
 		// vertex input layout
 		D3D11_INPUT_ELEMENT_DESC* ied;
 		ied = new D3D11_INPUT_ELEMENT_DESC[desc.inputLayout.num_elements];
@@ -159,6 +174,12 @@ namespace Hippios
 		}
 		// use the vertex blob from D3D11ShaderProgram for input layout creation
 		ID3DBlob* vs_blob = m_shader_program->getVertexBlob();
+		if (!vs_blob) {
+			LOG(LOG_ERROR) << "D3D11PipelineStateObject: no vertex shader found";
+			delete[] ied;
+			m_input_layout = nullptr;
+			return;
+		}
 		HRESULT HR = m_renderer->get_device()->CreateInputLayout(
 			ied,
 			desc.inputLayout.num_elements,
@@ -170,21 +191,6 @@ namespace Hippios
 			LOG(LOG_ERROR) << "D3D11PipelineStateObject: Could not create input layout for shader - expect shader to fail.";
 		}
 		delete[] ied;
-
-		switch (desc.primitiveTopology) {
-		case PrimitiveTopology::LineList:
-			m_topology = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
-			break;
-		case PrimitiveTopology::TriangleList:
-			m_topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-			break;
-		case PrimitiveTopology::TriangleStrip:
-			m_topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
-			break;
-		default:
-			m_topology = D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
-			break;
-		}
 	}
 
 	D3D11PipelineStateObject::~D3D11PipelineStateObject()
@@ -198,14 +204,17 @@ namespace Hippios
 	void D3D11PipelineStateObject::SetState()
 	{
 		float blend_factor[4];
-
+		
 		// Setup the blend factor.
 		blend_factor[0] = 0.0f;
 		blend_factor[1] = 0.0f;
 		blend_factor[2] = 0.0f;
 		blend_factor[3] = 0.0f;
-
+		
 		unsigned int blend_mask = 0xffffffff;
+
+		if (!m_input_layout)
+			return;
 		
 		m_renderer->setStencilState(m_stencil_state, 1);
 		m_renderer->setRasterizerState(m_raster_state);

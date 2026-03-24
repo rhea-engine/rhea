@@ -50,44 +50,81 @@ namespace Rhea
 		// set / get material properties
 
 		// set color for id
-		void setColor(int propertyID, Math::Vector3 color) { if (propertyID < m_colors.size()) m_colors[propertyID] = color; }
-		void setColor(int propertyID, Math::Vector4 color) { if (propertyID < m_colors.size()) m_colors[propertyID] = color; }
+		void setColor(int propertyID, Math::Vector3 color) {
+			if (propertyID < 0) return;
+			if (propertyID >= m_colors.size()) m_colors.resize(propertyID + 1, Math::Vector4(0,0,0,0));
+			m_colors[propertyID] = Math::Vector4(color.x, color.y, color.z, 1.0f);
+		}
+		void setColor(int propertyID, Math::Vector4 color) {
+			if (propertyID < 0) return;
+			if (propertyID >= m_colors.size()) m_colors.resize(propertyID + 1, Math::Vector4(0,0,0,0));
+			m_colors[propertyID] = color;
+		}
 
 		// get color for id
 		Math::Vector4 getColor(int propertyID) { if (propertyID < m_colors.size()) return m_colors[propertyID]; else return Math::Vector4(0, 0, 0, 0); }
 		// set float2 for id
-		void setFloat2(int propertyID, Math::Vector2 value) { if (propertyID < m_float2s.size()) m_float2s[propertyID] = value; }
+		void setFloat2(int propertyID, Math::Vector2 value) {
+			if (propertyID < 0) return;
+			if (propertyID >= m_float2s.size()) m_float2s.resize(propertyID + 1, Math::Vector2(0,0));
+			m_float2s[propertyID] = value;
+		}
 		// get float2 for id
 		Math::Vector2 getFloat2(int propertyID) { if (propertyID < m_colors.size()) return m_float2s[propertyID]; else return Math::Vector2(0, 0); }
 
 		// set a float value by id
-		void setFloat(int propertyID, float value) { if (propertyID < m_floats.size()) m_floats[propertyID] = value; }
+		void setFloat(int propertyID, float value) {
+			if (propertyID < 0) return;
+			if (propertyID >= m_floats.size()) m_floats.resize(propertyID + 1, 0.0f);
+			m_floats[propertyID] = value;
+		}
 		// get a float value by id
 		float getFloat(int propertyID) { if (propertyID < m_floats.size()) return m_floats[propertyID]; else return 0.0f; }
 
 		// set an int value by id
-		void setInt(int propertyID, int value) { if (propertyID < m_ints.size()) m_ints[propertyID] = value; }
+		void setInt(int propertyID, int value) {
+			if (propertyID < 0) return;
+			if (propertyID >= m_ints.size()) m_ints.resize(propertyID + 1, 0);
+			m_ints[propertyID] = value;
+		}
 		// get an int value by id
 		int getInt(int propertyID) { if (propertyID < m_ints.size()) return m_ints[propertyID]; else return 0; }
 
 		// set color for id
-		void setColorVS(int propertyID, Math::Vector3 color) { if (propertyID < m_colors_vs.size()) m_colors_vs[propertyID] = color; }
-		void setColorVS(int propertyID, Math::Vector4 color) { if (propertyID < m_colors_vs.size()) m_colors_vs[propertyID] = color; }
+		void setColorVS(int propertyID, Math::Vector3 color) {
+			if (propertyID < 0) return;
+			if (propertyID >= m_colors_vs.size()) m_colors_vs.resize(propertyID + 1, Math::Vector4(0,0,0,0));
+			m_colors_vs[propertyID] = Math::Vector4(color.x, color.y, color.z, 1.0f);
+		}
+		void setColorVS(int propertyID, Math::Vector4 color) {
+			if (propertyID < 0) return;
+			if (propertyID >= m_colors_vs.size()) m_colors_vs.resize(propertyID + 1, Math::Vector4(0,0,0,0));
+			m_colors_vs[propertyID] = color;
+		}
 
 		// get color for id
 		Math::Vector4 getColorVS(size_t propertyID) { if (propertyID < m_colors_vs.size()) return m_colors_vs[propertyID]; else return Math::Vector4(0, 0, 0, 0); }
 		// set float2 for id
-		void setFloat2VS(size_t propertyID, Math::Vector2 value) { if (propertyID < m_float2s_vs.size()) m_float2s_vs[propertyID] = value; }
+		void setFloat2VS(size_t propertyID, Math::Vector2 value) {
+			if (propertyID >= m_float2s_vs.size()) m_float2s_vs.resize(propertyID + 1, Math::Vector2(0,0));
+			m_float2s_vs[propertyID] = value;
+		}
 		// get float2 for id
 		Math::Vector2 getFloat2VS(size_t propertyID) { if (propertyID < m_colors_vs.size()) return m_float2s_vs[propertyID]; else return Math::Vector2(0, 0); }
 
 		// set a float value by id
-		void setFloatVS(size_t propertyID, float value) { if (propertyID < m_floats.size()) m_floats_vs[propertyID] = value; }
+		void setFloatVS(size_t propertyID, float value) {
+			if (propertyID >= m_floats_vs.size()) m_floats_vs.resize(propertyID + 1, 0.0f);
+			m_floats_vs[propertyID] = value;
+		}
 		// get a float value by id
 		float getFloatVS(size_t propertyID) { if (propertyID < m_floats_vs.size()) return m_floats_vs[propertyID]; else return 0.0f; }
 
 		// set an int value by id
-		void setIntVS(size_t propertyID, int value) { if (propertyID < m_ints_vs.size()) m_ints_vs[propertyID] = value; }
+		void setIntVS(size_t propertyID, int value) {
+			if (propertyID >= m_ints_vs.size()) m_ints_vs.resize(propertyID + 1, 0);
+			m_ints_vs[propertyID] = value;
+		}
 		// get an int value by id
 		int getIntVS(size_t propertyID) { if (propertyID < m_ints_vs.size()) return m_ints_vs[propertyID]; else return 0; }
 

@@ -202,7 +202,7 @@ namespace Rhea
 			//m_model.meshes[node.mesh].primitives[0].attributes[0]
 		}
 
-		return false;
+		return true;
 	}
 
 	void GltfScene::CreateSkeleton(int idx, Skeleton* skeleton) {

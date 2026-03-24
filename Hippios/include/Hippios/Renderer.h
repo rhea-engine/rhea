@@ -16,6 +16,7 @@
 #include "ShaderProgram.h"
 #include "RenderTarget.h"
 #include <memory>
+#include <Math/Matrix4.h>
 
 namespace Hippios
 {
@@ -236,6 +237,14 @@ namespace Hippios
 		 * @return True if the stencil state descriptor is found, false otherwise.
 		 */
 		virtual bool getStencilStateDesc(const std::string& name, DepthStencilStateDesc& outDesc) = 0;
+
+		/**
+		 * @brief Prepares an array of matrices for use in shaders, applying necessary transformations.
+		 * @param dst The destination array to receive the prepared matrices.
+		 * @param src The source array of matrices to be prepared.
+		 * @param count The number of matrices in the source array.
+		 */
+		virtual void prepareMatricesForShader(Math::Matrix4* dst, const Math::Matrix4* src, size_t count) const = 0;
 
 		// static factory method to create a renderer instance based on the platform
 		static std::unique_ptr<Renderer> CreateRenderer(RendererBackend backend);

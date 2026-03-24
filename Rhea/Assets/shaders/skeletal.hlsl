@@ -69,32 +69,48 @@ struct VS_OUTPUT
     float3 bitangent : BITANGENT;
 };
 
+#define MAX_BONES 100
+
 VS_OUTPUT VShader(float4 position : POSITION, float3 normal: NORMAL, float2 tex : TEXCOORD, float3 tangent : TANGENT,
 uint4 jointIndices : JOINTS, float4 jointWeights : WEIGHTS)
 {
 	VS_OUTPUT output;
     
     // Initialize the skinning transformation matrix
-    float4x4 skinningTransform = float4x4(0.0f, 0.0f, 0.0f, 0.0f,
-                                          0.0f, 0.0f, 0.0f, 0.0f,
-                                          0.0f, 0.0f, 0.0f, 0.0f,
-                                          0.0f, 0.0f, 0.0f, 0.0f);
+    float4x4 skinningTransform = float4x4(
+        1.0f, 0.0f, 0.0f, 0.0f,
+        0.0f, 1.0f, 0.0f, 0.0f,
+        0.0f, 0.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 0.0f, 1.0f
+    );
 
     // make sure weights are correct    
     float weightSum = jointWeights[0] + jointWeights[1] + jointWeights[2] + jointWeights[3];
     if (weightSum > 0.0f)
-    {    
-        jointWeights[0] /= weightSum;
-        jointWeights[1] /= weightSum;
-        jointWeights[2] /= weightSum;
-        jointWeights[3] /= weightSum;
-    }    
-    
-    // Sum weighted bone transformations
-    for (int i = 0; i < 4; ++i)
-    {       
-        skinningTransform += boneMatrices[jointIndices[i]] * jointWeights[i];
-   }
+    {
+        jointWeights /= weightSum;
+
+        uint4 ji = min(
+            jointIndices,
+            uint4(MAX_BONES - 1, MAX_BONES - 1, MAX_BONES - 1, MAX_BONES - 1)
+        );
+
+        skinningTransform = float4x4(
+            0.0f, 0.0f, 0.0f, 0.0f,
+            0.0f, 0.0f, 0.0f, 0.0f,
+            0.0f, 0.0f, 0.0f, 0.0f,
+            0.0f, 0.0f, 0.0f, 0.0f
+        );
+
+        if (jointWeights.x > 0.0f)
+            skinningTransform += boneMatrices[ji.x] * jointWeights.x;
+        if (jointWeights.y > 0.0f)
+            skinningTransform += boneMatrices[ji.y] * jointWeights.y;
+        if (jointWeights.z > 0.0f)
+            skinningTransform += boneMatrices[ji.z] * jointWeights.z;
+        if (jointWeights.w > 0.0f)
+            skinningTransform += boneMatrices[ji.w] * jointWeights.w;
+    }
     
     // Transform position and normal using skinning transform
     float4 skinnedPosition = mul(skinningTransform, position);
@@ -102,11 +118,11 @@ uint4 jointIndices : JOINTS, float4 jointWeights : WEIGHTS)
     float3 skinnedTangent = mul((float3x3) skinningTransform, tangent);
         
     // Transform to world space
-    float3 worldPos = mul(skinnedPosition, worldMatrix);
-    output.position = mul(float4(worldPos, 1.0), VP);
+    float4 worldPos = mul(skinnedPosition, worldMatrix);
+    output.position = mul(worldPos, VP);
+    output.positionWS = worldPos;
     output.normal = normalize(mul(skinnedNormal, (float3x3) transpose(invModel)));
     output.tex = tex;
-    output.positionWS = float4(worldPos, 1.0);
 
     output.tangent = normalize(mul(skinnedTangent, (float3x3) worldMatrix)).xyz;
     // Compute binormal (cross product of normal and tangent)
@@ -240,7 +256,7 @@ LightingResult ComputeLighting(float4 P, float3 N)
 }
 
 float4 PShader(VS_OUTPUT input) : SV_TARGET
-{
+{  
     float3 finalNormal = input.normal;
     
     float4 diffuseSample = BaseColorTexture.Sample(ObjSamplerState, input.tex);

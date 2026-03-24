@@ -1,6 +1,7 @@
 #include "GLPipelineState.h"
 #include "GLShaderProgram.h"
 #include <cstdio>
+#include <Psio/Log.h>
 
 namespace Hippios
 {
@@ -172,6 +173,45 @@ namespace Hippios
 
 		// Blend state
 		m_blend_state = std::make_unique<GLBlendState>(desc.blendState);
+
+		// log layout.num_elements
+
+		/*layout.num_bindings
+
+			for each element :
+
+		location
+		
+			input_slot
+			
+			aligned_byte_offset
+
+			format
+			
+			for each binding :
+
+		inputSlot
+
+			stride*/
+		LOG(LOG_DEBUG) << "GLPipelineStateObject created with " << desc.inputLayout.num_elements << " elements and "
+			<< desc.inputLayout.num_bindings << " bindings.";
+		LOG(LOG_DEBUG) << "Elements: ";
+		for (int i = 0; i < desc.inputLayout.num_elements; ++i) {
+			const auto& elem = desc.inputLayout.elements[i];
+			LOG(LOG_DEBUG) << "  Element " << i << ": location=" << elem.location
+				<< ", input_slot=" << elem.input_slot
+				<< ", aligned_byte_offset=" << elem.aligned_byte_offset
+				<< ", format=" << static_cast<int>(elem.format);
+		}
+		// for each binding
+		LOG(LOG_DEBUG) << "Bindings:";
+		for (int i = 0; i < desc.inputLayout.num_bindings; ++i) {
+			const auto& binding = desc.inputLayout.bindings[i];
+			LOG(LOG_DEBUG) << "Binding " << i << " input_slot=" << binding.inputSlot
+				<< ", stride=" << binding.stride;
+
+		}
+
 	}
 
 	GLPipelineStateObject::~GLPipelineStateObject()

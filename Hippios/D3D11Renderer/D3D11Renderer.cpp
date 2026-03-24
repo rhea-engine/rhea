@@ -446,4 +446,11 @@ namespace Hippios {
 		else if (stage == ShaderStage::Fragment)
 			m_device_context->PSSetConstantBuffers(slot, 1, &cb_buffer);
 	}
+
+	void D3D11Renderer::prepareMatricesForShader(Math::Matrix4* dst, const Math::Matrix4* src, size_t count) const
+	{
+		for (size_t i = 0; i < count; ++i)
+			dst[i] = src[i];
+	}
+
 }

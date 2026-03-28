@@ -48,6 +48,7 @@
 #include "Rhea/Core/SpotLight.h"
 #include <Rhea/Component.h>
 #include <Rhea/Core/Geometry.h>
+#include <Rhea/ConfigFile.h>
 //#include <Physics/PhysicsComponent.h>
 
 #undef min
@@ -66,7 +67,7 @@ namespace Rhea
 		m_services.clear();
 	}	
 
-	void Application::init()
+	void Application::init(int argc, char* argv[])
 	{		
 		// set log severity
 #ifdef _DEBUG
@@ -81,29 +82,53 @@ namespace Rhea
 		SimpleParser::Type::registerType<Unit>("//core/types/unit");
 		SimpleParser::Type::registerType<UnitTree>("//core/unittree");
 		SimpleParser::Type::registerType<Collection>("//core/collection");
+		SimpleParser::Type::registerType<ConfigFile>("//core/types/configfile");
 
-		// initialize services
+		// register services
 		SimpleParser::Type::registerType<Service>("//meworla/service");
 		SimpleParser::Type::registerType<PlatformService>("//meworla/platformservice");
 		SimpleParser::Type::registerType<PhysicsManagerService>("//meworla/physicsmanagerservice");
 		SimpleParser::Type::registerType<WorldService>("//meworla/worldservice");
 		SimpleParser::Type::registerType<ResourceService>("//meworla/resourceservice");
 
-		Service* world = (WorldService*)SimpleParser::Type::create("WorldService", "//meworla/worldservice");
-		world->setup(this);
-		m_services["world"] = world;
+		m_unit_tree.reset((UnitTree*)SimpleParser::Type::create("/", "//core/unittree"));
+		m_unit_tree->setup(this);
 
 		Service* psio = (PlatformService*)SimpleParser::Type::create("PlatformService", "//meworla/platformservice");
 		psio->setup(this);
 		m_services["platform"] = psio;
 
+		m_fs = new Orion::Orion(static_cast<PlatformService*>(psio)->getEngine(), m_appname);
+
+		// load config file
+		ConfigFile* config = SimpleParser::Type::create<ConfigFile>("config");
+		config->setup(this);
+		m_unit_tree->addChild(config);
+		config->loadFromFile("config.ini");
+		config->fromCommandLineArgs(argc, argv);
+
+		// log-level from config
+		std::string log_level = config->getValue("log.level", "info");
+		std::transform(log_level.begin(), log_level.end(), log_level.begin(), ::tolower);
+		if (log_level == "debug")
+			Log::logger().setLevel(LOG_DEBUG);
+		else if (log_level == "info")
+			Log::logger().setLevel(LOG_INFO);
+		else if (log_level == "warning")
+			Log::logger().setLevel(LOG_WARNING);
+		else if (log_level == "error")
+			Log::logger().setLevel(LOG_ERROR);
+		else {
+			printf("Invalid log level in config: %s\n", log_level.c_str());
+		}
+
+		Service* world = (WorldService*)SimpleParser::Type::create("WorldService", "//meworla/worldservice");
+		world->setup(this);
+		m_services["world"] = world;
+
 		Service* phy_mgr = (PhysicsManagerService*)SimpleParser::Type::create("PhysicsManagerService", "//meworla/physicsmanagerservice");
 		phy_mgr->setup(this);
 		m_services["physics_mgr"] = phy_mgr;		
-
-		m_fs = new Orion::Orion(static_cast<PlatformService*>(psio)->getEngine(), m_appname);
-		m_unit_tree.reset((UnitTree*)SimpleParser::Type::create("/", "//core/unittree"));
-		m_unit_tree->setup(this);
 
 		Service* res_service = (Service*)SimpleParser::Type::create("ResourceService", "//meworla/resourceservice");
 		m_services["resources"] = res_service;
@@ -185,7 +210,7 @@ namespace Rhea
 		}
 	}
 
-	void Application::setAppDir(char* path)
+	void Application::setAppDir(const char* path)
 	{
 		if (!m_fs) {
 			printf("Error: SetAppDir called before App::init()\n");
@@ -476,5 +501,11 @@ namespace Rhea
 			LOG(LOG_INFO) << " - Initializing: " << fabric->getName();
 			fabric->Register(this);
 		}
+	}
+
+	ConfigFile* Application::getConfig()
+	{
+		ConfigFile* config = doCast<Rhea::ConfigFile>(m_unit_tree->getChild("config"));
+		return config;
 	}
 }

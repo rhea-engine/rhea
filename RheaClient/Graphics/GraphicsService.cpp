@@ -37,6 +37,7 @@
 
 #include <Psio/Log.h>
 #include <Rhea/Physics/PhysicsManagerService.h>
+#include <Rhea/ConfigFile.h>
 
 namespace Rhea
 {
@@ -145,13 +146,12 @@ namespace Rhea
 			return;
 		}
 		else {
-			// TODO: make configurable
-			std::string backend = "d3d11";
-			int opengl = 1;
+			// get backend config from application config
+			std::string backend = "auto";
+			ConfigFile* config = m_app->getConfig();			
+			if (config)
+				backend = config->getValue("renderer.backend", "auto");
 			
-			if (opengl)
-				backend = "opengl";
-
 			m_core->init(static_cast<PlatformService*>(m_platform)->getEngine(), backend);
 		}
 

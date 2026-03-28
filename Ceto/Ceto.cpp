@@ -26,6 +26,7 @@
 #include <Rhea/Animation/Animator.h>
 #include <Rhea/GUI/GUIController.h>
 #include <Rhea/Core/Mesh.h>
+#include <Rhea/ConfigFile.h>
 
 bool Ceto::onQuit(Rhea::Event* ev, Rhea::Unit* unit)
 {
@@ -440,19 +441,16 @@ int main(int argc, char* argv[])
 	int argi = 1;
 	bool scene_set = false;
 
-	app->init();
+	app->init(argc, argv);
 
-	while (argi < argc) {
-		if (!strcmp(argv[argi], "-d")) {
-			argi++;
-			app->setAppDir(argv[argi]);
-			LOG(LOG_INFO) << "Set //local to directory: " << argv[argi];
-		}
-		else {
-			app->setHomeScene(argv[argi]);
+	Rhea::ConfigFile* config = app->getConfig();
+	if (config) {
+		// scene set in config file has highest priority
+		std::string scene = config->getValue("scene", "");
+		if (scene != "") {
+			app->setHomeScene(scene);
 			scene_set = true;
 		}
-		argi++;
 	}
 
 	app->setup();

@@ -25,13 +25,14 @@ namespace Rhea
 	class Service;
 	class EventInput;
 	class PhysicsService;
+	class ConfigFile;
 
 	class Application
 	{
 	public:
 		virtual ~Application();
 		// load and prepare all subsystems - calls setup at  
-		void init();
+		void init(int argc, char* argv[]);
 		// set the applications name to appname
 		void setAppname(std::string appname) { m_appname = appname; };
 		// get a specific service
@@ -123,7 +124,7 @@ namespace Rhea
 		// get the action dispatcher
 		Dispatcher* getDispatcher() { return m_dispatcher; }
 		// set the directory for /local/
-		void setAppDir(char* path);
+		void setAppDir(const char* path);
 		// log some info
 		virtual void log(std::string message);
 
@@ -134,6 +135,8 @@ namespace Rhea
 		void RegisterFabric(std::unique_ptr<IFabric> fabric);
 		// init fabrics - call this after registering to initialize all
 		void InitFabrics();
+
+		ConfigFile* getConfig();
 
 	protected:
 		Orion::Orion* m_fs = 0;

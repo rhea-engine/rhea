@@ -17,9 +17,9 @@ using Rhea::Service;
 
 namespace Poseidon
 {
-	void Application::init()
+	void Application::init(int argc, char* argv[])
 	{
-		Rhea::Application::init();
+		Rhea::Application::init(argc, argv);
 
 		SimpleParser::Type::registerType<Rhea::Controller>("//meworla/icontroller");
 		SimpleParser::Type::registerType<Rhea::Unit>("//meworla/avatarlist");

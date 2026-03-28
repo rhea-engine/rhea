@@ -25,6 +25,7 @@
 #include "D3D11BlendState.h"
 #include "D3D11ShaderProgram.h"
 #include "D3D11SamplerState.h"
+#include <Psio/Log.h>
 
 #pragma comment (lib, "d3d11.lib")
 
@@ -44,6 +45,21 @@ namespace Hippios {
 	D3D11Renderer::D3D11Renderer() :
 		D3D11Renderer(nullptr, nullptr)
 	{
+	}
+
+	const char* FeatureLevelToString(D3D_FEATURE_LEVEL fl)
+	{
+		switch (fl)
+		{
+		case D3D_FEATURE_LEVEL_11_1: return "11.1";
+		case D3D_FEATURE_LEVEL_11_0: return "11.0";
+		case D3D_FEATURE_LEVEL_10_1: return "10.1";
+		case D3D_FEATURE_LEVEL_10_0: return "10.0";
+		case D3D_FEATURE_LEVEL_9_3:  return "9.3";
+		case D3D_FEATURE_LEVEL_9_2:  return "9.2";
+		case D3D_FEATURE_LEVEL_9_1:  return "9.1";
+		default: return "Unknown";
+		}
 	}
 
 	D3D11Renderer::D3D11Renderer(ID3D11Device* device, ID3D11DeviceContext* device_context) :
@@ -218,6 +234,30 @@ namespace Hippios {
 
 		if (pFeatureLevel)
 			*pFeatureLevel = createdFeatureLevel;
+
+		// log directx and feature level
+		LOG(LOG_INFO) << "Direct3D 11 device created with feature level " << FeatureLevelToString(createdFeatureLevel);
+
+#ifdef _DEBUG
+		IDXGIDevice* dxgiDevice = nullptr;
+		m_device->QueryInterface(__uuidof(IDXGIDevice), (void**)&dxgiDevice);
+
+		IDXGIAdapter* adapter = nullptr;
+		dxgiDevice->GetAdapter(&adapter);
+
+		DXGI_ADAPTER_DESC desc;
+		adapter->GetDesc(&desc);
+
+		// Convert WCHAR to char
+		char name[128];
+		size_t convertedChars = 0;
+		wcstombs_s(&convertedChars, name, sizeof(name), desc.Description, _TRUNCATE);
+
+		LOG(LOG_INFO) << "D3D11 Adapter: " << name;
+
+		adapter->Release();
+		dxgiDevice->Release();
+#endif
 
 		return S_OK;
 	}

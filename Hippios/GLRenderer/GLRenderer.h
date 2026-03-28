@@ -55,18 +55,20 @@ namespace Hippios
 		void bindGPUBuffer(GraphicsBuffer* buffer, int slot = 0, ShaderStage stage = ShaderStage::Vertex) override;
 
 		void bindBuffers(VertexBuffer* vb, IndexBuffer* ib) override;
+
+		bool setActiveSwapChain(SwapChain* swap_chain) override;
 		void clearPass(RenderTarget* render_target) override;
 		int presentPass(SwapChain* swap_chain) override;
 
 		bool getStencilStateDesc(const std::string& name, DepthStencilStateDesc& outDesc) override;
 
-		void prepareMatricesForShader(Math::Matrix4* dst, const Math::Matrix4* src, size_t count) const;
+		void prepareMatricesForShader(Math::Matrix4* dst, const Math::Matrix4* src, size_t count) const;		
 
 	private:
-		bool initOpenGLContext(HWND hwnd);
+		bool setupPixelFormat(HDC hdc);
+		bool createSharedContext(HDC hdc);
 
-		HGLRC m_glrc = nullptr;
-		HDC m_hdc = nullptr;
+		HGLRC m_glrc = nullptr;		
 
 		GLVertexBuffer* m_last_vb = nullptr;
 		GLIndexBuffer* m_last_ib = nullptr;

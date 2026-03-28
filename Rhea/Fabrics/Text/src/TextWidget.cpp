@@ -100,8 +100,7 @@ namespace Rhea
 		float t_h = static_cast<float>(H());
 
 		// adjust for viewport (y is inverted)
-		IGraphicsService* gsrv = (IGraphicsService*)m_app->getService("graphics");
-		t_y = gsrv->getViewportHeight() - t_y;
+		t_y = m_viewport_height - t_y;
 
 		float z = 0.0f;
 		float draw_x = t_x;

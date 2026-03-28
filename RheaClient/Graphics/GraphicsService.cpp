@@ -6,12 +6,14 @@
 #include <Rhea/Unit.h>
 #include <Rhea/Core/Scene.h>
 #include <Rhea/UnitTree.h>
+#include <Rhea/Graphics/SizeEvent.h>
 
 #include "Poseidon/Core.h"
 #include "Poseidon/Viewport.h"
 #include "Poseidon/SceneManager.h"
 #include "Poseidon/RenderContext.h"
 #include "Poseidon/Camera.h"
+#include "Poseidon/Window.h"
 
 #include <Rhea/Element.h>
 #include <Rhea/Graphics/Texture.h>
@@ -40,8 +42,6 @@ namespace Rhea
 {
 	GraphicsService::GraphicsService(std::string name, std::string type_name) :
 		m_platform(nullptr),
-		m_viewport_width(0),
-		m_viewport_height(0),
 		m_mx(0),
 		m_my(0),
 		m_fullscreen(false),
@@ -162,15 +162,15 @@ namespace Rhea
 		// add a camera for this context
 		Poseidon::Camera* cam = m_core->createCamera();
 		context->setCamera(cam);
-		m_viewport_width = viewport->getWidth();
-		m_viewport_height = viewport->getHeight();
-		if (!m_viewport_width)
-			m_viewport_width = 800;
-		if (!m_viewport_height)
-			m_viewport_height = 600;
-		context->setSize((float)m_viewport_width, (float)m_viewport_height);
-		cam->setAspectRatio((float)m_viewport_width / (float)m_viewport_height);
-		cam->setOrthographicSize((float)m_viewport_height);
+		int viewport_width = viewport->getWidth();
+		int viewport_height = viewport->getHeight();
+		if (!viewport_width)
+			viewport_width = 800;
+		if (!viewport_height)
+			viewport_height = 600;
+		context->setSize((float)viewport_width, (float)viewport_height);
+		cam->setAspectRatio((float)viewport_width / (float)viewport_height);
+		cam->setOrthographicSize((float)viewport_height);
 		cam->setOrthographic(true);
 		cam->setProjectionOffset(Math::Vector3(-0.5f, -0.5f, 0.0f));
 		cam->updateProjection();
@@ -348,24 +348,31 @@ namespace Rhea
 				std::shared_ptr<Psio::WinSizeEvent> me = std::static_pointer_cast<Psio::WinSizeEvent>(e->getEvent());
 				viewport_width = me->width();
 				viewport_height = me->height();
-				if (viewport_width != m_viewport_width || viewport_height != m_viewport_height &&  viewport_width>0 && viewport_height>0) {
-					m_viewport_width = viewport_width;
-					m_viewport_height = viewport_height;
-					
-					Poseidon::Viewport* viewport = m_core->get_scene_manager()->getViewport();
+				if (viewport_width > 0 && viewport_height > 0) 
+				{
+					Poseidon::Window* window = m_core->get_scene_manager()->getWindow(me->getWindow());
+					if (!window) {
+						LOG(LOG_ERROR) << "Resize event for unknown window";
+						break;
+					}
 					// TODO handle special render targets that are not bound to this window
-					viewport->onResize(viewport_width, viewport_height);
+					window->onResize(viewport_width, viewport_height);
 
 					// iterate over contexts and their cameras and set new values
-					float aspect_ratio = (float)m_viewport_width / (float)m_viewport_height;
-					for (const auto& context : viewport->getRenderContextList()) {
-						context->setSize((float)m_viewport_width, (float)m_viewport_height);
+					float aspect_ratio = (float)viewport_width / (float)viewport_height;
+					for (const auto& context : window->getRenderContextList()) {
+						context->setSize((float)viewport_width, (float)viewport_height);
 						Poseidon::Camera* cam = context->get_camera();
 						if (cam) {
 							cam->setAspectRatio(aspect_ratio);
-							cam->setOrthographicSize((float)m_viewport_height);
+							cam->setOrthographicSize((float)viewport_height);
 							cam->updateProjection();
 							cam->updateView();
+						}
+						// send resize event to all render children - they may need to update render targets or similar
+						SizeEvent size_ev(nullptr, viewport_width, viewport_height);
+						for (auto& child : context->getRenderChildren()) {
+							child->sendEvent("viewport_size", &size_ev);
 						}
 					}
 					sendEvent("resize", nullptr);
@@ -387,11 +394,12 @@ namespace Rhea
 		PhysicsService* phys = mgr->getPhysicsService();
 		if (!phys) return nullptr;
 		std::string def = "default";
+		Poseidon::Viewport* viewport = m_core->get_scene_manager()->getViewport();
 		Poseidon::Camera* camera = m_core->get_scene_manager()->getViewport()->getRenderContext(def)->get_camera();
 		if (!camera) return nullptr;
 			
 		// compute the ray
-		Math::Ray ray = camera->getPickingRay((float)m_mx, (float)m_my, m_viewport_width, m_viewport_height);
+		Math::Ray ray = camera->getPickingRay((float)m_mx, (float)m_my, viewport->getWidth(), viewport->getHeight());
 
 		Math::Vector3 ray_from = ray.getOrigin();
 		Math::Vector3 ray_dir = ray.getDirection();

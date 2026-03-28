@@ -71,6 +71,13 @@ namespace Hippios
 		 * @return A unique_ptr to the created Texture.
 		 */
 		virtual std::unique_ptr<Texture> createTexture(TextureDesc& desc) = 0;
+		
+		/**
+		 * @brief Sets the active swap chain for rendering.
+		 * @param swap_chain The swap chain to be set as active.
+		 * @return True if the swap chain was successfully set, false otherwise.
+		 */
+		virtual bool setActiveSwapChain(SwapChain* swap_chain) = 0;
 
 		/**
 		 * @brief Clears the given render target.

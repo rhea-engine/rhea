@@ -67,7 +67,7 @@ namespace Psio
 		case WM_SIZE:
 			width = LOWORD(lParam);
 			height = HIWORD(lParam);
-			evt = std::make_shared<WinSizeEvent>(Psio::InputEventId::WIN_SIZE, width, height);
+			evt = std::make_shared<WinSizeEvent>(Psio::InputEventId::WIN_SIZE, width, height, win);
 			win->addInputEvent(evt);
 			break;
 	

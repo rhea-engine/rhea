@@ -43,6 +43,9 @@ namespace Poseidon
 		// add render child
 		void addRenderChild(Item* child);
 
+		// get all render children
+		std::vector<Item*>& getRenderChildren() { return m_render_children; }
+
 		// remove render element
 		void removeRenderChild(Item* child);
 

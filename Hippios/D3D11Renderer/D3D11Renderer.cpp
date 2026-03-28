@@ -130,6 +130,98 @@ namespace Hippios {
 		return hr;
 	}
 
+	HRESULT D3D11Renderer::createDevice(
+		D3D_DRIVER_TYPE driverType,
+		D3D_FEATURE_LEVEL minFL,
+		D3D_FEATURE_LEVEL maxFL,
+		D3D_FEATURE_LEVEL* pFeatureLevel)
+	{
+		if (m_device && m_device_context) {
+			if (pFeatureLevel)
+				*pFeatureLevel = mFeatureLevel;
+			return S_OK;
+		}
+
+		UINT creationFlags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
+#if defined(DEBUG) || defined(_DEBUG)
+		creationFlags |= D3D11_CREATE_DEVICE_DEBUG;
+#endif
+
+		// Ordered highest -> lowest, because D3D11CreateDevice picks the first supported level.
+		const D3D_FEATURE_LEVEL allLevels[] = {
+			D3D_FEATURE_LEVEL_11_1,
+			D3D_FEATURE_LEVEL_11_0,
+			D3D_FEATURE_LEVEL_10_1,
+			D3D_FEATURE_LEVEL_10_0,
+			D3D_FEATURE_LEVEL_9_3,
+			D3D_FEATURE_LEVEL_9_2,
+			D3D_FEATURE_LEVEL_9_1
+		};
+
+		// Filter by requested min/max range.
+		D3D_FEATURE_LEVEL requestedLevels[ARRAYSIZE(allLevels)];
+		UINT requestedCount = 0;
+
+		for (D3D_FEATURE_LEVEL level : allLevels) {
+			if (level <= maxFL && level >= minFL) {
+				requestedLevels[requestedCount++] = level;
+			}
+		}
+
+		if (requestedCount == 0) {
+			return E_INVALIDARG;
+		}
+
+		ID3D11Device* device = nullptr;
+		ID3D11DeviceContext* context = nullptr;
+		D3D_FEATURE_LEVEL createdFeatureLevel = D3D_FEATURE_LEVEL_9_1;
+
+		HRESULT hr = D3D11CreateDevice(
+			nullptr,                    // default adapter
+			driverType,
+			nullptr,                    // no software rasterizer module
+			creationFlags,
+			requestedLevels,
+			requestedCount,
+			D3D11_SDK_VERSION,
+			&device,
+			&createdFeatureLevel,
+			&context);
+
+		if (FAILED(hr)) {
+			// Optional fallback to WARP if hardware device creation fails.
+			if (driverType == D3D_DRIVER_TYPE_HARDWARE) {
+				hr = D3D11CreateDevice(
+					nullptr,
+					D3D_DRIVER_TYPE_WARP,
+					nullptr,
+					creationFlags,
+					requestedLevels,
+					requestedCount,
+					D3D11_SDK_VERSION,
+					&device,
+					&createdFeatureLevel,
+					&context);
+			}
+
+			if (FAILED(hr)) {
+				return hr;
+			}
+		}
+
+		m_device = device;
+		m_device_context = context;
+		mDriverType = driverType;
+		mFeatureLevel = createdFeatureLevel;
+		mMinRequestedFeatureLevel = minFL;
+		mMaxRequestedFeatureLevel = maxFL;
+
+		if (pFeatureLevel)
+			*pFeatureLevel = createdFeatureLevel;
+
+		return S_OK;
+	}
+
 	void D3D11Renderer::bindBuffers(VertexBuffer* vb, IndexBuffer* ib)
 	{
 		if (m_last_vb != vb) {
@@ -156,6 +248,15 @@ namespace Hippios {
 			m_device_context->IASetIndexBuffer(buffer, m_last_ib->getIndexFormat(), 0);
 			m_last_ib->is_dirty = false;
 		}
+	}
+
+	bool D3D11Renderer::setActiveSwapChain(SwapChain* swap_chain)
+	{
+		if (!swap_chain)
+			return false;
+
+		// Direct3D 11 does not have a concept of "active swap chain", instead we set the render target to the back buffer of the swap chain
+		return true;
 	}
 
 	void D3D11Renderer::clearPass(RenderTarget* render_target)
@@ -273,12 +374,15 @@ namespace Hippios {
 		// close and release all existing COM objects
 
 		// release input layouts
-		m_device_context->IASetInputLayout(NULL);
+		if (m_device_context)
+			m_device_context->IASetInputLayout(NULL);
 		for (auto it = m_input_layouts.begin(); it != m_input_layouts.end(); ++it)
 			(*it)->Release();
 
-		m_device->Release();
-		m_device_context->Release();
+		if (m_device)
+			m_device->Release();
+		if (m_device_context)
+			m_device_context->Release();
 	}
 
 	std::unique_ptr<RenderTarget> D3D11Renderer::createRenderTarget(const RenderTargetDesc& desc)
@@ -331,18 +435,61 @@ namespace Hippios {
 		return program;
 	}
 
-	std::unique_ptr<SwapChain> D3D11Renderer::createSwapChain(NativeWindow* win)
+	HRESULT D3D11Renderer::createSwapChainForWindow(NativeWindow* win, IDXGISwapChain** swap_chain)
 	{
+		if (!m_device || !win || !swap_chain)
+			return E_INVALIDARG;
+
+		*swap_chain = nullptr;
+
+		Microsoft::WRL::ComPtr<IDXGIDevice> dxgiDevice;
+		HRESULT hr = m_device->QueryInterface(__uuidof(IDXGIDevice), reinterpret_cast<void**>(dxgiDevice.GetAddressOf()));
+		if (FAILED(hr))
+			return hr;
+
+		Microsoft::WRL::ComPtr<IDXGIAdapter> adapter;
+		hr = dxgiDevice->GetAdapter(adapter.GetAddressOf());
+		if (FAILED(hr))
+			return hr;
+
+		Microsoft::WRL::ComPtr<IDXGIFactory> factory;
+		hr = adapter->GetParent(__uuidof(IDXGIFactory), reinterpret_cast<void**>(factory.GetAddressOf()));
+		if (FAILED(hr))
+			return hr;
+
+		DXGI_SWAP_CHAIN_DESC desc = {};
+		desc.BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+		desc.BufferDesc.Width = win->width;
+		desc.BufferDesc.Height = win->height;
+		desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+		desc.BufferCount = 1;
+		desc.OutputWindow = (HWND)win->native_win_handle;
+		desc.Windowed = TRUE;
+		desc.SampleDesc.Count = 1;
+		desc.SampleDesc.Quality = 0;
+		desc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+		desc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+
+		return factory->CreateSwapChain(m_device, &desc, swap_chain);
+	}
+
+	std::unique_ptr<SwapChain> D3D11Renderer::createSwapChain(NativeWindow* win)
+	{		
+		if (!win)
+			return nullptr;
+
 		if (!m_device) {
-			// create device and context in one step
-			IDXGISwapChain* d3_swap_chain;
-			HRESULT hr = createDeviceAndSwapChain(mDriverType, mMinRequestedFeatureLevel, mMaxRequestedFeatureLevel, 0, win, &d3_swap_chain);
-			if (SUCCEEDED(hr)) {
-				return std::make_unique<D3D11SwapChain>(d3_swap_chain);
-			}
+			HRESULT hr = createDevice(mDriverType, mMinRequestedFeatureLevel, mMaxRequestedFeatureLevel, &mFeatureLevel);
+			if (FAILED(hr))
+				return nullptr;
 		}
 
-		return nullptr;
+		IDXGISwapChain* d3_swap_chain = nullptr;
+		HRESULT hr = createSwapChainForWindow(win, &d3_swap_chain);
+		if (FAILED(hr))
+			return nullptr;
+
+		return std::make_unique<D3D11SwapChain>(d3_swap_chain);
 	}
 
 	void D3D11Renderer::setBlendState(BlendState* state, float* blend_factor, unsigned int mask)

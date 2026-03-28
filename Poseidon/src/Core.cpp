@@ -12,7 +12,7 @@
 #include <Psio/Log.h>
 
 #include <Hippios/Renderer.h>
-
+#include <Hippios/SwapChain.h>
 using Hippios::SamplerDesc;
 
 namespace Poseidon
@@ -73,7 +73,7 @@ namespace Poseidon
 		m_window->initRenderTarget(m_renderer.get());
 		int width = 1152;
 		int height = 864;
-		m_window->CreateFromNativeWindow(psio, m_appname, width, height);
+		m_window->CreateFromNativeWindow(psio, m_appname, width, height);		
 
 		// create the default stencil states
 		Hippios::DepthStencilStateDesc desc;
@@ -134,7 +134,8 @@ namespace Poseidon
 		m_scene_manager->setRenderer(m_renderer.get());
 		m_scene_manager->setRoot(m_window);
 		m_scene_manager->registerViewport(m_window);
-	}
+		m_scene_manager->registerWindow(m_window);
+	}	
 
 	int Core::loop(std::function<void()> onFrame)
 	{
@@ -142,9 +143,9 @@ namespace Poseidon
 		{
 			//  callback for onFrame event
 			onFrame();
-
+			
 			// update passes
-
+			
 			if (m_scene_manager->update())
 				quit = true;
 
@@ -162,6 +163,10 @@ namespace Poseidon
 
 	int Core::iterate()
 	{
+		// prepare swapchain for rendering
+		if (!m_renderer->setActiveSwapChain(m_window->getSwapChain()))
+			return 1;
+
 		// update passes
 
 		if (m_scene_manager->update())

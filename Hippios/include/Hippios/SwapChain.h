@@ -13,6 +13,14 @@ namespace Hippios
 
 		// set fullscreen mode
 		virtual void SetFullscreen(bool mode) = 0;
+
+		int getWidth() const { return m_width; }
+		int getHeight() const { return m_height; }
+
+	protected:
+		// cache dimensions for easy access
+		int m_width = 0;
+		int m_height = 0;
 	};
 }
 

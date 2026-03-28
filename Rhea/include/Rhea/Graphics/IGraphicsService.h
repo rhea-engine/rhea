@@ -20,10 +20,6 @@ namespace Rhea
 
         virtual ~IGraphicsService() = default;
         
-        // Viewport information
-        virtual int getViewportWidth() const = 0;
-        virtual int getViewportHeight() const = 0;
-
         // request fullscreen
         virtual void ToggleFullscreen() = 0;
         

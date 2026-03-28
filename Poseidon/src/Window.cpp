@@ -34,6 +34,10 @@ namespace Poseidon
 		if (m_width == width && m_height == height)
 			return;
 
+		if (!m_render_target || !m_swap_chain) {
+			LOG(LOG_ERROR) << "Window::onResize: no render target or swap chain";
+			return;
+		}
 		m_render_target->Release();
 		m_swap_chain->onResize(width, height);
 		Viewport::onResize(width, height);

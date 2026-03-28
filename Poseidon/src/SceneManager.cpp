@@ -8,6 +8,7 @@
 #include "Poseidon/Material.h"
 #include "Poseidon/Shader.h"
 #include "Poseidon/Mesh.h"
+#include "Poseidon/Window.h"
 
 #include <Hippios/Renderer.h>
 #include <Hippios/GraphicsBuffer.h>
@@ -312,6 +313,16 @@ namespace Poseidon
 			Viewport* viewport = *it;
 			if (viewport->isName(name))
 				return viewport;
+		}
+		return nullptr;
+	}
+
+	Window* SceneManager::getWindow(Psio::Window* win)
+	{
+		for (std::vector<Window*>::iterator it = m_windows.begin(); it != m_windows.end(); ++it) {
+			Window* window = *it;
+			if (window->getNativeWindow() == win)
+				return window;
 		}
 		return nullptr;
 	}

@@ -1,4 +1,5 @@
 #include "GLRenderer.h"
+#include "GLRenderer.h"
 #include "GLVertexBuffer.h"
 #include "GLIndexBuffer.h"
 #include "GLGraphicsBuffer.h"
@@ -33,11 +34,8 @@ namespace Hippios
 		}
 	}
 
-	bool GLRenderer::initOpenGLContext(HWND hwnd)
+	bool GLRenderer::setupPixelFormat(HDC hdc)
 	{
-		m_hdc = GetDC(hwnd);
-
-		// Set pixel format
 		PIXELFORMATDESCRIPTOR pfd = {};
 		pfd.nSize = sizeof(pfd);
 		pfd.nVersion = 1;
@@ -48,41 +46,74 @@ namespace Hippios
 		pfd.cStencilBits = 8;
 		pfd.iLayerType = PFD_MAIN_PLANE;
 
-		int format = ChoosePixelFormat(m_hdc, &pfd);
+		int format = ChoosePixelFormat(hdc, &pfd);
 		if (!format) {
 			LOG(LOG_ERROR) << "ChoosePixelFormat failed";
 			return false;
 		}
-		SetPixelFormat(m_hdc, format, &pfd);
 
-		// Create legacy context first to load WGL extensions
-		HGLRC temp_context = wglCreateContext(m_hdc);
-		wglMakeCurrent(m_hdc, temp_context);
+		// On Win32, SetPixelFormat may only be called once for a window.
+		// If the window was already initialized, we may want to treat
+		// "already set" as success via DescribePixelFormat/GetPixelFormat later.
+		if (!SetPixelFormat(hdc, format, &pfd)) {
+			DWORD err = GetLastError();
+			if (err != ERROR_INVALID_PIXEL_FORMAT) {
+				LOG(LOG_ERROR) << "SetPixelFormat failed";
+			}
+
+			// Better version later:
+			// check GetPixelFormat(hdc) and verify compatibility.
+			// For now, fail hard.
+			return false;
+		}
+
+		return true;
+	}
+
+	bool GLRenderer::createSharedContext(HDC hdc)
+	{
+		// Create legacy context first so WGL extension loading works.
+		HGLRC temp_context = wglCreateContext(hdc);
+		if (!temp_context) {
+			LOG(LOG_ERROR) << "wglCreateContext failed";
+			return false;
+		}
+
+		if (!wglMakeCurrent(hdc, temp_context)) {
+			LOG(LOG_ERROR) << "wglMakeCurrent(temp_context) failed";
+			wglDeleteContext(temp_context);
+			return false;
+		}
 
 		// Load wglCreateContextAttribsARB
 		wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC)wglGetProcAddress("wglCreateContextAttribsARB");
 
 		if (wglCreateContextAttribsARB) {
-			// Create modern OpenGL 4.5 core profile context
 			int attribs[] = {
 				WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
 				WGL_CONTEXT_MINOR_VERSION_ARB, 5,
 				WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-#ifdef _DEBUG
+	#ifdef _DEBUG
 				WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_DEBUG_BIT_ARB,
-#endif
+	#endif
 				0
 			};
 
-			m_glrc = wglCreateContextAttribsARB(m_hdc, nullptr, attribs);
+			m_glrc = wglCreateContextAttribsARB(hdc, nullptr, attribs);
+
 			wglMakeCurrent(nullptr, nullptr);
 			wglDeleteContext(temp_context);
-
 			if (!m_glrc) {
 				LOG(LOG_ERROR) << "Failed to create OpenGL 4.5 context";
 				return false;
 			}
-			wglMakeCurrent(m_hdc, m_glrc);
+
+			if (!wglMakeCurrent(hdc, m_glrc)) {
+				LOG(LOG_ERROR) << "wglMakeCurrent(shared context) failed";
+				wglDeleteContext(m_glrc);
+				m_glrc = nullptr;
+				return false;
+			}
 		}
 		else {
 			m_glrc = temp_context;
@@ -102,17 +133,26 @@ namespace Hippios
 				proc = (void*)GetProcAddress(gl, name);
 			}
 			return proc;
-		})) {
+			})) {
 			LOG(LOG_ERROR) << "Failed to initialize GLAD";
 			return false;
 		}
+		/*
+		if (!gladLoadGLLoader((GLADloadproc)wglGetProcAddress)) {
+			LOG(LOG_ERROR) << "Failed to initialize GLAD";
+			wglMakeCurrent(nullptr, nullptr);
+			wglDeleteContext(m_glrc);
+			m_glrc = nullptr;
+			return false;
+		}
+		*/
 
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);
 
 		// Match D3D11 winding order: clockwise = front face
 		glFrontFace(GL_CW);
-		
+
 		LOG(LOG_INFO) << "OpenGL: " << glGetString(GL_RENDERER) << ", Version: " << glGetString(GL_VERSION);
 
 		return true;
@@ -120,11 +160,34 @@ namespace Hippios
 
 	std::unique_ptr<SwapChain> GLRenderer::createSwapChain(NativeWindow* win)
 	{
-		if (!m_glrc) {
-			if (!initOpenGLContext((HWND)win->native_win_handle))
-				return nullptr;
+		if (!win || !win->native_win_handle)
+			return nullptr;
+
+		HWND hwnd = static_cast<HWND>(win->native_win_handle);
+		HDC hdc = GetDC(hwnd);
+		if (!hdc) {
+			LOG(LOG_ERROR) << "GetDC failed";
+			return nullptr;
 		}
-		return std::make_unique<GLSwapChain>(m_hdc);
+
+		// Each window DC must have a valid pixel format set before it can be used
+		// with WGL. This must be done for every window/swapchain.
+		if (!setupPixelFormat(hdc)) {
+			LOG(LOG_ERROR) << "setupPixelFormat failed";
+			ReleaseDC(hwnd, hdc);
+			return nullptr;
+		}
+		
+		// Create the shared GL context once, from the first window.
+		if (!m_glrc) {
+			if (!createSharedContext(hdc)) {
+				LOG(LOG_ERROR) << "createSharedContext failed";
+				ReleaseDC(hwnd, hdc);
+				return nullptr;
+			}
+		}
+
+		return std::make_unique<GLSwapChain>(hdc, win);
 	}
 
 	std::unique_ptr<RenderTarget> GLRenderer::createRenderTarget(const RenderTargetDesc& desc)
@@ -310,8 +373,25 @@ namespace Hippios
 		}
 	}
 
+	bool GLRenderer::setActiveSwapChain(SwapChain* swap_chain)
+	{
+		if (!swap_chain)
+			return false;
+
+		GLSwapChain* gl_swap = static_cast<GLSwapChain*>(swap_chain);
+
+		if (!wglMakeCurrent(gl_swap->getHDC(), m_glrc)) {
+			LOG(LOG_ERROR) << "wglMakeCurrent failed in setActiveSwapChain";
+			return false;
+		}
+
+		return true;
+	}
+
 	void GLRenderer::clearPass(RenderTarget* render_target)
 	{
+		if (!render_target)
+			return;
 		render_target->clearPass();
 	}
 
@@ -321,6 +401,12 @@ namespace Hippios
 			return 0;
 
 		GLSwapChain* gl_swap = static_cast<GLSwapChain*>(swap_chain);
+
+		if (!wglMakeCurrent(gl_swap->getHDC(), m_glrc)) {
+			LOG(LOG_ERROR) << "wglMakeCurrent failed in presentPass";
+			return -1;
+		}
+
 		if (!SwapBuffers(gl_swap->getHDC())) {
 			LOG(LOG_ERROR) << "SwapBuffers failed";
 			return -1;

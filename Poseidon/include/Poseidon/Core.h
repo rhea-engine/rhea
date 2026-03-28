@@ -77,10 +77,10 @@ namespace Poseidon
 	protected:
 		std::unique_ptr<Hippios::Renderer> m_renderer;
 		int quit = 0;
-		Window* m_window = 0;
+		Window* m_window = 0;		
 		SceneManager* m_scene_manager = 0;
 		std::string m_appname;
-		std::string m_renderer_backend;
+		std::string m_renderer_backend;		
 
 		Psio::Engine* m_psio;
 		std::unordered_map<std::string, Material*> m_materials;

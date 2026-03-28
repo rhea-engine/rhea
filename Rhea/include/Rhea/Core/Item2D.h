@@ -24,6 +24,8 @@ namespace Rhea
 			m_material_dirty(false),
 			m_tiling(Math::Vector2(1.0f, 1.0f)),
 			m_scaling(Math::Vector2(1.0f, 1.0f)),
+			m_viewport_width(0),
+			m_viewport_height(0),
 			Item(name, type_name)
 		{}
 
@@ -50,6 +52,9 @@ namespace Rhea
 		float W() { return m_size.x; }
 		float H() { return m_size.y; }
 
+		// viewport size event
+		bool onViewportSize(Event* ev, Unit* unit);
+
 	protected:
 		// dimensions in screen space
 		
@@ -72,6 +77,9 @@ namespace Rhea
 		// update (or create) the material if material is dirty
 		void UpdateMaterial();
 		std::unique_ptr<Material> m_material;
+
+		int m_viewport_width;
+		int m_viewport_height;
 	};
 }
 

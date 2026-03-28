@@ -45,6 +45,8 @@ namespace Hippios
 
 		HRESULT createDeviceAndSwapChain(D3D_DRIVER_TYPE driverType, D3D_FEATURE_LEVEL minFL, D3D_FEATURE_LEVEL maxFL, D3D_FEATURE_LEVEL* pFeatureLevel, NativeWindow* win, IDXGISwapChain** swap_chain);
 
+		HRESULT createDevice(D3D_DRIVER_TYPE driverType, D3D_FEATURE_LEVEL minFL, D3D_FEATURE_LEVEL maxFL, D3D_FEATURE_LEVEL* pFeatureLevel);
+
 		// last buffers that where bound
 		D3D11VertexBuffer* m_last_vb = 0;
 		D3D11IndexBuffer* m_last_ib = 0;
@@ -75,6 +77,8 @@ namespace Hippios
 		std::unique_ptr<Texture> createTexture(TextureDesc& desc) override;
 		ShaderProgram* createShader(const ShaderProgramDesc& desc) override;
 		virtual ShaderProgram* createShader(const ShaderProgramSourceDesc& desc) override;
+
+		HRESULT createSwapChainForWindow(NativeWindow* win, IDXGISwapChain** swap_chain);
 
 		std::unique_ptr<SwapChain> createSwapChain(NativeWindow* win) override;
 
@@ -112,12 +116,14 @@ namespace Hippios
 		
 		// render passes		
 		void bindBuffers(VertexBuffer* vb, IndexBuffer* ib) override;
+
+		bool setActiveSwapChain(SwapChain* swap_chain) override;
 		void clearPass(RenderTarget* render_target) override;
 		int presentPass(SwapChain* swap_chain) override;
 
 		bool getStencilStateDesc(const std::string& name, DepthStencilStateDesc& outDesc) override;
 
-		void prepareMatricesForShader(Math::Matrix4* dst, const Math::Matrix4* src, size_t count) const;
+		void prepareMatricesForShader(Math::Matrix4* dst, const Math::Matrix4* src, size_t count) const;		
 
 	protected:
 		Texture* m_current_texture;		

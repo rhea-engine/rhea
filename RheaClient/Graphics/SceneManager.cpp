@@ -27,7 +27,7 @@ namespace Rhea
 
 	void GraphicsSceneManager::addItem(Unit* item)
 	{
-		printf("GraphicsSceneManager::addItem: %s add typename: %s\n", item->getPathName().c_str(), item->getTypeName().c_str());
+		//printf("GraphicsSceneManager::addItem: %s add typename: %s\n", item->getPathName().c_str(), item->getTypeName().c_str());
 
 		// try manager
 		GraphicsManager* mgr = m_service->getManager(item->getType());

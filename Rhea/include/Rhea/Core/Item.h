@@ -35,6 +35,7 @@ namespace Rhea
 			m_physics_body(nullptr),
 			m_turn(0.0f),			
 			m_transform(this),
+			m_is_renderable(true),
 			Unit(name, type_name)
 		{}
 		
@@ -86,11 +87,14 @@ namespace Rhea
 		void addComponent(Component* component) override;
 		virtual void removeComponent(Component* component) override;
 
+		bool isRenderable() const { return m_is_renderable; }
+
 	protected:
 		PhysicsBody* m_physics_body; // cached - not owned
 		Math::Vector3 m_movement;
 		float m_turn;				
 		std::vector<MovementListenerComponent*> m_movement_listeners;
+		bool m_is_renderable;
 
 		Transform m_transform;
 	};

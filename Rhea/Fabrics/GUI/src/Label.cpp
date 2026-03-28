@@ -14,6 +14,8 @@ namespace Rhea
 		std::unordered_map<std::string, std::string> attr;
 		std::unordered_map<std::string, Variant> val;
 
+		m_is_renderable = false;
+
 		m_templating = getValue("templating", m_templating);
 
 		val["x"] = m_base_position.x;

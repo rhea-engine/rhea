@@ -36,6 +36,10 @@ namespace Rhea
 		Item* item = doCast<Item>(unit);
 		if (!item) return false;
 
+		// ignore if not renderable - this allows non-renderable items to still be in the scene and have their render components updated without creating GPU resources
+		if (!item->isRenderable())
+			return true;
+
 		// check if already exists
 		auto* rc = item->getComponent<RenderComponent>();
 		if (rc && rc->entity)
@@ -122,6 +126,10 @@ namespace Rhea
 	{
 		Item* item = doCast<Item>(unit);
 		if (!item) return false;
+
+		// ignore if not renderable - this allows non-renderable items to still be in the scene and have their render components updated without creating GPU resources
+		if (!item->isRenderable())
+			return true;
 
 		// possible material change - check if material has element		
 		auto* rc = item->getComponent<RenderComponent>();

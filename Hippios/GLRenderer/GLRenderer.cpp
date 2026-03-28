@@ -1,6 +1,4 @@
 #include "GLRenderer.h"
-#include "GLRenderer.h"
-#include "GLRenderer.h"
 #include "GLVertexBuffer.h"
 #include "GLIndexBuffer.h"
 #include "GLGraphicsBuffer.h"
@@ -115,7 +113,7 @@ namespace Hippios
 		// Match D3D11 winding order: clockwise = front face
 		glFrontFace(GL_CW);
 		
-		LOG(LOG_INFO) << "OpenGL Renderer: " << glGetString(GL_RENDERER) << ", OpenGL Version: " << glGetString(GL_VERSION);
+		LOG(LOG_INFO) << "OpenGL: " << glGetString(GL_RENDERER) << ", Version: " << glGetString(GL_VERSION);
 
 		return true;
 	}
@@ -268,9 +266,11 @@ namespace Hippios
 		if (!glPso)
 			return;
 
+		m_last_vb = glVb;
+
 		const GLuint vao = glPso->getVAO();
 		const InputLayoutDesc& layout = glPso->getInputLayout();
-
+		
 		// Attach the actual vertex buffer(s) to the VAO binding slots.
 		// With the current renderer API, we only have one vertex buffer,
 		// so this supports layouts where all used input slots map to that one buffer.

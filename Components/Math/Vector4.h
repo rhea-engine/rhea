@@ -78,14 +78,9 @@ namespace Math
 			return *this;
 		}
 
-		Vector4& operator*(float s)
+		Vector4 operator*(float s) const
 		{
-			Vector4 ret = this;
-			ret.x *= s;
-			ret.y *= s;
-			ret.z *= s;
-			ret.w *= s;
-			return ret;
+			return Vector4(x * s, y * s, z * s, w * s);
 		}
 
 		Vector4& operator-=(const Vector4& b)

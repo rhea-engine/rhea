@@ -27,7 +27,7 @@ namespace Hippios
 		if (location == -1) {
 			return; // uniform not used in this shader
 		}
-
+		
 		glUseProgram(program);
 		glUniform1i(location, textureUnit);
 	}

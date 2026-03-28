@@ -34,41 +34,63 @@ out vec3 v_bitangent;
 
 void main()
 {
-   vec4 position = vec4(a_position, 1.0);
+    vec4 position = vec4(a_position, 1.0);
 
-    vec4 jointWeights = a_jointWeights;
-    float weightSum = jointWeights.x + jointWeights.y + jointWeights.z + jointWeights.w;
+    int j0 = clamp(int(a_jointIndices.x), 0, 99);
+    int j1 = clamp(int(a_jointIndices.y), 0, 99);
+    int j2 = clamp(int(a_jointIndices.z), 0, 99);
+    int j3 = clamp(int(a_jointIndices.w), 0, 99);
 
-    mat4 skinningTransform = mat4(1.0);
+    vec4 w = a_jointWeights;
+    float weightSum = w.x + w.y + w.z + w.w;
 
     if (weightSum > 0.0)
-    {
-        jointWeights /= weightSum;
-        skinningTransform = mat4(0.0);
+        w /= weightSum;
+    else
+        w = vec4(1.0, 0.0, 0.0, 0.0);
 
-        uvec4 ji = min(a_jointIndices, uvec4(99u));
+    // Skin position by transforming with each bone separately, then blending.
+    vec4 p0 = position * boneMatrices[j0];
+    vec4 p1 = position * boneMatrices[j1];
+    vec4 p2 = position * boneMatrices[j2];
+    vec4 p3 = position * boneMatrices[j3];
 
-        if (jointWeights.x > 0.0)
-            skinningTransform += boneMatrices[ji.x] * jointWeights.x;
-        if (jointWeights.y > 0.0)
-            skinningTransform += boneMatrices[ji.y] * jointWeights.y;
-        if (jointWeights.z > 0.0)
-            skinningTransform += boneMatrices[ji.z] * jointWeights.z;
-        if (jointWeights.w > 0.0)
-            skinningTransform += boneMatrices[ji.w] * jointWeights.w;
-    }
+    vec4 skinnedPosition =
+        p0 * w.x +
+        p1 * w.y +
+        p2 * w.z +
+        p3 * w.w;
 
-    vec4 skinnedPosition = position * skinningTransform;
+    // Skin normal/tangent the same way, using the 3x3 part of each bone matrix.
+    vec3 n0 = a_normal * mat3(boneMatrices[j0]);
+    vec3 n1 = a_normal * mat3(boneMatrices[j1]);
+    vec3 n2 = a_normal * mat3(boneMatrices[j2]);
+    vec3 n3 = a_normal * mat3(boneMatrices[j3]);
+
+    vec3 t0 = a_tangent * mat3(boneMatrices[j0]);
+    vec3 t1 = a_tangent * mat3(boneMatrices[j1]);
+    vec3 t2 = a_tangent * mat3(boneMatrices[j2]);
+    vec3 t3 = a_tangent * mat3(boneMatrices[j3]);
+
+    vec3 skinnedNormal =
+        n0 * w.x +
+        n1 * w.y +
+        n2 * w.z +
+        n3 * w.w;
+
+    vec3 skinnedTangent =
+        t0 * w.x +
+        t1 * w.y +
+        t2 * w.z +
+        t3 * w.w;
+
     vec4 worldPos = skinnedPosition * world_matrix;
     gl_Position = vec4(worldPos.xyz, 1.0) * VP;
-   
-    vec3 skinnedNormal = mat3(skinningTransform) * a_normal;
-    vec3 skinnedTangent = mat3(skinningTransform) * a_tangent;
 
     v_normal = normalize(skinnedNormal * mat3(transpose(inverse_matrix)));
-    v_tex = a_texcoord;
-    v_positionWS = vec4(worldPos.xyz, 1.0);
-
     v_tangent = normalize(skinnedTangent * mat3(world_matrix));
     v_bitangent = normalize(cross(v_tangent, v_normal));
+
+    v_tex = a_texcoord;
+    v_positionWS = vec4(worldPos.xyz, 1.0);
 }

@@ -1,6 +1,5 @@
 add_subdirectory(ThirdParty/stb_image)
 
-add_subdirectory(Psio)
 add_subdirectory(SimpleParser)
 add_subdirectory(Math)
 

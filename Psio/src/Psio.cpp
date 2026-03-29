@@ -1,0 +1,60 @@
+// Poseidon simple input output
+#include <Psio/Psio.h>
+#include <Psio/Input/InputEvent.h>
+#include <Psio/Input/Input.h>
+#include <Psio/Window/Window.h>
+#include <Psio/Input/Keyboard.h>
+#include <Psio/Timer.h>
+#include <Psio/Net/Network.h>
+#include <Psio/IPC/IO.h>
+#include <Psio/Fs/Fs.h>
+
+namespace Psio
+{
+	Engine::Engine()
+	{
+#ifdef WIN32
+		m_input = new Input();
+		initHwKey();
+#endif
+		m_net = new Network(this);
+		m_net->Init();
+		m_io = new IO(this);
+		m_fs = new Fs("");
+	}
+
+	void Engine::setNetwork(Network* network)
+	{
+		if (m_net)
+			delete m_net;
+		m_net = network;
+	}
+
+	std::shared_ptr<InputEvent> Engine::pollInput()
+	{
+#ifdef WIN32
+		return m_input->poll();
+#endif
+	}
+
+	void Engine::RunNet()
+	{
+		m_net->RunLoop();
+		m_io->RunLoop();
+	}
+
+	uint64_t Engine::getTicks()
+	{
+#ifdef WIN32
+		return Timer::getTicks();
+#endif
+	}
+
+	std::unique_ptr <Window> Engine::createWindow(std::string name, int width, int height)
+	{
+		std::unique_ptr<Window> win = Window::createWindow(name, width, height);
+		win->setInput(m_input);
+		win->create();
+		return win;
+	}
+}

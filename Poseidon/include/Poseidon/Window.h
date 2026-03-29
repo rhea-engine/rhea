@@ -3,7 +3,7 @@
 
 #include "Viewport.h"
 #include <Psio/Psio.h>
-#include <Psio/Window.h>
+#include <Psio/Window/Window.h>
 #include <Hippios/SwapChain.h>
 #include <Hippios/Renderer.h>
 #include <memory>

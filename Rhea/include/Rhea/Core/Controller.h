@@ -2,7 +2,7 @@
 #define RHEA_CONTROLLER_H
 
 #include <Rhea/Core/Item.h>
-#include <Psio/InputEvent.h>
+#include <Psio/Input/InputEvent.h>
 #include <memory>
 
 namespace Rhea

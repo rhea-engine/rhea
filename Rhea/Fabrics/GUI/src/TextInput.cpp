@@ -5,7 +5,7 @@
 #include <Rhea/Text/TextWidget.h>
 #include <Rhea/GUI/Label.h>
 #include <Psio/Log.h>
-#include <Psio/Keyboard.h>
+#include <Psio/Input/Keyboard.h>
 #include <Rhea/EventInput.h>
 #include <Rhea/GUI/Events/SubmitEvent.h>
 

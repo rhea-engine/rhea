@@ -6,8 +6,8 @@
 #include "Orion/ResourceRequest.h"
 #include <Orion/Mime.h>
 #include "Psio/Psio.h"
-#include "Psio/InputEvent.h"
-#include "Psio/Keyboard.h"
+#include <Psio/Input/InputEvent.h>
+#include <Psio/Input/Keyboard.h>
 #include "Psio/Log.h"
 #include "Rhea/Core/SceneLoader.h"
 #include "Rhea/Unit.h"

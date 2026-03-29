@@ -22,11 +22,12 @@ namespace Psio
 		Network() :
 			m_engine(nullptr)
 		{}
+		virtual ~Network() = default;
 
 		typedef std::function<void(int)> CompletionHandler;
 
 		// startup the network system
-		void Init();
+		virtual void Init() = 0;
 
 		// run the net main loop once
 		void RunLoop();
@@ -73,7 +74,7 @@ namespace Psio
 		
 		/* Normalize system errors 
 		*/
-		int SysErr(int err);
+		virtual int SysErr(int err) = 0;
 
 		enum IOFLAG {
 			READ = 1,

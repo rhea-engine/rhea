@@ -12,27 +12,6 @@
 
 namespace Psio
 {
-	void Network::Init()
-	{
-#ifdef WIN32
-		WSADATA wsa;
-		long rc = WSAStartup(MAKEWORD(2, 0), &wsa);
-
-		if (rc) {
-			LOG(LOG_FATAL) << "Network Win32: could not start: " << rc;
-		}
-#else
-		struct sigaction sa;
-		sa.sa_handler = SIG_IGN;
-		sa.sa_flags = 0;
-		if (sigemptyset(&sa.sa_mask) == -1 || sigaction(SIGPIPE, &sa, 0) == -1) {
-			perror("failed to ignore SIGPIPE; sigaction");
-			exit(EXIT_FAILURE);
-
-		}
-#endif // WIN32
-	}
-
 	void Network::RunLoop()
 	{
 #ifdef HAVE_POLL // WSAPOLL is broken - we must use select
@@ -176,43 +155,6 @@ namespace Psio
 		if (it != m_sockets.end()) {
 			DLOG(LOG_DEBUG) << "unwatch socket " << sock;
 			m_sockets.erase(it);
-		}
-	}
-	
-	int Network::SysErr(int err)
-	{
-		if (err <= 0)
-			return err;
-		switch (err) {
-#ifdef WIN32
-		case WSAEWOULDBLOCK:
-			return Err::IO_PENDING;
-		case WSAEFAULT:
-			return Err::FAULT;
-		case WSAENOTSOCK:
-			return Err::NO_SOCKET;
-		case WSAENOTCONN:
-			return Err::NOT_CONNECTED;
-		case WSAECONNABORTED:
-			return Err::ABORTED;
-		case WSAECONNRESET:
-			return Err::CONN_RESET;
-#else
-		case EWOULDBLOCK:
-			return Err::IO_PENDING;
-		case EFAULT:
-			return Err::Fault;
-		case ENOTSOCK:
-			return Err::NO_SOCKET;
-		case ENOTCONN:
-			return Err::NOT_CONNECTED;
-		case ECONNABORTED:
-			return Err::ABORTED;
-		case ECONNRESET:
-			return Err::CONN_RESET;
-#endif
-		default:
-			return Err::FAILED;
 		}
 	}
 }

@@ -11,7 +11,7 @@ namespace Psio
 			m_close(false),
 			m_HWnd(nullptr),
 			m_HInstance(nullptr),
-
+			m_wp{},
 			Window(width, height)
 		{}
 

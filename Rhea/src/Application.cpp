@@ -329,6 +329,7 @@ namespace Rhea
 				ret = true;
 
 			// 3.1 check for window and input events
+			psio->iterateInput();
 			while (evt = psio->pollInput()) {
 
 				// always handle OS quit

@@ -20,9 +20,6 @@ namespace Psio
 		virtual void create() = 0;
 		virtual void destroy() = 0;
 		
-		// factory function
-		static std::unique_ptr<Window> createWindow(std::string name, int width, int height);
-		
 		virtual void* getHandle() = 0;
 		int GetWidth() { return m_width; }
 		int GetHeight() { return m_height; }

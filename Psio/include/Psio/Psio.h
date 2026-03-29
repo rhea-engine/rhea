@@ -13,17 +13,29 @@ namespace Psio
 	class Network;
 	class IO;
 	class Fs;
+	class IBackend;
+
+	enum class BackendKind
+	{
+		Auto,
+		Win32,
+		SDL
+	};
 
 	class Engine
 	{
 	public:
-		Engine();
+		Engine(BackendKind backend = BackendKind::Auto);
+		~Engine();
 
 		// create a window
 		std::unique_ptr <Window> createWindow(std::string name, int width, int height);
 
 		// get input Handler
-		Input* getInput() { return m_input; }
+		Input* getInput() { return m_input.get(); }
+
+		// iterate the inout system once, this will update the input state and generate input events
+		void iterateInput();
 
 		// get the next input event
 		std::shared_ptr<InputEvent> pollInput();
@@ -32,25 +44,26 @@ namespace Psio
 		void RunNet();
 
 		// get network handler
-		Network* getNet() { return m_net; }
+		Network* getNet() { return m_net.get(); }
 
 		// get IO subsys
-		IO* getIO() { return m_io; }
+		IO* getIO() { return m_io.get(); }
 
 		// set alternative network handler
 		void setNetwork(Network* network);
 
 		// get FS subsystem
-		Fs* getFs() { return m_fs; }
+		Fs* getFs() { return m_fs.get(); }
 
 		// Returns the system time, in microseconds
 		uint64_t getTicks();
 
 	protected:
-		Input* m_input;
-		Network* m_net;
-		IO* m_io;
-		Fs* m_fs;
+		std::unique_ptr<IBackend> m_backend;
+		std::unique_ptr<Input> m_input;
+		std::unique_ptr<Network> m_net;
+		std::unique_ptr<IO> m_io;
+		std::unique_ptr<Fs> m_fs;
 	};
 }
 #endif // !PSIO_H

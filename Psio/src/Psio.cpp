@@ -8,33 +8,78 @@
 #include <Psio/Net/Network.h>
 #include <Psio/IPC/IO.h>
 #include <Psio/Fs/Fs.h>
+#include <stdexcept>
+#include "Backend/IBackend.h"
+#include "Platform/Win32/Win32Backend.h"
 
 namespace Psio
 {
-	Engine::Engine()
+	std::unique_ptr<IBackend> CreateBackend(BackendKind preferred)
 	{
-#ifdef WIN32
-		m_input = new Input();
-		initHwKey();
+		if (preferred == BackendKind::SDL)
+		{
+#ifdef PSIO_HAS_SDL
+			return std::make_unique<SDLBackend>();
+#else
+			throw std::runtime_error("SDL backend requested but not available.");
 #endif
-		m_net = new Network(this);
-		m_net->Init();
-		m_io = new IO(this);
-		m_fs = new Fs("");
+		}
+
+		if (preferred == BackendKind::Win32)
+		{
+#ifdef PSIO_HAS_WIN32
+			return std::make_unique<Win32Backend>();
+#else
+			throw std::runtime_error("Win32 backend requested but not available.");
+#endif
+		}
+
+		// Auto mode: choose best available for this platform
+#ifdef PSIO_HAS_WIN32
+		return std::make_unique<Win32Backend>();
+#elif defined(PSIO_HAS_SDL)
+		return std::make_unique<SDLBackend>();
+#else
+		throw std::runtime_error("No supported Psio backend available.");
+#endif
+	}
+
+	Engine::Engine(BackendKind backend)
+	{
+		m_backend = CreateBackend(backend);
+
+		m_input = m_backend->CreateInput(this);
+		m_net = m_backend->CreateNetwork(this);
+		if (m_net)
+		{
+			m_net->Init();
+		}
+		m_io = m_backend->CreateIO(this);
+		m_fs = m_backend->CreateFs(this);
+	}
+
+	Engine::~Engine()
+	{
 	}
 
 	void Engine::setNetwork(Network* network)
 	{
-		if (m_net)
-			delete m_net;
-		m_net = network;
+		m_net.reset(network);
+	}
+
+	void Engine::iterateInput()
+	{
+		if (m_input) {
+			m_input->update();
+		}
 	}
 
 	std::shared_ptr<InputEvent> Engine::pollInput()
 	{
-#ifdef WIN32
+		if (!m_input) {
+			return {};
+		}
 		return m_input->poll();
-#endif
 	}
 
 	void Engine::RunNet()
@@ -45,16 +90,19 @@ namespace Psio
 
 	uint64_t Engine::getTicks()
 	{
-#ifdef WIN32
 		return Timer::getTicks();
-#endif
 	}
 
 	std::unique_ptr <Window> Engine::createWindow(std::string name, int width, int height)
 	{
-		std::unique_ptr<Window> win = Window::createWindow(name, width, height);
-		win->setInput(m_input);
-		win->create();
-		return win;
+		if (!m_backend) {
+			throw std::runtime_error("Cannot create window: backend not initialized.");
+		}
+
+		std::unique_ptr<Window> window = m_backend->CreateNativeWindow(name, width, height);
+		window->setInput(m_input.get());
+		window->create();
+
+		return window;
 	}
 }

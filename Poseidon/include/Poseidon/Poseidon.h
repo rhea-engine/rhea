@@ -14,7 +14,7 @@ namespace Poseidon
 		{}
 
 		// initialize
-		void init();
+		void init(int argc, char* argv[]);
 
 		// setup
 		void setup();

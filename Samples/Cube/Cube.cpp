@@ -48,7 +48,7 @@ void CubeApp::setup()
 	if (shader->loadFromFile("rhea\\shaders\\uvshader.hlsl", "VShader", "PShader"))
 		exit(-1);
 #else
-	if (shader->loadFromFile("rhea\\shaders\\uvshader_vp.hlsl", "VShader", "PShader"))
+	if (!shader->loadFromFile("rhea\\shaders\\uvshader_vp.hlsl", "VShader", "PShader"))
 		exit(-1);
 #endif
 	m_material->setShader(shader);

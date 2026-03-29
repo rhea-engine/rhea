@@ -9,15 +9,20 @@
 
 namespace Hippios
 {
-	D3D11IndexBuffer::D3D11IndexBuffer(ID3D11Device* d3dDevice, ID3D11DeviceContext* device_context, size_t vertex_size, size_t num_faces, bool dynamic) :
+	D3D11IndexBuffer::D3D11IndexBuffer(ID3D11Device* d3dDevice, ID3D11DeviceContext* device_context, size_t index_stride, size_t num_faces, bool dynamic) :
 		is_dirty(true)
 	{
 		m_device = d3dDevice;
 		m_device_context = device_context;
 		// compute size
-		m_size_in_bytes = vertex_size * num_faces * 3;
-		m_vertex_size = vertex_size;
+		m_size_in_bytes = index_stride * num_faces * 3;
+		m_index_stride = index_stride;
 		m_num_faces = num_faces;
+
+		if (index_stride == 2)
+			m_index_format = DXGI_FORMAT_R16_UINT;
+		else
+			m_index_format = DXGI_FORMAT_R32_UINT;
 
 		m_buffer = std::make_unique<D3D11GraphicsBuffer>(m_device, m_device_context, D3D11_BIND_INDEX_BUFFER, m_size_in_bytes, dynamic);
 	}

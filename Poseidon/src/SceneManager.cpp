@@ -8,6 +8,7 @@
 #include "Poseidon/Material.h"
 #include "Poseidon/Shader.h"
 #include "Poseidon/Mesh.h"
+#include "Poseidon/Window.h"
 
 #include <Hippios/Renderer.h>
 #include <Hippios/GraphicsBuffer.h>
@@ -21,6 +22,7 @@
 #include <Rhea/Animation/Skeleton.h>
 #include <Rhea/Components/VisualComponent.h>
 #include <Rhea/Components/RenderComponent.h>
+#include <Psio/Log.h>
 
 namespace Poseidon
 {
@@ -30,28 +32,14 @@ namespace Poseidon
 
 	SceneManager::SceneManager() :
 		m_renderer(nullptr),
-		m_current_material(nullptr),
-		m_frame_buffer(nullptr),
-		m_object_buffer(nullptr),
-		m_light_buffer(nullptr),
-		m_object_buffer_wvp(nullptr),
-		m_bone_buffer(nullptr)
+		m_current_material(nullptr)
 	{
 		m_rend_queue = new RenderQueue();
 	}
 
 	SceneManager::~SceneManager()
 	{
-		if (m_frame_buffer)
-			delete m_frame_buffer;
-		if (m_object_buffer)
-			delete m_object_buffer;
-		if (m_object_buffer_wvp)
-			delete m_object_buffer_wvp;
-		if (m_light_buffer)
-			delete m_light_buffer;
-		if (m_object_buffer)
-			delete m_object_buffer;
+		// unique_ptrs handle cleanup of graphics buffers automatically
 	}
 
 	Node* SceneManager::get_root()
@@ -68,11 +56,11 @@ namespace Poseidon
 
 		//initialize graphic buffers
 		m_frame_buffer = m_renderer->createGraphicsBuffer(sizeof(cbPerFrame));
-		m_renderer->bindGPUBuffer(m_frame_buffer, 0, "VS");
+		m_renderer->bindGPUBuffer(m_frame_buffer.get(), 0, Hippios::ShaderStage::Vertex);
 		m_object_buffer = m_renderer->createGraphicsBuffer(sizeof(cbPerObject));
-		//m_renderer->bindGPUBuffer(m_object_buffer, 1, "VS");
+		//m_renderer->bindGPUBuffer(m_object_buffer.get(), 1, Hippios::ShaderStage::Vertex);
 		m_light_buffer = m_renderer->createGraphicsBuffer(sizeof(cbLight));
-		m_renderer->bindGPUBuffer(m_light_buffer, 2, "PS");		
+		m_renderer->bindGPUBuffer(m_light_buffer.get(), 2, Hippios::ShaderStage::Fragment);		
 		m_bone_buffer = m_renderer->createGraphicsBuffer(sizeof(BoneBuffer));
 	}
 
@@ -95,7 +83,7 @@ namespace Poseidon
 
 			if (!viewport->getRenderTarget())
 				continue;
-
+			
 			// set render target as active
 			viewport->getRenderTarget()->setActive();
 			// clear with background color
@@ -184,7 +172,7 @@ namespace Poseidon
 				}
 				light_buf.num_lights = (float)idx;
 				m_light_buffer->update((void*)&light_buf);
-				m_renderer->bindGPUBuffer(m_light_buffer, 2, "PS");
+				m_renderer->bindGPUBuffer(m_light_buffer.get(), 2, Hippios::ShaderStage::Fragment);
 
 				Item* renderable = m_rend_queue->first();
 				for (Item* renderable = m_rend_queue->first(); renderable != NULL; renderable = m_rend_queue->next()) {
@@ -212,30 +200,32 @@ namespace Poseidon
 						per_obj_buf.inverse = per_obj_buf.world_matrix.inverse().transpose();
 
 						m_object_buffer->update((void*)&per_obj_buf);
-						m_renderer->bindGPUBuffer(m_object_buffer, 1, "VS");
+						m_renderer->bindGPUBuffer(m_object_buffer.get(), 1, Hippios::ShaderStage::Vertex);
 					}
-
+					
 					// get render mesh
 					// Ensure GPU mesh is available
 					Poseidon::Mesh* mesh = r_comp->gpuMesh;
 					if (!mesh) {
 						continue;
 					}
-
+					
 					// skeleton handling if any
 					Rhea::Skeleton* skeleton = r_comp->skeleton;
 					if (skeleton) {
 						// Fill the bone buffer
-						BoneBuffer boneBuffer;
+						BoneBuffer boneBuffer{};
+						for (int i = 0; i < 100; ++i)
+						{
+							boneBuffer.boneMatrices[i] = Math::Matrix4::IDENTITY;
+						}
 						const auto& boneMatrices = skeleton->getBoneMatrices();
 						size_t max_bones = min(boneMatrices.size(), static_cast<size_t>(100)); // Ensure we do not exceed buffer capacity.
-						for (size_t i = 0; i < max_bones; ++i) {
-							boneBuffer.boneMatrices[i] = boneMatrices[i];
-						}
+						m_renderer->prepareMatricesForShader(boneBuffer.boneMatrices, boneMatrices.data(), max_bones);
 
 						// Update the bone matrix buffer
 						m_bone_buffer->update((void*)&boneBuffer);
-						m_renderer->bindGPUBuffer(m_bone_buffer, 4, "VS"); // Bind bone buffer to slot 4 for vertex shader
+						m_renderer->bindGPUBuffer(m_bone_buffer.get(), 4, Hippios::ShaderStage::Vertex); // Bind bone buffer to slot 4 for vertex shader
 					}
 
 					// iterate over submeshes
@@ -246,6 +236,11 @@ namespace Poseidon
 							continue;
 
 						Material* mat = submesh->material;
+
+						if (!mat) {
+							DLOG(LOG_DEBUG) << "SceneManager::render: submesh " << i << " has no material - SKIPPING";
+							continue;
+						}
 
 						if (mat != m_current_material && mat) {
 							m_current_material = mat;
@@ -274,6 +269,11 @@ namespace Poseidon
 
 						mesh->getRenderInput(i, &vb, &ib, num_indices);
 
+						if (!vb) {
+							DLOG(LOG_DEBUG) << "SceneManager::render: submesh " << i << " has no vertex buffer";
+							continue;
+						}
+
 						if (!mesh->isIndexed()) {
 							if (vb) {
 								m_renderer->bindBuffers(vb, ib);
@@ -284,6 +284,9 @@ namespace Poseidon
 							if (vb && num_indices) {
 								m_renderer->bindBuffers(vb, ib);
 								m_renderer->drawIndexed(num_indices, 0, 0);
+							}
+							else {
+								DLOG(LOG_DEBUG) << "SceneManager::render: indexed mesh but num_indices=0 or no vb";
 							}
 						}
 					}
@@ -310,6 +313,16 @@ namespace Poseidon
 			Viewport* viewport = *it;
 			if (viewport->isName(name))
 				return viewport;
+		}
+		return nullptr;
+	}
+
+	Window* SceneManager::getWindow(Psio::Window* win)
+	{
+		for (std::vector<Window*>::iterator it = m_windows.begin(); it != m_windows.end(); ++it) {
+			Window* window = *it;
+			if (window->getNativeWindow() == win)
+				return window;
 		}
 		return nullptr;
 	}

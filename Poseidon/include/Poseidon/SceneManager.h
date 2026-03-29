@@ -2,9 +2,16 @@
 #define POSEIDON_SCENEMANAGER_H
 
 #include <vector>
+#include <memory>
 
 #include "Camera.h"
 #include <Math/Vector4.h>
+
+namespace Psio
+{
+	class Engine;
+	class Window;
+}
 
 namespace Hippios
 {
@@ -18,6 +25,7 @@ namespace Poseidon
 	class Viewport;
 	class RenderQueue;
 	class Material;
+	class Window;
 
 	/** The scene that holds and organises the objects in the world
 	*/
@@ -48,10 +56,16 @@ namespace Poseidon
 
 		// helper 
 		Viewport* getViewport(std::string name = "root");
+		
+		// window helper
+		Window* getWindow(Psio::Window* win);
+		void registerWindow(Window* win) { m_windows.push_back(win); }
+
 	protected:
 		Node* m_tree = 0;
 		Hippios::Renderer* m_renderer;
 		std::vector<Viewport*> m_viewports;
+		std::vector<Window*> m_windows;
 		RenderQueue* m_rend_queue = NULL;
 		Material* m_current_material;
 
@@ -120,11 +134,11 @@ namespace Poseidon
 		cbPerObjectTerrain cbPerObjTerrain;
 		cbLight light_buf;
 
-		Hippios::GraphicsBuffer* m_frame_buffer;
-		Hippios::GraphicsBuffer* m_object_buffer;
-		Hippios::GraphicsBuffer* m_object_buffer_wvp;
-		Hippios::GraphicsBuffer* m_light_buffer;
-		Hippios::GraphicsBuffer* m_bone_buffer;
+		std::unique_ptr<Hippios::GraphicsBuffer> m_frame_buffer;
+		std::unique_ptr<Hippios::GraphicsBuffer> m_object_buffer;
+		std::unique_ptr<Hippios::GraphicsBuffer> m_object_buffer_wvp;
+		std::unique_ptr<Hippios::GraphicsBuffer> m_light_buffer;
+		std::unique_ptr<Hippios::GraphicsBuffer> m_bone_buffer;
 	};
 }
 #endif // !POSEIDON_SCENEMANAGER_H

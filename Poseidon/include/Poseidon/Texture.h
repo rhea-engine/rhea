@@ -12,7 +12,7 @@ namespace Poseidon
 	{
 	protected:
 		Hippios::Renderer* m_renderer = 0;
-		Hippios::Texture* m_hw_texture = 0;
+		std::unique_ptr<Hippios::Texture> m_hw_texture;
 		virtual void createTexture();
 	public:
 		void bind(Hippios::Renderer *engine);
@@ -26,7 +26,7 @@ namespace Poseidon
 		// load an image from existing texture (not implemented for base class)
 		virtual bool load(int index, Texture* tex);
 
-		Hippios::Texture* get_texture() { return m_hw_texture; };
+		Hippios::Texture* get_texture() { return m_hw_texture.get(); };
 		virtual void setNumImages(int num_images) {}
 	};
 }

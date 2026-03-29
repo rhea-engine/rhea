@@ -136,9 +136,9 @@ namespace Rhea
 		}
 
 		// get value
-		Variant getValue(std::string name);
+		Variant getValue(std::string name) const;
 		// get value with default
-		Variant getValue(std::string name, Variant default_val);
+		Variant getValue(std::string name, Variant default_val) const;
 		// set a value
 		void setValue(std::string name, Variant val);
 		// get exported values

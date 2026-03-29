@@ -1,7 +1,12 @@
 [scene]
 type="//meworla/shader"
 name="text"
-code="//rhea/shaders/text.hlsl"
+cull_mode="none"
+code_hlsl="//rhea/shaders/text.hlsl"
+code_glsl_vs="//rhea/shaders/text_vs.glsl"
+code_glsl_fs="//rhea/shaders/text_fs.glsl"
 alpha_blending=true
-stencil_test="disabled"
+depth_stencil_state="disabled"
+depth_test=false
+depth_write=false
 sampler="nearest"

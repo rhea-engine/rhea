@@ -1,6 +1,7 @@
 #include "Poseidon/Window.h"
 #include <memory>
 #include <Hippios/Renderer.h>
+#include <Psio/Log.h>
 
 namespace Poseidon
 {
@@ -19,7 +20,11 @@ namespace Poseidon
 		win.height = m_native_win->GetHeight();
 		win.native_win_handle = m_native_win->getHandle();
 
-		m_swap_chain.reset(m_renderer->createSwapChain(&win));
+		m_swap_chain = m_renderer->createSwapChain(&win);
+		if (!m_swap_chain) {
+			LOG(LOG_ERROR) << "Failed to create swap chain and initialize graphics context";
+			return; // oder throw exception
+		}
 		// create my own render target
 		createRenderTarget(win.width, win.height, m_swap_chain.get());
 	}
@@ -29,6 +34,10 @@ namespace Poseidon
 		if (m_width == width && m_height == height)
 			return;
 
+		if (!m_render_target || !m_swap_chain) {
+			LOG(LOG_ERROR) << "Window::onResize: no render target or swap chain";
+			return;
+		}
 		m_render_target->Release();
 		m_swap_chain->onResize(width, height);
 		Viewport::onResize(width, height);

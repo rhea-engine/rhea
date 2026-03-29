@@ -22,6 +22,7 @@
 #include <Rhea/GUI/Modifier/FillSize.h>
 #include <Rhea/GUI/Column.h>
 #include <Rhea/GUI/Row.h>
+#include <Rhea/Graphics/SizeEvent.h>
 
 namespace Rhea
 {
@@ -53,7 +54,7 @@ namespace Rhea
 		Widget::ready();
 		
 		// set current viewport size
-		IGraphicsService* gsrv = (IGraphicsService*)m_app->getService("graphics");
+	/*	IGraphicsService* gsrv = (IGraphicsService*)m_app->getService("graphics");
 		m_viewport_width = gsrv->getViewportWidth();
 		m_viewport_height = gsrv->getViewportHeight();
 		gsrv->registerEventHandler("resize", this, [&, gsrv](Event* ev, Unit* unit) -> bool { 
@@ -61,7 +62,7 @@ namespace Rhea
 			m_viewport_height = gsrv->getViewportHeight();
 			return onGuiUpdate(ev, unit); 
 		});
-
+		*/
 		m_style_engine = std::make_unique<StyleEngine>();
 		if (m_values["stylesheet"] != Variant()) {
 			StyleSheet* css = (StyleSheet*)m_app->getUnitTree()->find(m_values["stylesheet"], m_attributes["basepath"], false);
@@ -83,7 +84,7 @@ namespace Rhea
 			}
 		}
 	
-		// initial resize is done by "show" handler		
+		registerEventHandler("viewport_size", this, std::bind(&GUIController::onViewportSize, this, std::placeholders::_1, std::placeholders::_2));
 
 		registerEventHandler("scene_show", this, std::bind(&GUIController::onShow, this, std::placeholders::_1, std::placeholders::_2));
 		registerEventHandler("scene_hide", this, std::bind(&GUIController::onHide, this, std::placeholders::_1, std::placeholders::_2));
@@ -111,6 +112,22 @@ namespace Rhea
 		registerEventHandler("show", this, std::bind(&GUIController::onShowWidget, this, std::placeholders::_1, std::placeholders::_2));
 		registerEventHandler("hide", this, std::bind(&GUIController::onHideWidget, this, std::placeholders::_1, std::placeholders::_2));
 	}
+
+	bool GUIController::onViewportSize(Event* ev, Unit* unit)
+	{
+		SizeEvent* e = static_cast<SizeEvent*>(ev);
+		int width = e->width;
+		int height = e->height;	
+		if (width != m_viewport_width || height != m_viewport_height) {
+			m_viewport_width = width;
+			m_viewport_height = height;
+			// send event to all children to update their size
+			sendEventChildren("viewport_size", ev);
+			return onGuiUpdate(ev, unit);
+		}
+		return false;
+	}
+
 
 	bool GUIController::onShow(Event* ev, Unit* unit)
 	{

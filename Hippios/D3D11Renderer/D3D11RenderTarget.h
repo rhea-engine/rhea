@@ -12,10 +12,10 @@ namespace Hippios
 	{
 	public:
 		~D3D11RenderTarget();
+			
+		bool resize(int width, int height);
 
-		bool create(Renderer* renderer, int width, int height, SwapChain* swap_chain) override;
-		
-		bool create(int width, int height, SwapChain* swap_chain) override;
+		bool create(Renderer* renderer, const RenderTargetDesc& desc) override;
 
 		void Release() override;
 
@@ -24,9 +24,12 @@ namespace Hippios
 		void setViewport(ViewportDesc* desc) override;
 
 	protected:
-		Renderer* m_renderer = nullptr;	// reference to renderer
+		D3D11Renderer* m_renderer = nullptr;	// reference to renderer
 		ID3D11RenderTargetView* m_backbuffer = nullptr;    // the pointer to our back buffer
 		std::unique_ptr<D3D11DepthBuffer> m_depth_buffer;
+		int m_width = 0;
+		int m_height = 0;
+		Hippios::SwapChain* m_swap_chain = nullptr;
 	};
 }
 

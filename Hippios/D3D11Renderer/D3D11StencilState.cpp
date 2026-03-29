@@ -18,36 +18,32 @@ namespace Hippios {
         { StencilOp::STENCIL_DECR, D3D11_STENCIL_OP_DECR}
     };
 
-    D3D11StencilState::D3D11StencilState(ID3D11Device* device, ID3D11DeviceContext* device_context, DepthStencilStateDesc* desc) :
+    D3D11StencilState::D3D11StencilState(ID3D11Device* device, ID3D11DeviceContext* device_context, const DepthStencilStateDesc& desc) :
         m_depth_stencil_state(nullptr),
         m_device(device),
-        m_device_context(device_context)
+        m_device_context(device_context),
+		m_desc(desc)
     {
         ZeroMemory(&m_depth_stencil_desc, sizeof(D3D11_DEPTH_STENCIL_DESC));
-        if (desc) {
 
-            m_depth_stencil_desc.DepthEnable = desc->depth_enable;
-            m_depth_stencil_desc.DepthWriteMask = (desc->depth_write_mask == DepthWriteMask::DEPTH_WRITE_ZERO) ? D3D11_DEPTH_WRITE_MASK_ZERO : D3D11_DEPTH_WRITE_MASK_ALL;
-            m_depth_stencil_desc.DepthFunc = _comparison_functions[desc->depth_func];
-            m_depth_stencil_desc.StencilEnable = desc->stencil_enable;
-            m_depth_stencil_desc.StencilReadMask = desc->stencil_read_mask;
-            m_depth_stencil_desc.StencilWriteMask = desc->stencil_write_mask;
-            m_depth_stencil_desc.FrontFace.StencilFunc = _comparison_functions[desc->front_face.stencil_func];
-            m_depth_stencil_desc.BackFace.StencilFunc = _comparison_functions[desc->back_face.stencil_func];
-            m_depth_stencil_desc.FrontFace.StencilDepthFailOp = _stencil_ops[desc->front_face.depth_fail_op];
-            m_depth_stencil_desc.BackFace.StencilDepthFailOp = _stencil_ops[desc->back_face.depth_fail_op];
-            m_depth_stencil_desc.FrontFace.StencilPassOp = _stencil_ops[desc->front_face.pass_op];
-            m_depth_stencil_desc.BackFace.StencilPassOp = _stencil_ops[desc->back_face.pass_op];
-            m_depth_stencil_desc.FrontFace.StencilFailOp = _stencil_ops[desc->front_face.depth_fail_op];
-            m_depth_stencil_desc.BackFace.StencilFailOp = _stencil_ops[desc->back_face.depth_fail_op];
+        m_depth_stencil_desc.DepthEnable = desc.depth_enable;
+        m_depth_stencil_desc.DepthWriteMask = (desc.depth_write_mask == DepthWriteMask::DEPTH_WRITE_ZERO) ? D3D11_DEPTH_WRITE_MASK_ZERO : D3D11_DEPTH_WRITE_MASK_ALL;
+        m_depth_stencil_desc.DepthFunc = _comparison_functions[desc.depth_func];
+        m_depth_stencil_desc.StencilEnable = desc.stencil_enable;
+        m_depth_stencil_desc.StencilReadMask = desc.stencil_read_mask;
+        m_depth_stencil_desc.StencilWriteMask = desc.stencil_write_mask;
+        m_depth_stencil_desc.FrontFace.StencilFunc = _comparison_functions[desc.front_face.stencil_func];
+        m_depth_stencil_desc.BackFace.StencilFunc = _comparison_functions[desc.back_face.stencil_func];
+        m_depth_stencil_desc.FrontFace.StencilDepthFailOp = _stencil_ops[desc.front_face.depth_fail_op];
+        m_depth_stencil_desc.BackFace.StencilDepthFailOp = _stencil_ops[desc.back_face.depth_fail_op];
+        m_depth_stencil_desc.FrontFace.StencilPassOp = _stencil_ops[desc.front_face.pass_op];
+        m_depth_stencil_desc.BackFace.StencilPassOp = _stencil_ops[desc.back_face.pass_op];
+        m_depth_stencil_desc.FrontFace.StencilFailOp = _stencil_ops[desc.front_face.depth_fail_op];
+        m_depth_stencil_desc.BackFace.StencilFailOp = _stencil_ops[desc.back_face.depth_fail_op];
 
-            HRESULT result = m_device->CreateDepthStencilState(&m_depth_stencil_desc, &m_depth_stencil_state);
-            if (FAILED(result))
-                LOG(LOG_ERROR) << "D3D11StencilState: Could not create stencil state";
-        }
-        else
-			// Create a default state
-			m_depth_stencil_state = nullptr;
+        HRESULT result = m_device->CreateDepthStencilState(&m_depth_stencil_desc, &m_depth_stencil_state);
+        if (FAILED(result))
+            LOG(LOG_ERROR) << "D3D11StencilState: Could not create stencil state";
     }
 
     D3D11StencilState::~D3D11StencilState()

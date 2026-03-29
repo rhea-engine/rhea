@@ -3,7 +3,7 @@
 
 namespace Hippios
 {
-	D3D11BlendState::D3D11BlendState(ID3D11Device* device, BlendStateDesc& desc)
+	D3D11BlendState::D3D11BlendState(ID3D11Device* device, const BlendStateDesc& desc)
 	{
 		// create blend state
 		D3D11_BLEND_DESC blend_state_description;

@@ -1,6 +1,11 @@
 [scene]
 type="//meworla/shader"
 name="skybox"
-code="//rhea/shaders/skybox.hlsl"
-stencil_test="skybox"
+code_hlsl="//rhea/shaders/skybox.hlsl"
+code_glsl_vs="//rhea/shaders/skybox_vs.glsl"
+code_glsl_fs="//rhea/shaders/skybox_fs.glsl"
+depth_stencil_state="skybox"
 cull_mode="none"
+depth_test=true
+depth_write=false
+texture_type="skybox"

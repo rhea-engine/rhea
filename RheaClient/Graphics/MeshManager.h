@@ -7,6 +7,8 @@
 #include <Poseidon/Mesh.h>
 #include <Rhea/Core/Mesh.h>
 
+#include <unordered_set>
+
 namespace Rhea
 {
 	class GraphicsMeshManager : public GraphicsManager
@@ -28,8 +30,14 @@ namespace Rhea
 
 		bool FillPoseidonMesh(Poseidon::Core* core, Mesh* mesh, Poseidon::Mesh* out);
 
+		// Removes a mesh from the negative cache so it can be retried
+		void clearFailure(const std::string& key) { m_failed_meshes.erase(key); }
+
 	protected:
 		bool ensureMaterialElement(Material* material);
+
+		// Negative cache: stores paths of meshes whose build has failed
+		std::unordered_set<std::string> m_failed_meshes;
 	};
 }
 

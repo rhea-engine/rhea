@@ -12,6 +12,7 @@
 #include "ComPtr.h"
 #include "D3D11DepthBuffer.h"
 #include "D3D11BaseTypes.h"
+#include "D3D11ShaderProgram.h"
 
 class D3D11Driver;
 namespace Hippios
@@ -29,7 +30,7 @@ namespace Hippios
 	class D3D11Renderer : public Renderer
 	{
 	private:
-		D3D_DRIVER_TYPE mDriverType; // should be XXX_HARDWARE, XXX_SOFTWARE or XXX_WARP, never XXX_UNKNOWN or XXX_NULL
+		D3D_DRIVER_TYPE mDriverType;
 		D3D_FEATURE_LEVEL mFeatureLevel;
 		D3D_FEATURE_LEVEL mMinRequestedFeatureLevel;
 		D3D_FEATURE_LEVEL mMaxRequestedFeatureLevel;
@@ -44,6 +45,8 @@ namespace Hippios
 
 		HRESULT createDeviceAndSwapChain(D3D_DRIVER_TYPE driverType, D3D_FEATURE_LEVEL minFL, D3D_FEATURE_LEVEL maxFL, D3D_FEATURE_LEVEL* pFeatureLevel, NativeWindow* win, IDXGISwapChain** swap_chain);
 
+		HRESULT createDevice(D3D_DRIVER_TYPE driverType, D3D_FEATURE_LEVEL minFL, D3D_FEATURE_LEVEL maxFL, D3D_FEATURE_LEVEL* pFeatureLevel);
+
 		// last buffers that where bound
 		D3D11VertexBuffer* m_last_vb = 0;
 		D3D11IndexBuffer* m_last_ib = 0;
@@ -52,8 +55,8 @@ namespace Hippios
 		D3D11Renderer(ID3D11Device *device, ID3D11DeviceContext *device_context);
 		~D3D11Renderer();
 
-		// steps for initializing Renderer		
-		RenderTarget* createRenderTarget(int width, int height, SwapChain* swap_chain) override;
+		// steps for initializing Renderer				
+		std::unique_ptr<RenderTarget> createRenderTarget(const RenderTargetDesc& desc) override;
 
 		// getters
 		ID3D11DeviceContext* get_device_context() { return m_device_context; }
@@ -68,34 +71,31 @@ namespace Hippios
 		
 		// create and use objects
 
-		VertexBuffer* createVertexBuffer(size_t vertexSize, size_t numVertices, bool dynamic = false) override;
-		IndexBuffer* createIndexBuffer(size_t vertex_size, size_t num_faces, bool dynamic = false) override;
-		GraphicsBuffer* createGraphicsBuffer(size_t size_in_bytes) override;
-		Texture* createTexture(TextureDesc& desc) override;
-		GPUProgram* addMaterial(std::string filename, char* shader_type, char* entry_point) override;
-		GPUProgram* addMaterial(unsigned char* buf, int buflen, char* shader_type, char* entry_point) override;
+		std::unique_ptr<VertexBuffer> createVertexBuffer(size_t vertexSize, size_t numVertices, bool dynamic = false) override;
+		std::unique_ptr<IndexBuffer> createIndexBuffer(size_t index_stride, size_t num_faces, bool dynamic = false) override;
+		std::unique_ptr<GraphicsBuffer> createGraphicsBuffer(size_t size_in_bytes) override;
+		std::unique_ptr<Texture> createTexture(TextureDesc& desc) override;
+		ShaderProgram* createShader(const ShaderProgramDesc& desc) override;
+		virtual ShaderProgram* createShader(const ShaderProgramSourceDesc& desc) override;
 
-		SwapChain* createSwapChain(NativeWindow* win) override;
+		HRESULT createSwapChainForWindow(NativeWindow* win, IDXGISwapChain** swap_chain);
+
+		std::unique_ptr<SwapChain> createSwapChain(NativeWindow* win) override;
 
 		void setBlendState(BlendState* state, float* blend_factor, unsigned int mask) override;
 
-		virtual PipelineStateObject* createPipelineState(PipelineStateObjectDesc* desc) override;
-		void setPipelineState(PipelineStateObject* pso) override;
-
-		// set current material
-		void setVertexShader(GPUProgram* material) override;
-		void setPixelShader(GPUProgram* material) override;
+		std::unique_ptr<PipelineStateObject> createPipelineState(const PipelineStateObjectDesc& desc) override;
+		void setPipelineState(PipelineStateObject* pso) override;		
 
 		// stencil states
-		StencilState* getStencilState(std::string name) override;
-		StencilState* createStencilState(std::string name, DepthStencilStateDesc* desc) override;
+		StencilState* getStencilState(const std::string& name) override;
+		StencilState* createStencilState(const std::string& name, const DepthStencilStateDesc& desc) override;
 		void setStencilState(StencilState* state, int stencil_ref) override;
 
 		// create a new sampler
-		bool createSampler(std::string name, SamplerDesc* desc) override;
-		// get a sampler
-		GPUHandle* getSampler(std::string name) override;
-		virtual void setSampler(GPUHandle* handle) override;
+		SamplerState* createSampler(const SamplerDesc& desc) override;
+		// set sampler to a slot and shader stage
+		virtual void setSampler(int slot, SamplerState* sampler, ShaderStage stage) override;
 
 		// rasterizer state
 		void setRasterizerState(ID3D11RasterizerState* state);
@@ -112,12 +112,18 @@ namespace Hippios
 		GraphicsBuffer* initGPUBuffer(size_t size) override;
 
 		// bind a buffer to a slot and shader phase
-		void bindGPUBuffer(GraphicsBuffer* buffer, int slot = 0, char* stage = "VS") override;
+		void bindGPUBuffer(GraphicsBuffer* buffer, int slot = 0, ShaderStage stage = ShaderStage::Vertex) override;
 		
 		// render passes		
 		void bindBuffers(VertexBuffer* vb, IndexBuffer* ib) override;
+
+		bool setActiveSwapChain(SwapChain* swap_chain) override;
 		void clearPass(RenderTarget* render_target) override;
 		int presentPass(SwapChain* swap_chain) override;
+
+		bool getStencilStateDesc(const std::string& name, DepthStencilStateDesc& outDesc) override;
+
+		void prepareMatricesForShader(Math::Matrix4* dst, const Math::Matrix4* src, size_t count) const;		
 
 	protected:
 		Texture* m_current_texture;		

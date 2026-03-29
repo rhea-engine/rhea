@@ -68,7 +68,7 @@ namespace Rhea
 				if (!shader) {
 					shader = core->createShader("shader_vp");
 					shader->setVertexType(0);
-					if (shader->loadFromFile("Data\\Rhea\\shaders\\shader_vp.hlsl", "VShader", "PShader"))
+					if (!shader->loadFromFile("Data\\Rhea\\shaders\\shader_vp.hlsl", "VShader", "PShader"))
 						exit(-1);
 				}
 				material->setShader(shader);

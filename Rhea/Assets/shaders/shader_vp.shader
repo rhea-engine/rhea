@@ -1,0 +1,10 @@
+[scene]
+type="//meworla/shader"
+name="color"
+code_hlsl="//rhea/shaders/shader_vp.hlsl"
+code_glsl_vs="//rhea/shaders/shader_vp_vs.glsl"
+code_glsl_fs="//rhea/shaders/shader_vp_fs.glsl"
+vs_entry: "VShader"
+ps_entry: "PShader"
+input="color"
+light_type="none"

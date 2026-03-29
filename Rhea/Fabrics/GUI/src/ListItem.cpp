@@ -11,6 +11,8 @@ namespace Rhea
 		std::unordered_map<std::string, std::string> attr;
 		std::unordered_map<std::string, Variant> val;
 
+		m_is_renderable = false;
+
 		val["padding"] = getValue("padding", 5.0f);
 		val["text"] = getValue("text", "");
 		val["fillwidth"] = true;

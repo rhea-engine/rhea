@@ -26,6 +26,7 @@
 #include <Rhea/Animation/Animator.h>
 #include <Rhea/GUI/GUIController.h>
 #include <Rhea/Core/Mesh.h>
+#include <Rhea/ConfigFile.h>
 
 bool Ceto::onQuit(Rhea::Event* ev, Rhea::Unit* unit)
 {
@@ -189,39 +190,9 @@ void Ceto::setup()
 	Rhea::Unit* user = m_unit_tree->createUnit("user", "//core/types/unit", attributes, values);
 	engine->addChild(user);
 
-	// a color material
-	Poseidon::Material* material = get_core()->getMaterial("color");
-	if (!material) {
-		material = get_core()->createMaterial();
-		material->setTopology(2);
-		Poseidon::Shader* shader = get_core()->getShader("shader_vp");
-		if (!shader) {
-			shader = get_core()->createShader("shader_vp");
-			shader->setVertexType(0);
-			Orion::ResourceRequest* req = m_fs->getResourceByRid("//Rhea/shaders/shader_vp.hlsl");
-			int ret = req->resolve([&](Orion::ResourceRequest* req, int err) {
-				if (!err) {					
-					Psio::IOBuffer* buf = new Psio::IOBuffer(64 * 1024);
-					size_t length = ((Orion::FileResourceStream*)req->getStream())->Read(buf);
-					if (length) {
-						shader->loadFromBuffer((unsigned char*)buf->reader(), length, "VShader", "PShader");
-					}
-					else {
-						LOG(LOG_ERROR) << "Failed to read shader file //Rhea/shaders/shader_vp.hlsl";
-						exit(-1);
-					}
-					delete buf;
-				}
-				delete req;
-				});
-			if (ret == -1) {
-				// async reading of shader not allowed. 
-				printf("Asynchronous reading of shader not allowed. Check your installlation\n");
-			}
-		}
-		material->setShader(shader);
-		get_core()->registerMaterial("color", material);
-	}
+	// a color material - uses the shader resource system
+	// The Poseidon::Shader will be created lazily by EnsurePoseidonShader
+	// when a mesh with this material is first rendered.
 	Rhea::Material* mat = new Rhea::Material("color");
 	mat->setup(this);
 	mat->setValue("shader", "shader_vp");
@@ -470,19 +441,16 @@ int main(int argc, char* argv[])
 	int argi = 1;
 	bool scene_set = false;
 
-	app->init();
+	app->init(argc, argv);
 
-	while (argi < argc) {
-		if (!strcmp(argv[argi], "-d")) {
-			argi++;
-			app->setAppDir(argv[argi]);
-			LOG(LOG_INFO) << "Set //local to directory: " << argv[argi];
-		}
-		else {
-			app->setHomeScene(argv[argi]);
+	Rhea::ConfigFile* config = app->getConfig();
+	if (config) {
+		// scene set in config file has highest priority
+		std::string scene = config->getValue("scene", "");
+		if (scene != "") {
+			app->setHomeScene(scene);
 			scene_set = true;
 		}
-		argi++;
 	}
 
 	app->setup();

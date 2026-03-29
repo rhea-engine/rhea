@@ -8,7 +8,7 @@
 #include <memory>
 #include <unordered_map>
 
-namespace Hippios { class Renderer; class GraphicsBuffer; }
+namespace Hippios { class Renderer; class GraphicsBuffer; class SamplerState; }
 
 #include "Node.h"
 
@@ -31,7 +31,7 @@ namespace Poseidon
 	public:
 		Core();
 		~Core();
-		void init(Psio::Engine* psio);
+		void init(Psio::Engine* psio, std::string backend);
 		SceneManager* get_scene_manager() { return m_scene_manager; }
 		// handle one frame
 		int iterate();
@@ -41,7 +41,8 @@ namespace Poseidon
 		// get psio engine
 		Psio::Engine* getPsio() { return m_psio; }
 
-		Hippios::Renderer* get_renderer() { return m_renderer.get(); }		
+		Hippios::Renderer* get_renderer() { return m_renderer.get(); }
+		std::string getRendererBackend() { return m_renderer_backend; }
 
 		// create various items
 
@@ -62,6 +63,9 @@ namespace Poseidon
 		Entity* createEntity(Mesh* mesh);
 		Camera* createCamera();		
 
+		// get sampler state by name
+		Hippios::SamplerState* getSamplerState(std::string name);
+
 		// set application name
 		void setAppname(std::string appname) { m_appname = appname; }
 
@@ -73,13 +77,15 @@ namespace Poseidon
 	protected:
 		std::unique_ptr<Hippios::Renderer> m_renderer;
 		int quit = 0;
-		Window* m_window = 0;
+		Window* m_window = 0;		
 		SceneManager* m_scene_manager = 0;
 		std::string m_appname;
+		std::string m_renderer_backend;		
 
 		Psio::Engine* m_psio;
 		std::unordered_map<std::string, Material*> m_materials;
 		std::unordered_map<std::string, Shader*> m_shaders;
+		std::unordered_map<std::string, Hippios::SamplerState*> m_sampler_states;
 
 		Material* m_default_material = 0;
 
@@ -106,7 +112,7 @@ namespace Poseidon
 				return lhs.facility == rhs.facility && lhs.size == rhs.size;
 			}
 		};
-		std::unordered_map<BufferDescription, Hippios::GraphicsBuffer*, BufferDescriptionHash, BufferDescriptionEqual> m_buffer_pool;
+		std::unordered_map<BufferDescription, std::unique_ptr<Hippios::GraphicsBuffer>, BufferDescriptionHash, BufferDescriptionEqual> m_buffer_pool;
 	};
 }
 #endif // !POSEIDON_CORE_H

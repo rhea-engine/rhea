@@ -15,6 +15,7 @@
 #include <Rhea/GUI/TextInput.h>
 #include <Rhea/Physics/PhysicsManagerService.h>
 #include <Rhea/Text/TextWidget.h>
+#include <Rhea/GUI/Spacer.h>
 
 namespace Rhea
 {
@@ -27,6 +28,7 @@ namespace Rhea
 		SimpleParser::Type::registerType<BoxWidget>("//meworla/gui/box");
 		SimpleParser::Type::registerType<ColumnWidget>("//meworla/gui/column");
 		SimpleParser::Type::registerType<RowWidget>("//meworla/gui/row");
+		SimpleParser::Type::registerType<SpacerWidget>("//meworla/gui/spacer");
 
 		// basic widgets
 		SimpleParser::Type::registerType<Label>("//meworla/gui/label");

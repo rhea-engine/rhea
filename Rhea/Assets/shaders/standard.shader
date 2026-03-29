@@ -1,7 +1,9 @@
 [scene]
 type="//meworla/shader"
 name="standard"
-code="//rhea/shaders/standard.hlsl"
+code_hlsl="//rhea/shaders/standard.hlsl"
+code_glsl_vs="//rhea/shaders/standard_vs.glsl"
+code_glsl_fs="//rhea/shaders/standard_fs.glsl"
 input="standard"
 light_type="vertex"
 texture_type="standard"

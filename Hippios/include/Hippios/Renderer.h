@@ -7,18 +7,25 @@
 #include "TextureDesc.h"
 #include "PipelineState.h"
 #include "BlendState.h"
-#include "Sampler.h"
+#include "SamplerState.h"
 #include "SwapChain.h"
 #include "Texture.h"
 #include "GraphicsBuffer.h"
 #include "VertexBuffer.h"
 #include "IndexBuffer.h"
-#include "GPUProgram.h"
+#include "ShaderProgram.h"
 #include "RenderTarget.h"
 #include <memory>
+#include <Math/Matrix4.h>
 
 namespace Hippios
 {
+	enum class RendererBackend
+	{
+		D3D11,
+		OpenGL
+	};
+
 	/**
 	* @class Renderer
 	* @brief Abstract base class defining a rendering API interface.
@@ -38,32 +45,39 @@ namespace Hippios
 		 * @param vertexSize The size (in bytes) of a single vertex.
 		 * @param numVertices The total number of vertices in the buffer.
 		 * @param dynamic If true, the buffer is dynamic and can be updated frequently.
-		 * @return A pointer to the created VertexBuffer.
+		 * @return A unique_ptr to the created VertexBuffer.
 		 */
-		virtual VertexBuffer* createVertexBuffer(size_t vertexSize, size_t numVertices, bool dynamic) = 0;
+		virtual std::unique_ptr<VertexBuffer> createVertexBuffer(size_t vertexSize, size_t numVertices, bool dynamic) = 0;
 
 		/**
 		 * @brief Creates an index buffer.
-		 * @param vertex_size The size of each index entry.
-		 * @param num_faces The total number of faces (triangles/quads) in the buffer.
+		 * @param index_stride The size (in bytes) of each index entry.
+		 * @param num_faces The total number of faces (triangles) in the buffer.
 		 * @param dynamic If true, the buffer is dynamic and can be updated frequently.
-		 * @return A pointer to the created IndexBuffer.
+		 * @return A unique_ptr to the created IndexBuffer.
 		 */
-		virtual IndexBuffer* createIndexBuffer(size_t vertex_size, size_t num_faces, bool dynamic) = 0;
+		virtual std::unique_ptr<IndexBuffer> createIndexBuffer(size_t index_stride, size_t num_faces, bool dynamic) = 0;
 
 		/**
 		 * @brief Creates a generic graphics buffer.
 		 * @param size_in_bytes The total size of the buffer in bytes.
-		 * @return A pointer to the created GraphicsBuffer.
+		 * @return A unique_ptr to the created GraphicsBuffer.
 		 */
-		virtual GraphicsBuffer* createGraphicsBuffer(size_t size_in_bytes) = 0;
+		virtual std::unique_ptr<GraphicsBuffer> createGraphicsBuffer(size_t size_in_bytes) = 0;
 
 		/**
 		 * @brief Creates a texture.
 		 * @param desc The descriptor structure defining the texture properties.
-		 * @return A pointer to the created Texture.
+		 * @return A unique_ptr to the created Texture.
 		 */
-		virtual Texture* createTexture(TextureDesc& desc) = 0;
+		virtual std::unique_ptr<Texture> createTexture(TextureDesc& desc) = 0;
+		
+		/**
+		 * @brief Sets the active swap chain for rendering.
+		 * @param swap_chain The swap chain to be set as active.
+		 * @return True if the swap chain was successfully set, false otherwise.
+		 */
+		virtual bool setActiveSwapChain(SwapChain* swap_chain) = 0;
 
 		/**
 		 * @brief Clears the given render target.
@@ -81,44 +95,42 @@ namespace Hippios
 		/**
 		 * @brief Loads and compiles a shader program from a file.
 		 * @param filename The path to the shader file.
-		 * @param shader_type The type of shader (e.g., "VS" for vertex shader, "PS" for pixel shader).
+		 * @param stage The shader stage (Vertex, Fragment, etc.).
 		 * @param entry_point The entry function name within the shader file.
 		 * @return A pointer to the created GPUProgram.
 		 */
-		virtual GPUProgram* addMaterial(std::string filename, char* shader_type, char* entry_point) = 0;
+		virtual ShaderProgram* createShader(const ShaderProgramDesc& desc) = 0;
 
 		/**
 		 * @brief Loads and compiles a shader program from memory.
 		 * @param buf The shader source code in memory.
 		 * @param buflen The length of the buffer in bytes.
-		 * @param shader_type The type of shader (e.g., "VS" for vertex shader, "PS" for pixel shader).
+		 * @param stage The shader stage (Vertex, Fragment, etc.).
 		 * @param entry_point The entry function name within the shader source.
 		 * @return A pointer to the created GPUProgram.
 		 */
-		virtual GPUProgram* addMaterial(unsigned char* buf, int buflen, char* shader_type, char* entry_point) = 0;
+		virtual ShaderProgram* createShader(const ShaderProgramSourceDesc& desc) = 0;
 
 		/**
 		 * @brief Creates a swap chain for rendering to a window.
 		 * @param win The native window handle.
-		 * @return A pointer to the created SwapChain.
+		 * @return A unique_ptr to the created SwapChain.
 		 */
-		virtual SwapChain* createSwapChain(NativeWindow* win) = 0;
+		virtual std::unique_ptr<SwapChain> createSwapChain(NativeWindow* win) = 0;
 
 		/**
-		 * @brief Creates a render target associated with a swap chain.
-		 * @param width The width of the render target in pixels.
-		 * @param height The height of the render target in pixels.
-		 * @param swap_chain The associated swap chain.
-		 * @return A pointer to the created RenderTarget.
+		 * @brief Creates a render target from a descriptor.
+		 * @param desc The descriptor defining the render target properties.
+		 * @return A unique_ptr to the created RenderTarget.
 		 */
-		virtual RenderTarget* createRenderTarget(int width, int height, SwapChain* swap_chain) = 0;
+		virtual std::unique_ptr<RenderTarget> createRenderTarget(const RenderTargetDesc& desc) = 0;
 
 		/**
 		 * @brief Creates a pipeline state object.
 		 * @param desc A descriptor structure defining the pipeline state properties.
-		 * @return A pointer to the created PipelineStateObject.
+		 * @return A unique_ptr to the created PipelineStateObject.
 		 */
-		virtual PipelineStateObject* createPipelineState(PipelineStateObjectDesc* desc) = 0;
+		virtual std::unique_ptr<PipelineStateObject> createPipelineState(const PipelineStateObjectDesc& desc) = 0;
 
 		/**
 		 * @brief Sets the active pipeline state.
@@ -137,13 +149,13 @@ namespace Hippios
 		 * @brief Sets the active vertex shader.
 		 * @param material The GPU program containing the vertex shader.
 		 */
-		virtual void setVertexShader(GPUProgram* material) = 0;
+		//virtual void setVertexShader(GPUProgram* material) = 0;
 
 		/**
 		 * @brief Sets the active pixel shader.
 		 * @param material The GPU program containing the pixel shader.
 		 */
-		virtual void setPixelShader(GPUProgram* material) = 0;
+		//virtual void setPixelShader(GPUProgram* material) = 0;
 
 		/**
 		 * @brief Binds a texture to a shader slot.
@@ -187,7 +199,7 @@ namespace Hippios
 		 * @param name The name of the stencil state.
 		 * @return A pointer to the requested StencilState.
 		 */
-		virtual StencilState* getStencilState(std::string name) = 0;
+		virtual StencilState* getStencilState(const std::string& name) = 0;
 
 		/**
 		 * @brief Creates a new stencil state.
@@ -195,28 +207,20 @@ namespace Hippios
 		 * @param desc The descriptor defining the stencil state properties.
 		 * @return A pointer to the created StencilState.
 		 */
-		virtual StencilState* createStencilState(std::string name, DepthStencilStateDesc* desc) = 0;
+		virtual StencilState* createStencilState(const std::string& name, const DepthStencilStateDesc& desc) = 0;
 
 		/**
 		 * @brief Creates a new sampler state.
-		 * @param name The name for the sampler.
 		 * @param desc The descriptor defining the sampler properties.
-		 * @return True if the sampler was successfully created, false otherwise.
+		 * @return A pointer to the created SamplerState.
 		 */
-		virtual bool createSampler(std::string name, SamplerDesc* desc) = 0;
-
-		/**
-		 * @brief Retrieves a sampler handle by name.
-		 * @param name The name of the sampler.
-		 * @return A pointer to the GPUHandle representing the sampler.
-		 */
-		virtual GPUHandle* getSampler(std::string name) = 0;
+		virtual SamplerState* createSampler(const SamplerDesc& desc) = 0;
 
 		/**
 		 * @brief Sets the active sampler.
 		 * @param handle The handle to the sampler.
 		 */
-		virtual void setSampler(GPUHandle* handle) = 0;
+		virtual void setSampler(int slot, SamplerState* sampler, ShaderStage stage) = 0;
 
 		/**
 		 * @brief Binds a graphics buffer to a specific shader stage.
@@ -224,7 +228,7 @@ namespace Hippios
 		 * @param slot The binding slot (default is 0).
 		 * @param stage The shader stage to bind to (e.g., "VS" for vertex shader).
 		 */
-		virtual void bindGPUBuffer(GraphicsBuffer* buffer, int slot = 0, char* stage = "VS") = 0;
+		virtual void bindGPUBuffer(GraphicsBuffer* buffer, int slot = 0, ShaderStage stage = ShaderStage::Vertex) = 0;
 
 		/**
 		 * @brief Initializes a GPU buffer for shader input.
@@ -233,8 +237,24 @@ namespace Hippios
 		 */
 		virtual GraphicsBuffer* initGPUBuffer(size_t size) = 0;
 
+		/**
+		 * @brief Retrieves the descriptor of a stencil state.
+		 * @param name The name of the stencil state.
+		 * @param outDesc The output descriptor structure to be filled.
+		 * @return True if the stencil state descriptor is found, false otherwise.
+		 */
+		virtual bool getStencilStateDesc(const std::string& name, DepthStencilStateDesc& outDesc) = 0;
+
+		/**
+		 * @brief Prepares an array of matrices for use in shaders, applying necessary transformations.
+		 * @param dst The destination array to receive the prepared matrices.
+		 * @param src The source array of matrices to be prepared.
+		 * @param count The number of matrices in the source array.
+		 */
+		virtual void prepareMatricesForShader(Math::Matrix4* dst, const Math::Matrix4* src, size_t count) const = 0;
+
 		// static factory method to create a renderer instance based on the platform
-		static std::unique_ptr<Renderer> CreateRenderer();
+		static std::unique_ptr<Renderer> CreateRenderer(RendererBackend backend);
 	};
 }
 #endif // !HIPPIOS_RENDERER_H

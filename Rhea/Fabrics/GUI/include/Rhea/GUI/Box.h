@@ -12,7 +12,9 @@ namespace Rhea {
 	public:
 		BoxWidget(std::string name, std::string type_name) :
 			Widget(name,type_name)
-		{}
+		{
+			m_is_renderable = false;
+		}
 
 		void ready();
 

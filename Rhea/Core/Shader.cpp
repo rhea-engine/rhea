@@ -9,57 +9,68 @@ namespace Rhea
 	{
 		Unit::setup(app, attributes, values);
 
-		if (m_values.find("stencil_test") != m_values.end()) {
-			m_stencil_test = m_values["stencil_test"];
+		if (m_values.find("depth_stencil_state") != m_values.end()) {
+			m_depth_stencil_state = m_values["depth_stencil_state"];
 		}
 		else {
-			m_stencil_test = "default";
+			m_depth_stencil_state = "default";
 		}
 
 		if (m_values.find("alpha_blending") != m_values.end()) {
 			m_alpha_blending = m_values["alpha_blending"];
 		}
 
+		if (m_values.find("depth_test") != m_values.end()) {
+			m_depth_test = m_values["depth_test"];
+		}
+		if (m_values.find("depth_write") != m_values.end()) {
+			m_depth_write = m_values["depth_write"];
+		}
+
 		// vertex type
 		std::string vertex_layout_name = getValue("input", "short");
 		if (vertex_layout_name == "short") {
-			m_vertex_layout.push_back({ "POSITION", VertexAttributeType::POSITION, 4, 3, 12, 0 });
-			m_vertex_layout.push_back({ "TEXCOORD",VertexAttributeType::TEXCOORD, 4, 2, 8, 12 });
+			m_vertex_layout.push_back({ "POSITION", VertexAttributeType::POSITION, 4, 3, 12, 0, 0 });
+			m_vertex_layout.push_back({ "TEXCOORD",VertexAttributeType::TEXCOORD, 4, 2, 8, 12, 2 });
 		}
 		else if (vertex_layout_name == "standard") {
 			// POSITION: vec3 (3 floats), offset 0
-			m_vertex_layout.push_back({ "POSITION", VertexAttributeType::POSITION, 4, 3, 12, 0 });
+			m_vertex_layout.push_back({ "POSITION", VertexAttributeType::POSITION, 4, 3, 12, 0, 0 });
 			// NORMAL: vec3 (3 floats), offset 12
-			m_vertex_layout.push_back({ "NORMAL", VertexAttributeType::NORMAL, 4, 3, 12, 12 });
+			m_vertex_layout.push_back({ "NORMAL", VertexAttributeType::NORMAL, 4, 3, 12, 12, 1 });
 			// TEXCOORD: vec2 (2 floats), offset 24
-			m_vertex_layout.push_back({ "TEXCOORD", VertexAttributeType::TEXCOORD, 4, 2, 8, 24 });
+			m_vertex_layout.push_back({ "TEXCOORD", VertexAttributeType::TEXCOORD, 4, 2, 8, 24, 2 });
 			// TANGENT: vec3 (3 floats), offset 32
-			m_vertex_layout.push_back({ "TANGENT", VertexAttributeType::TEXCOORD, 4, 2, 12, 32 });
+			m_vertex_layout.push_back({ "TANGENT", VertexAttributeType::TANGENT, 4, 3, 12, 32, 3 });
 		}
 		else if (vertex_layout_name == "skeletal") {
 			// POSITION: vec3 (3 floats), offset 0
-			m_vertex_layout.push_back({ "POSITION", VertexAttributeType::POSITION, 4, 3, 12, 0 });
+			m_vertex_layout.push_back({ "POSITION", VertexAttributeType::POSITION, 4, 3, 12, 0, 0 });
 			// NORMAL: vec3 (3 floats), offset 12
-			m_vertex_layout.push_back({ "NORMAL", VertexAttributeType::NORMAL, 4, 3, 12, 12 });
+			m_vertex_layout.push_back({ "NORMAL", VertexAttributeType::NORMAL, 4, 3, 12, 12, 1 });
 			// TEXCOORD: vec2 (2 floats), offset 24
-			m_vertex_layout.push_back({ "TEXCOORD", VertexAttributeType::TEXCOORD, 4, 2, 8, 24 });
+			m_vertex_layout.push_back({ "TEXCOORD", VertexAttributeType::TEXCOORD, 4, 2, 8, 24, 2 });
 			// TANGENT: vec3 (3 floats), offset 32
-			m_vertex_layout.push_back({ "TANGENT", VertexAttributeType::TANGENT, 4, 3, 12, 32 });
+			m_vertex_layout.push_back({ "TANGENT", VertexAttributeType::TANGENT, 4, 3, 12, 32, 3 });
 			// JOINTS_0: uvec4 (4 unsigned integers for joint indices), offset 44
-			m_vertex_layout.push_back({ "JOINTS", VertexAttributeType::JOINTS, 4, 4, 16, 44 });
+			m_vertex_layout.push_back({ "JOINTS", VertexAttributeType::JOINTS, 2, 4, 8, 44, 4 });
 			// WEIGHTS_0: vec4 (4 floats for joint weights), offset 60
-			m_vertex_layout.push_back({ "WEIGHTS", VertexAttributeType::WEIGHTS, 4, 4, 16, 60 });
+			m_vertex_layout.push_back({ "WEIGHTS", VertexAttributeType::WEIGHTS, 4, 4, 16, 52, 5 });
+		}
+		else if (vertex_layout_name == "color") {
+			m_vertex_layout.push_back({ "POSITION", VertexAttributeType::POSITION, 4, 3, 12, 0, 0 });
+			m_vertex_layout.push_back({ "COLOR", VertexAttributeType::COLOR, 4, 4, 16, 12, 6 });
 		}
 		else /* if (vertex_layout_name == "default") */ {
-			m_vertex_layout.push_back({ "POSITION", VertexAttributeType::POSITION, 4, 3, 12, 0 });
-			m_vertex_layout.push_back({ "NORMAL", VertexAttributeType::NORMAL, 4, 3, 12, 12 });
-			m_vertex_layout.push_back({ "TEXCOORD", VertexAttributeType::TEXCOORD, 4, 2, 8, 24 });
+			m_vertex_layout.push_back({ "POSITION", VertexAttributeType::POSITION, 4, 3, 12, 0, 0 });
+			m_vertex_layout.push_back({ "NORMAL", VertexAttributeType::NORMAL, 4, 3, 12, 12, 1 });
+			m_vertex_layout.push_back({ "TEXCOORD", VertexAttributeType::TEXCOORD, 4, 2, 8, 24, 2 });
 		}
 
 		// setup material input slots
 		std::string light_type = getValue("light_type", "none");		
 		if (light_type == "vertex") {
-			m_property_names = { "AMBIENT", "DIFFUSE", "SPECULAR", "EMMISSIVE" };
+			m_property_names = { "AMBIENT", "DIFFUSE", "SPECULAR", "EMISSIVE" };
 			m_input_slots["AMBIENT"] = 0;
 			m_input_slots["DIFFUSE"] = 1;
 			m_input_slots["SPECULAR"] = 2;
@@ -86,32 +97,91 @@ namespace Rhea
 		// setup texture slots
 		std::string texture_type = getValue("texture_type", "none");
 		if (texture_type == "standard") {
-			m_texture_slots["BASECOLOR"] = 0;
-			m_texture_slots["NORMAL"] = 1;
+			m_texture_slot_descs.push_back({ "BASECOLOR", "BaseColorTexture", 0 });
+			m_texture_slot_descs.push_back({ "NORMALMAP", "NormalMap", 1 });
+		}
+		else if (texture_type == "terrain") {
+			m_texture_slot_descs.push_back({ "BLENDMAP", "Texture0", 0 });
+			m_texture_slot_descs.push_back({ "TEXTURE1", "Texture1", 1 });
+			m_texture_slot_descs.push_back({ "TEXTURE2", "Texture2", 2 });
+			m_texture_slot_descs.push_back({ "TEXTURE3", "Texture3", 3 });
+			m_texture_slot_descs.push_back({ "TEXTURE4", "Texture4", 4 });
+		}
+		else if (texture_type == "skybox") {
+			m_texture_slot_descs.push_back({ "BASECOLOR", "SkyMap", 0 });
 		}
 		else {
 			// default has at least the base color
-			m_texture_slots["BASECOLOR"] = 0;
+			m_texture_slot_descs.push_back({ "BASECOLOR", "BaseColorTexture", 0 });
 		}
-		m_num_texture_slots = (int)m_texture_slots.size();
+		m_num_texture_slots = (int)m_texture_slot_descs.size();
 	}
 
 	std::vector<Unit::Export> Rhea::Shader::getReferences()
 	{
-		std::vector<Export> refs = std::vector<Unit::Export>();		
+		std::vector<Export> refs = std::vector<Unit::Export>();
+
+		if (m_values.find("code_hlsl") != m_values.end()) {
+			refs.push_back({ "code_hlsl", "//meworla/text", m_values["code_hlsl"] });
+		}
+		if (m_values.find("code_glsl_vs") != m_values.end()) {
+			refs.push_back({ "code_glsl_vs", "//meworla/text", m_values["code_glsl_vs"] });
+		}
+		if (m_values.find("code_glsl_fs") != m_values.end()) {
+			refs.push_back({ "code_glsl_fs", "//meworla/text", m_values["code_glsl_fs"] });
+		}
+
 		if (m_values.find("code") != m_values.end()) {
 			refs.push_back({ "code", "//meworla/shader", m_values["code"] });
 		}
 		return refs;
 	}
 
-	TextResource* Rhea::Shader::getShaderCode()
+	TextResource* Rhea::Shader::getShaderCode(ShaderBackend backend, ShaderStage stage)
 	{
-		if (m_values.find("code") != m_values.end()) {
-			TextResource* res = doCast<TextResource>(m_app->getUnitTree()->find(m_values["code"], m_attributes["basepath"], false));
-			return res;
+		std::string key;
+
+		if (backend == ShaderBackend::D3D11) {
+			key = "code_hlsl";
 		}
-		return nullptr;
+		else if (backend == ShaderBackend::OpenGL) {
+			key = (stage == ShaderStage::Vertex) ? "code_glsl_vs" : "code_glsl_fs";
+		}
+
+		// fallback to legacy "code"
+		if (key.empty() || m_values.find(key) == m_values.end()) {
+			if (m_values.find("code") == m_values.end())
+				return nullptr;
+			key = "code";
+		}
+
+		return doCast<TextResource>(
+			m_app->getUnitTree()->find(m_values[key], m_attributes["basepath"], false)
+		);
+	}
+
+	std::string Rhea::Shader::getEntryPoint(ShaderBackend backend, ShaderStage stage) const
+	{		
+		if (backend == ShaderBackend::D3D11) {
+			if (stage == ShaderStage::Vertex)
+				return getValue("vs_entry", "VShader");
+			else
+				return getValue("ps_entry", "PShader");
+		}
+		return "";
+	}
+
+	bool Shader::hasShaderCode(ShaderBackend backend, ShaderStage stage) const
+	{
+		std::string key;
+		if (backend == ShaderBackend::D3D11) {
+			key = "code_hlsl";
+		}
+		else {
+			key = (stage == ShaderStage::Vertex) ? "code_glsl_vs" : "code_glsl_fs";
+		}
+
+		return m_values.find(key) != m_values.end();
 	}
 
 	int Shader::getVertexSize()

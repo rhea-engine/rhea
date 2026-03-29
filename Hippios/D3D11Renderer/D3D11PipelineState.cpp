@@ -1,6 +1,6 @@
-#include "D3D11PipelineState.h"
+﻿#include "D3D11PipelineState.h"
 #include "D3D11Renderer.h"
-#include "D3D11HLSL.h"
+#include "D3D11ShaderProgram.h"
 #include <cassert>
 #include <Psio/Log.h>
 
@@ -57,28 +57,47 @@ namespace Hippios
 		}
 	}
 
-	D3D11PipelineStateObject::D3D11PipelineStateObject(Renderer* renderer, PipelineStateObjectDesc* desc)
+	D3D11PipelineStateObject::D3D11PipelineStateObject(Renderer* renderer, const PipelineStateObjectDesc& desc)
 	{
+		static int _internal_counter = 0;
 		m_renderer = (D3D11Renderer*)renderer;
 
-		// initialize dpeth stencil state
-		m_stencil_state = static_cast<D3D11StencilState*>(m_renderer->getStencilState(desc->depthStencilState.name));		
-		if (!m_stencil_state)
-			m_stencil_state = static_cast<D3D11StencilState*>(m_renderer->createStencilState(desc->depthStencilState.name, &desc->depthStencilState));
+		// initialize depth stencil state
+		// Look up by name first. If found, verify that the GPU-relevant fields match.
+		// If they don't match (e.g. overrides changed depth_enable), create a new
+		// uniquely-named state so we don't corrupt the original preset.
+		m_stencil_state = static_cast<D3D11StencilState*>(
+			m_renderer->getStencilState(desc.depthStencilState.name));
+
+		if (m_stencil_state) {
+			// Existing state found – does it match what we need?
+			if (!m_stencil_state->getDesc().matches(desc.depthStencilState)) {
+				// Overrides differ from the stored preset → create a new variant
+				std::string uniqueName = desc.depthStencilState.name
+					+ "_pso_" + std::to_string(_internal_counter++);
+				m_stencil_state = static_cast<D3D11StencilState*>(
+					m_renderer->createStencilState(uniqueName, desc.depthStencilState));
+			}
+		}
+		else {
+			// No state with this name exists yet → create it
+			m_stencil_state = static_cast<D3D11StencilState*>(
+				m_renderer->createStencilState(desc.depthStencilState.name, desc.depthStencilState));
+		}
 		
+
 		// initialize rasterizer state
 
 
 		// initialize blend state
-		m_blend_state = std::make_unique<D3D11BlendState>(m_renderer->get_device(), desc->blendState);
+		m_blend_state = std::make_unique<D3D11BlendState>(m_renderer->get_device(), desc.blendState);
 
 		// initialize input layout
 
 		// initialize primitive topology		
-		m_vertex_shader = desc->shaderProgram.vertex_shader;
-		m_pixel_shader = desc->shaderProgram.pixel_shader;
+		m_shader_program = static_cast<D3D11ShaderProgram*>(desc.shaderProgram);
 
-		m_cull_mode = desc->rasterizerState.cull_mode;
+		m_cull_mode = desc.rasterizerState.cull_mode;
 
 		D3D11_RASTERIZER_DESC cmdesc = {};
 		bool set_raster = false;
@@ -91,9 +110,9 @@ namespace Hippios
 			cmdesc.CullMode = D3D11_CULL_FRONT;
 			set_raster = true;
 		}
-		if (desc->rasterizerState.fill_mode == FillMode::SOLID) 
+		if (desc.rasterizerState.fill_mode == FillMode::SOLID) 
 			cmdesc.FillMode = D3D11_FILL_SOLID;
-		else if (desc->rasterizerState.fill_mode == FillMode::WIREFRAME) {
+		else if (desc.rasterizerState.fill_mode == FillMode::WIREFRAME) {
 			cmdesc.FillMode = D3D11_FILL_WIREFRAME;
 			set_raster = true;
 		}
@@ -104,27 +123,7 @@ namespace Hippios
 			m_raster_state = nullptr;
 		}
 
-		// vertex input layout
-		D3D11_INPUT_ELEMENT_DESC* ied;
-		ied = new D3D11_INPUT_ELEMENT_DESC[desc->inputLayout.num_elements];
-		assert(desc->inputLayout.num_elements > 0);
-		for (int i = 0; i < desc->inputLayout.num_elements; i++) {
-			ied[i].SemanticName = desc->inputLayout.elements[i].semantic_name;
-			ied[i].SemanticIndex = 0;
-			ied[i].Format = D3D11RendererGetFormat(desc->inputLayout.elements[i].format);
-			ied[i].InputSlot = 0;
-			ied[i].AlignedByteOffset = desc->inputLayout.elements[i].aligned_byte_offset;
-			ied[i].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
-			ied[i].InstanceDataStepRate = 0;
-		}
-		HRESULT HR = m_renderer->get_device()->CreateInputLayout(ied, desc->inputLayout.num_elements, ((D3D11HLSL*)m_vertex_shader)->getBuffer(), ((D3D11HLSL*)m_vertex_shader)->getBufferSize(), &m_input_layout);
-		if (FAILED(HR)) {
-			LOG(LOG_DEBUG) << "CreateInputLayout: HRESULT: 0x" << std::hex << HR;
-			LOG(LOG_ERROR) << "D3D11PipelineStateObject: Could not create input layout for shader - expect shader to fail.";
-		}
-		delete[] ied;
-
-		switch (desc->vertexLayout) {
+		switch (desc.primitiveTopology) {
 		case PrimitiveTopology::LineList:
 			m_topology = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
 			break;
@@ -138,6 +137,60 @@ namespace Hippios
 			m_topology = D3D11_PRIMITIVE_TOPOLOGY_UNDEFINED;
 			break;
 		}
+
+		// vertex input layout
+		D3D11_INPUT_ELEMENT_DESC* ied;
+		ied = new D3D11_INPUT_ELEMENT_DESC[desc.inputLayout.num_elements];
+		assert(desc.inputLayout.num_elements > 0);
+		for (int i = 0; i < desc.inputLayout.num_elements; i++) {
+			const auto& elem = desc.inputLayout.elements[i];
+
+			const InputBindingDesc* bindingDesc = nullptr;
+			for (int b = 0; b < desc.inputLayout.num_bindings; ++b)
+			{
+				if (desc.inputLayout.bindings[b].inputSlot == elem.input_slot)
+				{
+					bindingDesc = &desc.inputLayout.bindings[b];
+					break;
+				}
+			}
+
+			ied[i].SemanticName = elem.semantic_name;
+			ied[i].SemanticIndex = elem.semantic_index;
+			ied[i].Format = D3D11RendererGetFormat(elem.format);
+			ied[i].InputSlot = elem.input_slot;
+			ied[i].AlignedByteOffset = elem.aligned_byte_offset;
+
+			if (bindingDesc && bindingDesc->instanceStepRate > 0)
+			{
+				ied[i].InputSlotClass = D3D11_INPUT_PER_INSTANCE_DATA;
+				ied[i].InstanceDataStepRate = bindingDesc->instanceStepRate;
+			}
+			else
+			{
+				ied[i].InputSlotClass = D3D11_INPUT_PER_VERTEX_DATA;
+				ied[i].InstanceDataStepRate = 0;
+			}
+		}
+		// use the vertex blob from D3D11ShaderProgram for input layout creation
+		ID3DBlob* vs_blob = m_shader_program->getVertexBlob();
+		if (!vs_blob) {
+			LOG(LOG_ERROR) << "D3D11PipelineStateObject: no vertex shader found";
+			delete[] ied;
+			m_input_layout = nullptr;
+			return;
+		}
+		HRESULT HR = m_renderer->get_device()->CreateInputLayout(
+			ied,
+			desc.inputLayout.num_elements,
+			vs_blob->GetBufferPointer(),
+			vs_blob->GetBufferSize(),
+			&m_input_layout);
+		if (FAILED(HR)) {
+			LOG(LOG_DEBUG) << "CreateInputLayout: HRESULT: 0x" << std::hex << HR;
+			LOG(LOG_ERROR) << "D3D11PipelineStateObject: Could not create input layout for shader - expect shader to fail.";
+		}
+		delete[] ied;
 	}
 
 	D3D11PipelineStateObject::~D3D11PipelineStateObject()
@@ -151,21 +204,24 @@ namespace Hippios
 	void D3D11PipelineStateObject::SetState()
 	{
 		float blend_factor[4];
-
+		
 		// Setup the blend factor.
 		blend_factor[0] = 0.0f;
 		blend_factor[1] = 0.0f;
 		blend_factor[2] = 0.0f;
 		blend_factor[3] = 0.0f;
-
+		
 		unsigned int blend_mask = 0xffffffff;
+
+		if (!m_input_layout)
+			return;
 		
 		m_renderer->setStencilState(m_stencil_state, 1);
 		m_renderer->setRasterizerState(m_raster_state);
 		m_renderer->setBlendState(m_blend_state.get(), blend_factor, blend_mask);
 		m_renderer->get_device_context()->IASetInputLayout(m_input_layout);
 		m_renderer->get_device_context()->IASetPrimitiveTopology(m_topology);
-		m_renderer->setVertexShader(m_vertex_shader);
-		m_renderer->setPixelShader(m_pixel_shader);
+		m_renderer->get_device_context()->VSSetShader(m_shader_program->getVertexShader(), nullptr, 0);
+		m_renderer->get_device_context()->PSSetShader(m_shader_program->getPixelShader(), nullptr, 0);
 	}
 }

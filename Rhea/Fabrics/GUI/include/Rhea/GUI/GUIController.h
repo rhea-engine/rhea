@@ -17,8 +17,6 @@ namespace Rhea
 			m_captured(nullptr),
 			m_mx(0),
 			m_my(0),
-			m_viewport_width(0),
-			m_viewport_height(0),
 			m_need_resize(false),
 			Widget(name, type_name)
 		{}
@@ -29,6 +27,9 @@ namespace Rhea
 
 		// ready event handler
 		void ready();
+
+		// viewport size event handler
+		bool onViewportSize(Event* ev, Unit* unit);
 
 		// show event handler
 		bool onShow(Event* ev, Unit* unit);
@@ -71,10 +72,6 @@ namespace Rhea
 		// last mouse position
 		int m_mx;
 		int m_my;
-
-		// viewport size
-		unsigned int m_viewport_width;
-		unsigned int m_viewport_height;
 
 		std::unique_ptr<StyleEngine> m_style_engine;
 	};

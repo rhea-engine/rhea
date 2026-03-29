@@ -25,6 +25,8 @@ namespace Poseidon
 
 		// get the renderer swpachain of this window
 		Hippios::SwapChain* getSwapChain() { return m_swap_chain.get(); }
+
+		Psio::Window* getNativeWindow() { return m_native_win.get(); }
 	protected:
 		std::unique_ptr<Hippios::SwapChain> m_swap_chain;
 		std::unique_ptr<Psio::Window> m_native_win;

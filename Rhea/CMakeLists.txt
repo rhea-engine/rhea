@@ -13,7 +13,7 @@ add_library(RheaBase "src/Unit.cpp" "src/UnitTree.cpp" "src/Realm.cpp" "src/Inpu
 "Core/Camera.cpp" "Core/Mesh.cpp" 
 "Core/Light.cpp" "Core/DirectionalLight.cpp" "Core/PointLight.cpp" 
 "Core/SpotLight.cpp"
-"Physics/PhysicsManagerService.cpp")
+"Physics/PhysicsManagerService.cpp" "include/Rhea/Graphics/SizeEvent.h" "include/Rhea/ConfigFile.h" "src/ConfigFile.cpp")
 add_library(Rhea::Core ALIAS RheaBase)
 
 target_link_libraries(RheaBase PUBLIC Meworla::Math Meworla::Orion SimpleParser RheaResources Psio)

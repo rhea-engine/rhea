@@ -19,6 +19,8 @@ namespace Psio
 		WIN_SIZE
 	};
 
+	class Window;
+
 	class InputEvent
 	{
 	public:
@@ -121,17 +123,21 @@ namespace Psio
 	class WinSizeEvent : public InputEvent
 	{
 	public:
-		WinSizeEvent(InputEventId id, unsigned int width, unsigned int height) :
+		WinSizeEvent(InputEventId id, unsigned int width, unsigned int height, Window* win) :
 			m_width(width),
 			m_height(height),
+			m_window(win),
 			InputEvent(id)
 		{}
 		unsigned int width() { return m_width; }
 		unsigned int height() { return m_height; }
+		// get the window that was resized
+		Window* getWindow() { return m_window; }
 
 	protected:
 		unsigned int m_height;
 		unsigned int m_width;
+		Window* m_window;
 	};
 }
 

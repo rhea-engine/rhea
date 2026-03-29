@@ -50,7 +50,14 @@ namespace Poseidon
 		m_width = width;
 		m_height = height;
 		m_swapchain = swap_chain;
-		m_render_target.reset(m_renderer->createRenderTarget(width, height, swap_chain));
+
+		Hippios::RenderTargetDesc desc;
+		desc.type = Hippios::RenderTargetType::SwapChain;
+		desc.width = width;
+		desc.height = height;
+		desc.swap_chain = swap_chain;
+		m_render_target = m_renderer->createRenderTarget(desc);
+
 		// create a default context
 		m_render_contexts.clear();
 		std::string name = "default";
@@ -68,7 +75,7 @@ namespace Poseidon
 
 		// Update render target
 		if (m_render_target)
-			m_render_target->create(m_width, m_height, m_swapchain);	
+			m_render_target->resize(m_width, m_height);
 
 		// Update RenderContexts
 		for (auto& context : m_render_contexts) {

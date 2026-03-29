@@ -11,16 +11,35 @@ add_library(Meworla::Hippios ALIAS Hippios)
 
 target_sources(Hippios PRIVATE
   Renderer.cpp
-)
+ "D3D11Renderer/D3D11ShaderProgram.h")
 
 target_link_libraries(Hippios PUBLIC
   Meworla::Components
   Meworla::HippiosHeaders
 )
 
-# search only if right platform
-# for now only Direct3dDX11 is supported
-if(WIN32)
+# Option to select the rendering backend
+option(HIPPIOS_USE_OPENGL "Add OpenGL renderer" ON)
+option(HIPPIOS_USE_D3D11 "Use DirectX11 renderer" ON)
+
+# Disable D3D11 automatically on non-Windows
+if(NOT WIN32)
+    set(HIPPIOS_USE_D3D11 OFF CACHE BOOL "Use DirectX11 renderer" FORCE)
+endif()
+
+target_compile_definitions(Hippios PUBLIC
+    HIPPIOS_OPENGL=$<BOOL:${HIPPIOS_USE_OPENGL}>
+    HIPPIOS_D3D11=$<BOOL:${HIPPIOS_USE_D3D11}>
+)
+
+if(HIPPIOS_USE_OPENGL)
+  add_subdirectory(GLRenderer)
+  target_link_libraries(Hippios PUBLIC GLRenderer)
+endif()
+if(HIPPIOS_USE_D3D11)
+  # search only if right platform
+  # for now only Direct3dDX11 is supported
+  if(WIN32)
 
 	if(MSVC)
 		# Visual Studio 2015 is 1900, 2017 is 1910-1916, 2019 is 1920-1929, 2022 is 1930+
@@ -67,5 +86,6 @@ if(WIN32)
 
 	endif()
 	
+  endif()
 endif()
 

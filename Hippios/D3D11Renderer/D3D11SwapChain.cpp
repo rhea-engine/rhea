@@ -15,6 +15,9 @@ namespace Hippios
 	{
 		if (m_swapchain)
 			m_swapchain->ResizeBuffers(0, width, height, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
+
+		m_width = width;
+		m_height = height;
 	}
 
 	void D3D11SwapChain::SetFullscreen(bool mode)

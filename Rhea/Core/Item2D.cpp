@@ -8,6 +8,7 @@
 #include <Rhea/Core/Shader.h>
 #include <Rhea/Components/MeshComponent.h>
 #include <Rhea/Core/Mesh.h>
+#include <Rhea/Graphics/SizeEvent.h>
 
 namespace Rhea
 {
@@ -46,6 +47,8 @@ namespace Rhea
 	{
 		Unit::ready();
 
+		registerEventHandler("viewport_size", this, std::bind(&Item2D::onViewportSize, this, std::placeholders::_1, std::placeholders::_2));
+
 		if (m_bg_color.w > 0.0f || m_values.find("texture") != m_values.end()) {
 			// background color or image was set
 
@@ -66,6 +69,17 @@ namespace Rhea
 		}
 	}
 
+	bool Item2D::onViewportSize(Event* ev, Unit* sender)
+	{
+		SizeEvent* size_ev = static_cast<SizeEvent*>(ev);
+		if (size_ev) {
+			m_viewport_width = size_ev->width;
+			m_viewport_height = size_ev->height;
+			setMesh();
+		}
+		return false;
+	}
+
 	void Item2D::setMesh()
 	{
 		float z = 0.0f;
@@ -74,9 +88,8 @@ namespace Rhea
 		float m_w = W();
 		float m_h = H();
 
-		// adjust to height of viewport (y is negative)
-		IGraphicsService* gsrv = (IGraphicsService*)m_app->getService("graphics");
-		m_y = gsrv->getViewportHeight() - m_y;
+		// adjust to height of viewport (y is negative)		
+		m_y = m_viewport_height - m_y;
 
 		float m_u1 = 0.0f;
 		float m_v1 = 0.0f;

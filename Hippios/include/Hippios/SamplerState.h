@@ -2,6 +2,7 @@
 #define HIPPIOS_SAMPLER_H
 
 #include "BaseTypes.h"
+#include <cfloat>
 
 namespace Hippios
 {	
@@ -24,6 +25,12 @@ namespace Hippios
 		ComparisonFunction comparison_func = ComparisonFunction::COMPARE_NEVER;
 		float min_lod = 0;
 		float max_lod = FLT_MAX;
+	};
+
+	class SamplerState
+	{
+	public:
+		virtual ~SamplerState() = default;
 	};
 }
 

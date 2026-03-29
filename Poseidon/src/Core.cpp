@@ -12,7 +12,7 @@
 #include <Psio/Log.h>
 
 #include <Hippios/Renderer.h>
-
+#include <Hippios/SwapChain.h>
 using Hippios::SamplerDesc;
 
 namespace Poseidon
@@ -33,13 +33,48 @@ namespace Poseidon
 		m_shaders.clear();
 	}
 
-	void Core::init(Psio::Engine* psio)
+	void Core::init(Psio::Engine* psio, std::string backend)
 	{
 		// initialize the psio subsystem
 		m_psio = psio;
 
-		// initialize render sub system
-		m_renderer = Hippios::Renderer::CreateRenderer();
+		// initialize render sub system		
+		Hippios::RendererBackend renderer_backend;
+		if (backend == "auto") {
+#if defined(_WIN32) || defined(_WIN64)
+			renderer_backend = Hippios::RendererBackend::D3D11;
+			m_renderer_backend = "d3d11";
+#else
+			renderer_backend = Hippios::RendererBackend::OpenGL;
+			m_renderer_backend = "opengl";
+#endif
+		}
+		else if (backend == "d3d11") {
+#if defined(_WIN32) || defined(_WIN64)
+			renderer_backend = Hippios::RendererBackend::D3D11;
+			m_renderer_backend = backend;
+#else
+			LOG(LOG_INFO) << "D3D11 is not supported on this platform, defaulting to OpenGL";
+			renderer_backend = Hippios::RendererBackend::OpenGL;
+			m_renderer_backend = "opengl";
+#endif
+		}
+		else if (backend == "opengl") {
+			renderer_backend = Hippios::RendererBackend::OpenGL;
+			m_renderer_backend = backend;
+		}
+		else {
+#if defined(_WIN32) || defined(_WIN64)
+			LOG(LOG_INFO) << "Unknown renderer backend: " << backend << ", defaulting to D3D11";
+			renderer_backend = Hippios::RendererBackend::D3D11;
+			m_renderer_backend = backend;
+#else
+			LOG(LOG_INFO) << "Unknown renderer backend: " << backend << ", defaulting to OpenGL";
+			renderer_backend = Hippios::RendererBackend::OpenGL;
+			m_renderer_backend = "opengl";
+#endif
+		}
+		m_renderer = Hippios::Renderer::CreateRenderer(renderer_backend);
 
 		// add a root window which is also the root viewport		
 		std::string name = "root";
@@ -47,12 +82,28 @@ namespace Poseidon
 		m_window->initRenderTarget(m_renderer.get());
 		int width = 1152;
 		int height = 864;
-		m_window->CreateFromNativeWindow(psio, m_appname, width, height);
+		m_window->CreateFromNativeWindow(psio, m_appname, width, height);		
 
 		// create the default stencil states
 		Hippios::DepthStencilStateDesc desc;
-		m_renderer->createStencilState("default", nullptr);
-		m_renderer->createStencilState("disabled", &desc);
+		desc.depth_enable = true;
+		desc.depth_write_mask = Hippios::DepthWriteMask::DEPTH_WRITE_ALL;
+		desc.depth_func = Hippios::ComparisonFunction::COMPARE_LESS;
+		desc.stencil_enable = false;
+		m_renderer->createStencilState("default", desc);
+
+		desc.depth_enable = false;
+		desc.depth_write_mask = Hippios::DepthWriteMask::DEPTH_WRITE_ZERO;
+		desc.depth_func = Hippios::ComparisonFunction::COMPARE_ALWAYS;
+		desc.stencil_enable = false;
+		m_renderer->createStencilState("disabled", desc);
+		
+		desc.depth_enable = true;
+		desc.depth_write_enable = false;
+		desc.depth_write_mask = Hippios::DepthWriteMask::DEPTH_WRITE_ZERO;
+		desc.depth_func = Hippios::ComparisonFunction::COMPARE_LESS_EQUAL;
+		desc.stencil_enable = false;
+		m_renderer->createStencilState("skybox", desc);
 
 		// create default samplers
 
@@ -66,8 +117,11 @@ namespace Poseidon
 		sampler_desc.comparison_func = Hippios::ComparisonFunction::COMPARE_NEVER;
 		sampler_desc.min_lod = 0;
 		sampler_desc.max_lod = FLT_MAX;
-		if (!m_renderer->createSampler("linear", &sampler_desc))
+		Hippios::SamplerState* linear_sampler = m_renderer->createSampler(sampler_desc);
+		if (!linear_sampler)
 			LOG(LOG_ERROR) << "Could not create linear sampler";
+		else
+			m_sampler_states["linear"] = linear_sampler;
 		
 		// nearest sampler
 		memset(&sampler_desc, 0, sizeof(sampler_desc));
@@ -78,7 +132,10 @@ namespace Poseidon
 		sampler_desc.comparison_func = Hippios::ComparisonFunction::COMPARE_NEVER;
 		sampler_desc.min_lod = 0;
 		sampler_desc.max_lod = FLT_MAX;
-		if (!m_renderer->createSampler("nearest", &sampler_desc))
+		Hippios::SamplerState* nearest_sampler = m_renderer->createSampler(sampler_desc);
+		if (nearest_sampler)
+			m_sampler_states["nearest"] = nearest_sampler;
+		 else
 			LOG(LOG_ERROR) << "Could not create nearest sampler";
 
 		// add a scene manager 
@@ -86,7 +143,8 @@ namespace Poseidon
 		m_scene_manager->setRenderer(m_renderer.get());
 		m_scene_manager->setRoot(m_window);
 		m_scene_manager->registerViewport(m_window);
-	}
+		m_scene_manager->registerWindow(m_window);
+	}	
 
 	int Core::loop(std::function<void()> onFrame)
 	{
@@ -94,9 +152,9 @@ namespace Poseidon
 		{
 			//  callback for onFrame event
 			onFrame();
-
+			
 			// update passes
-
+			
 			if (m_scene_manager->update())
 				quit = true;
 
@@ -114,6 +172,10 @@ namespace Poseidon
 
 	int Core::iterate()
 	{
+		// prepare swapchain for rendering
+		if (!m_renderer->setActiveSwapChain(m_window->getSwapChain()))
+			return 1;
+
 		// update passes
 
 		if (m_scene_manager->update())
@@ -201,6 +263,14 @@ namespace Poseidon
 		return camera;
 	}
 
+	Hippios::SamplerState* Core::getSamplerState(std::string name)
+	{
+		if (m_sampler_states.find(name) != m_sampler_states.end())
+			return m_sampler_states[name];
+		else
+			return nullptr;
+	}
+
 	void Core::SetFullscreen(bool mode)
 	{
 		m_window->SetFullscreen(mode);
@@ -213,11 +283,12 @@ namespace Poseidon
 		// check if buffer exists already
 		auto it = m_buffer_pool.find(desc);
 		if (it != m_buffer_pool.end())
-			return it->second;
+			return it->second.get();
 
 		// no such buffer in the pool, create a new one
-		Hippios::GraphicsBuffer* newBuffer = m_renderer->createGraphicsBuffer(size);
-		m_buffer_pool[desc] = newBuffer;
-		return newBuffer;
+		auto newBuffer = m_renderer->createGraphicsBuffer(size);
+		auto* raw = newBuffer.get();
+		m_buffer_pool[desc] = std::move(newBuffer);
+		return raw;
 	}
 }

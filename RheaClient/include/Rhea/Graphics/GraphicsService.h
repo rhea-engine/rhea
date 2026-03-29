@@ -55,11 +55,7 @@ namespace Rhea
 		
 		bool onInput(Event* ev, Unit* unit);
 		bool onAddItem(Event* ev, Unit* unit);
-
-		// get current dimensions
-		int getViewportWidth() const { return m_viewport_width; }
-		int getViewportHeight() const { return m_viewport_height; }
-
+		
 		// request fullscreen
 		void ToggleFullscreen();
 
@@ -91,10 +87,7 @@ namespace Rhea
 		void addManager(std::unique_ptr<GraphicsManager> mgr) {
 			m_managers[T::staticType()] = std::move(mgr);
 		}
-
-		int m_viewport_width;
-		int m_viewport_height;
-
+		
 		// the activated scenes
 		std::vector<Scene*> m_scenes;
 

@@ -46,7 +46,7 @@ namespace Rhea
 		// always handle input 
 		m_handle_input = true;
 
-		m_label_item = (Label*)m_app->getUnitTree()->createUnit(m_path + "/label", "//meworla/gui/label", attr, val);
+		m_label_item = (Label*)m_app->getUnitTree()->createUnit(m_path + "_label", "//meworla/gui/label", attr, val);
 		addChild(m_label_item);
 		// store reference to textwidget
 		m_textwidget = m_label_item->getTextWidget();
@@ -56,7 +56,7 @@ namespace Rhea
 		val["y"] = -2.0f;
 		val["w"] = 20;
 		val["h"] = 20;
-		m_cursor_item = (Label*)m_app->getUnitTree()->createUnit(m_path + "/cursor", "//meworla/gui/label", attr, val);
+		m_cursor_item = (Label*)m_app->getUnitTree()->createUnit(m_path + "_cursor", "//meworla/gui/label", attr, val);
 		addChild(m_cursor_item);
 		m_cursor_item->setText("|");
 		m_cursor_item->hide();

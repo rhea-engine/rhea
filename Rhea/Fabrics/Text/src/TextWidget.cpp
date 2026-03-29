@@ -188,6 +188,11 @@ namespace Rhea
 						draw_x = t_x;
 						draw_y -= f_sz;
 					}
+					// always draw the very frist character of a word, even if it exceeds the line width
+					// this ensures there are always some vertices
+					else if (!vertices.size()) {
+						draw_x = t_x;
+					}
 					else
 						break;
 				}

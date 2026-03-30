@@ -13,7 +13,7 @@ namespace Rhea
 	{
 		Rhea::PlatformService* psio = static_cast<Rhea::PlatformService*>(m_app->getService("platform"));
 		m_network = psio->getEngine()->getNet();
-		m_worldname = getValue("world", "");
+		m_worldname = getValueString("world", "");
 		m_app->registerService("hermesclient", this);
 		m_msg_factory = std::make_unique<Hermes::MessageFactory>();
 		m_msg_factory->registerCoreMessages();

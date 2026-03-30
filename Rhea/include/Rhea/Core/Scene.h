@@ -17,9 +17,9 @@ namespace Rhea
 		Scene(std::string name) :			
 			Scene(name, "//meworla/scene")
 		{}
-		Scene(std::string name, std::string typename) :
+		Scene(std::string name, std::string type_name) :
 			m_is_active(false),
-			Unit(name, "//meworla/scene")
+			Unit(name, type_name)
 		{}
 
 		// implement onParented

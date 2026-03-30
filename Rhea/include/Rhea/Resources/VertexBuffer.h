@@ -46,7 +46,7 @@ namespace Rhea
 		// add a vertex
 		template <typename... Args>
 		void append(Args... args) {
-			void reserver(m_vertex_count + 1);
+			reserve(m_vertex_count + 1);
 			constexpr std::size_t num_elems = sizeof...(Args);
 			addVertexHelper(0, args...);
 			m_vertex_count++;

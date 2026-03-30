@@ -29,11 +29,12 @@ void Headless::showScene(Rhea::Scene* scene)
 	auto* physics = mgr->createPhysicsService("world");
 	if (!physics) {
 		LOG(LOG_ERROR) << "physics backend missing";
-		return;
+		//	return;
 	}
-	physics->onInit();
-	m_physics = physics;
-
+	else {
+		physics->onInit();
+		m_physics = physics;
+	}
 	setScene(scene);
 
 	scene->show();

@@ -6,6 +6,8 @@
 #include "Orion/ResourceStream.h"
 #include <Psio/Log.h>
 
+#include <cstring>
+
 namespace Rhea
 {
 	ImageResource::~ImageResource()
@@ -38,7 +40,7 @@ namespace Rhea
 
 		auto path_it = m_values.find("path");
 		if (!m_buf && path_it != m_values.end()) {
-			ImageResource* img = static_cast<ImageResource*>(m_app->getUnitTree()->find(path_it->second, m_attributes["basepath"], false));
+			ImageResource* img = static_cast<ImageResource*>(m_app->getUnitTree()->find(path_it->second.toString(), m_attributes["basepath"], false));
 			if (img && img->m_buflen) {
 				m_buf = (char*)malloc(img->m_buflen);
 				if (m_buf && img->m_buf != nullptr) {

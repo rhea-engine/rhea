@@ -1,6 +1,6 @@
 #include <errno.h>
 
-#include "Socket.h"
+#include <Psio/Net/Socket/Socket.h>
 
 namespace Psio
 {

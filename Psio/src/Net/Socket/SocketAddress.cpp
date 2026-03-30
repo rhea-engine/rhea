@@ -58,7 +58,7 @@ namespace Psio
 		};
 	}
 
-	bool SocketAddress::SetAddress(SOCKADDR_STORAGE* addr)
+	bool SocketAddress::SetAddress(sockaddr_storage* addr)
 	{
 		m_storage = *addr;
 		SetAddrNtoH(&m_storage, m_ip, m_port);

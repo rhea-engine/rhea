@@ -25,7 +25,7 @@ namespace Psio
 		for (int i = 0; i < 10; i++)
 			m_addr[i] = 0;
 		for (int i = 10; i < 12; i++)
-			m_addr[i] = 256;
+			m_addr[i] = 255;
 		for (int i = 0; i < 4; i++)
 			m_addr[i+12] = ip[i];
 		m_family = 4;

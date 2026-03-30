@@ -19,6 +19,7 @@ namespace Psio
 	{
 		Auto,
 		Win32,
+		Unix,
 		SDL
 	};
 

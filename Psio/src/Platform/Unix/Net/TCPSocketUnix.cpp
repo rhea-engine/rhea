@@ -1,6 +1,6 @@
-#include "TCPSocket.h"
-#include "SocketAddress.h"
-#include "../Network.h"
+#include <Psio/Net/Socket/TCPSocket.h>
+#include <Psio/Net/Socket/SocketAddress.h>
+#include <Psio/Net/Network.h>
 #include <Psio/Log.h>
 
 namespace Psio
@@ -191,7 +191,7 @@ namespace Psio
 		struct sockaddr_storage remote_address;
 		socklen_t size = sizeof(remote_address);
 
-		SOCKET connected_socket = accept(m_socket, &remote_address, &size);
+		SOCKET connected_socket = accept(m_socket, (struct sockaddr*)&remote_address, &size);
 		if (connected_socket == BAD_SOCKET) {
 			int ret = GetLastError();
 			if (ret == EAGAIN || ret == EWOULDBLOCK) {
@@ -200,7 +200,7 @@ namespace Psio
 				m_net->Watch(m_socket, Network::IOFLAG::READ, false, [&, handler](int result) {
 					if (result >= 0)
 					result = Network::Err::OK;
-				SOCKET connected_socket = accept(m_socket, &remote_address, &size);
+				SOCKET connected_socket = accept(m_socket, (struct sockaddr*)&remote_address, &size);
 				DLOG(LOG_DEBUG) << "New socket: " << connected_socket;
 				if (connected_socket == BAD_SOCKET) {
 					result = GetLastError();

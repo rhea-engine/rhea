@@ -23,7 +23,7 @@ int Psio::NetworkUnix::SysErr(int err)
 	case EWOULDBLOCK:
 		return Err::IO_PENDING;
 	case EFAULT:
-		return Err::Fault;
+		return Err::FAULT;
 	case ENOTSOCK:
 		return Err::NO_SOCKET;
 	case ENOTCONN:

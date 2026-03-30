@@ -20,9 +20,9 @@ namespace Poseidon
 
 		virtual bool load(const std::string& file_name);
 		virtual bool load(unsigned char* buf, size_t buflen);
-		Image* Image::ConvertToRGBA();
+		Image* ConvertToRGBA();
 		bool isCompressed() { return m_is_compressed; };
-		bool Image::SetSize(int width, int height, int depth, unsigned channels);
+		bool SetSize(int width, int height, int depth, unsigned channels);
 		unsigned char* get_data() { return m_buffer; };
 
 		int getWidth() { return m_width; }

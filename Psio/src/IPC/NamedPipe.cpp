@@ -28,7 +28,7 @@ namespace Psio
 				return false;
 		}
 		return true;
-#elif defined(__linux__)		
+#elif defined(__linux__)
 		int m_server_socket = socket(AF_UNIX, SOCK_STREAM, 0);
 		if (m_server_socket == -1) {
 			perror("socket");
@@ -131,7 +131,7 @@ namespace Psio
 		if (m_is_open) {
 #ifdef _WIN32
 			CloseHandle(m_pipe_handle);
-#else if defined(__linux__)
+#elif defined(__linux__)
 			if (m_server_socket != -1)
 				close(m_server_socket);
 			if (m_remote_socket != -1)

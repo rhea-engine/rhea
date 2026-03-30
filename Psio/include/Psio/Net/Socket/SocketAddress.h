@@ -14,7 +14,7 @@ namespace Psio
 		SocketAddress();
 		bool SetHost(const std::string& ip_addr, unsigned short port);
 		bool SetHost(const std::string& ip_addr);
-		bool SetAddress(SOCKADDR_STORAGE* addr);
+		bool SetAddress(sockaddr_storage* addr);
 		std::string& GetHost() { return m_host; }
 		uint16_t GetPort() { return m_port; }
 

@@ -11,6 +11,7 @@
 #include <stdexcept>
 #include "Backend/IBackend.h"
 #include "Platform/Win32/Win32Backend.h"
+#include "Platform/Unix/UnixBackend.h"
 
 namespace Psio
 {
@@ -34,9 +35,20 @@ namespace Psio
 #endif
 		}
 
+		if (preferred == BackendKind::Unix)
+		{
+#ifdef PSIO_HAS_UNIX
+			return std::make_unique<UnixBackend>();
+#else
+			throw std::runtime_error("Unix backend requested but not available.");
+#endif
+		}
+
 		// Auto mode: choose best available for this platform
 #ifdef PSIO_HAS_WIN32
 		return std::make_unique<Win32Backend>();
+#elif defined(PSIO_HAS_UNIX)
+		return std::make_unique<UnixBackend>();
 #elif defined(PSIO_HAS_SDL)
 		return std::make_unique<SDLBackend>();
 #else
@@ -100,8 +112,11 @@ namespace Psio
 		}
 
 		std::unique_ptr<Window> window = m_backend->CreateNativeWindow(name, width, height);
-		window->setInput(m_input.get());
-		window->create();
+		
+		if (window) {
+			window->setInput(m_input.get());
+			window->create();
+		}
 
 		return window;
 	}

@@ -11,7 +11,7 @@ public:
 		m_server_service(nullptr),
 		m_port(4242)
 	{}
-	void init();
+	void init(int argc, char* argv[]);
 	void setServer(std::string scene);
 
 	void setPort(std::string port);

@@ -47,34 +47,33 @@ namespace Rhea
 		}
 
 		// size set
-		if (m_values["w"] != Variant() || m_values["h"] != Variant()) {
+		bool has_w = m_values.find("w") != m_values.end();
+		bool has_h = m_values.find("h") != m_values.end();
+
+		if (has_w || has_h) {
 			Vector2 m_base_size;
-			if (m_values["w"] != Variant() && m_values["h"] != Variant()) {
+			if (has_w && has_h) {
 				m_base_size.x = getValue("w", 0.0f);
 				m_base_size.y = getValue("h", 0.0f);
 				m_modifiers.push_back(std::make_unique<SizeModifier>(m_base_size));
-				//setStyle(StylePropertyId::kWidth, m_values["w"]);
-				//setStyle(StylePropertyId::kHeight, m_values["h"]);
 				m_properties[StylePropertyId::kWidth].push_back({ CssValueId::kNumeric, m_values["w"] });
 				m_properties[StylePropertyId::kHeight].push_back({ CssValueId::kNumeric, m_values["h"] });
 			}
-			else if (m_values["w"] != Variant()) {
+			else if (has_w) {
 				m_base_size.x = getValue("w", 0.0f);
 				m_modifiers.push_back(std::make_unique<SizeWidthModifier>(m_base_size.x));
-				//setStyle(StylePropertyId::kWidth, m_values["w"]);
 				m_properties[StylePropertyId::kWidth].push_back({ CssValueId::kNumeric, m_values["w"] });
 			}
 			else {
 				m_base_size.y = getValue("h", 0.0f);
 				m_modifiers.push_back(std::make_unique<SizeHeightModifier>(m_base_size.y));
-				//setStyle(StylePropertyId::kHeight, m_values["h"]);
 				m_properties[StylePropertyId::kHeight].push_back({ CssValueId::kNumeric, m_values["h"] });
 			}
 		}
 
 		// padding
-		Variant padding = getValue("padding");
-		if (padding != Variant()) {
+		if (m_values.find("padding") != m_values.end()) {
+			Variant padding = getValue("padding");
 			if (!padding.isArray()) {
 				m_modifiers.push_back(std::make_unique<PaddingModifier>(padding));
 				CssValue css_padding = { CssValueId::kNumeric, SimpleParser::Variant(padding) };
@@ -84,17 +83,17 @@ namespace Rhea
 				m_properties[StylePropertyId::kPaddingBottom].push_back(css_padding);
 			}
 			else if (padding.length() == 4) {
-				CssValue css_padding_left = { CssValueId::kNumeric, SimpleParser::Variant(padding[0])};
-				CssValue css_padding_top = { CssValueId::kNumeric, SimpleParser::Variant(padding[1])};
-				CssValue css_padding_right = { CssValueId::kNumeric, SimpleParser::Variant(padding[2])};
-				CssValue css_padding_bottom = { CssValueId::kNumeric, SimpleParser::Variant(padding[3])};
+				CssValue css_padding_left = { CssValueId::kNumeric, SimpleParser::Variant(padding[0]) };
+				CssValue css_padding_top = { CssValueId::kNumeric, SimpleParser::Variant(padding[1]) };
+				CssValue css_padding_right = { CssValueId::kNumeric, SimpleParser::Variant(padding[2]) };
+				CssValue css_padding_bottom = { CssValueId::kNumeric, SimpleParser::Variant(padding[3]) };
 				m_modifiers.push_back(std::make_unique<PaddingModifier>(padding[0], padding[1], padding[2], padding[3]));
 				m_properties[StylePropertyId::kPaddingLeft].push_back(css_padding_left);
 				m_properties[StylePropertyId::kPaddingTop].push_back(css_padding_top);
 				m_properties[StylePropertyId::kPaddingRight].push_back(css_padding_right);
 				m_properties[StylePropertyId::kPaddingBottom].push_back(css_padding_bottom);
 			}
-		}		
+		}
 
 		// fillsize
 		if (getValue("fillsize", false)) {
@@ -108,11 +107,11 @@ namespace Rhea
 		Variant align = getValue("alignment");
 		if (align.isArray()) {
 			if (align.size() > 1)
-				setAlignment(align[0], align[1]);
+				setAlignment(align[0].toString(), align[1].toString());
 			else if (align.size() > 0)
-				setAlignment(align[0], "top");
+				setAlignment(align[0].toString(), "top");
 
-			
+
 		}
 
 		// set styles based on values
@@ -125,7 +124,7 @@ namespace Rhea
 		std::unordered_map<std::string, Variant> val;
 
 		if (m_values.find("onClick") != m_values.end())
-			setOnClick(m_values["onClick"]);
+			setOnClick(m_values["onClick"].toString());
 	}
 
 	void Widget::ready()
@@ -167,7 +166,7 @@ namespace Rhea
 	bool Widget::onClicked(Event* ev, Unit* unit)
 	{
 		if (m_values.find("onClick") != m_values.end()) {
-			sendBoundEvent(m_values["onClick"], ev);
+			sendBoundEvent(m_values["onClick"].toString(), ev);
 		}
 		return false;
 	}
@@ -403,7 +402,7 @@ namespace Rhea
 				continue;
 			switch (property_id) {
 			case StylePropertyId::kBackgroundImage:
-				setBackgroundImage(values[0].value == "none" ? nullptr : doCast<ImageResource>(m_app->getUnitTree()->find(values[0].value)));
+				setBackgroundImage(values[0].value == "none" ? nullptr : doCast<ImageResource>(m_app->getUnitTree()->find(values[0].value.toString())));
 				break;
 			case StylePropertyId::kBackgroundColor:
 				if (values.size() >= 3) {

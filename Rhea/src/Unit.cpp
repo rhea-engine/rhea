@@ -156,7 +156,7 @@ namespace Rhea
 		}
 	}
 
-	Component* Unit::find(std::string path, std::string basepath, bool create)
+	Component* Unit::find(std::string path, const std::string& basepath, bool create)
 	{
 		if (path == "")
 			return nullptr;
@@ -241,6 +241,26 @@ namespace Rhea
 			}
 		}
 		return Variant();
+	}
+
+	std::string Unit::getValueString(std::string name, std::string default_val) const
+	{
+		auto val = m_values.find(name);
+		if (val != m_values.end()) {
+			return val->second.toString();
+		}
+		return default_val;
+	}
+
+	std::string Unit::getValueString(std::string name) const
+	{
+		if (name != "") {
+			auto val = m_values.find(name);
+			if (val != m_values.end()) {
+				return val->second.toString();
+			}
+		}
+		return std::string("");
 	}
 
 	Variant Unit::getValue(std::string name, Variant default_val) const

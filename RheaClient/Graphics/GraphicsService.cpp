@@ -150,7 +150,7 @@ namespace Rhea
 			std::string backend = "auto";
 			ConfigFile* config = m_app->getConfig();			
 			if (config)
-				backend = config->getValue("renderer.backend", "auto");
+				backend = config->getValueString("renderer.backend", "auto");
 			
 			m_core->init(static_cast<PlatformService*>(m_platform)->getEngine(), backend);
 		}
@@ -245,7 +245,7 @@ namespace Rhea
 			LOG(LOG_ERROR) << "GraphicsService::showScene: no scene manager";
 			return;
 		}
-		std::string render_context_name = scene->getValue("rendercontext", "default");
+		std::string render_context_name = scene->getValueString("rendercontext", "default");
 		Poseidon::RenderContext* render_context = scene_mgr->getViewport()->getRenderContext(render_context_name);
 		if (!render_context) {
 			LOG(LOG_ERROR) << "GraphicsService::showScene: render context '" << render_context_name << "' not found";
@@ -262,7 +262,7 @@ namespace Rhea
 			if (!item)
 				return true;
 			// we simply assume if the rendercontext is set we must add a render child
-			std::string render_context_name = item->getValue("rendercontext", "");
+			std::string render_context_name = item->getValueString("rendercontext", "");
 			if (render_context_name != "") {
 				Poseidon::RenderContext* render_context = scene_mgr->getViewport()->getRenderContext(render_context_name);
 				if (!render_context) {
@@ -289,7 +289,7 @@ namespace Rhea
 			LOG(LOG_ERROR) << "GraphicsService::hideScene: no scene manager";
 			return;
 		}
-		std::string render_context_name = scene->getValue("rendercontext", "default");
+		std::string render_context_name = scene->getValueString("rendercontext", "default");
 		Poseidon::RenderContext* render_context = scene_mgr->getViewport()->getRenderContext(render_context_name);
 		if (!render_context) {
 			LOG(LOG_ERROR) << "GraphicsService::hideScene: render context '" << render_context_name << "' not found";
@@ -306,7 +306,7 @@ namespace Rhea
 			if (!item)
 				return true;
 			// we simply assume if the rendercontext is set we must add a render child
-			std::string render_context_name = item->getValue("rendercontext", "");
+			std::string render_context_name = item->getValueString("rendercontext", "");
 			if (render_context_name != "") {
 				Poseidon::RenderContext* render_context = scene_mgr->getViewport()->getRenderContext(render_context_name);
 				if (!render_context) {

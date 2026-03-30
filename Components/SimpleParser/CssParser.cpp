@@ -37,7 +37,7 @@ namespace SimpleParser
 					case TokenType::TOKEN_STRING:
 						// must be a type selector
 						// start the simple sequence
-						cur_simple_seq.push_back({ SimpleSelectorType::kType, token.value });
+						cur_simple_seq.push_back({ SimpleSelectorType::kType, token.value.toString() });
 						state = SelectorStates::kSequence;
 						ws_relevant = true;
 						break;
@@ -141,7 +141,7 @@ namespace SimpleParser
 						!(token.type == TokenType::TOKEN_IDENTIFIER ||
 							token.type == TokenType::TOKEN_STRING))
 						return Error::PARSE_EXPECT_IDENTIFIER;
-					cur_simple_seq.push_back({ SimpleSelectorType::kClass, token.value });
+					cur_simple_seq.push_back({ SimpleSelectorType::kClass, token.value.toString() });
 					state = SelectorStates::kSequence;
 					break;
 				case SelectorStates::kId:
@@ -149,7 +149,7 @@ namespace SimpleParser
 						!(token.type == TokenType::TOKEN_IDENTIFIER ||
 							token.type == TokenType::TOKEN_STRING))
 						return Error::PARSE_EXPECT_IDENTIFIER;
-					cur_simple_seq.push_back({ SimpleSelectorType::kId, token.value });
+					cur_simple_seq.push_back({ SimpleSelectorType::kId, token.value.toString() });
 					state = SelectorStates::kSequence;
 					break;
 				}
@@ -185,7 +185,7 @@ namespace SimpleParser
 						token.type != TokenType::TOKEN_STRING)
 						return Error::PARSE_EXPECT_IDENTIFIER;
 					else {
-						prop_name = token.value;
+						prop_name = token.value.toString();
 						properties.clear();
 						state = 1;				
 					}

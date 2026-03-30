@@ -1,8 +1,10 @@
 #include "SimpleParser.h"
 
+#include <cstring>
+
 namespace SimpleParser
 {
-	char* SimpleParser::getErrMsg(Error err)
+	const char* SimpleParser::getErrMsg(SimpleParser::Error err)
 	{
 		switch (err) {
 		case Error::PARSE_OK:

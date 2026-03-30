@@ -17,13 +17,13 @@ namespace Rhea
 			});
 		registerEventHandler("submit", this, [&](Event* ev, Unit* u)->bool {
 			if (m_values["onSubmit"] != Variant()) {
-				sendBoundEvent(m_values["onSubmit"], ev);
+				sendBoundEvent(m_values["onSubmit"].toString(), ev);
 			}
 			return false;
 			});
 		registerEventHandler("cancel", this, [&](Event* ev, Unit* u)->bool {
 			if (m_values["onCancel"] != Variant()) {
-				sendBoundEvent(m_values["onCancel"], ev);
+				sendBoundEvent(m_values["onCancel"].toString(), ev);
 			}
 			return false;
 			});

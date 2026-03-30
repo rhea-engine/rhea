@@ -1,6 +1,5 @@
 #include "Type.h"
 #include "Variant.h"
-#include "Method.h"
 
 namespace SimpleParser
 {

@@ -15,7 +15,7 @@ namespace Rhea
 	{
 		Item2D::setup(app, attributes, values);
 		
-		m_text = values["text"];
+		m_text = values["text"].toString();
 		m_max_length = m_text.length();
 		m_word_wrap = getValue("word_wrap", true);
 		m_multiline = getValue("multiline", true);
@@ -37,7 +37,7 @@ namespace Rhea
 		// load and add font and text
 		if (m_values.find("font") != m_values.end())
 		{
-			Font* font = doCast<Font>(m_app->getUnitTree()->find(m_values["font"], m_attributes["basepath"], false));
+			Font* font = doCast<Font>(m_app->getUnitTree()->find(m_values["font"].toString(), m_attributes["basepath"], false));
 			if (!font)
 				LOG(LOG_ERROR) << "TextWidget: Font '" << (std::string)m_values["font"] << "' not found";
 			else

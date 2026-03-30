@@ -32,14 +32,14 @@ std::vector<Unit::Export> World::getReferences()
 
 void World::ready()
 {
-	m_scene = (Rhea::Scene*)m_app->getUnitTree()->find(m_values["scenename"], m_attributes["basepath"], false);
+	m_scene = (Rhea::Scene*)m_app->getUnitTree()->find(m_values["scenename"].toString(), m_attributes["basepath"], false);
 
 	if (m_scene) {
 
 		auto* mgr = doCast<Rhea::PhysicsManagerService>(m_app->getService("physics_mgr"));
 		if (mgr && !mgr->getPhysicsService()) {
 			std::string backend = "none";
-			std::string phy = m_scene->getValue("physics", "none");
+			std::string phy = m_scene->getValueString("physics", "none");
 			if (phy == std::string("world") || phy == std::string("bullet")) {
 				backend = "world";
 			}

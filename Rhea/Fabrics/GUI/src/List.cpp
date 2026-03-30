@@ -57,7 +57,7 @@ namespace Rhea
 
 		// check if we have a data binding
 		if (m_values["data"] != Variant()) {
-			m_data_binding = m_app->getUnitTree()->getBinding(m_values["data"], m_attributes["basepath"]);
+			m_data_binding = m_app->getUnitTree()->getBinding(m_values["data"].toString(), m_attributes["basepath"]);
 
 			// fill the list once
 			if (m_data_binding.target) {
@@ -90,7 +90,7 @@ namespace Rhea
 			if (m_list_items.size()) {
 				if (m_list_items.size() == items.length()) {
 					for (int i = 0; i < items.length(); i++) {
-						if (std::string(m_list_items[i]->getValue("value")).compare(items[i]))
+						if (std::string(m_list_items[i]->getValueString("value")).compare(items[i].toString()))
 							changed = true;
 					}
 				}
@@ -119,7 +119,7 @@ namespace Rhea
 			if (changed) {
 				for (int i = 0; i < items.length(); i++) {
 					Variant item = items[i];
-					addItem(item, item);
+					addItem(item.toString(), item.toString());
 				}
 			}
 		}
@@ -128,7 +128,7 @@ namespace Rhea
 	bool ListWidget::onSelected(Event* ev, Unit* unit)
 	{
 		if (m_values["onSelected"] != Variant()) {
-			sendBoundEvent(m_values["onSelected"], ev);
+			sendBoundEvent(m_values["onSelected"].toString(), ev);
 		}
 		return false;
 	}

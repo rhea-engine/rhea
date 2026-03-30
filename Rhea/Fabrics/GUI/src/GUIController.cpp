@@ -65,7 +65,7 @@ namespace Rhea
 		*/
 		m_style_engine = std::make_unique<StyleEngine>();
 		if (m_values["stylesheet"] != Variant()) {
-			StyleSheet* css = (StyleSheet*)m_app->getUnitTree()->find(m_values["stylesheet"], m_attributes["basepath"], false);
+			StyleSheet* css = (StyleSheet*)m_app->getUnitTree()->find(m_values["stylesheet"].toString(), m_attributes["basepath"], false);
 			m_style_engine->AppendStylesheet(css);
 		}
 		else {

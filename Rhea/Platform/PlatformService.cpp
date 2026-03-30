@@ -14,7 +14,7 @@ namespace Rhea
 	void PlatformService::onInit()
 	{
 		// initialize ssl settings
-		std::string appdir = m_values["AppDir"];
+		std::string appdir = m_values["AppDir"].toString();
 		std::string setting = "ssl_root_ca";
 		std::string cert = appdir + "/ssl/cacert.pem";
 		m_psio->getNet()->SetSetting(setting, cert);

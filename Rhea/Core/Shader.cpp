@@ -10,7 +10,7 @@ namespace Rhea
 		Unit::setup(app, attributes, values);
 
 		if (m_values.find("depth_stencil_state") != m_values.end()) {
-			m_depth_stencil_state = m_values["depth_stencil_state"];
+			m_depth_stencil_state = m_values["depth_stencil_state"].toString();
 		}
 		else {
 			m_depth_stencil_state = "default";
@@ -28,7 +28,7 @@ namespace Rhea
 		}
 
 		// vertex type
-		std::string vertex_layout_name = getValue("input", "short");
+		std::string vertex_layout_name = getValueString("input", "short");
 		if (vertex_layout_name == "short") {
 			m_vertex_layout.push_back({ "POSITION", VertexAttributeType::POSITION, 4, 3, 12, 0, 0 });
 			m_vertex_layout.push_back({ "TEXCOORD",VertexAttributeType::TEXCOORD, 4, 2, 8, 12, 2 });
@@ -68,7 +68,7 @@ namespace Rhea
 		}
 
 		// setup material input slots
-		std::string light_type = getValue("light_type", "none");		
+		std::string light_type = getValueString("light_type", "none");		
 		if (light_type == "vertex") {
 			m_property_names = { "AMBIENT", "DIFFUSE", "SPECULAR", "EMISSIVE" };
 			m_input_slots["AMBIENT"] = 0;
@@ -80,22 +80,22 @@ namespace Rhea
 		}
 		else if (m_values.find("material_slots_ps") != m_values.end() && m_values["material_slots_ps"].isArray()) {
 			for (int i = 0; i < m_values["material_slots_ps"].size(); i++) {
-				m_property_names.push_back(m_values["material_slots_ps"][i]);
-				m_input_slots[m_values["material_slots_ps"][i]] = i;
+				m_property_names.push_back(m_values["material_slots_ps"][i].toString());
+				m_input_slots[m_values["material_slots_ps"][i].toString()] = i;
 				m_num_input_slots = i + 1;
 			}
 		}
 		if (m_values.find("material_slots_vs") != m_values.end() && m_values["material_slots_vs"].isArray()) {
 			for (int i = 0; i < m_values["material_slots_vs"].size(); i++) {
-				m_property_names_vs.push_back(m_values["material_slots_vs"][i]);
+				m_property_names_vs.push_back(m_values["material_slots_vs"][i].toString());
 				// TODO support other types than float2
-				m_input_slots_vs[m_values["material_slots_vs"][i]] = { (size_t)i, InputType::kVector2 };
+				m_input_slots_vs[m_values["material_slots_vs"][i].toString()] = {(size_t)i, InputType::kVector2};
 				m_num_input_slots_vs = static_cast<size_t>(i) + 1;
 			}
 		}
 		
 		// setup texture slots
-		std::string texture_type = getValue("texture_type", "none");
+		std::string texture_type = getValueString("texture_type", "none");
 		if (texture_type == "standard") {
 			m_texture_slot_descs.push_back({ "BASECOLOR", "BaseColorTexture", 0 });
 			m_texture_slot_descs.push_back({ "NORMALMAP", "NormalMap", 1 });
@@ -156,7 +156,7 @@ namespace Rhea
 		}
 
 		return doCast<TextResource>(
-			m_app->getUnitTree()->find(m_values[key], m_attributes["basepath"], false)
+			m_app->getUnitTree()->find(m_values[key].toString(), m_attributes["basepath"], false)
 		);
 	}
 
@@ -164,9 +164,9 @@ namespace Rhea
 	{		
 		if (backend == ShaderBackend::D3D11) {
 			if (stage == ShaderStage::Vertex)
-				return getValue("vs_entry", "VShader");
+				return getValueString("vs_entry", "VShader");
 			else
-				return getValue("ps_entry", "PShader");
+				return getValueString("ps_entry", "PShader");
 		}
 		return "";
 	}

@@ -42,7 +42,7 @@ namespace Rhea
         }
 
         // get rules for class names
-        auto class_it = m_class_rules.find(widget->getValue("cssclass"));
+        auto class_it = m_class_rules.find(widget->getValueString("cssclass"));
         if (class_it != m_class_rules.end()) {
             // Merge style properties (later rules override earlier ones).
             for (const auto& prop : class_it->second) {

@@ -108,7 +108,7 @@ namespace Rhea
 		config->fromCommandLineArgs(argc, argv);
 
 		// log-level from config
-		std::string log_level = config->getValue("log.level", "info");
+		std::string log_level = config->getValueString("log.level", "info");
 		std::transform(log_level.begin(), log_level.end(), log_level.begin(), ::tolower);
 		if (log_level == "debug")
 			Log::logger().setLevel(LOG_DEBUG);
@@ -414,7 +414,7 @@ namespace Rhea
 	{
 		log("loading resource: " + resource_id);
 		Orion::ResourceRequest* req = m_fs->getResourceByRid(resource_id);
-		req->resolve([&, req, handler, resource_id](Orion::ResourceRequest* req, int err) {
+		req->resolve([&, handler, resource_id](Orion::ResourceRequest* req, int err) {
 
 			if (err == Orion::ResourceRequest::Error::OK) {
 

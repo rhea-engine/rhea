@@ -53,7 +53,7 @@ namespace Rhea
 			// background color or image was set
 
 			if (m_values.find("texture") != m_values.end()) {
-				ImageResource* tex = doCast<ImageResource>(m_app->getUnitTree()->find(m_values["texture"], m_attributes["basepath"], false));
+				ImageResource* tex = doCast<ImageResource>(m_app->getUnitTree()->find(m_values["texture"].toString(), m_attributes["basepath"], false));
 				if (tex) {
 					// make sure texture is ready
 					tex->ready();
@@ -155,7 +155,7 @@ namespace Rhea
 			m_material->setValue("shader", "widget");
 
 			// get the shader
-			Shader* shader_res = doCast<Shader>(m_app->getUnitTree()->find(m_values["shader"], m_attributes["basepath"], false));
+			Shader* shader_res = doCast<Shader>(m_app->getUnitTree()->find(m_values["shader"].toString(), m_attributes["basepath"], false));
 			if (shader_res) {
 				m_material->setShaderRes(shader_res);
 			}

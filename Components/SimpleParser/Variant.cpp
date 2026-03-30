@@ -1,8 +1,11 @@
 #include "Variant.h"
+#include "Variant.h"
 #include "Type.h"
 
 namespace SimpleParser
 {
+	Variant* Variant::s_nullVariant = nullptr;
+
 	Variant::Variant() :
 		Variant(Type::m_base_types[Type::BaseType::NONE])
 	{
@@ -44,10 +47,10 @@ namespace SimpleParser
 		m_type = Type::m_base_types[Type::BaseType::PTR];
 	}
 	
-	Variant::Variant(std::string& s)
+	Variant::Variant(const std::string& s)
 	{
 		m_data._str = new std::string(s);
-		m_type = Type::m_base_types[Type::BaseType::STRING];
+		m_type = Type::get(Type::BaseType::STRING);
 	}
 	
 	Variant::Variant(std::vector<Variant>& arr)
@@ -56,42 +59,44 @@ namespace SimpleParser
 		m_type = Type::m_base_types[Type::BaseType::ARRAY];
 	}
 	
-	Variant::Variant(const Variant& variant)
+	void Variant::copyFrom(const Variant& other)
 	{
-		m_type = variant.m_type;
+		m_type = other.m_type;
 		m_data._int = 0;
+
+		if (!m_type)
+			return;
 
 		switch (m_type->m_base) {
 		case Type::BaseType::BOOL:
-			m_data._bool = variant.m_data._bool;
+			m_data._bool = other.m_data._bool;
 			break;
 		case Type::BaseType::INT:
-			m_data._int = variant.m_data._int;
+			m_data._int = other.m_data._int;
 			break;
 		case Type::BaseType::FLOAT:
-			m_data._float = variant.m_data._float;
+			m_data._float = other.m_data._float;
 			break;
 		case Type::BaseType::PTR:
-			m_data._ptr = variant.m_data._ptr;
+			m_data._ptr = other.m_data._ptr;
 			break;
 		case Type::BaseType::STRING:
-			m_data._str = new std::string(*variant.m_data._str);
+			m_data._str = new std::string(*other.m_data._str);
 			break;
 		case Type::BaseType::ARRAY:
-			m_data._array = new std::vector<Variant>;
-			for (auto it = variant.m_data._array->begin(); it != variant.m_data._array->end(); ++it) {
-				m_data._array->push_back(*it);
-			}
+			m_data._array = new std::vector<Variant>(*other.m_data._array);
 			break;
 		case Type::BaseType::OBJECT:
-			m_data._obj = variant.m_data._obj;
+			m_data._obj = other.m_data._obj;
+			break;
+		case Type::BaseType::NONE:
 			break;
 		}
 	}
 
 	Variant::Variant(const char* s)
 	{
-		m_data._str = new std::string(s);
+		m_data._str = new std::string(s ? s : "");
 		m_type = Type::m_base_types[Type::BaseType::STRING];
 	}
 
@@ -101,131 +106,177 @@ namespace SimpleParser
 		m_type = Type::m_base_types[Type::BaseType::OBJECT];
 	}
 
-	Variant::~Variant()
+	Variant::Variant(const Variant& other)
 	{
-		if (m_type) {
-			switch (m_type->m_base) {
-			case Type::BaseType::STRING:
-				delete m_data._str;
-				break;
-			case Type::BaseType::ARRAY:
-				delete m_data._array;
-				break;
-			}
-		}
+		copyFrom(other);
 	}
 
-	Variant::operator std::string() const {
+	Variant::~Variant()
+	{
+		clear();
+	}
+
+	Variant& Variant::operator=(const Variant& other)
+	{
+		if (this != &other) {
+			clear();
+			copyFrom(other);
+		}
+		return *this;
+	}
+
+	void Variant::clear()
+	{
+		if (!m_type)
+			return;
+
+		switch (m_type->m_base) {
+		case Type::BaseType::STRING:
+			delete m_data._str;
+			break;
+		case Type::BaseType::ARRAY:
+			delete m_data._array;
+			break;
+		default:
+			break;
+		}
+
+		m_data._int = 0;
+		m_type = Type::m_base_types[Type::BaseType::NONE];
+	}
+
+	std::string Variant::toString() const
+	{
+		if (!m_type)
+			return "";
+
 		switch (m_type->m_base) {
 		case Type::BaseType::NONE:
-			return "No type";
+			return "No Type";
+		case Type::BaseType::BOOL:
+			return m_data._bool ? "true" : "false";
+		case Type::BaseType::INT:
+			return std::to_string(m_data._int);
+		case Type::BaseType::FLOAT:
+			return std::to_string(m_data._float);
 		case Type::BaseType::STRING:
 			return *m_data._str;
 		default:
-			return "type to string not implemented";
+			return "";
 		}
 	}
-
 	
-	Variant::operator std::vector<Variant>() const
+	float Variant::toFloat() const
 	{
-		if (m_type->m_base == Type::BaseType::ARRAY)
-			return *m_data._array;
-		else
-			return std::vector<Variant>();
-	}
-	
-	Variant::operator Variant*() const
-	{
-		if (m_type->m_base == Type::BaseType::OBJECT)
-			return m_data._obj;
-		else
-			return nullptr;
-	}
+		if (!m_type)
+			return 0.0f;
 
-	Variant::operator float() const
-	{
 		switch (m_type->m_base) {
 		case Type::BaseType::BOOL:
-			return (m_data._bool) ? 1 : 0;
+			return m_data._bool ? 1.0f : 0.0f;
+		case Type::BaseType::INT:
+			return static_cast<float>(m_data._int);
 		case Type::BaseType::FLOAT:
 			return m_data._float;
-		case Type::BaseType::INT:
-			return (float)m_data._int;
 		default:
-			return 0.0;
+			return 0.0f;
 		}
 	}
 
-	Variant::operator bool() const
+	bool Variant::toBool() const
 	{
+		if (!m_type)
+			return false;
+
 		switch (m_type->m_base) {
 		case Type::BaseType::BOOL:
 			return m_data._bool;
-		case Type::BaseType::FLOAT:
-			return (m_data._float) ? true : false;
 		case Type::BaseType::INT:
-			return (m_data._int) ? true : false;
+			return m_data._int != 0;
+		case Type::BaseType::FLOAT:
+			return m_data._float != 0.0f;
 		case Type::BaseType::STRING:
-			return (m_data._str->compare("true") ) ? false : true;
+			return m_data._str && (*m_data._str == "true" || *m_data._str == "1");
 		default:
 			return false;
 		}
 	}
 
-	Variant::operator int() const
+	int Variant::toInt() const
 	{
+		if (!m_type)
+			return 0;
+
 		switch (m_type->m_base) {
 		case Type::BaseType::BOOL:
-			return (m_data._bool) ? 1 : 0;
-		case Type::BaseType::FLOAT:
-			return (int)m_data._float;
+			return m_data._bool ? 1 : 0;
 		case Type::BaseType::INT:
-			return m_data._int;
+			return static_cast<int>(m_data._int);
+		case Type::BaseType::FLOAT:
+			return static_cast<int>(m_data._float);
 		default:
 			return 0;
 		}
 	}
 
+	int64_t Variant::toInt64() const
+	{
+		if (!m_type)
+			return 0;
+
+		switch (m_type->m_base) {
+		case Type::BaseType::BOOL:
+			return m_data._bool ? 1 : 0;
+		case Type::BaseType::INT:
+			return m_data._int;
+		case Type::BaseType::FLOAT:
+			return static_cast<int64_t>(m_data._float);
+		default:
+			return 0;
+		}
+	}
+
+	std::vector<Variant> Variant::toArray() const
+	{
+		if (m_type && m_type->m_base == Type::BaseType::ARRAY)
+			return *m_data._array;
+		return {};
+	}
+
+	Variant* Variant::toObject() const
+	{
+		if (m_type && m_type->m_base == Type::BaseType::OBJECT)
+			return m_data._obj;
+		return nullptr;
+	}
+
+	void* Variant::toPointer() const
+	{
+		if (m_type && m_type->m_base == Type::BaseType::PTR)
+			return m_data._ptr;
+		return nullptr;
+	}
+
 	Variant& Variant::operator[](int i)
 	{
-		if (m_type->m_base != Type::BaseType::ARRAY || i >= m_data._array->size())
-			return Variant();
+		if (m_type->m_base != Type::BaseType::ARRAY || i < 0 || i >= static_cast<int>(m_data._array->size())) {
+			if (!s_nullVariant)
+				s_nullVariant = new Variant();
+			return *s_nullVariant;
+		}
 
 		return (*m_data._array)[i];
 	}
 
-	void Variant::operator=(const Variant& variant)
+	const Variant& Variant::operator[](int i) const
 	{
-		m_type = variant.m_type;
-		m_data._int = 0;
-
-		switch (m_type->m_base) {
-		case Type::BaseType::BOOL:
-			m_data._bool = variant.m_data._bool;
-			break;
-		case Type::BaseType::INT:
-			m_data._int = variant.m_data._int;
-			break;
-		case Type::BaseType::FLOAT:
-			m_data._float = variant.m_data._float;
-			break;
-		case Type::BaseType::PTR:
-			m_data._ptr = variant.m_data._ptr;
-			break;
-		case Type::BaseType::STRING:
-			m_data._str = new std::string(*variant.m_data._str);
-			break;
-		case Type::BaseType::ARRAY:
-			m_data._array = new std::vector<Variant>;
-			for (auto it = variant.m_data._array->begin(); it != variant.m_data._array->end(); ++it) {
-				m_data._array->push_back(*it);
-			}
-			break;	
-		case Type::BaseType::OBJECT:
-			m_data._obj = variant.m_data._obj;
-			break;
+		if (m_type->m_base != Type::BaseType::ARRAY || i < 0 || i >= static_cast<int>(m_data._array->size())) {
+			if (!s_nullVariant)
+				s_nullVariant = new Variant();
+			return *s_nullVariant;
 		}
+
+		return (*m_data._array)[i];
 	}
 
 	bool Variant::operator==(const Variant& variant) const
@@ -233,6 +284,8 @@ namespace SimpleParser
 		if (m_type != variant.m_type)
 			return false;
 		switch (m_type->m_base) {
+		case Type::BaseType::NONE:
+			return true;
 		case Type::BaseType::BOOL:
 			return m_data._bool == variant.m_data._bool;
 		case Type::BaseType::INT:
@@ -250,26 +303,9 @@ namespace SimpleParser
 		}
 	}
 
-	bool Variant::operator!=(const Variant& variant) const
+	bool Variant::operator!=(const Variant& other) const
 	{
-		if (m_type != variant.m_type)
-			return true;
-		switch (m_type->m_base) {
-		case Type::BaseType::BOOL:
-			return m_data._bool != variant.m_data._bool;
-		case Type::BaseType::INT:
-			return m_data._int != variant.m_data._int;
-		case Type::BaseType::FLOAT:
-			return m_data._float != variant.m_data._float;
-		case Type::BaseType::PTR:
-			return m_data._ptr != variant.m_data._ptr;
-		case Type::BaseType::STRING:
-			return *m_data._str != *variant.m_data._str;
-		case Type::BaseType::OBJECT:
-			return m_data._obj != variant.m_data._obj;
-		default:
-			return false;
-		}
+		return !(*this == other);
 	}
 
 	bool Variant::isNull() const

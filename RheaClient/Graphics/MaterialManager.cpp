@@ -36,7 +36,7 @@ namespace Rhea
 	{
 		if (!material_res || !shader_res)
 			return nullptr;
-		std::string shader_name = material_res->getValue("shader", "");
+		std::string shader_name = material_res->getValueString("shader", "");
 		if (shader_name.empty()) {
 			LOG(LOG_ERROR) << "EnsurePoseidonShader: material has empty shader name";
 			return nullptr;
@@ -109,7 +109,7 @@ namespace Rhea
 			shader->setStencilTest(shader_res->getDepthStencilState());
 
 			// cull mode
-			std::string cull_mode = shader_res->getValue("cull_mode", "back");
+			std::string cull_mode = shader_res->getValueString("cull_mode", "back");
 			if (cull_mode == "none") {
 				shader->setCullMode(false);
 			}
@@ -122,7 +122,7 @@ namespace Rhea
 		}
 
 		// sampler state
-		std::string sampler_name = shader_res->getValue("sampler", "linear");
+		std::string sampler_name = shader_res->getValueString("sampler", "linear");
 		Hippios::SamplerState* sampler = core->getSamplerState(sampler_name);
 		shader->setSamplerState(sampler);
 
@@ -151,7 +151,7 @@ namespace Rhea
 			{ Hippios::InputBindingDesc{ 0, (uint32_t)shader_res->getVertexSize(), 0 } }
 		);		
 		// material buffer layout
-		std::string light_type = shader_res->getValue("light_type", "none");
+		std::string light_type = shader_res->getValueString("light_type", "none");
 		if (light_type == "vertex") {
 			// for now only the default layout is supported
 			std::vector<Poseidon::Shader::MatBufferLayoutElement> elements;
@@ -222,7 +222,7 @@ namespace Rhea
 		}
 		
 		// now add the material properties
-		std::string light_type = shader_res->getValue("light_type", "none");
+		std::string light_type = shader_res->getValueString("light_type", "none");
 		std::vector<std::string> props = shader_res->getInputSlotNames();
 		if (props.size()) {
 			for (auto it = props.begin(); it != props.end(); ++it) {

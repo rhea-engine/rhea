@@ -30,13 +30,13 @@ namespace Rhea
 			std::string type_name = "//meworla/scene";
 			if (sections.size() > 0 && sections[0].section_name == "scene") {
 				if (sections[0].values["type"].length()) {
-					type_name = sections[0].values["type"];
+					type_name = sections[0].values["type"].toString();
 				}
 			}
 			Unit* scene = tree->createUnit(name, type_name);
 			if (sections.size() > 0 && sections[0].section_name == "scene") {
 				if (sections[0].values["name"].length())
-					scene->setName(sections[0].values["name"]);
+					scene->setName(sections[0].values["name"].toString());
 				scene->setup(app, sections[0].attributes, sections[0].values);
 			}
 			std::string basepath = "//" + req->getRealmName() + req->getParentPath() + "/" + scene->getPathName();
@@ -53,7 +53,7 @@ namespace Rhea
 			// add here because scene is skipped below
 			std::vector<Unit::Export> references = scene->getReferences();
 			for (auto ref_it = references.begin(); ref_it != references.end(); ++ref_it) {
-				std::string id = ref_it->value;
+				std::string id = ref_it->value.toString();
 				// if absolute path or base path it is a resource not satified by this scene file
 				if (id.size() > 1 && id[0] == '/') {
 					if (id[1] == '/')
@@ -72,7 +72,7 @@ namespace Rhea
 				auto val = section.values.find("type");
 				std::string type_name;
 				if (val != section.values.end()) {
-					type_name = val->second;
+					type_name = val->second.toString();
 				}
 				else {
 					LOG(LOG_ERROR) << "Type name not set";
@@ -115,7 +115,7 @@ namespace Rhea
 				// resource to load?
 				std::vector<Unit::Export> references = unit->getReferences();
 				for (auto ref_it = references.begin(); ref_it != references.end(); ++ref_it) {
-					std::string id = ref_it->value;
+					std::string id = ref_it->value.toString();
 					// if absolute path or base path it is a resource not satified by this scene file
 					if (id.size() > 1 && id[0] == '/') {
 						if (id[1] == '/')

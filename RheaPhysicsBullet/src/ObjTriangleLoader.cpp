@@ -45,7 +45,7 @@ bool ExtractTrianglesFromScene(Rhea::Application* app, Rhea::Item* item, Triangl
     // 3) Mesh unit should have geometry="cube2/cube_obj"
     std::string geoRef;
     std::string geoBasepathRef;
-    geoRef = meshUnit->getValue("geometry");
+    geoRef = meshUnit->getValueString("geometry");
     geoBasepathRef = basepathRef;
     if (geoRef.empty()) {
         LOG(LOG_ERROR) << "ExtractTrianglesFromScene: mesh unit missing 'geometry' ref: " << meshRef;
@@ -61,7 +61,7 @@ bool ExtractTrianglesFromScene(Rhea::Application* app, Rhea::Item* item, Triangl
 
     // 5) Geometry unit should have path="//local/cube1.obj"
     std::string objPathRef;
-    objPathRef = geoUnit->getValue("path");
+    objPathRef = geoUnit->getValueString("path");
     if (objPathRef.empty()) {
         LOG(LOG_ERROR) << "ExtractTrianglesFromScene: geometry unit missing 'path': " << geoRef;
         return false;

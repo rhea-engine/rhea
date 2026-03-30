@@ -20,7 +20,7 @@ namespace Rhea
 
 		val["text"] = getValue("text", "");
 		val["templating"] = false; // dont template the user input
-		m_text = val["text"];
+		m_text = val["text"].toString();
 		m_values["text"] = m_text;
 		val["placeholder"] = getValue("placeholder", "");
 		// multiline is not implemented yet
@@ -33,7 +33,7 @@ namespace Rhea
 			val["fillwidth"] = true;
 		else
 			val["fillsize"] = true;
-		m_placeholder = val["placeholder"];
+		m_placeholder = val["placeholder"].toString();
 		m_pos = m_text.size();
 		if (!m_pos) {
 			val["text"] = m_placeholder;
@@ -207,7 +207,7 @@ namespace Rhea
 				my_ev.values[m_pathname] = m_text;
 				bubbleEvent("submit", &my_ev);
 				if (m_values["onSubmit"] != Variant()) {
-					sendBoundEvent(m_values["onSubmit"], &my_ev);
+					sendBoundEvent(m_values["onSubmit"].toString(), &my_ev);
 				}
 			}
 			ev->stopPropagation();
@@ -279,7 +279,7 @@ namespace Rhea
 			if (!event_binding.target) {
 				// event binding?
 				if (m_values["onChange"] != Variant())
-					event_binding = m_app->getUnitTree()->getBinding(m_values["onChange"], m_attributes["basepath"]);
+					event_binding = m_app->getUnitTree()->getBinding(m_values["onChange"].toString(), m_attributes["basepath"]);
 			}
 			// send change event
 			if (event_binding.target) {

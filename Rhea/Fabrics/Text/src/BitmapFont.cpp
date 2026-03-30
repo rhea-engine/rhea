@@ -48,7 +48,7 @@ namespace Rhea
 		// load and add textures
 		if (m_values.find("texture") != m_values.end())
 		{						
-			Unit* tex = doCast<Unit>(m_app->getUnitTree()->find(m_values["texture"], m_attributes["basepath"], false));
+			Unit* tex = doCast<Unit>(m_app->getUnitTree()->find(m_values["texture"].toString(), m_attributes["basepath"], false));
 			if (tex) {
 
 				// create dummy material
@@ -57,7 +57,7 @@ namespace Rhea
 				m_material->setValue("shader", m_values["shader"]);
 
 				// get the shader
-				Shader* shader_res = doCast<Shader>(m_app->getUnitTree()->find(m_values["shader"], m_attributes["basepath"], false));
+				Shader* shader_res = doCast<Shader>(m_app->getUnitTree()->find(m_values["shader"].toString(), m_attributes["basepath"], false));
 				if (shader_res) {
 					m_material->setShaderRes(shader_res);
 				}
@@ -74,7 +74,7 @@ namespace Rhea
 
 		// load font description if any		
 		if (m_values.find("font_info")!=m_values.end()) {
-			TextResource* font_info = static_cast<TextResource*>(m_app->getUnitTree()->find(m_values["font_info"], m_attributes["basepath"], false));
+			TextResource* font_info = static_cast<TextResource*>(m_app->getUnitTree()->find(m_values["font_info"].toString(), m_attributes["basepath"], false));
 			if (font_info && font_info->isA("//meworla/text")) {
 				char* buf;
 				size_t buflen;

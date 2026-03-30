@@ -19,7 +19,7 @@ namespace SimpleParser
 		Variant(float f);
 		Variant(double f);
 		Variant(void* ptr);
-		Variant(std::string& s);
+		Variant(const std::string& s);
 		Variant(std::vector<Variant>& arr);
 		Variant(const Variant& variant);
 		Variant(const char* s);
@@ -27,16 +27,36 @@ namespace SimpleParser
 
 		virtual ~Variant();
 
-		// converters
-		operator std::string() const;
-		operator std::vector<Variant>() const;
-		operator Variant*() const;
-		operator float() const;
-		operator bool() const;
-		operator int() const;
-		Variant& operator[](int);
-		void operator=(const Variant& variant);
+		Variant& operator=(const Variant& other);
 
+		// named conversions
+		std::string toString() const;
+		int toInt() const;
+		int64_t toInt64() const;
+		float toFloat() const;
+		bool toBool() const;
+		std::vector<Variant> toArray() const;
+		Variant* toObject() const;
+		void* toPointer() const;
+
+		// explicit converters
+		explicit operator std::string() const { return toString(); }
+		operator int() const { return toInt(); }
+		operator float() const { return toFloat(); }
+		operator bool() const { return toBool(); }
+		operator Variant* () const { return toObject(); }
+		Variant& operator[](int);
+		const Variant& operator[](int i) const;
+
+		/*		operator std::string() const;
+				operator std::vector<Variant>() const;
+				operator Variant*() const;
+				operator float() const;
+				operator bool() const;
+				operator int() const;
+				Variant& operator[](int);
+				void operator=(const Variant& variant);
+		*/
 		// comparison
 		bool operator==(const Variant& variant) const;
 		bool operator!=(const Variant& variant) const;
@@ -44,12 +64,13 @@ namespace SimpleParser
 
 		// support functions
 		int length();
-		
+
 		int size() { return length(); }
 
 		// type info
 		Type* getType() { return m_type; }
-		std::string getTypeName() const; 
+		const Type* getType() const { return m_type; }
+		std::string getTypeName() const;
 		bool isA(std::string type_name) { return Type::get(type_name) == m_type; }
 		bool isArray() { return (m_type->m_base == Type::BaseType::ARRAY); }
 
@@ -64,6 +85,9 @@ namespace SimpleParser
 		}
 
 	protected:
+		void clear();
+		void copyFrom(const Variant& other);
+
 		union {
 			bool _bool;
 			int64_t _int;
@@ -74,8 +98,29 @@ namespace SimpleParser
 			Variant* _obj;
 		} m_data;
 
-		Type* m_type;
+		Type* m_type = nullptr;
+
+		static Variant* s_nullVariant;
 	};
 }
 
+template<class T>
+T* isCast(SimpleParser::Variant* src)
+{
+	return src && (src->getType() == T::staticType()) ? (T*)src : nullptr;
+
+};
+
+template<class T>
+T* doCast(SimpleParser::Variant* src)
+{
+	if (!src) return nullptr;
+	if (src->getType() == T::staticType()) return (T*)src;
+	SimpleParser::Type* p = src->getType()->getParent();
+	while (p) {
+		if (p == T::staticType()) return (T*)src;
+		p = p->getParent();
+	}
+	return nullptr;
+}
 #endif // !SIMPLEPARSER_VARIANT_H

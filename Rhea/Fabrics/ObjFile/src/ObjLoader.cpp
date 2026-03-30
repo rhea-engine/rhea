@@ -54,7 +54,7 @@ namespace Rhea
     {
 		std::vector<VertexAttribute> layout;
 
-		std::string shader_name = getValue("shadername", "//rhea/shaders/standard");
+		std::string shader_name = getValueString("shadername", "//rhea/shaders/standard");
         Shader* shader_res = doCast<Shader>(m_app->getUnitTree()->find(shader_name, m_attributes["basepath"], false));
         if (!shader_res) {
             LOG(LOG_ERROR) << "Could not find shader resource: " << shader_name;
@@ -67,13 +67,13 @@ namespace Rhea
         std::string mtlbuf;
 
         if (m_values.find("material") != m_values.end()) {
-            TextResource* mtl = (TextResource*)m_app->getUnitTree()->find(m_values["material"], m_attributes["basepath"], false);
+            TextResource* mtl = (TextResource*)m_app->getUnitTree()->find(m_values["material"].toString(), m_attributes["basepath"], false);
             if (mtl) {
                 mtlbuf = mtl->getAsString();
             }
         }
         if (m_values.find("path") != m_values.end()) {
-            TextResource* obj = (TextResource*)m_app->getUnitTree()->find(m_values["path"], m_attributes["basepath"], false);
+            TextResource* obj = (TextResource*)m_app->getUnitTree()->find(m_values["path"].toString(), m_attributes["basepath"], false);
             if (obj) {
                 objbuf = obj->getAsString();
             }
@@ -102,7 +102,7 @@ namespace Rhea
         if (m_values.find("diffuse_tex") != m_values.end()) {
 			Variant diffuse_tex = getValue("diffuse_tex");
             for (int i = 0; i < diffuse_tex.size(); i++) {               
-                ImageResource* tex = doCast<ImageResource>(m_app->getUnitTree()->find(diffuse_tex[i], m_attributes["basepath"], false));
+                ImageResource* tex = doCast<ImageResource>(m_app->getUnitTree()->find(diffuse_tex[i].toString(), m_attributes["basepath"], false));
 				diffuse_maps.push_back(tex);
             }
         }
@@ -111,7 +111,7 @@ namespace Rhea
 		if (m_values.find("normal_tex") != m_values.end()) {
 			Variant normal_tex = getValue("normal_tex");
 			for (int i = 0; i < normal_tex.size(); i++) {
-				ImageResource* tex = doCast<ImageResource>(m_app->getUnitTree()->find(normal_tex[i], m_attributes["basepath"], false));
+				ImageResource* tex = doCast<ImageResource>(m_app->getUnitTree()->find(normal_tex[i].toString(), m_attributes["basepath"], false));
 				normal_maps.push_back(tex);
 			}
 		}

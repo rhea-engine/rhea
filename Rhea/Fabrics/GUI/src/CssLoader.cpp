@@ -28,7 +28,7 @@ namespace Rhea {
 				ResourceList res_list(app);
 				std::vector<Unit::Export> references = css->getReferences();
 				for (auto ref_it = references.begin(); ref_it != references.end(); ++ref_it) {					
-					res_list.push(ref_it->name, ref_it->value, ref_it->type);					
+					res_list.push(ref_it->name, ref_it->value.toString(), ref_it->type);
 				}
 				static_cast<ResourceService*>(app->getService("resources"))->loadAsync(res_list, [css, handler](ResourceList* rh, Error* err) {
 					handler(ReqError::OK, css);

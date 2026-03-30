@@ -12,6 +12,10 @@ add_executable (Ceto "Ceto.h" "Ceto.cpp" "UserPrefs.h" "UserPrefs.cpp")
 target_link_libraries(Ceto Rhea::Core RheaFabrics Rhea::Client  nlohmann_json::nlohmann_json)
 #RheaPhysicsDebug
 
+# add a headless app for testing
+add_executable (Headless "Headless.cpp" "Headless.h")
+target_link_libraries(Headless Rhea::Core nlohmann_json::nlohmann_json)
+
 add_custom_command(TARGET Ceto POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
                 ${CMAKE_CURRENT_SOURCE_DIR}/Assets

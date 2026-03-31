@@ -8,6 +8,8 @@ namespace Hippios
 	public:
 		virtual ~SwapChain() {}
 
+		virtual bool isValid() const = 0;
+
 		// handle resize event
 		virtual void onResize(int width, int height) = 0;
 

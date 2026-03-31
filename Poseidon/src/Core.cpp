@@ -38,6 +38,31 @@ namespace Poseidon
 		// initialize the psio subsystem
 		m_psio = psio;
 
+		// get backend for windowing system
+		std::string window_backend = m_psio->getBackendName();
+		Hippios::WindowBackend win_backend;
+
+		// set win_backend based on psio backend
+		if (window_backend == "Win32") {
+			win_backend = Hippios::WindowBackend::Win32;
+		}
+		else if (window_backend == "X11") {
+			win_backend = Hippios::WindowBackend::X11;
+		}
+		else if (window_backend == "Wayland") {
+			win_backend = Hippios::WindowBackend::Wayland;
+		}
+		else if (window_backend == "SDL") {
+			win_backend = Hippios::WindowBackend::SDL;
+		}
+		else if (window_backend == "GLFW") {
+			win_backend = Hippios::WindowBackend::GLFW;
+		}
+		else {
+			LOG(LOG_INFO) << "Unknown window backend: " << window_backend << ", defaulting to GLFW";
+			win_backend = Hippios::WindowBackend::GLFW;
+		}
+
 		// initialize render sub system		
 		Hippios::RendererBackend renderer_backend;
 		if (backend == "auto") {
@@ -74,7 +99,7 @@ namespace Poseidon
 			m_renderer_backend = "opengl";
 #endif
 		}
-		m_renderer = Hippios::Renderer::CreateRenderer(renderer_backend);
+		m_renderer = Hippios::Renderer::CreateRenderer(renderer_backend, win_backend);
 
 		// add a root window which is also the root viewport		
 		std::string name = "root";

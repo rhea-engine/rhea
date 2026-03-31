@@ -18,11 +18,12 @@ namespace Hippios
 	class GLIndexBuffer;
 	class GLShader;
 	class GLSamplerState;
+	class GlContext;
 
 	class GLRenderer : public Renderer
 	{
 	public:
-		GLRenderer();
+		GLRenderer(WindowBackend window_backend);
 		~GLRenderer();
 		
 		std::unique_ptr<RenderTarget> createRenderTarget(const RenderTargetDesc& desc) override;
@@ -65,10 +66,9 @@ namespace Hippios
 		void prepareMatricesForShader(Math::Matrix4* dst, const Math::Matrix4* src, size_t count) const;		
 
 	private:
-		bool setupPixelFormat(HDC hdc);
-		bool createSharedContext(HDC hdc);
+		WindowBackend m_backend = WindowBackend::Unknown;
 
-		HGLRC m_glrc = nullptr;		
+		std::unique_ptr<GlContext> m_context;
 
 		GLVertexBuffer* m_last_vb = nullptr;
 		GLIndexBuffer* m_last_ib = nullptr;

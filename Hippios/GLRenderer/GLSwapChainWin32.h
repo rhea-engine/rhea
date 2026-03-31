@@ -1,5 +1,5 @@
-#ifndef GL_SWAPCHAIN_H
-#define GL_SWAPCHAIN_H
+#ifndef HIPPIOS_GLSWAPCHAINWIN32_H
+#define HIPPIOS_GLSWAPCHAINWIN32_H
 
 #include <Hippios/SwapChain.h>
 #include <Hippios/BaseTypes.h>
@@ -7,11 +7,13 @@
 
 namespace Hippios
 {
-	class GLSwapChain : public SwapChain
+	class GLSwapChainWin32 : public SwapChain
 	{
 	public:
-		GLSwapChain(HDC hdc, NativeWindow* win);
-		~GLSwapChain();
+		GLSwapChainWin32(NativeWindow* win);
+		~GLSwapChainWin32();
+
+		bool isValid() const override;
 
 		void onResize(int width, int height) override;
 		void SetFullscreen(bool mode) override;
@@ -19,9 +21,9 @@ namespace Hippios
 		HDC getHDC() const { return m_hdc; }
 		void* getWindowHandle() const { return m_native_win_handle; }
 
-	private:
-		HDC m_hdc;
-		void* m_native_win_handle;		
+	protected:
+		HDC m_hdc = nullptr;
+		void* m_native_win_handle = nullptr;
 	};
 }
-#endif // !GL_SWAPCHAIN_H
+#endif // !HIPPIOS_GLSWAPCHAINWIN32_H

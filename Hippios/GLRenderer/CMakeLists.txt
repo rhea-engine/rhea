@@ -13,12 +13,12 @@ add_library(GLRenderer STATIC
   GLStencilState.cpp
   GLPipelineState.cpp
   GLBlendState.cpp
-  GLSwapChain.cpp
+  "GLSwapChainWin32.cpp"
   GLRenderTarget.cpp
   GLBaseTypes.cpp
   GLShaderProgram.cpp
   GLSamplerState.cpp
-)
+ "WglContext.cpp" )
 
 find_package(OpenGL REQUIRED)
 

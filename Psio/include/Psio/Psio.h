@@ -59,6 +59,9 @@ namespace Psio
 		// Returns the system time, in microseconds
 		uint64_t getTicks();
 
+		// return the kind of backend in use
+		const char* getBackendName();
+
 	protected:
 		std::unique_ptr<IBackend> m_backend;
 		std::unique_ptr<Input> m_input;

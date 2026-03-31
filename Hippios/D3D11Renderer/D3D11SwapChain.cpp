@@ -11,6 +11,11 @@ namespace Hippios
 		}
 	}
 
+	bool D3D11SwapChain::isValid() const
+	{
+		return (m_swapchain != nullptr);
+	}
+
 	void D3D11SwapChain::onResize(int width, int height)
 	{
 		if (m_swapchain)

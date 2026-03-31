@@ -120,4 +120,9 @@ namespace Psio
 
 		return window;
 	}
+
+	const char* Engine::getBackendName()
+	{
+		return m_backend ? m_backend->GetName() : "No Backend";
+	}
 }

@@ -14,6 +14,8 @@ namespace Hippios
 		{}
 		~D3D11SwapChain();
 
+		bool isValid() const override;
+
 		// methods from base class
 		void onResize(int width, int height);
 

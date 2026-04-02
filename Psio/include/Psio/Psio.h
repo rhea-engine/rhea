@@ -23,6 +23,39 @@ namespace Psio
 		SDL
 	};
 
+	enum class WindowOption
+	{
+		None = 0,
+		OpenGL = 1,
+		Vulkan = 2,
+		Fullscreen = 4,
+	};
+
+	inline WindowOption operator|(WindowOption a, WindowOption b)
+	{
+		return static_cast<WindowOption>(
+			static_cast<int>(a) | static_cast<int>(b)
+			);
+	}
+
+	inline WindowOption operator&(WindowOption a, WindowOption b)
+	{
+		return static_cast<WindowOption>(
+			static_cast<int>(a) & static_cast<int>(b)
+			);
+	}
+
+	inline WindowOption& operator|=(WindowOption& a, WindowOption b)
+	{
+		a = a | b;
+		return a;
+	}
+
+	inline bool hasFlag(WindowOption value, WindowOption flag)
+	{
+		return (value & flag) == flag;
+	}
+
 	class Engine
 	{
 	public:
@@ -30,7 +63,7 @@ namespace Psio
 		~Engine();
 
 		// create a window
-		std::unique_ptr <Window> createWindow(std::string name, int width, int height);
+		std::unique_ptr <Window> createWindow(std::string name, int width, int height, WindowOption options);
 
 		// get input Handler
 		Input* getInput() { return m_input.get(); }

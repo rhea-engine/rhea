@@ -17,6 +17,7 @@ namespace Psio
 			m_height(height),			
 			m_input(nullptr)
 		{}
+		virtual ~Window() = default;
 		virtual void create() = 0;
 		virtual void destroy() = 0;
 		

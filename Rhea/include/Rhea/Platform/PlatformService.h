@@ -18,12 +18,13 @@ namespace Rhea
 	public:
 		PlatformService(std::string name, std::string type_name);
 
-		Psio::Engine* getEngine() { return m_psio.get(); }
+		Psio::Engine* getEngine() { if (!m_psio) createEngine(); return m_psio.get(); }
 
 		// Service functions
 		void onInit();
 	
 	protected:
+		Psio::Engine* createEngine();
 		std::unique_ptr<Psio::Engine> m_psio;
 	};
 }

@@ -17,9 +17,19 @@ namespace Hippios
 		COMPARE_ALWAYS = 7
 	};
 
+	enum class WindowBackend
+	{
+		Unknown = 0,
+		Win32,
+		X11,
+		Wayland,
+		SDL,
+		GLFW
+	};
+
 	struct NativeWindow
 	{
-		void* native_win_handle;
+		void* native_win_handle = nullptr;
 		int width = -1;
 		int height = -1;
 	};

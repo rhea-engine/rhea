@@ -125,7 +125,7 @@ namespace Rhea
 			}
 
 			// Process whitespace as a single token (e.g. space, tab)
-			if (isspace(sentence[i])) {
+			if (isspace(static_cast<unsigned char>(sentence[i]))) {
 				Glyph* glyph = font->getGlyph(static_cast<unsigned int>(sentence[i]));
 				if (!glyph) {
 					i++;
@@ -161,7 +161,7 @@ namespace Rhea
 			size_t word_start = i;
 			float word_width = 0.0f;
 			size_t j = i;
-			while (j < sentence.size() && !isspace(sentence[j]) && sentence[j] != '\n') {
+			while (j < sentence.size() && !isspace(static_cast<unsigned char>(sentence[j])) && sentence[j] != '\n') {
 				Glyph* glyph = font->getGlyph(static_cast<unsigned int>(sentence[j]));
 				if (glyph)
 					word_width += glyph->advance;
@@ -371,7 +371,7 @@ namespace Rhea
 			}
 
 			// Process whitespace as a single token (spaces, tabs, etc.)
-			if (isspace(sentence[i])) {
+			if (isspace(static_cast<unsigned char>(sentence[i]))) {
 				Glyph* glyph = font->getGlyph(static_cast<unsigned char>(sentence[i]));
 				if (!glyph) {
 					i++;
@@ -397,7 +397,7 @@ namespace Rhea
 			size_t word_start = i;
 			float word_width = 0.0f;
 			size_t j = i;
-			while (j < sentence.size() && sentence[j] != '\n' && !isspace(sentence[j])) {
+			while (j < sentence.size() && sentence[j] != '\n' && !isspace(static_cast<unsigned char>(sentence[j]))) {
 				Glyph* glyph = font->getGlyph(static_cast<unsigned char>(sentence[j]));
 				if (glyph)
 					word_width += glyph->advance;

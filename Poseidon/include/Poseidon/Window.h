@@ -31,6 +31,7 @@ namespace Poseidon
 		std::unique_ptr<Hippios::SwapChain> m_swap_chain;
 		std::unique_ptr<Psio::Window> m_native_win;
 		std::string m_win_name;
+		Hippios::NativeWindow m_render_window{};
 	};
 }
 #endif // !POSEIDON_WINDOW_H

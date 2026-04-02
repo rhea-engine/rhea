@@ -49,6 +49,19 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(nlohmann_json)
 
+option(ENABLE_SDL "Enable SDL" ON)
+
+# SDL
+if(ENABLE_SDL)
+    FetchContent_Declare(
+	    SDL3
+	    GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
+		GIT_TAG release-3.2.10
+	)
+
+	FetchContent_MakeAvailable(SDL3)
+endif()
+
 # Target definition
 add_library(RheaEngine INTERFACE)
 

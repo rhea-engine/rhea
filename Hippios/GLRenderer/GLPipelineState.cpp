@@ -255,7 +255,7 @@ namespace Hippios
 			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		else
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
+		
 		switch (m_cull_mode) {
 		case CullMode::FRONT:
 			glEnable(GL_CULL_FACE);
@@ -269,7 +269,7 @@ namespace Hippios
 			glDisable(GL_CULL_FACE);
 			break;
 		}
-
+		
 		// Stencil/Depth
 		m_stencil_state->setState(0);
 

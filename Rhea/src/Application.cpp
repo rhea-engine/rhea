@@ -75,7 +75,6 @@ namespace Rhea
 #else
 		Log::logger().setLevel(LOG_INFO);
 #endif // DEBUG
-
 		
 		// register core types
 		SimpleParser::Type::registerType<Component>("//core/types/component"); 
@@ -94,18 +93,26 @@ namespace Rhea
 		m_unit_tree.reset((UnitTree*)SimpleParser::Type::create("/", "//core/unittree"));
 		m_unit_tree->setup(this);
 
+		ConfigFile* config = SimpleParser::Type::create<ConfigFile>("config");
+		config->setup(this);
+		m_unit_tree->addChild(config);
+		config->fromCommandLineArgs(argc, argv);
+
 		Service* psio = (PlatformService*)SimpleParser::Type::create("PlatformService", "//meworla/platformservice");
+		std::string psio_backend = config->getValueString("platform.backend", "auto");
+		psio->setValue("backend", psio_backend);
 		psio->setup(this);
 		m_services["platform"] = psio;
 
 		m_fs = new Orion::Orion(static_cast<PlatformService*>(psio)->getEngine(), m_appname);
 
-		// load config file
-		ConfigFile* config = SimpleParser::Type::create<ConfigFile>("config");
-		config->setup(this);
-		m_unit_tree->addChild(config);
+		std::string app_dir = config->getValueString("appdir", "");
+		if (!app_dir.empty()) {
+			setAppDir(app_dir.c_str());
+		}
+
+		// load config file		
 		config->loadFromFile("config.ini");
-		config->fromCommandLineArgs(argc, argv);
 
 		// log-level from config
 		std::string log_level = config->getValueString("log.level", "info");
@@ -213,7 +220,7 @@ namespace Rhea
 	void Application::setAppDir(const char* path)
 	{
 		if (!m_fs) {
-			printf("Error: SetAppDir called before App::init()\n");
+			LOG(LOG_FATAL) << "Error: SetAppDir called before App::init()";
 			exit(-1);
 		}
 		m_fs->setLocalDir(path);
@@ -222,7 +229,7 @@ namespace Rhea
 
 	void Application::onResourceFailed(Orion::ResourceRequest::Error reason)
 	{
-		printf("Resource loading failed\n");
+		LOG(LOG_ERROR) << "Resource loading failed";
 	}
 
 	bool Application::onInput(EventInput* e, Unit* unit)

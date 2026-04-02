@@ -26,16 +26,6 @@ namespace Hippios
 		OpenGL
 	};
 
-	enum class WindowBackend
-	{
-		Unknown = 0,
-		Win32,
-		X11,
-		Wayland,
-		SDL,
-		GLFW
-	};
-
 	/**
 	* @class Renderer
 	* @brief Abstract base class defining a rendering API interface.
@@ -261,7 +251,13 @@ namespace Hippios
 		 * @param src The source array of matrices to be prepared.
 		 * @param count The number of matrices in the source array.
 		 */
-		virtual void prepareMatricesForShader(Math::Matrix4* dst, const Math::Matrix4* src, size_t count) const = 0;
+		virtual void prepareMatricesForShader(Math::Matrix4* dst, const Math::Matrix4* src, size_t count) const = 0;		
+
+		/**
+		 * @brief Returns the used renderer backend.
+		 * @return The renderer backend in use.
+		 */
+		virtual RendererBackend getRendererBackend() const = 0;		
 
 		// static factory method to create a renderer instance based on the platform
 		static std::unique_ptr<Renderer> CreateRenderer(RendererBackend backend, WindowBackend window_backend);

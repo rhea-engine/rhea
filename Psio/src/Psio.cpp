@@ -10,8 +10,16 @@
 #include <Psio/Fs/Fs.h>
 #include <stdexcept>
 #include "Backend/IBackend.h"
+#ifdef PSIO_HAS_WIN32
 #include "Platform/Win32/Win32Backend.h"
+#endif 
+#ifdef PSIO_HAS_UNIX
 #include "Platform/Unix/UnixBackend.h"
+#endif 
+#ifdef PSIO_HAS_SDL
+#include "Platform/SDL/SDLBackend.h"
+#endif
+#include <Psio/Log.h>
 
 namespace Psio
 {
@@ -20,6 +28,7 @@ namespace Psio
 		if (preferred == BackendKind::SDL)
 		{
 #ifdef PSIO_HAS_SDL
+			LOG(LOG_INFO) << "Using SDL backend as requested.";
 			return std::make_unique<SDLBackend>();
 #else
 			throw std::runtime_error("SDL backend requested but not available.");
@@ -29,6 +38,7 @@ namespace Psio
 		if (preferred == BackendKind::Win32)
 		{
 #ifdef PSIO_HAS_WIN32
+			LOG(LOG_INFO) << "Using Win32 backend as requested.";
 			return std::make_unique<Win32Backend>();
 #else
 			throw std::runtime_error("Win32 backend requested but not available.");
@@ -38,6 +48,7 @@ namespace Psio
 		if (preferred == BackendKind::Unix)
 		{
 #ifdef PSIO_HAS_UNIX
+			LOG(LOG_INFO) << "Using Unix backend as requested.";
 			return std::make_unique<UnixBackend>();
 #else
 			throw std::runtime_error("Unix backend requested but not available.");
@@ -46,10 +57,13 @@ namespace Psio
 
 		// Auto mode: choose best available for this platform
 #ifdef PSIO_HAS_WIN32
+		LOG(LOG_INFO) << "Auto-selecting Win32 backend.";
 		return std::make_unique<Win32Backend>();
 #elif defined(PSIO_HAS_UNIX)
+		LOG(LOG_INFO) << "Auto-selecting Unix backend.";
 		return std::make_unique<UnixBackend>();
 #elif defined(PSIO_HAS_SDL)
+		LOG(LOG_INFO) << "Auto-selecting SDL backend.";
 		return std::make_unique<SDLBackend>();
 #else
 		throw std::runtime_error("No supported Psio backend available.");
@@ -105,13 +119,13 @@ namespace Psio
 		return Timer::getTicks();
 	}
 
-	std::unique_ptr <Window> Engine::createWindow(std::string name, int width, int height)
+	std::unique_ptr <Window> Engine::createWindow(std::string name, int width, int height, WindowOption options)
 	{
 		if (!m_backend) {
 			throw std::runtime_error("Cannot create window: backend not initialized.");
 		}
 
-		std::unique_ptr<Window> window = m_backend->CreateNativeWindow(name, width, height);
+		std::unique_ptr<Window> window = m_backend->CreateNativeWindow(name, width, height, options);
 		
 		if (window) {
 			window->setInput(m_input.get());

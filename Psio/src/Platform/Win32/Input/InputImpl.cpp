@@ -2,6 +2,7 @@
 
 #include <Psio/Input/Input.h>
 #include "InputWin32.h"
+#include "../../../Input/InputEventBuilder.h"
 
 namespace Psio
 {
@@ -15,8 +16,7 @@ namespace Psio
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 			if (msg.message == WM_QUIT) {
-				std::shared_ptr<InputEvent> evt = InputEvent::createEvent(InputEventId::WMGR_QUIT);
-				addEvent(evt);
+				addEvent(BuildQuitEvent());
 			}
 		}
 	}

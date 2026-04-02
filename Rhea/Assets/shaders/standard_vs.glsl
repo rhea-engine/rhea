@@ -29,12 +29,13 @@ void main()
 {
     vec4 position = vec4(a_position, 1.0);
 
-    vec4 worldPos = position * world_matrix;
-    v_normal = normalize(a_normal * mat3(transpose(inverse_matrix)));
-    gl_Position = vec4(worldPos.xyz, 1.0) * VP;
-    v_tex = a_texcoord;
-    v_positionWS = vec4(worldPos.xyz, 1.0);
+    vec4 worldPos = world_matrix * position;
+    gl_Position = VP * worldPos;
 
-    v_tangent = normalize(a_tangent * mat3(world_matrix));
+    v_normal = normalize(mat3(transpose(inverse_matrix)) * a_normal);
+    v_tangent = normalize(mat3(world_matrix) * a_tangent);
     v_bitangent = normalize(cross(v_tangent, v_normal));
+
+    v_tex = a_texcoord;
+    v_positionWS = worldPos;
 }

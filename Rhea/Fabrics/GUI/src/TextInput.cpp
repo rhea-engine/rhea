@@ -181,8 +181,8 @@ namespace Rhea
 	bool TextInput::onTextInput(Event* ev, Unit* unit)
 	{
 		std::shared_ptr<Psio::InputEvent> e = static_cast<EventInput*>(ev)->getEvent();
-		uint8_t code = static_cast<Psio::KeyInputEvent*>(e.get())->getCode();
-		switch (code) {
+		std::string text = static_cast<Psio::TextInputEvent*>(e.get())->getText();
+		switch (text[0]) {
 		case '\b':
 			if (m_pos > 0) {
 				m_text = m_text.substr(0, m_pos - 1) + m_text.substr(m_pos);
@@ -214,12 +214,12 @@ namespace Rhea
 			break;
 		default:
 			std::string new_text = m_text.substr(0, m_pos);
-			new_text += code;
+			new_text += text;
 			if (m_pos<m_length)
 				new_text += m_text.substr(m_pos);
 			m_text = new_text;
-			m_pos++;
-			m_length++;
+			m_pos += text.size();
+			m_length += text.size();
 			updateText(true);
 			updateCursor();
 			ev->stopPropagation();

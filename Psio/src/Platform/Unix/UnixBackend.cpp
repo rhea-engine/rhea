@@ -30,7 +30,7 @@ namespace Psio
         return input;
     }
 
-    std::unique_ptr<Window> UnixBackend::CreateNativeWindow(std::string name, int width, int height)
+    std::unique_ptr<Window> UnixBackend::CreateNativeWindow(std::string name, int width, int height, WindowOption options)
     {
         // TODO: Implement Unix window (X11/Wayland) or return nullptr if headless
         // For now, return nullptr - can be implemented later with X11 or SDL

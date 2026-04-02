@@ -21,6 +21,7 @@ target_link_libraries(Hippios PUBLIC
 # Option to select the rendering backend
 option(HIPPIOS_USE_OPENGL "Add OpenGL renderer" ON)
 option(HIPPIOS_USE_D3D11 "Use DirectX11 renderer" ON)
+option(HIPPIOS_USE_SDL "Use SDL window system" ON)
 
 # Disable D3D11 automatically on non-Windows
 if(NOT WIN32)
@@ -36,6 +37,7 @@ if(HIPPIOS_USE_OPENGL)
   add_subdirectory(GLRenderer)
   target_link_libraries(Hippios PUBLIC GLRenderer)
 endif()
+
 if(HIPPIOS_USE_D3D11)
   # search only if right platform
   # for now only Direct3dDX11 is supported
@@ -89,3 +91,18 @@ if(HIPPIOS_USE_D3D11)
   endif()
 endif()
 
+if (HIPPIOS_USE_SDL)
+	if(NOT TARGET SDL3::SDL3)
+		find_package(SDL3 CONFIG QUIET)
+
+	    if(NOT TARGET SDL3::SDL3)
+	        include(FetchContent)
+		    FetchContent_Declare(
+			    SDL3
+				GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
+				GIT_TAG release-3.2.10
+			)
+			FetchContent_MakeAvailable(SDL3)
+		endif()
+	endif()
+endif()

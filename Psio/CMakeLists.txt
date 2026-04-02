@@ -6,7 +6,7 @@ add_library(Psio STATIC "src/Psio.cpp"  "src/Window/Window.cpp" "src/Util.cpp" "
 "src/Net/Socket/ConnectorFactory.cpp" "src/Net/Socket/TCPConnector.cpp"
 "src/Image/Image.cpp" 
 "src/IPC/NamedPipe.cpp" "src/IPC/Process.cpp" "src/IPC/Pipe.cpp" "src/IPC/IO.cpp" 
-"src/Fs/Fs.cpp")
+"src/Fs/Fs.cpp" "src/Input/InputEventBuilder.cpp")
 
 add_library(Meworla::Psio ALIAS Psio)
 target_include_directories(Psio PUBLIC
@@ -18,6 +18,7 @@ target_link_libraries(Psio PRIVATE Meworla::StbImage)
 # options
 option(PSIO_ENABLE_WIN32 "Enable Win32 backend" ON)
 option(PSIO_ENABLE_UNIX "Enable Unix backend" ON)
+option(PSIO_ENABLE_SDL "Enable SDL backend" ON)
 
 if (WIN32 AND PSIO_ENABLE_WIN32)
     target_compile_definitions(Psio PRIVATE PSIO_HAS_WIN32=1)
@@ -26,6 +27,34 @@ endif()
 if (UNIX AND PSIO_ENABLE_UNIX)
     target_compile_definitions(Psio PRIVATE PSIO_HAS_UNIX=1)
 endif()
+
+include(FetchContent)
+
+if(PSIO_ENABLE_SDL)
+	if(NOT TARGET SDL3::SDL3)
+		find_package(SDL3 CONFIG QUIET)
+
+	    if(NOT TARGET SDL3::SDL3)
+	        include(FetchContent)
+		    FetchContent_Declare(
+			    SDL3
+				GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
+				GIT_TAG release-3.2.10
+			)
+			FetchContent_MakeAvailable(SDL3)
+		endif()
+	endif()
+    target_link_libraries(Psio PRIVATE SDL3::SDL3)
+    target_compile_definitions(Psio PRIVATE PSIO_HAS_SDL=1)
+
+    target_sources(Psio PRIVATE
+        src/Platform/SDL/SDLBackend.cpp
+        src/Platform/SDL/Input/SDLInput.cpp
+        src/Platform/SDL/Input/SDLKeyTranslation.cpp
+        src/Platform/SDL/Window/SDLWindow.cpp
+    )
+endif()
+
 
 if (WIN32)
 	target_sources(Psio PRIVATE 

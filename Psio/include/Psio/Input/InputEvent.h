@@ -3,6 +3,7 @@
 
 #include <memory>
 #include <cstdint>
+#include <string>
 
 namespace Psio
 {
@@ -32,6 +33,7 @@ namespace Psio
 			m_hash(0),
 			m_canceled(false)
 		{}
+		virtual ~InputEvent() = default;
 
 		// factory
 		static std::shared_ptr<InputEvent> createEvent(InputEventId id);
@@ -43,10 +45,10 @@ namespace Psio
 		void setModifiers(bool shift, bool alt, bool ctrl);
 
 		// get id
-		InputEventId getId() { return m_id; }
+		InputEventId getId() const { return m_id; }
 
 		// canceling
-		bool isCanceled() { return m_canceled; }
+		bool isCanceled() const { return m_canceled; }
 		void cancel() { m_canceled = true; }
 
 		// helper for hashing the input events
@@ -82,13 +84,30 @@ namespace Psio
 
 		void set(uint32_t keycode, uint32_t physical_keycode, uint8_t unicode);
 
-		uint8_t getCode() { return m_unicode; }
-		uint32_t getKeyCode() { return m_keycode; }
+		uint8_t getCode() const { return m_unicode; }
+		uint32_t getKeyCode() const { return m_keycode; }
 
 	protected:
 		uint32_t m_keycode;
 		uint32_t m_physical_keycode;
 		uint8_t m_unicode;
+	};
+
+	class TextInputEvent : public InputEvent
+	{
+	public:
+		explicit TextInputEvent(const std::string& utf8Text) :
+			InputEvent(InputEventId::TEXT), m_text(utf8Text)
+		{
+		}
+
+		bool isEvent(InputEvent* evt);
+
+		void setText(const std::string& utf8Text) { m_text = utf8Text; }
+		const std::string& getText() const { return m_text; }
+
+	private:
+		std::string m_text;
 	};
 
 	class MouseInputEvent : public InputEvent
@@ -109,8 +128,8 @@ namespace Psio
 		void setBtn(bool left, bool right, bool middle);
 		void setPos(int x, int y);
 
-		int getX() { return m_x; }
-		int getY() { return m_y; }
+		int getX() const { return m_x; }
+		int getY() const { return m_y; }
 
 	protected:
 		bool m_left;

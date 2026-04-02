@@ -11,15 +11,22 @@ namespace Psio
 		case InputEventId::NONE:
 			return NULL;
 		case InputEventId::KEY_PRESSED:
-		case InputEventId::KEY_RELEASED:
+		case InputEventId::KEY_RELEASED:		
 			evt = std::make_shared<KeyInputEvent>(id);
+			return evt;
+			break;
+		case InputEventId::TEXT:
+			evt = std::make_shared<TextInputEvent>("");
 			return evt;
 			break;
 		case InputEventId::MOUSE_MOVE:
 		case InputEventId::MOUSE_BTN_PRESSED:
 		case InputEventId::MOUSE_BTN_RELEASED:
-			return NULL;
+		case InputEventId::MOUSE_BTN_DBLCLICK:
+			return std::make_shared<MouseInputEvent>(id);
 			break;
+		case InputEventId::WMGR_QUIT:
+		case InputEventId::WIN_SIZE:
 		default:
 			evt = std::make_shared<InputEvent>(id);
 			return evt;
@@ -46,10 +53,12 @@ namespace Psio
 	bool KeyInputEvent::isEvent(InputEvent* evt)
 	{
 		// make sure we have the matching id
-		if (evt->getId() != m_id)
+		if (!evt || evt->getId() != m_id)
 			return false;
 
-		KeyInputEvent* e = (KeyInputEvent*)evt;
+		KeyInputEvent* e = dynamic_cast<KeyInputEvent*>(evt);
+		if (!e)
+			return false;
 
 		if (e->m_id == InputEventId::KEY_RELEASED)
 		{
@@ -70,9 +79,9 @@ namespace Psio
 	void KeyInputEvent::updateHash(int raw)
 	{
 		if (m_keycode)
-			raw |= m_keycode << 16;
+			raw |= static_cast<int>(m_keycode << 16);
 		else
-			raw |= m_physical_keycode << 16;
+			raw |= static_cast<int>(m_physical_keycode << 16);
 		InputEvent::updateHash(raw);
 	}
 	
@@ -84,13 +93,26 @@ namespace Psio
 		m_hash = 0;
 	}
 	
+	bool TextInputEvent::isEvent(InputEvent* evt)
+	{
+		// make sure we have the matching id
+		if (!evt || evt->getId() != m_id)
+			return false;
+		auto* e = dynamic_cast<TextInputEvent*>(evt);
+		if (!e)
+			return false;
+		return e->m_text == m_text && e->m_alt == m_alt && e->m_shift == m_shift && e->m_ctrl == m_ctrl;
+	}
+
 	bool MouseInputEvent::isEvent(InputEvent* evt)
 	{
 		// make sure we have the matching id
-		if (evt->getId() != m_id)
+		if (!evt || evt->getId() != m_id)
 			return false;
 
-		MouseInputEvent* e = (MouseInputEvent*)evt;
+		auto* e = dynamic_cast<MouseInputEvent*>(evt);
+		if (!e)
+			return false;
 
 		return e->m_left == m_left && e->m_right == m_right && e->m_middle == m_middle
 			&& e->m_alt == m_alt && e->m_shift == m_shift && e->m_ctrl == m_ctrl;
@@ -116,5 +138,6 @@ namespace Psio
 	{
 		m_x = x;
 		m_y = y;
+		m_hash = 0;
 	}
 }

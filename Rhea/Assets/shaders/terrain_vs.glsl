@@ -26,9 +26,10 @@ void main()
 {
     vec4 position = vec4(a_position, 1.0);
 
-    vec4 worldPos = position * worldMatrix;
-    v_normal = normalize(a_normal * mat3(transpose(invModel)));
-    gl_Position = vec4(worldPos.xyz, 1.0) * VP;
+    vec4 worldPos = worldMatrix * position;
+    gl_Position = VP * worldPos;
+
+    v_normal = normalize(mat3(transpose(invModel)) * a_normal);
     v_tex = a_texcoord;
-    v_positionWS = vec4(worldPos.xyz, 1.0);
+    v_positionWS = worldPos;
 }

@@ -348,7 +348,7 @@ namespace Rhea
 				std::shared_ptr<Psio::WinSizeEvent> me = std::static_pointer_cast<Psio::WinSizeEvent>(e->getEvent());
 				viewport_width = me->width();
 				viewport_height = me->height();
-				if (viewport_width > 0 && viewport_height > 0) 
+				if (viewport_width > 0 && viewport_height > 0)
 				{
 					Poseidon::Window* window = m_core->get_scene_manager()->getWindow(me->getWindow());
 					if (!window) {

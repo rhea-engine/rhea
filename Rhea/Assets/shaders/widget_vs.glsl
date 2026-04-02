@@ -26,16 +26,9 @@ layout(std140) uniform cbBackground
 out vec2 v_tex;
 
 void main()
-{
+{   
     vec4 position = vec4(a_position, 1.0);
-
-    mat4 vp = transpose(VP);
-    mat4 model = transpose(world_matrix);
-
-    position.x += world_matrix[0][3];
-    position.y += world_matrix[1][3];
-
-    gl_Position = position * VP;
+    gl_Position = VP * world_matrix * position;
 
     vec2 texTransform = vec2(
         (tiling.x > 1.0) ? tiling.x : scaling.x,

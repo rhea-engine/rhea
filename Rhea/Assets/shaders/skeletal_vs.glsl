@@ -49,48 +49,31 @@ void main()
     else
         w = vec4(1.0, 0.0, 0.0, 0.0);
 
-    // Skin position by transforming with each bone separately, then blending.
-    vec4 p0 = position * boneMatrices[j0];
-    vec4 p1 = position * boneMatrices[j1];
-    vec4 p2 = position * boneMatrices[j2];
-    vec4 p3 = position * boneMatrices[j3];
-
     vec4 skinnedPosition =
-        p0 * w.x +
-        p1 * w.y +
-        p2 * w.z +
-        p3 * w.w;
-
-    // Skin normal/tangent the same way, using the 3x3 part of each bone matrix.
-    vec3 n0 = a_normal * mat3(boneMatrices[j0]);
-    vec3 n1 = a_normal * mat3(boneMatrices[j1]);
-    vec3 n2 = a_normal * mat3(boneMatrices[j2]);
-    vec3 n3 = a_normal * mat3(boneMatrices[j3]);
-
-    vec3 t0 = a_tangent * mat3(boneMatrices[j0]);
-    vec3 t1 = a_tangent * mat3(boneMatrices[j1]);
-    vec3 t2 = a_tangent * mat3(boneMatrices[j2]);
-    vec3 t3 = a_tangent * mat3(boneMatrices[j3]);
+          (boneMatrices[j0] * position) * w.x
+        + (boneMatrices[j1] * position) * w.y
+        + (boneMatrices[j2] * position) * w.z
+        + (boneMatrices[j3] * position) * w.w;
 
     vec3 skinnedNormal =
-        n0 * w.x +
-        n1 * w.y +
-        n2 * w.z +
-        n3 * w.w;
+          (mat3(boneMatrices[j0]) * a_normal) * w.x
+        + (mat3(boneMatrices[j1]) * a_normal) * w.y
+        + (mat3(boneMatrices[j2]) * a_normal) * w.z
+        + (mat3(boneMatrices[j3]) * a_normal) * w.w;
 
     vec3 skinnedTangent =
-        t0 * w.x +
-        t1 * w.y +
-        t2 * w.z +
-        t3 * w.w;
+          (mat3(boneMatrices[j0]) * a_tangent) * w.x
+        + (mat3(boneMatrices[j1]) * a_tangent) * w.y
+        + (mat3(boneMatrices[j2]) * a_tangent) * w.z
+        + (mat3(boneMatrices[j3]) * a_tangent) * w.w;
 
-    vec4 worldPos = skinnedPosition * world_matrix;
-    gl_Position = vec4(worldPos.xyz, 1.0) * VP;
+    vec4 worldPos = world_matrix * skinnedPosition;
+    gl_Position = VP * worldPos;
 
-    v_normal = normalize(skinnedNormal * mat3(transpose(inverse_matrix)));
-    v_tangent = normalize(skinnedTangent * mat3(world_matrix));
+    v_normal = normalize(mat3(inverse_matrix) * skinnedNormal);
+    v_tangent = normalize(mat3(world_matrix) * skinnedTangent);
     v_bitangent = normalize(cross(v_tangent, v_normal));
 
     v_tex = a_texcoord;
-    v_positionWS = vec4(worldPos.xyz, 1.0);
+    v_positionWS = worldPos;
 }

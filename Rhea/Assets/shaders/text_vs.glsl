@@ -23,9 +23,6 @@ void main()
 {
     vec4 position = vec4(a_position, 1.0);
 
-    position.x += world_matrix[0][3];
-    position.y += world_matrix[1][3];
-
-    gl_Position = position * VP;
+    gl_Position = VP * position;
     v_tex = a_texcoord;
 }

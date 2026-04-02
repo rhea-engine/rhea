@@ -18,7 +18,7 @@ add_library(GLRenderer STATIC
   GLBaseTypes.cpp
   GLShaderProgram.cpp
   GLSamplerState.cpp
- "WglContext.cpp" )
+ "WglContext.cpp"  "GLSwapChainSDL.cpp" "SdlContext.cpp")
 
 find_package(OpenGL REQUIRED)
 
@@ -32,3 +32,6 @@ target_link_libraries(GLRenderer
   PUBLIC
     glad
 )
+
+target_link_libraries(GLRenderer PRIVATE SDL3::SDL3)
+target_compile_definitions(GLRenderer PRIVATE HIPPIOS_HAS_SDL=1)

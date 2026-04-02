@@ -1,4 +1,5 @@
 #include "GLRenderer.h"
+#include "GLRenderer.h"
 #include "GLVertexBuffer.h"
 #include "GLIndexBuffer.h"
 #include "GLGraphicsBuffer.h"
@@ -21,6 +22,8 @@
 #elif defined(__linux__)
 #include "GlxContext.h"
 #endif
+#include "GLSwapChainSDL.h"
+#include "SdlContext.h"
 
 namespace Hippios
 {
@@ -35,8 +38,7 @@ namespace Hippios
 			break;
 #endif // _WIN32
 		case WindowBackend::SDL:
-			// SDL support not implemented yet
-			LOG(LOG_ERROR) << "SDL backend not supported yet in GLRenderer.";
+			m_context = std::make_unique<SdlGlContext>();
 			break;
 #ifdef __linux__
 		case WindowBackend::X11:
@@ -76,6 +78,8 @@ namespace Hippios
 			swapChain = std::make_unique<GLSwapChainWin32>(win);
 			break;
 		case WindowBackend::SDL:
+			swapChain = std::make_unique<GLSwapChainSDL>(win);
+			break;
 		case WindowBackend::X11:
 		case WindowBackend::Wayland:
 		case WindowBackend::GLFW:
@@ -290,8 +294,6 @@ namespace Hippios
 			return false;
 
 		return m_context->makeCurrent(swap_chain);
-
-		
 	}
 
 	void GLRenderer::clearPass(RenderTarget* render_target)

@@ -7,6 +7,7 @@
 #include <D2d1.h>
 #include <comutil.h>
 #include <Windowsx.h>
+#include "../../../Input/InputEventBuilder.h"
 
 #define PSIO_WIN_CLASS_NAME "PoseidonSIOWnd"
 
@@ -25,89 +26,76 @@ namespace Psio
 		if (uMsg == WM_CREATE)
 		{   // Store pointer to Win32Window in user data area
 			SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)(((LPCREATESTRUCT)lParam)->lpCreateParams));
-
-			// initialize dpi scaling
-	/*		ID2D1Factory* pFactory;
-			if (FAILED(D2D1CreateFactory(
-				D2D1_FACTORY_TYPE_SINGLE_THREADED, &pFactory)))
-			{
-				return -1;  // Fail CreateWindowEx.
-			}
-			FLOAT dpiX, dpiY;
-			pFactory->GetDesktopDpi(&dpiX, &dpiY);
-			scaleX = dpiX / 96.0f;
-			scaleY = dpiY / 96.0f;
-			*/
-
 			return 0;
 		}
 
 		// look up window instance
 		// note: it is possible to get a WM_SIZE before WM_CREATE
-		Win32Window* win = (Win32Window*)GetWindowLongPtr(hWnd, GWLP_USERDATA);
+		auto* win = reinterpret_cast<Win32Window*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
 		if (!win)
 			return DefWindowProc(hWnd, uMsg, wParam, lParam);
 		
-		bool shift;
-		bool alt;
-		bool ctrl;
 		std::shared_ptr<InputEvent> evt;
-		uint32_t scancode;
-		bool mleft;
-		bool mright;
-		bool mmiddle;
-		unsigned int width;
-		unsigned int height;
 
 		switch (uMsg)
 		{
 		case WM_CLOSE:
-			win->destroy();
+			DestroyWindow(hWnd);
 			return 0;
-		
+
 		case WM_SIZE:
-			width = LOWORD(lParam);
-			height = HIWORD(lParam);
-			evt = std::make_shared<WinSizeEvent>(Psio::InputEventId::WIN_SIZE, width, height, win);
+		{
+			evt = std::make_shared<WinSizeEvent>(
+				InputEventId::WIN_SIZE,
+				LOWORD(lParam),
+				HIWORD(lParam),
+				win);
 			win->addInputEvent(evt);
 			break;
-	
-		case WM_DESTROY:		
+		}
+		case WM_DESTROY:
 			PostQuitMessage(0);
 			break;
 
-		case WM_KEYDOWN:	
+		case WM_KEYDOWN:
 		case WM_KEYUP:
-			shift = GetKeyState(VK_SHIFT) & 0x0800;
-			alt = GetKeyState(VK_MENU) & 0x0800;
-			ctrl = GetKeyState(VK_CONTROL) & 0x0800;
-			//printf("WM_KEYDOWN: %u shift:%d\n", wParam, (shift) ? 1 : 0);
+		{
+			const bool shift = (GetKeyState(VK_SHIFT) & 0x8000) != 0;
+			const bool alt = (GetKeyState(VK_MENU) & 0x8000) != 0;
+			const bool ctrl = (GetKeyState(VK_CONTROL) & 0x8000) != 0;
 
-			// get scancode (see https://docs.microsoft.com/de-ch/windows/win32/inputdev/wm-keydown)
-			scancode = lParam >> 16 & 0xFF;
+			const uint32_t scancode = (lParam >> 16) & 0xFF;
+			const auto id = (uMsg == WM_KEYDOWN)
+				? Psio::InputEventId::KEY_PRESSED
+				: Psio::InputEventId::KEY_RELEASED;
 
-			if (uMsg == WM_KEYDOWN)
-				evt = std::make_shared<KeyInputEvent>(Psio::InputEventId::KEY_PRESSED);
-			else
-				evt = std::make_shared<KeyInputEvent>(Psio::InputEventId::KEY_RELEASED);
-			evt->setModifiers(shift, alt, ctrl);
-			std::static_pointer_cast<KeyInputEvent>(evt)->set(hwKey((int)wParam), scancode, 0);
+			evt = BuildKeyEvent(
+				id,
+				static_cast<uint32_t>(hwKey((int)wParam)),
+				scancode,
+				0,
+				shift,
+				alt,
+				ctrl);
+
 			win->addInputEvent(evt);
-
 			break;
-
+		}
 		case WM_CHAR:
-			shift = GetKeyState(VK_SHIFT) & 0x0800;
-			alt = GetKeyState(VK_MENU) & 0x0800;
-			ctrl = GetKeyState(VK_CONTROL) & 0x0800; 
-			
-			evt = std::make_shared<KeyInputEvent>(Psio::InputEventId::TEXT);
-			evt->setModifiers(shift, alt, ctrl);
-			std::static_pointer_cast<KeyInputEvent>(evt)->set(0, 0, (unsigned char)wParam);
+		{
+			const bool shift = (GetKeyState(VK_SHIFT) & 0x8000) != 0;
+			const bool alt = (GetKeyState(VK_MENU) & 0x8000) != 0;
+			const bool ctrl = (GetKeyState(VK_CONTROL) & 0x8000) != 0;
+
+			evt = BuildTextEvent(
+				std::string(1, static_cast<char>(wParam)),
+				shift,
+				alt,
+				ctrl);
 			win->addInputEvent(evt);
 
 			break;
-
+		}
 		case WM_LBUTTONDOWN:
 		case WM_RBUTTONDOWN:
 		case WM_MBUTTONDOWN:
@@ -118,40 +106,46 @@ namespace Psio
 		case WM_RBUTTONDBLCLK:
 		case WM_MBUTTONDBLCLK:
 		case WM_MOUSEMOVE:
-			shift = GetKeyState(VK_SHIFT) & 0x0800;
-			alt = GetKeyState(VK_MENU) & 0x0800;
-			ctrl = GetKeyState(VK_CONTROL) & 0x0800;
+		{
+			const bool shift = (GetKeyState(VK_SHIFT) & 0x8000) != 0;
+			const bool alt = (GetKeyState(VK_MENU) & 0x8000) != 0;
+			const bool ctrl = (GetKeyState(VK_CONTROL) & 0x8000) != 0;
+
+			InputEventId id = InputEventId::NONE;
 			switch (uMsg) {
 			case WM_LBUTTONDOWN:
 			case WM_RBUTTONDOWN:
 			case WM_MBUTTONDOWN:
-				evt = std::make_shared<MouseInputEvent>(Psio::InputEventId::MOUSE_BTN_PRESSED);
+				id = InputEventId::MOUSE_BTN_PRESSED;
 				break;
 			case WM_LBUTTONUP:
 			case WM_RBUTTONUP:
 			case WM_MBUTTONUP:
-				evt = std::make_shared<MouseInputEvent>(Psio::InputEventId::MOUSE_BTN_RELEASED);
+				id = InputEventId::MOUSE_BTN_RELEASED;
 				break;
 			case WM_LBUTTONDBLCLK:
 			case WM_RBUTTONDBLCLK:
 			case WM_MBUTTONDBLCLK:
-				evt = std::make_shared<MouseInputEvent>(Psio::InputEventId::MOUSE_BTN_DBLCLICK);
+				id = InputEventId::MOUSE_BTN_DBLCLICK;
 				break;
 			case WM_MOUSEMOVE:
-				evt = std::make_shared<MouseInputEvent>(Psio::InputEventId::MOUSE_MOVE);
+				id = InputEventId::MOUSE_MOVE;
 				break;
 			}
-			evt->setModifiers(shift, alt, ctrl);
-
-			mleft = (wParam & MK_LBUTTON);
-			mright = (wParam & MK_RBUTTON);
-			mmiddle = (wParam & MK_MBUTTON);
-
-			std::static_pointer_cast<MouseInputEvent>(evt)->setBtn(mleft, mright, mmiddle);
-			std::static_pointer_cast<MouseInputEvent>(evt)->setPos(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam));
+			evt = BuildMouseEvent(
+				id,
+				GET_X_LPARAM(lParam),
+				GET_Y_LPARAM(lParam),
+				(wParam & MK_LBUTTON) != 0,
+				(wParam & MK_RBUTTON) != 0,
+				(wParam & MK_MBUTTON) != 0,
+				shift,
+				alt,
+				ctrl);
 			win->addInputEvent(evt);
 
 			break;
+		}
 		}
 
 		return DefWindowProc(hWnd, uMsg, wParam, lParam);
@@ -195,8 +189,7 @@ namespace Psio
 	{
 		UINT classStyle = 0;
 		WNDPROC windowProc = StaticWindowProc;
-		HINSTANCE hInst = NULL;
-		HWND parentHWnd = NULL;
+		HWND parentHWnd = nullptr;
 		DWORD dwStyle = 0;
 
 		// set inital window size if not set
@@ -207,7 +200,7 @@ namespace Psio
 
 		// some default defines
 		classStyle |= CS_HREDRAW | CS_VREDRAW | CS_DBLCLKS; // TODO: make configurable?  , CS_HREDRAW | CS_VREDRAW means redraw on v or h move of the win (not needed for fs)
-		m_HInstance = (HINSTANCE)GetModuleHandle(NULL);
+		m_HInstance = (HINSTANCE)GetModuleHandle(nullptr);
 
 		// fill the wndclass
 		WNDCLASSEX wc;
@@ -218,7 +211,7 @@ namespace Psio
 		wc.cbSize = sizeof(WNDCLASSEX);
 		wc.style = classStyle;
 		wc.lpfnWndProc = windowProc;
-		wc.hInstance = hInst;
+		wc.hInstance = m_HInstance;
 		wc.hCursor = LoadCursor(NULL, IDC_ARROW);
 		// dont show empty window wc.hbrBackground = (HBRUSH)COLOR_WINDOW; // (HBRUSH)GetStockObject(BLACK_BRUSH),
 		wc.lpszClassName = PSIO_WIN_CLASS_NAME;
@@ -277,16 +270,22 @@ namespace Psio
 
 	void Win32Window::destroy()
 	{
-		HMENU hMenu;
-		hMenu = GetMenu(m_HWnd);
-		if (hMenu != NULL)
+		if (!m_HWnd)
+			return;
+
+		HMENU hMenu = GetMenu(m_HWnd);
+		if (hMenu != nullptr)
 		{
 			DestroyMenu(hMenu);
 		}
 		DestroyWindow(m_HWnd);
-		UnregisterClass(
-			PSIO_WIN_CLASS_NAME,
-			m_HInstance
-		);
+		m_HWnd = nullptr;
+		if (m_HInstance)
+		{
+			UnregisterClass(
+				PSIO_WIN_CLASS_NAME,
+				m_HInstance
+			);
+		}
 	}
 }

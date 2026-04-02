@@ -8,8 +8,8 @@
 #include <Psio/Fs/Fs.h>
 
 // Unix implementations
-#include "Input/InputUnix.h"
-#include "Net/NetworkUnix.h"
+#include "Input/UnixInput.h"
+#include "Net/UnixNetwork.h"
 
 namespace Psio
 {

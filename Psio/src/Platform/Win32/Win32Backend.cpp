@@ -18,9 +18,9 @@
 #endif
 
 // Win32 implementations
-#include "Input/InputWin32.h"
+#include "Input/Win32Input.h"
 #include "Window/Win32Window.h"
-#include "Net/NetworkWin32.h"
+#include "Net/Win32Network.h"
 
 namespace Psio
 {

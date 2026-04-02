@@ -58,15 +58,15 @@ endif()
 
 if (WIN32)
 	target_sources(Psio PRIVATE 
-	"src/Platform/Win32/Window/Win32Window.cpp" "src/Platform/Win32/Input/InputImpl.cpp" "src/Platform/Win32/Input/KeyboardImpl.cpp" "src/Platform/Win32/TimerWin32.cpp" 
-	"src/Platform/Win32/Net/TCPSocketWin.cpp" "src/Platform/Win32/Net/SocketWin.cpp" "src/Platform/Win32/Win32Backend.cpp" "src/Platform/Win32/Net/NetworkWin32.cpp"
-	"src/Platform/Win32/Fs/FsWin.cpp")
+	"src/Platform/Win32/Window/Win32Window.cpp" "src/Platform/Win32/Input/Win32Input.cpp" "src/Platform/Win32/Input/Win32KeyTranslation.cpp" "src/Platform/Win32/Win32Timer.cpp" 
+	"src/Platform/Win32/Net/Win32TCPSocket.cpp" "src/Platform/Win32/Net/Win32Socket.cpp" "src/Platform/Win32/Win32Backend.cpp" "src/Platform/Win32/Net/Win32Network.cpp"
+	"src/Platform/Win32/Fs/Win32Fs.cpp")
 	target_link_libraries(Psio PRIVATE Winmm wsock32 ws2_32)
 elseif(UNIX)
 	target_sources(Psio PRIVATE 
-	"src/Platform/Unix/Net/TCPSocketUnix.cpp" "src/Platform/Unix/Net/SocketUnix.cpp" "src/Platform/Unix/Net/NetworkUnix.cpp"
-	"src/Platform/Unix/Fs/FsUnix.cpp" "src/Platform/Unix/TimerUnix.cpp" "src/Platform/Unix/UnixBackend.cpp"
-	"src/Platform/Unix/Input/InputUnix.cpp")
+	"src/Platform/Unix/Net/UnixTCPSocket.cpp" "src/Platform/Unix/Net/UnixSocket.cpp" "src/Platform/Unix/Net/UnixNetwork.cpp"
+	"src/Platform/Unix/Fs/UnixFs.cpp" "src/Platform/Unix/UnixTimer.cpp" "src/Platform/Unix/UnixBackend.cpp"
+	"src/Platform/Unix/Input/UnixInput.cpp")
 endif()
 
 # SSL

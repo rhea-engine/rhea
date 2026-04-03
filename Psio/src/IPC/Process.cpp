@@ -1,6 +1,7 @@
 #include <Psio/IPC/Process.h>
 
 #if defined(_WIN32)
+#define NOMINMAX
 #include <windows.h> 
 #include <tchar.h>
 #include <stdio.h> 

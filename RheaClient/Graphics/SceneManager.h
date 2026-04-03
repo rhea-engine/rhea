@@ -15,13 +15,13 @@ namespace Rhea
 	class SceneRenderState : public Component {
 		RECLASS(SceneRenderState, Component, "//meworla/scenerenderstate")
 	public:
-		SceneRenderState::SceneRenderState(std::string name, std::string type_name) :
+		SceneRenderState(std::string name, std::string type_name) :
 			m_scene(nullptr),
 			m_items_valid(false),
 			Component(name, type_name)
 		{
 		}
-		SceneRenderState::SceneRenderState(Scene* scene) : 
+		SceneRenderState(Scene* scene) : 
 			m_scene(scene),
 			m_items_valid(false),
 			Component("scene_render_state", "//meworla/scenerenderstate")

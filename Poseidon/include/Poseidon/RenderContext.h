@@ -27,7 +27,7 @@ namespace Poseidon
 		RenderContext() :
 			RenderContext(std::string("root"))
 		{}
-		RenderContext(std::string& name);
+		RenderContext(std::string name);
 
 		// name handling
 		void setName(std::string& name) { m_name = name; }

@@ -1,3 +1,4 @@
+#define NOMINMAX
 #include "Poseidon/SceneManager.h"
 #include "Poseidon/Node.h"
 #include "Poseidon/Viewport.h"
@@ -23,6 +24,7 @@
 #include <Rhea/Components/VisualComponent.h>
 #include <Rhea/Components/RenderComponent.h>
 #include <Psio/Log.h>
+#include <algorithm>
 
 namespace Poseidon
 {
@@ -236,7 +238,7 @@ namespace Poseidon
 							boneBuffer.boneMatrices[i] = Math::Matrix4::IDENTITY;
 						}
 						const auto& boneMatrices = skeleton->getBoneMatrices();
-						size_t max_bones = min(boneMatrices.size(), static_cast<size_t>(100)); // Ensure we do not exceed buffer capacity.
+						size_t max_bones = std::min(boneMatrices.size(), static_cast<size_t>(100)); // Ensure we do not exceed buffer capacity.
 						for (size_t i = 0; i < max_bones; ++i)
 							boneBuffer.boneMatrices[i] = boneMatrices[i];
 

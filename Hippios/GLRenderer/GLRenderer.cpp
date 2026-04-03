@@ -1,5 +1,6 @@
 #include "GLRenderer.h"
 #include "GLRenderer.h"
+#include "GLRenderer.h"
 #include "GLVertexBuffer.h"
 #include "GLIndexBuffer.h"
 #include "GLGraphicsBuffer.h"
@@ -10,7 +11,7 @@
 #include "GLBlendState.h"
 #include "GLSamplerState.h"
 #include "GLShaderProgram.h"
-#include "GlContext.h"
+#include "GLContext.h"
 
 #include <cassert>
 #include <cstdio>
@@ -20,13 +21,26 @@
 #include "GLSwapChainWin32.h"
 #include "WglContext.h"
 #elif defined(__linux__)
-#include "GlxContext.h"
+//#include "GlxContext.h"
 #endif
 #include "GLSwapChainSDL.h"
 #include "SdlContext.h"
 
 namespace Hippios
 {
+	static const InputBindingDesc* findBindingDesc(const InputLayoutDesc& layout, int inputSlot)
+	{
+		if (!layout.bindings)
+			return nullptr;
+
+		for (int i = 0; i < layout.num_bindings; ++i)
+		{
+			if (layout.bindings[i].inputSlot == inputSlot)
+				return &layout.bindings[i];
+		}
+		return nullptr;
+	}
+
 	GLRenderer::GLRenderer(WindowBackend window_backend) :
 		m_backend(window_backend)
 	{
@@ -34,11 +48,11 @@ namespace Hippios
 		{
 #ifdef _WIN32
 		case WindowBackend::Win32:
-			m_context = std::make_unique<WglContext>();
+			m_context = std::make_unique<WglContext>(this);
 			break;
 #endif // _WIN32
 		case WindowBackend::SDL:
-			m_context = std::make_unique<SdlGlContext>();
+			m_context = std::make_unique<SdlGlContext>(this);
 			break;
 #ifdef __linux__
 		case WindowBackend::X11:
@@ -74,17 +88,23 @@ namespace Hippios
 
 		switch (m_backend)
 		{
+#if HIPPIOS_HAS_WIN32
 		case WindowBackend::Win32:
 			swapChain = std::make_unique<GLSwapChainWin32>(win);
 			break;
+#endif // HIPPIOS_HAS_WIN32
+#if HIPPIOS_HAS_SDL
 		case WindowBackend::SDL:
 			swapChain = std::make_unique<GLSwapChainSDL>(win);
 			break;
+#endif // HIPPIOS_SDL
 		case WindowBackend::X11:
 		case WindowBackend::Wayland:
 		case WindowBackend::GLFW:
+		default:
 			// Support for these backends not implemented yet
 			LOG(LOG_ERROR) << "SwapChain creation not supported for backend: " << static_cast<int>(m_backend);
+			throw std::runtime_error("SwapChain creation not supported for this backend");
 			return nullptr;
 		}
 
@@ -98,8 +118,10 @@ namespace Hippios
 		// Shared GL context only created once
 		if (!m_context->isCreated())
 		{
-			if (!m_context->create(swapChain.get()))
+			if (!m_context->create(swapChain.get())) {
+				throw std::runtime_error("Failed to create GL context for swap chain");
 				return nullptr;
+			}
 		}
 
 		return swapChain;
@@ -159,7 +181,7 @@ namespace Hippios
 
 	std::unique_ptr<PipelineStateObject> GLRenderer::createPipelineState(const PipelineStateObjectDesc& desc)
 	{
-		return std::make_unique<GLPipelineStateObject>(desc);
+		return std::make_unique<GLPipelineStateObject>(m_caps, desc);
 	}
 
 	void GLRenderer::setPipelineState(PipelineStateObject* pso)
@@ -249,42 +271,128 @@ namespace Hippios
 		const GLuint vao = glPso->getVAO();
 		const InputLayoutDesc& layout = glPso->getInputLayout();
 		
-		// Attach the actual vertex buffer(s) to the VAO binding slots.
-		// With the current renderer API, we only have one vertex buffer,
-		// so this supports layouts where all used input slots map to that one buffer.
-		if (glVb && layout.bindings && layout.num_bindings > 0)
+		// Bind VAO first (required for both DSA and non-DSA paths)
+		glBindVertexArray(vao);
+
+		if (m_caps.hasDSA)
 		{
-			const GLuint buffer = glVb->get_buffer();
+			// Modern DSA path
 
-			for (int i = 0; i < layout.num_bindings; ++i)
+			// Attach the actual vertex buffer(s) to the VAO binding slots.
+			// With the current renderer API, we only have one vertex buffer,
+			// so this supports layouts where all used input slots map to that one buffer.
+			if (glVb && layout.bindings && layout.num_bindings > 0)
 			{
-				const InputBindingDesc& binding = layout.bindings[i];
+				const GLuint buffer = glVb->get_buffer();
 
-				glVertexArrayVertexBuffer(
-					vao,
-					static_cast<GLuint>(binding.inputSlot),   // VAO binding slot
-					buffer,                                   // actual GL vertex buffer
-					0,                                        // base offset in buffer
-					static_cast<GLsizei>(binding.stride));    // stride for this slot
+				for (int i = 0; i < layout.num_bindings; ++i)
+				{
+					const InputBindingDesc& binding = layout.bindings[i];
+
+					glVertexArrayVertexBuffer(
+						vao,
+						static_cast<GLuint>(binding.inputSlot),   // VAO binding slot
+						buffer,                                   // actual GL vertex buffer
+						0,                                        // base offset in buffer
+						static_cast<GLsizei>(binding.stride));    // stride for this slot
+				}
+			}
+
+			// Attach index buffer to the VAO.
+			if (glIb)
+			{
+				glVertexArrayElementBuffer(vao, glIb->get_buffer());
+				m_last_ib = glIb;
+				m_current_index_type = glIb->getIndexType();
+				m_current_index_size = glIb->getIndexSize();
+			}
+			else
+			{
+				// Optional: clear the element buffer if you want indexed and non-indexed
+				// draws to be fully explicit.
+				glVertexArrayElementBuffer(vao, 0);
+				m_last_ib = nullptr;
+				m_current_index_type = GL_UNSIGNED_INT;
+				m_current_index_size = sizeof(uint32_t);
 			}
 		}
+		else {
+			// Legacy non-DSA path
 
-		// Attach index buffer to the VAO.
-		if (glIb)
-		{
-			glVertexArrayElementBuffer(vao, glIb->get_buffer());
-			m_last_ib = glIb;
-			m_current_index_type = glIb->getIndexType();
-			m_current_index_size = glIb->getIndexSize();
-		}
-		else
-		{
-			// Optional: clear the element buffer if you want indexed and non-indexed
-			// draws to be fully explicit.
-			glVertexArrayElementBuffer(vao, 0);
-			m_last_ib = nullptr;
-			m_current_index_type = GL_UNSIGNED_INT;
-			m_current_index_size = sizeof(uint32_t);
+			if (layout.num_bindings > 1)
+			{
+				LOG(LOG_ERROR) << "OpenGL renderer currently supports only one vertex buffer binding";
+				return;
+			}
+
+			if (glVb)
+			{
+				const GLuint buffer = glVb->get_buffer();
+
+				// In legacy GL, the VAO stores attribute format + the ARRAY_BUFFER bound
+				// at glVertexAttribPointer/IPointer time, so we must re-specify attributes here.
+				glBindBuffer(GL_ARRAY_BUFFER, buffer);
+
+				if (layout.elements && layout.num_elements > 0)
+				{
+					for (int i = 0; i < layout.num_elements; ++i)
+					{
+						const auto& elem = layout.elements[i];
+
+						const InputBindingDesc* binding = findBindingDesc(layout, elem.input_slot);
+						if (!binding)
+							continue;
+
+						const GLuint attribIndex = static_cast<GLuint>(elem.location);
+						const GLint components = getFormatComponentCount(elem.format);
+						const GLenum glType = getFormatType(elem.format);
+						const GLsizei stride = static_cast<GLsizei>(binding->stride);
+						const void* offset = reinterpret_cast<const void*>(
+							static_cast<uintptr_t>(elem.aligned_byte_offset));
+
+						glEnableVertexAttribArray(attribIndex);
+
+						if (isIntegerFormat(elem.format))
+						{
+							glVertexAttribIPointer(
+								attribIndex,
+								components,
+								glType,
+								stride,
+								offset);
+						}
+						else
+						{
+							glVertexAttribPointer(
+								attribIndex,
+								components,
+								glType,
+								isNormalizedFormat(elem.format) ? GL_TRUE : GL_FALSE,
+								stride,
+								offset);
+						}
+
+						glVertexAttribDivisor(
+							attribIndex,
+							static_cast<GLuint>(binding->instanceStepRate));
+					}
+				}
+			}
+
+			if (glIb)
+			{
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glIb->get_buffer());
+				m_last_ib = glIb;
+				m_current_index_type = glIb->getIndexType();
+				m_current_index_size = glIb->getIndexSize();
+			}
+			else
+			{
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+				m_last_ib = nullptr;
+				m_current_index_type = GL_UNSIGNED_INT;
+				m_current_index_size = sizeof(uint32_t);
+			}
 		}
 	}
 
@@ -358,5 +466,19 @@ namespace Hippios
 	{
 		for (size_t i = 0; i < count; ++i)
 			dst[i] = src[i].transpose();
+	}
+
+	void Hippios::GLRenderer::detectCapabilities()
+	{
+		m_caps.majorVersion = GLVersion.major;
+		m_caps.minorVersion = GLVersion.minor;
+
+	//	m_caps.hasDSA = (GLAD_GL_VERSION_4_5 != 0);
+		m_caps.hasDebugOutput = (GLAD_GL_VERSION_4_3 != 0);
+		m_caps.hasDSA = false;
+
+		LOG(LOG_INFO) << "Detected OpenGL version " << m_caps.majorVersion << "." << m_caps.minorVersion
+			<< " - DSA: " << (m_caps.hasDSA ? "Yes" : "No")
+			<< ", Debug Output: " << (m_caps.hasDebugOutput ? "Yes" : "No");		
 	}
 }

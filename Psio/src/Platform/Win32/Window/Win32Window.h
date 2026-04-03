@@ -1,4 +1,5 @@
 #include <Windows.h>
+#include <Psio/Psio.h>
 #include <Psio/Window/Window.h>
 
 namespace Psio
@@ -6,13 +7,14 @@ namespace Psio
 	class Win32Window : public Psio::Window
 	{
 	public:
-		Win32Window(std::string name, int width, int height) :
-			m_name(name),
+		Win32Window(WindowDesc desc) :
+			m_name(desc.name),
 			m_close(false),
 			m_HWnd(nullptr),
 			m_HInstance(nullptr),
 			m_wp{},
-			Window(width, height)
+			desc(desc),
+			Window(desc.width, desc.height)
 		{}
 
 		void SetFullscreen(bool mode);
@@ -30,5 +32,6 @@ namespace Psio
 		HINSTANCE m_HInstance = 0;
 		WINDOWPLACEMENT m_wp;
 		std::string m_name;
+		WindowDesc desc;
 	};
 }

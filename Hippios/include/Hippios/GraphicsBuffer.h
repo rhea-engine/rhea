@@ -2,6 +2,7 @@
 #define HIPPIOS_GRAPHICSBUFFER_H
 
 #include <vector>
+#include <cstddef>
 
 namespace Hippios
 {		

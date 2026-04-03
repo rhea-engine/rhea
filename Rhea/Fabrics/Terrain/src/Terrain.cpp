@@ -10,6 +10,7 @@
 #include <Psio/Log.h>
 #include <Math/Vector2.h>
 #include <Rhea/Components/MeshComponent.h>
+#include <cmath>
 
 namespace Rhea
 {
@@ -56,8 +57,8 @@ namespace Rhea
 		if (gridX<0 || gridX>m_width || gridZ<0 || gridZ>m_length)
 			return 0.0f;
 
-		float xCoord = std::fmodf(x, gridSquareSize) / gridSquareSize;
-		float zCoord = std::fmodf(z, gridSquareSize) / gridSquareSize;
+		float xCoord = fmodf(x, gridSquareSize) / gridSquareSize;
+		float zCoord = fmodf(z, gridSquareSize) / gridSquareSize;
 
 		float ret;
 		if (xCoord <= (1 - zCoord)) {
@@ -169,7 +170,7 @@ namespace Rhea
 					vertices["NORMAL"] = VertexBuffer(3 * sizeof(float));
 					vertices["TEXCOORD"] = VertexBuffer(2 * sizeof(float));
 					// indices
-					std::vector<unsigned long> indices;
+					std::vector<uint32_t> indices;
 
 					struct vertex_norm_uv {
 						Math::Vector3 position;

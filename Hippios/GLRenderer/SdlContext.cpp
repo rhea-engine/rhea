@@ -2,10 +2,12 @@
 #include "SdlContext.h"
 #include "GLSwapChainSDL.h"
 #include <Psio/Log.h>
+#include "GLRenderer.h"
 
 namespace Hippios
 {
-	SdlGlContext::SdlGlContext()
+	SdlGlContext::SdlGlContext(GLRenderer* renderer) :
+		m_renderer(renderer)
 	{
 	}
 
@@ -30,24 +32,6 @@ namespace Hippios
 			LOG(LOG_ERROR) << "SDL window was not created with SDL_WINDOW_OPENGL flag!";
 			return false;
 		}
-/*
-		// Usually these attributes should ideally be set before window creation,
-		// but keeping this here preserves your current abstraction shape.
-		SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
-		SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
-		SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
-		SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
-		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-		SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-		SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-
-#ifdef _DEBUG
-		SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
-#endif
-*/
 		return true;
 	}
 
@@ -87,6 +71,8 @@ namespace Hippios
 			m_sdl_context = nullptr;
 			return false;
 		}
+
+		m_renderer->detectCapabilities();
 
 		int drawableW = 0;
 		int drawableH = 0;

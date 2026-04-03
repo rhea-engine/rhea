@@ -2,6 +2,7 @@
 
 #include <Psio/Log.h>
 #include <GLSwapChainWin32.h>
+#include "GLRenderer.h"
 
 namespace
 {
@@ -43,7 +44,8 @@ namespace
 
 namespace Hippios
 {
-	WglContext::WglContext()
+	WglContext::WglContext(GLRenderer* renderer) :
+		m_renderer(renderer)
 	{
 	}
 
@@ -253,6 +255,8 @@ namespace Hippios
 			m_glrc = nullptr;
 			return false;
 		}
+
+		m_renderer->detectCapabilities();
 
 		glEnable(GL_DEPTH_TEST);
 		glDepthFunc(GL_LESS);

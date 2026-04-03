@@ -12,14 +12,25 @@ namespace Poseidon
 
 	void Window::CreateFromNativeWindow(Psio::Engine* psio, std::string name, int width, int height)
 	{
-		Psio::WindowOption options = Psio::WindowOption::None;
+		Psio::WindowDesc desc{};
+		desc.name = name;
+		desc.width = width;
+		desc.height = height;
 		// if renderer is OpenGL, set the option for creating an OpenGL context
 		if (m_renderer) {
-			if (m_renderer->getRendererBackend() == Hippios::RendererBackend::OpenGL)
-				options |= Psio::WindowOption::OpenGL;
+			if (m_renderer->getRendererBackend() == Hippios::RendererBackend::OpenGL) {
+				// set default OpenGL context version to 3.3 core profile, can be overridden by the caller
+				desc.backend.opengl = true;
+				desc.backend.major_version = 3;
+				desc.backend.minor_version = 3;
+				desc.backend.core_profile = true;
+#ifdef _DEBUG
+				desc.backend.debug_context = true;
+#endif
+			}
 		}
 
-		m_native_win = psio->createWindow(name, width, height, options);
+		m_native_win = psio->createWindow(desc);
 		m_win_name = name;
 		m_render_window.width = m_native_win->GetWidth();
 		m_render_window.height = m_native_win->GetHeight();

@@ -11,7 +11,7 @@ namespace Rhea
 		MECLASS(Animation, Unit)
 	public:
 		
-		Animation(std::string name, std::string typename) :
+		Animation(std::string name, std::string type_name) :
 			duration(0.0f),
 			Unit(name, "//meworla/animation")
 		{}

@@ -12,7 +12,7 @@ namespace Psio
     class SDLWindow final : public Window
     {
     public:
-        SDLWindow(std::string name, int width, int height, WindowOption options);
+        SDLWindow(WindowDesc desc);
         ~SDLWindow() override;
 
         void create() override;
@@ -23,7 +23,7 @@ namespace Psio
     private:
         std::string m_name;
         SDL_Window* m_window = nullptr;
-        WindowOption m_options = WindowOption::None;
+        WindowDesc desc{};
     };
 }
 #endif // !PSIO_SDLWINDOW_H

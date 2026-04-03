@@ -59,12 +59,12 @@ namespace Psio
 #ifdef PSIO_HAS_WIN32
 		LOG(LOG_INFO) << "Auto-selecting Win32 backend.";
 		return std::make_unique<Win32Backend>();
-#elif defined(PSIO_HAS_UNIX)
-		LOG(LOG_INFO) << "Auto-selecting Unix backend.";
-		return std::make_unique<UnixBackend>();
 #elif defined(PSIO_HAS_SDL)
 		LOG(LOG_INFO) << "Auto-selecting SDL backend.";
 		return std::make_unique<SDLBackend>();
+#elif defined(PSIO_HAS_UNIX)
+		LOG(LOG_INFO) << "Auto-selecting Unix backend.";
+		return std::make_unique<UnixBackend>();
 #else
 		throw std::runtime_error("No supported Psio backend available.");
 #endif
@@ -119,13 +119,13 @@ namespace Psio
 		return Timer::getTicks();
 	}
 
-	std::unique_ptr <Window> Engine::createWindow(std::string name, int width, int height, WindowOption options)
+	std::unique_ptr <Window> Engine::createWindow(WindowDesc desc)
 	{
 		if (!m_backend) {
 			throw std::runtime_error("Cannot create window: backend not initialized.");
 		}
 
-		std::unique_ptr<Window> window = m_backend->CreateNativeWindow(name, width, height, options);
+		std::unique_ptr<Window> window = m_backend->CreateNativeWindow(desc);
 		
 		if (window) {
 			window->setInput(m_input.get());

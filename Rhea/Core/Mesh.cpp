@@ -115,7 +115,7 @@ namespace Rhea
 		m_submeshes[0].material = material;
 	}
 
-	void Mesh::getBuffers(std::vector<vertex>& vertices, std::vector<unsigned long>& indices)
+	void Mesh::getBuffers(std::vector<vertex>& vertices, std::vector<uint32_t>& indices)
 	{
 		vertices = m_vertices;
 		//		indices = Rhea::Mesh::m_v_indices;
@@ -123,7 +123,7 @@ namespace Rhea
 			indices = m_submeshes[0].indices;
 	}
 
-	void Mesh::setBuffers(std::vector<vertex>& vertices, std::vector<unsigned long>& indices)
+	void Mesh::setBuffers(std::vector<vertex>& vertices, std::vector<uint32_t>& indices)
 	{
 		m_vertices = vertices;
 		if (!m_submeshes.size()) {
@@ -170,7 +170,7 @@ namespace Rhea
 		delete[] raw_vertex;
 	}
 
-	void Mesh::setBuffers(std::unordered_map<std::string, VertexBuffer>& vertices, std::vector<unsigned long>& indices, size_t num_vertices)
+	void Mesh::setBuffers(std::unordered_map<std::string, VertexBuffer>& vertices, std::vector<uint32_t>& indices, size_t num_vertices)
 	{
 		if (!m_material) {
 			LOG(LOG_ERROR) << "No main material assigned to mesh";
@@ -184,13 +184,13 @@ namespace Rhea
 			m_submeshes[0].indices = indices;
 	}
 
-	void Mesh::addSubmesh(Material* material, std::vector<unsigned long>& indices)
+	void Mesh::addSubmesh(Material* material, std::vector<uint32_t>& indices)
 	{
 		//m_v_indices = indices;
 		m_submeshes.push_back({indices, material});
 	}
 
-	void Mesh::setSubmesh(size_t idx, Material* material, std::vector<unsigned long>& indices)
+	void Mesh::setSubmesh(size_t idx, Material* material, std::vector<uint32_t>& indices)
 	{
 		if (idx >= m_submeshes.size())
 			m_submeshes.push_back({ indices, material });

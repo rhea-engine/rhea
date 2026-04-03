@@ -1,15 +1,17 @@
 #ifndef HIPPIOS_SDLGLCONTEXT_H
 #define HIPPIOS_SDLGLCONTEXT_H
 
-#include "GlContext.h"
+#include "GLContext.h"
 #include <SDL3/SDL.h>
 
 namespace Hippios
 {
+	class GLRenderer;
+
 	class SdlGlContext : public GlContext
 	{
 	public:
-		SdlGlContext();
+		SdlGlContext(GLRenderer* renderer);
 		~SdlGlContext() override;
 
 		bool prepareSwapChain(SwapChain* swapChain) override;
@@ -23,6 +25,7 @@ namespace Hippios
 		void swapBuffers(SwapChain* swapChain = nullptr) override;
 
 	private:
+		GLRenderer* m_renderer = nullptr;
 		SDL_GLContext m_sdl_context = nullptr;
 	};
 }

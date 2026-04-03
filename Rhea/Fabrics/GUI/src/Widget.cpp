@@ -1,3 +1,4 @@
+#define NOMINMAX
 #include <Rhea/GUI/Widget.h>
 #include <cassert>
 #include <Psio/Log.h>
@@ -406,7 +407,7 @@ namespace Rhea
 				break;
 			case StylePropertyId::kBackgroundColor:
 				if (values.size() >= 3) {
-					setBackgroundColor(values[0].value, values[1].value, values[2].value, values.size() > 3 ? values[3].value : 1.0f);
+					setBackgroundColor(values[0].value, values[1].value, values[2].value, values.size() > 3 ? values[3].value.toFloat() : 1.0f);
 				}
 				break;
 			case StylePropertyId::kBackgroundSize:
@@ -461,7 +462,7 @@ namespace Rhea
 
 	float Widget::calculateFontSize(const CssValue& value) const
 	{
-		float parent_font_size = doCast<Widget>(m_parent) ? doCast<Widget>(m_parent)->getFontSize() : CssProperty::GetDefaultValue(StylePropertyId::kFontSize).value;
+		float parent_font_size = doCast<Widget>(m_parent) ? doCast<Widget>(m_parent)->getFontSize() : CssProperty::GetDefaultValue(StylePropertyId::kFontSize).value.toFloat();
 		switch (value.id) {
 		case CssValueId::kNumeric:
 			return value.value;
@@ -618,9 +619,9 @@ namespace Rhea
 			// if image is scaled to fit into the widget we can't also tile the image
 			Math::Vector2 tiling;
 			if (m_sizing_mode_w == TextureSizingMode::kAuto)
-				tiling.x = max(m_content_size.x / m_bg_image->width, 1.0f); // dont tile if image is larger than content
+				tiling.x = std::max(m_content_size.x / m_bg_image->width, 1.0f); // dont tile if image is larger than content
 			if (m_sizing_mode_h == TextureSizingMode::kAuto)
-				tiling.y = max(m_content_size.y / m_bg_image->height, 1.0f);
+				tiling.y = std::max(m_content_size.y / m_bg_image->height, 1.0f);
 			if (m_tiling != tiling) {
 				m_tiling = tiling;
 				m_material_dirty = true;
@@ -638,7 +639,7 @@ namespace Rhea
 				case TextureSizingMode::kContain:
 				{
 					// Use the smaller scale factor for both axes to maintain aspect ratio
-					float aspect_scale = min(m_content_size.x / (float)m_bg_image->width, m_content_size.y / (float)m_bg_image->height);
+					float aspect_scale = std::min(m_content_size.x / (float)m_bg_image->width, m_content_size.y / (float)m_bg_image->height);
 					scaling.x = aspect_scale;
 					scaling.y = aspect_scale;
 					LOG(LOG_DEBUG) << "ApplyTextureSizing: aspect_scale=" << aspect_scale;

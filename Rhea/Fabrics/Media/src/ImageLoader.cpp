@@ -1,3 +1,5 @@
+#include <cstring>
+
 #include <Orion/ResourceStream.h>
 #include <Psio/Fs/Fs.h>
 #include <Psio/Net/IOBuffer.h>

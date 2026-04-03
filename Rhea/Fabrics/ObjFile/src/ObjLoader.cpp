@@ -177,7 +177,7 @@ namespace Rhea
         float* raw_vertex = new float[vertex_elements];
 
 		// prepare indices
-        std::vector<std::vector<unsigned long>> indices(materials.size());
+        std::vector<std::vector<uint32_t>> indices(materials.size());
 
         for (const auto& shape : shapes) {
             // shape name

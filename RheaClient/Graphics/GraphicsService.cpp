@@ -157,7 +157,8 @@ namespace Rhea
 
 		// create a render context for HUD / GUI
 		Poseidon::Viewport* viewport = m_core->get_scene_manager()->getViewport();
-		Poseidon::RenderContext* context = viewport->createRenderContext(std::string("HUD"));
+		std::string hud_context_name = "HUD";
+		Poseidon::RenderContext* context = viewport->createRenderContext(hud_context_name);
 		context->setStencilState(1);
 		// add a camera for this context
 		Poseidon::Camera* cam = m_core->createCamera();

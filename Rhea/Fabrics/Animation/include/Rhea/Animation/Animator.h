@@ -13,7 +13,7 @@ namespace Rhea
 		MECLASS(Animator, Item)
 	public:
 
-		Animator(std::string name, std::string typename) :
+		Animator(std::string name, std::string type_name) :
 			m_skeleton(nullptr),
 			Item(name, "//meworla/animator")
 		{}

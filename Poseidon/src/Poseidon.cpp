@@ -11,6 +11,7 @@
 #include <Rhea/Physics/PhysicsManagerService.h>
 #include <Rhea/Physics/IPhysicsDebugDraw.h>
 #include <Rhea/Physics/PhysicsService.h>
+#include <cstring> // for memset
 
 using Rhea::GraphicsService;
 using Rhea::Service;
@@ -54,7 +55,7 @@ namespace Poseidon
 
 		// skybox		
 		Hippios::DepthStencilStateDesc dss;
-		ZeroMemory(&dss, sizeof(dss));
+		std::memset(&dss, 0, sizeof(dss));
 		dss.depth_enable = true;
 		dss.depth_write_mask = Hippios::DepthWriteMask::DEPTH_WRITE_ALL;
 		dss.depth_func = Hippios::ComparisonFunction::COMPARE_LESS_EQUAL;

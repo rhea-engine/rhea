@@ -65,7 +65,7 @@ namespace Rhea
 				{ -100.0f, -100.0f,  100.0f, 0.0f, 100.0f }  // Back bottom-left
 			};
 
-			std::vector<unsigned long> cube_indices = {
+			std::vector<uint32_t> cube_indices = {
 				0, 1, 2, // Front face
 				0, 2, 3, // Front face
 				4, 5, 6, // Back face

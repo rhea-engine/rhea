@@ -65,12 +65,19 @@ namespace Hippios
 
 		void prepareMatricesForShader(Math::Matrix4* dst, const Math::Matrix4* src, size_t count) const;	
 
+		const GLCapabilities& getCapabilities() const { return m_caps; }
+		bool useModernGL() const { return m_caps.hasDSA; }
+
 		RendererBackend getRendererBackend() const override { return RendererBackend::OpenGL; }
+
+		void detectCapabilities();
 
 	private:
 		WindowBackend m_backend = WindowBackend::Unknown;
 
 		std::unique_ptr<GlContext> m_context;
+
+		GLCapabilities m_caps;
 
 		GLVertexBuffer* m_last_vb = nullptr;
 		GLIndexBuffer* m_last_ib = nullptr;

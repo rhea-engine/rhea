@@ -108,7 +108,7 @@ namespace Rhea
 		float f_sz = font->getFontSize();
 
 		std::vector<Mesh::vertex> vertices;
-		std::vector<unsigned long> v_indices;
+		std::vector<uint32_t> v_indices;
 		int v_c = 0;
 
 		size_t i = 0;

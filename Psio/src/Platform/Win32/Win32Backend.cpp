@@ -43,9 +43,9 @@ namespace Psio
         return input;
     }
 
-    std::unique_ptr<Window> Win32Backend::CreateNativeWindow(std::string name, int width, int height, WindowOption options)
+    std::unique_ptr<Window> Win32Backend::CreateNativeWindow(WindowDesc desc)
     {
-        return std::make_unique<Win32Window>(std::move(name), width, height);
+        return std::make_unique<Win32Window>(desc);
     }
 
     std::unique_ptr<Network> Win32Backend::CreateNetwork(Engine* engine)

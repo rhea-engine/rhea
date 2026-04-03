@@ -37,9 +37,9 @@ namespace Psio
         return std::make_unique<SDLInput>(engine);
     }
 
-    std::unique_ptr<Window> SDLBackend::CreateNativeWindow(std::string name, int width, int height, WindowOption options)
+    std::unique_ptr<Window> SDLBackend::CreateNativeWindow(WindowDesc desc)
     {
-        return std::make_unique<SDLWindow>(std::move(name), width, height, options);
+        return std::make_unique<SDLWindow>(desc);
     }
 
     std::unique_ptr<Network> SDLBackend::CreateNetwork(Engine* engine)

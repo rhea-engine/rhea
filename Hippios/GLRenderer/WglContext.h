@@ -1,15 +1,17 @@
 #ifndef HIPPIOS_WGLCONTEXT_H
 #define HIPPIOS_WGLCONTEXT_H
 
-#include "GlContext.h"
+#include "GLContext.h"
 #include "GLIncludes.h"
 
 namespace Hippios
 {
+	class GLRenderer;
+
 	class WglContext : public GlContext
 	{
 	public:
-		WglContext();
+		WglContext(GLRenderer* renderer);
 		~WglContext() override;
 
 		bool prepareSwapChain(SwapChain* swapChain) override;
@@ -28,6 +30,7 @@ namespace Hippios
 		bool createSharedContext(HDC hdc, HGLRC sharedContext);
 
 	private:
+		GLRenderer* m_renderer = nullptr;
 		HGLRC m_glrc = nullptr;
 	};
 }

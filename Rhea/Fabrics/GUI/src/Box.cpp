@@ -21,7 +21,10 @@ namespace Rhea
 			if (w) {
 				Vector2 child_position = m_position;
 				if (m_alignment)
-					m_alignment->apply(m_size, w->getOuterSize(), child_position);
+				{					
+					Vector2 outer_size = w->getOuterSize();
+					m_alignment->apply(m_size, outer_size, child_position);
+				}
 				w->setPosition(child_position);
 			}
 		}

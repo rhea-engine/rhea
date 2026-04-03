@@ -211,11 +211,11 @@ namespace Rhea
 		Shader* shader_res = material_res->getShaderRes();
 		if (!shader_res) {
 			LOG(LOG_ERROR) << "FillPoseidonMaterial: no shader resource";
-			return nullptr;
+			return false;
 		}
 		
 		Poseidon::Shader* shader = EnsurePoseidonShader(core, material_res, shader_res);
-		if (!shader) return nullptr;
+		if (!shader) return false;
 		// Only setShader if actually changed (because setShader reallocates buffers)
 		if (out_mat->getShader() != shader) {
 			out_mat->setShader(shader);

@@ -45,7 +45,7 @@ namespace Psio
 
         if (!fileExists(m_app_dir)) {
             if (mkdir(m_app_dir.c_str(), 0755) != 0) {
-                LOG(LOG_ERROR) << "could not create app data folder: " << strerror(errno);
+                LOG(LOG_ERROR) << "could not create app data folder '" << m_app_dir << "': " << strerror(errno);
             }
         }
 

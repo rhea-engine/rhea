@@ -20,7 +20,7 @@ namespace Hippios
 		case RendererBackend::OpenGL:
 			return std::make_unique<Hippios::GLRenderer>(window_backend);
 #endif // OPENGL
-#ifdef HIPPIOS_D3D11
+#if HIPPIOS_D3D11
 		case RendererBackend::D3D11:
 			return std::make_unique<Hippios::D3D11Renderer>();
 #endif // HIPPIOS_D3D11	

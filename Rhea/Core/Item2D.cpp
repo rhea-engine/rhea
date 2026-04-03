@@ -103,7 +103,7 @@ namespace Rhea
 			{ m_x + m_w, m_y, z, m_u2, m_v1 }, // top-right
 			{ m_x + m_w, m_y - m_h, z, m_u2, m_v2 }  // bottom-right
 		};
-		std::vector<unsigned long> v_indices = { 0, 1, 2, 0, 2, 3 };
+		std::vector<uint32_t> v_indices = { 0, 1, 2, 0, 2, 3 };
 		MeshComponent* mesh_component = getComponent<MeshComponent>();
 		if (mesh_component && mesh_component->getMesh()) {
 			mesh_component->getMesh()->setBuffers(vertices, v_indices);

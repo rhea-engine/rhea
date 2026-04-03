@@ -688,9 +688,10 @@ namespace Rhea
 						// still no material - try index 0 for default material
 						mat = m_materials[0];
 
-					u_mesh->addSubmesh(mat, ExtractIndices(index_accessor));
-
-					//u_mesh->addSubmesh(def_mat, m_model.meshes[node.mesh].primitives[0].indices);
+					auto indices = ExtractIndices(index_accessor);
+					// Umwandlung von std::vector<unsigned long> zu std::vector<uint32_t>
+					std::vector<uint32_t> indices_uint32(indices.begin(), indices.end());
+					u_mesh->addSubmesh(mat, indices_uint32);
 				}
 			}
 		}	

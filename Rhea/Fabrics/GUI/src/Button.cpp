@@ -76,7 +76,11 @@ namespace Rhea
 
 		Vector2 child_pos = m_position + m_content_position;
 		if (m_alignment)
-			m_alignment->apply(m_content_size, m_label->getOuterSize(), child_pos);
+		{
+			// Korrigiert: Übergabe von lvalue-Referenzen an Alignment::apply
+			Vector2 labelOuterSize = m_label->getOuterSize();
+			m_alignment->apply(m_content_size, labelOuterSize, child_pos);
+		}
 
 		m_label->setPosition(child_pos);
 

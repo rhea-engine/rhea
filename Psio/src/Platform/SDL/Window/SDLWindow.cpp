@@ -7,10 +7,10 @@
 
 namespace Psio
 {
-    SDLWindow::SDLWindow(std::string name, int width, int height, WindowOption options)
-        : Window(width, height),
-        m_name(std::move(name)),
-        m_options(options)
+    SDLWindow::SDLWindow(WindowDesc desc)
+        : Window(desc.width, desc.height),
+        m_name(std::move(desc.name)),
+        desc(desc)
     {
     }
 
@@ -25,22 +25,20 @@ namespace Psio
             return;
 
         Uint32 windowFlags = SDL_WINDOW_RESIZABLE;
-        if ((m_options & WindowOption::Fullscreen) == WindowOption::Fullscreen)
+        if ((desc.fullscreen) == true)
         {
             windowFlags |= SDL_WINDOW_FULLSCREEN;
         }
-        if ((m_options & WindowOption::Vulkan) == WindowOption::Vulkan)
+        if ((desc.backend.vulkan) == true)
         {
             windowFlags |= SDL_WINDOW_VULKAN;
 		}
-        if (hasFlag(m_options, WindowOption::OpenGL))
+        if ((desc.backend.opengl) == true)
         {
-            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
-            SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-            //SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-            //SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-            //SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, desc.backend.major_version);
+            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, desc.backend.minor_version);
+			if (desc.backend.core_profile)
+                SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
             SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
             SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);

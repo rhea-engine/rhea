@@ -22,15 +22,19 @@ target_link_libraries(Hippios PUBLIC
 option(HIPPIOS_USE_OPENGL "Add OpenGL renderer" ON)
 option(HIPPIOS_USE_D3D11 "Use DirectX11 renderer" ON)
 option(HIPPIOS_USE_SDL "Use SDL window system" ON)
+option(HIPPIOS_USE_WIN32 "Use Win32 window system" ON)
 
-# Disable D3D11 automatically on non-Windows
+# Disable D3D11 and Win32 windows automatically on non-Windows
 if(NOT WIN32)
     set(HIPPIOS_USE_D3D11 OFF CACHE BOOL "Use DirectX11 renderer" FORCE)
+    set(HIPPIOS_USE_WIN32 OFF CACHE BOOL "Use Win32 window system" FORCE)
 endif()
 
 target_compile_definitions(Hippios PUBLIC
     HIPPIOS_OPENGL=$<BOOL:${HIPPIOS_USE_OPENGL}>
     HIPPIOS_D3D11=$<BOOL:${HIPPIOS_USE_D3D11}>
+	HIPPIOS_SDL=$<BOOL:${HIPPIOS_USE_SDL}>,
+	HIPPIOS_WIN32=$<BOOL:${HIPPIOS_USE_WIN32}>
 )
 
 if(HIPPIOS_USE_OPENGL)

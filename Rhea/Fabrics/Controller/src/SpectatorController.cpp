@@ -55,9 +55,9 @@ namespace Rhea
 			return;
 		}
 		// connect
-		m_target = doCast<Item>(m_app->getUnitTree()->find(target_name_it->second, m_attributes["basepath"], false));
+		m_target = doCast<Item>(m_app->getUnitTree()->find(target_name_it->second.toString(), m_attributes["basepath"], false));
 		if (!m_target) {
-			std::string name = target_name_it->second;
+			std::string name = target_name_it->second.toString();
 			LOG(LOG_ERROR) << "Spectator " << m_pathname << ": target " << name << " not found";
 			return;
 		}		

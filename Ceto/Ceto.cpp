@@ -15,7 +15,7 @@
 #include "Poseidon/Shader.h"
 #include "Rhea/Core/Material.h"
 #include <Psio/Log.h>
-#include <Psio/Keyboard.h>
+#include <Psio/Input/Keyboard.h>
 #include <Rhea/EventInput.h>
 #include <Rhea/GUI/List.h>
 #include <Orion/FileStream.h>
@@ -229,7 +229,7 @@ void Ceto::setScene(bool mark_preferrences)
 			}				
 
 			// display scene
-			std::string start_scene = scene->getValue("startscene", "");
+			std::string start_scene = scene->getValueString("startscene", "");
 			if (start_scene != "") {
 				Rhea::Scene* go_scene = doCast<Rhea::Scene>(m_unit_tree->find(start_scene, scene->getPath(), false));
 				if (go_scene)
@@ -271,7 +271,7 @@ void Ceto::showScene(Rhea::Scene* scene)
 	}
 	else { 
 		std::string backend = "none";
-		std::string phy = scene->getValue("physics", "none");
+		std::string phy = scene->getValueString("physics", "none");
 		if (phy == std::string("world") || phy == std::string("bullet")) {
 			backend = "world";
 		}
@@ -446,7 +446,7 @@ int main(int argc, char* argv[])
 	Rhea::ConfigFile* config = app->getConfig();
 	if (config) {
 		// scene set in config file has highest priority
-		std::string scene = config->getValue("scene", "");
+		std::string scene = config->getValueString("scene", "");
 		if (scene != "") {
 			app->setHomeScene(scene);
 			scene_set = true;

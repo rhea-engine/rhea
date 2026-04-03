@@ -123,7 +123,9 @@ namespace Hippios
 
 		bool getStencilStateDesc(const std::string& name, DepthStencilStateDesc& outDesc) override;
 
-		void prepareMatricesForShader(Math::Matrix4* dst, const Math::Matrix4* src, size_t count) const;		
+		void prepareMatricesForShader(Math::Matrix4* dst, const Math::Matrix4* src, size_t count) const override;		
+
+		RendererBackend getRendererBackend() const override { return RendererBackend::D3D11; }
 
 	protected:
 		Texture* m_current_texture;		

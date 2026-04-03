@@ -1,8 +1,10 @@
 #include "SimpleParser.h"
 
+#include <cstring>
+
 namespace SimpleParser
 {
-	char* SimpleParser::getErrMsg(Error err)
+	const char* SimpleParser::getErrMsg(SimpleParser::Error err)
 	{
 		switch (err) {
 		case Error::PARSE_OK:
@@ -86,7 +88,7 @@ namespace SimpleParser
 				reader++;
 				line++;
 				if (ws_relevant) {
-					while (reader < buflen && (buf[reader] == '\n' || buf[reader] == ' ' || buf[reader] == '\t'))
+					while (reader < buflen && (buf[reader] == '\n' || buf[reader] == '\r'  || buf[reader] == ' ' || buf[reader] == '\t'))
 						reader++;
 					token.type = TokenType::TOKEN_WHITESPACE;
 					return Error::PARSE_OK;
@@ -118,10 +120,11 @@ namespace SimpleParser
 				return Error::PARSE_OK;
 			case ' ':
 			case '\t':
+			case '\r':
 				// skip whitespace
 				reader++;
 				if (ws_relevant) {
-					while (reader < buflen && (buf[reader] == '\n' || buf[reader] == ' ' || buf[reader] == '\t'))
+					while (reader < buflen && (buf[reader] == '\n' || buf[reader] == '\r' || buf[reader] == ' ' || buf[reader] == '\t'))
 						reader++;
 					token.type = TokenType::TOKEN_WHITESPACE;
 					return Error::PARSE_OK;

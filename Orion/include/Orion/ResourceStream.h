@@ -3,7 +3,7 @@
 
 #include <functional>
 #include <string>
-#include <Psio/Stream.h>
+#include <Psio/IO/Stream.h>
 
 namespace Orion
 {

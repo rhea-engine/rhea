@@ -150,14 +150,15 @@ namespace Rhea
 			std::string backend = "auto";
 			ConfigFile* config = m_app->getConfig();			
 			if (config)
-				backend = config->getValue("renderer.backend", "auto");
+				backend = config->getValueString("renderer.backend", "auto");
 			
 			m_core->init(static_cast<PlatformService*>(m_platform)->getEngine(), backend);
 		}
 
 		// create a render context for HUD / GUI
 		Poseidon::Viewport* viewport = m_core->get_scene_manager()->getViewport();
-		Poseidon::RenderContext* context = viewport->createRenderContext(std::string("HUD"));
+		std::string hud_context_name = "HUD";
+		Poseidon::RenderContext* context = viewport->createRenderContext(hud_context_name);
 		context->setStencilState(1);
 		// add a camera for this context
 		Poseidon::Camera* cam = m_core->createCamera();
@@ -245,7 +246,7 @@ namespace Rhea
 			LOG(LOG_ERROR) << "GraphicsService::showScene: no scene manager";
 			return;
 		}
-		std::string render_context_name = scene->getValue("rendercontext", "default");
+		std::string render_context_name = scene->getValueString("rendercontext", "default");
 		Poseidon::RenderContext* render_context = scene_mgr->getViewport()->getRenderContext(render_context_name);
 		if (!render_context) {
 			LOG(LOG_ERROR) << "GraphicsService::showScene: render context '" << render_context_name << "' not found";
@@ -262,7 +263,7 @@ namespace Rhea
 			if (!item)
 				return true;
 			// we simply assume if the rendercontext is set we must add a render child
-			std::string render_context_name = item->getValue("rendercontext", "");
+			std::string render_context_name = item->getValueString("rendercontext", "");
 			if (render_context_name != "") {
 				Poseidon::RenderContext* render_context = scene_mgr->getViewport()->getRenderContext(render_context_name);
 				if (!render_context) {
@@ -289,7 +290,7 @@ namespace Rhea
 			LOG(LOG_ERROR) << "GraphicsService::hideScene: no scene manager";
 			return;
 		}
-		std::string render_context_name = scene->getValue("rendercontext", "default");
+		std::string render_context_name = scene->getValueString("rendercontext", "default");
 		Poseidon::RenderContext* render_context = scene_mgr->getViewport()->getRenderContext(render_context_name);
 		if (!render_context) {
 			LOG(LOG_ERROR) << "GraphicsService::hideScene: render context '" << render_context_name << "' not found";
@@ -306,7 +307,7 @@ namespace Rhea
 			if (!item)
 				return true;
 			// we simply assume if the rendercontext is set we must add a render child
-			std::string render_context_name = item->getValue("rendercontext", "");
+			std::string render_context_name = item->getValueString("rendercontext", "");
 			if (render_context_name != "") {
 				Poseidon::RenderContext* render_context = scene_mgr->getViewport()->getRenderContext(render_context_name);
 				if (!render_context) {
@@ -348,7 +349,7 @@ namespace Rhea
 				std::shared_ptr<Psio::WinSizeEvent> me = std::static_pointer_cast<Psio::WinSizeEvent>(e->getEvent());
 				viewport_width = me->width();
 				viewport_height = me->height();
-				if (viewport_width > 0 && viewport_height > 0) 
+				if (viewport_width > 0 && viewport_height > 0)
 				{
 					Poseidon::Window* window = m_core->get_scene_manager()->getWindow(me->getWindow());
 					if (!window) {

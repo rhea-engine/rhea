@@ -15,7 +15,7 @@ namespace Hippios
 	class GLPipelineStateObject : public PipelineStateObject
 	{
 	public:
-		GLPipelineStateObject(const PipelineStateObjectDesc& desc);
+		GLPipelineStateObject(const GLCapabilities& caps, const PipelineStateObjectDesc& desc);
 		~GLPipelineStateObject();
 
 		void SetState() override;
@@ -34,6 +34,7 @@ namespace Hippios
 		GLenum m_topology;
 		CullMode m_cull_mode;
 		FillMode m_fill_mode;
+
 		std::unique_ptr<GLStencilState> m_stencil_state;
 		std::unique_ptr<GLBlendState> m_blend_state;
 		GLShaderProgram* m_shader_program = nullptr;
@@ -41,6 +42,8 @@ namespace Hippios
 		std::vector<InputLayoutElement> m_elements;
 		std::vector<InputBindingDesc> m_bindings;
 		InputLayoutDesc m_inputLayout{};
+
+		GLCapabilities m_caps;
 	};
 
 	GLenum toGLTopology(PrimitiveTopology topo);

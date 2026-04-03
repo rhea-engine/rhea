@@ -19,8 +19,12 @@ target_link_libraries(RheaClient PUBLIC
   Rhea::Core
   Rhea::GUI
   Meworla::Poseidon
-  Winmm
 )
+
+if(WIN32)
+	target_compile_options(RheaClient PRIVATE /showIncludes)
+	target_link_libraries(RheaClient PRIVATE Winmm)
+endif()
 
 # helper
 add_library(RheaClientRuntime INTERFACE)

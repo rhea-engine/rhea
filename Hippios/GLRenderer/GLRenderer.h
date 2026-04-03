@@ -18,11 +18,12 @@ namespace Hippios
 	class GLIndexBuffer;
 	class GLShader;
 	class GLSamplerState;
+	class GlContext;
 
 	class GLRenderer : public Renderer
 	{
 	public:
-		GLRenderer();
+		GLRenderer(WindowBackend window_backend);
 		~GLRenderer();
 		
 		std::unique_ptr<RenderTarget> createRenderTarget(const RenderTargetDesc& desc) override;
@@ -62,13 +63,21 @@ namespace Hippios
 
 		bool getStencilStateDesc(const std::string& name, DepthStencilStateDesc& outDesc) override;
 
-		void prepareMatricesForShader(Math::Matrix4* dst, const Math::Matrix4* src, size_t count) const;		
+		void prepareMatricesForShader(Math::Matrix4* dst, const Math::Matrix4* src, size_t count) const;	
+
+		const GLCapabilities& getCapabilities() const { return m_caps; }
+		bool useModernGL() const { return m_caps.hasDSA; }
+
+		RendererBackend getRendererBackend() const override { return RendererBackend::OpenGL; }
+
+		void detectCapabilities();
 
 	private:
-		bool setupPixelFormat(HDC hdc);
-		bool createSharedContext(HDC hdc);
+		WindowBackend m_backend = WindowBackend::Unknown;
 
-		HGLRC m_glrc = nullptr;		
+		std::unique_ptr<GlContext> m_context;
+
+		GLCapabilities m_caps;
 
 		GLVertexBuffer* m_last_vb = nullptr;
 		GLIndexBuffer* m_last_ib = nullptr;

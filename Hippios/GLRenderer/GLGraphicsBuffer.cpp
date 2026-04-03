@@ -14,7 +14,7 @@ namespace Hippios
 		glBufferData(m_target, m_size_in_bytes, nullptr, usage);
 		glBindBuffer(m_target, 0);
 	}
-
+	
 	GLGraphicsBuffer::~GLGraphicsBuffer()
 	{
 		if (m_buffer)
@@ -25,8 +25,14 @@ namespace Hippios
 	{
 		GraphicsBuffer::Lock(offset, length);
 		glBindBuffer(m_target, m_buffer);
-		void* ptr = glMapBuffer(m_target, GL_WRITE_ONLY);
-		return ptr ? static_cast<char*>(ptr) + offset : nullptr;
+
+		void* ptr = glMapBufferRange(
+			m_target,
+			static_cast<GLintptr>(offset),
+			static_cast<GLsizeiptr>(length),
+			GL_MAP_WRITE_BIT);
+
+		return ptr;
 	}
 
 	void GLGraphicsBuffer::Unlock()

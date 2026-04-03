@@ -36,8 +36,6 @@ namespace Orion
 		std::vector<Realm*> m_file_realms;
 		std::time_t m_realms_lastmod = 0;
 
-		typedef std::function<void(Realm*, int err)> ResolveHandler;
-
 		void LoadIrisServers();
 
 		struct resolving {

@@ -27,6 +27,8 @@ namespace Hippios
 		glGenTextures(1, &m_texture);
 		glBindTexture(m_gl_target, m_texture);
 
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
 		if (m_gl_target == GL_TEXTURE_CUBE_MAP) {
 			for (int i = 0; i < 6; ++i) {
 				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA8,
@@ -37,7 +39,7 @@ namespace Hippios
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,
 				desc.width, desc.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
 		}
-
+		
 		glTexParameteri(m_gl_target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(m_gl_target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
@@ -51,6 +53,7 @@ namespace Hippios
 			glTexParameteri(m_gl_target, GL_TEXTURE_WRAP_T, GL_REPEAT);
 		}
 
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 		glBindTexture(m_gl_target, 0);
 	}
 
@@ -70,7 +73,9 @@ namespace Hippios
 			target = GL_TEXTURE_CUBE_MAP_POSITIVE_X + index;
 
 		glBindTexture(m_gl_target, m_texture);
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		glTexSubImage2D(target, 0, 0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, image_data);
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
 		glBindTexture(m_gl_target, 0);
 	}
 

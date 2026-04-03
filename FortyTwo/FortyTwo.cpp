@@ -12,9 +12,9 @@
 #include "AuthHandler.h"
 #include <Rhea/Physics/PhysicsManagerService.h>
 
-void FortyTwo::init()
+void FortyTwo::init(int argc, char* argv[])
 {
-	Rhea::Application::init();
+	Rhea::Application::init(argc, argv);
 
 	// ignore controller and spectator defs
 	SimpleParser::Type::registerType<Rhea::Unit>("//meworla/controller");
@@ -150,7 +150,7 @@ int main(int argc, char* argv[])
 	f42->setAppname("FortyTwo");
 	int argi = 1;
 
-	f42->init();
+	f42->init(argc, argv);
 
 	while (argi < argc) {
 		if (!strcmp(argv[argi], "-key")) {

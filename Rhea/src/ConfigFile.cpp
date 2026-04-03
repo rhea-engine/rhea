@@ -29,7 +29,9 @@ namespace Rhea
 						// }
 						for (auto& value : section.values) {
 							key = section.section_name + "." + value.first;
-							m_values[key] = value.second;
+							// only overwrite if not already set by command line args
+							if (m_values.find(key) == m_values.end())
+								m_values[key] = value.second;
 						}
 					}
 					return true;
@@ -79,8 +81,7 @@ namespace Rhea
 				if (i + 1 < argc)
 				{
 					std::string dir = argv[++i]; // consume next argument
-					m_app->setAppDir(dir.c_str());
-					LOG(LOG_INFO) << "Set //local to directory: " << dir;
+					m_values["appdir"] = dir; // set //local to the directory
 				}
 			}
 			else if (arg.rfind("--", 0) == 0) // starts with "--"

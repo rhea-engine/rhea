@@ -15,7 +15,7 @@ namespace Rhea
 	{
 		Item2D::setup(app, attributes, values);
 		
-		m_text = values["text"];
+		m_text = values["text"].toString();
 		m_max_length = m_text.length();
 		m_word_wrap = getValue("word_wrap", true);
 		m_multiline = getValue("multiline", true);
@@ -37,7 +37,7 @@ namespace Rhea
 		// load and add font and text
 		if (m_values.find("font") != m_values.end())
 		{
-			Font* font = doCast<Font>(m_app->getUnitTree()->find(m_values["font"], m_attributes["basepath"], false));
+			Font* font = doCast<Font>(m_app->getUnitTree()->find(m_values["font"].toString(), m_attributes["basepath"], false));
 			if (!font)
 				LOG(LOG_ERROR) << "TextWidget: Font '" << (std::string)m_values["font"] << "' not found";
 			else
@@ -108,7 +108,7 @@ namespace Rhea
 		float f_sz = font->getFontSize();
 
 		std::vector<Mesh::vertex> vertices;
-		std::vector<unsigned long> v_indices;
+		std::vector<uint32_t> v_indices;
 		int v_c = 0;
 
 		size_t i = 0;
@@ -125,7 +125,7 @@ namespace Rhea
 			}
 
 			// Process whitespace as a single token (e.g. space, tab)
-			if (isspace(sentence[i])) {
+			if (isspace(static_cast<unsigned char>(sentence[i]))) {
 				Glyph* glyph = font->getGlyph(static_cast<unsigned int>(sentence[i]));
 				if (!glyph) {
 					i++;
@@ -161,7 +161,7 @@ namespace Rhea
 			size_t word_start = i;
 			float word_width = 0.0f;
 			size_t j = i;
-			while (j < sentence.size() && !isspace(sentence[j]) && sentence[j] != '\n') {
+			while (j < sentence.size() && !isspace(static_cast<unsigned char>(sentence[j])) && sentence[j] != '\n') {
 				Glyph* glyph = font->getGlyph(static_cast<unsigned int>(sentence[j]));
 				if (glyph)
 					word_width += glyph->advance;
@@ -216,29 +216,22 @@ namespace Rhea
 			i = j;
 		}
 
-		if (v_indices.empty()) {
-			hide();
-			return;
-		}
-		else {
-			show();
-		}
-
-		// Fill up the buffer with zeros if needed
-		size_t v_len = vertices.size();
-		if (m_vertex_size > v_len) {
-			for (size_t j = v_len; j < m_vertex_size; j++) {
-				vertices.push_back({ 0, 0, 0, 0, 0 });
-			}
-		}
-		else {
-			m_vertex_size = v_len;
-		}
-
 		MeshComponent* mesh_component = getComponent<MeshComponent>();
 		if (mesh_component && mesh_component->getMesh()) {
+			if (v_indices.empty()) {
+				std::vector<Mesh::vertex> empty_vertices;
+				std::vector<uint32_t> empty_indices;
+				mesh_component->getMesh()->setBuffers(empty_vertices, empty_indices);
+				mesh_component->getMesh()->sendEvent("update", nullptr);
+				m_vertex_size = 0;
+				hide();
+				return;
+			}
+
 			mesh_component->getMesh()->setBuffers(vertices, v_indices);
 			mesh_component->getMesh()->sendEvent("update", nullptr);
+			m_vertex_size = vertices.size();
+			show();
 		}
 	}
 
@@ -371,7 +364,7 @@ namespace Rhea
 			}
 
 			// Process whitespace as a single token (spaces, tabs, etc.)
-			if (isspace(sentence[i])) {
+			if (isspace(static_cast<unsigned char>(sentence[i]))) {
 				Glyph* glyph = font->getGlyph(static_cast<unsigned char>(sentence[i]));
 				if (!glyph) {
 					i++;
@@ -397,7 +390,7 @@ namespace Rhea
 			size_t word_start = i;
 			float word_width = 0.0f;
 			size_t j = i;
-			while (j < sentence.size() && sentence[j] != '\n' && !isspace(sentence[j])) {
+			while (j < sentence.size() && sentence[j] != '\n' && !isspace(static_cast<unsigned char>(sentence[j]))) {
 				Glyph* glyph = font->getGlyph(static_cast<unsigned char>(sentence[j]));
 				if (glyph)
 					word_width += glyph->advance;

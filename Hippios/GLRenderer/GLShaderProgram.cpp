@@ -31,7 +31,7 @@ namespace Hippios
 		glUseProgram(program);
 		glUniform1i(location, textureUnit);
 	}
-
+	
 	void GLShaderProgram::bindSampler(const char* uniformName, int slot)
 	{
 		GLint location = glGetUniformLocation(m_program, uniformName);

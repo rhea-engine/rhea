@@ -58,7 +58,7 @@ namespace Rhea
 		}
 
 		struct SubMesh {
-			std::vector<unsigned long> indices;
+			std::vector<uint32_t> indices;
 			Material* material;
 		};
 		
@@ -79,17 +79,17 @@ namespace Rhea
 		bool isDynamic() { return m_isDynamic; }	
 
 		// return the buffers - short hand for meshes without submeshes
-		void getBuffers(std::vector<vertex>& vertices, std::vector<unsigned long>& indices);
-		void setBuffers(std::vector<vertex>& vertices, std::vector<unsigned long>& indices);
+		void getBuffers(std::vector<vertex>& vertices, std::vector<uint32_t>& indices);
+		void setBuffers(std::vector<vertex>& vertices, std::vector<uint32_t>& indices);
 
 		// set buffer with map of attributes
 		void setVertexBuffer(std::vector<VertexAttribute>& layout, std::unordered_map<std::string, VertexBuffer>& vertices, size_t num_vertices);
 		// short hand for mehses with no submeshes
-		void setBuffers(std::unordered_map<std::string, VertexBuffer>& vertices, std::vector<unsigned long>& indices, size_t num_vertices);
+		void setBuffers(std::unordered_map<std::string, VertexBuffer>& vertices, std::vector<uint32_t>& indices, size_t num_vertices);
 
 		// set submeshes with material and indices
-		void addSubmesh(Material* material, std::vector<unsigned long>& indices);
-		void setSubmesh(size_t idx, Material* material, std::vector<unsigned long>& indices);
+		void addSubmesh(Material* material, std::vector<uint32_t>& indices);
+		void setSubmesh(size_t idx, Material* material, std::vector<uint32_t>& indices);
 
 		// get number of submeshes
 		size_t getNumSubmeshes() { return m_submeshes.size(); }
@@ -100,12 +100,12 @@ namespace Rhea
 		// return pointers to the buffers
 		VertexBuffer* getVertexBuffer() { return &m_vertex; }
 		VertexBuffer& getVertexBufferRef() { return m_vertex; }
-		const std::vector<unsigned long>& getIndices(size_t mesh_idx) const {			
+		const std::vector<uint32_t>& getIndices(size_t mesh_idx) const {			
 			if (mesh_idx >= m_submeshes.size())
 				mesh_idx = 0;
 			return m_submeshes[mesh_idx].indices;
 		}
-		std::vector<unsigned long>& getIndices(size_t mesh_idx) {
+		std::vector<uint32_t>& getIndices(size_t mesh_idx) {
 			if (mesh_idx >= m_submeshes.size())
 				mesh_idx = 0;
 			return m_submeshes[mesh_idx].indices;

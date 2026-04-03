@@ -24,7 +24,7 @@ namespace Rhea
 		if (m_values.find("shaderpath") == m_values.end()) {
 			return;
 		}
-		TextResource* shader_res = static_cast<TextResource*>(m_app->getUnitTree()->find(m_values["shaderpath"], m_attributes["basepath"], false));
+		TextResource* shader_res = static_cast<TextResource*>(m_app->getUnitTree()->find(m_values["shaderpath"].toString(), m_attributes["basepath"], false));
 		if (shader_res) {
 			setShader(shader_res);
 		}

@@ -1,6 +1,8 @@
-#include <Rhea/Resources/Textresource.h>
+#include <Rhea/Resources/TextResource.h>
 #include <Rhea/Application.h>
 #include "Orion/ResourceStream.h"
+
+#include <cstring>
 
 namespace Rhea
 {

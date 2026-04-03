@@ -65,10 +65,10 @@ namespace SimpleParser
 		// get the next token
 		Error nextToken(char* buf, size_t& reader, size_t buflen, int &line, Token& token, bool ws_relevant=false);
 		// get an error message
-		char* getErrMsg(Error);
+		const char* getErrMsg(Error);
 	protected:
 		bool m_ignore_newline;
-		char* id_chars = "_/:";
+		const char* id_chars = "_/:";
 		int m_comment_type = 0;
 	};
 }

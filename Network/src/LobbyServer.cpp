@@ -45,7 +45,11 @@ namespace Rhea
 		// fill the avatars in the avatarlist message
 		Hermes::MessageAvatarList msg_al;
 		for (auto avatar : avatars)
-			msg_al.addAvatar(avatar->getPathName(), avatar->getTypeName());
+		{
+			std::string pathName = avatar->getPathName();
+			std::string typeName = avatar->getTypeName();
+			msg_al.addAvatar(pathName, typeName);
+		}
 	
 		m_state = CONN_LOBBY;
 		m_hermes->sendMessage(&msg_al, nullptr);

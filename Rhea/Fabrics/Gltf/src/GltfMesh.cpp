@@ -18,7 +18,7 @@ namespace Rhea
 	bool GltfMesh::load(Rhea::Mesh* mesh)
 	{
 		if (m_values.find("path") != m_values.end()) {
-			GltfScene* scene = doCast<GltfScene>(m_app->getUnitTree()->find(m_values["path"], m_attributes["basepath"], false));
+			GltfScene* scene = doCast<GltfScene>(m_app->getUnitTree()->find(m_values["path"].toString(), m_attributes["basepath"], false));
 			if (scene) {
 				return scene->load(mesh);
 			}

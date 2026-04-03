@@ -14,13 +14,16 @@ namespace Rhea
 	class Transform : public SimpleParser::Variant
 	{
 	public:
-		Transform(Item* parent) :
+		Transform(Item* parent, std::string type_name) :
 			m_parent(parent),
 			m_position(),
 			m_derived_position(),
 			m_coord_space(1),
 			m_need_update(true),
-			SimpleParser::Variant(SimpleParser::Type::get(std::string("//meworla/transform")))
+			SimpleParser::Variant(type_name)
+		{}
+		Transform(Item* parent) :
+			Transform(parent, "//meworla/transform")
 		{}
 
 		// update parent

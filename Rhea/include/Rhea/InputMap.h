@@ -7,7 +7,7 @@
 #include <memory>
 #include <string>
 
-#include <Psio/InputEvent.h>
+#include <Psio/Input/InputEvent.h>
 
 namespace Rhea {
 

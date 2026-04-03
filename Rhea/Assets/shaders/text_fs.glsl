@@ -12,9 +12,10 @@ void main()
     // Match existing HLSL logic.
     if (color.r == 0.0)
     {
-        color.a = 0.0;
+        //color.a = 0.0;
+        discard;
     }
 
     FragColor = color;
-    // FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+    //FragColor = vec4(1.0, 0.0, 0.0, 1.0);
 }

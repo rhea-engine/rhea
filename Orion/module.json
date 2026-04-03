@@ -3,6 +3,7 @@
   "name": "Orion",
   "version": "0.9.0",
   "dependencies": {
-    "Meworla/Components": "0.9.0"
+    "Meworla/Components": "0.9.0",
+    "Meworla/Psio": "0.9.0"
   }
 }

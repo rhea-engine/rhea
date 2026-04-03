@@ -1,3 +1,4 @@
+#define NOMINMAX
 #include "Poseidon/SceneManager.h"
 #include "Poseidon/Node.h"
 #include "Poseidon/Viewport.h"
@@ -23,6 +24,7 @@
 #include <Rhea/Components/VisualComponent.h>
 #include <Rhea/Components/RenderComponent.h>
 #include <Psio/Log.h>
+#include <algorithm>
 
 namespace Poseidon
 {
@@ -105,13 +107,23 @@ namespace Poseidon
 
 				// fill per frame buffer
 				per_frame_buf = {};
-				per_frame_buf.v = camera->getViewMatrix();
-				per_frame_buf.p = camera->getProjectionMatrixRS();
-				per_frame_buf.vp = per_frame_buf.p * per_frame_buf.v;
+				Math::Matrix4 frameSrc[3];
+				frameSrc[0] = camera->getViewMatrix();
+				frameSrc[1] = camera->getProjectionMatrixRS();
+				frameSrc[2] = frameSrc[1] * frameSrc[0];
+
+				Math::Matrix4 frameDst[3];
+				m_renderer->prepareMatricesForShader(frameDst, frameSrc, 3);
+
+				per_frame_buf.v = frameDst[0];
+				per_frame_buf.p = frameDst[1];
+				per_frame_buf.vp = frameDst[2];
+
 				if (camera->get_position())
 					per_frame_buf.cameraPos = camera->get_position()->get_worldspace();
 
 				m_frame_buffer->update((void*)&per_frame_buf);
+				m_renderer->bindGPUBuffer(m_frame_buffer.get(), 0, Hippios::ShaderStage::Vertex);
 
 				// fill lights buffer
 				std::vector<Rhea::Light*> lights;
@@ -191,14 +203,20 @@ namespace Poseidon
 					if (transform)
 						position = transform->get_derived_position();
 					// check if renderable has a position
-					if (position) {
-						Math::Matrix3x4 model_wtm = position->getWorldTransform(); // model world transform matrix (also called world matrix)
+					if (position) {// model world transform matrix (also called world matrix)
+						Math::Matrix4 objectSrc[2];
 
-						per_obj_buf.world_matrix = model_wtm;
-						
+						Math::Matrix3x4 model_wtm = position->getWorldTransform();
+						objectSrc[0] = model_wtm;
+						objectSrc[1] = objectSrc[0].inverse().transpose();
+
+						Math::Matrix4 objectDst[2];
+						m_renderer->prepareMatricesForShader(objectDst, objectSrc, 2);
+
+						per_obj_buf.world_matrix = objectDst[0];
 						// used for lighting							
-						per_obj_buf.inverse = per_obj_buf.world_matrix.inverse().transpose();
-
+						per_obj_buf.inverse = objectDst[1];
+						
 						m_object_buffer->update((void*)&per_obj_buf);
 						m_renderer->bindGPUBuffer(m_object_buffer.get(), 1, Hippios::ShaderStage::Vertex);
 					}
@@ -220,8 +238,9 @@ namespace Poseidon
 							boneBuffer.boneMatrices[i] = Math::Matrix4::IDENTITY;
 						}
 						const auto& boneMatrices = skeleton->getBoneMatrices();
-						size_t max_bones = min(boneMatrices.size(), static_cast<size_t>(100)); // Ensure we do not exceed buffer capacity.
-						m_renderer->prepareMatricesForShader(boneBuffer.boneMatrices, boneMatrices.data(), max_bones);
+						size_t max_bones = std::min(boneMatrices.size(), static_cast<size_t>(100)); // Ensure we do not exceed buffer capacity.
+						for (size_t i = 0; i < max_bones; ++i)
+							boneBuffer.boneMatrices[i] = boneMatrices[i];
 
 						// Update the bone matrix buffer
 						m_bone_buffer->update((void*)&boneBuffer);
@@ -288,7 +307,7 @@ namespace Poseidon
 							else {
 								DLOG(LOG_DEBUG) << "SceneManager::render: indexed mesh but num_indices=0 or no vb";
 							}
-						}
+						}						
 					}
 				}
 			}

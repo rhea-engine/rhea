@@ -5,6 +5,11 @@ cmake_minimum_required (VERSION 3.10)
 
 project ("Poseidon")
 
+# Require C++17 standard
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 include(FetchContent)
 set(CMAKE_POLICY_DEFAULT_CMP0135 NEW)
 set(CMAKE_POLICY_DEFAULT_CMP0115 OLD)
@@ -36,8 +41,26 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
                 
 # json library
-FetchContent_Declare(nlohmann_json URL https://github.com/nlohmann/json/releases/download/v3.11.2/json.tar.xz DOWNLOAD_EXTRACT_TIMESTAMP TRUE)
+FetchContent_Declare(
+    nlohmann_json
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+    URL https://github.com/nlohmann/json/releases/download/v3.11.2/json.tar.xz
+    URL_HASH SHA256=8c4b26bf4b422252e13f332bc5e388ec0ab5c3443d24399acb675e68278d341f
+)
 FetchContent_MakeAvailable(nlohmann_json)
+
+option(ENABLE_SDL "Enable SDL" ON)
+
+# SDL
+if(ENABLE_SDL)
+    FetchContent_Declare(
+	    SDL3
+	    GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
+		GIT_TAG release-3.2.10
+	)
+
+	FetchContent_MakeAvailable(SDL3)
+endif()
 
 # Target definition
 add_library(RheaEngine INTERFACE)
@@ -65,14 +88,14 @@ option(RHEA_BUILD_SAMPLES     "Build samples" ${RHEA_IS_TOPLEVEL})
 set(engine_dirs Components)
 set(engine_targets Meworla::Components)
 set(targetdirs FortyTwo)
-if(WIN32)
-    list(APPEND engine_dirs Hermes Hippios Orion Poseidon Rhea RheaClient RheaPhysics RheaPhysicsBullet RheaPhysicsBulletDebug Network)
-    list(APPEND engine_targets Hermes Meworla::Hippios Meworla::Orion Meworla::Poseidon Rhea::Core Rhea::Client Meworla::RheaPhysics Meworla::RheaPhysicsBullet Meworla::RheaPhysicsBulletDebug Rhea::Network)
+#if(WIN32)
+    list(APPEND engine_dirs Psio Hermes Hippios Orion Poseidon Rhea RheaClient RheaPhysics RheaPhysicsBullet RheaPhysicsBulletDebug Network)
+    list(APPEND engine_targets Meworla::Psio Hermes Meworla::Hippios Meworla::Orion Meworla::Poseidon Rhea::Core Rhea::Client Meworla::RheaPhysics Meworla::RheaPhysicsBullet Meworla::RheaPhysicsBulletDebug Rhea::Network)
   #  if(DEV_BUILD_CETO)
         list(APPEND targetdirs Ceto)
     #endif()
-    list(APPEND targetdirs Iris)    
-endif()
+#    list(APPEND targetdirs Iris)    
+#endif()
 
 # Targets
 

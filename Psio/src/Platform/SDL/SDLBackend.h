@@ -1,0 +1,25 @@
+#ifndef PSIO_SDL_BACKEND_H
+#define PSIO_SDL_BACKEND_H
+
+#include "../../Backend/IBackend.h"
+
+namespace Psio
+{
+    class SDLBackend final : public IBackend
+    {
+    public:
+        SDLBackend();
+        ~SDLBackend() override;
+
+        const char* GetName() const override;
+
+        std::unique_ptr<Input> CreateInput(Engine* engine) override;
+        std::unique_ptr<Window> CreateNativeWindow(WindowDesc desc) override;
+        std::unique_ptr<Network> CreateNetwork(Engine* engine) override;
+        std::unique_ptr<IO> CreateIO(Engine* engine) override;
+        std::unique_ptr<Fs> CreateFs(Engine* engine) override;
+
+        uint64_t GetTicks() override;
+    };
+}
+#endif // !PSIO_SDL_BACKEND_H

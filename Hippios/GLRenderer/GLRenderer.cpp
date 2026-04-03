@@ -1,193 +1,130 @@
 #include "GLRenderer.h"
 #include "GLRenderer.h"
+#include "GLRenderer.h"
 #include "GLVertexBuffer.h"
 #include "GLIndexBuffer.h"
 #include "GLGraphicsBuffer.h"
 #include "GLTexture.h"
 #include "GLShader.h"
-#include "GLSwapChain.h"
 #include "GLRenderTarget.h"
 #include "GLPipelineState.h"
 #include "GLBlendState.h"
 #include "GLSamplerState.h"
 #include "GLShaderProgram.h"
+#include "GLContext.h"
 
 #include <cassert>
 #include <cstdio>
 #include <cstring>
 #include <Psio/Log.h>
-
-// WGL extension function pointers (not provided by GLAD)
-static PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = nullptr;
+#ifdef _WIN32
+#include "GLSwapChainWin32.h"
+#include "WglContext.h"
+#elif defined(__linux__)
+//#include "GlxContext.h"
+#endif
+#include "GLSwapChainSDL.h"
+#include "SdlContext.h"
 
 namespace Hippios
 {
-	GLRenderer::GLRenderer()
+	static const InputBindingDesc* findBindingDesc(const InputLayoutDesc& layout, int inputSlot)
 	{
+		if (!layout.bindings)
+			return nullptr;
+
+		for (int i = 0; i < layout.num_bindings; ++i)
+		{
+			if (layout.bindings[i].inputSlot == inputSlot)
+				return &layout.bindings[i];
+		}
+		return nullptr;
 	}
 
-	GLRenderer::~GLRenderer()
+	GLRenderer::GLRenderer(WindowBackend window_backend) :
+		m_backend(window_backend)
 	{
-		if (m_glrc) {
-			wglMakeCurrent(nullptr, nullptr);
-			wglDeleteContext(m_glrc);
+		switch (window_backend)
+		{
+#ifdef _WIN32
+		case WindowBackend::Win32:
+			m_context = std::make_unique<WglContext>(this);
+			break;
+#endif // _WIN32
+		case WindowBackend::SDL:
+			m_context = std::make_unique<SdlGlContext>(this);
+			break;
+#ifdef __linux__
+		case WindowBackend::X11:
+			//m_context = std::make_unique<GlxContext>();
+			break;
+
+		case WindowBackend::Wayland:
+			// Wayland support not implemented yet
+			LOG(LOG_ERROR) << "Wayland backend not supported yet in GLRenderer.";
+			break;
+
+		case WindowBackend::GLFW:
+			// GLFW support not implemented yet
+			LOG(LOG_ERROR) << "GLFW backend not supported yet in GLRenderer.";
+			break;
+
+#endif // __linux__
+		default:
+			LOG(LOG_ERROR) << "Unsupported window backend for GLRenderer: " << static_cast<int>(window_backend);
+			break;
+
 		}
 	}
 
-	bool GLRenderer::setupPixelFormat(HDC hdc)
-	{
-		PIXELFORMATDESCRIPTOR pfd = {};
-		pfd.nSize = sizeof(pfd);
-		pfd.nVersion = 1;
-		pfd.dwFlags = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | PFD_DOUBLEBUFFER;
-		pfd.iPixelType = PFD_TYPE_RGBA;
-		pfd.cColorBits = 32;
-		pfd.cDepthBits = 24;
-		pfd.cStencilBits = 8;
-		pfd.iLayerType = PFD_MAIN_PLANE;
-
-		int format = ChoosePixelFormat(hdc, &pfd);
-		if (!format) {
-			LOG(LOG_ERROR) << "ChoosePixelFormat failed";
-			return false;
-		}
-
-		// On Win32, SetPixelFormat may only be called once for a window.
-		// If the window was already initialized, we may want to treat
-		// "already set" as success via DescribePixelFormat/GetPixelFormat later.
-		if (!SetPixelFormat(hdc, format, &pfd)) {
-			DWORD err = GetLastError();
-			if (err != ERROR_INVALID_PIXEL_FORMAT) {
-				LOG(LOG_ERROR) << "SetPixelFormat failed";
-			}
-
-			// Better version later:
-			// check GetPixelFormat(hdc) and verify compatibility.
-			// For now, fail hard.
-			return false;
-		}
-
-		return true;
-	}
-
-	bool GLRenderer::createSharedContext(HDC hdc)
-	{
-		// Create legacy context first so WGL extension loading works.
-		HGLRC temp_context = wglCreateContext(hdc);
-		if (!temp_context) {
-			LOG(LOG_ERROR) << "wglCreateContext failed";
-			return false;
-		}
-
-		if (!wglMakeCurrent(hdc, temp_context)) {
-			LOG(LOG_ERROR) << "wglMakeCurrent(temp_context) failed";
-			wglDeleteContext(temp_context);
-			return false;
-		}
-
-		// Load wglCreateContextAttribsARB
-		wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC)wglGetProcAddress("wglCreateContextAttribsARB");
-
-		if (wglCreateContextAttribsARB) {
-			int attribs[] = {
-				WGL_CONTEXT_MAJOR_VERSION_ARB, 4,
-				WGL_CONTEXT_MINOR_VERSION_ARB, 5,
-				WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-	#ifdef _DEBUG
-				WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_DEBUG_BIT_ARB,
-	#endif
-				0
-			};
-
-			m_glrc = wglCreateContextAttribsARB(hdc, nullptr, attribs);
-
-			wglMakeCurrent(nullptr, nullptr);
-			wglDeleteContext(temp_context);
-			if (!m_glrc) {
-				LOG(LOG_ERROR) << "Failed to create OpenGL 4.5 context";
-				return false;
-			}
-
-			if (!wglMakeCurrent(hdc, m_glrc)) {
-				LOG(LOG_ERROR) << "wglMakeCurrent(shared context) failed";
-				wglDeleteContext(m_glrc);
-				m_glrc = nullptr;
-				return false;
-			}
-		}
-		else {
-			m_glrc = temp_context;
-		}
-
-		// Initialize GLAD – this loads ALL GL function pointers.
-		// wglGetProcAddress only resolves extension and GL >1.1 functions.
-		// For core GL 1.1 functions (glGetString, glEnable, …) we must fall
-		// back to GetProcAddress on opengl32.dll.  GLAD expects a single
-		// loader callback that handles both cases.
-		HMODULE opengl_module = GetModuleHandleA("opengl32.dll");
-		if (!gladLoadGLLoader([](const char* name) -> void* {
-			void* proc = (void*)wglGetProcAddress(name);
-			if (!proc || proc == (void*)0x1 || proc == (void*)0x2 ||
-				proc == (void*)0x3 || proc == (void*)-1) {
-				HMODULE gl = GetModuleHandleA("opengl32.dll");
-				proc = (void*)GetProcAddress(gl, name);
-			}
-			return proc;
-			})) {
-			LOG(LOG_ERROR) << "Failed to initialize GLAD";
-			return false;
-		}
-		/*
-		if (!gladLoadGLLoader((GLADloadproc)wglGetProcAddress)) {
-			LOG(LOG_ERROR) << "Failed to initialize GLAD";
-			wglMakeCurrent(nullptr, nullptr);
-			wglDeleteContext(m_glrc);
-			m_glrc = nullptr;
-			return false;
-		}
-		*/
-
-		glEnable(GL_DEPTH_TEST);
-		glDepthFunc(GL_LESS);
-
-		// Match D3D11 winding order: clockwise = front face
-		glFrontFace(GL_CW);
-
-		LOG(LOG_INFO) << "OpenGL: " << glGetString(GL_RENDERER) << ", Version: " << glGetString(GL_VERSION);
-
-		return true;
-	}
+	GLRenderer::~GLRenderer() = default;
 
 	std::unique_ptr<SwapChain> GLRenderer::createSwapChain(NativeWindow* win)
 	{
-		if (!win || !win->native_win_handle)
+		if (!win || !win->native_win_handle || !m_context)
 			return nullptr;
 
-		HWND hwnd = static_cast<HWND>(win->native_win_handle);
-		HDC hdc = GetDC(hwnd);
-		if (!hdc) {
-			LOG(LOG_ERROR) << "GetDC failed";
+		std::unique_ptr<SwapChain> swapChain;
+
+		switch (m_backend)
+		{
+#if HIPPIOS_HAS_WIN32
+		case WindowBackend::Win32:
+			swapChain = std::make_unique<GLSwapChainWin32>(win);
+			break;
+#endif // HIPPIOS_HAS_WIN32
+#if HIPPIOS_HAS_SDL
+		case WindowBackend::SDL:
+			swapChain = std::make_unique<GLSwapChainSDL>(win);
+			break;
+#endif // HIPPIOS_SDL
+		case WindowBackend::X11:
+		case WindowBackend::Wayland:
+		case WindowBackend::GLFW:
+		default:
+			// Support for these backends not implemented yet
+			LOG(LOG_ERROR) << "SwapChain creation not supported for backend: " << static_cast<int>(m_backend);
+			throw std::runtime_error("SwapChain creation not supported for this backend");
 			return nullptr;
 		}
 
-		// Each window DC must have a valid pixel format set before it can be used
-		// with WGL. This must be done for every window/swapchain.
-		if (!setupPixelFormat(hdc)) {
-			LOG(LOG_ERROR) << "setupPixelFormat failed";
-			ReleaseDC(hwnd, hdc);
+		if (!swapChain || !swapChain->isValid())
 			return nullptr;
-		}
-		
-		// Create the shared GL context once, from the first window.
-		if (!m_glrc) {
-			if (!createSharedContext(hdc)) {
-				LOG(LOG_ERROR) << "createSharedContext failed";
-				ReleaseDC(hwnd, hdc);
+
+		// Every window/DC must get a valid pixel format
+		if (!m_context->prepareSwapChain(swapChain.get()))
+			return nullptr;
+
+		// Shared GL context only created once
+		if (!m_context->isCreated())
+		{
+			if (!m_context->create(swapChain.get())) {
+				throw std::runtime_error("Failed to create GL context for swap chain");
 				return nullptr;
 			}
 		}
 
-		return std::make_unique<GLSwapChain>(hdc, win);
+		return swapChain;
 	}
 
 	std::unique_ptr<RenderTarget> GLRenderer::createRenderTarget(const RenderTargetDesc& desc)
@@ -244,7 +181,7 @@ namespace Hippios
 
 	std::unique_ptr<PipelineStateObject> GLRenderer::createPipelineState(const PipelineStateObjectDesc& desc)
 	{
-		return std::make_unique<GLPipelineStateObject>(desc);
+		return std::make_unique<GLPipelineStateObject>(m_caps, desc);
 	}
 
 	void GLRenderer::setPipelineState(PipelineStateObject* pso)
@@ -334,42 +271,128 @@ namespace Hippios
 		const GLuint vao = glPso->getVAO();
 		const InputLayoutDesc& layout = glPso->getInputLayout();
 		
-		// Attach the actual vertex buffer(s) to the VAO binding slots.
-		// With the current renderer API, we only have one vertex buffer,
-		// so this supports layouts where all used input slots map to that one buffer.
-		if (glVb && layout.bindings && layout.num_bindings > 0)
+		// Bind VAO first (required for both DSA and non-DSA paths)
+		glBindVertexArray(vao);
+
+		if (m_caps.hasDSA)
 		{
-			const GLuint buffer = glVb->get_buffer();
+			// Modern DSA path
 
-			for (int i = 0; i < layout.num_bindings; ++i)
+			// Attach the actual vertex buffer(s) to the VAO binding slots.
+			// With the current renderer API, we only have one vertex buffer,
+			// so this supports layouts where all used input slots map to that one buffer.
+			if (glVb && layout.bindings && layout.num_bindings > 0)
 			{
-				const InputBindingDesc& binding = layout.bindings[i];
+				const GLuint buffer = glVb->get_buffer();
 
-				glVertexArrayVertexBuffer(
-					vao,
-					static_cast<GLuint>(binding.inputSlot),   // VAO binding slot
-					buffer,                                   // actual GL vertex buffer
-					0,                                        // base offset in buffer
-					static_cast<GLsizei>(binding.stride));    // stride for this slot
+				for (int i = 0; i < layout.num_bindings; ++i)
+				{
+					const InputBindingDesc& binding = layout.bindings[i];
+
+					glVertexArrayVertexBuffer(
+						vao,
+						static_cast<GLuint>(binding.inputSlot),   // VAO binding slot
+						buffer,                                   // actual GL vertex buffer
+						0,                                        // base offset in buffer
+						static_cast<GLsizei>(binding.stride));    // stride for this slot
+				}
+			}
+
+			// Attach index buffer to the VAO.
+			if (glIb)
+			{
+				glVertexArrayElementBuffer(vao, glIb->get_buffer());
+				m_last_ib = glIb;
+				m_current_index_type = glIb->getIndexType();
+				m_current_index_size = glIb->getIndexSize();
+			}
+			else
+			{
+				// Optional: clear the element buffer if you want indexed and non-indexed
+				// draws to be fully explicit.
+				glVertexArrayElementBuffer(vao, 0);
+				m_last_ib = nullptr;
+				m_current_index_type = GL_UNSIGNED_INT;
+				m_current_index_size = sizeof(uint32_t);
 			}
 		}
+		else {
+			// Legacy non-DSA path
 
-		// Attach index buffer to the VAO.
-		if (glIb)
-		{
-			glVertexArrayElementBuffer(vao, glIb->get_buffer());
-			m_last_ib = glIb;
-			m_current_index_type = glIb->getIndexType();
-			m_current_index_size = glIb->getIndexSize();
-		}
-		else
-		{
-			// Optional: clear the element buffer if you want indexed and non-indexed
-			// draws to be fully explicit.
-			glVertexArrayElementBuffer(vao, 0);
-			m_last_ib = nullptr;
-			m_current_index_type = GL_UNSIGNED_INT;
-			m_current_index_size = sizeof(uint32_t);
+			if (layout.num_bindings > 1)
+			{
+				LOG(LOG_ERROR) << "OpenGL renderer currently supports only one vertex buffer binding";
+				return;
+			}
+
+			if (glVb)
+			{
+				const GLuint buffer = glVb->get_buffer();
+
+				// In legacy GL, the VAO stores attribute format + the ARRAY_BUFFER bound
+				// at glVertexAttribPointer/IPointer time, so we must re-specify attributes here.
+				glBindBuffer(GL_ARRAY_BUFFER, buffer);
+
+				if (layout.elements && layout.num_elements > 0)
+				{
+					for (int i = 0; i < layout.num_elements; ++i)
+					{
+						const auto& elem = layout.elements[i];
+
+						const InputBindingDesc* binding = findBindingDesc(layout, elem.input_slot);
+						if (!binding)
+							continue;
+
+						const GLuint attribIndex = static_cast<GLuint>(elem.location);
+						const GLint components = getFormatComponentCount(elem.format);
+						const GLenum glType = getFormatType(elem.format);
+						const GLsizei stride = static_cast<GLsizei>(binding->stride);
+						const void* offset = reinterpret_cast<const void*>(
+							static_cast<uintptr_t>(elem.aligned_byte_offset));
+
+						glEnableVertexAttribArray(attribIndex);
+
+						if (isIntegerFormat(elem.format))
+						{
+							glVertexAttribIPointer(
+								attribIndex,
+								components,
+								glType,
+								stride,
+								offset);
+						}
+						else
+						{
+							glVertexAttribPointer(
+								attribIndex,
+								components,
+								glType,
+								isNormalizedFormat(elem.format) ? GL_TRUE : GL_FALSE,
+								stride,
+								offset);
+						}
+
+						glVertexAttribDivisor(
+							attribIndex,
+							static_cast<GLuint>(binding->instanceStepRate));
+					}
+				}
+			}
+
+			if (glIb)
+			{
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, glIb->get_buffer());
+				m_last_ib = glIb;
+				m_current_index_type = glIb->getIndexType();
+				m_current_index_size = glIb->getIndexSize();
+			}
+			else
+			{
+				glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+				m_last_ib = nullptr;
+				m_current_index_type = GL_UNSIGNED_INT;
+				m_current_index_size = sizeof(uint32_t);
+			}
 		}
 	}
 
@@ -378,14 +401,7 @@ namespace Hippios
 		if (!swap_chain)
 			return false;
 
-		GLSwapChain* gl_swap = static_cast<GLSwapChain*>(swap_chain);
-
-		if (!wglMakeCurrent(gl_swap->getHDC(), m_glrc)) {
-			LOG(LOG_ERROR) << "wglMakeCurrent failed in setActiveSwapChain";
-			return false;
-		}
-
-		return true;
+		return m_context->makeCurrent(swap_chain);
 	}
 
 	void GLRenderer::clearPass(RenderTarget* render_target)
@@ -397,20 +413,10 @@ namespace Hippios
 
 	int GLRenderer::presentPass(SwapChain* swap_chain)
 	{
-		if (!swap_chain)
-			return 0;
-
-		GLSwapChain* gl_swap = static_cast<GLSwapChain*>(swap_chain);
-
-		if (!wglMakeCurrent(gl_swap->getHDC(), m_glrc)) {
-			LOG(LOG_ERROR) << "wglMakeCurrent failed in presentPass";
+		if (!m_context || !swap_chain)
 			return -1;
-		}
 
-		if (!SwapBuffers(gl_swap->getHDC())) {
-			LOG(LOG_ERROR) << "SwapBuffers failed";
-			return -1;
-		}
+		m_context->swapBuffers(swap_chain);
 		return 0;
 	}
 
@@ -460,5 +466,19 @@ namespace Hippios
 	{
 		for (size_t i = 0; i < count; ++i)
 			dst[i] = src[i].transpose();
+	}
+
+	void Hippios::GLRenderer::detectCapabilities()
+	{
+		m_caps.majorVersion = GLVersion.major;
+		m_caps.minorVersion = GLVersion.minor;
+
+	//	m_caps.hasDSA = (GLAD_GL_VERSION_4_5 != 0);
+		m_caps.hasDebugOutput = (GLAD_GL_VERSION_4_3 != 0);
+		m_caps.hasDSA = false;
+
+		LOG(LOG_INFO) << "Detected OpenGL version " << m_caps.majorVersion << "." << m_caps.minorVersion
+			<< " - DSA: " << (m_caps.hasDSA ? "Yes" : "No")
+			<< ", Debug Output: " << (m_caps.hasDebugOutput ? "Yes" : "No");		
 	}
 }

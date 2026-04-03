@@ -43,14 +43,14 @@ namespace Rhea
 		Unit::ready();
 
 		if (m_values.find("path") != m_values.end()) {
-			m_images.push_back(doCast<ImageResource>(m_app->getUnitTree()->find(m_values["path"], m_attributes["basepath"], false)));
+			m_images.push_back(doCast<ImageResource>(m_app->getUnitTree()->find(m_values["path"].toString(), m_attributes["basepath"], false)));
 		}
 		else
 		{
 			m_images.resize(6);
 			for (int i = 1; i <= 6; i++) {
 				if (m_values.find("cubemap" + std::to_string(i)) != m_values.end()) {
-					ImageResource* img = doCast<ImageResource>(m_app->getUnitTree()->find(m_values["cubemap" + std::to_string(i)], m_attributes["basepath"], false));
+					ImageResource* img = doCast<ImageResource>(m_app->getUnitTree()->find(m_values["cubemap" + std::to_string(i)].toString(), m_attributes["basepath"], false));
 					if (img) {
 						m_images[i - 1] = img;
 					}

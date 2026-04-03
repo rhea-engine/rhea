@@ -17,11 +17,11 @@ namespace Rhea
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
 
 		// return if light is enabled in scene
-		bool Light::isEnabled() const {
+		bool isEnabled() const {
 			return m_is_enabled;
 		}
 		// set if light is enabled in scene
-		void Light::setEnabled(bool enabled) {
+		void setEnabled(bool enabled) {
 			m_is_enabled = enabled;
 		}
 

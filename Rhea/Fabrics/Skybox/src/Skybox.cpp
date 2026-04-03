@@ -65,7 +65,7 @@ namespace Rhea
 				{ -100.0f, -100.0f,  100.0f, 0.0f, 100.0f }  // Back bottom-left
 			};
 
-			std::vector<unsigned long> cube_indices = {
+			std::vector<uint32_t> cube_indices = {
 				0, 1, 2, // Front face
 				0, 2, 3, // Front face
 				4, 5, 6, // Back face
@@ -92,14 +92,14 @@ namespace Rhea
 		// find camera
 		if (m_values.find("camera") != m_values.end())
 		{
-			m_camera = doCast<Camera>(m_app->getUnitTree()->find(m_values["camera"], m_attributes["basepath"], false));
+			m_camera = doCast<Camera>(m_app->getUnitTree()->find(m_values["camera"].toString(), m_attributes["basepath"], false));
 		}
 		else {
 			m_camera = m_app->getUnitTree()->findByType<Camera>();			
 		}
 
 		if (!mesh_component->getMesh()->getMaterial()) {
-			Material* mat = doCast<Material>(m_app->getUnitTree()->find(m_values["shader"], m_attributes["basepath"], false));
+			Material* mat = doCast<Material>(m_app->getUnitTree()->find(m_values["shader"].toString(), m_attributes["basepath"], false));
 			if (!mat) {
 				mat = new Material(m_path + "_material", "//meworla/material");
 				addChild(mat);

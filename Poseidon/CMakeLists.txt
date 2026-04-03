@@ -14,7 +14,9 @@ target_link_libraries(Poseidon
     Rhea::Client
     Rhea::Animation
 )
-target_compile_options(Poseidon PRIVATE /showIncludes)
+if(WIN32)
+    target_compile_options(Poseidon PRIVATE /showIncludes)
+endif()
 
 target_include_directories(Poseidon PRIVATE
   $<TARGET_PROPERTY:Meworla::HippiosHeaders,INTERFACE_INCLUDE_DIRECTORIES>

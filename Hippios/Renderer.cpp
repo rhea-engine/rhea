@@ -13,14 +13,14 @@ namespace Hippios
 	{
 	}
 
-	std::unique_ptr<Renderer> Renderer::CreateRenderer(RendererBackend backend)
+	std::unique_ptr<Renderer> Renderer::CreateRenderer(RendererBackend backend, WindowBackend window_backend)
 	{
 		switch (backend) {
 #if HIPPIOS_OPENGL
 		case RendererBackend::OpenGL:
-			return std::make_unique<Hippios::GLRenderer>();
+			return std::make_unique<Hippios::GLRenderer>(window_backend);
 #endif // OPENGL
-#ifdef HIPPIOS_D3D11
+#if HIPPIOS_D3D11
 		case RendererBackend::D3D11:
 			return std::make_unique<Hippios::D3D11Renderer>();
 #endif // HIPPIOS_D3D11	

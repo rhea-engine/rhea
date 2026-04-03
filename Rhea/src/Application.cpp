@@ -6,8 +6,8 @@
 #include "Orion/ResourceRequest.h"
 #include <Orion/Mime.h>
 #include "Psio/Psio.h"
-#include "Psio/InputEvent.h"
-#include "Psio/Keyboard.h"
+#include <Psio/Input/InputEvent.h>
+#include <Psio/Input/Keyboard.h>
 #include "Psio/Log.h"
 #include "Rhea/Core/SceneLoader.h"
 #include "Rhea/Unit.h"
@@ -75,7 +75,6 @@ namespace Rhea
 #else
 		Log::logger().setLevel(LOG_INFO);
 #endif // DEBUG
-
 		
 		// register core types
 		SimpleParser::Type::registerType<Component>("//core/types/component"); 
@@ -94,21 +93,29 @@ namespace Rhea
 		m_unit_tree.reset((UnitTree*)SimpleParser::Type::create("/", "//core/unittree"));
 		m_unit_tree->setup(this);
 
+		ConfigFile* config = SimpleParser::Type::create<ConfigFile>("config");
+		config->setup(this);
+		m_unit_tree->addChild(config);
+		config->fromCommandLineArgs(argc, argv);
+
 		Service* psio = (PlatformService*)SimpleParser::Type::create("PlatformService", "//meworla/platformservice");
+		std::string psio_backend = config->getValueString("platform.backend", "auto");
+		psio->setValue("backend", psio_backend);
 		psio->setup(this);
 		m_services["platform"] = psio;
 
 		m_fs = new Orion::Orion(static_cast<PlatformService*>(psio)->getEngine(), m_appname);
 
-		// load config file
-		ConfigFile* config = SimpleParser::Type::create<ConfigFile>("config");
-		config->setup(this);
-		m_unit_tree->addChild(config);
+		std::string app_dir = config->getValueString("appdir", "");
+		if (!app_dir.empty()) {
+			setAppDir(app_dir.c_str());
+		}
+
+		// load config file		
 		config->loadFromFile("config.ini");
-		config->fromCommandLineArgs(argc, argv);
 
 		// log-level from config
-		std::string log_level = config->getValue("log.level", "info");
+		std::string log_level = config->getValueString("log.level", "info");
 		std::transform(log_level.begin(), log_level.end(), log_level.begin(), ::tolower);
 		if (log_level == "debug")
 			Log::logger().setLevel(LOG_DEBUG);
@@ -213,7 +220,7 @@ namespace Rhea
 	void Application::setAppDir(const char* path)
 	{
 		if (!m_fs) {
-			printf("Error: SetAppDir called before App::init()\n");
+			LOG(LOG_FATAL) << "Error: SetAppDir called before App::init()";
 			exit(-1);
 		}
 		m_fs->setLocalDir(path);
@@ -222,7 +229,7 @@ namespace Rhea
 
 	void Application::onResourceFailed(Orion::ResourceRequest::Error reason)
 	{
-		printf("Resource loading failed\n");
+		LOG(LOG_ERROR) << "Resource loading failed";
 	}
 
 	bool Application::onInput(EventInput* e, Unit* unit)
@@ -329,6 +336,7 @@ namespace Rhea
 				ret = true;
 
 			// 3.1 check for window and input events
+			psio->iterateInput();
 			while (evt = psio->pollInput()) {
 
 				// always handle OS quit
@@ -413,7 +421,7 @@ namespace Rhea
 	{
 		log("loading resource: " + resource_id);
 		Orion::ResourceRequest* req = m_fs->getResourceByRid(resource_id);
-		req->resolve([&, req, handler, resource_id](Orion::ResourceRequest* req, int err) {
+		req->resolve([&, handler, resource_id](Orion::ResourceRequest* req, int err) {
 
 			if (err == Orion::ResourceRequest::Error::OK) {
 

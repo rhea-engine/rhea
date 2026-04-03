@@ -69,7 +69,7 @@ namespace Orion
 		// the resolver does only lookup the realm, the rest is considered to be a path, where the server is responsible
 		// special realm is "local"
 		// return 0 on success, negative on error
-		Error ResourceRequest::parseRid(const string rid);
+		Error parseRid(const string rid);
 
 		// resolve the realm
 		// calls orion::onRealmResolved with itself as parameter

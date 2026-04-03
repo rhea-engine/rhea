@@ -111,7 +111,7 @@ namespace Rhea
 		if (vbuf && vbuf->size()) {
 			out->setVertices(vbuf->getVertexSize(), vbuf->size(), vbuf->data());
 			for (size_t idx = 0; idx < mesh->getNumSubmeshes(); idx++) {
-				std::vector<unsigned long> v_indices = mesh->getIndices(idx);
+				std::vector<uint32_t> v_indices = mesh->getIndices(idx);
 				// Check if v_indices is valid and has a multiple of 3 elements
 				if (!v_indices.size() || (v_indices.size() % 3 != 0)) {
 					LOG(LOG_ERROR) << "Invalid index buffer";
@@ -142,7 +142,7 @@ namespace Rhea
 		else {
 			// Fallback path: CPU vertices + indices
 			std::vector<Mesh::vertex> vertices;
-			std::vector<unsigned long> v_indices;
+			std::vector<uint32_t> v_indices;
 
 			mesh->getBuffers(vertices, v_indices);
 

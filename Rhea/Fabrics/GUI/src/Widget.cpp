@@ -1,3 +1,4 @@
+#define NOMINMAX
 #include <Rhea/GUI/Widget.h>
 #include <cassert>
 #include <Psio/Log.h>
@@ -47,34 +48,33 @@ namespace Rhea
 		}
 
 		// size set
-		if (m_values["w"] != Variant() || m_values["h"] != Variant()) {
+		bool has_w = m_values.find("w") != m_values.end();
+		bool has_h = m_values.find("h") != m_values.end();
+
+		if (has_w || has_h) {
 			Vector2 m_base_size;
-			if (m_values["w"] != Variant() && m_values["h"] != Variant()) {
+			if (has_w && has_h) {
 				m_base_size.x = getValue("w", 0.0f);
 				m_base_size.y = getValue("h", 0.0f);
 				m_modifiers.push_back(std::make_unique<SizeModifier>(m_base_size));
-				//setStyle(StylePropertyId::kWidth, m_values["w"]);
-				//setStyle(StylePropertyId::kHeight, m_values["h"]);
 				m_properties[StylePropertyId::kWidth].push_back({ CssValueId::kNumeric, m_values["w"] });
 				m_properties[StylePropertyId::kHeight].push_back({ CssValueId::kNumeric, m_values["h"] });
 			}
-			else if (m_values["w"] != Variant()) {
+			else if (has_w) {
 				m_base_size.x = getValue("w", 0.0f);
 				m_modifiers.push_back(std::make_unique<SizeWidthModifier>(m_base_size.x));
-				//setStyle(StylePropertyId::kWidth, m_values["w"]);
 				m_properties[StylePropertyId::kWidth].push_back({ CssValueId::kNumeric, m_values["w"] });
 			}
 			else {
 				m_base_size.y = getValue("h", 0.0f);
 				m_modifiers.push_back(std::make_unique<SizeHeightModifier>(m_base_size.y));
-				//setStyle(StylePropertyId::kHeight, m_values["h"]);
 				m_properties[StylePropertyId::kHeight].push_back({ CssValueId::kNumeric, m_values["h"] });
 			}
 		}
 
 		// padding
-		Variant padding = getValue("padding");
-		if (padding != Variant()) {
+		if (m_values.find("padding") != m_values.end()) {
+			Variant padding = getValue("padding");
 			if (!padding.isArray()) {
 				m_modifiers.push_back(std::make_unique<PaddingModifier>(padding));
 				CssValue css_padding = { CssValueId::kNumeric, SimpleParser::Variant(padding) };
@@ -84,17 +84,17 @@ namespace Rhea
 				m_properties[StylePropertyId::kPaddingBottom].push_back(css_padding);
 			}
 			else if (padding.length() == 4) {
-				CssValue css_padding_left = { CssValueId::kNumeric, SimpleParser::Variant(padding[0])};
-				CssValue css_padding_top = { CssValueId::kNumeric, SimpleParser::Variant(padding[1])};
-				CssValue css_padding_right = { CssValueId::kNumeric, SimpleParser::Variant(padding[2])};
-				CssValue css_padding_bottom = { CssValueId::kNumeric, SimpleParser::Variant(padding[3])};
+				CssValue css_padding_left = { CssValueId::kNumeric, SimpleParser::Variant(padding[0]) };
+				CssValue css_padding_top = { CssValueId::kNumeric, SimpleParser::Variant(padding[1]) };
+				CssValue css_padding_right = { CssValueId::kNumeric, SimpleParser::Variant(padding[2]) };
+				CssValue css_padding_bottom = { CssValueId::kNumeric, SimpleParser::Variant(padding[3]) };
 				m_modifiers.push_back(std::make_unique<PaddingModifier>(padding[0], padding[1], padding[2], padding[3]));
 				m_properties[StylePropertyId::kPaddingLeft].push_back(css_padding_left);
 				m_properties[StylePropertyId::kPaddingTop].push_back(css_padding_top);
 				m_properties[StylePropertyId::kPaddingRight].push_back(css_padding_right);
 				m_properties[StylePropertyId::kPaddingBottom].push_back(css_padding_bottom);
 			}
-		}		
+		}
 
 		// fillsize
 		if (getValue("fillsize", false)) {
@@ -108,11 +108,11 @@ namespace Rhea
 		Variant align = getValue("alignment");
 		if (align.isArray()) {
 			if (align.size() > 1)
-				setAlignment(align[0], align[1]);
+				setAlignment(align[0].toString(), align[1].toString());
 			else if (align.size() > 0)
-				setAlignment(align[0], "top");
+				setAlignment(align[0].toString(), "top");
 
-			
+
 		}
 
 		// set styles based on values
@@ -125,7 +125,7 @@ namespace Rhea
 		std::unordered_map<std::string, Variant> val;
 
 		if (m_values.find("onClick") != m_values.end())
-			setOnClick(m_values["onClick"]);
+			setOnClick(m_values["onClick"].toString());
 	}
 
 	void Widget::ready()
@@ -167,7 +167,7 @@ namespace Rhea
 	bool Widget::onClicked(Event* ev, Unit* unit)
 	{
 		if (m_values.find("onClick") != m_values.end()) {
-			sendBoundEvent(m_values["onClick"], ev);
+			sendBoundEvent(m_values["onClick"].toString(), ev);
 		}
 		return false;
 	}
@@ -403,11 +403,11 @@ namespace Rhea
 				continue;
 			switch (property_id) {
 			case StylePropertyId::kBackgroundImage:
-				setBackgroundImage(values[0].value == "none" ? nullptr : doCast<ImageResource>(m_app->getUnitTree()->find(values[0].value)));
+				setBackgroundImage(values[0].value == "none" ? nullptr : doCast<ImageResource>(m_app->getUnitTree()->find(values[0].value.toString())));
 				break;
 			case StylePropertyId::kBackgroundColor:
 				if (values.size() >= 3) {
-					setBackgroundColor(values[0].value, values[1].value, values[2].value, values.size() > 3 ? values[3].value : 1.0f);
+					setBackgroundColor(values[0].value, values[1].value, values[2].value, values.size() > 3 ? values[3].value.toFloat() : 1.0f);
 				}
 				break;
 			case StylePropertyId::kBackgroundSize:
@@ -462,7 +462,7 @@ namespace Rhea
 
 	float Widget::calculateFontSize(const CssValue& value) const
 	{
-		float parent_font_size = doCast<Widget>(m_parent) ? doCast<Widget>(m_parent)->getFontSize() : CssProperty::GetDefaultValue(StylePropertyId::kFontSize).value;
+		float parent_font_size = doCast<Widget>(m_parent) ? doCast<Widget>(m_parent)->getFontSize() : CssProperty::GetDefaultValue(StylePropertyId::kFontSize).value.toFloat();
 		switch (value.id) {
 		case CssValueId::kNumeric:
 			return value.value;
@@ -619,9 +619,9 @@ namespace Rhea
 			// if image is scaled to fit into the widget we can't also tile the image
 			Math::Vector2 tiling;
 			if (m_sizing_mode_w == TextureSizingMode::kAuto)
-				tiling.x = max(m_content_size.x / m_bg_image->width, 1.0f); // dont tile if image is larger than content
+				tiling.x = std::max(m_content_size.x / m_bg_image->width, 1.0f); // dont tile if image is larger than content
 			if (m_sizing_mode_h == TextureSizingMode::kAuto)
-				tiling.y = max(m_content_size.y / m_bg_image->height, 1.0f);
+				tiling.y = std::max(m_content_size.y / m_bg_image->height, 1.0f);
 			if (m_tiling != tiling) {
 				m_tiling = tiling;
 				m_material_dirty = true;
@@ -639,7 +639,7 @@ namespace Rhea
 				case TextureSizingMode::kContain:
 				{
 					// Use the smaller scale factor for both axes to maintain aspect ratio
-					float aspect_scale = min(m_content_size.x / (float)m_bg_image->width, m_content_size.y / (float)m_bg_image->height);
+					float aspect_scale = std::min(m_content_size.x / (float)m_bg_image->width, m_content_size.y / (float)m_bg_image->height);
 					scaling.x = aspect_scale;
 					scaling.y = aspect_scale;
 					LOG(LOG_DEBUG) << "ApplyTextureSizing: aspect_scale=" << aspect_scale;

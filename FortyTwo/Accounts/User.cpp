@@ -20,5 +20,5 @@ void User::Avatars(std::function<bool(Rhea::Avatar*)> handler)
 void User::ready()
 {
 	if (m_values["name"] != Variant())
-		m_display_name = m_values["name"];
+		m_display_name = m_values["name"].toString();
 }

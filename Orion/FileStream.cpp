@@ -2,6 +2,19 @@
 #include <Orion/FileStream.h>
 #include <Orion/FileCollection.h>
 
+#ifdef _WIN32
+#include <sys/stat.h>
+#define STAT _stat
+#define FSTAT_STRUCT struct _stat
+#ifndef S_ISDIR
+#define S_ISDIR(m) (((m) & _S_IFMT) == _S_IFDIR)
+#endif
+#else
+#include <sys/stat.h>
+#define STAT stat
+#define FSTAT_STRUCT struct stat
+#endif
+
 namespace Orion
 {
 	FileResourceStream::FileResourceStream(std::string path) :
@@ -14,9 +27,9 @@ namespace Orion
 		status(0),
 		ResourceStream()
 	{
-		struct _stat buf;
+		FSTAT_STRUCT buf;
 
-		int result = _stat(path.c_str(), &buf);
+		int result = STAT(path.c_str(), &buf);
 		if (result != 0) {
 			m_accessible = false;
 			m_length = 0;
@@ -47,14 +60,14 @@ namespace Orion
 	// static constructor return filestream or directory
 	std::unique_ptr<ResourceStream> FileResourceStream::getStream(std::string path)
 	{
-		struct _stat buf;
+		FSTAT_STRUCT buf;
 
-		int result = _stat(path.c_str(), &buf);
+		int result = STAT(path.c_str(), &buf);
 		if (result != 0)
 			return nullptr;
 
 		// directory?
-		if (buf.st_mode & _S_IFDIR) {			
+		if (S_ISDIR(buf.st_mode)) {
 			return std::make_unique<FileCollection>(path);
 		}
 		else {
@@ -111,15 +124,12 @@ namespace Orion
 		if (status || !read || !f)
 			return 0;
 
-		size_t read = fread_s(dest, length, 1, length, f);
-		if (read < length) {
-			if (feof(f)) {
-				length = read;
-			}
-			else
-				return 0;
-		}
-		return length;
+		size_t bytesRead = fread(dest, 1, length, f);
+
+		if (bytesRead < length && ferror(f))
+			return 0;
+
+		return bytesRead;
 	}
 
 	size_t FileResourceStream::Read(Psio::IOBuffer* buf)
@@ -137,18 +147,23 @@ namespace Orion
 			return 0;
 
 		size_t buflen = buf->FreeBufSize();
-		size_t bytes_read = fread_s(buf->writer(), buflen, 1, buflen, f);
+		size_t bytes_read = fread(buf->writer(), 1, buflen, f);
 		do {
 			buf->Produce(bytes_read);
 			size += bytes_read;
+
+			if (bytes_read < buflen) {
+				if (ferror(f))
+					return 0;
+				break;
+			}
+
 			if (buf->FreeBufSize() < 8 * 1024) {
 				buf->Grow(64 * 1024);
 			}
-			if (bytes_read < buflen)
-				break;
-			else
-				buflen = buf->FreeBufSize();
-			bytes_read = fread_s(buf->writer(), buflen, 1, buflen, f);
+
+			buflen = buf->FreeBufSize();
+			bytes_read = fread(buf->writer(), 1, buflen, f);
 		} while (true);
 		return size;
 	}

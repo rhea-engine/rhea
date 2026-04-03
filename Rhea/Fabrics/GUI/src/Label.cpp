@@ -36,7 +36,7 @@ namespace Rhea
 		m_handle_input = true;
 
 		if (m_templating) {
-			parseText(val["text"]);
+			parseText(val["text"].toString());
 			val["text"] = getText();
 		}
 
@@ -112,7 +112,7 @@ namespace Rhea
 			// set the font style
 			std::vector<CssValue> font_prop = getStyle(StylePropertyId::kFont);
 			if (font_prop.size()) {
-				Font* font = doCast<Font>(m_app->getUnitTree()->find(font_prop[0].value));
+				Font* font = doCast<Font>(m_app->getUnitTree()->find(font_prop[0].value.toString()));
 				if (!font)
 					LOG(LOG_ERROR) << "font " << (std::string)(font_prop[0].value) << " not found";
 				else
@@ -186,7 +186,7 @@ namespace Rhea
 			case 1:				
 				Unit* u = doCast<Unit>(m_app->getUnitTree()->find(it->path));
 				if (u != nullptr)
-					res += u->getValue(it->value, "");
+					res += u->getValueString(it->value, "");
 				break;
 			}
 		}

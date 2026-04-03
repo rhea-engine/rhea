@@ -58,6 +58,9 @@ namespace Poseidon
 		// get height of viewport
 		int getHeight() { return m_height; }
 
+		// get the swapchain
+		Hippios::SwapChain* getSwapChain() { return m_swapchain; }
+
 	protected:
 		std::string m_name;
 		Camera* m_camera = 0; // the active camera

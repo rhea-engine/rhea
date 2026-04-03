@@ -11,7 +11,7 @@ namespace Rhea
 	{
 		MECLASS(GuiService, Service)
 	public:
-		GuiService::GuiService(std::string name, std::string type_name) :
+		GuiService(std::string name, std::string type_name) :
 			Service(name, type_name)
 		{}
 

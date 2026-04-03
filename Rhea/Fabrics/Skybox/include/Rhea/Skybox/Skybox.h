@@ -22,7 +22,7 @@ namespace Rhea
 		void ready() override;	
 
 		// on Frame event
-		void Skybox::onFrame(float delta) override;
+		void onFrame(float delta) override;
 
 	protected:
 		Camera* m_camera;

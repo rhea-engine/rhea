@@ -63,10 +63,10 @@ namespace Rhea
 
 			// if material is set explicitly we use it
 			if (m_values.find("material") != m_values.end()) {
-				m_material = doCast<Material>(m_app->getUnitTree()->find(m_values["material"], m_attributes["basepath"], false));
+				m_material = doCast<Material>(m_app->getUnitTree()->find(m_values["material"].toString(), m_attributes["basepath"], false));
 			}
 
-			tex = doCast<Unit>(m_app->getUnitTree()->find(m_values["texture"], m_attributes["basepath"], false));
+			tex = doCast<Unit>(m_app->getUnitTree()->find(m_values["texture"].toString(), m_attributes["basepath"], false));
 			if (tex) {
 				if (!m_material) {
 					// if no material was set create one ad-hoc as child of this mesh
@@ -84,7 +84,7 @@ namespace Rhea
 				}
 
 				// get the shader				
-				Shader* shader_res = doCast<Shader>(m_app->getUnitTree()->find(m_values["shader"], m_attributes["basepath"], false));
+				Shader* shader_res = doCast<Shader>(m_app->getUnitTree()->find(m_values["shader"].toString(), m_attributes["basepath"], false));
 				if (shader_res) {
 					m_material->setShaderRes(shader_res);
 					int diffuse_id = shader_res->getInputSlotId("DIFFUSE");
@@ -100,7 +100,7 @@ namespace Rhea
 		
 		// load using geometry (normally used for import from file)
 		if (m_values.find("geometry") != m_values.end()) {
-			Geometry* geometry = doCast<Geometry>(m_app->getUnitTree()->find(m_values["geometry"], m_attributes["basepath"], false));
+			Geometry* geometry = doCast<Geometry>(m_app->getUnitTree()->find(m_values["geometry"].toString(), m_attributes["basepath"], false));
 			if (geometry) {				
 				geometry->load(this);
 			}
@@ -115,7 +115,7 @@ namespace Rhea
 		m_submeshes[0].material = material;
 	}
 
-	void Mesh::getBuffers(std::vector<vertex>& vertices, std::vector<unsigned long>& indices)
+	void Mesh::getBuffers(std::vector<vertex>& vertices, std::vector<uint32_t>& indices)
 	{
 		vertices = m_vertices;
 		//		indices = Rhea::Mesh::m_v_indices;
@@ -123,7 +123,7 @@ namespace Rhea
 			indices = m_submeshes[0].indices;
 	}
 
-	void Mesh::setBuffers(std::vector<vertex>& vertices, std::vector<unsigned long>& indices)
+	void Mesh::setBuffers(std::vector<vertex>& vertices, std::vector<uint32_t>& indices)
 	{
 		m_vertices = vertices;
 		if (!m_submeshes.size()) {
@@ -170,7 +170,7 @@ namespace Rhea
 		delete[] raw_vertex;
 	}
 
-	void Mesh::setBuffers(std::unordered_map<std::string, VertexBuffer>& vertices, std::vector<unsigned long>& indices, size_t num_vertices)
+	void Mesh::setBuffers(std::unordered_map<std::string, VertexBuffer>& vertices, std::vector<uint32_t>& indices, size_t num_vertices)
 	{
 		if (!m_material) {
 			LOG(LOG_ERROR) << "No main material assigned to mesh";
@@ -184,13 +184,13 @@ namespace Rhea
 			m_submeshes[0].indices = indices;
 	}
 
-	void Mesh::addSubmesh(Material* material, std::vector<unsigned long>& indices)
+	void Mesh::addSubmesh(Material* material, std::vector<uint32_t>& indices)
 	{
 		//m_v_indices = indices;
 		m_submeshes.push_back({indices, material});
 	}
 
-	void Mesh::setSubmesh(size_t idx, Material* material, std::vector<unsigned long>& indices)
+	void Mesh::setSubmesh(size_t idx, Material* material, std::vector<uint32_t>& indices)
 	{
 		if (idx >= m_submeshes.size())
 			m_submeshes.push_back({ indices, material });

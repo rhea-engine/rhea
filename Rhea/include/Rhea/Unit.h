@@ -104,7 +104,7 @@ namespace Rhea
 
 		// find by path
 		Component* find(std::string path, bool create = false);
-		Component* find(std::string path, std::string basepath, bool create);
+		Component* find(std::string path, const std::string& basepath, bool create);
 
 		void setName(std::string name) override;
 
@@ -139,6 +139,9 @@ namespace Rhea
 		Variant getValue(std::string name) const;
 		// get value with default
 		Variant getValue(std::string name, Variant default_val) const;
+		// get a value as string
+		std::string getValueString(std::string name) const;
+		std::string getValueString(std::string name, std::string default_val) const;
 		// set a value
 		void setValue(std::string name, Variant val);
 		// get exported values

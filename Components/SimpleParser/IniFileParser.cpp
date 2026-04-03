@@ -64,7 +64,7 @@ namespace SimpleParser
 						(token.type != TokenType::TOKEN_STRING))
 						return Error::PARSE_EXPECT_HEADER_IDENTIFIER;
 					else {
-						path = token.value;
+						path = token.value.toString();
 						state = 2;
 					}
 					break;
@@ -124,7 +124,7 @@ namespace SimpleParser
 						}
 						else if (token.type == TokenType::TOKEN_IDENTIFIER ||
 							token.type == TokenType::TOKEN_STRING) {
-							key = token.value;
+							key = token.value.toString();
 							state = 1;
 						}						
 						else {

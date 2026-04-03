@@ -1,7 +1,8 @@
 #ifndef RHEA_GLB_LOADER_H
 #define RHEA_GLB_LOADER_H
 
-#include "GlTFLoader.h"
+#include "GltfLoader.h"
+#include <Rhea/Resources/Resource.h>
 
 namespace Rhea
 {

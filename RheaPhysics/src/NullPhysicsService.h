@@ -16,7 +16,7 @@ namespace Rhea
 	{
 		MECLASS(NullPhysicsService, PhysicsService)
 	public:
-		NullPhysicsService::NullPhysicsService(std::string name, std::string type_name) :	
+		NullPhysicsService(std::string name, std::string type_name) :	
 			PhysicsService(name, type_name)
 		{
 		}

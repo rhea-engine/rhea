@@ -4,6 +4,8 @@
 #include "Rhea/Resources/TextLoader.h"
 #include "Rhea/Resources/TextResource.h"
 
+#include <cstring>
+
 namespace Rhea
 {
 	void TextLoader::load(std::string name, Application* app, Orion::ResourceRequest* req, Resource::LoadedHandler handler)

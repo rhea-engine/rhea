@@ -62,7 +62,7 @@ namespace Rhea
 			switch (state) {
 			case 0:
 				// get value as string
-				std::string value_s = content[i].value;
+				std::string value_s = content[i].value.toString();
 				switch (content[i].id) {
 				case SimpleParser::CssParser::PropertyId::kString:
 					values.push_back({ CssValueId::kString, content[i].value });

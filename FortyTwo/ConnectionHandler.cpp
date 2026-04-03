@@ -68,7 +68,7 @@ void ConnectionHandler::Initialize(Rhea::ClientConnection* connection)
 int ConnectionHandler::EnterWorld(Rhea::Avatar* avatar)
 {
 	// instancing the player
-	Rhea::Item* player_model = doCast<Rhea::Item>(m_app->getUnitTree()->find(avatar->getValue("model")));
+	Rhea::Item* player_model = doCast<Rhea::Item>(m_app->getUnitTree()->find(avatar->getValueString("model")));
 	if (!player_model) {
 		LOG(LOG_ERROR) << " could not open avatar model " << avatar->getModel();
 		return 2;
@@ -112,7 +112,7 @@ int ConnectionHandler::EnterWorld(Rhea::Avatar* avatar)
 	Hermes::MessageCreate msg;
 	Math::Vector3 pos = m_player->getTransform()->get_position()->get_worldspace();
 	msg.path = internal_name;
-	msg.type_name = avatar->getValue("model");
+	msg.type_name = avatar->getValueString("model");
 	msg.NUID = m_player->getComponent<Rhea::NetworkComponent>()->NUID();
 	msg.pos[0] = pos.x;
 	msg.pos[1] = pos.y;
@@ -137,7 +137,7 @@ int ConnectionHandler::EnterWorld(Rhea::Avatar* avatar)
 			item_msg.path = (*item_it)->getPathName();
 			avatar = (Rhea::Avatar*)(Variant*)(*item_it)->getValue("avatar");
 			if (avatar) {
-				item_msg.type_name = avatar->getValue("model");
+				item_msg.type_name = avatar->getValueString("model");
 			}
 			else {
 				// no avatar -> TODO: check can there be normal items without avatar?

@@ -12,7 +12,7 @@ namespace Rhea
 	{
 		MECLASS(WorldService, Service)
 	public:
-		WorldService::WorldService(std::string name, std::string type_name) :
+		WorldService(std::string name, std::string type_name) :
 			Service(name, type_name)
 		{}
 

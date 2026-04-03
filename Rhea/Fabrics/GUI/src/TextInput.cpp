@@ -5,7 +5,7 @@
 #include <Rhea/Text/TextWidget.h>
 #include <Rhea/GUI/Label.h>
 #include <Psio/Log.h>
-#include <Psio/Keyboard.h>
+#include <Psio/Input/Keyboard.h>
 #include <Rhea/EventInput.h>
 #include <Rhea/GUI/Events/SubmitEvent.h>
 
@@ -20,7 +20,7 @@ namespace Rhea
 
 		val["text"] = getValue("text", "");
 		val["templating"] = false; // dont template the user input
-		m_text = val["text"];
+		m_text = val["text"].toString();
 		m_values["text"] = m_text;
 		val["placeholder"] = getValue("placeholder", "");
 		// multiline is not implemented yet
@@ -33,7 +33,7 @@ namespace Rhea
 			val["fillwidth"] = true;
 		else
 			val["fillsize"] = true;
-		m_placeholder = val["placeholder"];
+		m_placeholder = val["placeholder"].toString();
 		m_pos = m_text.size();
 		if (!m_pos) {
 			val["text"] = m_placeholder;
@@ -181,8 +181,8 @@ namespace Rhea
 	bool TextInput::onTextInput(Event* ev, Unit* unit)
 	{
 		std::shared_ptr<Psio::InputEvent> e = static_cast<EventInput*>(ev)->getEvent();
-		uint8_t code = static_cast<Psio::KeyInputEvent*>(e.get())->getCode();
-		switch (code) {
+		std::string text = static_cast<Psio::TextInputEvent*>(e.get())->getText();
+		switch (text[0]) {
 		case '\b':
 			if (m_pos > 0) {
 				m_text = m_text.substr(0, m_pos - 1) + m_text.substr(m_pos);
@@ -207,19 +207,19 @@ namespace Rhea
 				my_ev.values[m_pathname] = m_text;
 				bubbleEvent("submit", &my_ev);
 				if (m_values["onSubmit"] != Variant()) {
-					sendBoundEvent(m_values["onSubmit"], &my_ev);
+					sendBoundEvent(m_values["onSubmit"].toString(), &my_ev);
 				}
 			}
 			ev->stopPropagation();
 			break;
 		default:
 			std::string new_text = m_text.substr(0, m_pos);
-			new_text += code;
+			new_text += text;
 			if (m_pos<m_length)
 				new_text += m_text.substr(m_pos);
 			m_text = new_text;
-			m_pos++;
-			m_length++;
+			m_pos += text.size();
+			m_length += text.size();
 			updateText(true);
 			updateCursor();
 			ev->stopPropagation();
@@ -279,7 +279,7 @@ namespace Rhea
 			if (!event_binding.target) {
 				// event binding?
 				if (m_values["onChange"] != Variant())
-					event_binding = m_app->getUnitTree()->getBinding(m_values["onChange"], m_attributes["basepath"]);
+					event_binding = m_app->getUnitTree()->getBinding(m_values["onChange"].toString(), m_attributes["basepath"]);
 			}
 			// send change event
 			if (event_binding.target) {

@@ -36,12 +36,12 @@ namespace Rhea
 		std::string shader_name = "";
 		Shader* shader_res = nullptr;
 		if (!m_has_skeleton) {
-			shader_name = mesh->getValue("shadername", "//rhea/shaders/standard");
+			shader_name = mesh->getValueString("shadername", "//rhea/shaders/standard");
 			shader_res = doCast<Shader>(m_app->getUnitTree()->find(shader_name, m_attributes["basepath"], false));
 			
 		}
 		else {
-			shader_name = mesh->getValue("shadername", "//rhea/shaders/skeletal");
+			shader_name = mesh->getValueString("shadername", "//rhea/shaders/skeletal");
 			shader_res = doCast<Shader>(m_app->getUnitTree()->find(shader_name, m_attributes["basepath"], false));
 
 			// add the skeleton
@@ -88,7 +88,7 @@ namespace Rhea
 		Variant diffuse_tex = mesh->getValue("diffuse_tex");
 		if (diffuse_tex.isArray()) {
 			for (int i = 0; i < diffuse_tex.size(); i++) {
-				ImageResource* tex = doCast<ImageResource>(m_app->getUnitTree()->find(diffuse_tex[i], mesh->getBasePath(), false));
+				ImageResource* tex = doCast<ImageResource>(m_app->getUnitTree()->find(diffuse_tex[i].toString(), mesh->getBasePath(), false));
 				diffuse_maps.push_back(tex);
 			}
 		}
@@ -97,7 +97,7 @@ namespace Rhea
 		Variant normal_tex = mesh->getValue("normal_tex");
 		if (normal_tex.isArray()) {
 			for (int i = 0; i < normal_tex.size(); i++) {
-				ImageResource* tex = doCast<ImageResource>(m_app->getUnitTree()->find(normal_tex[i], m_attributes["basepath"], false));
+				ImageResource* tex = doCast<ImageResource>(m_app->getUnitTree()->find(normal_tex[i].toString(), m_attributes["basepath"], false));
 				normal_maps.push_back(tex);
 			}
 		}
@@ -106,7 +106,7 @@ namespace Rhea
 		if (override_materials.isArray()) {
 			// TODO make overriding of material possible
 			for (int i = 0; i < override_materials.size(); i++) {
-				Material* mat = doCast<Material>(m_app->getUnitTree()->find(override_materials[i], mesh->getBasePath(), false));
+				Material* mat = doCast<Material>(m_app->getUnitTree()->find(override_materials[i].toString(), mesh->getBasePath(), false));
 				// note: if mat is null the default material will be used
 				m_materials.push_back(mat);
 			}
@@ -688,9 +688,10 @@ namespace Rhea
 						// still no material - try index 0 for default material
 						mat = m_materials[0];
 
-					u_mesh->addSubmesh(mat, ExtractIndices(index_accessor));
-
-					//u_mesh->addSubmesh(def_mat, m_model.meshes[node.mesh].primitives[0].indices);
+					auto indices = ExtractIndices(index_accessor);
+					// Umwandlung von std::vector<unsigned long> zu std::vector<uint32_t>
+					std::vector<uint32_t> indices_uint32(indices.begin(), indices.end());
+					u_mesh->addSubmesh(mat, indices_uint32);
 				}
 			}
 		}	

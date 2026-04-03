@@ -3,18 +3,43 @@
 
 #include "Rhea/Platform/PlatformService.h"
 
+#include <algorithm>
+#include <cctype>
+#include <string>
+
 namespace Rhea
 {
 	PlatformService::PlatformService(std::string name, std::string type_name) :
 		Service("Platform", type_name)
 	{
-		m_psio = std::make_unique<Psio::Engine>();
+	}
+
+	Psio::Engine* PlatformService::createEngine()
+	{
+		// check requested backend
+		std::string backend = m_values["backend"].toString();
+		std::transform(backend.begin(), backend.end(), backend.begin(),
+			[](unsigned char c) { return std::tolower(c); });
+		if (backend == "sdl") {
+			m_psio = std::make_unique<Psio::Engine>(Psio::BackendKind::SDL);
+		}
+		else if (backend == "win32") {
+			m_psio = std::make_unique<Psio::Engine>(Psio::BackendKind::Win32);
+		}
+		else if (backend == "unix") {
+			m_psio = std::make_unique<Psio::Engine>(Psio::BackendKind::Unix);
+		}
+		else {
+			// default to auto
+			m_psio = std::make_unique<Psio::Engine>(Psio::BackendKind::Auto);
+		}
+		return m_psio.get();
 	}
 
 	void PlatformService::onInit()
 	{
 		// initialize ssl settings
-		std::string appdir = m_values["AppDir"];
+		std::string appdir = m_values["AppDir"].toString();
 		std::string setting = "ssl_root_ca";
 		std::string cert = appdir + "/ssl/cacert.pem";
 		m_psio->getNet()->SetSetting(setting, cert);

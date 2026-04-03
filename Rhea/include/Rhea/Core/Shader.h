@@ -31,7 +31,7 @@ namespace Rhea
 	{
 		MECLASS(Shader, Unit)
 	public:
-		Shader(std::string name, std::string typename) :
+		Shader(std::string name, std::string type_name) :
 			m_alpha_blending(false),
 			m_wvp(false),
 			m_num_input_slots(0),

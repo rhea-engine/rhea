@@ -6,7 +6,7 @@ namespace Rhea
 	Poseidon::Material* MaterialGpuCache::getOrCreate(Poseidon::Core* core, Material* material, const Builder& builder)
 	{
         auto key = material->getPath();
-        std::string desiredShader = material->getValue("shader");
+        std::string desiredShader = material->getValueString("shader");
         auto desiredTexKeys = collectTexKeys(material);
 
         auto it = m_entries.find(key);

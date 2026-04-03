@@ -17,7 +17,7 @@ namespace Poseidon
 	class Material
 	{
 	public:		
-		Material::Material(Core* grahpics_core);
+		Material(Core* grahpics_core);
 		~Material();
 		
 		// set the shader

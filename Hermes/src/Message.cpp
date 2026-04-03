@@ -1,5 +1,6 @@
 #include "Hermes/Message.h"
 #include <Psio/Net/Network.h>
+#include <cstring>
 
 namespace Hermes
 {

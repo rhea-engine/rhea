@@ -12,7 +12,7 @@ namespace Rhea
 	{
 		RECLASS(PhysicsComponent, MovementListenerComponent, "//meworla/physicscomponent")
 	public:
-		PhysicsComponent::PhysicsComponent(std::string name, std::string type_name) :
+		PhysicsComponent(std::string name, std::string type_name) :
 			MovementListenerComponent(name, type_name)
 		{
 		}

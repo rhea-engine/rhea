@@ -35,7 +35,7 @@ namespace Rhea
         Unit* getParent() const { return m_parent; }
 
         // get name
-        std::string getPathName() { return m_pathname; }
+        std::string& getPathName() { return m_pathname; }
         
         // rename this component
         // name: the new name

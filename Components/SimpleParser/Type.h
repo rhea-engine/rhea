@@ -72,12 +72,9 @@ namespace SimpleParser
 
 		// register a new method with the given type
 		void registerMethod(std::string name, Method* method);
+		
 		template<class M>
-		void registerMethod(std::string name, M method)
-		{
-			auto mth = Method::bindMethod(method);
-			registerMethod(name, mth);
-		}
+		void registerMethod(std::string name, M method);
 
 		// get a method 
 		Method* getMethod(std::string name) { return m_methods[name]; }
@@ -118,26 +115,6 @@ namespace SimpleParser
 	};
 }
 
-template<class T>
-T* isCast(SimpleParser::Variant* src)
-{
-	return src && (src->getType() == T::staticType()) ? (T*)src : nullptr;
-
-};
-
-template<class T>
-T* doCast(SimpleParser::Variant* src)
-{
-	if (!src) return nullptr;
-	if (src->getType() == T::staticType()) return (T*)src;
-	SimpleParser::Type* p = src->getType()->getParent();
-	while (p) {
-		if (p == T::staticType()) return (T*)src;
-		p = p->getParent();
-	}
-	return nullptr;
-}
-
 #define RECLASS(_MeClass, _Inherit, _URI)  \
 	public: \
 static SimpleParser::Type* staticType(SimpleParser::Type* newType = nullptr) { \
@@ -161,8 +138,8 @@ static Component* createType(std::string name, std::string type) \
 	return ret; \
 } \
  \
-_MeClass::_MeClass(std::string name) : \
-  _MeClass::_MeClass(name, _URI) {} \
+_MeClass(std::string name) : \
+  _MeClass(name, _URI) {} \
  \
 private: \
 

@@ -31,7 +31,7 @@ namespace Rhea
 		bool isDynamic = (m_mass != 0.f);
 
 		// get the info from item 
-		std::string shape_type = m_item->getValue("collision_shape");
+		std::string shape_type = m_item->getValueString("collision_shape");
 		btCollisionShape* colShape;
 		if (shape_type == "Capsule") {
 			float radius = m_item->getValue("collision_shape.radius");

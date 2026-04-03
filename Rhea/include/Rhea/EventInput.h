@@ -2,7 +2,7 @@
 #define RHEA_INPUTEVENT_H
 
 #include "Event.h"
-#include <Psio/InputEvent.h>
+#include <Psio/Input/InputEvent.h>
 
 #include <vector>
 

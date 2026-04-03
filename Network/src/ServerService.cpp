@@ -22,7 +22,7 @@ namespace Rhea
 		m_port = 4242;
 
 		if (m_values.find("ip") != m_values.end())
-			ip = m_values["ip"];
+			ip = m_values["ip"].toString();
 		if (m_values.find("port") != m_values.end())
 			m_port = (int)m_values["port"];
 

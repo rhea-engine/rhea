@@ -1,7 +1,7 @@
 #ifndef RHEA_H
 #define RHEA_H
 
-#include "Psio/InputEvent.h"
+#include <Psio/Input/InputEvent.h>
 #include <Orion/Orion.h>
 #include <Orion/ResourceRequest.h>
 #include "Resources/ResourceLoader.h"

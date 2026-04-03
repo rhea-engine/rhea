@@ -16,7 +16,7 @@ void AccountService::setup(Rhea::Application* app, std::unordered_map<std::strin
 
 	// set up the provider if one is given
 	if (m_values.find("provider") != m_values.end()) {
-		m_provider_type = m_values["provider"];
+		m_provider_type = m_values["provider"].toString();
 		if (m_provider_type == "scene") {
 			m_provider = std::make_unique<ProviderScene>();
 		}

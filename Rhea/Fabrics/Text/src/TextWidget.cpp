@@ -216,29 +216,22 @@ namespace Rhea
 			i = j;
 		}
 
-		if (v_indices.empty()) {
-			hide();
-			return;
-		}
-		else {
-			show();
-		}
-
-		// Fill up the buffer with zeros if needed
-		size_t v_len = vertices.size();
-		if (m_vertex_size > v_len) {
-			for (size_t j = v_len; j < m_vertex_size; j++) {
-				vertices.push_back({ 0, 0, 0, 0, 0 });
-			}
-		}
-		else {
-			m_vertex_size = v_len;
-		}
-
 		MeshComponent* mesh_component = getComponent<MeshComponent>();
 		if (mesh_component && mesh_component->getMesh()) {
+			if (v_indices.empty()) {
+				std::vector<Mesh::vertex> empty_vertices;
+				std::vector<uint32_t> empty_indices;
+				mesh_component->getMesh()->setBuffers(empty_vertices, empty_indices);
+				mesh_component->getMesh()->sendEvent("update", nullptr);
+				m_vertex_size = 0;
+				hide();
+				return;
+			}
+
 			mesh_component->getMesh()->setBuffers(vertices, v_indices);
 			mesh_component->getMesh()->sendEvent("update", nullptr);
+			m_vertex_size = vertices.size();
+			show();
 		}
 	}
 

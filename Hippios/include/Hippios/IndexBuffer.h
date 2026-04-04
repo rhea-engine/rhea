@@ -4,7 +4,7 @@
 #include <vector>
 #include "GraphicsBuffer.h"
 
-namespace Hippios
+namespace hippios
 {
 	class IndexBuffer : public GraphicsBuffer
 	{

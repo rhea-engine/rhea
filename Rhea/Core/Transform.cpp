@@ -19,7 +19,7 @@ namespace rhea
 			}
 
 			// Update orientation
-			const Math::Quaternion& parent_rot = parent->getTransform()->get_position()->get_rotation();
+			const math::Quaternion& parent_rot = parent->getTransform()->get_position()->get_rotation();
 			Position* src = &m_position; // get_position();
 			Position* derived = &m_derived_position; // get_derived_position();
 			if (m_coord_space == 1)
@@ -32,7 +32,7 @@ namespace rhea
 			}
 
 			// Change position vector based on parent's orientation & scale
-			Math::Vector3 derived_pos = parent_rot * src->get_worldspace();
+			math::Vector3 derived_pos = parent_rot * src->get_worldspace();
 
 			// Add altered position vector to parents
 			derived_pos += parent->getTransform()->get_derived_position()->get_worldspace();
@@ -54,8 +54,8 @@ namespace rhea
 	{
 		m_coord_space = position_type;
 		m_need_update = true;
-		m_position.setPosition(Math::Vector3(0.0f, 0.0f, 0.0f));
-		m_derived_position.setPosition(Math::Vector3(0.0f, 0.0f, 0.0f));
+		m_position.setPosition(math::Vector3(0.0f, 0.0f, 0.0f));
+		m_derived_position.setPosition(math::Vector3(0.0f, 0.0f, 0.0f));
 	}
 
 	Transform* Transform::createType(std::string name, std::string type_name)
@@ -63,7 +63,7 @@ namespace rhea
 		return nullptr;
 	}
 
-	void Transform::initializeType(SimpleParser::Type* type)
+	void Transform::initializeType(simpleparser::Type* type)
 	{
 	}
 }

@@ -3,7 +3,7 @@
 
 #include <cstdint>
 
-namespace Psio
+namespace psio
 {
 	class Timer
 	{

@@ -16,7 +16,7 @@ namespace rhea
 	class ClientConnection
 	{
 	public:
-		ClientConnection(rhea::Application* app, rhea::Scene* scene, std::unique_ptr<Hermes::Stream> stream) :
+		ClientConnection(rhea::Application* app, rhea::Scene* scene, std::unique_ptr<hermes::Stream> stream) :
 			m_app(app),
 			m_scene(scene),
 			m_player(nullptr),
@@ -24,8 +24,8 @@ namespace rhea
 			m_hermes(std::move(stream))
 		{}
 
-		int Start(Psio::Network::CompletionHandler err_handler);
-		int sendMessage(Hermes::Message* msg);
+		int Start(psio::Network::CompletionHandler err_handler);
+		int sendMessage(hermes::Message* msg);
 		void Close();
 
 		void onClosed(std::function<void(int)> handler) { m_on_closed = handler; }
@@ -40,7 +40,7 @@ namespace rhea
 		// start with an already connected player
 		void StartEstablishedConnection(rhea::Item* player);
 
-		Hermes::Stream* getStream() { return m_hermes.get(); }
+		hermes::Stream* getStream() { return m_hermes.get(); }
 
 	protected:
 
@@ -50,8 +50,8 @@ namespace rhea
 		rhea::Unit* m_world;
 		std::string m_username;
 
-		std::unique_ptr<Hermes::Stream> m_hermes;
-		Psio::Network::CompletionHandler m_error_handler;
+		std::unique_ptr<hermes::Stream> m_hermes;
+		psio::Network::CompletionHandler m_error_handler;
 
 		void CreateUser(std::string method, std::string username, std::string name, std::string ext_id, std::vector<std::string> secrets);
 		void Login(std::string method, std::string username, std::vector<std::string> secrets);

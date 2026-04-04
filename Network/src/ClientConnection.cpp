@@ -17,7 +17,7 @@
 
 namespace rhea
 {
-	int ClientConnection::Start(Psio::Network::CompletionHandler err_handler)
+	int ClientConnection::Start(psio::Network::CompletionHandler err_handler)
 	{
 		m_error_handler = err_handler;
 
@@ -37,7 +37,7 @@ namespace rhea
 		return m_hermes->Start();
 	}
 
-	int ClientConnection::sendMessage(Hermes::Message* msg)
+	int ClientConnection::sendMessage(hermes::Message* msg)
 	{
 		// forward to stream
 		return m_hermes->sendMessage(msg, [&](int err) {

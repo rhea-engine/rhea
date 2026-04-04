@@ -27,7 +27,7 @@ namespace rhea::physics::bullet
 		virtual bool init();
 
 		// move by vector
-		void move(Math::Vector3 move) override;
+		void move(math::Vector3 move) override;
 
 		// turn by radian angle
 		void turn(float turn) override;
@@ -35,17 +35,17 @@ namespace rhea::physics::bullet
 		// stop the current movement
 		void stop() override;
 
-		void setPosition(const Math::Vector3& position) override;
-		void setOrientation(const Math::Quaternion& rot) override;
+		void setPosition(const math::Vector3& position) override;
+		void setOrientation(const math::Quaternion& rot) override;
 
 		// functions for setting attributes
-		void setAngularVelocity(const Math::Vector3& velocity) override;
+		void setAngularVelocity(const math::Vector3& velocity) override;
 
 		void DisableMassUpdate() override;
 		void EnableMassUpdate() override;
 
-		void applyImpulse(const Math::Vector3& impulse) override;
-		void applyOrientation(const Math::Quaternion& rot) override;
+		void applyImpulse(const math::Vector3& impulse) override;
+		void applyOrientation(const math::Quaternion& rot) override;
 
 		void activate();
 
@@ -54,7 +54,7 @@ namespace rhea::physics::bullet
 		btRigidBody* getBody() { return m_body; }		
 		
 	protected:
-		Math::Vector3 m_movement;
+		math::Vector3 m_movement;
 		float m_turn;
 		btRigidBody* m_body;
 		btCompoundShape* m_comound_shape;

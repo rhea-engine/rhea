@@ -4,7 +4,7 @@
 #include <Hippios/SamplerState.h>
 #include <d3d11.h>
 
-namespace Hippios
+namespace hippios
 {
 	class D3D11SamplerState : public SamplerState
 	{

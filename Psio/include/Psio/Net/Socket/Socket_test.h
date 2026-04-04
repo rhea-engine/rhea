@@ -7,7 +7,7 @@
 #include "TCPSocket.h"
 #include "../Http/HttpRequest.h"
 
-namespace Psio {
+namespace psio {
 
 	class MockTransaction : public HttpTransaction
 	{

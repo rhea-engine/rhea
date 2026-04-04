@@ -77,17 +77,17 @@ namespace rhea
 			Variant padding = getValue("padding");
 			if (!padding.isArray()) {
 				m_modifiers.push_back(std::make_unique<PaddingModifier>(padding));
-				CssValue css_padding = { CssValueId::kNumeric, SimpleParser::Variant(padding) };
+				CssValue css_padding = { CssValueId::kNumeric, simpleparser::Variant(padding) };
 				m_properties[StylePropertyId::kPaddingLeft].push_back(css_padding);
 				m_properties[StylePropertyId::kPaddingTop].push_back(css_padding);
 				m_properties[StylePropertyId::kPaddingRight].push_back(css_padding);
 				m_properties[StylePropertyId::kPaddingBottom].push_back(css_padding);
 			}
 			else if (padding.length() == 4) {
-				CssValue css_padding_left = { CssValueId::kNumeric, SimpleParser::Variant(padding[0]) };
-				CssValue css_padding_top = { CssValueId::kNumeric, SimpleParser::Variant(padding[1]) };
-				CssValue css_padding_right = { CssValueId::kNumeric, SimpleParser::Variant(padding[2]) };
-				CssValue css_padding_bottom = { CssValueId::kNumeric, SimpleParser::Variant(padding[3]) };
+				CssValue css_padding_left = { CssValueId::kNumeric, simpleparser::Variant(padding[0]) };
+				CssValue css_padding_top = { CssValueId::kNumeric, simpleparser::Variant(padding[1]) };
+				CssValue css_padding_right = { CssValueId::kNumeric, simpleparser::Variant(padding[2]) };
+				CssValue css_padding_bottom = { CssValueId::kNumeric, simpleparser::Variant(padding[3]) };
 				m_modifiers.push_back(std::make_unique<PaddingModifier>(padding[0], padding[1], padding[2], padding[3]));
 				m_properties[StylePropertyId::kPaddingLeft].push_back(css_padding_left);
 				m_properties[StylePropertyId::kPaddingTop].push_back(css_padding_top);
@@ -617,7 +617,7 @@ namespace rhea
 			// tiling
 			// assume background-reapat
 			// if image is scaled to fit into the widget we can't also tile the image
-			Math::Vector2 tiling;
+			math::Vector2 tiling;
 			if (m_sizing_mode_w == TextureSizingMode::kAuto)
 				tiling.x = std::max(m_content_size.x / m_bg_image->width, 1.0f); // dont tile if image is larger than content
 			if (m_sizing_mode_h == TextureSizingMode::kAuto)
@@ -634,7 +634,7 @@ namespace rhea
 			// scaling
 			if (m_bg_image->width > m_content_size.x || m_bg_image->height > m_content_size.y)
 			{
-				Math::Vector2 scaling(1.0f, 1.0f);
+				math::Vector2 scaling(1.0f, 1.0f);
 				switch (m_sizing_mode_w) {
 				case TextureSizingMode::kContain:
 				{
@@ -702,8 +702,8 @@ namespace rhea
 	void Widget::setStyle(StylePropertyId id, std::string value)
 	{
 		std::vector<CssValue> values;
-		std::vector<SimpleParser::CssParser::Property> content;
-		content.push_back({ SimpleParser::CssParser::PropertyId::kString, 0, value });
+		std::vector<simpleparser::CssParser::Property> content;
+		content.push_back({ simpleparser::CssParser::PropertyId::kString, 0, value });
 		if (StyleSheet::ParseValues(id, content, values)) {
 			m_properties[id] = values;
 			m_style_dirty = true;
@@ -713,8 +713,8 @@ namespace rhea
 	void Widget::setStyle(StylePropertyId id, int value)
 	{
 		std::vector<CssValue> values;
-		std::vector<SimpleParser::CssParser::Property> content;
-		content.push_back({ SimpleParser::CssParser::PropertyId::kNumeric, 0, value });
+		std::vector<simpleparser::CssParser::Property> content;
+		content.push_back({ simpleparser::CssParser::PropertyId::kNumeric, 0, value });
 		if (StyleSheet::ParseValues(id, content, values)) {
 			m_properties[id] = values;
 			m_style_dirty = true;
@@ -724,8 +724,8 @@ namespace rhea
 	void Widget::setStyle(StylePropertyId id, int value, std::string dim)
 	{
 		std::vector<CssValue> values;
-		std::vector<SimpleParser::CssParser::Property> content;
-		content.push_back({ SimpleParser::CssParser::PropertyId::kDimension, 0, value, dim });
+		std::vector<simpleparser::CssParser::Property> content;
+		content.push_back({ simpleparser::CssParser::PropertyId::kDimension, 0, value, dim });
 		if (StyleSheet::ParseValues(id, content, values)) {
 			m_properties[id] = values;
 			m_style_dirty = true;

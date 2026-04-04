@@ -28,10 +28,10 @@ protected:
 		app->getUnitTree()->addChild(realm);
 
         // add world server item
-        SimpleParser::Type::registerType<World>("//meworla/world");
+        simpleparser::Type::registerType<World>("//meworla/world");
         // user and avatar types
-        SimpleParser::Type::registerTypeName<rhea::Unit>("//meworla/user");
-        SimpleParser::Type::registerType<rhea::Avatar>("//meworla/avatar");
+        simpleparser::Type::registerTypeName<rhea::Unit>("//meworla/user");
+        simpleparser::Type::registerType<rhea::Avatar>("//meworla/avatar");
 
         // World
         world = new World("testworld", "//meworla/world");

@@ -15,7 +15,7 @@
 #define FSTAT_STRUCT struct stat
 #endif
 
-namespace Orion
+namespace orion
 {
 	FileResourceStream::FileResourceStream(std::string path) :
 		f(nullptr),		
@@ -77,11 +77,11 @@ namespace Orion
 
 	void FileResourceStream::SetMode(int mode)
 	{
-		if (mode & Psio::Fs::READ)
+		if (mode & psio::Fs::READ)
 			read = true;
 		else
 			read = false;
-		if (mode & Psio::Fs::WRITE)
+		if (mode & psio::Fs::WRITE)
 			write = true;
 		else
 			write = false;
@@ -90,7 +90,7 @@ namespace Orion
 
 	void FileResourceStream::Open()
 	{
-		status = Psio::Fs::fileOpen(&f, m_path, m_mode);
+		status = psio::Fs::fileOpen(&f, m_path, m_mode);
 		if (!status)
 			m_isOpen = true;
 		// TODO: else?
@@ -132,13 +132,13 @@ namespace Orion
 		return bytesRead;
 	}
 
-	size_t FileResourceStream::Read(Psio::IOBuffer* buf)
+	size_t FileResourceStream::Read(psio::IOBuffer* buf)
 	{
 		size_t size = 0;
 
 		if (!m_isOpen) {
 			// open for reading
-			m_mode |= Psio::Fs::READ;
+			m_mode |= psio::Fs::READ;
 			read = true;
 			Open();
 		}
@@ -171,7 +171,7 @@ namespace Orion
 #define CHUNK_LEN 64*1024
 	// was 8192
 
-	void FileResourceStream::ReadAsync(Psio::IOBuffer* buf)
+	void FileResourceStream::ReadAsync(psio::IOBuffer* buf)
 	{
 		char* temp;
 		size_t buflen;
@@ -182,7 +182,7 @@ namespace Orion
 		// check if file is open for reading
 		if (!m_isOpen) {
 			// open for reading
-			m_mode |= Psio::Fs::READ;
+			m_mode |= psio::Fs::READ;
 			read = true;
 			Open();
 		}

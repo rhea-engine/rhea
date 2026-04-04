@@ -12,8 +12,8 @@ namespace rhea
 	public:
 		struct VertexColor
 		{
-			Math::Vector3 position;
-			Math::Vector3 color;
+			math::Vector3 position;
+			math::Vector3 color;
 		};
 
 		VertexBufferColor() : VertexBuffer(sizeof(VertexColor)) {}

@@ -2,7 +2,7 @@
 
 #include <Orion/BufferResource.h>
 
-namespace Orion
+namespace orion
 {
 	BufferResource::BufferResource()
 	{		

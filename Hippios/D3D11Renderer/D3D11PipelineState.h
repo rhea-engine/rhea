@@ -9,7 +9,7 @@
 #include "D3D11Renderer.h"
 #include "D3D11ShaderProgram.h"
 
-namespace Hippios
+namespace hippios
 {
 	class D3D11PipelineStateObject : public PipelineStateObject
 	{

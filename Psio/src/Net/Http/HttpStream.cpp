@@ -9,7 +9,7 @@
 #include <algorithm>
 #undef min
 
-namespace Psio
+namespace psio
 {
 	HttpStream::~HttpStream()
 	{
@@ -27,7 +27,7 @@ namespace Psio
 		}
 	}
 
-	int HttpStream::SendRequest(HttpRequest& request_info, Psio::Network::CompletionHandler handler)
+	int HttpStream::SendRequest(HttpRequest& request_info, psio::Network::CompletionHandler handler)
 	{
 		m_request = request_info;
 		std::string request;
@@ -59,7 +59,7 @@ namespace Psio
 		return result;
 	}
 
-	int HttpStream::ReadBody(IOBuffer* buf, size_t chunk_len, Psio::Network::CompletionHandler handler)
+	int HttpStream::ReadBody(IOBuffer* buf, size_t chunk_len, psio::Network::CompletionHandler handler)
 	{
 		if (m_state == State::HTTPSTREAM_REQUEST_COMPLETED)
 			return Network::Err::OK;
@@ -76,7 +76,7 @@ namespace Psio
 		return result;
 	}
 
-	int HttpStream::DrainBody(Psio::Network::CompletionHandler handler)
+	int HttpStream::DrainBody(psio::Network::CompletionHandler handler)
 	{
 		if (m_state == State::HTTPSTREAM_REQUEST_COMPLETED)
 			return Network::Err::OK;
@@ -155,7 +155,7 @@ namespace Psio
 				break;
 			}
 
-		} while ((m_error != Psio::Network::Err::IO_PENDING) && (m_state != State::HTTPSTREAM_NONE && m_state != State::HTTPSTREAM_REQUEST_COMPLETED));
+		} while ((m_error != psio::Network::Err::IO_PENDING) && (m_state != State::HTTPSTREAM_NONE && m_state != State::HTTPSTREAM_REQUEST_COMPLETED));
 
 		return m_error;
 
@@ -179,11 +179,11 @@ namespace Psio
 		if (m_req_buffer->Remaining() > 0) {
 			// not all data was written to stream
 			m_next_state = State::HTTPSTREAM_SEND_HEADERS;
-			return Psio::Network::Err::OK; // goes back to loop calling write again.
+			return psio::Network::Err::OK; // goes back to loop calling write again.
 		}
 		// for now we assume no body to send
 		m_next_state = State::HTTPSTREAM_SEND_HEADERS_AND_BODY_COMPLETE;
-		return Psio::Network::Err::OK;
+		return psio::Network::Err::OK;
 	}
 
 	int HttpStream::DoSendBody(int result)

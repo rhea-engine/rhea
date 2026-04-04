@@ -18,15 +18,15 @@ namespace rhea
 
 		struct KeyframePosition {
 			float time = 0.0f;
-			Math::Vector3 translation;
+			math::Vector3 translation;
 		};
 		struct KeyframeRotation {
 			float time = 0.0f;
-			Math::Quaternion rotation;
+			math::Quaternion rotation;
 		};
 		struct KeyframeScale {
 			float time = 0.0f;
-			Math::Vector3 scale = { 1.0f, 1.0f, 1.0f };
+			math::Vector3 scale = { 1.0f, 1.0f, 1.0f };
 		};
 
 		struct AnimationChannel {
@@ -44,11 +44,11 @@ namespace rhea
 
 	protected:
 
-		Math::Vector3 InterpolateTranslation(const AnimationChannel& channel, float currentTime);
+		math::Vector3 InterpolateTranslation(const AnimationChannel& channel, float currentTime);
 
-		Math::Quaternion InterpolateRotation(const AnimationChannel& channel, float currentTime);
+		math::Quaternion InterpolateRotation(const AnimationChannel& channel, float currentTime);
 
-		Math::Vector3 InterpolateScale(const AnimationChannel& channel, float currentTime);
+		math::Vector3 InterpolateScale(const AnimationChannel& channel, float currentTime);
 
 		float NormalizeTime(float startTime, float endTime, float currentTime);		
 	};

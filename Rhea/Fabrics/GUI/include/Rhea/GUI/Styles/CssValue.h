@@ -20,7 +20,7 @@ namespace rhea
 	struct CssValue
 	{
 		CssValueId id;
-		SimpleParser::Variant value;
+		simpleparser::Variant value;
 	};
 }
 

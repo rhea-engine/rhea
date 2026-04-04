@@ -42,7 +42,7 @@ namespace rhea::physics::bullet
 		void onInit();
 
 		// ray trace
-		Unit* ray(Math::Vector3 origin, Math::Vector3 direction);
+		Unit* ray(math::Vector3 origin, math::Vector3 direction);
 
 		std::unique_ptr<rhea::PhysicsBody> createBody(const rhea::PhysicsBodyDesc& desc, rhea::Item* item);
 

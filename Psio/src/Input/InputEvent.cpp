@@ -1,7 +1,7 @@
 #include <Psio/Input/InputEvent.h>
 #include <functional>
 
-namespace Psio
+namespace psio
 {
 	std::shared_ptr<InputEvent> InputEvent::createEvent(InputEventId id)
 	{

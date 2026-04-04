@@ -10,7 +10,7 @@ namespace rhea
 	public:
 		// change the movement of the controlled item
 		// for stopping call again with move=0
-		virtual void changeMovement(int nuid, Math::Vector3 move) = 0;
+		virtual void changeMovement(int nuid, math::Vector3 move) = 0;
 
 		// change turn of the controlled item
 		// for stopping call again with turn=0

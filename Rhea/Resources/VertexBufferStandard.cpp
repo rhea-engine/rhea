@@ -7,7 +7,7 @@ namespace rhea
 		VertexBuffer::push_back((float*)&vertex);
 	}
 
-	void VertexBufferStandard::SetPosition(int index, const Math::Vector3& position)
+	void VertexBufferStandard::SetPosition(int index, const math::Vector3& position)
 	{
 		if (index > m_vertex_count) {
 			reserve(index);
@@ -16,7 +16,7 @@ namespace rhea
 		v->position = position;
 	}
 
-	void VertexBufferStandard::SetNormal(int index, const Math::Vector3& normal)
+	void VertexBufferStandard::SetNormal(int index, const math::Vector3& normal)
 	{
 		if (index > m_vertex_count) {
 			reserve(index);
@@ -25,7 +25,7 @@ namespace rhea
 		v->normal = normal;
 	}
 
-	void VertexBufferStandard::SetTexcoord(int index, const Math::Vector2& uv)
+	void VertexBufferStandard::SetTexcoord(int index, const math::Vector2& uv)
 	{
 		if (index > m_vertex_count) {
 			reserve(index);
@@ -34,7 +34,7 @@ namespace rhea
 		v->texcoord = uv;
 	}
 
-	void VertexBufferStandard::SetTangent(int index, const Math::Vector3& tangent)
+	void VertexBufferStandard::SetTangent(int index, const math::Vector3& tangent)
 	{
 		if (index > m_vertex_count) {
 			reserve(index);

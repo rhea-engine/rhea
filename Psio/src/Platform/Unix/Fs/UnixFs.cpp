@@ -13,7 +13,7 @@
 
 using std::string;
 
-namespace Psio
+namespace psio
 {
     string Fs::getAppDataDir()
     {

@@ -11,7 +11,7 @@ namespace rhea
 {
 	class Item;
 
-	class Transform : public SimpleParser::Variant
+	class Transform : public simpleparser::Variant
 	{
 	public:
 		Transform(Item* parent, std::string type_name) :
@@ -20,7 +20,7 @@ namespace rhea
 			m_derived_position(),
 			m_coord_space(1),
 			m_need_update(true),
-			SimpleParser::Variant(type_name)
+			simpleparser::Variant(type_name)
 		{}
 		Transform(Item* parent) :
 			Transform(parent, "//meworla/transform")
@@ -48,7 +48,7 @@ namespace rhea
 		static Transform* createType(std::string name, std::string type_name);
 
 		// type initialization
-		static void initializeType(SimpleParser::Type* type);
+		static void initializeType(simpleparser::Type* type);
 
 	protected:
 		Item* m_parent;

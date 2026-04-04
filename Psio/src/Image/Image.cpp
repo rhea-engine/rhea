@@ -6,7 +6,7 @@
 
 using std::string;
 
-namespace Poseidon
+namespace poseidon
 {
 	bool Image::load(const string& file_name)
 	{

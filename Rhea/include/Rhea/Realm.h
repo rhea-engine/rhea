@@ -3,7 +3,7 @@
 
 #include "Unit.h"
 
-namespace Orion
+namespace orion
 {
 	class Realm;
 }
@@ -14,7 +14,7 @@ namespace rhea
 	{
 		MECLASS(Realm, Unit)
 	public:
-		Realm(Orion::Realm *realm, std::string pathname) :
+		Realm(orion::Realm *realm, std::string pathname) :
 			m_realm(realm),
 			Unit(pathname, "//meworla/realm")
 		{}
@@ -27,10 +27,10 @@ namespace rhea
 		{}
 
 		// set the realm
-		void setRealm(Orion::Realm* realm);
+		void setRealm(orion::Realm* realm);
 
 	protected:
-		Orion::Realm* m_realm;
+		orion::Realm* m_realm;
 	};
 }
 

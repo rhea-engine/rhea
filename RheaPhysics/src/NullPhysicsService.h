@@ -43,7 +43,7 @@ namespace rhea::physics
 		void toggleDebug() override {}
 
 		// ray trace
-		Unit* ray(Math::Vector3 origin, Math::Vector3 direction) override { return nullptr; };
+		Unit* ray(math::Vector3 origin, math::Vector3 direction) override { return nullptr; };
 	};
 }
 

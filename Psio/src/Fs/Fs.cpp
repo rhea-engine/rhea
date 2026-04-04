@@ -4,7 +4,7 @@
 #endif
 #include <Psio/Log.h>
 
-namespace Psio
+namespace psio
 {
 	
 }

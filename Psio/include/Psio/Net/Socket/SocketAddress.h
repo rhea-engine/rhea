@@ -6,7 +6,7 @@
 #include "../Network.h"
 #include "IPAddress.h"
 
-namespace Psio
+namespace psio
 {
 	class SocketAddress
 	{

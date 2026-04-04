@@ -1,6 +1,6 @@
 #include "GLSamplerState.h"
 
-namespace Hippios
+namespace hippios
 {
 	GLSamplerState::GLSamplerState(const SamplerDesc& desc)
 	{

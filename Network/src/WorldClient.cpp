@@ -19,20 +19,20 @@ namespace rhea
 {
 	void WorldClient::Initialize()
 	{
-		Hermes::MessageFactory* factory = m_stream->getMessageFactory();
+		hermes::MessageFactory* factory = m_stream->getMessageFactory();
 		if (!factory) {
 			LOG(LOG_ERROR) << "No message factory found";
 			return;
 		}
 		
-		factory->registerMessageHandler<Hermes::MessageCreate>(HERMES_MSG_CREATE,
+		factory->registerMessageHandler<hermes::MessageCreate>(HERMES_MSG_CREATE,
 			[&](uint16_t opcode)->bool {
 				return m_in_world;
 			},
 			std::bind(&WorldClient::onCreateMessage, this, std::placeholders::_1)
 		);
 
-		factory->registerMessageHandler<Hermes::MessageDestroy>(HERMES_MSG_DESTROY,
+		factory->registerMessageHandler<hermes::MessageDestroy>(HERMES_MSG_DESTROY,
 			[&](uint16_t opcode)->bool {
 				return m_in_world;
 			},
@@ -40,7 +40,7 @@ namespace rhea
 		);
 
 
-		factory->registerMessageHandler<Hermes::MessagePosition>(HERMES_MSG_POSITION,
+		factory->registerMessageHandler<hermes::MessagePosition>(HERMES_MSG_POSITION,
 			[&](uint16_t opcode)->bool {
 				return m_in_world;
 			},
@@ -48,7 +48,7 @@ namespace rhea
 		);
 	}
 
-	void WorldClient::onCreateMessage(Hermes::MessageCreate* msg)
+	void WorldClient::onCreateMessage(hermes::MessageCreate* msg)
 	{
 		// instancing the player
 		rhea::Item* gnar = doCast<rhea::Item>(m_app->getUnitTree()->find(msg->type_name));
@@ -66,8 +66,8 @@ namespace rhea
 				player = gnar->instance(msg->path);
 
 			m_scene->addChild(player);
-			Math::Vector3 position = Math::Vector3(msg->pos[0], msg->pos[1], msg->pos[2]);
-			Math::Quaternion rot = Math::Quaternion(msg->transform[0], msg->transform[1], msg->transform[2], msg->transform[3]);
+			math::Vector3 position = math::Vector3(msg->pos[0], msg->pos[1], msg->pos[2]);
+			math::Quaternion rot = math::Quaternion(msg->transform[0], msg->transform[1], msg->transform[2], msg->transform[3]);
 			player->setPosition(position);
 			player->getTransform()->get_position()->setOrientation(rot);
 			rhea::NetworkComponent* net_comp = new rhea::NetworkComponent(player, msg->NUID, NET_ROLE_CLIENT);
@@ -90,11 +90,11 @@ namespace rhea
 		}
 	}
 	
-	void WorldClient::onPositionMessage(Hermes::MessagePosition* move_msg)
+	void WorldClient::onPositionMessage(hermes::MessagePosition* move_msg)
 	{
 		rhea::Position pos;
 		pos.setPosition(move_msg->pos[0], move_msg->pos[1], move_msg->pos[2]);
-		Math::Quaternion q(move_msg->transform[0], move_msg->transform[1], move_msg->transform[2], move_msg->transform[3]);
+		math::Quaternion q(move_msg->transform[0], move_msg->transform[1], move_msg->transform[2], move_msg->transform[3]);
 		pos.setOrientation(q);
 		auto it = m_net_items.find(move_msg->NUID);
 		if (it != m_net_items.end()) {
@@ -106,7 +106,7 @@ namespace rhea
 		DLOG(LOG_DEBUG) << "Position received " << move_msg->pos[0] << ", " << move_msg->pos[1] << ", " << move_msg->pos[2] << " for[" << move_msg->NUID << "]";
 	}
 
-	void WorldClient::onDestroyMessage(Hermes::MessageDestroy* msg)
+	void WorldClient::onDestroyMessage(hermes::MessageDestroy* msg)
 	{
 		// destruction of item requested
 		auto it = m_net_items.find(msg->NUID);
@@ -127,9 +127,9 @@ namespace rhea
 		m_in_world = false;
 	}
 	
-	void WorldClient::changeMovement(int nuid, Math::Vector3 move)
+	void WorldClient::changeMovement(int nuid, math::Vector3 move)
 	{
-		Hermes::MessageMove move_msg;
+		hermes::MessageMove move_msg;
 		move_msg.NUID = nuid;
 		move_msg.move[0] = move.x;
 		move_msg.move[1] = move.y;
@@ -140,7 +140,7 @@ namespace rhea
 
 	void WorldClient::changeTurn(int nuid, float turn)
 	{
-		Hermes::MessageTurn turn_msg;
+		hermes::MessageTurn turn_msg;
 		turn_msg.NUID = nuid;
 		turn_msg.turn = turn;
 

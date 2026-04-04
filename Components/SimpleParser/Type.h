@@ -6,7 +6,7 @@
 #include <map>
 #include <functional>
 
-namespace SimpleParser
+namespace simpleparser
 {
 	class Method;
 	class Variant;
@@ -117,12 +117,12 @@ namespace SimpleParser
 
 #define RECLASS(_MeClass, _Inherit, _URI)  \
 	public: \
-static SimpleParser::Type* staticType(SimpleParser::Type* newType = nullptr) { \
-	static SimpleParser::Type* _static_type = nullptr; \
+static simpleparser::Type* staticType(simpleparser::Type* newType = nullptr) { \
+	static simpleparser::Type* _static_type = nullptr; \
 	if (!_static_type) { \
 		if (!newType) {                                              \
-            SimpleParser::Type* parent = _Inherit::staticType();     \
-            newType = SimpleParser::Type::Register(_URI, _MeClass::createType); \
+            simpleparser::Type* parent = _Inherit::staticType();     \
+            newType = simpleparser::Type::Register(_URI, _MeClass::createType); \
             newType->setParent(parent);                              \
             _static_type = newType;                                  \
             _MeClass::initializeType(_static_type);                  \
@@ -146,12 +146,12 @@ private: \
 
 #define RECLASS_VIRTUAL(_MeClass, _Inherit, _URI)  \
 	public: \
-static SimpleParser::Type* staticType(SimpleParser::Type* newType = nullptr) { \
-	static SimpleParser::Type* _static_type = nullptr; \
+static simpleparser::Type* staticType(simpleparser::Type* newType = nullptr) { \
+	static simpleparser::Type* _static_type = nullptr; \
 	if (!_static_type) { \
 		if (!newType) {                                              \
-            SimpleParser::Type* parent = _Inherit::staticType();     \
-            newType = SimpleParser::Type::Register(_URI, _MeClass::createType); \
+            simpleparser::Type* parent = _Inherit::staticType();     \
+            newType = simpleparser::Type::Register(_URI, _MeClass::createType); \
             newType->setParent(parent);                              \
             _static_type = newType;                                  \
             _MeClass::initializeType(_static_type);                  \
@@ -166,12 +166,12 @@ private: \
 
 #define MECLASS(_MeClass, _Inherit)  \
 	public: \
-static SimpleParser::Type* staticType(SimpleParser::Type* newType = nullptr) { \
-	static SimpleParser::Type* _static_type = nullptr; \
+static simpleparser::Type* staticType(simpleparser::Type* newType = nullptr) { \
+	static simpleparser::Type* _static_type = nullptr; \
 	if (!_static_type) { \
 		if (!newType) {                                              \
-            SimpleParser::Type* parent = _Inherit::staticType();     \
-            newType = SimpleParser::Type::Register(#_MeClass, _MeClass::createType); \
+            simpleparser::Type* parent = _Inherit::staticType();     \
+            newType = simpleparser::Type::Register(#_MeClass, _MeClass::createType); \
             newType->setParent(parent);                              \
             _static_type = newType;                                  \
             _MeClass::initializeType(_static_type);                  \
@@ -191,12 +191,12 @@ private: \
 
 #define MECLASS_VIRTUAL(_MeClass, _Inherit)  \
 	public: \
-static SimpleParser::Type* staticType(SimpleParser::Type* newType = nullptr) { \
-	static SimpleParser::Type* _static_type = nullptr; \
+static simpleparser::Type* staticType(simpleparser::Type* newType = nullptr) { \
+	static simpleparser::Type* _static_type = nullptr; \
 	if (!_static_type) { \
 		if (!newType) {                                              \
-            SimpleParser::Type* parent = _Inherit::staticType();     \
-            newType = SimpleParser::Type::Register(#_MeClass, _MeClass::createType); \
+            simpleparser::Type* parent = _Inherit::staticType();     \
+            newType = simpleparser::Type::Register(#_MeClass, _MeClass::createType); \
             newType->setParent(parent);                              \
             _static_type = newType;                                  \
             _MeClass::initializeType(_static_type);                  \

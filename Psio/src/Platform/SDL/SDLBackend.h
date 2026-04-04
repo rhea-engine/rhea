@@ -3,7 +3,7 @@
 
 #include "../../Backend/IBackend.h"
 
-namespace Psio
+namespace psio
 {
     class SDLBackend final : public IBackend
     {

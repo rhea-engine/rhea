@@ -2,7 +2,7 @@
 #include <Psio/Net/Socket/TCPSocket.h>
 #include <Psio/Net/Socket/SocketAddress.h>
 
-namespace Psio
+namespace psio
 {
 	TCPConnector::TCPConnector(Network* net, std::string &host, unsigned short port) :
 		m_net(net),

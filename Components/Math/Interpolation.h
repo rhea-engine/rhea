@@ -5,7 +5,7 @@
 #include <Math/Vector3.h>
 #include <Math/Quaternion.h>
 
-namespace Math
+namespace math
 {
 	template<typename T>
 	T lerp(const T& a, const T& b, float t)
@@ -13,6 +13,6 @@ namespace Math
 		return a + t * (b - a);
 	}
 
-	Math::Quaternion slerp(const Math::Quaternion& q1, const Math::Quaternion& q2, float t);
+	math::Quaternion slerp(const math::Quaternion& q1, const math::Quaternion& q2, float t);
 
 }

@@ -120,7 +120,7 @@ namespace rhea
 
 	void rhea::Item2D::setBackgroundColor(int r, int g, int b, float opacity)
 	{
-		Math::Vector4 bg_color;
+		math::Vector4 bg_color;
 		bg_color.x = r / 255.0f;
 		bg_color.y = g / 255.0f;
 		bg_color.z = b / 255.0f;

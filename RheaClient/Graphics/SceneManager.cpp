@@ -38,7 +38,7 @@ namespace rhea::client {
 			mgr->Ensure(m_core, item);
 		}
 		else if (doCast<rhea::Lighting>(item)) {
-			Poseidon::SceneManager* scene_mgr = m_core->get_scene_manager();
+			poseidon::SceneManager* scene_mgr = m_core->get_scene_manager();
 			if (scene_mgr) {
 				std::string render_context = "default";
 				scene_mgr->getViewport()->getRenderContext(render_context)->setAmbient(doCast<rhea::Lighting>(item)->getAmbient());
@@ -55,7 +55,7 @@ namespace rhea::client {
 		return false;
 	}
 
-	bool GraphicsSceneManager::Ensure(Poseidon::Core* core, rhea::Unit* unit)
+	bool GraphicsSceneManager::Ensure(poseidon::Core* core, rhea::Unit* unit)
 	{
 		rhea::Scene* scene = doCast<rhea::Scene>(unit);
 		if (!scene) {

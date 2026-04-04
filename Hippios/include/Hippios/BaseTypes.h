@@ -1,7 +1,7 @@
 #ifndef HIPPIOS_BASETYPES_H
 #define HIPPIOS_BASETYPES_H
 
-namespace Hippios
+namespace hippios
 {
 	struct GPUHandle {};
 

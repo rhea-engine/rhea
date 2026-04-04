@@ -4,7 +4,7 @@
 #include <vector>
 #include <cstddef>
 
-namespace Hippios
+namespace hippios
 {		
 	class GraphicsBuffer
 	{

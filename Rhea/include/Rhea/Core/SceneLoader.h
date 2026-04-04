@@ -13,8 +13,8 @@ namespace rhea
 	class SceneLoader
 	{
 	public:
-		static void load(std::string name, Application* app, Orion::ResourceRequest* req, Resource::LoadedHandler handler);
-		//void load(Scene* scene, Orion::Resource* resource, Application* app);
+		static void load(std::string name, Application* app, orion::ResourceRequest* req, Resource::LoadedHandler handler);
+		//void load(Scene* scene, orion::Resource* resource, Application* app);
 	};
 }
 #endif // !RHEA_SCENELOADER_H

@@ -10,7 +10,7 @@
 #endif
 #include <string>
 
-namespace Psio
+namespace psio
 {
 	class NamedPipe
 	{

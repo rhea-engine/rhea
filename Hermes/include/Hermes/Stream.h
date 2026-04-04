@@ -6,19 +6,19 @@
 #include "MessageFactory.h"
 #include "Hermes/Messages/MessageConnect.h"
 
-namespace Hermes
+namespace hermes
 {
 	class Stream
 	{
 	public:
-		Stream(std::unique_ptr<Psio::StreamSocket> sock, MessageFactory* msg_factory) :
+		Stream(std::unique_ptr<psio::StreamSocket> sock, MessageFactory* msg_factory) :
 			m_sock(std::move(sock)),
 			m_state(HERMES_NONE),
 			m_next_state(HERMES_NONE),
 			m_msg_factory(*msg_factory),
 			m_connected(false),
-			m_inbuf(std::make_unique<Psio::IOBuffer>(64 * 1024)),
-			m_outbuf(std::make_unique<Psio::IOBuffer>(64 * 1024))
+			m_inbuf(std::make_unique<psio::IOBuffer>(64 * 1024)),
+			m_outbuf(std::make_unique<psio::IOBuffer>(64 * 1024))
 		{}
 		virtual ~Stream() = default;
 
@@ -53,10 +53,10 @@ namespace Hermes
 			HERMES_CLOSE
 		};
 
-		std::unique_ptr<Psio::StreamSocket> m_sock;
+		std::unique_ptr<psio::StreamSocket> m_sock;
 		std::string m_id;
-		std::unique_ptr<Psio::IOBuffer> m_inbuf;
-		std::unique_ptr<Psio::IOBuffer> m_outbuf;
+		std::unique_ptr<psio::IOBuffer> m_inbuf;
+		std::unique_ptr<psio::IOBuffer> m_outbuf;
 
 		MessageFactory m_msg_factory;
 

@@ -11,7 +11,7 @@ namespace rhea
 	class LobbyClient 
 	{
 	public:
-		LobbyClient(rhea::Application* app, Hermes::Stream* stream) :
+		LobbyClient(rhea::Application* app, hermes::Stream* stream) :
 			m_app(app),
 			m_stream(stream),
 			m_owner(nullptr),
@@ -34,7 +34,7 @@ namespace rhea
 		void Stop() { m_state = CONN_NONE; }
 
 	protected:
-		Hermes::Stream* m_stream;
+		hermes::Stream* m_stream;
 		rhea::Unit* m_owner;
 		rhea::Application* m_app;
 
@@ -46,9 +46,9 @@ namespace rhea
 
 		CONN_STATE m_state;
 
-		void onAvatarlistMessage(Hermes::MessageAvatarList* msg);
-		void onCreateAvatarFailedMessage(Hermes::Message* msg);
-		void onEnterWorldFailedMessage(Hermes::Message* msg);
+		void onAvatarlistMessage(hermes::MessageAvatarList* msg);
+		void onCreateAvatarFailedMessage(hermes::Message* msg);
+		void onEnterWorldFailedMessage(hermes::Message* msg);
 
 		std::function<void(int)> m_avatarlist_handler;
 		std::function<void(int)> m_create_failed_handler;

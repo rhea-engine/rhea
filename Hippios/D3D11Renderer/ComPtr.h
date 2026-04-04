@@ -9,7 +9,7 @@
 #define ASSUME_NOEXCEPT // don`t define it as 'noexcept' or compliant 'throw ()' or extra try/catch frame would be generated to call std::terminate/std::unexpected
 #endif
 
-namespace Hippios
+namespace hippios
 {
 	// Helper to hide reference count management from user
 	template <typename T>

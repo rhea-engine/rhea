@@ -2,7 +2,7 @@
 #include <Psio/Log.h>
 
 namespace rhea::client {
-    GraphicsTexture* TextureGpuCache::getOrCreate(Poseidon::Core* core, rhea::ImageResource* img)
+    GraphicsTexture* TextureGpuCache::getOrCreate(poseidon::Core* core, rhea::ImageResource* img)
     {
         if (!core || !img) return nullptr;
 

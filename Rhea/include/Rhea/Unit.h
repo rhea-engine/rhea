@@ -13,7 +13,7 @@
 #include "Error.h"
 #include "Rhea/Component.h"
 
-using SimpleParser::Variant;
+using simpleparser::Variant;
 
 namespace rhea
 {
@@ -216,7 +216,7 @@ namespace rhea
 		// the children in the order of when they whre added
 		std::vector<Component*> m_ordered_children;
 		// the types of the children if added as component - per type only one component
-		std::unordered_map<SimpleParser::Type*, Component*> m_unique_components;
+		std::unordered_map<simpleparser::Type*, Component*> m_unique_components;
 
 		// event handlers for this unit
 		std::unordered_map < std::string, std::unordered_map<void*, Event::EventHandler >> m_eventhandlers;

@@ -2,7 +2,7 @@
 #include "GLRenderer.h"
 #include <cstdio>
 
-namespace Hippios
+namespace hippios
 {
 	GLRenderTarget::GLRenderTarget() :
 		m_framebuffer(0),

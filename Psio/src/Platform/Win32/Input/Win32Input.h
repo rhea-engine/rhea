@@ -3,7 +3,7 @@
 
 #include <Psio/Input/Input.h>
 
-namespace Psio
+namespace psio
 {
 	class InputWin32 : public Input
 	{

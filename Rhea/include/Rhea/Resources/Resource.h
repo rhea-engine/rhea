@@ -8,7 +8,7 @@
 
 #include "../Unit.h"
 
-using ReqError = Orion::ResourceRequest::Error;
+using ReqError = orion::ResourceRequest::Error;
 
 namespace rhea
 {
@@ -44,7 +44,7 @@ namespace rhea
 		~Resource();
 
 		// load the resource from request (may be asynchronus) - call handler on ready
-		virtual void load(Orion::ResourceRequest* req, ReadyHandler handler);
+		virtual void load(orion::ResourceRequest* req, ReadyHandler handler);
 
 		// get the status of the Unit
 		Status getStatus() { return m_status; }

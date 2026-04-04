@@ -18,7 +18,7 @@ namespace rhea::client {
 		{}
 
 		// create an element for this unit
-		bool Ensure(Poseidon::Core* core, rhea::Unit* unit);
+		bool Ensure(poseidon::Core* core, rhea::Unit* unit);
 
 		// handle frame update
 		void onFrame() {}
@@ -27,7 +27,7 @@ namespace rhea::client {
 		bool onUpdate(rhea::Event* ev, rhea::Unit* unit);
 		bool onDelete(rhea::Event* ev, rhea::Unit* unit);
 
-		bool FillPoseidonMesh(Poseidon::Core* core, rhea::Mesh* mesh, Poseidon::Mesh* out);
+		bool FillPoseidonMesh(poseidon::Core* core, rhea::Mesh* mesh, poseidon::Mesh* out);
 
 		// Removes a mesh from the negative cache so it can be retried
 		void clearFailure(const std::string& key) { m_failed_meshes.erase(key); }

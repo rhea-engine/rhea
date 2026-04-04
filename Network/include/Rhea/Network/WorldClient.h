@@ -16,7 +16,7 @@ namespace rhea
 	class WorldClient : public rhea::NetworkDelegate
 	{
 	public:
-		WorldClient(rhea::Application* app, Hermes::Stream* stream) :
+		WorldClient(rhea::Application* app, hermes::Stream* stream) :
 			m_scene(nullptr),
 			m_player_set(false),
 			m_in_world(false),
@@ -38,11 +38,11 @@ namespace rhea
 		void Stop();
 
 		// NetworkDelegate functions
-		void changeMovement(int nuid, Math::Vector3 move);
+		void changeMovement(int nuid, math::Vector3 move);
 		void changeTurn(int nuid, float turn);
 
 	protected:
-		Hermes::Stream* m_stream;
+		hermes::Stream* m_stream;
 		rhea::Scene* m_scene;
 		std::string m_avatar;
 		std::map<int,rhea::Item*> m_net_items;
@@ -53,12 +53,12 @@ namespace rhea
 
 		// handle messages
 		void onLogin();
-		void onAvatarlistMessage(Hermes::MessageAvatarList* msg);
-		void onCreateAvatarFailedMessage(Hermes::Message* msg);
-		void onEnterWorldFailedMessage(Hermes::Message* msg);
-		void onCreateMessage(Hermes::MessageCreate* msg);
-		void onPositionMessage(Hermes::MessagePosition* msg);
-		void onDestroyMessage(Hermes::MessageDestroy* msg);
+		void onAvatarlistMessage(hermes::MessageAvatarList* msg);
+		void onCreateAvatarFailedMessage(hermes::Message* msg);
+		void onEnterWorldFailedMessage(hermes::Message* msg);
+		void onCreateMessage(hermes::MessageCreate* msg);
+		void onPositionMessage(hermes::MessagePosition* msg);
+		void onDestroyMessage(hermes::MessageDestroy* msg);
 	};
 }
 

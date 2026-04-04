@@ -3,7 +3,7 @@
 
 #include <cstring>
 
-namespace Psio
+namespace psio
 {
 	HttpResponse::HttpResponse(Http* stream) :
 		m_headers_sent(false),

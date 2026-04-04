@@ -1,7 +1,7 @@
 #include <Psio/IPC/Pipe.h>
 #include <Psio/Net/IOBuffer.h>
 
-namespace Psio
+namespace psio
 {
 	Pipe::~Pipe()
 	{

@@ -131,7 +131,7 @@ namespace Meworla
 			return;
 		}
 
-		service->Connect(m_values["server"], [&, service](Hermes::Stream* stream, int err) {
+		service->Connect(m_values["server"], [&, service](hermes::Stream* stream, int err) {
 			if (!err) {
 				m_stream.reset(stream);
 
@@ -155,7 +155,7 @@ namespace Meworla
 	{
 		// setup the protocols
 
-		m_auth_client = std::make_unique<Hermes::ClientStream>(m_stream.get());
+		m_auth_client = std::make_unique<hermes::ClientStream>(m_stream.get());
 		m_auth_client->Initialize();
 
 		m_lobby_client = std::make_unique<rhea::LobbyClient>(m_app, m_stream.get());

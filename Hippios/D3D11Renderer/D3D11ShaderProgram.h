@@ -4,7 +4,7 @@
 #include <Hippios/ShaderProgram.h>
 #include <d3d11.h>
 
-namespace Hippios
+namespace hippios
 {
     class D3D11ShaderProgram : public ShaderProgram
     {

@@ -7,7 +7,7 @@
 #include "ObjTriangleLoader.h"
 
 
-using Math::Vector3;
+using math::Vector3;
 
 namespace rhea::physics::bullet
 {
@@ -86,13 +86,13 @@ namespace rhea::physics::bullet
 						btTriangleMesh* triMesh = new btTriangleMesh();
 						for (size_t i = 0; i < indices.size(); i += 3) {
 							size_t j = indices[i];
-							Math::Vector3 vertex = (Math::Vector3)(*vb)[j];
+							math::Vector3 vertex = (math::Vector3)(*vb)[j];
 							btVector3 v1 = btVector3(vertex.x, vertex.y, vertex.z);
 							j = indices[i + 1];
-							vertex = (Math::Vector3)(*vb)[j];
+							vertex = (math::Vector3)(*vb)[j];
 							btVector3 v2 = btVector3(vertex.x, vertex.y, vertex.z);
 							j = indices[i + 2];
-							vertex = (Math::Vector3)(*vb)[j];
+							vertex = (math::Vector3)(*vb)[j];
 							btVector3 v3 = btVector3(vertex.x, vertex.y, vertex.z);
 							triMesh->addTriangle(v1, v2, v3);
 						}
@@ -152,8 +152,8 @@ namespace rhea::physics::bullet
 
 		// get position and rotation from m_item
 		rhea::Transform* transform = m_item->getTransform();
-		Math::Vector3 pos = transform->get_position()->get_worldspace();
-		Math::Quaternion rot = transform->get_position()->get_rotation();
+		math::Vector3 pos = transform->get_position()->get_worldspace();
+		math::Quaternion rot = transform->get_position()->get_rotation();
 		float offset_y = m_item->getValue("collision_shape_offset_y");
 		if (offset_y)
 			pos.y += offset_y;
@@ -189,10 +189,10 @@ namespace rhea::physics::bullet
 		}
 	}
 
-	void BulletPhysicsBody::move(Math::Vector3 move)
+	void BulletPhysicsBody::move(math::Vector3 move)
 	{
-		if (move == Math::Vector3::ZERO &&
-			m_movement != Math::Vector3::ZERO) {
+		if (move == math::Vector3::ZERO &&
+			m_movement != math::Vector3::ZERO) {
 			stop();
 		}
 		m_movement = move;
@@ -209,7 +209,7 @@ namespace rhea::physics::bullet
 		m_body->setActivationState(ACTIVE_TAG);
 	}
 
-	void BulletPhysicsBody::setPosition(const Math::Vector3& position)
+	void BulletPhysicsBody::setPosition(const math::Vector3& position)
 	{
 		btTransform transform;
 		transform.setIdentity();
@@ -222,7 +222,7 @@ namespace rhea::physics::bullet
 		m_body->getMotionState()->setWorldTransform(transform);
 	}
 
-	void BulletPhysicsBody::setOrientation(const Math::Quaternion& rot)
+	void BulletPhysicsBody::setOrientation(const math::Quaternion& rot)
 	{
 		btQuaternion bt_orientation = btQuaternion(
 			btScalar(rot.x),
@@ -234,7 +234,7 @@ namespace rhea::physics::bullet
 		m_body->setWorldTransform(trans);
 	}
 
-	void BulletPhysicsBody::setAngularVelocity(const Math::Vector3& velocity)
+	void BulletPhysicsBody::setAngularVelocity(const math::Vector3& velocity)
 	{
 		if (m_body)
 		{
@@ -262,7 +262,7 @@ namespace rhea::physics::bullet
 		}
 	}
 
-	void BulletPhysicsBody::applyOrientation(const Math::Quaternion& rot)
+	void BulletPhysicsBody::applyOrientation(const math::Quaternion& rot)
 	{
 		btTransform trans = m_body->getWorldTransform();
 		

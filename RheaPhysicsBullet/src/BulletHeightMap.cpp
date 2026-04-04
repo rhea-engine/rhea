@@ -30,7 +30,7 @@ namespace rhea::physics::bullet
 			float min_height = 0.0f;
 			float max_height = 0.0f;
 
-			m_image = std::make_unique<Poseidon::Image>();
+			m_image = std::make_unique<poseidon::Image>();
 			if (static_cast<rhea::Resource*>(heightmap)->getRaw((char**)&buf, &buflen)) {
 				m_image->load(buf, buflen);
 				m_width = m_image->getWidth();
@@ -38,7 +38,7 @@ namespace rhea::physics::bullet
 				if (!flipZ) {
 					for (size_t h = 0; h < (size_t)m_height; h++) {
 						for (size_t w = 0; w < (size_t)m_width; w++) {
-							Poseidon::Image::Color c = m_image->getPixel(w, h);
+							poseidon::Image::Color c = m_image->getPixel(w, h);
 							unsigned char grey = (unsigned char)(0.299 * c.r + 0.587 * c.g + 0.114 * c.b);
 							min_height = std::min((float)grey, min_height);
 							max_height = std::max((float)grey, max_height);
@@ -50,7 +50,7 @@ namespace rhea::physics::bullet
 				else {
 					for (int h = m_height - 1; h >= 0; h--) {
 						for (size_t w = 0; w < (size_t)m_width; w++) {
-							Poseidon::Image::Color c = m_image->getPixel(w, h);
+							poseidon::Image::Color c = m_image->getPixel(w, h);
 							unsigned char grey = (unsigned char)(0.299 * c.r + 0.587 * c.g + 0.114 * c.b);
 							min_height = std::min((float)grey, min_height);
 							max_height = std::max((float)grey, max_height);

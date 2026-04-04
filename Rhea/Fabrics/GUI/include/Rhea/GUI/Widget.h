@@ -10,7 +10,7 @@
 #include "Styles/Property.h"
 #include "Styles/StyleEngine.h"
 
-using Math::Vector2;
+using math::Vector2;
 
 namespace rhea
 {

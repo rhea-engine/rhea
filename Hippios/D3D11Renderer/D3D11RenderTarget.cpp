@@ -4,7 +4,7 @@
 #include "D3D11SwapChain.h"
 #include "D3D11Renderer.h"
 
-namespace Hippios
+namespace hippios
 {
 	D3D11RenderTarget::~D3D11RenderTarget()
 	{

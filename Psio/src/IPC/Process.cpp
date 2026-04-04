@@ -13,7 +13,7 @@
 
 #include <Psio/IPC/Pipe.h>
 
-Psio::Process::~Process()
+psio::Process::~Process()
 {
 #ifdef _WIN32
 	CloseHandle(m_process_handle);
@@ -23,7 +23,7 @@ Psio::Process::~Process()
 
 }
 
-bool Psio::Process::Fork(std::string exe_name, std::string arg, Pipe* std_in, Pipe* std_out, Pipe* std_err)
+bool psio::Process::Fork(std::string exe_name, std::string arg, Pipe* std_in, Pipe* std_out, Pipe* std_err)
 {
 #ifdef _WIN32	
 	std::string cmdline = exe_name + " " + arg;

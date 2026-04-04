@@ -11,7 +11,7 @@
 #include <Rhea/Components/RenderComponent.h>
 
 namespace rhea::client {
-	bool GraphicsCameraManager::Ensure(Poseidon::Core* core, rhea::Unit* unit)
+	bool GraphicsCameraManager::Ensure(poseidon::Core* core, rhea::Unit* unit)
 	{	
 		rhea::Camera* camera = doCast<rhea::Camera>(unit);
 		if (!camera) return false;
@@ -24,9 +24,9 @@ namespace rhea::client {
 		
 		// create
 		
-		Poseidon::SceneManager* m_scene_mgr = core->get_scene_manager();
+		poseidon::SceneManager* m_scene_mgr = core->get_scene_manager();
 		// get dimensions from viewport
-		Poseidon::Viewport* viewport = m_scene_mgr->getViewport();
+		poseidon::Viewport* viewport = m_scene_mgr->getViewport();
 		if (!viewport) {
 			LOG(LOG_ERROR) << "No root viewport found - cannot set camera";
 			return false;
@@ -45,25 +45,25 @@ namespace rhea::client {
 
 		// get default viewport
 		std::string render_context = "default";
-		m_scene_mgr->getViewport()->getRenderContext(render_context)->setCamera(static_cast<Poseidon::Camera*>(rc->entity));
+		m_scene_mgr->getViewport()->getRenderContext(render_context)->setCamera(static_cast<poseidon::Camera*>(rc->entity));
 
-		Math::Vector3 m_position;
+		math::Vector3 m_position;
 		Variant pos_sit = unit->getValue("position");
 		if (pos_sit != Variant()) {
 			float x = pos_sit[0];
 			float y = pos_sit[1];
 			float z = pos_sit[2];
-			m_position = Math::Vector3(x, y, z);
+			m_position = math::Vector3(x, y, z);
 		}
 		else
-			m_position = Math::Vector3(0.0f, 0.0f, 0.0f);
+			m_position = math::Vector3(0.0f, 0.0f, 0.0f);
 
 		// set a default position
 		camera->getTransform()->get_position()->setPosition(m_position); 
-		camera->getTransform()->get_position()->lookAt(Math::Vector3(0.0f, 0.0f, 0.0f), Math::Vector3::UNIT_Z);
+		camera->getTransform()->get_position()->lookAt(math::Vector3(0.0f, 0.0f, 0.0f), math::Vector3::UNIT_Z);
 		rc->entity->setTransform(((rhea::Item* )unit)->getTransform());
 
-		static_cast<Poseidon::Camera*>(rc->entity)->setAspectRatio((float)Width / (float)Height);
+		static_cast<poseidon::Camera*>(rc->entity)->setAspectRatio((float)Width / (float)Height);
 
 		// register handlers
 		unit->registerEventHandler("delete", this, std::bind(&GraphicsCameraManager::onItemDelete, this, std::placeholders::_1, std::placeholders::_2));

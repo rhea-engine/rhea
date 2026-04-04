@@ -13,12 +13,12 @@ void rhea::GltfFabric::Register(Application* app)
 	app->getResourceLoader()->registerLoader<GlbLoader>("model/gltf-binary");
 
 	// register mime for gltf
-	Orion::MIME::RegisterExtenstion("model/gltf+json", "gltf");
-	Orion::MIME::RegisterExtenstion("model/gltf-binary", "glb");
+	orion::MIME::RegisterExtenstion("model/gltf+json", "gltf");
+	orion::MIME::RegisterExtenstion("model/gltf-binary", "glb");
 	
 	// the resource scene file
-	SimpleParser::Type::registerType<GltfScene>("//meworla/gltf");
+	simpleparser::Type::registerType<GltfScene>("//meworla/gltf");
 
 	// importers
-	SimpleParser::Type::registerType<GltfMesh>("//meworla/gltfmesh");
+	simpleparser::Type::registerType<GltfMesh>("//meworla/gltfmesh");
 }

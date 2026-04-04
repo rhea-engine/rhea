@@ -10,7 +10,7 @@
 #include "Variant.h"
 #include "Type.h"
 
-namespace SimpleParser
+namespace simpleparser
 {
     namespace Detail
     {
@@ -155,7 +155,7 @@ namespace SimpleParser
     }
 }
 
-namespace SimpleParser
+namespace simpleparser
 {
     template<class M>
     void Type::registerMethod(std::string name, M method)

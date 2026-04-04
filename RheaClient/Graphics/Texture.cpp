@@ -6,7 +6,7 @@
 #include <Poseidon/Texture.h>
 
 namespace rhea::client {
-	GraphicsTexture::GraphicsTexture(Poseidon::Core* core, rhea::ImageResource::TextureType texture_type, int num_textures) :
+	GraphicsTexture::GraphicsTexture(poseidon::Core* core, rhea::ImageResource::TextureType texture_type, int num_textures) :
 		m_type(texture_type),
 		m_core(core),
 		m_img(nullptr)
@@ -19,13 +19,13 @@ namespace rhea::client {
 		}
 	}
 
-	Poseidon::Texture* GraphicsTexture::createTexture(int index, unsigned char* buf, size_t buflen)
+	poseidon::Texture* GraphicsTexture::createTexture(int index, unsigned char* buf, size_t buflen)
 	{		
 		m_img->load(index, (unsigned char*)buf, buflen);
 		return m_img;
 	}
 
-	Poseidon::Texture* GraphicsTexture::createTexture(int index, GraphicsTexture* texture)
+	poseidon::Texture* GraphicsTexture::createTexture(int index, GraphicsTexture* texture)
 	{
 		m_img->load(index, texture->m_img);
 		return m_img;

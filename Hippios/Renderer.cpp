@@ -7,7 +7,7 @@
 #include "D3D11Renderer/D3D11Renderer.h"
 #endif
 
-namespace Hippios
+namespace hippios
 {
 	Renderer::~Renderer()
 	{
@@ -18,11 +18,11 @@ namespace Hippios
 		switch (backend) {
 #if HIPPIOS_OPENGL
 		case RendererBackend::OpenGL:
-			return std::make_unique<Hippios::GLRenderer>(window_backend);
+			return std::make_unique<hippios::GLRenderer>(window_backend);
 #endif // OPENGL
 #if HIPPIOS_D3D11
 		case RendererBackend::D3D11:
-			return std::make_unique<Hippios::D3D11Renderer>();
+			return std::make_unique<hippios::D3D11Renderer>();
 #endif // HIPPIOS_D3D11	
 		default:
 			printf("Render backend not supported\n");

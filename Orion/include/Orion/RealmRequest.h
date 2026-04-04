@@ -7,7 +7,7 @@
 #include <string>
 #include <deque>
 
-namespace Orion
+namespace orion
 {
 	class Orion;
 
@@ -30,7 +30,7 @@ namespace Orion
 
 	protected:
 
-		Psio::UrlRequest* m_request;
+		psio::UrlRequest* m_request;
 		int m_error;
 		std::string m_response;
 

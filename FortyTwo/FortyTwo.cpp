@@ -17,19 +17,19 @@ void FortyTwo::init(int argc, char* argv[])
 	rhea::Application::init(argc, argv);
 
 	// ignore controller and spectator defs
-	SimpleParser::Type::registerType<rhea::Unit>("//meworla/controller");
-	SimpleParser::Type::registerType<rhea::Unit>("//meworla/spectator");
+	simpleparser::Type::registerType<rhea::Unit>("//meworla/controller");
+	simpleparser::Type::registerType<rhea::Unit>("//meworla/spectator");
 
 	// user and avatar types
 	AccountService::RegisterFabrics(this);
 	AuthorizationService::RegisterFabrics(this);
-	SimpleParser::Type::registerType<rhea::Avatar>("//meworla/avatar");
+	simpleparser::Type::registerType<rhea::Avatar>("//meworla/avatar");
 
 	// add world server item
-	SimpleParser::Type::registerType<World>("//meworla/world");
+	simpleparser::Type::registerType<World>("//meworla/world");
 
 	// setup network server
-	SimpleParser::Type::registerType<rhea::ServerService>("//meworla/serverservice");
+	simpleparser::Type::registerType<rhea::ServerService>("//meworla/serverservice");
 
 }
 
@@ -66,7 +66,7 @@ void FortyTwo::setup()
 			if (!m_server_service) {
 
 				/* TODO: if not defined in config add one?
-				m_server_service = (ServerService*)SimpleParser::Type::create("ServerService", "//meworla/serverservice");
+				m_server_service = (ServerService*)simpleparser::Type::create("ServerService", "//meworla/serverservice");
 				m_services["server"] = m_server_service;
 				m_server_service->setup(this);
 
@@ -82,7 +82,7 @@ void FortyTwo::setup()
 			// get the account service
 			AccountService* account_service = world_scene->findByType<AccountService>();
 			if (!account_service) {
-				account_service = (AccountService*)SimpleParser::Type::create("AccountService", "//meworla/accountservice");
+				account_service = (AccountService*)simpleparser::Type::create("AccountService", "//meworla/accountservice");
 				m_services["accounts"] = account_service;
 				std::unordered_map<std::string, std::string> attributes;
 				std::unordered_map<std::string, Variant> values;

@@ -18,7 +18,7 @@
 #include <memory>
 #include <Math/Matrix4.h>
 
-namespace Hippios
+namespace hippios
 {
 	enum class RendererBackend
 	{
@@ -251,7 +251,7 @@ namespace Hippios
 		 * @param src The source array of matrices to be prepared.
 		 * @param count The number of matrices in the source array.
 		 */
-		virtual void prepareMatricesForShader(Math::Matrix4* dst, const Math::Matrix4* src, size_t count) const = 0;		
+		virtual void prepareMatricesForShader(math::Matrix4* dst, const math::Matrix4* src, size_t count) const = 0;		
 
 		/**
 		 * @brief Returns the used renderer backend.

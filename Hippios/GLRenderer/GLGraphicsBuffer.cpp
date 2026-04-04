@@ -1,7 +1,7 @@
 #include "GLGraphicsBuffer.h"
 #include <cstring>
 
-namespace Hippios
+namespace hippios
 {
 	GLGraphicsBuffer::GLGraphicsBuffer(GLenum target, size_t size_in_bytes, bool dynamic) :
 		m_target(target),

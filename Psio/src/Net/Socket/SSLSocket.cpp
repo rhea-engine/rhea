@@ -2,7 +2,7 @@
 
 #include <Psio/Net/Socket/SSLSocket.h>
 
-namespace Psio
+namespace psio
 {
 
 	int SSLSocket::SSLAccept(Socket::CompletionHandler handler)
@@ -329,7 +329,7 @@ namespace Psio
 
 		return 0;
 	}
-	SocketAddress* Psio::SSLSocket::getRemoteAddress()
+	SocketAddress* psio::SSLSocket::getRemoteAddress()
 	{
 		return m_sock->getRemoteAddress();
 	}

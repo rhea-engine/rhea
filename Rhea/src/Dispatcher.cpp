@@ -3,7 +3,7 @@
 
 namespace rhea
 {
-	bool Dispatcher::dispatch(std::string action, std::shared_ptr<Psio::InputEvent> evt)
+	bool Dispatcher::dispatch(std::string action, std::shared_ptr<psio::InputEvent> evt)
 	{
 		auto it = m_map.find(action);
 		if (it == m_map.end())

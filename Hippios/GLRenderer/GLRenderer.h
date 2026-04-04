@@ -12,7 +12,7 @@
 
 #include "GLIncludes.h"
 
-namespace Hippios
+namespace hippios
 {
 	class GLVertexBuffer;
 	class GLIndexBuffer;
@@ -63,7 +63,7 @@ namespace Hippios
 
 		bool getStencilStateDesc(const std::string& name, DepthStencilStateDesc& outDesc) override;
 
-		void prepareMatricesForShader(Math::Matrix4* dst, const Math::Matrix4* src, size_t count) const;	
+		void prepareMatricesForShader(math::Matrix4* dst, const math::Matrix4* src, size_t count) const;	
 
 		const GLCapabilities& getCapabilities() const { return m_caps; }
 		bool useModernGL() const { return m_caps.hasDSA; }

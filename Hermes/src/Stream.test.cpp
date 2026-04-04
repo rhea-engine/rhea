@@ -16,16 +16,16 @@
 
 using ::testing::_;
 
-using Psio::Network;
+using psio::Network;
 
-namespace Hermes
+namespace hermes
 {
 	// a dummy Stream Socket
-	class MemorySocket : public Psio::StreamSocket
+	class MemorySocket : public psio::StreamSocket
 	{
 	public:
 		// write to socket
-		virtual int Write(Psio::IOBuffer* buf, Socket::CompletionHandler handler) override
+		virtual int Write(psio::IOBuffer* buf, Socket::CompletionHandler handler) override
 		{
 			if (m_error < 1) {
 				handler(m_error);
@@ -47,7 +47,7 @@ namespace Hermes
 		};
 
 		// read from socket
-		virtual int Read(Psio::IOBuffer* buf, Socket::CompletionHandler handler) override
+		virtual int Read(psio::IOBuffer* buf, Socket::CompletionHandler handler) override
 		{
 			int ret = (int)my_buffer->Remaining();
 			if (m_error < 1) {
@@ -73,7 +73,7 @@ namespace Hermes
 			return true;
 		}
 
-		virtual int Connect(Psio::SocketAddress& addr, bool blocking, Socket::CompletionHandler handler) override
+		virtual int Connect(psio::SocketAddress& addr, bool blocking, Socket::CompletionHandler handler) override
 		{
 			handler(0);
 			return 0;
@@ -85,12 +85,12 @@ namespace Hermes
 			return 0;
 		}
 
-		virtual Psio::SocketAddress* getRemoteAddress()
+		virtual psio::SocketAddress* getRemoteAddress()
 		{
 			return nullptr;
 		}
 
-		std::unique_ptr<Psio::IOBuffer> my_buffer = std::make_unique<Psio::IOBuffer>(64 * 1024);
+		std::unique_ptr<psio::IOBuffer> my_buffer = std::make_unique<psio::IOBuffer>(64 * 1024);
 		int m_error = 1;
 	};
 
@@ -107,7 +107,7 @@ namespace Hermes
 		{
 			m_network = std::make_unique<Network>(nullptr);
 			m_network->Init();
-			m_factory = std::make_unique<Hermes::MessageFactory>();
+			m_factory = std::make_unique<hermes::MessageFactory>();
 			m_factory->registerCoreMessages();
 		}
 
@@ -125,10 +125,10 @@ namespace Hermes
 		std::unique_ptr<Stream> m_stream;
 
 		//ConnectionHandler m_connection_handler;
-		std::unique_ptr<Hermes::MessageFactory> m_factory;
+		std::unique_ptr<hermes::MessageFactory> m_factory;
 
 		std::unique_ptr<Network> m_network;
-		std::unique_ptr<Psio::StreamSocket> m_sock;
+		std::unique_ptr<psio::StreamSocket> m_sock;
 	};
 
 	// tests
@@ -137,19 +137,19 @@ namespace Hermes
 		MemorySocket* sock = new MemorySocket();
 		m_sock.reset(sock);
 
-		m_stream = std::make_unique<Hermes::Stream>(std::move(m_sock), m_factory.get());
+		m_stream = std::make_unique<hermes::Stream>(std::move(m_sock), m_factory.get());
 
 		testing::MockFunction<void(int err)> mock_handler;
 
 		EXPECT_CALL(mock_handler, Call(_))
 			.Times(1);
 
-		std::unique_ptr<Hermes::Message> msg = std::make_unique<Hermes::Message>(1);
+		std::unique_ptr<hermes::Message> msg = std::make_unique<hermes::Message>(1);
 		int ret = m_stream->sendMessage(msg.get(), mock_handler.AsStdFunction());
 
 		// Expect that 4 bytes are written
 		EXPECT_EQ(ret, 4);
-		Psio::IOBuffer* buf = sock->my_buffer.get();
+		psio::IOBuffer* buf = sock->my_buffer.get();
 		EXPECT_EQ(buf->Remaining(), 4);
 	}
 
@@ -158,10 +158,10 @@ namespace Hermes
 
 		MemorySocket* sock = new MemorySocket();
 		m_sock.reset(sock);
-		m_stream = std::make_unique<Hermes::Stream>(std::move(m_sock), m_factory.get());
+		m_stream = std::make_unique<hermes::Stream>(std::move(m_sock), m_factory.get());
 
 		// client send connect
-		Hermes::MessageConnect connect;
+		hermes::MessageConnect connect;
 		connect.world_name = "testworld";
 		connect.protocol_version = HERMES_PROTOCOL_VERSION;
 
@@ -172,9 +172,9 @@ namespace Hermes
 		m_stream->getMessageFactory()->handle(&connect);
 
 		// first message should be the HERMES_MSG_CONNECTED message
-		Psio::IOBuffer* buf = sock->my_buffer.get();
+		psio::IOBuffer* buf = sock->my_buffer.get();
 		EXPECT_EQ(buf->Remaining(), 4);
-		Hermes::Message* msg = m_stream->getMessageFactory()->getMessage(buf);
+		hermes::Message* msg = m_stream->getMessageFactory()->getMessage(buf);
 		ASSERT_NE(msg, nullptr);
 		EXPECT_EQ(msg->base.opcode, HERMES_MSG_CONNECTED);
 	}
@@ -183,9 +183,9 @@ namespace Hermes
 		MemorySocket* sock = new MemorySocket();
 		m_sock.reset(sock);
 
-		m_stream = std::make_unique<Hermes::Stream>(std::move(m_sock), m_factory.get());
+		m_stream = std::make_unique<hermes::Stream>(std::move(m_sock), m_factory.get());
 
-		std::unique_ptr<Hermes::MessageConnect> msg = std::make_unique<Hermes::MessageConnect>();
+		std::unique_ptr<hermes::MessageConnect> msg = std::make_unique<hermes::MessageConnect>();
 		
 		testing::MockFunction<void(int err)> mock_connect_handler;
 
@@ -204,9 +204,9 @@ namespace Hermes
 		MemorySocket* sock = new MemorySocket();
 		m_sock.reset(sock);
 
-		m_stream = std::make_unique<Hermes::Stream>(std::move(m_sock), m_factory.get());
+		m_stream = std::make_unique<hermes::Stream>(std::move(m_sock), m_factory.get());
 
-		std::unique_ptr<Hermes::Message> msg = std::make_unique<Hermes::Message>(1);
+		std::unique_ptr<hermes::Message> msg = std::make_unique<hermes::Message>(1);
 
 		testing::MockFunction<void(int err)> mock_error_handler;
 
@@ -226,9 +226,9 @@ namespace Hermes
 		MemorySocket* sock = new MemorySocket();
 		m_sock.reset(sock);
 
-		m_stream = std::make_unique<Hermes::Stream>(std::move(m_sock), m_factory.get());
+		m_stream = std::make_unique<hermes::Stream>(std::move(m_sock), m_factory.get());
 
-		std::unique_ptr<Hermes::Message> msg = std::make_unique<Hermes::Message>(1);
+		std::unique_ptr<hermes::Message> msg = std::make_unique<hermes::Message>(1);
 
 		testing::MockFunction<void(int err)> mock_error_handler;
 		testing::MockFunction<void(int err)> mock_closed_handler;

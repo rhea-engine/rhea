@@ -4,7 +4,7 @@
 #include <Math/Vector2.h>
 #include <string>
 
-using Math::Vector2;
+using math::Vector2;
 
 namespace rhea
 {

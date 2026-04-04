@@ -2,7 +2,7 @@
 #include "Quaternion.h"
 #include <cmath>
 
-namespace Math
+namespace math
 {
 	Matrix3 Quaternion::RotationMatrix() const
 	{

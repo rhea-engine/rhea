@@ -3,7 +3,7 @@
 
 #include <cstdint>
 
-namespace Psio
+namespace psio
 {
 	// the codes are based on
 	// https://www.usb.org/sites/default/files/documents/hut1_12v2.pdf

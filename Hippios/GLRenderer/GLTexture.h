@@ -4,7 +4,7 @@
 #include <Hippios/Texture.h>
 #include "GLIncludes.h"
 
-namespace Hippios
+namespace hippios
 {
 	class GLTexture : public Texture
 	{

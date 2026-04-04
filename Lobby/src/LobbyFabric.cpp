@@ -8,8 +8,8 @@ namespace Meworla
 	void LobbyFabric::Register(rhea::Application* app)
 	{
 		// register types
-		SimpleParser::Type::registerType<ClientConnect>("//meworla/lobby/connect");
-		SimpleParser::Type::registerType<Avatars>("//meworla/lobby/avatars");
-		SimpleParser::Type::registerType<CredentialsService>("//meworla/lobby/credentials");
+		simpleparser::Type::registerType<ClientConnect>("//meworla/lobby/connect");
+		simpleparser::Type::registerType<Avatars>("//meworla/lobby/avatars");
+		simpleparser::Type::registerType<CredentialsService>("//meworla/lobby/credentials");
 	}
 }

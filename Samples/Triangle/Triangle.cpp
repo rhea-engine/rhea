@@ -8,14 +8,14 @@
 
 #include "Triangle.h"
 
-using Poseidon::Viewport;
+using poseidon::Viewport;
 
 void TriangleApp::setup()
 {
 	rhea::Application::setup();
 
 	m_scene = core->get_scene_manager();	
-	Poseidon::Material* material = core->createMaterial();
+	poseidon::Material* material = core->createMaterial();
 	material->loadFromFile("Data\\Rhea\\shaders\\shader.hlsl", "vs", "VShader");
 	material->loadFromFile("Data\\Rhea\\shaders\\shader.hlsl", "ps", "PShader");
 	
@@ -28,7 +28,7 @@ void TriangleApp::setup()
 
 void TriangleApp::initialize()
 {
-	Poseidon::Mesh* mesh;
+	poseidon::Mesh* mesh;
 	unsigned long* indices;
 	Viewport* viewport = m_scene->getViewport();
 
@@ -40,7 +40,7 @@ void TriangleApp::initialize()
 	const int num_vertices = 4;
 	const int num_faces = 2;
 
-	Hippios::vertex OurVertices[num_vertices] = {
+	hippios::vertex OurVertices[num_vertices] = {
 /*{0.0f, 0.5f, 0.0f, { 1.0f, 0.0f, 0.0f, 1.0f }},
 {0.45f, -0.5, 0.0f, { 0.0f, 1.0f, 0.0f, 1.0f }},
 {-0.45f, -0.5f, 0.0f, { 0.0f, 0.0f, 1.0f, 1.0f }}*/
@@ -53,9 +53,9 @@ void TriangleApp::initialize()
 	for (int i = 0; i < num_vertices; i++)
 		vertices.push_back(OurVertices[i]);
 
-	mesh = new Poseidon::Mesh();
+	mesh = new poseidon::Mesh();
 	mesh->setViewport(viewport);
-	mesh->setVertices(sizeof(Hippios::vertex), num_vertices, vertices.data());
+	mesh->setVertices(sizeof(hippios::vertex), num_vertices, vertices.data());
 
 #ifdef USE_INDICES
 	// Load the index array with data.

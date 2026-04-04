@@ -44,7 +44,7 @@ namespace rhea
 
 	protected:
 		MoveState m_move_state;
-		Math::Vector3 m_forced_movement;
+		math::Vector3 m_forced_movement;
 		rhea::Position* m_position;
 		float m_gravity;
 		float m_upwards;

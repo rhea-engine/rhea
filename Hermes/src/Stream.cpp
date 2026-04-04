@@ -2,7 +2,7 @@
 #include <Psio/Log.h>
 #include <Hermes/Messages/MessageConnect.h>
 
-namespace Hermes
+namespace hermes
 {
 	int Stream::sendMessage(Message* message, CompletionHandler handler)
 	{
@@ -42,7 +42,7 @@ namespace Hermes
 			std::bind(&Stream::onConnect, this, std::placeholders::_1)
 		);
 
-		Psio::SocketAddress* addr = m_sock->getRemoteAddress();
+		psio::SocketAddress* addr = m_sock->getRemoteAddress();
 		if (addr)
 			m_id = addr->GetHost() + ":" + std::to_string(addr->GetPort());
 		else
@@ -78,12 +78,12 @@ namespace Hermes
 			std::bind(&Stream::onErrorMessage, this, std::placeholders::_1)
 		);
 
-		Hermes::MessageConnect msg;
+		hermes::MessageConnect msg;
 		msg.world_name = world_name;
 
 		m_next_state = HERMES_READMESSAGE;
 
-		Psio::SocketAddress* addr = m_sock->getRemoteAddress();
+		psio::SocketAddress* addr = m_sock->getRemoteAddress();
 		if (addr)
 			m_id = addr->GetHost() + ":" + std::to_string(addr->GetPort());
 		else
@@ -126,14 +126,14 @@ namespace Hermes
 				break;
 			}
 
-		} while (result != Psio::Network::IO_PENDING && m_state != HERMES_NONE);
+		} while (result != psio::Network::IO_PENDING && m_state != HERMES_NONE);
 		return result;
 	}
 
 	void Stream::CallDoLoop(int result)
 	{
 		int res = DoLoop(result);
-		//if ((res != Psio::Network::Err::IO_PENDING) && (m_message_handler != NULL))
+		//if ((res != psio::Network::Err::IO_PENDING) && (m_message_handler != NULL))
 		//	m_message_handler(nullptr, result);
 	}
 
@@ -202,7 +202,7 @@ namespace Hermes
 		// this may destroy |this|
 		if (m_closed_handler)
 			m_closed_handler(0);	
-		return Psio::Network::IO_PENDING;
+		return psio::Network::IO_PENDING;
 	}
 
 	void Stream::onConnect(MessageConnect* msg)

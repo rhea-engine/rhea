@@ -8,7 +8,7 @@ namespace rhea
 
 		Variant ambient_r = getValue("ambient");
 		if (ambient_r.size() == 4) {
-			m_ambient = Math::Quaternion(ambient_r[0], ambient_r[1], ambient_r[2], ambient_r[3]);
+			m_ambient = math::Quaternion(ambient_r[0], ambient_r[1], ambient_r[2], ambient_r[3]);
 		}
 	}
 }

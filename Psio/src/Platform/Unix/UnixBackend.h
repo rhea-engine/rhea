@@ -3,7 +3,7 @@
 
 #include "../../Backend/IBackend.h"
 
-namespace Psio
+namespace psio
 {
     class UnixBackend final : public IBackend
     {

@@ -6,13 +6,13 @@
 #include "Node.h"
 #include <Rhea/Core/Transform.h>
 
-namespace Hippios
+namespace hippios
 {
 	class VertexBuffer;
 	class IndexBuffer;
 }
 
-namespace Poseidon
+namespace poseidon
 {
 	class RenderQueue;
 	class Camera;
@@ -22,7 +22,7 @@ namespace Poseidon
 	{
 	public:
 		virtual void cullPhase(RenderQueue* queue, Camera* camera) = 0;
-		virtual void getRenderInput(size_t mesh_idx, Hippios::VertexBuffer** pvb, Hippios::IndexBuffer** pib, size_t& num_indices) = 0;
+		virtual void getRenderInput(size_t mesh_idx, hippios::VertexBuffer** pvb, hippios::IndexBuffer** pib, size_t& num_indices) = 0;
 		virtual Material* getMaterial() = 0;
 	};
 }

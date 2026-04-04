@@ -16,7 +16,7 @@
 class AuthHandler 
 {
 public:
-	AuthHandler(rhea::Application* app, rhea::Scene* scene, Hermes::ServerStream* hermes) :
+	AuthHandler(rhea::Application* app, rhea::Scene* scene, hermes::ServerStream* hermes) :
 		m_app(app),
 		m_scene(scene),
 		m_player(nullptr),
@@ -44,8 +44,8 @@ protected:
 	std::string m_username;
 	User* m_user;
 
-	Hermes::ServerStream* m_hermes;
-	Psio::Network::CompletionHandler m_error_handler;
+	hermes::ServerStream* m_hermes;
+	psio::Network::CompletionHandler m_error_handler;
 	std::function<void(User* user)> m_on_succes_handler;
 
 	enum CONN_STATE {

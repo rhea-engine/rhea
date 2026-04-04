@@ -5,7 +5,7 @@
 
 #include <memory>
 
-namespace Psio
+namespace psio
 {
     class Input;
     class Window;

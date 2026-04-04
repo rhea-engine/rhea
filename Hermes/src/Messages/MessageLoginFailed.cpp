@@ -1,8 +1,8 @@
 #include "Hermes/Messages/MessageLoginFailed.h"
 
-namespace Hermes
+namespace hermes
 {
-	void MessageLoginFailed::serialize(Psio::IOBuffer* buf)
+	void MessageLoginFailed::serialize(psio::IOBuffer* buf)
 	{
 		base.size = sizeof(BaseMessage) + sizeof(uint16_t);
 		if (methods.size() > 0) {
@@ -29,7 +29,7 @@ namespace Hermes
 		buf->Produce(size);
 	}
 
-	void MessageLoginFailed::unserialize(Psio::IOBuffer* buf)
+	void MessageLoginFailed::unserialize(psio::IOBuffer* buf)
 	{
 		uint16_t methods_size = readS(buf);
 		if (methods_size)
@@ -37,7 +37,7 @@ namespace Hermes
 				methods.push_back(readStr(buf));
 	}
 
-	Message* MessageLoginFailed::create(uint16_t opcode, uint16_t size, Psio::IOBuffer* buf)
+	Message* MessageLoginFailed::create(uint16_t opcode, uint16_t size, psio::IOBuffer* buf)
 	{
 		MessageLoginFailed* msg;
 		msg = new MessageLoginFailed();

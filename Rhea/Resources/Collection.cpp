@@ -3,13 +3,13 @@
 
 namespace rhea
 {
-	void Collection::readFromStream(Orion::ResourceStream* stream)
+	void Collection::readFromStream(orion::ResourceStream* stream)
 	{
 		if (!stream->IsDir())
 			return;
 	
-		Orion::Collection* col = static_cast<Orion::Collection*>(stream);
-		Orion::Collection::Entry* stream_entry;
+		orion::Collection* col = static_cast<orion::Collection*>(stream);
+		orion::Collection::Entry* stream_entry;
 		
 		while (stream_entry = col->nextEntry()) {
 			m_entries.push_back({stream_entry->name, stream_entry->mime, stream_entry->length });

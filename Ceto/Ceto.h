@@ -10,7 +10,7 @@
 
 using std::string;
 
-class Ceto : public Poseidon::Application
+class Ceto : public poseidon::Application
 {
 public:
 	Ceto() :

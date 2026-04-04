@@ -32,23 +32,23 @@ void Iris::init(Config config)
 		LOG(LOG_INFO) << "Import registry from " << config.registry_file << ": " << entries << " entries";
 	}
 
-	m_network = std::make_unique<Psio::Network>(nullptr);
+	m_network = std::make_unique<psio::Network>(nullptr);
 	m_network->Init();
-	m_server_sock = std::make_unique<Psio::TCPSocket>(m_network.get());
+	m_server_sock = std::make_unique<psio::TCPSocket>(m_network.get());
 	m_middleware = new Middleware(m_registry);
 
 	int err = m_server_sock->Server(config.ip, config.port);
 	LOG(LOG_INFO) << "Started Server. Listening on " << config.ip << ":" << config.port;
-	m_server_sock->Accept([&](Psio::StreamSocket* new_sock, int err) {
+	m_server_sock->Accept([&](psio::StreamSocket* new_sock, int err) {
 		if (err < 0) {
 			LOG(LOG_ERROR) << "OnConnection failed: " << err;
 			return;
 		}
-		std::unique_ptr<Psio::StreamSocket> sock;
+		std::unique_ptr<psio::StreamSocket> sock;
 		sock.reset(new_sock);
 		
-		Psio::Http* http = new Psio::Http();
-		int ret = http->OnRequest(std::move(sock), [&](Psio::HttpRequest* req, Psio::HttpResponse* res) -> int {
+		psio::Http* http = new psio::Http();
+		int ret = http->OnRequest(std::move(sock), [&](psio::HttpRequest* req, psio::HttpResponse* res) -> int {
 			return m_middleware->onRequest(req, res);
 			});
 		if (ret < -1) {

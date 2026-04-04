@@ -1,6 +1,6 @@
 #include "CssParser.h"
 
-namespace SimpleParser
+namespace simpleparser
 {
 	enum class SelectorStates
 	{

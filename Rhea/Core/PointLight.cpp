@@ -9,7 +9,7 @@ namespace rhea
 		Variant attenuation = getValue("attenuation");
 		if (attenuation.size() == 3)
 		{
-			m_attenuation = Math::Vector3(attenuation[0], attenuation[1], attenuation[2]);
+			m_attenuation = math::Vector3(attenuation[0], attenuation[1], attenuation[2]);
 		}
 	}
 }

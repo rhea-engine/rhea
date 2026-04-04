@@ -17,20 +17,20 @@ namespace rhea::client {
 	class GraphicsTexture
 	{
 	public:
-		GraphicsTexture(Poseidon::Core* core, rhea::ImageResource::TextureType texture_type, int num_textures);
+		GraphicsTexture(poseidon::Core* core, rhea::ImageResource::TextureType texture_type, int num_textures);
 
 		// create a texture from buffer
-		Poseidon::Texture* createTexture(int index, unsigned char* buf, size_t buflen);
+		poseidon::Texture* createTexture(int index, unsigned char* buf, size_t buflen);
 
 		// create a texture from a texture array
-		Poseidon::Texture* createTexture(int index, GraphicsTexture* texture);
+		poseidon::Texture* createTexture(int index, GraphicsTexture* texture);
 
 		// get the Poseidon Texture
-		Poseidon::Texture* get() { return m_img; }
+		poseidon::Texture* get() { return m_img; }
 
 	protected:
-		Poseidon::Core* m_core;
-		Poseidon::Texture* m_img;
+		poseidon::Core* m_core;
+		poseidon::Texture* m_img;
 		rhea::ImageResource::TextureType m_type;
 	};
 }

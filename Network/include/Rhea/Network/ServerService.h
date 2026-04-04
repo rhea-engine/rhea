@@ -35,7 +35,7 @@ namespace rhea
 		// ready event
 		void ready();
 
-		void setNetwork(Psio::Network* network) { m_network = network; }
+		void setNetwork(psio::Network* network) { m_network = network; }
 
 		// set port
 		void setPort(uint16_t port) { m_port = port; }
@@ -52,15 +52,15 @@ namespace rhea
 
 		// broadcast message
 		// is source is set it is not sent there
-		virtual void broadcast(Hermes::Message* msg, ClientConnection* source);
+		virtual void broadcast(hermes::Message* msg, ClientConnection* source);
 
 	protected:
 		// disconnect an item
 		void disconnect(ClientConnection* stream);
 
-		std::unique_ptr<Psio::TCPSocket> m_server_sock;
-		Psio::Network* m_network;
-		std::unique_ptr<Hermes::MessageFactory> m_msg_factory;
+		std::unique_ptr<psio::TCPSocket> m_server_sock;
+		psio::Network* m_network;
+		std::unique_ptr<hermes::MessageFactory> m_msg_factory;
 		rhea::Scene* m_scene;
 		std::vector<ClientConnection*> m_connections;
 		std::string ip;

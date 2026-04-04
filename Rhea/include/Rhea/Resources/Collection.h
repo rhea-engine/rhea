@@ -22,7 +22,7 @@ namespace rhea
 			Unit(name, type_name)
 		{}
 
-		void readFromStream(Orion::ResourceStream* stream);
+		void readFromStream(orion::ResourceStream* stream);
 
 		void begin() { m_idx = 0; }
 		bool end() { return m_idx > m_entries.size(); }

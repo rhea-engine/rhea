@@ -3,7 +3,7 @@
 
 #include <string>
 
-namespace Psio
+namespace psio
 {
 	class Url {
 	public:

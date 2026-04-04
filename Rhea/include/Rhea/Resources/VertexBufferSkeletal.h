@@ -12,10 +12,10 @@ namespace rhea
 	public:
 		struct VertexSkeletal
 		{
-			Math::Vector3 position;
-			Math::Vector3 normal;
-			Math::Vector2 texcoord;
-			Math::Vector3 tangent;
+			math::Vector3 position;
+			math::Vector3 normal;
+			math::Vector2 texcoord;
+			math::Vector3 tangent;
 			// skeletal information
 			uint16_t jointIndices[4] = { 0, 0, 0, 0 };
 			// Default to no influence
@@ -34,10 +34,10 @@ namespace rhea
 		}
 		VertexSkeletal* get(size_t index) { return operator[](index); } // alias for operator[](s)
 
-		void SetPosition(int index, const Math::Vector3& position);
-		void SetNormal(int index, const Math::Vector3& normal);
-		void SetTexcoord(int index, const Math::Vector2& texcoord);
-		void SetTangent(int index, const Math::Vector3& tangent);
+		void SetPosition(int index, const math::Vector3& position);
+		void SetNormal(int index, const math::Vector3& normal);
+		void SetTexcoord(int index, const math::Vector2& texcoord);
+		void SetTangent(int index, const math::Vector3& tangent);
 	};
 }
 #endif // !RHEA_VERTEXBUFFER_SKELETAL_H

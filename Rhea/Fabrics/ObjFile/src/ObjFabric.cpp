@@ -11,6 +11,6 @@ namespace rhea
 		auto* resource_loader = app->getResourceLoader();
 		resource_loader->registerLoader<TextLoader>("model/obj");
 		resource_loader->registerLoader<TextLoader>("model/mtl");
-		SimpleParser::Type::registerType<ObjLoader>("//meworla/wavefront");
+		simpleparser::Type::registerType<ObjLoader>("//meworla/wavefront");
 	}
 }

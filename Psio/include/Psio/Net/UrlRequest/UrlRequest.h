@@ -6,7 +6,7 @@
 
 #include <functional>
 
-namespace Psio
+namespace psio
 {
 	class Engine;
 	class HttpTransaction;

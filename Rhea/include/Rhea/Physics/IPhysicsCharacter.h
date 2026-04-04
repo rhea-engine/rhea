@@ -13,10 +13,10 @@ namespace rhea
 		virtual ~IPhysicsCharacter() = default;
 
 		// update in physics step
-		virtual Math::Vector3 update(Position* pos, Math::Vector3& move, Math::Vector3& gravity) = 0;
+		virtual math::Vector3 update(Position* pos, math::Vector3& move, math::Vector3& gravity) = 0;
 
 		// set jump_state
-		virtual bool jump(Math::Vector3& pos) = 0;
+		virtual bool jump(math::Vector3& pos) = 0;
 
 		// get ground state
 		virtual bool isOnGround() const = 0;

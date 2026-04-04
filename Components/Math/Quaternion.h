@@ -1,7 +1,7 @@
 #ifndef MATH_QUATERNION_H
 #define MATH_QUATERNION_H
 
-namespace Math
+namespace math
 {
 	class Vector3;
 	class Matrix3;

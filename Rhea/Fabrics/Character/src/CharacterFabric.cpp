@@ -8,7 +8,7 @@ namespace rhea
 {
 	void CharacterFabric::Register(Application* app)
 	{
-		SimpleParser::Type::registerType<KinematicCharacter>("//meworla/character");
+		simpleparser::Type::registerType<KinematicCharacter>("//meworla/character");
 
 		//register physics component
 		PhysicsManagerService* phy_mgr = doCast<PhysicsManagerService>(app->getService("physics_mgr"));
@@ -16,7 +16,7 @@ namespace rhea
 			LOG(LOG_ERROR) << "No physics manager found.";
 			return;
 		}
-		SimpleParser::Type* t = KinematicCharacter::staticType();		
+		simpleparser::Type* t = KinematicCharacter::staticType();		
 
 		rhea::PhysicsBodyDesc desc;
 		desc.kind = "Meworla/RheaPhysics:Character";

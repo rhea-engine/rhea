@@ -4,7 +4,7 @@
 #include <string>
 #include <unordered_map>
 
-namespace Orion
+namespace orion
 {
 	class MIME 
 	{

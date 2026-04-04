@@ -13,16 +13,16 @@
 
 using ::testing::_;
 
-using Psio::Network;
+using psio::Network;
 
 // a Mock Stream
-class StreamMock : public Hermes::Stream
+class StreamMock : public hermes::Stream
 {
 public:
-	StreamMock(Hermes::MessageFactory* factory) :
+	StreamMock(hermes::MessageFactory* factory) :
 		Stream(nullptr, factory)
 	{}
-	virtual int sendMessage(Hermes::Message* message, CompletionHandler handler)
+	virtual int sendMessage(hermes::Message* message, CompletionHandler handler)
 	{
 		messages.push_back(*message);
 		handler(send_error);
@@ -32,18 +32,18 @@ public:
 	virtual void Close() { return; }
 
 	int send_error = 0;
-	std::vector<Hermes::Message> messages;
+	std::vector<hermes::Message> messages;
 };
 
 class ServerStreamTest : public ::testing::Test {
 public:
 	ServerStreamTest()
 	{
-		m_factory = std::make_unique<Hermes::MessageFactory>();
+		m_factory = std::make_unique<hermes::MessageFactory>();
 		m_factory->registerCoreMessages();
 
 		m_stream = std::make_unique<StreamMock>(m_factory.get());
-		m_hermes = std::make_unique<Hermes::ServerStream>(m_stream.get());
+		m_hermes = std::make_unique<hermes::ServerStream>(m_stream.get());
 	}
 
 	void SetUp() override
@@ -56,8 +56,8 @@ public:
 	}
 
 	std::unique_ptr<StreamMock> m_stream;
-	std::unique_ptr<Hermes::MessageFactory> m_factory;
-	std::unique_ptr<Hermes::ServerStream> m_hermes;
+	std::unique_ptr<hermes::MessageFactory> m_factory;
+	std::unique_ptr<hermes::ServerStream> m_hermes;
 };
 
 TEST_F(ServerStreamTest, ConnectAndLogin) {
@@ -65,7 +65,7 @@ TEST_F(ServerStreamTest, ConnectAndLogin) {
 	m_hermes->Initialize();
 	m_hermes->Start();
 
-	Hermes::MessageLogin login;
+	hermes::MessageLogin login;
 	login.user_name = "anonymous";
 	login.auth_method = "trust";
 	m_stream->getMessageFactory()->handle(&login);
@@ -90,7 +90,7 @@ TEST_F(ServerStreamTest, ConnectAndCreateUser) {
 	m_hermes->Initialize();
 	m_hermes->Start();
 
-	Hermes::MessageLogin login;
+	hermes::MessageLogin login;
 	login.user_name = "anonymous";
 	login.auth_method = "trust";
 	m_stream->getMessageFactory()->handle(&login);
@@ -98,7 +98,7 @@ TEST_F(ServerStreamTest, ConnectAndCreateUser) {
 	// send failure for anonymous login
 	m_hermes->AuthFailure(nullptr, { "trust" });
 
-	Hermes::MessageCreateUser create;
+	hermes::MessageCreateUser create;
 	create.user_name = "testuser";
 	create.auth_method = "trust";
 	m_stream->getMessageFactory()->handle(&create);

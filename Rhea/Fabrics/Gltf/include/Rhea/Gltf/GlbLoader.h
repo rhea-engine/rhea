@@ -9,7 +9,7 @@ namespace rhea
 	class GlbLoader
 	{
 	public:
-		static void load(std::string name, Application* app, Orion::ResourceRequest* req, Resource::LoadedHandler handler) {
+		static void load(std::string name, Application* app, orion::ResourceRequest* req, Resource::LoadedHandler handler) {
 			GltfLoader::load_impl(name, app, req, handler, true);
 		}
 	};

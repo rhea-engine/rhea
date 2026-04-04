@@ -1,7 +1,7 @@
 #include <windows.h>
 #include <Psio/Input/Keyboard.h>
 
-namespace Psio
+namespace psio
 {
 	Key hw_keycode[256];
 

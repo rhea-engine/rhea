@@ -1,7 +1,7 @@
 #ifndef ORION_EVENT_H
 #define ORION_EVENT_H
 
-namespace Orion
+namespace orion
 {
 	class Event
 	{

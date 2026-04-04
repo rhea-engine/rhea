@@ -47,7 +47,7 @@ namespace rhea::client {
 		m_fullscreen(false),
 		rhea::IGraphicsService(name, type_name)	
 	{
-		m_core = std::make_unique<Poseidon::Core>();
+		m_core = std::make_unique<poseidon::Core>();
 
 		addManager<rhea::Scene>(std::make_unique<GraphicsSceneManager>(this));
 		addManager<rhea::Item>(std::make_unique<GraphicsItemManager>(this));
@@ -69,7 +69,7 @@ namespace rhea::client {
 		m_fullscreen = !m_fullscreen;
 	}
 
-	GraphicsManager* GraphicsService::getManager(SimpleParser::Type* type)
+	GraphicsManager* GraphicsService::getManager(simpleparser::Type* type)
 	{
 		// find manager for type name in manager list
 		auto it = m_managers.find(type);
@@ -121,10 +121,10 @@ namespace rhea::client {
 
 	void GraphicsService::addItem(std::string render_context, rhea::Item* item)
 	{
-		Poseidon::Viewport* viewport = m_core->get_scene_manager()->getViewport();
+		poseidon::Viewport* viewport = m_core->get_scene_manager()->getViewport();
 		if (!viewport) abort();
 
-		Poseidon::RenderContext* context = viewport->getRenderContext(render_context);
+		poseidon::RenderContext* context = viewport->getRenderContext(render_context);
 		if (!context) abort();
 
 		context->addRenderChild(item);
@@ -155,12 +155,12 @@ namespace rhea::client {
 		}
 
 		// create a render context for HUD / GUI
-		Poseidon::Viewport* viewport = m_core->get_scene_manager()->getViewport();
+		poseidon::Viewport* viewport = m_core->get_scene_manager()->getViewport();
 		std::string hud_context_name = "HUD";
-		Poseidon::RenderContext* context = viewport->createRenderContext(hud_context_name);
+		poseidon::RenderContext* context = viewport->createRenderContext(hud_context_name);
 		context->setStencilState(1);
 		// add a camera for this context
-		Poseidon::Camera* cam = m_core->createCamera();
+		poseidon::Camera* cam = m_core->createCamera();
 		context->setCamera(cam);
 		int viewport_width = viewport->getWidth();
 		int viewport_height = viewport->getHeight();
@@ -172,7 +172,7 @@ namespace rhea::client {
 		cam->setAspectRatio((float)viewport_width / (float)viewport_height);
 		cam->setOrthographicSize((float)viewport_height);
 		cam->setOrthographic(true);
-		cam->setProjectionOffset(Math::Vector3(-0.5f, -0.5f, 0.0f));
+		cam->setProjectionOffset(math::Vector3(-0.5f, -0.5f, 0.0f));
 		cam->updateProjection();
 		cam->updateView();
 
@@ -240,13 +240,13 @@ namespace rhea::client {
 			return;
 		}
 
-		Poseidon::SceneManager* scene_mgr = m_core->get_scene_manager();
+		poseidon::SceneManager* scene_mgr = m_core->get_scene_manager();
 		if (!scene_mgr) {
 			LOG(LOG_ERROR) << "GraphicsService::showScene: no scene manager";
 			return;
 		}
 		std::string render_context_name = scene->getValueString("rendercontext", "default");
-		Poseidon::RenderContext* render_context = scene_mgr->getViewport()->getRenderContext(render_context_name);
+		poseidon::RenderContext* render_context = scene_mgr->getViewport()->getRenderContext(render_context_name);
 		if (!render_context) {
 			LOG(LOG_ERROR) << "GraphicsService::showScene: render context '" << render_context_name << "' not found";
 			return;
@@ -264,7 +264,7 @@ namespace rhea::client {
 			// we simply assume if the rendercontext is set we must add a render child
 			std::string render_context_name = item->getValueString("rendercontext", "");
 			if (render_context_name != "") {
-				Poseidon::RenderContext* render_context = scene_mgr->getViewport()->getRenderContext(render_context_name);
+				poseidon::RenderContext* render_context = scene_mgr->getViewport()->getRenderContext(render_context_name);
 				if (!render_context) {
 					LOG(LOG_ERROR) << "GraphicsService::showScene: render context '" << render_context_name << "' not found";
 					return false;
@@ -284,13 +284,13 @@ namespace rhea::client {
 			return;
 		}
 
-		Poseidon::SceneManager* scene_mgr = m_core->get_scene_manager();
+		poseidon::SceneManager* scene_mgr = m_core->get_scene_manager();
 		if (!scene_mgr) {
 			LOG(LOG_ERROR) << "GraphicsService::hideScene: no scene manager";
 			return;
 		}
 		std::string render_context_name = scene->getValueString("rendercontext", "default");
-		Poseidon::RenderContext* render_context = scene_mgr->getViewport()->getRenderContext(render_context_name);
+		poseidon::RenderContext* render_context = scene_mgr->getViewport()->getRenderContext(render_context_name);
 		if (!render_context) {
 			LOG(LOG_ERROR) << "GraphicsService::hideScene: render context '" << render_context_name << "' not found";
 			return;
@@ -308,7 +308,7 @@ namespace rhea::client {
 			// we simply assume if the rendercontext is set we must add a render child
 			std::string render_context_name = item->getValueString("rendercontext", "");
 			if (render_context_name != "") {
-				Poseidon::RenderContext* render_context = scene_mgr->getViewport()->getRenderContext(render_context_name);
+				poseidon::RenderContext* render_context = scene_mgr->getViewport()->getRenderContext(render_context_name);
 				if (!render_context) {
 					LOG(LOG_ERROR) << "GraphicsService::hideScene: render context '" << render_context_name << "' not found";
 					return false;
@@ -325,32 +325,32 @@ namespace rhea::client {
 	{
 		if (ev->isEvent("input")) {
 			rhea::EventInput* e = static_cast<rhea::EventInput*>(ev);
-			std::shared_ptr<Psio::MouseInputEvent> me = std::static_pointer_cast<Psio::MouseInputEvent>(e->getEvent());
+			std::shared_ptr<psio::MouseInputEvent> me = std::static_pointer_cast<psio::MouseInputEvent>(e->getEvent());
 			int viewport_width;
 			int viewport_height;
 			std::string context_name;
 			rhea::Unit* picked;
 
 			switch (e->getEvent()->getId()) {
-			case Psio::InputEventId::MOUSE_MOVE:				
+			case psio::InputEventId::MOUSE_MOVE:				
 				m_mx = me->getX();
 				m_my = me->getY();				
 				break;
-			case Psio::InputEventId::MOUSE_BTN_PRESSED:
+			case psio::InputEventId::MOUSE_BTN_PRESSED:
 				picked = pick();
 				if (picked)
 					picked->sendEvent("scene_input", ev);
 				break;
 
-			case Psio::InputEventId::WIN_SIZE:
+			case psio::InputEventId::WIN_SIZE:
 				// resize window
 				
-				std::shared_ptr<Psio::WinSizeEvent> me = std::static_pointer_cast<Psio::WinSizeEvent>(e->getEvent());
+				std::shared_ptr<psio::WinSizeEvent> me = std::static_pointer_cast<psio::WinSizeEvent>(e->getEvent());
 				viewport_width = me->width();
 				viewport_height = me->height();
 				if (viewport_width > 0 && viewport_height > 0)
 				{
-					Poseidon::Window* window = m_core->get_scene_manager()->getWindow(me->getWindow());
+					poseidon::Window* window = m_core->get_scene_manager()->getWindow(me->getWindow());
 					if (!window) {
 						LOG(LOG_ERROR) << "Resize event for unknown window";
 						break;
@@ -362,7 +362,7 @@ namespace rhea::client {
 					float aspect_ratio = (float)viewport_width / (float)viewport_height;
 					for (const auto& context : window->getRenderContextList()) {
 						context->setSize((float)viewport_width, (float)viewport_height);
-						Poseidon::Camera* cam = context->get_camera();
+						poseidon::Camera* cam = context->get_camera();
 						if (cam) {
 							cam->setAspectRatio(aspect_ratio);
 							cam->setOrthographicSize((float)viewport_height);
@@ -386,7 +386,7 @@ namespace rhea::client {
 
 	rhea::Unit* GraphicsService::pick()
 	{
-		static Poseidon::Mesh* m_mesh = nullptr;
+		static poseidon::Mesh* m_mesh = nullptr;
 
 		// ray tracing to current hover object
 		auto* mgr = doCast<rhea::PhysicsManagerService>(m_app->getService("physics_mgr"));
@@ -394,17 +394,17 @@ namespace rhea::client {
 		rhea::PhysicsService* phys = mgr->getPhysicsService();
 		if (!phys) return nullptr;
 		std::string def = "default";
-		Poseidon::Viewport* viewport = m_core->get_scene_manager()->getViewport();
-		Poseidon::Camera* camera = m_core->get_scene_manager()->getViewport()->getRenderContext(def)->get_camera();
+		poseidon::Viewport* viewport = m_core->get_scene_manager()->getViewport();
+		poseidon::Camera* camera = m_core->get_scene_manager()->getViewport()->getRenderContext(def)->get_camera();
 		if (!camera) return nullptr;
 			
 		// compute the ray
-		Math::Ray ray = camera->getPickingRay((float)m_mx, (float)m_my, viewport->getWidth(), viewport->getHeight());
+		math::Ray ray = camera->getPickingRay((float)m_mx, (float)m_my, viewport->getWidth(), viewport->getHeight());
 
-		Math::Vector3 ray_from = ray.getOrigin();
-		Math::Vector3 ray_dir = ray.getDirection();
+		math::Vector3 ray_from = ray.getOrigin();
+		math::Vector3 ray_dir = ray.getDirection();
 		ray_dir *= 1000.0f;
-		Math::Vector3 ray_to = ray.getOrigin() + ray_dir;
+		math::Vector3 ray_to = ray.getOrigin() + ray_dir;
 
 		// call ray test from physics service
 		return phys->ray(ray_from, ray_to);
@@ -413,30 +413,30 @@ namespace rhea::client {
 			if (!m_mesh) {
 				// prepare debug item
 
-				m_mesh = new Poseidon::Mesh();
+				m_mesh = new poseidon::Mesh();
 				m_mesh->setViewport(m_app->get_core()->get_scene_manager()->getViewport());
-				Poseidon::Entity* entity = m_core->createEntity(m_mesh);
+				poseidon::Entity* entity = m_core->createEntity(m_mesh);
 				entity->setName("ray_test");
-				Poseidon::Material* material = m_app->get_core()->getMaterial("color");
+				poseidon::Material* material = m_app->get_core()->getMaterial("color");
 				entity->setMaterial(material);
 				m_app->get_core()->get_scene_manager()->getViewport()->getRenderContext(std::string("default"))->addRenderChild(entity);
 			}
 
-			std::vector<Hippios::vertex> l_vertices;		
-			Math::Vector3 pos = ray.getOrigin();
-			Math::Vector3 dir = ray_to;
+			std::vector<hippios::vertex> l_vertices;		
+			math::Vector3 pos = ray.getOrigin();
+			math::Vector3 dir = ray_to;
 
 			//dir *= 1000.0f;
 
 			l_vertices.push_back({ pos.x, pos.y, pos.z, 0.0f, 1.0f, 0.0f, 1.0f });
 			l_vertices.push_back({ dir.x, dir.y, dir.z, 0.0f, 1.0f, 0.0f, 1.0f });
-			m_mesh->setVertices(sizeof(Hippios::vertex), l_vertices.size(), l_vertices.data());
+			m_mesh->setVertices(sizeof(hippios::vertex), l_vertices.size(), l_vertices.data());
 
 			DLOG(LOG_DEBUG) << "pos: " << std::to_string(pos.x) << "/" + std::to_string(pos.y) << "/" << std::to_string(pos.z);
 			DLOG(LOG_DEBUG) << "ray: " << std::to_string(dir.x) << "/" + std::to_string(dir.y) << "/" + std::to_string(dir.z);
 
-			Math::Vector3 deb1 = camera->getProjectionMatrixRS() * camera->getViewMatrix() * pos;
-			Math::Vector3 deb2 = camera->getProjectionMatrixRS() * camera->getViewMatrix() * dir;
+			math::Vector3 deb1 = camera->getProjectionMatrixRS() * camera->getViewMatrix() * pos;
+			math::Vector3 deb2 = camera->getProjectionMatrixRS() * camera->getViewMatrix() * dir;
 
 			DLOG(LOG_DEBUG) << "deb1: " << std::to_string(deb1.x) << "/" + std::to_string(deb1.y) << "/" + std::to_string(deb1.z);
 			DLOG(LOG_DEBUG) << "deb2: " << std::to_string(deb2.x) << "/" + std::to_string(deb2.y) << "/" + std::to_string(deb2.z);

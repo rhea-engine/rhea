@@ -8,12 +8,12 @@
 
 namespace rhea
 {
-	void TextLoader::load(std::string name, Application* app, Orion::ResourceRequest* req, Resource::LoadedHandler handler)
+	void TextLoader::load(std::string name, Application* app, orion::ResourceRequest* req, Resource::LoadedHandler handler)
 	{
 		if (req) {
 
-			Psio::Stream* rs = req->getStream();
-			Psio::IOBuffer* buf = new Psio::IOBuffer(64 * 1024);
+			psio::Stream* rs = req->getStream();
+			psio::IOBuffer* buf = new psio::IOBuffer(64 * 1024);
 			rs->onEnd([buf,app,name,handler](size_t buflen) {
 
 				if (buflen > 0) {

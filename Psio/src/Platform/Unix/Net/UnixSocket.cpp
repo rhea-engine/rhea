@@ -2,7 +2,7 @@
 
 #include <Psio/Net/Socket/Socket.h>
 
-namespace Psio
+namespace psio
 {
 	int Socket::GetLastError()
 	{

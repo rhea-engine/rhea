@@ -4,7 +4,7 @@
 
 namespace rhea
 {
-	void NetworkComponent::onMovementChanged(const Math::Vector3& move)
+	void NetworkComponent::onMovementChanged(const math::Vector3& move)
 	{
 		if (m_role==NET_ROLE_CLIENT) {
 			// send the movement to the network

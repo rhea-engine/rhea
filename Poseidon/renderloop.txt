@@ -1,6 +1,6 @@
 core::loop
 	// check input
-	Psio::Tick
+	psio::Tick
 
 	// call node tree to update
 	node::update() (propagates to children)

@@ -29,18 +29,18 @@ namespace rhea
 		void ready();
 
 		// connecting
-		typedef std::function<void(Hermes::Stream* stream, int)> ConnectionHandler;
+		typedef std::function<void(hermes::Stream* stream, int)> ConnectionHandler;
 		void Connect(std::string host, ConnectionHandler handler);		
 
-		void setNetwork(Psio::Network* network) { m_network = network; }
+		void setNetwork(psio::Network* network) { m_network = network; }
 
 	protected:
-		Psio::Network* m_network;
-		std::unique_ptr<Hermes::MessageFactory> m_msg_factory;		
+		psio::Network* m_network;
+		std::unique_ptr<hermes::MessageFactory> m_msg_factory;		
 		std::string m_worldname;
 		ConnectionHandler m_handler;
 
-		void OnTCPConnect(Psio::StreamSocket* sock);
+		void OnTCPConnect(psio::StreamSocket* sock);
 	//	void OnConnect();
 	};
 

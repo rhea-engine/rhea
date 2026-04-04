@@ -1,7 +1,7 @@
 #ifndef HIPPIOS_DEPTHBUFFER_H
 #define HIPPIOS_DEPTHBUFFER_H 1
 
-namespace Hippios
+namespace hippios
 {
 	class DepthBuffer
 	{

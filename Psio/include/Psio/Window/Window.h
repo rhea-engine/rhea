@@ -4,7 +4,7 @@
 #include <memory>
 #include <string>
 
-namespace Psio
+namespace psio
 {
 	class Input;
 	class InputEvent;

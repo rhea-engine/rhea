@@ -1,14 +1,14 @@
 #include "Poseidon/Cubemap.h"
 
-namespace Poseidon
+namespace poseidon
 {
     bool Cubemap::load(int index, unsigned char* buf, size_t buflen)
     {
         if (!m_hw_texture) {
-            Hippios::TextureDesc desc;
+            hippios::TextureDesc desc;
             desc.width = m_width;
             desc.height = m_height;
-            desc.type = Hippios::TextureDesc::TextureType::TEXTURE_CUBE;
+            desc.type = hippios::TextureDesc::TextureType::TEXTURE_CUBE;
             desc.depth = 1;
             desc.array_size = m_num_images;
             m_hw_texture = m_renderer->createTexture(desc);
@@ -35,10 +35,10 @@ namespace Poseidon
  
     void Cubemap::createTexture()
     {
-        Hippios::TextureDesc desc;
+        hippios::TextureDesc desc;
         desc.width = m_width;
         desc.height = m_height;
-        desc.type = Hippios::TextureDesc::TextureType::TEXTURE_CUBE;
+        desc.type = hippios::TextureDesc::TextureType::TEXTURE_CUBE;
         desc.depth = 1;
         desc.array_size = m_num_images;
         m_hw_texture = m_renderer->createTexture(desc);

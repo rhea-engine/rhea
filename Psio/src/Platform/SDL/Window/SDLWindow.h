@@ -7,7 +7,7 @@
 
 struct SDL_Window;
 
-namespace Psio
+namespace psio
 {
     class SDLWindow final : public Window
     {

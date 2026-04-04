@@ -3,7 +3,7 @@
 
 #include <Orion/Event.h>
 
-namespace Orion
+namespace orion
 {
 	class EventHandler
 	{

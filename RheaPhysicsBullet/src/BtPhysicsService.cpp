@@ -53,7 +53,7 @@ namespace rhea::physics::bullet
 		for (int j = m_world->getNumCollisionObjects() - 1; j >= 0; j--)
 		{
 			btCollisionObject* obj = m_world->getCollisionObjectArray()[j];
-			rhea::Item* item = doCast<rhea::Item>((SimpleParser::Variant*)obj->getUserPointer());
+			rhea::Item* item = doCast<rhea::Item>((simpleparser::Variant*)obj->getUserPointer());
 
 			// TODO: optimize this by keeping track of dynamic objects in the world and only updating those
 			// in the future we may also want to update kinematic objects here, but for now we only update dynamic objects, which are the most common ones to move around
@@ -90,9 +90,9 @@ namespace rhea::physics::bullet
 				}
 				rhea::Position* position = item->getTransform()->get_position();
 
-				position->setPosition(Math::Vector3(float(trans.getOrigin().getX()), float(trans.getOrigin().getY()), float(trans.getOrigin().getZ())));
+				position->setPosition(math::Vector3(float(trans.getOrigin().getX()), float(trans.getOrigin().getY()), float(trans.getOrigin().getZ())));
 				btQuaternion rot = trans.getRotation();
-				position->setOrientation(Math::Quaternion(rot.getW(), rot.getX(), rot.getY(), rot.getZ()));
+				position->setOrientation(math::Quaternion(rot.getW(), rot.getX(), rot.getY(), rot.getZ()));
 
 				item->setPosition(*position);				
 			}
@@ -196,7 +196,7 @@ namespace rhea::physics::bullet
 			});
 	}
 	
-	rhea::Unit* BulletPhysicsService::ray(Math::Vector3 origin, Math::Vector3 direction)
+	rhea::Unit* BulletPhysicsService::ray(math::Vector3 origin, math::Vector3 direction)
 	{
 		btVector3 btRayFrom = btVector3(origin.x, origin.y, origin.z);
 		btVector3 btRayTo = btVector3(direction.x, direction.y, direction.z);

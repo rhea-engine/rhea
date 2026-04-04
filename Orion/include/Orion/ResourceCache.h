@@ -5,7 +5,7 @@
 
 #include <Orion/Orion.h>
 
-namespace Orion
+namespace orion
 {
 	class ResourceCache : public ResolverInterface
 	{

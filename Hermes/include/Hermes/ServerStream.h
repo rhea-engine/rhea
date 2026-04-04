@@ -7,7 +7,7 @@
 #include "Hermes/Messages/MessageCreateUser.h"
 
 
-namespace Hermes
+namespace hermes
 {
 	class ServerStream 
 	{

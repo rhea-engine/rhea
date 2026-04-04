@@ -1,7 +1,7 @@
 #ifndef RHEA_RENDERCOMPONENT_H
 #define RHEA_RENDERCOMPONENT_H
 
-namespace Poseidon
+namespace poseidon
 {
 	class Node;
 	class RenderContext;
@@ -30,11 +30,11 @@ namespace rhea::client {
 			rhea::Component(name, type_name)
 		{}
 
-		Poseidon::Node* entity = nullptr;        // non-owning (Poseidon owns)		
-		Poseidon::RenderContext* ctx = nullptr;  // non-owning (Poseidon owns)
+		poseidon::Node* entity = nullptr;        // non-owning (Poseidon owns)		
+		poseidon::RenderContext* ctx = nullptr;  // non-owning (Poseidon owns)
 
 		// Cached asset GPU resources (non-owning, owned by caches)
-		Poseidon::Mesh* gpuMesh = nullptr;       // Optional (nullptr für Lights)
+		poseidon::Mesh* gpuMesh = nullptr;       // Optional (nullptr für Lights)
 		rhea::Skeleton* skeleton = nullptr;            // Optional (nur für skeletal meshes)
 
 

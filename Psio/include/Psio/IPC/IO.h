@@ -7,7 +7,7 @@
 #include "../Psio.h"
 #include "../Net/Platform.h"
 
-namespace Psio
+namespace psio
 {
 	class IO
 	{

@@ -1,6 +1,6 @@
 #include "InputEventBuilder.h"
 
-namespace Psio
+namespace psio
 {
     std::shared_ptr<InputEvent> BuildQuitEvent()
     {

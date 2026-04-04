@@ -8,11 +8,11 @@
 #include <memory>
 #include <unordered_map>
 
-namespace Hippios { class Renderer; class GraphicsBuffer; class SamplerState; }
+namespace hippios { class Renderer; class GraphicsBuffer; class SamplerState; }
 
 #include "Node.h"
 
-namespace Poseidon
+namespace poseidon
 {
 	class Material;
 	class Shader;
@@ -31,7 +31,7 @@ namespace Poseidon
 	public:
 		Core();
 		~Core();
-		void init(Psio::Engine* psio, std::string backend);
+		void init(psio::Engine* psio, std::string backend);
 		SceneManager* get_scene_manager() { return m_scene_manager; }
 		// handle one frame
 		int iterate();
@@ -39,9 +39,9 @@ namespace Poseidon
 		int loop(std::function<void()> onFrame);
 
 		// get psio engine
-		Psio::Engine* getPsio() { return m_psio; }
+		psio::Engine* getPsio() { return m_psio; }
 
-		Hippios::Renderer* get_renderer() { return m_renderer.get(); }
+		hippios::Renderer* get_renderer() { return m_renderer.get(); }
 		std::string getRendererBackend() { return m_renderer_backend; }
 
 		// create various items
@@ -64,7 +64,7 @@ namespace Poseidon
 		Camera* createCamera();		
 
 		// get sampler state by name
-		Hippios::SamplerState* getSamplerState(std::string name);
+		hippios::SamplerState* getSamplerState(std::string name);
 
 		// set application name
 		void setAppname(std::string appname) { m_appname = appname; }
@@ -72,20 +72,20 @@ namespace Poseidon
 		// fullscreen mode
 		void SetFullscreen(bool mode);
 
-		Hippios::GraphicsBuffer* getGraphicsBuffer(std::string facility, size_t size);
+		hippios::GraphicsBuffer* getGraphicsBuffer(std::string facility, size_t size);
 
 	protected:
-		std::unique_ptr<Hippios::Renderer> m_renderer;
+		std::unique_ptr<hippios::Renderer> m_renderer;
 		int quit = 0;
 		Window* m_window = 0;		
 		SceneManager* m_scene_manager = 0;
 		std::string m_appname;
 		std::string m_renderer_backend;		
 
-		Psio::Engine* m_psio;
+		psio::Engine* m_psio;
 		std::unordered_map<std::string, Material*> m_materials;
 		std::unordered_map<std::string, Shader*> m_shaders;
-		std::unordered_map<std::string, Hippios::SamplerState*> m_sampler_states;
+		std::unordered_map<std::string, hippios::SamplerState*> m_sampler_states;
 
 		Material* m_default_material = 0;
 
@@ -112,7 +112,7 @@ namespace Poseidon
 				return lhs.facility == rhs.facility && lhs.size == rhs.size;
 			}
 		};
-		std::unordered_map<BufferDescription, std::unique_ptr<Hippios::GraphicsBuffer>, BufferDescriptionHash, BufferDescriptionEqual> m_buffer_pool;
+		std::unordered_map<BufferDescription, std::unique_ptr<hippios::GraphicsBuffer>, BufferDescriptionHash, BufferDescriptionEqual> m_buffer_pool;
 	};
 }
 #endif // !POSEIDON_CORE_H

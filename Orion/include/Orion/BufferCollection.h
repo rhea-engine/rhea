@@ -5,7 +5,7 @@
 
 #include <Orion/Collection.h>
 
-namespace Orion
+namespace orion
 {
 	class BufferCollection : public Collection
 	{

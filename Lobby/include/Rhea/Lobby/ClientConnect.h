@@ -72,8 +72,8 @@ namespace Meworla
 		void onLogin();
 
 		// protocol handlers
-		std::unique_ptr<Hermes::Stream> m_stream;
-		std::unique_ptr<Hermes::ClientStream> m_auth_client;
+		std::unique_ptr<hermes::Stream> m_stream;
+		std::unique_ptr<hermes::ClientStream> m_auth_client;
 		std::unique_ptr<rhea::WorldClient> m_world_client;
 		std::unique_ptr<rhea::LobbyClient> m_lobby_client;
 

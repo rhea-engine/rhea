@@ -4,7 +4,7 @@
 #include <Psio/Log.h>
 #include <Psio/Net/Network.h>
 
-namespace Psio
+namespace psio
 {
 	HttpNetworkTransaction::~HttpNetworkTransaction()
 	{

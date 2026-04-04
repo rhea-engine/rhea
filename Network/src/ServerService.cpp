@@ -36,25 +36,25 @@ namespace rhea
 			LOG(LOG_FATAL) << "Network service not found";
 			return;
 		}
-		m_server_sock = std::make_unique<Psio::TCPSocket>(m_network);
+		m_server_sock = std::make_unique<psio::TCPSocket>(m_network);
 
 		int err = m_server_sock->Server(ip, m_port);
 		LOG(LOG_INFO) << "Started Server. Listening on " << ip << ":" << m_port;
 
 		// fill message factory
-		m_msg_factory = std::make_unique<Hermes::MessageFactory>();
+		m_msg_factory = std::make_unique<hermes::MessageFactory>();
 		m_msg_factory->registerCoreMessages();
 
-		m_server_sock->Accept([&](Psio::StreamSocket* new_sock, int err) {
+		m_server_sock->Accept([&](psio::StreamSocket* new_sock, int err) {
 			if (err < 0) {
 				LOG(LOG_ERROR) << "OnConnection failed: " << err;
 				return;
 			}
 			else {
-				std::unique_ptr<Psio::StreamSocket> sock;
+				std::unique_ptr<psio::StreamSocket> sock;
 				sock.reset(new_sock);
 
-				std::unique_ptr<Hermes::Stream> stream = std::make_unique<Hermes::Stream>(std::move(sock), m_msg_factory.get());					
+				std::unique_ptr<hermes::Stream> stream = std::make_unique<hermes::Stream>(std::move(sock), m_msg_factory.get());					
 				ClientConnection* connection = new ClientConnection(this->m_app, m_scene, std::move(stream));
 				if (m_on_connection) {
 					m_on_connection(connection);
@@ -97,11 +97,11 @@ namespace rhea
 			for (auto item_it = items.begin(); item_it != items.end(); ++item_it) {
 				rhea::NetworkComponent* net_com = (*item_it)->getComponent<NetworkComponent>();
 				if (net_com && net_com->isDirty()) {
-					Hermes::MessagePosition msg;
+					hermes::MessagePosition msg;
 					msg.NUID = net_com->NUID();
-					Math::Vector3 pos = (*item_it)->getTransform()->get_position()->get_worldspace();
+					math::Vector3 pos = (*item_it)->getTransform()->get_position()->get_worldspace();
 					msg.setPosition(pos.x, pos.y, pos.z);
-					Math::Quaternion rot = (*item_it)->getTransform()->get_position()->get_rotation();
+					math::Quaternion rot = (*item_it)->getTransform()->get_position()->get_rotation();
 					msg.setTransform(rot.w, rot.x, rot.y, rot.z);
 
 					// send to all clients
@@ -120,7 +120,7 @@ namespace rhea
 		return false;
 	}
 
-	void ServerService::broadcast(Hermes::Message* msg, ClientConnection* source)
+	void ServerService::broadcast(hermes::Message* msg, ClientConnection* source)
 	{
 		// send to all clients
 		for (auto it = m_connections.begin(); it != m_connections.end(); ++it) {
@@ -145,13 +145,13 @@ namespace rhea
 		if (item) {
 			LOG(LOG_INFO) << "Disconnecting avatar: " << item->getPathName();
 			// cancel all movement
-			item->setMovement(Math::Vector3::ZERO);
+			item->setMovement(math::Vector3::ZERO);
 			item->setTurn(0.0f);
 			// remove item from scene?
 			// TODO make this an option
 			rhea::NetworkComponent* net_com = item->getComponent<NetworkComponent>();
 			if (net_com) {
-				Hermes::MessageDestroy msg;
+				hermes::MessageDestroy msg;
 				msg.NUID = net_com->NUID();
 				broadcast(&msg, connection);
 				// remove from scene

@@ -11,7 +11,7 @@ namespace rhea
 	class WorldServer
 	{
 	public:
-		WorldServer(Hermes::Stream* stream) : 
+		WorldServer(hermes::Stream* stream) : 
 			m_stream(stream),
 			m_state(CONN_NONE),
 			m_player(nullptr)
@@ -33,10 +33,10 @@ namespace rhea
 
 		CONN_STATE m_state;
 
-		void onMoveMessage(Hermes::MessageMove* move_msg);
-		void onTurnMessage(Hermes::MessageTurn* turn_msg);
+		void onMoveMessage(hermes::MessageMove* move_msg);
+		void onTurnMessage(hermes::MessageTurn* turn_msg);
 
-		Hermes::Stream* m_stream;
+		hermes::Stream* m_stream;
 		rhea::Item* m_player;
 	};
 }

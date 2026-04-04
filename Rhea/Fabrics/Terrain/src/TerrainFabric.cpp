@@ -9,8 +9,8 @@ namespace rhea
 {
 	void TerrainFabric::Register(Application* app)
 	{
-		SimpleParser::Type::registerType<ImageResource>("//meworla/heightmap");
-		SimpleParser::Type::registerType<Terrain>("//meworla/terrain");
+		simpleparser::Type::registerType<ImageResource>("//meworla/heightmap");
+		simpleparser::Type::registerType<Terrain>("//meworla/terrain");
 
 		//register physics component
 		PhysicsManagerService* phy_mgr = doCast<PhysicsManagerService>(app->getService("physics_mgr"));
@@ -19,7 +19,7 @@ namespace rhea
 			return;
 		}
 				
-		SimpleParser::Type* t = Terrain::staticType();
+		simpleparser::Type* t = Terrain::staticType();
 
 		rhea::PhysicsBodyDesc desc;
 		desc.kind = "Meworla/RheaPhysics:HeightMap";

@@ -9,7 +9,7 @@ namespace rhea
 		for (int i = 0; i < m_bones.size(); ++i) {
 			if (m_bones[i].parent_index == -1) {
 				// Root bone, no parent, so global transform is just the local transform
-				m_bones[i].UpdateGlobalTransform(Math::Matrix4()); // Identity matrix
+				m_bones[i].UpdateGlobalTransform(math::Matrix4()); // Identity matrix
 			}
 			else {
 				// Update based on parent's global transform							
@@ -31,7 +31,7 @@ namespace rhea
 		}
 		UpdateBoneTransforms();
 		for (int i = 0; i < m_bones.size(); ++i) {
-			Math::Matrix4 testIdentity = m_bones[i].inverse_bind_matrix * m_bones[i].global_transform;
+			math::Matrix4 testIdentity = m_bones[i].inverse_bind_matrix * m_bones[i].global_transform;
 			
 			if (!testIdentity.isApproximatelyIdentity()) {
 				DLOG(LOG_DEBUG) << "Bone " << i << " (" << m_bones[i].name << ") Identity Check:";// << testIdentity;
@@ -64,9 +64,9 @@ namespace rhea
 		return true;
 	}	
 
-	const std::vector<Math::Matrix4>& Skeleton::getBoneMatrices() const
+	const std::vector<math::Matrix4>& Skeleton::getBoneMatrices() const
 	{
-		static std::vector<Math::Matrix4> boneMatrices;
+		static std::vector<math::Matrix4> boneMatrices;
 		boneMatrices.clear();
 		for (const auto& bone : m_bones) {
 			boneMatrices.push_back(bone.final_transform.transpose());

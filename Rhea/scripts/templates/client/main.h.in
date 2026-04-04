@@ -7,7 +7,7 @@
 #include <Poseidon/Poseidon.h>
 #include <Rhea/Core/Scene.h>
 
-class {{PROJECT_NAME}} : public Poseidon::Application
+class {{PROJECT_NAME}} : public poseidon::Application
 {
 public:
 	{{PROJECT_NAME}}();

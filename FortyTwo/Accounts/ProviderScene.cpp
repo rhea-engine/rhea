@@ -88,18 +88,18 @@ void ProviderScene::CreateAvatar(User* user, rhea::Avatar* avatar, std::function
 
 void ProviderScene::Save(std::function<void(int)> handler)
 {
-	Orion::Orion* fs = m_app->getFS();
+	orion::Orion* fs = m_app->getFS();
 
-	Orion::ResourceRequest* resource = fs->getResourceByRid(m_avatarlist_scene);
-	resource->resolve([&, handler](Orion::ResourceRequest* req, int err) {
+	orion::ResourceRequest* resource = fs->getResourceByRid(m_avatarlist_scene);
+	resource->resolve([&, handler](orion::ResourceRequest* req, int err) {
 		if (err) {
 			LOG(LOG_ERROR) << "ProviderScene: failed to resolve avatarlist scene";	
 			handler(2);
 		}
 		else {
-			Psio::IOBuffer* buf = new Psio::IOBuffer(64 * 1024 * 1024);
-			Orion::FileResourceStream* stream = (Orion::FileResourceStream*)req->getStream();
-			stream->SetMode(Psio::Fs::WRITE);		
+			psio::IOBuffer* buf = new psio::IOBuffer(64 * 1024 * 1024);
+			orion::FileResourceStream* stream = (orion::FileResourceStream*)req->getStream();
+			stream->SetMode(psio::Fs::WRITE);		
 
 			m_user_list->children([&, buf](std::string name, rhea::Component* unit)->bool {
 				User* user = doCast<User>(unit);
@@ -115,7 +115,7 @@ void ProviderScene::Save(std::function<void(int)> handler)
 							buf->Produce(size);
 
 							// position
-							Math::Vector3 position = { 0.0f, 0.0f, 1.0f }; // default position
+							math::Vector3 position = { 0.0f, 0.0f, 1.0f }; // default position
 							position = avatar->getPosition();
 							size = snprintf(buf->writer(), buf->FreeBufSize(), "position=(%ff, %ff, %ff)\n", position.x, position.y, position.z);
 							buf->Produce(size);

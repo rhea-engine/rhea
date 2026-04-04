@@ -5,6 +5,6 @@
 
 void rhea::ControllerFabric::Register(Application* app)
 {
-	SimpleParser::Type::registerType<BasicController>("//meworla/controller");
-	SimpleParser::Type::registerType<SpectatorController>("//meworla/spectator");
+	simpleparser::Type::registerType<BasicController>("//meworla/controller");
+	simpleparser::Type::registerType<SpectatorController>("//meworla/spectator");
 }

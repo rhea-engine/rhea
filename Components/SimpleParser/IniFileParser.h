@@ -7,7 +7,7 @@
 #include <string>
 #include "SimpleParser.h"
 
-namespace SimpleParser
+namespace simpleparser
 {
 	class IniFileParser : public SimpleParser
 	{

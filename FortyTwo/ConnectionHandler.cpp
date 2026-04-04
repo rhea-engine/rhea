@@ -15,7 +15,7 @@ void ConnectionHandler::Initialize(Rhea::ClientConnection* connection)
 {
 	m_connection = connection;
 
-	server_stream = std::make_unique<Hermes::ServerStream>(connection->getStream());
+	server_stream = std::make_unique<hermes::ServerStream>(connection->getStream());
 	auth_handlers = std::make_unique<AuthHandler>(m_app, m_scene, server_stream.get());
 	lobby_server = std::make_unique<rhea::LobbyServer>(connection->getStream());
 	world_server = std::make_unique<rhea::WorldServer>(connection->getStream());
@@ -36,7 +36,7 @@ void ConnectionHandler::Initialize(Rhea::ClientConnection* connection)
 		});
 
 	lobby_server->setOnCreateAvatar([&](std::string name, std::string model, std::function<void(rhea::Avatar*)> handler) {
-		Math::Vector3 position = { 128.0f, 0.0f, 10.0f }; // default position
+		math::Vector3 position = { 128.0f, 0.0f, 10.0f }; // default position
 		AccountService* acc_srv;
 		rhea::Avatar* avatar;
 
@@ -85,7 +85,7 @@ int ConnectionHandler::EnterWorld(rhea::Avatar* avatar)
 		internal_name = avatar_name + std::string("-") + std::to_string(++i);
 	}
 	m_player = player_model->instance(internal_name);
-	Math::Vector3 position = { 128.0f, 0.0f, 10.0f }; // default position
+	math::Vector3 position = { 128.0f, 0.0f, 10.0f }; // default position
 	position = avatar->getPosition();
 	m_scene->addChild(m_player);
 	m_player->setPosition(position);
@@ -109,21 +109,21 @@ int ConnectionHandler::EnterWorld(rhea::Avatar* avatar)
 	}
 
 	// inform connector
-	Hermes::MessageCreate msg;
-	Math::Vector3 pos = m_player->getTransform()->get_position()->get_worldspace();
+	hermes::MessageCreate msg;
+	math::Vector3 pos = m_player->getTransform()->get_position()->get_worldspace();
 	msg.path = internal_name;
 	msg.type_name = avatar->getValueString("model");
 	msg.NUID = m_player->getComponent<rhea::NetworkComponent>()->NUID();
 	msg.pos[0] = pos.x;
 	msg.pos[1] = pos.y;
 	msg.pos[2] = pos.z;
-	Math::Quaternion q = m_player->getTransform()->get_position()->get_rotation();
+	math::Quaternion q = m_player->getTransform()->get_position()->get_rotation();
 	msg.transform[0] = q.w;
 	msg.transform[1] = q.x;
 	msg.transform[2] = q.y;
 	msg.transform[3] = q.z;
 	msg.is_player = true;
-	m_connection->getStream()->sendMessage((Hermes::Message*)&msg, nullptr);
+	m_connection->getStream()->sendMessage((hermes::Message*)&msg, nullptr);
 
 	// send all items with network component
 	std::vector<rhea::Item*> items = m_scene->getItems();
@@ -132,8 +132,8 @@ int ConnectionHandler::EnterWorld(rhea::Avatar* avatar)
 			continue;
 		rhea::NetworkComponent* net_com = (*item_it)->getComponent<rhea::NetworkComponent>();
 		if (net_com) {
-			Hermes::MessageCreate item_msg;
-			Math::Vector3 pos = (*item_it)->getTransform()->get_position()->get_worldspace();
+			hermes::MessageCreate item_msg;
+			math::Vector3 pos = (*item_it)->getTransform()->get_position()->get_worldspace();
 			item_msg.path = (*item_it)->getPathName();
 			avatar = (rhea::Avatar*)(Variant*)(*item_it)->getValue("avatar");
 			if (avatar) {
@@ -147,18 +147,18 @@ int ConnectionHandler::EnterWorld(rhea::Avatar* avatar)
 			item_msg.pos[0] = pos.x;
 			item_msg.pos[1] = pos.y;
 			item_msg.pos[2] = pos.z;
-			Math::Quaternion q = (*item_it)->getTransform()->get_position()->get_rotation();
+			math::Quaternion q = (*item_it)->getTransform()->get_position()->get_rotation();
 			item_msg.transform[0] = q.w;
 			item_msg.transform[1] = q.x;
 			item_msg.transform[2] = q.y;
 			item_msg.transform[3] = q.z;
 			item_msg.is_player = false;
-			m_connection->getStream()->sendMessage((Hermes::Message*)&item_msg, nullptr);
+			m_connection->getStream()->sendMessage((hermes::Message*)&item_msg, nullptr);
 		}
 	}
 	// inform all other connectors
 	msg.is_player = false;
-	server_srv->broadcast((Hermes::Message*)&msg, m_connection);
+	server_srv->broadcast((hermes::Message*)&msg, m_connection);
 
 	// set state to in world
 	lobby_server->Stop();

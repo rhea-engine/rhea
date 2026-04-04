@@ -63,16 +63,16 @@ namespace rhea
 		return true;
 	}
 
-	void GltfLoader::load_impl(std::string name, Application* app, Orion::ResourceRequest* req, Resource::LoadedHandler handler, bool is_binary)
+	void GltfLoader::load_impl(std::string name, Application* app, orion::ResourceRequest* req, Resource::LoadedHandler handler, bool is_binary)
 	{
 		if (req) {
 
-			Orion::ResourceStream* rs = req->getStream();
+			orion::ResourceStream* rs = req->getStream();
 			size_t length = rs->getLength();
 			if (!length)
 				length = 64 * 1024; // default buffer size
-			Psio::IOBuffer* buf = new Psio::IOBuffer(length);
-			rs->SetMode(Psio::Fs::READ | Psio::Fs::BINARY);
+			psio::IOBuffer* buf = new psio::IOBuffer(length);
+			rs->SetMode(psio::Fs::READ | psio::Fs::BINARY);
 			rs->onEnd([name, app, buf, handler, is_binary](size_t bytes_read) {
 								
 				GltfScene* scene = new GltfScene(name, "//meworla/gltf");

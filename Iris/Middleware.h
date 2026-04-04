@@ -8,7 +8,7 @@
 class Command;
 class Registry;
 
-namespace Psio
+namespace psio
 {
 	class HttpRequest;
 	class HttpResponse;
@@ -20,7 +20,7 @@ public:
 	Middleware(Registry *registry);
 	
 	// handle the request after receiving the header
-	int onRequest(Psio::HttpRequest* req, Psio::HttpResponse* res);
+	int onRequest(psio::HttpRequest* req, psio::HttpResponse* res);
 protected:
 	std::unordered_map<std::string, int> m_command_table;
 	Registry* m_registry;

@@ -5,9 +5,9 @@
 #endif
 #include <Psio/Log.h>
 
-namespace Psio
+namespace psio
 {
-	ConnectorFactory& Psio::ConnectorFactory::factory()
+	ConnectorFactory& psio::ConnectorFactory::factory()
 	{
 		static ConnectorFactory m_factory;
 		return m_factory;

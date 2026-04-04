@@ -7,19 +7,19 @@
 #include "Camera.h"
 #include <Math/Vector4.h>
 
-namespace Psio
+namespace psio
 {
 	class Engine;
 	class Window;
 }
 
-namespace Hippios
+namespace hippios
 {
 	class Renderer;
 	class GraphicsBuffer;
 }
 
-namespace Poseidon
+namespace poseidon
 {
 	class Node;
 	class Viewport;
@@ -39,7 +39,7 @@ namespace Poseidon
 		Node* get_root();
 
 		// set the render system
-		void setRenderer(Hippios::Renderer* renderer);
+		void setRenderer(hippios::Renderer* renderer);
 
 		// update all elements in the tree
 		bool update();
@@ -58,12 +58,12 @@ namespace Poseidon
 		Viewport* getViewport(std::string name = "root");
 		
 		// window helper
-		Window* getWindow(Psio::Window* win);
+		Window* getWindow(psio::Window* win);
 		void registerWindow(Window* win) { m_windows.push_back(win); }
 
 	protected:
 		Node* m_tree = 0;
-		Hippios::Renderer* m_renderer;
+		hippios::Renderer* m_renderer;
 		std::vector<Viewport*> m_viewports;
 		std::vector<Window*> m_windows;
 		RenderQueue* m_rend_queue = NULL;
@@ -72,46 +72,46 @@ namespace Poseidon
 		// per object input buffer
 		struct cbPerObjectMVP
 		{
-			Math::Matrix3x4  model;
-			Math::Matrix4 vp;
+			math::Matrix3x4  model;
+			math::Matrix4 vp;
 		};
 
 		cbPerObjectMVP cbPerObjMVP;
 
 		struct cbPerObjectVP
 		{
-			Math::Matrix4 vp;
+			math::Matrix4 vp;
 		};
 
 		cbPerObjectVP cbPerObj;
 
 	public:
 		struct cbPerFrame {
-			Math::Matrix4 v;
-			Math::Matrix4 p;
-			Math::Matrix4 vp;
-			Math::Vector4 cameraPos;			
+			math::Matrix4 v;
+			math::Matrix4 p;
+			math::Matrix4 vp;
+			math::Vector4 cameraPos;			
 		};
 
 		struct cbPerObject {
-			Math::Matrix4 world_matrix;			
-			Math::Matrix4 inverse;			
+			math::Matrix4 world_matrix;			
+			math::Matrix4 inverse;			
 		};
 
 		struct cbPerObjectTerrain
 		{
-			Math::Matrix3x4 model;
-			Math::Matrix4 vp;
+			math::Matrix3x4 model;
+			math::Matrix4 vp;
 		};
 
 		struct Light {
-			Math::Vector3 direction;
+			math::Vector3 direction;
 			float Type;
-			Math::Quaternion position;
-			Math::Vector3 lightColor;
+			math::Quaternion position;
+			math::Vector3 lightColor;
 			float pad2;
-			Math::Quaternion diffuse;
-			Math::Quaternion specular;
+			math::Quaternion diffuse;
+			math::Quaternion specular;
 
 			float ConeAngle;
 			float ConstantAttenuation;
@@ -123,7 +123,7 @@ namespace Poseidon
 
 		struct cbLight {		
 			Light lights[MAX_LIGHTS];
-			Math::Quaternion ambient;
+			math::Quaternion ambient;
 			float num_lights = 0.0f;
 			float pad2[3] = { 0.0f, 0.0f };
 		};
@@ -134,11 +134,11 @@ namespace Poseidon
 		cbPerObjectTerrain cbPerObjTerrain;
 		cbLight light_buf;
 
-		std::unique_ptr<Hippios::GraphicsBuffer> m_frame_buffer;
-		std::unique_ptr<Hippios::GraphicsBuffer> m_object_buffer;
-		std::unique_ptr<Hippios::GraphicsBuffer> m_object_buffer_wvp;
-		std::unique_ptr<Hippios::GraphicsBuffer> m_light_buffer;
-		std::unique_ptr<Hippios::GraphicsBuffer> m_bone_buffer;
+		std::unique_ptr<hippios::GraphicsBuffer> m_frame_buffer;
+		std::unique_ptr<hippios::GraphicsBuffer> m_object_buffer;
+		std::unique_ptr<hippios::GraphicsBuffer> m_object_buffer_wvp;
+		std::unique_ptr<hippios::GraphicsBuffer> m_light_buffer;
+		std::unique_ptr<hippios::GraphicsBuffer> m_bone_buffer;
 	};
 }
 #endif // !POSEIDON_SCENEMANAGER_H

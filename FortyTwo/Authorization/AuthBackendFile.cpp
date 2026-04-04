@@ -100,8 +100,8 @@ void AuthBackendFile::loadUsers()
 	if (m_app->getFS()->getFs()->fileExists(cred_path))
 	{
 		// file exists		
-		std::unique_ptr<Orion::FileResourceStream> stream = std::make_unique<Orion::FileResourceStream>(cred_path);
-		std::unique_ptr<Psio::IOBuffer> buf = std::make_unique<Psio::IOBuffer>(64 * 1024);
+		std::unique_ptr<orion::FileResourceStream> stream = std::make_unique<orion::FileResourceStream>(cred_path);
+		std::unique_ptr<psio::IOBuffer> buf = std::make_unique<psio::IOBuffer>(64 * 1024);
 		if (stream->Read(buf.get())) {
 			const char* ptr = buf->reader();
 			size_t len = buf->Remaining();
@@ -125,8 +125,8 @@ void AuthBackendFile::saveUsers()
 	cred_path += string("/auth.json");
 
 	std::string s = m_store.toJSON();
-	std::unique_ptr<Orion::FileResourceStream> stream = std::make_unique<Orion::FileResourceStream>(cred_path);
-	stream->SetMode(Psio::Fs::WRITE);
+	std::unique_ptr<orion::FileResourceStream> stream = std::make_unique<orion::FileResourceStream>(cred_path);
+	stream->SetMode(psio::Fs::WRITE);
 	stream->Open();
 	stream->Write(s.c_str(), s.size());
 	stream->Close();

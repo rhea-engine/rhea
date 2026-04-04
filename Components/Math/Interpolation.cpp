@@ -1,14 +1,14 @@
 ﻿#include "Interpolation.h"
 
-namespace Math
+namespace math
 {
-    Math::Quaternion slerp(const Math::Quaternion& q1, const Math::Quaternion& q2, float t) {
+    math::Quaternion slerp(const math::Quaternion& q1, const math::Quaternion& q2, float t) {
         // Calculate the dot product (cosine of the angle)
         float dot = q1.dot(q2);
 
         // If the dot product is negative, slerp won't take the shorter path.
         // So, negate one quaternion to take the shorter path.
-        Math::Quaternion q2Corrected = q2;
+        math::Quaternion q2Corrected = q2;
         if (dot < 0.0f) {
             q2Corrected = -q2;
             dot = -dot;
@@ -18,7 +18,7 @@ namespace Math
         if (dot > DOT_THRESHOLD) {
             // If the quaternions are nearly identical, use linear interpolation
             // to avoid division by zero errors.
-            Math::Quaternion result = lerp(q1, q2Corrected, t);
+            math::Quaternion result = lerp(q1, q2Corrected, t);
             result.normalize(); // Normalize the result
             return result;
         }

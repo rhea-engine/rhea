@@ -1,6 +1,6 @@
 #include "CommandQuit.h"
 
-int CommandQuit::OnRequest(Psio::HttpRequest* req, Psio::HttpResponse* res)
+int CommandQuit::OnRequest(psio::HttpRequest* req, psio::HttpResponse* res)
 {
 	char answer[] = "\rExiting...\r\n";
 	res->Write(answer, sizeof(answer));

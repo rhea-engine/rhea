@@ -22,7 +22,7 @@ Middleware::Middleware(Registry* registry) :
 	m_command_table["get"] = CMD_GET;
 }
 
-int Middleware::onRequest(Psio::HttpRequest* req, Psio::HttpResponse* res)
+int Middleware::onRequest(psio::HttpRequest* req, psio::HttpResponse* res)
 {
 	Command* r_cmd = nullptr;
 	std::string str = req->headers.GetMethod();

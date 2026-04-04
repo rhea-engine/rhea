@@ -1,7 +1,7 @@
 #include <nlohmann/json.hpp>      // full include is fine here
 #include <Orion/Realm.h>
 
-namespace Orion
+namespace orion
 {
     // Optionally: define a local alias ONLY in this header (not in Realm.h)
     using Json = nlohmann::json;

@@ -37,7 +37,7 @@ namespace rhea::physics
 		rhea::PhysicsBody* getBody() { return m_body.get(); }
 
 		// movement listener functions
-		void onMovementChanged(const Math::Vector3& move) override {
+		void onMovementChanged(const math::Vector3& move) override {
 			if (m_body)
 				m_body->move(move);
 		}

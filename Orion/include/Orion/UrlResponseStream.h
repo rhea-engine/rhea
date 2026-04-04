@@ -5,12 +5,12 @@
 #include <Psio/Net/UrlRequest/UrlResponse.h>
 #include <memory>
 
-namespace Orion
+namespace orion
 {
 	class UrlResponseStream : public ResourceStream
 	{
 	public:
-		UrlResponseStream(std::unique_ptr<Psio::UrlResponse> respone) :
+		UrlResponseStream(std::unique_ptr<psio::UrlResponse> respone) :
 			m_stream(std::move(respone))
 		{}
 		~UrlResponseStream() {}
@@ -30,7 +30,7 @@ namespace Orion
 			if (m_stream) m_stream->onError(handler);
 		}
 
-		void ReadAsync(Psio::IOBuffer* buf) {
+		void ReadAsync(psio::IOBuffer* buf) {
 			if (m_stream) m_stream->ReadAsync(buf);
 		}
 
@@ -74,7 +74,7 @@ namespace Orion
 		void Close();
 
 	protected:
-		std::unique_ptr<Psio::UrlResponse> m_stream;
+		std::unique_ptr<psio::UrlResponse> m_stream;
 	};
 }
 

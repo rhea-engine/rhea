@@ -8,7 +8,7 @@ namespace rhea
 {
     class Unit;
 
-    class Component : public SimpleParser::Variant {
+    class Component : public simpleparser::Variant {
        
     protected:
         Unit* m_parent = nullptr;  // Pointer to the parent Unit
@@ -18,7 +18,7 @@ namespace rhea
         Component(std::string name, std::string type_name) :
             m_pathname(name),
             m_parent(nullptr),
-            SimpleParser::Variant(SimpleParser::Type::get(type_name))
+            simpleparser::Variant(simpleparser::Type::get(type_name))
         {}
         Component(std::string name) :
             Component(name, "//core/types/component")
@@ -60,16 +60,16 @@ namespace rhea
         static Component* createType(std::string name, std::string type_name);
 
         // type initialization
-        static void initializeType(SimpleParser::Type* type);
+        static void initializeType(simpleparser::Type* type);
 
         // type helper
-        static SimpleParser::Type* staticType(SimpleParser::Type* newType = nullptr) {
-            static SimpleParser::Type* _static_type = nullptr;
+        static simpleparser::Type* staticType(simpleparser::Type* newType = nullptr) {
+            static simpleparser::Type* _static_type = nullptr;
             if (!_static_type) {
                 if (!newType) {
 
-                    SimpleParser::Type* parent = nullptr;
-                    newType = SimpleParser::Type::Register("Component", Component::createType);
+                    simpleparser::Type* parent = nullptr;
+                    newType = simpleparser::Type::Register("Component", Component::createType);
                     newType->setParent(parent);
                     _static_type = newType;
                     Component::initializeType(_static_type);

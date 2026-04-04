@@ -7,7 +7,7 @@
 #include "Hippios/Texture.h"
 #include "D3D11Renderer.h"
 
-namespace Hippios
+namespace hippios
 {
 	class D3D11Texture : public Texture
 	{

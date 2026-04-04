@@ -82,5 +82,5 @@ void AuthorizationService::CreateUser(std::string method, UserInfo info, std::ve
 void AuthorizationService::RegisterFabrics(rhea::Application* app)
 {
 	// register types
-	SimpleParser::Type::registerType<AuthorizationService>("//meworla/authorizationservice");
+	simpleparser::Type::registerType<AuthorizationService>("//meworla/authorizationservice");
 }

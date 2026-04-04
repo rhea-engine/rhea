@@ -69,6 +69,6 @@ std::vector<rhea::Unit::Export> AccountService::getReferences()
 void AccountService::RegisterFabrics(rhea::Application* app)
 {
 	// register types
-	SimpleParser::Type::registerType<User>("//meworla/user");
-	SimpleParser::Type::registerType<AccountService>("//meworla/accountservice");
+	simpleparser::Type::registerType<User>("//meworla/user");
+	simpleparser::Type::registerType<AccountService>("//meworla/accountservice");
 }

@@ -1,8 +1,8 @@
 #include "Hermes/Messages/MessageLogin.h"
 
-namespace Hermes
+namespace hermes
 {
-	void MessageLogin::serialize(Psio::IOBuffer* buf)
+	void MessageLogin::serialize(psio::IOBuffer* buf)
 	{
 		base.size = sizeof(BaseMessage) + 2 * sizeof(uint32_t) + (uint16_t)auth_method.length() + (uint16_t)user_name.length() + sizeof(uint16_t);
 		if (secrets.size() > 0) {
@@ -31,7 +31,7 @@ namespace Hermes
 		buf->Produce(size);
 	}
 
-	void MessageLogin::unserialize(Psio::IOBuffer* buf)
+	void MessageLogin::unserialize(psio::IOBuffer* buf)
 	{
 		auth_method = readStr(buf);
 		user_name = readStr(buf);
@@ -41,7 +41,7 @@ namespace Hermes
 				secrets.push_back(readStr(buf));
 	}
 
-	Message* MessageLogin::create(uint16_t opcode, uint16_t size, Psio::IOBuffer* buf)
+	Message* MessageLogin::create(uint16_t opcode, uint16_t size, psio::IOBuffer* buf)
 	{
 		MessageLogin* msg;
 		msg = new MessageLogin(opcode);

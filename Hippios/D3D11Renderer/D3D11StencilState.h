@@ -4,7 +4,7 @@
 #include <Hippios/StencilState.h>
 #include <d3d11.h>
 
-namespace Hippios
+namespace hippios
 {
 	class D3D11StencilState : public StencilState
 	{

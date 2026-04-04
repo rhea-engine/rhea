@@ -1,6 +1,6 @@
 #include "Poseidon/RenderQueue.h"
 
-namespace Poseidon
+namespace poseidon
 {
 	void RenderQueue::addRenderable(Item* renderable)
 	{

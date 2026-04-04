@@ -4,7 +4,7 @@
 #include <cassert>
 #include <Psio/Log.h>
 
-namespace Hippios
+namespace hippios
 {
 	DXGI_FORMAT D3D11RendererGetFormat(InputLayoutFormat format)
 	{

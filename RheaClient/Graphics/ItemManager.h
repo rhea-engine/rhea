@@ -24,7 +24,7 @@ namespace rhea::client {
 		~GraphicsItemManager();
 
 		// create an element for this unit
-		bool Ensure(Poseidon::Core* core, rhea::Unit* unit);
+		bool Ensure(poseidon::Core* core, rhea::Unit* unit);
 
 		// handle update event
 		bool onUpdate(rhea::Event* ev, rhea::Unit* unit);

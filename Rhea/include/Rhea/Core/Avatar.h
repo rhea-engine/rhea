@@ -19,14 +19,14 @@ namespace rhea
 
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
 
-		Math::Vector3 getPosition() { return m_position; }
-		void setPosition(Math::Vector3 position) { m_position = position; }
+		math::Vector3 getPosition() { return m_position; }
+		void setPosition(math::Vector3 position) { m_position = position; }
 
 		void setModel(std::string model) { m_modelname = model; m_values["model"] = model; }
 		std::string getModel() { return m_modelname; }
 
 	protected:
-		Math::Vector3 m_position;
+		math::Vector3 m_position;
 		std::string m_modelname;
 	};
 }

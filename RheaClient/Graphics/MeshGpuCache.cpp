@@ -5,13 +5,13 @@ namespace rhea::client
 {
 
 
-    Poseidon::Mesh* MeshGpuCache::getOrCreate(Poseidon::Core* core, rhea::Mesh* meshUnit, bool dynamic_usage, const Builder& builder)
+    poseidon::Mesh* MeshGpuCache::getOrCreate(poseidon::Core* core, rhea::Mesh* meshUnit, bool dynamic_usage, const Builder& builder)
     {
         auto key = meshUnit->getPath(); // or stable asset id
         auto it = m_cache.find(key);
         if (it != m_cache.end()) return it->second.get();
 
-        auto poseMesh = std::make_unique<Poseidon::Mesh>(dynamic_usage);
+        auto poseMesh = std::make_unique<poseidon::Mesh>(dynamic_usage);
         poseMesh->setViewport(core->get_scene_manager()->getViewport());
 
         if (builder) {
@@ -26,12 +26,12 @@ namespace rhea::client
         return ptr;
     }
 
-    Poseidon::Mesh* MeshGpuCache::find(rhea::Mesh* mesh)
+    poseidon::Mesh* MeshGpuCache::find(rhea::Mesh* mesh)
     {
         return find(mesh->getPathName());
     }
 
-    Poseidon::Mesh* MeshGpuCache::find(std::string key)
+    poseidon::Mesh* MeshGpuCache::find(std::string key)
     {
         auto it = m_cache.find(key);
         if (it != m_cache.end() && it->second) {

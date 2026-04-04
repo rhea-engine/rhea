@@ -134,10 +134,10 @@ namespace rhea
             mat->setValue("shader", getValue("shadername", "standard"));
             
             // set material values
-			mat->setColor(ambient_id, Math::Vector3(materials[slot].ambient[0], materials[slot].ambient[1], materials[slot].ambient[2]));
-			mat->setColor(diffuse_id, Math::Vector3(materials[slot].diffuse[0], materials[slot].diffuse[1], materials[slot].diffuse[2]));
-			mat->setColor(specular_id, Math::Vector3(materials[slot].specular[0], materials[slot].specular[1], materials[slot].specular[2]));
-			mat->setColor(emmission_id, Math::Vector3(materials[slot].emission[0], materials[slot].emission[1], materials[slot].emission[2]));
+			mat->setColor(ambient_id, math::Vector3(materials[slot].ambient[0], materials[slot].ambient[1], materials[slot].ambient[2]));
+			mat->setColor(diffuse_id, math::Vector3(materials[slot].diffuse[0], materials[slot].diffuse[1], materials[slot].diffuse[2]));
+			mat->setColor(specular_id, math::Vector3(materials[slot].specular[0], materials[slot].specular[1], materials[slot].specular[2]));
+			mat->setColor(emmission_id, math::Vector3(materials[slot].emission[0], materials[slot].emission[1], materials[slot].emission[2]));
 
             int shining_id = shader_res->getInputSlotId("SHININESS");
 			// set shininess - map for Phong [0..1000.0] -> [0...128.0]
@@ -308,14 +308,14 @@ namespace rhea
 						VertexBufferStandard::VertexStandard* v2 = (*(VertexBufferStandard*)vertices)[idx2];
 						VertexBufferStandard::VertexStandard* v3 = (*(VertexBufferStandard*)vertices)[idx3];
 
-                        Math::Vector3 edge1 = v2->position - v1->position;
-                        Math::Vector3 edge2 = v3->position - v1->position;
-                        Math::Vector2 deltaUV1 = v2->texcoord - v1->texcoord;
-                        Math::Vector2 deltaUV2 = v3->texcoord - v1->texcoord;
+                        math::Vector3 edge1 = v2->position - v1->position;
+                        math::Vector3 edge2 = v3->position - v1->position;
+                        math::Vector2 deltaUV1 = v2->texcoord - v1->texcoord;
+                        math::Vector2 deltaUV2 = v3->texcoord - v1->texcoord;
 
                         float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
 
-                        Math::Vector3 tangent;
+                        math::Vector3 tangent;
 
                         tangent = (edge1 * deltaUV2.y - edge2 * deltaUV1.y) * f;
 

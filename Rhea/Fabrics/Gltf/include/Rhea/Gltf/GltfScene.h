@@ -67,11 +67,11 @@ namespace rhea
 		void HandleNode(tinygltf::Node& node, Mesh* mesh);
 
 		struct Vertex {
-			Math::Vector3 position;
-			Math::Vector3 normal;
-			Math::Vector3 color;
-			Math::Vector2 uv;
-			Math::Vector3 tangent;
+			math::Vector3 position;
+			math::Vector3 normal;
+			math::Vector3 color;
+			math::Vector2 uv;
+			math::Vector3 tangent;
 
 			bool operator==(const Vertex& other) const {
 				return position.equals(other.position)/* && normal.equals(other.normal)*/ && uv.equals(other.uv)/* && color.equals(other.color) */;

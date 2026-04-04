@@ -8,7 +8,7 @@
 
 using std::string;
 
-namespace Orion
+namespace orion
 {
 	class Orion;
 	class ResourceStream;
@@ -132,7 +132,7 @@ namespace Orion
 
 		RequestHandler m_handler;
 
-		Psio::UrlRequest* m_request;
+		psio::UrlRequest* m_request;
 
 		// IO step
 		void onIOComplete(int result);

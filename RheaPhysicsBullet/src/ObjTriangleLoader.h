@@ -10,7 +10,7 @@ namespace rhea {
 }
 
 struct TriangleSoup {
-	std::vector<Math::Vector3> positions;
+	std::vector<math::Vector3> positions;
 	std::vector<unsigned long> indices;
 };
 

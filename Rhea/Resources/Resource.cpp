@@ -12,7 +12,7 @@ namespace rhea {
 		}
 	}
 
-	void Resource::load(Orion::ResourceRequest* req, ReadyHandler handler)
+	void Resource::load(orion::ResourceRequest* req, ReadyHandler handler)
 	{
 		handler(ReqError::OK);
 	}

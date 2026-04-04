@@ -7,7 +7,7 @@
 
 using std::string;
 
-namespace Orion
+namespace orion
 {
 	class BufferResource : public Resource
 	{

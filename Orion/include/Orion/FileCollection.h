@@ -6,7 +6,7 @@
 #include <Psio/Fs/Fs.h>
 #include <Orion/Collection.h>
 
-namespace Orion
+namespace orion
 {
 	class FileCollection : public Collection
 	{
@@ -41,14 +41,14 @@ namespace Orion
 		// Close the stream
 		void Close();
 
-		// Psio::Stream functions
-		void ReadAsync(Psio::IOBuffer* buf) {};
+		// psio::Stream functions
+		void ReadAsync(psio::IOBuffer* buf) {};
 
 		// set internal mode
 		void SetMode(int mode) { m_mode = mode; }
 
 	protected:
-		std::unique_ptr<Psio::Fs::DirectoryHandle> m_handle;
+		std::unique_ptr<psio::Fs::DirectoryHandle> m_handle;
 		bool m_end;
 	};
 }

@@ -6,7 +6,7 @@
 
 using rhea::Item;
 
-namespace Poseidon
+namespace poseidon
 {
 	class RenderQueue
 	{

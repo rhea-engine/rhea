@@ -23,7 +23,7 @@ namespace rhea::physics {
 		// Common params (used depending on kind)
 		float radius = 0.0f;      // sphere/capsule
 		float height = 0.0f;      // capsule
-		Math::Vector3 halfExtents = Math::Vector3(0, 0, 0); // box
+		math::Vector3 halfExtents = math::Vector3(0, 0, 0); // box
 
 		// Optional transform tweak
 		float offsetY = 0.0f;

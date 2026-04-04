@@ -2,7 +2,7 @@
 
 namespace rhea
 {
-	void Realm::setRealm(Orion::Realm* realm)
+	void Realm::setRealm(orion::Realm* realm)
 	{
 		m_realm = realm;
 	}

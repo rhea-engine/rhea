@@ -1,8 +1,8 @@
 #include "Hermes/Messages/MessageConnect.h"
 
-namespace Hermes
+namespace hermes
 {
-	void MessageConnect::serialize(Psio::IOBuffer* buf)
+	void MessageConnect::serialize(psio::IOBuffer* buf)
 	{
 		base.size = sizeof(BaseMessage) + sizeof(uint32_t) + sizeof(uint32_t) + (uint16_t)world_name.length();
 		if (buf->FreeBufSize() < base.size) {
@@ -19,13 +19,13 @@ namespace Hermes
 		buf->Produce(size);
 	}
 
-	void MessageConnect::unserialize(Psio::IOBuffer* buf)
+	void MessageConnect::unserialize(psio::IOBuffer* buf)
 	{
 		protocol_version = readL(buf);
 		world_name = readStr(buf);
 	}
 
-	Message* MessageConnect::create(uint16_t opcode, uint16_t size, Psio::IOBuffer* buf)
+	Message* MessageConnect::create(uint16_t opcode, uint16_t size, psio::IOBuffer* buf)
 	{
 		MessageConnect* msg;
 		msg = new MessageConnect();

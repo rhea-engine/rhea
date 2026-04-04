@@ -5,9 +5,9 @@
 #include <string>
 #include <Psio/IO/Stream.h>
 
-namespace Orion
+namespace orion
 {
-	class ResourceStream : public Psio::Stream
+	class ResourceStream : public psio::Stream
 	{
 	public:		
 		ResourceStream() :

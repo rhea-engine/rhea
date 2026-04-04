@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <d3d11.h>
 
-namespace Hippios
+namespace hippios
 {
 	struct D3D11GPUHandle : public GPUHandle
 	{

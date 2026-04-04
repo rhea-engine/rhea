@@ -21,7 +21,7 @@ namespace rhea::physics::bullet::debug
             auto* bullet_svc = doCast<BulletPhysicsService>(svc);
             if (!bullet_svc) return;            
             bullet_svc->setDrawerFactory([app, bullet_svc]() -> rhea::IPhysicsDebugDraw* {
-                Poseidon::Application* p_app = (Poseidon::Application*)app;
+                poseidon::Application* p_app = (poseidon::Application*)app;
                 auto* dbg = new BulletDebugDraw(app, bullet_svc->getWorld(), p_app->get_core());
                 return (rhea::IPhysicsDebugDraw*)dbg;
             });

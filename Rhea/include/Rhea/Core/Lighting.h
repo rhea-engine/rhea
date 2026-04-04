@@ -22,12 +22,12 @@ namespace rhea
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
 
 		// get ambient value
-		Math::Quaternion getAmbient() { return m_ambient; }
+		math::Quaternion getAmbient() { return m_ambient; }
 		// set ambient value
-		void setAmbient(Math::Quaternion ambient) { m_ambient = ambient; }
+		void setAmbient(math::Quaternion ambient) { m_ambient = ambient; }
 
 	protected:
-		Math::Quaternion m_ambient;
+		math::Quaternion m_ambient;
 	};
 }
 #endif // !RHEA_LIGHTING_H

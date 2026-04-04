@@ -5,7 +5,7 @@
 #include "Poseidon/Mesh.h"
 #include "Poseidon/Material.h"
 
-namespace Poseidon
+namespace poseidon
 {
 	Mesh::~Mesh()
 	{
@@ -63,12 +63,12 @@ namespace Poseidon
 		m_submeshes[mesh_idx].ibuffer->WriteData(0, index_stride * num_faces * 3, source, false);
 	}
 
-	void Mesh::addVertexBuffer(std::unique_ptr<Hippios::VertexBuffer> vertex_buffer)
+	void Mesh::addVertexBuffer(std::unique_ptr<hippios::VertexBuffer> vertex_buffer)
 	{
 		m_vbuffer = std::move(vertex_buffer);
 	}
 
-	void Mesh::getRenderInput(size_t mesh_idx, Hippios::VertexBuffer** pvb, Hippios::IndexBuffer** pib, int& num_indices)
+	void Mesh::getRenderInput(size_t mesh_idx, hippios::VertexBuffer** pvb, hippios::IndexBuffer** pib, int& num_indices)
 	{
 		*pvb = get_vbuffer();
 		*pib = get_ibuffer(mesh_idx);

@@ -6,7 +6,7 @@
 #include <memory>
 #include <cstdint>
 
-namespace Psio
+namespace psio
 {
     std::shared_ptr<InputEvent> BuildQuitEvent();
 

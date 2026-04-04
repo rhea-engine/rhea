@@ -4,7 +4,7 @@
 #include <Rhea/Event.h>
 #include "GraphicsManager.h"
 
-namespace Poseidon
+namespace poseidon
 {
 	class Core;
 	class Camera;
@@ -22,7 +22,7 @@ namespace rhea::client {
 		{}
 
 		// factory function
-		bool Ensure(Poseidon::Core* core, rhea::Unit* unit);
+		bool Ensure(poseidon::Core* core, rhea::Unit* unit);
 
 		// handle update event
 		bool onUpdate(rhea::Event* ev, rhea::Unit* unit);

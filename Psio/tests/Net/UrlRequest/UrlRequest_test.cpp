@@ -10,7 +10,7 @@ using testing::_;
 using testing::MockFunction;
 using testing::Return;
 
-namespace Psio {
+namespace psio {
 
 	class UrlRequestT : public UrlRequest
 	{

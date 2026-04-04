@@ -8,7 +8,7 @@
 #include "D3D11GraphicsBuffer.h"
 #include <cassert>
 
-namespace Hippios
+namespace hippios
 {
 	D3D11GraphicsBuffer::D3D11GraphicsBuffer(ID3D11Device* d3dDevice, ID3D11DeviceContext* deviceContext, UINT buffer_type, size_t size_in_bytes, bool dynamic, UINT access_flag)
 	{

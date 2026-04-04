@@ -3,7 +3,7 @@
 #include <time.h>
 #include <cstdint>
 
-namespace Psio
+namespace psio
 {
 	uint64_t Timer::getTicks()
 	{

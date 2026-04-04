@@ -10,7 +10,7 @@
 #include "TextureGpuCache.h"
 #include "MaterialGpuCache.h"
 
-namespace Poseidon
+namespace poseidon
 {
 	class Core;
 }
@@ -48,7 +48,7 @@ namespace rhea::client {
 		void addItem(std::string render_context, rhea::Item* item);
 
 		// get the engine
-		Poseidon::Core* getEngine() { return m_core.get(); }
+		poseidon::Core* getEngine() { return m_core.get(); }
 
 		// Service events
 
@@ -63,7 +63,7 @@ namespace rhea::client {
 		void ToggleFullscreen();
 
 		// get the manager for a certain type
-		GraphicsManager* getManager(SimpleParser::Type* type);
+		GraphicsManager* getManager(simpleparser::Type* type);
 
 		template<typename T>
 		GraphicsManager* getManager() {
@@ -82,9 +82,9 @@ namespace rhea::client {
 		MaterialGpuCache& materialCache() { return m_materialCache; }
 
 	protected:
-		std::unique_ptr<Poseidon::Core> m_core;
+		std::unique_ptr<poseidon::Core> m_core;
 		rhea::Service* m_platform;
-		std::unordered_map<SimpleParser::Type*, std::unique_ptr<GraphicsManager>> m_managers;
+		std::unordered_map<simpleparser::Type*, std::unique_ptr<GraphicsManager>> m_managers;
 
 		template<typename T>
 		void addManager(std::unique_ptr<GraphicsManager> mgr) {

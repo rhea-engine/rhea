@@ -1,7 +1,7 @@
 #include "GLStencilState.h"
 #include "GLBaseTypes.h"
 
-namespace Hippios
+namespace hippios
 {
 	GLenum toGLStencilOp(StencilOp op)
 	{

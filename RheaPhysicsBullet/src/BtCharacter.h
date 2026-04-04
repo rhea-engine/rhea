@@ -39,15 +39,15 @@ namespace rhea::physics::bullet
 		bool isMoveControllable() const override;
 
 		// set position
-		void setPosition(const Math::Vector3& position) override;
+		void setPosition(const math::Vector3& position) override;
 
 		// set jump_state
-		bool jump(Math::Vector3& pos) override;
+		bool jump(math::Vector3& pos) override;
 		// set flying
 		void fly();
 
 		// set orientation
-		void setOrientation(const Math::Quaternion& rot) override;	
+		void setOrientation(const math::Quaternion& rot) override;	
 		
 		// stop the current movement
 		void stop() override;
@@ -62,7 +62,7 @@ namespace rhea::physics::bullet
 		void detectGhostContacts();
 
 		// move in the given direction - move must be already adjusted to timestep
-		void moveStep(rhea::Position* pos, Math::Vector3& move);
+		void moveStep(rhea::Position* pos, math::Vector3& move);
 
 		// check if we are on the floor
 		// if we are not but in step_height distance adjust current position
@@ -73,7 +73,7 @@ namespace rhea::physics::bullet
 		void updateHeadContact();
 
 		// update in physics step
-		Math::Vector3 update(rhea::Position* pos, Math::Vector3& move, Math::Vector3& gravity) override;
+		math::Vector3 update(rhea::Position* pos, math::Vector3& move, math::Vector3& gravity) override;
 
 		void* queryInterface(const std::string& id) override {
 			if (id == "PhysicsCharacter") return static_cast<rhea::IPhysicsCharacter*>(this);
@@ -90,7 +90,7 @@ namespace rhea::physics::bullet
 		
 		float m_gravity;
 		moveState m_move_state;
-		Math::Vector3 m_forced_movement;
+		math::Vector3 m_forced_movement;
 		rhea::Position* m_position;
 
 		btDynamicsWorld* m_world;
@@ -115,7 +115,7 @@ namespace rhea::physics::bullet
 		float m_minimal_ground;
 
 		bool m_hitting_wall;
-		std::vector<Math::Vector3> m_surface_hits_normals;
+		std::vector<math::Vector3> m_surface_hits_normals;
 
 		//some internal variables
 		btVector3 m_currentPosition;

@@ -13,7 +13,7 @@ public:
 	}
 
 	// handle request
-	virtual int OnRequest(Psio::HttpRequest* req, Psio::HttpResponse* res) = 0;
+	virtual int OnRequest(psio::HttpRequest* req, psio::HttpResponse* res) = 0;
 	
 	void onData(unsigned char* buf, size_t len) {}
 	void onEnd() { }

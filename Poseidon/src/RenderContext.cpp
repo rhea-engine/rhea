@@ -4,7 +4,7 @@
 #include "Poseidon/Camera.h"
 #include <Rhea/Components/MeshComponent.h>
 
-namespace Poseidon
+namespace poseidon
 {
 	RenderContext::RenderContext(std::string name) :
 		m_camera(nullptr),

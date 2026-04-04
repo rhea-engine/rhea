@@ -5,7 +5,7 @@
 #include <memory>
 #include <Orion/ResourceStream.h>
 
-namespace Orion
+namespace orion
 {
 	class ResolverInterface
 	{

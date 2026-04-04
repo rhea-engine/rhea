@@ -31,7 +31,7 @@ namespace rhea
         void onInit() = 0;
 
         virtual void toggleDebug() {}
-        virtual Unit* ray(Math::Vector3 origin, Math::Vector3 direction) { return nullptr; }
+        virtual Unit* ray(math::Vector3 origin, math::Vector3 direction) { return nullptr; }
 
         using CreatorFunc = std::function<std::unique_ptr<PhysicsBody>(PhysicsService*, Item*)>;
         void registerPhysicsComponent(const std::string& name, CreatorFunc func) { m_physics_component_registry[name] = func; }

@@ -2,7 +2,7 @@
 #ifndef HIPPIOS_TEXTURE_DESC_H
 #define HIPPIOS_TEXTURE_DESC_H
 
-namespace Hippios
+namespace hippios
 {
 	struct TextureDesc
 	{

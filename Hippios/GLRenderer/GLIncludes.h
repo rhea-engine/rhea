@@ -29,7 +29,7 @@ typedef BOOL(WINAPI* PFNWGLCHOOSEPIXELFORMATARBPROC)(HDC, const int*, const FLOA
 
 #include "Hippios/PipelineState.h"
 
-namespace Hippios
+namespace hippios
 {
 	struct GLCapabilities
 	{

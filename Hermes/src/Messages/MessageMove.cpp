@@ -1,9 +1,9 @@
 #include "Hermes/Messages/MessageMove.h"
 
-namespace Hermes
+namespace hermes
 {
 
-	void MessageMove::serialize(Psio::IOBuffer* buf)
+	void MessageMove::serialize(psio::IOBuffer* buf)
 	{
 		base.size = sizeof(BaseMessage) + sizeof(uint32_t) * 4;
 		if (buf->FreeBufSize() < base.size) {
@@ -22,7 +22,7 @@ namespace Hermes
 		buf->Produce(size);
 	}
 
-	void MessageMove::unserialize(Psio::IOBuffer* buf)
+	void MessageMove::unserialize(psio::IOBuffer* buf)
 	{
 		NUID = readL(buf);
 		move[0] = readF(buf);
@@ -30,7 +30,7 @@ namespace Hermes
 		move[2] = readF(buf);
 	}
 
-	Message* MessageMove::create(uint16_t opcode, uint16_t size, Psio::IOBuffer* buf)
+	Message* MessageMove::create(uint16_t opcode, uint16_t size, psio::IOBuffer* buf)
 	{
 		MessageMove* msg;
 		msg = new MessageMove();

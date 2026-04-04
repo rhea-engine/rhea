@@ -3,7 +3,7 @@
 
 #include "TextureDesc.h"
 
-namespace Hippios
+namespace hippios
 {
 	class Renderer;
 

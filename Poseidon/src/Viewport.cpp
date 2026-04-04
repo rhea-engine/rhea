@@ -7,7 +7,7 @@
 
 #include "Poseidon/Entity.h"
 
-namespace Poseidon
+namespace poseidon
 {	
 	Viewport::Viewport(std::string name) :
 		m_name(name),
@@ -23,7 +23,7 @@ namespace Poseidon
 		Node::~Node();
 	}
 
-	void Viewport::initRenderTarget(Hippios::Renderer* renderer)
+	void Viewport::initRenderTarget(hippios::Renderer* renderer)
 	{		
 		m_renderer = renderer;
 	}
@@ -45,14 +45,14 @@ namespace Poseidon
 		return m_render_contexts.back().get();
 	}
 
-	void Viewport::createRenderTarget(int width, int height, Hippios::SwapChain* swap_chain)
+	void Viewport::createRenderTarget(int width, int height, hippios::SwapChain* swap_chain)
 	{
 		m_width = width;
 		m_height = height;
 		m_swapchain = swap_chain;
 
-		Hippios::RenderTargetDesc desc;
-		desc.type = Hippios::RenderTargetType::SwapChain;
+		hippios::RenderTargetDesc desc;
+		desc.type = hippios::RenderTargetType::SwapChain;
 		desc.width = width;
 		desc.height = height;
 		desc.swap_chain = swap_chain;

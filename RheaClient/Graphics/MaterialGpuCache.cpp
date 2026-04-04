@@ -2,7 +2,7 @@
 #include <Rhea/Resources/ImageResource.h>
 
 namespace rhea::client {
-	Poseidon::Material* MaterialGpuCache::getOrCreate(Poseidon::Core* core, rhea::Material* material, const Builder& builder)
+	poseidon::Material* MaterialGpuCache::getOrCreate(poseidon::Core* core, rhea::Material* material, const Builder& builder)
 	{
         auto key = material->getPath();
         std::string desiredShader = material->getValueString("shader");

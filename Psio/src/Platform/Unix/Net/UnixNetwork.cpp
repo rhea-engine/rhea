@@ -3,7 +3,7 @@
 #include <cstdio>
 #include <csignal>
 
-void Psio::NetworkUnix::Init()
+void psio::NetworkUnix::Init()
 {
 	struct sigaction sa{};
 	sa.sa_handler = SIG_IGN;
@@ -15,7 +15,7 @@ void Psio::NetworkUnix::Init()
 	}
 }
 
-int Psio::NetworkUnix::SysErr(int err)
+int psio::NetworkUnix::SysErr(int err)
 {
 	if (err <= 0)
 		return err;

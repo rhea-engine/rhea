@@ -7,7 +7,7 @@
 
 #include <iostream>
 
-namespace Orion
+namespace orion
 {	
 	ResourceRequest::ResourceRequest(string rid, Orion *orion) : 
 		ResourceRequest(rid, orion, "")
@@ -297,10 +297,10 @@ namespace Orion
 			LOG(LOG_INFO) << "Resource requested: " << path;
 
 			// Request the resource
-			m_request = new Psio::UrlRequest(m_orion->getIO());
+			m_request = new psio::UrlRequest(m_orion->getIO());
 
-			m_request->OnResponse([&](Psio::UrlResponse* res) {
-				std::unique_ptr<Psio::UrlResponse> resp;
+			m_request->OnResponse([&](psio::UrlResponse* res) {
+				std::unique_ptr<psio::UrlResponse> resp;
 				resp.reset(res);
 				m_stream = std::make_unique<UrlResponseStream>(std::move(resp));
 				// caller doesn't know about response codes

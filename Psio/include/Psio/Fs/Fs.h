@@ -4,7 +4,7 @@
 #include <string>
 #include <stdio.h>
 
-namespace Psio
+namespace psio
 {
 	class Fs
 	{

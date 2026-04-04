@@ -16,14 +16,14 @@
 using rhea::client::GraphicsService;
 using rhea::Service;
 
-namespace Poseidon
+namespace poseidon
 {
 	void Application::init(int argc, char* argv[])
 	{
 		rhea::Application::init(argc, argv);
 
-		SimpleParser::Type::registerType<rhea::Controller>("//meworla/icontroller");
-		SimpleParser::Type::registerType<rhea::Unit>("//meworla/avatarlist");
+		simpleparser::Type::registerType<rhea::Controller>("//meworla/icontroller");
+		simpleparser::Type::registerType<rhea::Unit>("//meworla/avatarlist");
 	
 		GraphicsService* g_service = static_cast<rhea::client::GraphicsService*>(getService("graphics"));
 		if (g_service) {
@@ -54,11 +54,11 @@ namespace Poseidon
 		res_list.push("skeletal_shader", "//rhea/shaders/skeletal.shader", "//meworla/shader");
 
 		// skybox		
-		Hippios::DepthStencilStateDesc dss;
+		hippios::DepthStencilStateDesc dss;
 		std::memset(&dss, 0, sizeof(dss));
 		dss.depth_enable = true;
-		dss.depth_write_mask = Hippios::DepthWriteMask::DEPTH_WRITE_ALL;
-		dss.depth_func = Hippios::ComparisonFunction::COMPARE_LESS_EQUAL;
+		dss.depth_write_mask = hippios::DepthWriteMask::DEPTH_WRITE_ALL;
+		dss.depth_func = hippios::ComparisonFunction::COMPARE_LESS_EQUAL;
 		doCast<GraphicsService>(getService("graphics"))->getEngine()->get_renderer()->createStencilState("skybox", dss);
 		res_list.push("skybox_shader", "//rhea/shaders/skybox.shader", "//meworla/shader");
 

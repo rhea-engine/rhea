@@ -3,7 +3,7 @@
 
 #include "Texture.h"
 
-namespace Poseidon
+namespace poseidon
 {
 	class Cubemap : public Texture
 	{

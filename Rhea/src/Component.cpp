@@ -10,12 +10,12 @@ namespace rhea
 		return ret;
 	}
 
-	void Component::initializeType(SimpleParser::Type* type)
+	void Component::initializeType(simpleparser::Type* type)
 	{
 		type->registerMethod("setName", &Component::setName);
 		type->registerMethod("getName", &Component::getPathName);
 
-		type->registerProperty("path", SimpleParser::Type::get(SimpleParser::Type::BaseType::STRING), "setName", "getName");
+		type->registerProperty("path", simpleparser::Type::get(simpleparser::Type::BaseType::STRING), "setName", "getName");
 	}
 
 	void Component::setName(std::string name)

@@ -14,8 +14,8 @@ namespace Meworla
 		if (m_app->getFS()->getFs()->fileExists(cred_path))
 		{
 			// file exists		
-			std::unique_ptr<Orion::FileResourceStream> stream = std::make_unique<Orion::FileResourceStream>(cred_path);
-			std::unique_ptr<Psio::IOBuffer> buf = std::make_unique<Psio::IOBuffer>(64 * 1024);
+			std::unique_ptr<orion::FileResourceStream> stream = std::make_unique<orion::FileResourceStream>(cred_path);
+			std::unique_ptr<psio::IOBuffer> buf = std::make_unique<psio::IOBuffer>(64 * 1024);
 			if (stream->Read(buf.get())) {
 				const char* ptr = buf->reader();
 				size_t len = buf->Remaining();

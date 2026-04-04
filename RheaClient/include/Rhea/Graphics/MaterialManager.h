@@ -15,12 +15,12 @@ namespace rhea::client {
 		{}
 
 		// ensure shader is created
-		Poseidon::Shader* EnsurePoseidonShader(Poseidon::Core* core, rhea::Material* material_res, rhea::Shader* shader_res);
+		poseidon::Shader* EnsurePoseidonShader(poseidon::Core* core, rhea::Material* material_res, rhea::Shader* shader_res);
 
 		// create an element for this unit
-		bool Ensure(Poseidon::Core* core, rhea::Unit* unit);
+		bool Ensure(poseidon::Core* core, rhea::Unit* unit);
 
-		bool FillPoseidonMaterial(Poseidon::Core* core, rhea::Material* material_res, Poseidon::Material* out_mat, bool fresh_build);
+		bool FillPoseidonMaterial(poseidon::Core* core, rhea::Material* material_res, poseidon::Material* out_mat, bool fresh_build);
 
 		// handle frame update
 		void onFrame() {}

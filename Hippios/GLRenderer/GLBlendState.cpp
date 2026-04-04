@@ -1,6 +1,6 @@
 #include "GLBlendState.h"
 
-namespace Hippios
+namespace hippios
 {
 	GLBlendState::GLBlendState(const BlendStateDesc& desc) :
 		m_desc(desc)

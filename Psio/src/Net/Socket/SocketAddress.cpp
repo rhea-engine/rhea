@@ -2,7 +2,7 @@
 #include <cassert>
 #include <cstring>
 
-namespace Psio
+namespace psio
 {
 	SocketAddress::SocketAddress() : 
 		m_ipv4(true),

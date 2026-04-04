@@ -3,5 +3,5 @@
 void {{SCOPE}}::{{PROJECT_NAME}}Fabric::Register(rhea::Application* app)
 {
 	//  Register modules here, for example:
-	//  SimpleParser::Type::registerType<{{PROJECT_NAME}}>("//{{SCOPE_LOWER}}/{{PROJECT_NAME_LOWER}}");
+	//  simpleparser::Type::registerType<{{PROJECT_NAME}}>("//{{SCOPE_LOWER}}/{{PROJECT_NAME_LOWER}}");
 }

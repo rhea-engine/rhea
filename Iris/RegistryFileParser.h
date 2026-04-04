@@ -36,7 +36,7 @@ protected:
 	Error parseContent(char* buf, size_t& reader, size_t buflen, int &line, std::unordered_map<std::string, std::string>& values);
 	Error parseContentEntry(char* buf, size_t& reader, size_t buflen, int &line, std::string& key, std::string &value);
 	Registry* m_registry;
-	std::unique_ptr<SimpleParser::SimpleParser> parser;
+	std::unique_ptr<simpleparser::SimpleParser> parser;
 };
 
 #endif // !REGISTRYFILEPARSER_H

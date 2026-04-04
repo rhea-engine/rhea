@@ -67,9 +67,9 @@ namespace rhea
 			float h_bottom_left = m_heights[gridX + (gridZ + 1) * m_length];
 
 			ret = barryCentric(
-				Math::Vector3(0, h_top_left, 0),
-				Math::Vector3(1, h_top_right, 0),
-				Math::Vector3(0, h_bottom_left, 1), 
+				math::Vector3(0, h_top_left, 0),
+				math::Vector3(1, h_top_right, 0),
+				math::Vector3(0, h_bottom_left, 1), 
 				xCoord, zCoord);
 		}
 		else {
@@ -78,9 +78,9 @@ namespace rhea
 			float h_bottom_left = m_heights[gridX + (gridZ + 1) * m_length];
 
 			ret = barryCentric(
-				Math::Vector3(1, h_top_right, 0),
-				Math::Vector3(1, h_bottom_right, 1),
-				Math::Vector3(0, h_bottom_left, 1), 
+				math::Vector3(1, h_top_right, 0),
+				math::Vector3(1, h_bottom_right, 1),
+				math::Vector3(0, h_bottom_left, 1), 
 				xCoord, zCoord);
 		}
 		return ret;
@@ -91,7 +91,7 @@ namespace rhea
 		if (x<0 || y<0 || x>=m_width || y>=m_length)
 			return 0.0f;
 
-		Poseidon::Image::Color c = m_heightmap->getPixel(x, y);
+		poseidon::Image::Color c = m_heightmap->getPixel(x, y);
 		// "normalize" to grey
 		unsigned char height = (unsigned char)(0.299 * c.r + 0.587 * c.g + 0.114 * c.b);
 		// scale to max_height
@@ -104,14 +104,14 @@ namespace rhea
 		return map;
 	}
 
-	Math::Vector3 Terrain::calculateNormal(int x, int y)
+	math::Vector3 Terrain::calculateNormal(int x, int y)
 	{
 		float heightL = getHeightAt(x - 1, y);
 		float heightR = getHeightAt(x + 1, y);
 		float heightD = getHeightAt(x, y - 1);
 		float heightU = getHeightAt(x, y + 1);
 
-		Math::Vector3 normal(heightL - heightR, 2.0f, heightD - heightU);
+		math::Vector3 normal(heightL - heightR, 2.0f, heightD - heightU);
 		normal.normalize();
 
 		return normal;
@@ -173,9 +173,9 @@ namespace rhea
 					std::vector<uint32_t> indices;
 
 					struct vertex_norm_uv {
-						Math::Vector3 position;
-						Math::Vector3 normal;
-						Math::Vector2 uv;
+						math::Vector3 position;
+						math::Vector3 normal;
+						math::Vector2 uv;
 					};
 
 					std::unordered_map<std::string, std::string> attributes;
@@ -185,7 +185,7 @@ namespace rhea
 					mesh->setMaterial(m_material);
 
 					// build vertex/index buffers from image
-					m_heightmap = std::make_unique<Poseidon::Image>();
+					m_heightmap = std::make_unique<poseidon::Image>();
 					if (static_cast<Resource*>(map)->getRaw((char**)&buf, &buflen)) {
 						m_heightmap->load(buf, buflen);
 						m_width = m_heightmap->getWidth();
@@ -289,7 +289,7 @@ namespace rhea
 		}
 	}
 
-	float Terrain::barryCentric(Math::Vector3 p1, Math::Vector3 p2, Math::Vector3 p3, float x, float z)
+	float Terrain::barryCentric(math::Vector3 p1, math::Vector3 p2, math::Vector3 p3, float x, float z)
 	{
 		float det = (p2.z - p3.z) * (p1.x - p3.x) + (p3.x - p2.x) * (p1.z - p3.z);
 		float l1 = ((p2.z - p3.z) * (x - p3.x) + (p3.x - p2.x) * (z - p3.z)) / det;

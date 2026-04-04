@@ -5,7 +5,7 @@
 
 #include <SDL3/SDL_scancode.h>
 
-namespace Psio
+namespace psio
 {
     Key TranslateSDLScancode(SDL_Scancode scancode);
 }

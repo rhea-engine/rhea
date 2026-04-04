@@ -11,7 +11,7 @@
 #endif // __linux__
 
 
-namespace Psio
+namespace psio
 {
 	bool NamedPipe::StartServer()
 	{

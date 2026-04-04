@@ -35,7 +35,7 @@ namespace rhea
 		void setDelegate(NetworkDelegate* delegate) { m_delegate = delegate; }
 
 		// handle movement requests
-		void onMovementChanged(const Math::Vector3& move) override;
+		void onMovementChanged(const math::Vector3& move) override;
 		void onTurnChanged(float turn) override;		
 
 		// handle authoritative position setting

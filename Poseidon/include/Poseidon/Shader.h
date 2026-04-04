@@ -10,7 +10,7 @@
 #include <Hippios/SamplerState.h>
 #include <Poseidon/Core.h>
 
-namespace Poseidon
+namespace poseidon
 {
 	struct SamplerBindingDesc
 	{
@@ -37,7 +37,7 @@ namespace Poseidon
 		std::string semantic;
 		uint32_t semanticIndex = 0;
 		uint32_t location = 0;
-		Hippios::InputLayoutFormat format = Hippios::InputLayoutFormat::FORMAT_UNKNOWN;
+		hippios::InputLayoutFormat format = hippios::InputLayoutFormat::FORMAT_UNKNOWN;
 		uint32_t inputSlot = 0;
 		uint32_t alignedByteOffset = 0;
 		bool perInstance = false;
@@ -54,7 +54,7 @@ namespace Poseidon
 		void setInputLayout(const std::vector<VertexInputAttribute>& elements, uint32_t stride);
 		// set the vertex input layout for this shader, with multiple input slots and given bindings
 		void setInputLayout(const std::vector<VertexInputAttribute>& elements,
-			const std::vector<Hippios::InputBindingDesc>& bindings);
+			const std::vector<hippios::InputBindingDesc>& bindings);
 
 		// load a shader from file returns true on success
 		bool loadFromFile(std::string filename, char* vs_entry_point, char* ps_entry_point);
@@ -66,7 +66,7 @@ namespace Poseidon
 		bool loadFromSourceDesc(const ShaderProgramSourceDesc& desc);
 
 		// return the shader program
-		Hippios::ShaderProgram* getShaderProgram() { return m_shader; }
+		hippios::ShaderProgram* getShaderProgram() { return m_shader; }
 
 		// set alpha blending
 		void setAlphaBlending(bool enable) { m_alpha_blending = enable; }
@@ -82,7 +82,7 @@ namespace Poseidon
 		void setCullMode(bool enabled) { m_cull_mode = enabled; }
 
 		// sampler reference
-		void setSamplerState(Hippios::SamplerState* sampler_state) { m_sampler_state = sampler_state; }
+		void setSamplerState(hippios::SamplerState* sampler_state) { m_sampler_state = sampler_state; }
 
 		// setup is complete, finalize
 		void finalize();
@@ -138,17 +138,17 @@ namespace Poseidon
 		Core* m_grahpics_core;
 
 		std::vector<VertexInputAttribute> m_input_layout;
-		std::vector<Hippios::InputBindingDesc> m_input_bindings;
+		std::vector<hippios::InputBindingDesc> m_input_bindings;
 
-		Hippios::Renderer* m_renderer;
-		Hippios::ShaderProgram* m_shader;		
+		hippios::Renderer* m_renderer;
+		hippios::ShaderProgram* m_shader;		
 
 		bool m_alpha_blending;
-		std::unique_ptr<Hippios::PipelineStateObject> m_pso;
+		std::unique_ptr<hippios::PipelineStateObject> m_pso;
 		std::string m_depth_stencil_state;
 		int m_topology_type;
 		bool m_cull_mode;
-		Hippios::SamplerState* m_sampler_state;
+		hippios::SamplerState* m_sampler_state;
 		bool m_depth_test = true;
 		bool m_has_depth_test_override = false;
 		bool m_depth_write = true;
@@ -158,13 +158,13 @@ namespace Poseidon
 		std::vector<MatBufferLayoutElement> m_matbuf_layout;
 		size_t m_matbuf_size;
 		std::unordered_map<std::string, int> m_matbuf_layout_map;
-		Hippios::GraphicsBuffer* m_material_buffer;
+		hippios::GraphicsBuffer* m_material_buffer;
 
 		// vertex shader material buffer
 		std::vector<MatBufferLayoutElement> m_matbuf_layout_vs;
 		size_t m_matbuf_size_vs;
 		std::unordered_map<std::string, int> m_matbuf_layout_map_vs;
-		Hippios::GraphicsBuffer* m_material_buffer_vs;
+		hippios::GraphicsBuffer* m_material_buffer_vs;
 
 		bool m_activate_error_logged = false;
 	};

@@ -1,7 +1,7 @@
 #include <Psio/Net/UrlRequest/Url.h>
 #include <vector>
 
-namespace Psio
+namespace psio
 {
 	Url::Url(const std::string& url) :
 		Url()

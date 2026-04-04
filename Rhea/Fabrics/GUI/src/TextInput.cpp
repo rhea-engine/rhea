@@ -158,16 +158,16 @@ namespace rhea
 		if (!m_has_focus)
 			return false;
 
-		Psio::KeyInputEvent* e = static_cast<Psio::KeyInputEvent*>(static_cast<EventInput*>(ev)->getEvent().get());
+		psio::KeyInputEvent* e = static_cast<psio::KeyInputEvent*>(static_cast<EventInput*>(ev)->getEvent().get());
 		switch (e->getKeyCode()) {
-		case Psio::Key::CODE_LEFT:
+		case psio::Key::CODE_LEFT:
 			if (m_pos > 0) {
 				m_pos--;
 				updateCursor(true);				
 			}
 			ev->stopPropagation();
 			break;
-		case Psio::Key::CODE_RIGHT:
+		case psio::Key::CODE_RIGHT:
 			if (m_pos < m_length) {
 				m_pos++;
 				updateCursor(true);
@@ -180,8 +180,8 @@ namespace rhea
 
 	bool TextInput::onTextInput(Event* ev, Unit* unit)
 	{
-		std::shared_ptr<Psio::InputEvent> e = static_cast<EventInput*>(ev)->getEvent();
-		std::string text = static_cast<Psio::TextInputEvent*>(e.get())->getText();
+		std::shared_ptr<psio::InputEvent> e = static_cast<EventInput*>(ev)->getEvent();
+		std::string text = static_cast<psio::TextInputEvent*>(e.get())->getText();
 		switch (text[0]) {
 		case '\b':
 			if (m_pos > 0) {
@@ -234,7 +234,7 @@ namespace rhea
 		ev->stopPropagation();
 
 		EventInput* ei = static_cast<EventInput*>(ev);
-		std::shared_ptr<Psio::MouseInputEvent> e = std::static_pointer_cast<Psio::MouseInputEvent>(ei->getEvent());
+		std::shared_ptr<psio::MouseInputEvent> e = std::static_pointer_cast<psio::MouseInputEvent>(ei->getEvent());
 		int mx = e->getX();
 		int my = e->getY();
 

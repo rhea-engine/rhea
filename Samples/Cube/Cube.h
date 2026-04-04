@@ -4,7 +4,7 @@
 #include "Poseidon/SceneManager.h"
 #include "Rhea/InputMap.h"
 
-namespace Poseidon
+namespace poseidon
 {
 	class Mesh;
 }
@@ -12,21 +12,21 @@ namespace Poseidon
 class CubeApp : public rhea::Application
 {
 protected:
-	Poseidon::SceneManager* m_scene = 0;
+	poseidon::SceneManager* m_scene = 0;
 
-	Hippios::vertexUVVec vertices;
+	hippios::vertexUVVec vertices;
 
-	Poseidon::Entity* cube1 = 0;
-	Poseidon::Entity* cube2 = 0;
+	poseidon::Entity* cube1 = 0;
+	poseidon::Entity* cube2 = 0;
 
-	Poseidon::Vector3 m_position;
+	poseidon::Vector3 m_position;
 
 	//Global Declarations - Interfaces//
-	Poseidon::Mesh* mesh;
+	poseidon::Mesh* mesh;
 
-	Hippios::Engine* engine;
-	Hippios::Renderer* renderer;
-	Poseidon::Camera* m_camera;
+	hippios::Engine* engine;
+	hippios::Renderer* renderer;
+	poseidon::Camera* m_camera;
 
 	ID3D11InputLayout* vertLayout;
 
@@ -38,31 +38,31 @@ protected:
 	const int Height = 864;
 
 	float rot = 0.01f;
-	Poseidon::Matrix4 pv;
+	poseidon::Matrix4 pv;
 
-	Poseidon::Material* m_material;
+	poseidon::Material* m_material;
 
 	struct cbPerObjectMVP
 	{
-		Poseidon::Matrix3x4  model;
-		Poseidon::Matrix4 vp;
+		poseidon::Matrix3x4  model;
+		poseidon::Matrix4 vp;
 	};
 
 	cbPerObjectMVP cbPerObjMVP;
 
 	bool onFrameBegin();
-	bool onInput(std::shared_ptr<Psio::InputEvent> evt);
+	bool onInput(std::shared_ptr<psio::InputEvent> evt);
 
-	Psio::KeyInputEvent *e_left;
-	Psio::KeyInputEvent *e_right;
-	Psio::KeyInputEvent *e_up;
-	Psio::KeyInputEvent *e_down;
-	Psio::KeyInputEvent* e_home;
-	Psio::KeyInputEvent* e_end;
+	psio::KeyInputEvent *e_left;
+	psio::KeyInputEvent *e_right;
+	psio::KeyInputEvent *e_up;
+	psio::KeyInputEvent *e_down;
+	psio::KeyInputEvent* e_home;
+	psio::KeyInputEvent* e_end;
 
 	rhea::InputMap m_input_map;
 
-	//std::unordered_map<Psio::InputEvent, std::vector<std::string>, decltype(Psio::ievt_hashing), decltype(Psio::ievt_equal_fn)> m_input_map;
+	//std::unordered_map<psio::InputEvent, std::vector<std::string>, decltype(psio::ievt_hashing), decltype(psio::ievt_equal_fn)> m_input_map;
 
 public:
 	void setup();

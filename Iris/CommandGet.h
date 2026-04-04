@@ -14,7 +14,7 @@ public:
 		m_registry(registy)
 	{}
 
-	int OnRequest(Psio::HttpRequest* req, Psio::HttpResponse* res);
+	int OnRequest(psio::HttpRequest* req, psio::HttpResponse* res);
 
 protected:
 	Registry* m_registry;

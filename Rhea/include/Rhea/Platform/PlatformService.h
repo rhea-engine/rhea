@@ -5,7 +5,7 @@
 
 #include <Rhea/Service.h>
 
-namespace Psio
+namespace psio
 {
 	class Engine;
 }
@@ -18,14 +18,14 @@ namespace rhea
 	public:
 		PlatformService(std::string name, std::string type_name);
 
-		Psio::Engine* getEngine() { if (!m_psio) createEngine(); return m_psio.get(); }
+		psio::Engine* getEngine() { if (!m_psio) createEngine(); return m_psio.get(); }
 
 		// Service functions
 		void onInit();
 	
 	protected:
-		Psio::Engine* createEngine();
-		std::unique_ptr<Psio::Engine> m_psio;
+		psio::Engine* createEngine();
+		std::unique_ptr<psio::Engine> m_psio;
 	};
 }
 #endif // !RHEA_PLATFORMSERVICE_H

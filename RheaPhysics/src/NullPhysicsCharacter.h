@@ -16,8 +16,8 @@ namespace rhea::physics
 		}
 
 		// update in physics step
-		Math::Vector3 update(rhea::Position* pos, Math::Vector3& move, Math::Vector3& gravity) override;
-		bool jump(Math::Vector3& pos) override;
+		math::Vector3 update(rhea::Position* pos, math::Vector3& move, math::Vector3& gravity) override;
+		bool jump(math::Vector3& pos) override;
 
 		virtual bool isOnGround() const override { return true; }
 

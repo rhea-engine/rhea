@@ -30,7 +30,7 @@ namespace rhea::client {
 	
 	}
 
-	bool GraphicsItemManager::Ensure(Poseidon::Core* core, rhea::Unit* unit)
+	bool GraphicsItemManager::Ensure(poseidon::Core* core, rhea::Unit* unit)
 	{
 		rhea::Item* item = doCast<rhea::Item>(unit);
 		if (!item) return false;
@@ -52,7 +52,7 @@ namespace rhea::client {
 		rhea::Light* light = doCast<rhea::Light>(item);
 		if (light) {
 			DLOG(LOG_DEBUG) << "GraphicsItemManager::Ensure: light";			
-			Poseidon::Renderable* light_entity = static_cast<Poseidon::Renderable*>(createEntity(rc, core, unit, "default", false));			
+			poseidon::Renderable* light_entity = static_cast<poseidon::Renderable*>(createEntity(rc, core, unit, "default", false));			
 		}
 		else {
 			rhea::MeshComponent* mc = item->getComponent<rhea::MeshComponent>();
@@ -83,8 +83,8 @@ namespace rhea::client {
 			auto* meshMgr = static_cast<GraphicsMeshManager*>(m_service->getManager<rhea::Mesh>());
 
 			// Get shared GPU mesh from cache 
-			Poseidon::Mesh* shared = m_service->meshCache().getOrCreate(core, mesh, mesh->isDynamic(),
-				[&](Poseidon::Core* core, rhea::Mesh* mesh, Poseidon::Mesh* out)->bool {
+			poseidon::Mesh* shared = m_service->meshCache().getOrCreate(core, mesh, mesh->isDynamic(),
+				[&](poseidon::Core* core, rhea::Mesh* mesh, poseidon::Mesh* out)->bool {
 					return meshMgr->FillPoseidonMesh(core, mesh, out);
 				});
 			if (!shared) {
@@ -94,7 +94,7 @@ namespace rhea::client {
 			rc->gpuMesh = shared;
 			rhea::Skeleton* skeleton = mesh->getComponent<rhea::Skeleton>();
 			if (skeleton) {
-				/*Poseidon::Skeleton* gpuSkeleton = meshMgr->getOrCreateGPUSkeleton(core, skeleton);
+				/*poseidon::Skeleton* gpuSkeleton = meshMgr->getOrCreateGPUSkeleton(core, skeleton);
 				if (!gpuSkeleton) {
 					LOG(LOG_ERROR) << "  -> FAILED: GPU skeleton creation failed for '" << item->getPathName() << "'";
 					return false;
@@ -104,7 +104,7 @@ namespace rhea::client {
 			}
 		
 			// Create instance render entity using shared mesh
-			rc->entity = static_cast<Poseidon::Renderable*>(
+			rc->entity = static_cast<poseidon::Renderable*>(
 				createRenderable(rc, core, unit, shared, "default")
 				);
 
@@ -140,15 +140,15 @@ namespace rhea::client {
 		// NOTE: This assumes a changed material will actually be a new material (i.e. the old one gets destroyed)
 
 		// 1) Ensure GPU mesh exists (from cache)
-		Poseidon::Mesh* gpu = rc->gpuMesh;
+		poseidon::Mesh* gpu = rc->gpuMesh;
 		if (!gpu) {
 			auto* meshMgr = static_cast<GraphicsMeshManager*>(m_service->getManager<rhea::Mesh>());
 
 			gpu = m_service->meshCache().getOrCreate(
-				m_service->getEngine(), // Poseidon::Core*
+				m_service->getEngine(), // poseidon::Core*
 				mesh,
 				mesh->isDynamic(),
-				[&](Poseidon::Core* c, rhea::Mesh* m, Poseidon::Mesh* out) {
+				[&](poseidon::Core* c, rhea::Mesh* m, poseidon::Mesh* out) {
 					return meshMgr->FillPoseidonMesh(c, m, out);
 				});
 
@@ -158,13 +158,13 @@ namespace rhea::client {
 
 		// lazy-create entity if missing
 		if (!rc->entity && gpu) {
-			rc->entity = static_cast<Poseidon::Renderable*>(
+			rc->entity = static_cast<poseidon::Renderable*>(
 				createRenderable(rc, m_service->getEngine(), unit, gpu, "default")
 				);
 		}
 
 		// 2) Ensure all submesh materials have GPU materials + apply them to gpu mesh
-		Poseidon::Core* core = m_service->getEngine();
+		poseidon::Core* core = m_service->getEngine();
 		auto* matMgr = static_cast<GraphicsMaterialManager*>(m_service->getManager<rhea::Material>());
 
 		for (size_t i = 0; i < mesh->getNumSubmeshes(); i++) {
@@ -175,11 +175,11 @@ namespace rhea::client {
 			}
 
 			// Ask cache for GPU material (create/rebuild if needed)
-			Poseidon::Material* gpuMat =
+			poseidon::Material* gpuMat =
 				m_service->materialCache().getOrCreate(
 					core,
 					material,
-					[&](Poseidon::Core* c, rhea::Material* m, Poseidon::Material* outMat, bool fresh) -> bool {
+					[&](poseidon::Core* c, rhea::Material* m, poseidon::Material* outMat, bool fresh) -> bool {
 						return matMgr->FillPoseidonMaterial(c, m, outMat, fresh);
 					});
 			if (!gpuMat) {
@@ -188,7 +188,7 @@ namespace rhea::client {
 			}
 			
 			// Apply Poseidon material to cached gpu mesh
-			Poseidon::Mesh::SubMesh* sub = gpu->getSubMesh(i);
+			poseidon::Mesh::SubMesh* sub = gpu->getSubMesh(i);
 			if (!sub) continue;
 
 			sub->material = gpuMat;			

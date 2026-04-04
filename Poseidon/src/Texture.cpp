@@ -1,8 +1,8 @@
 #include "Poseidon/Texture.h"
 
-namespace Poseidon
+namespace poseidon
 {
-	void Texture::bind(Hippios::Renderer* renderer)
+	void Texture::bind(hippios::Renderer* renderer)
 	{
 		m_renderer = renderer;
 	}
@@ -42,10 +42,10 @@ namespace Poseidon
 
 	void Texture::createTexture()
 	{
-		Hippios::TextureDesc desc;
+		hippios::TextureDesc desc;
 		desc.width = m_width;
 		desc.height = m_height;
-		desc.type = Hippios::TextureDesc::TextureType::TEXTURE_2D;
+		desc.type = hippios::TextureDesc::TextureType::TEXTURE_2D;
 		desc.depth = 1;
 		desc.array_size = 1;
 		m_hw_texture = m_renderer->createTexture(desc);

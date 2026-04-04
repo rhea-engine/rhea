@@ -3,7 +3,7 @@
 
 #include <functional>
 
-namespace Math
+namespace math
 {
 	class Vector2 {
 	public:

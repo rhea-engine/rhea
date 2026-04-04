@@ -7,7 +7,7 @@ namespace rhea
 		VertexBuffer::push_back((float*)&vertex);
 	}
 
-	void VertexBufferSkeletal::SetPosition(int index, const Math::Vector3& position)
+	void VertexBufferSkeletal::SetPosition(int index, const math::Vector3& position)
 	{
 		if (index > m_vertex_count) {
 			reserve(index);
@@ -16,7 +16,7 @@ namespace rhea
 		v->position = position;
 	}
 
-	void VertexBufferSkeletal::SetNormal(int index, const Math::Vector3& normal)
+	void VertexBufferSkeletal::SetNormal(int index, const math::Vector3& normal)
 	{
 		if (index > m_vertex_count) {
 			reserve(index);
@@ -25,7 +25,7 @@ namespace rhea
 		v->normal = normal;
 	}
 
-	void VertexBufferSkeletal::SetTexcoord(int index, const Math::Vector2& uv)
+	void VertexBufferSkeletal::SetTexcoord(int index, const math::Vector2& uv)
 	{
 		if (index > m_vertex_count) {
 			reserve(index);
@@ -34,7 +34,7 @@ namespace rhea
 		v->texcoord = uv;
 	}
 
-	void VertexBufferSkeletal::SetTangent(int index, const Math::Vector3& tangent)
+	void VertexBufferSkeletal::SetTangent(int index, const math::Vector3& tangent)
 	{
 		if (index > m_vertex_count) {
 			reserve(index);

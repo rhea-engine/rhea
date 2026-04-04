@@ -5,7 +5,7 @@
 #include <vector>
 #include "GLIncludes.h"
 
-namespace Hippios
+namespace hippios
 {
 	/// Internal helper: compiles a single GL shader stage (vertex or fragment).
 	/// Not part of the public API — used by GLShaderProgram.

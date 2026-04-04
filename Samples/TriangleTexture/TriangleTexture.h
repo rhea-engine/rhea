@@ -5,9 +5,9 @@
 class TriangleTextureApp : public rhea::Application
 {
 protected:
-	Poseidon::SceneManager* m_scene = 0;
+	poseidon::SceneManager* m_scene = 0;
 
-	Hippios::vertexUVVec vertices;
+	hippios::vertexUVVec vertices;
 public:
 	void setup();
 	void initialize();

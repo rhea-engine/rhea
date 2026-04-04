@@ -4,7 +4,7 @@
 #include <string>
 #include "Variant.h"
 
-namespace SimpleParser
+namespace simpleparser
 {
 	enum class TokenType {
 		TOKEN_STRING,

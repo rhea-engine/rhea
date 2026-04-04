@@ -1,6 +1,6 @@
 #include "Poseidon/Node.h"
 
-namespace Poseidon
+namespace poseidon
 {
 	Node::~Node()
 	{

@@ -29,7 +29,7 @@ namespace rhea::client {
 		virtual ~GraphicsManager() {}
 
 		// Ensures this unit is ready for the graphics pipeline
-		virtual bool Ensure(Poseidon::Core* core, rhea::Unit* unit) = 0;
+		virtual bool Ensure(poseidon::Core* core, rhea::Unit* unit) = 0;
 
 		// handle frame update
 		virtual void onFrame() = 0;
@@ -37,10 +37,10 @@ namespace rhea::client {
 		// renderables utility functions
 
 		// create a renderable mesh
-		Poseidon::Node* createRenderable(RenderComponent* rc, Poseidon::Core* core, rhea::Unit* item, Poseidon::Mesh* mesh, std::string render_context_name);
+		poseidon::Node* createRenderable(RenderComponent* rc, poseidon::Core* core, rhea::Unit* item, poseidon::Mesh* mesh, std::string render_context_name);
 		
 		// create an entity
-		Poseidon::Node* createEntity(RenderComponent* rc, Poseidon::Core* core, rhea::Unit* item, std::string render_context_name, bool dynamic_usage);
+		poseidon::Node* createEntity(RenderComponent* rc, poseidon::Core* core, rhea::Unit* item, std::string render_context_name, bool dynamic_usage);
 
 		// set position from values to transform t
 		void setPosition(rhea::Unit* u, rhea::Transform* t);	

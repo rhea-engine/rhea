@@ -31,7 +31,7 @@ namespace rhea::physics::bullet
 		int m_width;
 		int m_height;
 		std::vector<unsigned char> m_map;
-		std::unique_ptr<Poseidon::Image> m_image;
+		std::unique_ptr<poseidon::Image> m_image;
 	};
 }
 

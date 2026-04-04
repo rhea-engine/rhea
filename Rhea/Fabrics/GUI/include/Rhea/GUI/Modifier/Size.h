@@ -10,7 +10,7 @@ namespace rhea {
 	class SizeModifier : public Modifier
 	{
 	public:
-		SizeModifier(Math::Vector2 size) :
+		SizeModifier(math::Vector2 size) :
 			m_size(size)
 		{}
 
@@ -36,7 +36,7 @@ namespace rhea {
 		std::string name() { return "size"; }
 
 	protected:
-		Math::Vector2 m_size;
+		math::Vector2 m_size;
 	};
 }
 

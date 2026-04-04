@@ -1,7 +1,7 @@
 #include "Win32Network.h"
 #include <Psio/Log.h>
 
-void Psio::NetworkWin32::Init()
+void psio::NetworkWin32::Init()
 {
 	WSADATA wsa;
 	long rc = WSAStartup(MAKEWORD(2, 0), &wsa);
@@ -11,7 +11,7 @@ void Psio::NetworkWin32::Init()
 	}
 }
 
-int Psio::NetworkWin32::SysErr(int err)
+int psio::NetworkWin32::SysErr(int err)
 {
 	if (err <= 0)
 		return err;

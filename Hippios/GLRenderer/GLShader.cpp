@@ -3,7 +3,7 @@
 #include <sstream>
 #include <Psio/Log.h>
 
-namespace Hippios
+namespace hippios
 {
 	GLShader::GLShader() = default;
 

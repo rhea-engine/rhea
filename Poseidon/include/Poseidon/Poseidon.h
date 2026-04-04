@@ -2,7 +2,7 @@
 #include "Core.h"
 #include <Rhea/Physics/IPhysicsDebugDraw.h>
 
-namespace Poseidon
+namespace poseidon
 {
 	class Application : public rhea::Application
 	{
@@ -23,13 +23,13 @@ namespace Poseidon
 		void onScene(rhea::Scene *scene);
 
 		// get the core
-		Poseidon::Core* get_core() { return core; };
+		poseidon::Core* get_core() { return core; };
 
 		// debug physics engine
 		void toggleDebug();
 
 	protected:
-		Poseidon::Core* core;
+		poseidon::Core* core;
 
 		bool m_phys_debug;
 		rhea::IPhysicsDebugDraw* m_debug_draw;

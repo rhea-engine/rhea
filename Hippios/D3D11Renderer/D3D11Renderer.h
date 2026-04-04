@@ -15,7 +15,7 @@
 #include "D3D11ShaderProgram.h"
 
 class D3D11Driver;
-namespace Hippios
+namespace hippios
 {
 	class D3D11Window;
 	class HippiosWindow;
@@ -123,7 +123,7 @@ namespace Hippios
 
 		bool getStencilStateDesc(const std::string& name, DepthStencilStateDesc& outDesc) override;
 
-		void prepareMatricesForShader(Math::Matrix4* dst, const Math::Matrix4* src, size_t count) const override;		
+		void prepareMatricesForShader(math::Matrix4* dst, const math::Matrix4* src, size_t count) const override;		
 
 		RendererBackend getRendererBackend() const override { return RendererBackend::D3D11; }
 

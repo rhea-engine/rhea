@@ -14,10 +14,10 @@ namespace rhea::physics
 	{
 	}
 
-	void NullPhysicsBody::move(Math::Vector3 move)
+	void NullPhysicsBody::move(math::Vector3 move)
 	{
-		if (move == Math::Vector3::ZERO &&
-			m_movement != Math::Vector3::ZERO) {
+		if (move == math::Vector3::ZERO &&
+			m_movement != math::Vector3::ZERO) {
 			stop();
 		}
 		m_movement = move;
@@ -28,7 +28,7 @@ namespace rhea::physics
 		m_turn = turn;
 	}
 
-	void NullPhysicsBody::setPosition(const Math::Vector3& position)
+	void NullPhysicsBody::setPosition(const math::Vector3& position)
 	{
 
 	}

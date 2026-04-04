@@ -5,7 +5,7 @@
 #include "../Network.h"
 #include "Socket.h"
 
-namespace Psio
+namespace psio
 {
 	/*
 	* Connector is an abstract interface to connectors to sockets

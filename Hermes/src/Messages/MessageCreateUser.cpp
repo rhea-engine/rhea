@@ -1,8 +1,8 @@
 #include "Hermes/Messages/MessageCreateUser.h"
 
-namespace Hermes
+namespace hermes
 {
-	void MessageCreateUser::serialize(Psio::IOBuffer* buf)
+	void MessageCreateUser::serialize(psio::IOBuffer* buf)
 	{
 		base.size = (uint16_t)(sizeof(BaseMessage) + 4 * sizeof(uint32_t) + auth_method.length() + user_name.length() + name.length() + ext_id.length() + sizeof(uint16_t));
 		if (secrets.size() > 0) {
@@ -34,7 +34,7 @@ namespace Hermes
 		buf->Produce(size);
 	}
 
-	void MessageCreateUser::unserialize(Psio::IOBuffer* buf)
+	void MessageCreateUser::unserialize(psio::IOBuffer* buf)
 	{
 		auth_method = readStr(buf);
 		user_name = readStr(buf);
@@ -46,7 +46,7 @@ namespace Hermes
 				secrets.push_back(readStr(buf));
 	}
 
-	Message* MessageCreateUser::create(uint16_t opcode, uint16_t size, Psio::IOBuffer* buf)
+	Message* MessageCreateUser::create(uint16_t opcode, uint16_t size, psio::IOBuffer* buf)
 	{
 		MessageCreateUser* msg;
 		msg = new MessageCreateUser(opcode);

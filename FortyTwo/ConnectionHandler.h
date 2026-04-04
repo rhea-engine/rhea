@@ -19,7 +19,7 @@ public:
 	{}
 	void Initialize(Rhea::ClientConnection* connection);
 protected:
-	std::unique_ptr<Hermes::ServerStream> server_stream;
+	std::unique_ptr<hermes::ServerStream> server_stream;
 	std::unique_ptr<AuthHandler> auth_handlers;
 	std::unique_ptr<rhea::LobbyServer> lobby_server;
 	std::unique_ptr<rhea::WorldServer> world_server;

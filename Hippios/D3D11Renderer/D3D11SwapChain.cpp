@@ -1,6 +1,6 @@
 #include "D3D11SwapChain.h"
 
-namespace Hippios
+namespace hippios
 {
 	D3D11SwapChain::~D3D11SwapChain()
 	{

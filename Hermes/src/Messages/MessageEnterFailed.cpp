@@ -1,7 +1,7 @@
 #include "Hermes/Messages/MessageEnterFailed.h"
 
-namespace Hermes {
-	void MessageEnterFailed::serialize(Psio::IOBuffer* buf)
+namespace hermes {
+	void MessageEnterFailed::serialize(psio::IOBuffer* buf)
 	{
 		base.size = sizeof(BaseMessage) + sizeof(reason);
 		if (buf->FreeBufSize() < base.size) {
@@ -17,12 +17,12 @@ namespace Hermes {
 		buf->Produce(size);
 	}
 
-	void MessageEnterFailed::unserialize(Psio::IOBuffer* buf)
+	void MessageEnterFailed::unserialize(psio::IOBuffer* buf)
 	{
 		reason = readS(buf);
 	}
 
-	Message* MessageEnterFailed::create(uint16_t opcode, uint16_t size, Psio::IOBuffer* buf)
+	Message* MessageEnterFailed::create(uint16_t opcode, uint16_t size, psio::IOBuffer* buf)
 	{
 		MessageEnterFailed* msg;
 		msg = new MessageEnterFailed();

@@ -4,7 +4,7 @@
 #include <Orion/ResourceStream.h>
 #include <Orion/RealmRequest.h>
 
-namespace Orion
+namespace orion
 {
 	Realms::Realms(Orion* orion) : m_orion(orion)
 	{
@@ -25,7 +25,7 @@ namespace Orion
 		// get from realms.conf
 		std::string path = m_orion->getFs()->getInstallDataDir();
 		path += std::string("/Meworla/Core/realms.conf");
-		if (Psio::Fs::fileExists(path))
+		if (psio::Fs::fileExists(path))
 		{
 			FileResourceStream* res = new FileResourceStream(path);
 			res->Open();
@@ -136,10 +136,10 @@ namespace Orion
 		// get lookup info from iris.conf
 		std::string path = m_orion->getFs()->getInstallDataDir();
 		path += std::string("/Meworla/iris.conf");
-		if (Psio::Fs::fileExists(path))
+		if (psio::Fs::fileExists(path))
 		{
 			FileResourceStream* res = new FileResourceStream(path);
-			res->SetMode(Psio::Fs::READ);
+			res->SetMode(psio::Fs::READ);
 			res->Open();
 			while (!res->eof()) {
 				std::string s = res->getLine();

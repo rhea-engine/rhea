@@ -9,7 +9,7 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 
-namespace Psio
+namespace psio
 {
 	class SSLConnector : public Connector
 	{

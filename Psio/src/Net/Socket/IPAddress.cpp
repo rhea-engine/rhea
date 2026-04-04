@@ -2,7 +2,7 @@
 
 #include <Psio/Net/Socket/IPAddress.h>
 
-namespace Psio
+namespace psio
 {
 	IPAddress::IPAddress() :
 		m_valid(false),

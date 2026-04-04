@@ -2,7 +2,7 @@
 
 #include <ctime> // for std::time
 
-namespace Orion
+namespace orion
 {
     void to_json(Json& j, const Realm& r)
     {

@@ -1,7 +1,7 @@
 #include "GLSwapChainWin32.h"
 #include <Psio/Log.h>
 
-namespace Hippios
+namespace hippios
 {
 	GLSwapChainWin32::GLSwapChainWin32(NativeWindow* win) :
 		m_native_win_handle(win->native_win_handle),

@@ -54,12 +54,12 @@ namespace rhea::client {
 		// handle add item event
 		bool onItemAdd(rhea::Event* ev, rhea::Unit* unit);
 
-		bool Ensure(Poseidon::Core* core, rhea::Unit* unit);	
+		bool Ensure(poseidon::Core* core, rhea::Unit* unit);	
 
 		void onFrame() {}
 	
 	protected:
-		Poseidon::Core* m_core;
+		poseidon::Core* m_core;
 	};
 }
 

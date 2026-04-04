@@ -3,7 +3,7 @@
 
 #include <string>
 
-namespace Poseidon
+namespace poseidon
 {
 	class Image {
 	protected:

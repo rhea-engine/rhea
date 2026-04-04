@@ -40,17 +40,17 @@ public:
 	MOCK_METHOD(std::string, getScene, ());	
 };
 
-class HermesServerMock : public Hermes::ServerStream
+class HermesServerMock : public hermes::ServerStream
 {
 public:
-	HermesServerMock(std::unique_ptr<Psio::StreamSocket> sock, Hermes::MessageFactory* msg_factory) :
-		Hermes::ServerStream(std::move(sock), nullptr)
+	HermesServerMock(std::unique_ptr<psio::StreamSocket> sock, hermes::MessageFactory* msg_factory) :
+		hermes::ServerStream(std::move(sock), nullptr)
 	{}
 	~HermesServerMock() { }
 
 	MOCK_METHOD(int, onLogin, (ServerStream::LoginHandler handler));
 	MOCK_METHOD(int, onMessage, (ServerStream::MessageHandler handler));
-	MOCK_METHOD(int, sendMessage, (Hermes::Message*, Hermes::Stream::CompletionHandler));
+	MOCK_METHOD(int, sendMessage, (hermes::Message*, hermes::Stream::CompletionHandler));
 };
 
 class PlayerMock : public rhea::Item
@@ -62,7 +62,7 @@ public:
 	{}
 	~PlayerMock() { }
 
-	MOCK_METHOD(void, setMovement, (Math::Vector3));
+	MOCK_METHOD(void, setMovement, (math::Vector3));
 	MOCK_METHOD(void, setTurn, (float));
 };
 
@@ -75,7 +75,7 @@ public:
 	{}
 	~ServerServiceMock() { }
 
-	MOCK_METHOD(void, broadcast, (Hermes::Message*, ClientConnection*));
+	MOCK_METHOD(void, broadcast, (hermes::Message*, ClientConnection*));
 };
 
 class ClientConnectionTest : public ::testing::Test {
@@ -84,7 +84,7 @@ protected:
 	rhea::Realm* realm = nullptr;
 	rhea::Scene* scene = nullptr;	
 	std::unique_ptr<HermesServerMock> hermes;
-	Hermes::ServerStream::MessageHandler handler;
+	hermes::ServerStream::MessageHandler handler;
 	std::unique_ptr<PlayerMock> player;
 	std::unique_ptr<ServerServiceMock> server;
 	std::unique_ptr<AccountService> acc_srv;
@@ -95,14 +95,14 @@ protected:
 		app->init();
 		scene = new rhea::Scene("testscene", "//meworla/scene");
 
-		SimpleParser::Type::registerType<ServerServiceMock>("//meworla/serverservice");
-		SimpleParser::Type::registerType<WorldMock>("//meworla/world");
+		simpleparser::Type::registerType<ServerServiceMock>("//meworla/serverservice");
+		simpleparser::Type::registerType<WorldMock>("//meworla/world");
 		server = std::make_unique<ServerServiceMock>("server", "//meworla/serverservice");
 		app->registerService("server", server.get());
 
 		// setup message stream
-		Psio::TCPSocket* tcp_sock = new Psio::TCPSocket(nullptr);
-		std::unique_ptr<Psio::TCPSocket> sock;
+		psio::TCPSocket* tcp_sock = new psio::TCPSocket(nullptr);
+		std::unique_ptr<psio::TCPSocket> sock;
 		sock.reset(tcp_sock);
 		
 		hermes = std::make_unique<HermesServerMock>(std::move(sock), nullptr);
@@ -136,7 +136,7 @@ TEST_F(ClientConnectionTest, StartTest)
 	ASSERT_TRUE(hermes_ref != nullptr);
 		
 	// Define variables to capture callback arguments
-	std::unique_ptr<Hermes::Message> capturedMessage;
+	std::unique_ptr<hermes::Message> capturedMessage;
 	int capturedError = -1;
 
 	EXPECT_CALL(*hermes_ref, onLogin)
@@ -167,7 +167,7 @@ TEST_F(ClientConnectionTest, StartTestLoginCompleted)
 	app->getUnitTree()->addChild(&world);
 
 	// Define variables to capture callback arguments
-	std::unique_ptr<Hermes::Message> capturedMessage;
+	std::unique_ptr<hermes::Message> capturedMessage;
 	int capturedError = -1;
 
 	EXPECT_CALL(*hermes_ref, onLogin)
@@ -303,8 +303,8 @@ TEST_F(ClientConnectionTest, OnAvatarNotExisting)
 		.Times(1)
 		.WillOnce(
 			testing::DoAll(
-				testing::WithArg<0>([](Hermes::ServerStream::MessageHandler h) {
-					std::unique_ptr<Hermes::MessageEnterWorld> msg = std::make_unique<Hermes::MessageEnterWorld>();
+				testing::WithArg<0>([](hermes::ServerStream::MessageHandler h) {
+					std::unique_ptr<hermes::MessageEnterWorld> msg = std::make_unique<hermes::MessageEnterWorld>();
 					msg->avatar = "avatar";
 					h(std::move(msg), 0);
 					}),
@@ -341,7 +341,7 @@ TEST_F(ClientConnectionTest, OnAvatarSuccess)
 	app->getUnitTree()->addChild(avatar_model);
 
 	// Define variables to capture callback arguments
-	Hermes::Message* capturedMessage = nullptr;
+	hermes::Message* capturedMessage = nullptr;
 	int capturedError = -1;
 
 	EXPECT_CALL(*hermes_ref, sendMessage(MsgEq(HERMES_MSG_CREATE), _))
@@ -356,8 +356,8 @@ TEST_F(ClientConnectionTest, OnAvatarSuccess)
 		.Times(2)
 		.WillOnce(
 			testing::DoAll(
-				testing::WithArg<0>([](Hermes::ServerStream::MessageHandler h) {
-					std::unique_ptr<Hermes::MessageEnterWorld> msg = std::make_unique<Hermes::MessageEnterWorld>();
+				testing::WithArg<0>([](hermes::ServerStream::MessageHandler h) {
+					std::unique_ptr<hermes::MessageEnterWorld> msg = std::make_unique<hermes::MessageEnterWorld>();
 					msg->avatar = "avatar";
 					h(std::move(msg), 0);
 					}),
@@ -393,8 +393,8 @@ TEST_F(ClientConnectionTest, CheckMoveMessage)
 		.Times(1)
 		.WillOnce(
 			testing::DoAll(
-				testing::WithArg<0>([](Hermes::ServerStream::MessageHandler h) {
-					std::unique_ptr<Hermes::MessageMove> msg = std::make_unique<Hermes::MessageMove>();
+				testing::WithArg<0>([](hermes::ServerStream::MessageHandler h) {
+					std::unique_ptr<hermes::MessageMove> msg = std::make_unique<hermes::MessageMove>();
 					msg->move[0] = 1.0f;
 					msg->move[1] = 1.0f;
 					msg->move[2] = 1.0f;
@@ -427,8 +427,8 @@ TEST_F(ClientConnectionTest, CheckTurnMessage)
 		.Times(1)
 		.WillOnce(
 			testing::DoAll(
-				testing::WithArg<0>([](Hermes::ServerStream::MessageHandler h) {
-					std::unique_ptr<Hermes::MessageTurn> msg = std::make_unique<Hermes::MessageTurn>();
+				testing::WithArg<0>([](hermes::ServerStream::MessageHandler h) {
+					std::unique_ptr<hermes::MessageTurn> msg = std::make_unique<hermes::MessageTurn>();
 					msg->turn = 1.0f;
 					h(std::move(msg), 0);
 					}),

@@ -15,7 +15,7 @@
 
 #pragma comment(lib,"d3dcompiler.lib")
 
-namespace Hippios
+namespace hippios
 {
 	std::wstring s2ws(const std::string& s)
 	{

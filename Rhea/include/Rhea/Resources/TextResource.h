@@ -13,7 +13,7 @@ namespace rhea
 			Resource(basename, type_name)
 		{}
 		~TextResource();
-		void load(Orion::ResourceRequest* req, ReadyHandler handler);
+		void load(orion::ResourceRequest* req, ReadyHandler handler);
 
 		std::string getAsString();
 	};

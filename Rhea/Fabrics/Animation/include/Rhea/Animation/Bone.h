@@ -12,16 +12,16 @@ struct Bone {
     int parent_index;                       // Index of the parent bone
     std::vector<int> children_indices;      // Indices of child bones
 
-    Math::Matrix4 inverse_bind_matrix;           // Inverse bind pose matrix
-    Math::Matrix4 local_transform;              // Local transform (relative to parent)
-    Math::Matrix4 global_transform;             // Global transform (optional but common)
-    Math::Matrix4 final_transform;              // Final transform used for skinning (optional)
+    math::Matrix4 inverse_bind_matrix;           // Inverse bind pose matrix
+    math::Matrix4 local_transform;              // Local transform (relative to parent)
+    math::Matrix4 global_transform;             // Global transform (optional but common)
+    math::Matrix4 final_transform;              // Final transform used for skinning (optional)
 
     // Constructor
-    Bone(int idx, int parentIdx, const Math::Matrix4& invBindMat)
+    Bone(int idx, int parentIdx, const math::Matrix4& invBindMat)
         : index(idx), parent_index(parentIdx), inverse_bind_matrix(invBindMat),
-        local_transform(Math::Matrix4()), global_transform(Math::Matrix4()),
-        final_transform(Math::Matrix4()) {}
+        local_transform(math::Matrix4()), global_transform(math::Matrix4()),
+        final_transform(math::Matrix4()) {}
 
     // Method to add a child bone index
     void addChild(int child_index) {
@@ -29,7 +29,7 @@ struct Bone {
     }
 
     // Method to update the global transform (called during animation)
-    void UpdateGlobalTransform(const Math::Matrix4& parentGlobalTransform) {
+    void UpdateGlobalTransform(const math::Matrix4& parentGlobalTransform) {
         global_transform = parentGlobalTransform * local_transform;
         final_transform = global_transform * inverse_bind_matrix; // For skinning      
     }

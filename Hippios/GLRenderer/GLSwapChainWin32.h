@@ -5,7 +5,7 @@
 #include <Hippios/BaseTypes.h>
 #include "GLIncludes.h"
 
-namespace Hippios
+namespace hippios
 {
 	class GLSwapChainWin32 : public SwapChain
 	{

@@ -1,8 +1,8 @@
 #include "Hermes/Messages/MessageJump.h"
 
-namespace Hermes
+namespace hermes
 {
-	void MessageJump::serialize(Psio::IOBuffer* buf)
+	void MessageJump::serialize(psio::IOBuffer* buf)
 	{
 		base.size = sizeof(BaseMessage) + sizeof(uint32_t) * 1;
 		if (buf->FreeBufSize() < base.size) {
@@ -18,12 +18,12 @@ namespace Hermes
 		buf->Produce(size);
 	}
 
-	void MessageJump::unserialize(Psio::IOBuffer* buf)
+	void MessageJump::unserialize(psio::IOBuffer* buf)
 	{
 		NUID = readL(buf);
 	}
 
-	Message* MessageJump::create(uint16_t opcode, uint16_t size, Psio::IOBuffer* buf)
+	Message* MessageJump::create(uint16_t opcode, uint16_t size, psio::IOBuffer* buf)
 	{
 		MessageJump* msg;
 		msg = new MessageJump();

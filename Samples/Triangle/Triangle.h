@@ -5,9 +5,9 @@
 class TriangleApp : public rhea::Application
 {
 protected:
-	Poseidon::SceneManager* m_scene = 0;
+	poseidon::SceneManager* m_scene = 0;
 
-	Hippios::vertexVec vertices;
+	hippios::vertexVec vertices;
 public:
 	void setup();
 	void initialize();

@@ -3,7 +3,7 @@
 
 #include <memory>
 
-namespace Hippios
+namespace hippios
 {
 	class D3D11VertexBuffer : public VertexBuffer
 	{	

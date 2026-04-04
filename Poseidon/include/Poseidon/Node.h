@@ -12,7 +12,7 @@
 
 using rhea::Position;
 
-namespace Poseidon
+namespace poseidon
 {
 	/** A node is an item in the scene tree	 
 	*/

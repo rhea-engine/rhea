@@ -12,7 +12,7 @@
 #include <stdexcept>
 #include <utility>
 
-namespace Psio
+namespace psio
 {
     SDLBackend::SDLBackend()
     {

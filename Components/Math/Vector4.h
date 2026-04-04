@@ -5,7 +5,7 @@
 #include <functional>
 #include "Vector3.h"
 
-namespace Math
+namespace math
 {
 	class Vector4 {
 	public:

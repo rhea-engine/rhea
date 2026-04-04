@@ -3,7 +3,7 @@
 #include <Psio/Net/Network.h>
 #include <Psio/Log.h>
 
-namespace Psio
+namespace psio
 {
 	TCPSocket::~TCPSocket()
 	{

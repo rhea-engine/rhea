@@ -39,11 +39,11 @@ bool Ceto::onQuit(rhea::Event* ev, rhea::Unit* unit)
 
 bool Ceto::onInput(rhea::EventInput* e, rhea::Unit* unit)
 {
-	std::shared_ptr<Psio::InputEvent> evt = e->getEvent();
+	std::shared_ptr<psio::InputEvent> evt = e->getEvent();
 
 	// close on esc
-	Psio::KeyInputEvent esc(Psio::InputEventId::KEY_PRESSED);
-	esc.set(Psio::Key::CODE_ESC, 0, 0);
+	psio::KeyInputEvent esc(psio::InputEventId::KEY_PRESSED);
+	esc.set(psio::Key::CODE_ESC, 0, 0);
 
 	if (evt->isEvent(&esc)) {
 		rhea::Widget* w = doCast<rhea::Widget>(m_unit_tree->find("//local/cetogui/gui/quit"));
@@ -58,7 +58,7 @@ bool Ceto::onInput(rhea::EventInput* e, rhea::Unit* unit)
 	}
 
 	// open
-	esc.set(Psio::Key::CODE_O, 0, 0);
+	esc.set(psio::Key::CODE_O, 0, 0);
 	if (evt->isEvent(&esc)) {
 		rhea::Widget* w = doCast<rhea::Widget>(m_unit_tree->find("//local/cetogui/gui/realms"));
 		if (w) {
@@ -68,7 +68,7 @@ bool Ceto::onInput(rhea::EventInput* e, rhea::Unit* unit)
 	}	
 
 	// next frame of animation loop
-	esc.set(Psio::Key::CODE_F, 0, 0);
+	esc.set(psio::Key::CODE_F, 0, 0);
 	if (evt->isEvent(&esc)) {
 		rhea::Item* gus2 = doCast<rhea::Item>(m_unit_tree->find("//local/scene1/gus2"));
 		if (gus2)
@@ -147,7 +147,7 @@ void Ceto::openScene(std::string scene_name)
 
 void Ceto::setup()
 {
-	Poseidon::Application::setup();
+	poseidon::Application::setup();
 
 	// check for config file
 
@@ -160,8 +160,8 @@ void Ceto::setup()
 	if (m_fs->getFs()->fileExists(m_userpref_path))
 	{
 		// file exists		
-		std::unique_ptr<Orion::FileResourceStream> stream = std::make_unique<Orion::FileResourceStream>(m_userpref_path);
-		std::unique_ptr<Psio::IOBuffer> buf = std::make_unique<Psio::IOBuffer>(64 * 1024);
+		std::unique_ptr<orion::FileResourceStream> stream = std::make_unique<orion::FileResourceStream>(m_userpref_path);
+		std::unique_ptr<psio::IOBuffer> buf = std::make_unique<psio::IOBuffer>(64 * 1024);
 		if (stream->Read(buf.get())) {
 			const char* ptr = buf->reader();
 			size_t len = buf->Remaining();		
@@ -191,7 +191,7 @@ void Ceto::setup()
 	engine->addChild(user);
 
 	// a color material - uses the shader resource system
-	// The Poseidon::Shader will be created lazily by EnsurePoseidonShader
+	// The poseidon::Shader will be created lazily by EnsurePoseidonShader
 	// when a mesh with this material is first rendered.
 	rhea::Material* mat = new rhea::Material("color");
 	mat->setup(this);
@@ -205,8 +205,8 @@ void Ceto::setScene(bool mark_preferrences)
 		m_userprefs.lastUsed(m_home_scene);
 
 		std::string s = m_userprefs.toJSON();
-		std::unique_ptr<Orion::FileResourceStream> stream = std::make_unique<Orion::FileResourceStream>(m_userpref_path);
-		stream->SetMode(Psio::Fs::WRITE);
+		std::unique_ptr<orion::FileResourceStream> stream = std::make_unique<orion::FileResourceStream>(m_userpref_path);
+		stream->SetMode(psio::Fs::WRITE);
 		stream->Open();
 		stream->Write(s.c_str(), s.size());
 		stream->Close();
@@ -309,11 +309,11 @@ void Ceto::showScene(rhea::Scene* scene)
 		mgr->Ensure(core, m_view);
 		Variant pos = scene->getValue("start");
 		if (pos != Variant()) {
-			Math::Vector3 start_pos(pos[0], pos[1], pos[2]);
+			math::Vector3 start_pos(pos[0], pos[1], pos[2]);
 			m_view->setPosition(start_pos);
 		}
 		else {
-			m_view->setPosition(Math::Vector3(0, 1.7f, 0.0f));
+			m_view->setPosition(math::Vector3(0, 1.7f, 0.0f));
 		}
 	}
 
@@ -418,15 +418,15 @@ bool Ceto::onFrameEnd()
 		debug += "debugging: sec=" + std::to_string(elapsed_s) +"; fps = " + std::to_string(floor(fps*100)/100.0f);
 		m_focused_controller = doCast<rhea::BasicController>(m_unit_tree->find("//local/scene1/maincamera"));
 		if (m_focused_controller) {
-			Math::Vector3 pos = static_cast<rhea::BasicController*>(m_focused_controller)->getPosition();
-			Math::Quaternion rot = static_cast<rhea::BasicController*>(m_focused_controller)->getOrientation();
+			math::Vector3 pos = static_cast<rhea::BasicController*>(m_focused_controller)->getPosition();
+			math::Quaternion rot = static_cast<rhea::BasicController*>(m_focused_controller)->getOrientation();
 			float angle;
-			Math::Vector3 axis;
+			math::Vector3 axis;
 			rot.getAsAngleAxis(angle, axis);
 			debug += "\nPosition: " + std::to_string(pos.x) + " / " + std::to_string(pos.y) + " / " + std::to_string(pos.z);
-			debug += "\nRotation angle=" + std::to_string(angle * Math::M_RADTODEG);
+			debug += "\nRotation angle=" + std::to_string(angle * math::M_RADTODEG);
 			// (vector is always 0,1,0) 
-			//debug += "\nRotation: Angle=" + std::to_string(angle * Math::M_RADTODEG) + "\nAxes: " + std::to_string(axis.x) + " / " + std::to_string(axis.y) + " / " + std::to_string(axis.z);
+			//debug += "\nRotation: Angle=" + std::to_string(angle * math::M_RADTODEG) + "\nAxes: " + std::to_string(axis.x) + " / " + std::to_string(axis.y) + " / " + std::to_string(axis.z);
 		}
 		m_debug_text->setText(debug);
 	}

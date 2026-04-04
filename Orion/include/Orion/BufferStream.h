@@ -3,7 +3,7 @@
 
 #include <Orion/ResourceStream.h>
 
-namespace Orion
+namespace orion
 {
 	class BufferResourceStream : public ResourceStream
 	{

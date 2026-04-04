@@ -7,7 +7,7 @@
 #include "Property.h"
 #include "CssValue.h"
 
-namespace Rhea
+namespace rhea
 {
 	typedef std::unordered_map<StylePropertyId, std::vector<CssValue>> CssRuleSet;
 

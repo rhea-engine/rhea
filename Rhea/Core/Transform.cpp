@@ -1,7 +1,7 @@
 #include "Rhea/Core/Transform.h"
 #include "Rhea/Core/Item.h"
 
-namespace Rhea
+namespace rhea
 {
 	void Transform::update()
 	{

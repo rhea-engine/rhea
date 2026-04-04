@@ -3,7 +3,7 @@
 #include <Rhea/Physics/PhysicsBody.h>
 #include <Rhea/Core/Item.h>
 
-namespace Rhea
+namespace rhea
 {
 	PhysicsManagerService::PhysicsManagerService(std::string name, std::string type_name)
 		: Service(std::move(name), std::move(type_name))

@@ -3,7 +3,7 @@
 
 #include "Light.h"
 
-namespace Rhea
+namespace rhea
 {
 	class PointLight : public Light
 	{

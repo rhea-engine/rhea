@@ -15,7 +15,7 @@ namespace Poseidon
 	class Core;
 }
 
-namespace Rhea
+namespace rhea
 {
 	class Unit;
 	class Element;
@@ -26,26 +26,26 @@ namespace rhea::client {
 	class GraphicsManager;
 	class GraphicsScene;
 
-	class GraphicsService : public Rhea::IGraphicsService
+	class GraphicsService : public rhea::IGraphicsService
 	{
-		MECLASS(GraphicsService, Rhea::IGraphicsService)
+		MECLASS(GraphicsService, rhea::IGraphicsService)
 	public:
 		GraphicsService(std::string name, std::string type_name);
 		~GraphicsService();
 
 		// set the platform service
-		void setPlatform(Rhea::Service* platform_service);
+		void setPlatform(rhea::Service* platform_service);
 
 		// prepare a scene to display
-		void onSceneActivate(Rhea::Scene* scene);
-		void onSceneDeactivate(Rhea::Scene* scene);
+		void onSceneActivate(rhea::Scene* scene);
+		void onSceneDeactivate(rhea::Scene* scene);
 
 		// show the targeted scene
-		void showScene(Rhea::Scene* scene);
-		void hideScene(Rhea::Scene* scene);
+		void showScene(rhea::Scene* scene);
+		void hideScene(rhea::Scene* scene);
 
 		// add item to render context
-		void addItem(std::string render_context, Rhea::Item* item);
+		void addItem(std::string render_context, rhea::Item* item);
 
 		// get the engine
 		Poseidon::Core* getEngine() { return m_core.get(); }
@@ -56,8 +56,8 @@ namespace rhea::client {
 
 		bool onFrameFinal(float delta) override;
 		
-		bool onInput(Rhea::Event* ev, Rhea::Unit* unit);
-		bool onAddItem(Rhea::Event* ev, Rhea::Unit* unit);
+		bool onInput(rhea::Event* ev, rhea::Unit* unit);
+		bool onAddItem(rhea::Event* ev, rhea::Unit* unit);
 		
 		// request fullscreen
 		void ToggleFullscreen();
@@ -75,7 +75,7 @@ namespace rhea::client {
 		}
 
 		// create element for the unit
-		bool addElement(Rhea::Unit* unit);
+		bool addElement(rhea::Unit* unit);
 
 		MeshGpuCache& meshCache() { return m_meshCache; }
 		TextureGpuCache& textureCache() { return m_textureCache; }
@@ -83,7 +83,7 @@ namespace rhea::client {
 
 	protected:
 		std::unique_ptr<Poseidon::Core> m_core;
-		Rhea::Service* m_platform;
+		rhea::Service* m_platform;
 		std::unordered_map<SimpleParser::Type*, std::unique_ptr<GraphicsManager>> m_managers;
 
 		template<typename T>
@@ -92,7 +92,7 @@ namespace rhea::client {
 		}
 		
 		// the activated scenes
-		std::vector<Rhea::Scene* > m_scenes;
+		std::vector<rhea::Scene* > m_scenes;
 
 		// the current mouse pos
 		int m_mx;
@@ -101,7 +101,7 @@ namespace rhea::client {
 		// fullscreen mode
 		bool m_fullscreen;
 
-		Rhea::Unit* pick();
+		rhea::Unit* pick();
 
 		MeshGpuCache m_meshCache; 
 		TextureGpuCache m_textureCache;

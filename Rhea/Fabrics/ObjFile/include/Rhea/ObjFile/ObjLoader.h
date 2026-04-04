@@ -7,7 +7,7 @@
 #include <Math/Vector3.h>
 #include <Math/Vector2.h>
 
-namespace Rhea
+namespace rhea
 {
 	class Application;
 
@@ -18,7 +18,7 @@ namespace Rhea
 		ObjLoader(std::string path_name, std::string type_name) :
 			Geometry(path_name, type_name)
 		{}		
-		bool load(Rhea::Mesh* mesh);
+		bool load(rhea::Mesh* mesh);
 
 		std::vector<Unit::Export> getReferences();
 	

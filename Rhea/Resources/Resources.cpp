@@ -1,6 +1,6 @@
 #include <Rhea/Resources/Resources.h>
 
-namespace Rhea
+namespace rhea
 {
 
 	std::vector<Unit::Export> Resources::getReferences()

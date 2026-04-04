@@ -5,7 +5,7 @@
 
 #include "../Unit.h"
 
-namespace Rhea
+namespace rhea
 {
 	class Resources : public Unit
 	{

@@ -17,8 +17,8 @@ void ConnectionHandler::Initialize(Rhea::ClientConnection* connection)
 
 	server_stream = std::make_unique<Hermes::ServerStream>(connection->getStream());
 	auth_handlers = std::make_unique<AuthHandler>(m_app, m_scene, server_stream.get());
-	lobby_server = std::make_unique<Rhea::LobbyServer>(connection->getStream());
-	world_server = std::make_unique<Rhea::WorldServer>(connection->getStream());
+	lobby_server = std::make_unique<rhea::LobbyServer>(connection->getStream());
+	world_server = std::make_unique<rhea::WorldServer>(connection->getStream());
 
 	server_stream->Initialize();
 	auth_handlers->Initialize();
@@ -27,7 +27,7 @@ void ConnectionHandler::Initialize(Rhea::ClientConnection* connection)
 
 	auth_handlers->onAuthSuccess([&](User* user) {
 		m_user = user;
-		user->Avatars([&](Rhea::Avatar* avatar)->bool {
+		user->Avatars([&](rhea::Avatar* avatar)->bool {
 			lobby_server->avatars.push_back(avatar);
 			return true;
 			});
@@ -35,13 +35,13 @@ void ConnectionHandler::Initialize(Rhea::ClientConnection* connection)
 		lobby_server->Start();
 		});
 
-	lobby_server->setOnCreateAvatar([&](std::string name, std::string model, std::function<void(Rhea::Avatar*)> handler) {
+	lobby_server->setOnCreateAvatar([&](std::string name, std::string model, std::function<void(rhea::Avatar*)> handler) {
 		Math::Vector3 position = { 128.0f, 0.0f, 10.0f }; // default position
 		AccountService* acc_srv;
-		Rhea::Avatar* avatar;
+		rhea::Avatar* avatar;
 
 		acc_srv = doCast<AccountService>(m_app->getService("accounts"));
-		avatar = new Rhea::Avatar(name, "//meworla/avatar");
+		avatar = new rhea::Avatar(name, "//meworla/avatar");
 		avatar->setModel(model);
 		avatar->setPosition(position);
 		acc_srv->CreateAvatar(m_user, avatar, [&, avatar](int err) {
@@ -57,7 +57,7 @@ void ConnectionHandler::Initialize(Rhea::ClientConnection* connection)
 			});
 		});
 
-	lobby_server->setOnEnterWorld([&](Rhea::Avatar* avatar)->int {
+	lobby_server->setOnEnterWorld([&](rhea::Avatar* avatar)->int {
 		return EnterWorld(avatar);
 		});
 
@@ -65,10 +65,10 @@ void ConnectionHandler::Initialize(Rhea::ClientConnection* connection)
 	server_stream->Start();
 }
 
-int ConnectionHandler::EnterWorld(Rhea::Avatar* avatar)
+int ConnectionHandler::EnterWorld(rhea::Avatar* avatar)
 {
 	// instancing the player
-	Rhea::Item* player_model = doCast<Rhea::Item>(m_app->getUnitTree()->find(avatar->getValueString("model")));
+	rhea::Item* player_model = doCast<rhea::Item>(m_app->getUnitTree()->find(avatar->getValueString("model")));
 	if (!player_model) {
 		LOG(LOG_ERROR) << " could not open avatar model " << avatar->getModel();
 		return 2;
@@ -92,9 +92,9 @@ int ConnectionHandler::EnterWorld(Rhea::Avatar* avatar)
 	m_player->setValue("avatar", avatar);
 
 	// add a network controller
-	Rhea::ServerService* server_srv = (Rhea::ServerService*)m_app->getService("server");
+	rhea::ServerService* server_srv = (rhea::ServerService*)m_app->getService("server");
 	int id = server_srv->getUID();
-	m_player->addComponentUnique<Rhea::NetworkComponent>(m_player, id, NET_ROLE_SERVER);
+	m_player->addComponentUnique<rhea::NetworkComponent>(m_player, id, NET_ROLE_SERVER);
 
 	m_scene->addItem(m_player);
 	m_connection->setAuthItem(m_player);
@@ -103,7 +103,7 @@ int ConnectionHandler::EnterWorld(Rhea::Avatar* avatar)
 	DLOG(LOG_DEBUG) << "player ready";
 
 	// get phyisc service from physics manager and initialize item
-	auto* mgr = doCast<Rhea::PhysicsManagerService>(m_app->getService("physics_mgr"));
+	auto* mgr = doCast<rhea::PhysicsManagerService>(m_app->getService("physics_mgr"));
 	if (auto* phy_srv = mgr ? mgr->getPhysicsService() : nullptr) {
 		phy_srv->initializeItem(m_player);
 	}
@@ -113,7 +113,7 @@ int ConnectionHandler::EnterWorld(Rhea::Avatar* avatar)
 	Math::Vector3 pos = m_player->getTransform()->get_position()->get_worldspace();
 	msg.path = internal_name;
 	msg.type_name = avatar->getValueString("model");
-	msg.NUID = m_player->getComponent<Rhea::NetworkComponent>()->NUID();
+	msg.NUID = m_player->getComponent<rhea::NetworkComponent>()->NUID();
 	msg.pos[0] = pos.x;
 	msg.pos[1] = pos.y;
 	msg.pos[2] = pos.z;
@@ -126,16 +126,16 @@ int ConnectionHandler::EnterWorld(Rhea::Avatar* avatar)
 	m_connection->getStream()->sendMessage((Hermes::Message*)&msg, nullptr);
 
 	// send all items with network component
-	std::vector<Rhea::Item*> items = m_scene->getItems();
+	std::vector<rhea::Item*> items = m_scene->getItems();
 	for (auto item_it = items.begin(); item_it != items.end(); ++item_it) {
 		if (*item_it == m_player)
 			continue;
-		Rhea::NetworkComponent* net_com = (*item_it)->getComponent<Rhea::NetworkComponent>();
+		rhea::NetworkComponent* net_com = (*item_it)->getComponent<rhea::NetworkComponent>();
 		if (net_com) {
 			Hermes::MessageCreate item_msg;
 			Math::Vector3 pos = (*item_it)->getTransform()->get_position()->get_worldspace();
 			item_msg.path = (*item_it)->getPathName();
-			avatar = (Rhea::Avatar*)(Variant*)(*item_it)->getValue("avatar");
+			avatar = (rhea::Avatar*)(Variant*)(*item_it)->getValue("avatar");
 			if (avatar) {
 				item_msg.type_name = avatar->getValueString("model");
 			}
@@ -143,7 +143,7 @@ int ConnectionHandler::EnterWorld(Rhea::Avatar* avatar)
 				// no avatar -> TODO: check can there be normal items without avatar?
 				continue;
 			}
-			item_msg.NUID = (*item_it)->getComponent<Rhea::NetworkComponent>()->NUID();
+			item_msg.NUID = (*item_it)->getComponent<rhea::NetworkComponent>()->NUID();
 			item_msg.pos[0] = pos.x;
 			item_msg.pos[1] = pos.y;
 			item_msg.pos[2] = pos.z;

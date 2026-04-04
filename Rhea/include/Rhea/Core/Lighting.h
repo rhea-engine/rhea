@@ -5,7 +5,7 @@
 
 #include <Rhea/Unit.h>
 
-namespace Rhea
+namespace rhea
 {
 	class Lighting : public Unit
 	{

@@ -27,7 +27,7 @@
 #include <Rhea/GUI/Modifier/SizePercentageHeight.h>
 #include <Rhea/Components/MeshComponent.h>
 
-namespace Rhea
+namespace rhea
 {
 	void Widget::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{
@@ -370,7 +370,7 @@ namespace Rhea
 		}
 
 		// Recursively recalculate style for all child widgets.
-		children([&](std::string name, Rhea::Component* child)->bool {
+		children([&](std::string name, rhea::Component* child)->bool {
 			if (doCast<Widget>(child))
 				doCast<Widget>(child)->RecalculateStyle(style_engine);
 			return true;

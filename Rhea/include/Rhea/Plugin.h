@@ -1,7 +1,7 @@
 #ifndef RHEA_PLUGIN_H
 #define RHEA_PLUGIN_H
 
-namespace Rhea
+namespace rhea
 {
 	class Plugin
 	{

@@ -15,7 +15,7 @@
 #include <Rhea/Core/Lighting.h>
 
 namespace rhea::client {
-	const std::vector<Rhea::Item* >& SceneRenderState::getItems()
+	const std::vector<rhea::Item* >& SceneRenderState::getItems()
 	{
 		if (!m_items_valid) {
 			m_items = m_scene->getItems(); // your existing Scene API
@@ -24,7 +24,7 @@ namespace rhea::client {
 		return m_items;
 	}	
 
-	void GraphicsSceneManager::addItem(Rhea::Unit* item)
+	void GraphicsSceneManager::addItem(rhea::Unit* item)
 	{
 		//printf("GraphicsSceneManager::addItem: %s add typename: %s\n", item->getPathName().c_str(), item->getTypeName().c_str());
 
@@ -33,31 +33,31 @@ namespace rhea::client {
 		if (mgr) {
 			mgr->Ensure(m_core, item);
 		}
-		else if (doCast<Rhea::Item>(item)) {
-			mgr = m_service->getManager<Rhea::Item>();
+		else if (doCast<rhea::Item>(item)) {
+			mgr = m_service->getManager<rhea::Item>();
 			mgr->Ensure(m_core, item);
 		}
-		else if (doCast<Rhea::Lighting>(item)) {
+		else if (doCast<rhea::Lighting>(item)) {
 			Poseidon::SceneManager* scene_mgr = m_core->get_scene_manager();
 			if (scene_mgr) {
 				std::string render_context = "default";
-				scene_mgr->getViewport()->getRenderContext(render_context)->setAmbient(doCast<Rhea::Lighting>(item)->getAmbient());
+				scene_mgr->getViewport()->getRenderContext(render_context)->setAmbient(doCast<rhea::Lighting>(item)->getAmbient());
 			}		
 		}
 	}
 
-	bool GraphicsSceneManager::onItemAdd(Rhea::Event* ev, Rhea::Unit* unit)
+	bool GraphicsSceneManager::onItemAdd(rhea::Event* ev, rhea::Unit* unit)
 	{		
-		Rhea::Item* item = doCast<Rhea::Item>(ev->getTarget());
+		rhea::Item* item = doCast<rhea::Item>(ev->getTarget());
 		if (item)
 			addItem(item);
 
 		return false;
 	}
 
-	bool GraphicsSceneManager::Ensure(Poseidon::Core* core, Rhea::Unit* unit)
+	bool GraphicsSceneManager::Ensure(Poseidon::Core* core, rhea::Unit* unit)
 	{
-		Rhea::Scene* scene = doCast<Rhea::Scene>(unit);
+		rhea::Scene* scene = doCast<rhea::Scene>(unit);
 		if (!scene) {
 			LOG(LOG_ERROR) << "GraphicsSceneManager::Ensure: unit is not a scene ";
 			return false;
@@ -74,8 +74,8 @@ namespace rhea::client {
 		// Initialize: add existing items + register handler
 		m_core = core;
 
-		scene->traverse([&](std::string& name, Rhea::Component* c)->bool {
-			Rhea::Unit* u = doCast<Rhea::Unit>(c);
+		scene->traverse([&](std::string& name, rhea::Component* c)->bool {
+			rhea::Unit* u = doCast<rhea::Unit>(c);
 			if (u && c != scene) addItem(u);
 			return true;
 			});

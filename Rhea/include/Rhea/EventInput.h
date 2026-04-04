@@ -6,7 +6,7 @@
 
 #include <vector>
 
-namespace Rhea
+namespace rhea
 {
 	class EventInput : public Event
 	{

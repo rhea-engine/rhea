@@ -3,7 +3,7 @@
 #include <Rhea/ObjFile/ObjLoader.h>
 #include <Rhea/Resources/TextLoader.h>
 
-namespace Rhea
+namespace rhea
 {
 	void ObjFabric::Register(Application* app)
 	{

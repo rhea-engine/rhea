@@ -12,7 +12,7 @@ using Poseidon::Viewport;
 
 void TriangleApp::setup()
 {
-	Rhea::Application::setup();
+	rhea::Application::setup();
 
 	m_scene = core->get_scene_manager();	
 	Poseidon::Material* material = core->createMaterial();

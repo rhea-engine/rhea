@@ -2,7 +2,7 @@
 #include <Psio/Log.h>
 #include <cassert>
 
-namespace Rhea
+namespace rhea
 {
 	void Skeleton::UpdateBoneTransforms()
 	{		

@@ -14,17 +14,17 @@ namespace rhea::physics
 	void NullPhysicsService::onPhysicsStep(float delta)
 	{
 		// send pre event
-		std::unique_ptr<Rhea::PhysicsEvent> ev = std::make_unique<Rhea::PhysicsEvent>("physics_pre", delta);
+		std::unique_ptr<rhea::PhysicsEvent> ev = std::make_unique<rhea::PhysicsEvent>("physics_pre", delta);
 		sendEvent(std::string("pre_physics"), ev.get());
 	}
 
-	void NullPhysicsService::setScene(Rhea::Scene* scene)
+	void NullPhysicsService::setScene(rhea::Scene* scene)
 	{
 		// get items of scene
-		std::vector<Rhea::Item*> items = scene->getItems();
+		std::vector<rhea::Item*> items = scene->getItems();
 
 		for (auto it = items.begin(); it != items.end(); ++it) {
-			Rhea::Item* item = *it;
+			rhea::Item* item = *it;
 			if (item->getComponent<PhysicsComponent>())
 				continue;
 
@@ -32,9 +32,9 @@ namespace rhea::physics
 		}
 	}
 
-	void NullPhysicsService::initializeItem(Rhea::Item* item)
+	void NullPhysicsService::initializeItem(rhea::Item* item)
 	{
-		auto* mgr = doCast<Rhea::PhysicsManagerService>(m_app->getService("physics_mgr"));
+		auto* mgr = doCast<rhea::PhysicsManagerService>(m_app->getService("physics_mgr"));
 		const auto* desc = mgr->getBodyDescFor(item);
 		if (!desc || desc->kind.empty()) return;
 
@@ -46,15 +46,15 @@ namespace rhea::physics
 		pc->setBody(std::make_unique<NullPhysicsCharacter>(item));
 	}
 
-	void NullPhysicsService::removeItem(Rhea::Item* item)
+	void NullPhysicsService::removeItem(rhea::Item* item)
 	{
 		item->deleteComponent<PhysicsComponent>();
 	}
 	
 	void NullPhysicsService::onInit()
 	{
-		m_app->getUnitTree()->registerEventHandler("scene_activate", this, [&](Rhea::Event* ev, Rhea::Unit* tree)->bool {
-			setScene((Rhea::Scene*)ev->getTarget());
+		m_app->getUnitTree()->registerEventHandler("scene_activate", this, [&](rhea::Event* ev, rhea::Unit* tree)->bool {
+			setScene((rhea::Scene*)ev->getTarget());
 			return false;
 			});
 	}

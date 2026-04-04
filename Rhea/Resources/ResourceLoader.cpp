@@ -1,6 +1,6 @@
 #include <Rhea/Resources/ResourceLoader.h>
 
-namespace Rhea
+namespace rhea
 {
 	std::unordered_map<std::string, ResourceLoader::LoadFunc> ResourceLoader::m_loaders;
 

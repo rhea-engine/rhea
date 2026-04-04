@@ -16,9 +16,9 @@
 
 #define MAX_BONES 100
 
-namespace Rhea
+namespace rhea
 {
-	bool GltfScene::load(Rhea::Mesh* mesh)
+	bool GltfScene::load(rhea::Mesh* mesh)
 	{
 		// instanced?
 		if (m_instance)
@@ -322,7 +322,7 @@ namespace Rhea
 		}	
 	}
 
-	void GltfScene::CreateAnimations(Rhea::Mesh* mesh)
+	void GltfScene::CreateAnimations(rhea::Mesh* mesh)
 	{
 		std::vector<Animation*> animations;
 

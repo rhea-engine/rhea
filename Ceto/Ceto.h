@@ -23,7 +23,7 @@ public:
 	{}
 	void setup();
 	void setScene(bool mark_preferrences = true);
-	void showScene(Rhea::Scene* scene);
+	void showScene(rhea::Scene* scene);
 	bool checkLocalScene(std::string realm_name, std::string path);
 	void loadMainGUI();
 	void setHomeScene(string scene);
@@ -31,14 +31,14 @@ public:
 
 protected:
 	string m_home_scene;
-	Rhea::Camera* m_view;
-	Rhea::Label* m_debug_text;
+	rhea::Camera* m_view;
+	rhea::Label* m_debug_text;
 	bool m_exiting;
 
 	// event functions
-	bool onQuit(Rhea::Event* ev, Rhea::Unit* unit);
-	bool onInput(Rhea::EventInput* e, Rhea::Unit* unit);
-	bool onRealmSelect(Rhea::Event* ev, Rhea::Unit* unit);
+	bool onQuit(rhea::Event* ev, rhea::Unit* unit);
+	bool onInput(rhea::EventInput* e, rhea::Unit* unit);
+	bool onRealmSelect(rhea::Event* ev, rhea::Unit* unit);
 	void showAlert(std::string text);
 	void setRealmSelectDialog();
 	void openScene(std::string scene_name);
@@ -48,7 +48,7 @@ protected:
 	std::string m_userpref_path;
 
 	// cache of ceto gui scene
-	Rhea::Scene* m_gui;
+	rhea::Scene* m_gui;
 
 	float m_current_time;
 	int walk_state;

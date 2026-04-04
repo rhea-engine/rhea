@@ -4,7 +4,7 @@
 #include "Modifier.h"
 #include "../Widget.h"
 
-namespace Rhea
+namespace rhea
 {
 	class FillSizeModifier : public Modifier
 	{

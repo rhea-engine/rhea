@@ -10,7 +10,7 @@ class btRigidBody;
 class btDynamicsWorld;
 class btCompoundShape;
 
-namespace Rhea
+namespace rhea
 {
 	class Item;
 }
@@ -18,10 +18,10 @@ namespace Rhea
 namespace rhea::physics::bullet
 {
 
-	class BulletPhysicsBody : public Rhea::PhysicsBody
+	class BulletPhysicsBody : public rhea::PhysicsBody
 	{
 	public:
-		BulletPhysicsBody(btDynamicsWorld* world, Rhea::Item* item, const Rhea::PhysicsBodyDesc& desc);
+		BulletPhysicsBody(btDynamicsWorld* world, rhea::Item* item, const rhea::PhysicsBodyDesc& desc);
 		~BulletPhysicsBody();
 
 		virtual bool init();

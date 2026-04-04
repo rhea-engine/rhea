@@ -9,7 +9,7 @@ namespace Poseidon
 	class Mesh;
 }
 
-class CubeApp : public Rhea::Application
+class CubeApp : public rhea::Application
 {
 protected:
 	Poseidon::SceneManager* m_scene = 0;
@@ -60,7 +60,7 @@ protected:
 	Psio::KeyInputEvent* e_home;
 	Psio::KeyInputEvent* e_end;
 
-	Rhea::InputMap m_input_map;
+	rhea::InputMap m_input_map;
 
 	//std::unordered_map<Psio::InputEvent, std::vector<std::string>, decltype(Psio::ievt_hashing), decltype(Psio::ievt_equal_fn)> m_input_map;
 

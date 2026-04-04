@@ -20,13 +20,13 @@
 #include <Rhea/Components/RenderComponent.h>
 
 namespace rhea::client {
-    void PoseidonGraphicsFabric::Register(Rhea::Application* app)
+    void PoseidonGraphicsFabric::Register(rhea::Application* app)
     {
         // register services
         SimpleParser::Type::registerType<GraphicsService>("//meworla/graphicsservice");
         /*
      // --- register types (moved from Application::init) ---
-     SimpleParser::Type::registerType<Rhea::Mesh>("//meworla/mesh");
+     SimpleParser::Type::registerType<rhea::Mesh>("//meworla/mesh");
      // ... etc ...
      */
 
@@ -35,7 +35,7 @@ namespace rhea::client {
         g_service->setup(app);
         app->registerService("graphics", g_service);
 
-        Rhea::PlatformService* psio = static_cast<Rhea::PlatformService*>(app->getService("platform"));
+        rhea::PlatformService* psio = static_cast<rhea::PlatformService*>(app->getService("platform"));
         g_service->setPlatform(psio);
      
         // register components

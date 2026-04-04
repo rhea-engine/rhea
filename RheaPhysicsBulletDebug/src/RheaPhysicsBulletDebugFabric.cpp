@@ -8,22 +8,22 @@
 
 namespace rhea::physics::bullet::debug
 {
-    void RheaPhysicsBulletDebugFabric::Register(Rhea::Application* app)
+    void RheaPhysicsBulletDebugFabric::Register(rhea::Application* app)
     {
-        auto* mgr = doCast<Rhea::PhysicsManagerService>(app->getService("physics_mgr"));
+        auto* mgr = doCast<rhea::PhysicsManagerService>(app->getService("physics_mgr"));
         if (!mgr) return;
 
         auto* svc = mgr->getPhysicsService();
         auto* bullet_svc = doCast<BulletPhysicsService>(svc);
         if (!bullet_svc) return; // bullet backend not active
 
-        mgr->addBackendHook([app](Rhea::PhysicsService* svc) {
+        mgr->addBackendHook([app](rhea::PhysicsService* svc) {
             auto* bullet_svc = doCast<BulletPhysicsService>(svc);
             if (!bullet_svc) return;            
-            bullet_svc->setDrawerFactory([app, bullet_svc]() -> Rhea::IPhysicsDebugDraw* {
+            bullet_svc->setDrawerFactory([app, bullet_svc]() -> rhea::IPhysicsDebugDraw* {
                 Poseidon::Application* p_app = (Poseidon::Application*)app;
                 auto* dbg = new BulletDebugDraw(app, bullet_svc->getWorld(), p_app->get_core());
-                return (Rhea::IPhysicsDebugDraw*)dbg;
+                return (rhea::IPhysicsDebugDraw*)dbg;
             });
         });
     }

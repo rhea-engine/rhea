@@ -4,7 +4,7 @@
 #include <Rhea/Unit.h>
 #include "Skeleton.h"
 
-namespace Rhea
+namespace rhea
 {
 	class Animation : public Unit
 	{

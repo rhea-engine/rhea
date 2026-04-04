@@ -1,6 +1,6 @@
 #include "Rhea/Resources/VertexBufferStandard.h"
 
-namespace Rhea
+namespace rhea
 {	
 	void VertexBufferStandard::push_back(const VertexStandard& vertex)
 	{

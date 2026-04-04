@@ -9,7 +9,7 @@
 #include <Rhea/EventInput.h>
 #include <Rhea/GUI/Events/SubmitEvent.h>
 
-namespace Rhea
+namespace rhea
 {
 	void TextInput::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{

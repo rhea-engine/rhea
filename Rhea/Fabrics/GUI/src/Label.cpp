@@ -5,7 +5,7 @@
 #include <Rhea/Text/TextWidget.h>
 #include <Psio/Log.h>
 
-namespace Rhea
+namespace rhea
 {
 	void Label::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{

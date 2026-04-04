@@ -15,14 +15,14 @@ namespace Poseidon
 		m_size.max_depth = 1.0f;
 	}
 
-	void RenderContext::getLights(std::vector<Rhea::Light*>& lights)
+	void RenderContext::getLights(std::vector<rhea::Light*>& lights)
 	{
 		for (std::vector<Item*>::iterator it = m_render_children.begin(); it != m_render_children.end(); ++it)
 		{
-			Rhea::Unit* robj = doCast<Rhea::Unit>(*it);
+			rhea::Unit* robj = doCast<rhea::Unit>(*it);
 			if (robj) {
-				robj->traverse([&](std::string name, Rhea::Component* uitem)->bool {
-					Rhea::Light* light = doCast<Rhea::Light>(uitem);
+				robj->traverse([&](std::string name, rhea::Component* uitem)->bool {
+					rhea::Light* light = doCast<rhea::Light>(uitem);
 					if (light)
 						lights.push_back(light);
 					return true;
@@ -40,14 +40,14 @@ namespace Poseidon
 			Item* robj = (Item*)*it;
 
 			// cull phase for top item robj
-			robj->traverse([&](std::string name, Rhea::Component* uitem)->bool {
+			robj->traverse([&](std::string name, rhea::Component* uitem)->bool {
 				Item* item = doCast<Item>(uitem);
 				if (item) {
-					Rhea::VisualComponent* renderer = item->getComponent<Rhea::VisualComponent>();
+					rhea::VisualComponent* renderer = item->getComponent<rhea::VisualComponent>();
 					if (renderer) {
 						if (!renderer->isVisible())
 							return false;
-						Rhea::MeshComponent* mc = item->getComponent<Rhea::MeshComponent>();
+						rhea::MeshComponent* mc = item->getComponent<rhea::MeshComponent>();
 						if (mc->getMesh())
 							queue->addRenderable(item);
 					}

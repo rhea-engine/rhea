@@ -18,10 +18,10 @@ namespace rhea::physics
 	 * Usage:
 	 * - The `RheaPhysicsFabric` is typically instantiated and registered with the application during the setup phase, allowing the physics services to be seamlessly integrated into the application's lifecycle.
 	*/
-	class RheaPhysicsFabric : public Rhea::IFabric
+	class RheaPhysicsFabric : public rhea::IFabric
 	{
 	public:
-		void Register(Rhea::Application* app) override;
+		void Register(rhea::Application* app) override;
 
 		const char* getName() const override { return "RheaPhysics"; }
 	};

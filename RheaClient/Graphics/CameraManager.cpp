@@ -11,9 +11,9 @@
 #include <Rhea/Components/RenderComponent.h>
 
 namespace rhea::client {
-	bool GraphicsCameraManager::Ensure(Poseidon::Core* core, Rhea::Unit* unit)
+	bool GraphicsCameraManager::Ensure(Poseidon::Core* core, rhea::Unit* unit)
 	{	
-		Rhea::Camera* camera = doCast<Rhea::Camera>(unit);
+		rhea::Camera* camera = doCast<rhea::Camera>(unit);
 		if (!camera) return false;
 
 		// check if already exists
@@ -61,7 +61,7 @@ namespace rhea::client {
 		// set a default position
 		camera->getTransform()->get_position()->setPosition(m_position); 
 		camera->getTransform()->get_position()->lookAt(Math::Vector3(0.0f, 0.0f, 0.0f), Math::Vector3::UNIT_Z);
-		rc->entity->setTransform(((Rhea::Item* )unit)->getTransform());
+		rc->entity->setTransform(((rhea::Item* )unit)->getTransform());
 
 		static_cast<Poseidon::Camera*>(rc->entity)->setAspectRatio((float)Width / (float)Height);
 
@@ -71,7 +71,7 @@ namespace rhea::client {
 		return true;
 	}
 
-	bool GraphicsCameraManager::onUpdate(Rhea::Event* ev, Rhea::Unit* unit)
+	bool GraphicsCameraManager::onUpdate(rhea::Event* ev, rhea::Unit* unit)
 	{
 		// TODO (?) what could be an update?
 
@@ -82,9 +82,9 @@ namespace rhea::client {
 	{
 	}
 
-	bool GraphicsCameraManager::onItemDelete(Rhea::Event* ev, Rhea::Unit* unit)
+	bool GraphicsCameraManager::onItemDelete(rhea::Event* ev, rhea::Unit* unit)
 	{
-		Rhea::Camera* item = doCast<Rhea::Camera>(unit);
+		rhea::Camera* item = doCast<rhea::Camera>(unit);
 		if (!item) return true;
 
 		auto* rc = item->getComponent<RenderComponent>();

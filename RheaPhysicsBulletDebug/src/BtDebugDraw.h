@@ -10,14 +10,14 @@ namespace Poseidon { class RenderQueue; class Camera; class Material; class Text
 namespace Hippios { class VertexBuffer; class IndexBuffer; }
 class btDynamicsWorld;
 
-namespace Rhea
+namespace rhea
 {
     class Application;
 }
 
 namespace rhea::physics::bullet::debug
 {
-	class BulletDebugDraw : public Rhea::Item, public Rhea::IPhysicsDebugDraw
+	class BulletDebugDraw : public rhea::Item, public rhea::IPhysicsDebugDraw
 	{      
     public:
         struct Line {
@@ -33,7 +33,7 @@ namespace rhea::physics::bullet::debug
             Math::Vector3 color;
         };
         
-        BulletDebugDraw(Rhea::Application* app, btDynamicsWorld* world, Poseidon::Core* core);
+        BulletDebugDraw(rhea::Application* app, btDynamicsWorld* world, Poseidon::Core* core);
 		~BulletDebugDraw();
 
         //  Renderable functions

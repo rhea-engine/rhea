@@ -8,7 +8,7 @@
 #include <Rhea/Element.h>
 #include <Rhea/Graphics/GraphicsManager.h>
 
-namespace Rhea {
+namespace rhea {
 	class Event;
 	class Unit;
 	class Item;
@@ -24,16 +24,16 @@ namespace rhea::client {
 		~GraphicsItemManager();
 
 		// create an element for this unit
-		bool Ensure(Poseidon::Core* core, Rhea::Unit* unit);
+		bool Ensure(Poseidon::Core* core, rhea::Unit* unit);
 
 		// handle update event
-		bool onUpdate(Rhea::Event* ev, Rhea::Unit* unit);
+		bool onUpdate(rhea::Event* ev, rhea::Unit* unit);
 
 		// handle frame update
 		void onFrame() {};
 
 		// handle deletion event
-		bool onItemDelete(Rhea::Event* ev, Rhea::Unit* unit);
+		bool onItemDelete(rhea::Event* ev, rhea::Unit* unit);
 	};
 }
 

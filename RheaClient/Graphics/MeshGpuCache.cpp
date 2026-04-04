@@ -5,7 +5,7 @@ namespace rhea::client
 {
 
 
-    Poseidon::Mesh* MeshGpuCache::getOrCreate(Poseidon::Core* core, Rhea::Mesh* meshUnit, bool dynamic_usage, const Builder& builder)
+    Poseidon::Mesh* MeshGpuCache::getOrCreate(Poseidon::Core* core, rhea::Mesh* meshUnit, bool dynamic_usage, const Builder& builder)
     {
         auto key = meshUnit->getPath(); // or stable asset id
         auto it = m_cache.find(key);
@@ -26,7 +26,7 @@ namespace rhea::client
         return ptr;
     }
 
-    Poseidon::Mesh* MeshGpuCache::find(Rhea::Mesh* mesh)
+    Poseidon::Mesh* MeshGpuCache::find(rhea::Mesh* mesh)
     {
         return find(mesh->getPathName());
     }

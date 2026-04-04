@@ -24,7 +24,7 @@
 #include <Rhea/GUI/Row.h>
 #include <Rhea/Graphics/SizeEvent.h>
 
-namespace Rhea
+namespace rhea
 {
 	void GUIController::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{
@@ -92,9 +92,9 @@ namespace Rhea
 		// watch for updates
 		registerEventHandler("scene_enter", this, std::bind(&GUIController::onGuiUpdate, this, std::placeholders::_1, std::placeholders::_2));
 		registerEventHandler("scene_leave", this, [&](Event* ev, Unit* u)->bool {
-			Rhea::Unit* target = ev->getTarget();
+			rhea::Unit* target = ev->getTarget();
 			// if the leaving unit is currently captured empty reference
-			target->traverse([&](std::string name, Rhea::Component* c)->bool {
+			target->traverse([&](std::string name, rhea::Component* c)->bool {
 				if (c == m_target)
 					m_target = nullptr;
 				if (c == m_captured)

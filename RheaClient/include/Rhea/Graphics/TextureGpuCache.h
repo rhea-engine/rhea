@@ -9,14 +9,14 @@
 namespace rhea::client {
     class TextureGpuCache {
     public:
-        GraphicsTexture* getOrCreate(Poseidon::Core* core, Rhea::ImageResource* img);
+        GraphicsTexture* getOrCreate(Poseidon::Core* core, rhea::ImageResource* img);
 
-        Poseidon::Texture* getPoseidonTexture(Poseidon::Core* core, Rhea::ImageResource* img) {
+        Poseidon::Texture* getPoseidonTexture(Poseidon::Core* core, rhea::ImageResource* img) {
             auto* gt = getOrCreate(core, img);
             return gt ? (Poseidon::Texture*)gt->get() : nullptr;
         }
 
-        void invalidate(Rhea::ImageResource* img);
+        void invalidate(rhea::ImageResource* img);
         void clear();
 
     private:

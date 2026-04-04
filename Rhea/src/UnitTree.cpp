@@ -2,7 +2,7 @@
 #include "SimpleParser/Type.h"
 
 
-namespace Rhea
+namespace rhea
 {
 	Unit* UnitTree::createUnit(std::string basename, std::string type_name)
 	{

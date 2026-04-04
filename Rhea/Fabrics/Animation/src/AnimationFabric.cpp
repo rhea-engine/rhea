@@ -4,7 +4,7 @@
 #include <Rhea/Animation/Animator.h>
 #include <Rhea/Animation/Animation.h>
 
-namespace Rhea
+namespace rhea
 {
 	void AnimationFabric::Register(Application* app)
 	{

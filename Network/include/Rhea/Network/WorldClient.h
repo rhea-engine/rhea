@@ -11,12 +11,12 @@
 #include <Hermes/Messages/MessagePosition.h>
 #include <Hermes/Messages/MessageDestroy.h>
 
-namespace Rhea
+namespace rhea
 {
-	class WorldClient : public Rhea::NetworkDelegate
+	class WorldClient : public rhea::NetworkDelegate
 	{
 	public:
-		WorldClient(Rhea::Application* app, Hermes::Stream* stream) :
+		WorldClient(rhea::Application* app, Hermes::Stream* stream) :
 			m_scene(nullptr),
 			m_player_set(false),
 			m_in_world(false),
@@ -28,7 +28,7 @@ namespace Rhea
 
 		// startup
 		void Initialize();
-		void setScene(Rhea::Scene* scene) { m_scene = scene; }
+		void setScene(rhea::Scene* scene) { m_scene = scene; }
 		
 		// event handling
 		void onWorldEnter(CompletionHandler handler) { m_on_enter_world = handler; }
@@ -43,13 +43,13 @@ namespace Rhea
 
 	protected:
 		Hermes::Stream* m_stream;
-		Rhea::Scene* m_scene;
+		rhea::Scene* m_scene;
 		std::string m_avatar;
-		std::map<int,Rhea::Item*> m_net_items;
+		std::map<int,rhea::Item*> m_net_items;
 		bool m_player_set;
 		bool m_in_world;
 		CompletionHandler m_on_enter_world;
-		Rhea::Application* m_app;
+		rhea::Application* m_app;
 
 		// handle messages
 		void onLogin();

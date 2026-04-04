@@ -12,7 +12,7 @@ namespace Psio
 	class InputEvent;
 }
 
-namespace Rhea
+namespace rhea
 {
     class CBID;
 

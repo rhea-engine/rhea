@@ -1,6 +1,6 @@
 #include "Rhea/Core/DirectionalLight.h"
 
-namespace Rhea
+namespace rhea
 {
 	void DirectionalLight::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{

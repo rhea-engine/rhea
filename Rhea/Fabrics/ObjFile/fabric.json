@@ -4,7 +4,7 @@
   "version": "0.9.0",
   "author": "Meworla",
   "description": "Rhea Obj Loader",
-  "class": "Rhea::ObjFabric",
+  "class": "rhea::ObjFabric",
   "include": "Rhea/ObjFile/ObjFabric.h",
-  "cmake_target": "Rhea::ObjFile"
+  "cmake_target": "rhea::ObjFile"
 }

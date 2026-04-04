@@ -10,7 +10,7 @@ using Math::Vector3;
 
 namespace rhea::physics::bullet {
 
-	BulletPhysicsGhost::BulletPhysicsGhost(btDynamicsWorld* world, Rhea::Item* item, const Rhea::PhysicsBodyDesc& desc) :
+	BulletPhysicsGhost::BulletPhysicsGhost(btDynamicsWorld* world, rhea::Item* item, const rhea::PhysicsBodyDesc& desc) :
 		m_offset_y(0.0f),
 		m_ghost_object(nullptr),
 		BulletPhysicsBody(world, item, desc)

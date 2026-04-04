@@ -4,7 +4,7 @@
 #include "../Unit.h"
 #include <Orion/ResourceStream.h>
 
-namespace Rhea
+namespace rhea
 {
 	class Collection : public Unit
 	{

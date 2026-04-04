@@ -1,7 +1,7 @@
 #ifndef RHEA_ELEMENT_H
 #define RHEA_ELEMENT_H
 
-namespace Rhea
+namespace rhea
 {
 	class Element
 	{

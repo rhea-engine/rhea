@@ -6,7 +6,7 @@
 #include <Hermes/Messages/MessageTurn.h>
 #include <Rhea/Core/Item.h>
 
-namespace Rhea
+namespace rhea
 {
 	class WorldServer
 	{
@@ -19,7 +19,7 @@ namespace Rhea
 
 		void Initialize();
 
-		void setPlayer(Rhea::Item* player) { m_player = player; }
+		void setPlayer(rhea::Item* player) { m_player = player; }
 
 		void Start();
 		void Stop() { m_state = CONN_NONE; }
@@ -37,7 +37,7 @@ namespace Rhea
 		void onTurnMessage(Hermes::MessageTurn* turn_msg);
 
 		Hermes::Stream* m_stream;
-		Rhea::Item* m_player;
+		rhea::Item* m_player;
 	};
 }
 

@@ -8,7 +8,7 @@
 class btDynamicsWorld;
 class btIDebugDraw;
 
-namespace Rhea
+namespace rhea
 {
 	class Controller;
 	class Scene;
@@ -17,9 +17,9 @@ namespace Rhea
 
 namespace rhea::physics::bullet
 {
-	class BulletPhysicsService : public Rhea::PhysicsService
+	class BulletPhysicsService : public rhea::PhysicsService
 	{
-		MECLASS(BulletPhysicsService, Rhea::PhysicsService)
+		MECLASS(BulletPhysicsService, rhea::PhysicsService)
 	public:
 		BulletPhysicsService(std::string name, std::string type_name);		
 
@@ -30,13 +30,13 @@ namespace rhea::physics::bullet
 		btDynamicsWorld* getWorld() { return m_world; }
 
 		// set scene and initialize objects in it
-		void setScene(Rhea::Scene* scene);
+		void setScene(rhea::Scene* scene);
 
 		// initalize one object
-		void initializeItem(Rhea::Item* item);
+		void initializeItem(rhea::Item* item);
 
 		// remove one object
-		void removeItem(Rhea::Item* item);
+		void removeItem(rhea::Item* item);
 
 		// Service functions
 		void onInit();
@@ -44,19 +44,19 @@ namespace rhea::physics::bullet
 		// ray trace
 		Unit* ray(Math::Vector3 origin, Math::Vector3 direction);
 
-		std::unique_ptr<Rhea::PhysicsBody> createBody(const Rhea::PhysicsBodyDesc& desc, Rhea::Item* item);
+		std::unique_ptr<rhea::PhysicsBody> createBody(const rhea::PhysicsBodyDesc& desc, rhea::Item* item);
 
 		void setDebugDrawer(btIDebugDraw* drawer);
 
-		using BulletDrawerFactory = std::function<Rhea::IPhysicsDebugDraw* ()>;
+		using BulletDrawerFactory = std::function<rhea::IPhysicsDebugDraw* ()>;
 		void setDrawerFactory(BulletDrawerFactory f) { m_drawer_factory = f; }
-		Rhea::IPhysicsDebugDraw* debugDraw() override { if (!m_debug_drawer && m_drawer_factory) m_debug_drawer = m_drawer_factory(); return m_debug_drawer; }
+		rhea::IPhysicsDebugDraw* debugDraw() override { if (!m_debug_drawer && m_drawer_factory) m_debug_drawer = m_drawer_factory(); return m_debug_drawer; }
 
 	protected:
 		btDynamicsWorld* m_world;
-		Rhea::Scene* m_scene;
+		rhea::Scene* m_scene;
 		BulletDrawerFactory m_drawer_factory;
-		Rhea::IPhysicsDebugDraw* m_debug_drawer;
+		rhea::IPhysicsDebugDraw* m_debug_drawer;
 	};
 }
 

@@ -1,6 +1,6 @@
 #include "Rhea/Realm.h"
 
-namespace Rhea
+namespace rhea
 {
 	void Realm::setRealm(Orion::Realm* realm)
 	{

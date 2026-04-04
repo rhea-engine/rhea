@@ -4,7 +4,7 @@
 #include <SimpleParser/Type.h>
 #include <SimpleParser/Variant.h>
 
-namespace Rhea
+namespace rhea
 {
     class Unit;
 

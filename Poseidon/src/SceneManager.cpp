@@ -126,7 +126,7 @@ namespace Poseidon
 				m_renderer->bindGPUBuffer(m_frame_buffer.get(), 0, Hippios::ShaderStage::Vertex);
 
 				// fill lights buffer
-				std::vector<Rhea::Light*> lights;
+				std::vector<rhea::Light*> lights;
 				context->getLights(lights);
 				light_buf = {};
 
@@ -135,23 +135,23 @@ namespace Poseidon
 
 				// iterate lights and add them to the light buffer
 				int idx = 0;
-				for (std::vector<Rhea::Light*>::iterator it = lights.begin(); it != lights.end(); ++it) {
+				for (std::vector<rhea::Light*>::iterator it = lights.begin(); it != lights.end(); ++it) {
 					if (idx >= MAX_LIGHTS) {
 						break;
 					}
-					Rhea::Light* light = doCast<Rhea::Light>(*it);
+					rhea::Light* light = doCast<rhea::Light>(*it);
 					if (light) {
 						light_buf.lights[idx].specular = light->getSpecular();
 						light_buf.lights[idx].diffuse = light->getDiffuse();
 						light_buf.lights[idx].lightColor = light->getColor();
 
-						Rhea::DirectionalLight* dir_light = doCast<Rhea::DirectionalLight>(*it);
+						rhea::DirectionalLight* dir_light = doCast<rhea::DirectionalLight>(*it);
 						if (dir_light) {
 							light_buf.lights[idx].Type = 0;
 							light_buf.lights[idx].direction = dir_light->getDirection();
 						}
 						else {
-							Rhea::PointLight* point_light = doCast<Rhea::PointLight>(*it);
+							rhea::PointLight* point_light = doCast<rhea::PointLight>(*it);
 							if (point_light) {
 								light_buf.lights[idx].Type = 1;
 								Vector3 pos = point_light->getTransform()->get_position()->get_worldspace();
@@ -163,7 +163,7 @@ namespace Poseidon
 							}
 							else
 							{
-								Rhea::SpotLight* spot_light = doCast<Rhea::SpotLight>(*it);
+								rhea::SpotLight* spot_light = doCast<rhea::SpotLight>(*it);
 								if (spot_light) {
 									light_buf.lights[idx].Type = 2;
 									Vector3 pos = point_light->getTransform()->get_position()->get_worldspace();
@@ -189,7 +189,7 @@ namespace Poseidon
 				Item* renderable = m_rend_queue->first();
 				for (Item* renderable = m_rend_queue->first(); renderable != NULL; renderable = m_rend_queue->next()) {
 
-					auto* vis = renderable->getComponent<Rhea::VisualComponent>();
+					auto* vis = renderable->getComponent<rhea::VisualComponent>();
 					if (!vis || !vis->isVisible()) continue;
 
 					// get render information
@@ -198,7 +198,7 @@ namespace Poseidon
 						continue;
 
 					// fill per object buffer
-					Rhea::Transform* transform = renderable->getTransform();
+					rhea::Transform* transform = renderable->getTransform();
 					Position* position = nullptr;
 					if (transform)
 						position = transform->get_derived_position();
@@ -229,7 +229,7 @@ namespace Poseidon
 					}
 					
 					// skeleton handling if any
-					Rhea::Skeleton* skeleton = r_comp->skeleton;
+					rhea::Skeleton* skeleton = r_comp->skeleton;
 					if (skeleton) {
 						// Fill the bone buffer
 						BoneBuffer boneBuffer{};

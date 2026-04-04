@@ -1,6 +1,6 @@
 #include "Rhea/Core/Lighting.h"
 
-namespace Rhea
+namespace rhea
 {
 	void Lighting::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{

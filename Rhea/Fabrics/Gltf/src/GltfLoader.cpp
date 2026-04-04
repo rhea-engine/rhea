@@ -16,7 +16,7 @@
 #include <Psio/Log.h>
 #include <Rhea/Resources/ImageResource.h>
 
-namespace Rhea
+namespace rhea
 {	
 	bool GltfImageLoader(tinygltf::Image* image,
 		int image_idx,

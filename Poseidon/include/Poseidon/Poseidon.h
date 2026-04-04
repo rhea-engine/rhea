@@ -4,7 +4,7 @@
 
 namespace Poseidon
 {
-	class Application : public Rhea::Application
+	class Application : public rhea::Application
 	{
 	public:
 		Application() :
@@ -20,7 +20,7 @@ namespace Poseidon
 		void setup();
 
 		// scene is loaded
-		void onScene(Rhea::Scene *scene);
+		void onScene(rhea::Scene *scene);
 
 		// get the core
 		Poseidon::Core* get_core() { return core; };
@@ -32,6 +32,6 @@ namespace Poseidon
 		Poseidon::Core* core;
 
 		bool m_phys_debug;
-		Rhea::IPhysicsDebugDraw* m_debug_draw;
+		rhea::IPhysicsDebugDraw* m_debug_draw;
 	};
 }

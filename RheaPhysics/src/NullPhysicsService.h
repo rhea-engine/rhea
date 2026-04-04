@@ -7,7 +7,7 @@
 #include <Rhea/Physics/PhysicsService.h>
 #include "NullBody.h"
 
-namespace Rhea
+namespace rhea
 {
 	class Controller;
 	class Item;
@@ -15,12 +15,12 @@ namespace Rhea
 
 namespace rhea::physics
 {
-	class NullPhysicsService : public Rhea::PhysicsService
+	class NullPhysicsService : public rhea::PhysicsService
 	{
-		MECLASS(NullPhysicsService, Rhea::PhysicsService)
+		MECLASS(NullPhysicsService, rhea::PhysicsService)
 	public:
 		NullPhysicsService(std::string name, std::string type_name) :	
-			Rhea::PhysicsService(name, type_name)
+			rhea::PhysicsService(name, type_name)
 		{
 		}
 
@@ -28,13 +28,13 @@ namespace rhea::physics
 		void onPhysicsStep(float delta) override;
 
 		// set scene and initialize objects in it
-		void setScene(Rhea::Scene* scene) override;		
+		void setScene(rhea::Scene* scene) override;		
 
 		// initalize one object
-		void initializeItem(Rhea::Item* item) override;
+		void initializeItem(rhea::Item* item) override;
 
 		// remove one object
-		void removeItem(Rhea::Item* item) override;
+		void removeItem(rhea::Item* item) override;
 
 		// Service functions
 		void onInit();	

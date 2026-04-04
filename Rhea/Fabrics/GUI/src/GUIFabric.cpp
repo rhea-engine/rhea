@@ -17,9 +17,9 @@
 #include <Rhea/Text/TextWidget.h>
 #include <Rhea/GUI/Spacer.h>
 
-namespace Rhea
+namespace rhea
 {
-	void Rhea::GUIFabric::Register(Rhea::Application* app)
+	void rhea::GUIFabric::Register(rhea::Application* app)
 	{
 		// register widget types
 		SimpleParser::Type::registerType<Widget>("//meworla/gui/widget");

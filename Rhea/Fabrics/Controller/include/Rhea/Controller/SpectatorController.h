@@ -6,7 +6,7 @@
 #include <Math/Quaternion.h>
 #include <Rhea/Core/Position.h>
 
-namespace Rhea
+namespace rhea
 {
 	class Camera;
 

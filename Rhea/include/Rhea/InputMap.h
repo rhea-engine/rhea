@@ -9,7 +9,7 @@
 
 #include <Psio/Input/InputEvent.h>
 
-namespace Rhea {
+namespace rhea {
 
 	typedef std::shared_ptr<Psio::InputEvent> InputEventSP;
 

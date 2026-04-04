@@ -5,7 +5,7 @@
 #include "../Widget.h"
 #include <Math/Vector2.h>
 
-namespace Rhea {
+namespace rhea {
 
 	class SizePercentageHeightModifier : public Modifier
 	{

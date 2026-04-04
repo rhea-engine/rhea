@@ -7,16 +7,16 @@
 
 namespace rhea::physics
 {
-	class NullPhysicsCharacter : public NullPhysicsBody, public Rhea::IPhysicsCharacter
+	class NullPhysicsCharacter : public NullPhysicsBody, public rhea::IPhysicsCharacter
 	{
 	public:
-		NullPhysicsCharacter(Rhea::Item* item) :
+		NullPhysicsCharacter(rhea::Item* item) :
 			NullPhysicsBody(item)
 		{
 		}
 
 		// update in physics step
-		Math::Vector3 update(Rhea::Position* pos, Math::Vector3& move, Math::Vector3& gravity) override;
+		Math::Vector3 update(rhea::Position* pos, Math::Vector3& move, Math::Vector3& gravity) override;
 		bool jump(Math::Vector3& pos) override;
 
 		virtual bool isOnGround() const override { return true; }

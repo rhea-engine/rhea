@@ -30,9 +30,9 @@ namespace rhea::client {
 	
 	}
 
-	bool GraphicsItemManager::Ensure(Poseidon::Core* core, Rhea::Unit* unit)
+	bool GraphicsItemManager::Ensure(Poseidon::Core* core, rhea::Unit* unit)
 	{
-		Rhea::Item* item = doCast<Rhea::Item>(unit);
+		rhea::Item* item = doCast<rhea::Item>(unit);
 		if (!item) return false;
 
 		// ignore if not renderable - this allows non-renderable items to still be in the scene and have their render components updated without creating GPU resources
@@ -49,14 +49,14 @@ namespace rhea::client {
 		if (!rc) rc = item->addComponentUnique<RenderComponent>("renderer");
 		
 		// special handling for light
-		Rhea::Light* light = doCast<Rhea::Light>(item);
+		rhea::Light* light = doCast<rhea::Light>(item);
 		if (light) {
 			DLOG(LOG_DEBUG) << "GraphicsItemManager::Ensure: light";			
 			Poseidon::Renderable* light_entity = static_cast<Poseidon::Renderable*>(createEntity(rc, core, unit, "default", false));			
 		}
 		else {
-			Rhea::MeshComponent* mc = item->getComponent<Rhea::MeshComponent>();
-			Rhea::Mesh* mesh = nullptr;
+			rhea::MeshComponent* mc = item->getComponent<rhea::MeshComponent>();
+			rhea::Mesh* mesh = nullptr;
 			if (!mc) {
 				LOG(LOG_DEBUG) << "  -> Item '" << item->getPathName() << "' has no MeshComponent, skipping";
 				return false;
@@ -64,10 +64,10 @@ namespace rhea::client {
 			if (!mc->getMesh()) {
 				// Resolve mesh unit if needed
 				
-				Rhea::Application* app = m_service->getApplication();
+				rhea::Application* app = m_service->getApplication();
 				if (!app) { LOG(LOG_ERROR) << "Graphics service has no app"; return false; }
 
-				mesh = doCast<Rhea::Mesh>(app->getUnitTree()->find(mc->meshRef(), mc->basepathRef(), false));
+				mesh = doCast<rhea::Mesh>(app->getUnitTree()->find(mc->meshRef(), mc->basepathRef(), false));
 				if (!mesh) {
 					LOG(LOG_ERROR) << "  -> FAILED: No mesh found for '" << mc->meshRef() << "'";
 					return false;
@@ -80,11 +80,11 @@ namespace rhea::client {
 			else
 				mesh = mc->getMesh();
 
-			auto* meshMgr = static_cast<GraphicsMeshManager*>(m_service->getManager<Rhea::Mesh>());
+			auto* meshMgr = static_cast<GraphicsMeshManager*>(m_service->getManager<rhea::Mesh>());
 
 			// Get shared GPU mesh from cache 
 			Poseidon::Mesh* shared = m_service->meshCache().getOrCreate(core, mesh, mesh->isDynamic(),
-				[&](Poseidon::Core* core, Rhea::Mesh* mesh, Poseidon::Mesh* out)->bool {
+				[&](Poseidon::Core* core, rhea::Mesh* mesh, Poseidon::Mesh* out)->bool {
 					return meshMgr->FillPoseidonMesh(core, mesh, out);
 				});
 			if (!shared) {
@@ -92,7 +92,7 @@ namespace rhea::client {
 				return false;
 			}
 			rc->gpuMesh = shared;
-			Rhea::Skeleton* skeleton = mesh->getComponent<Rhea::Skeleton>();
+			rhea::Skeleton* skeleton = mesh->getComponent<rhea::Skeleton>();
 			if (skeleton) {
 				/*Poseidon::Skeleton* gpuSkeleton = meshMgr->getOrCreateGPUSkeleton(core, skeleton);
 				if (!gpuSkeleton) {
@@ -121,9 +121,9 @@ namespace rhea::client {
 		return true;
 	}
 
-	bool GraphicsItemManager::onUpdate(Rhea::Event* ev, Rhea::Unit* unit)
+	bool GraphicsItemManager::onUpdate(rhea::Event* ev, rhea::Unit* unit)
 	{
-		Rhea::Item* item = doCast<Rhea::Item>(unit);
+		rhea::Item* item = doCast<rhea::Item>(unit);
 		if (!item) return false;
 
 		// ignore if not renderable - this allows non-renderable items to still be in the scene and have their render components updated without creating GPU resources
@@ -133,22 +133,22 @@ namespace rhea::client {
 		// possible material change - check if material has element		
 		auto* rc = item->getComponent<RenderComponent>();
 		if (!rc) return false;
-		Rhea::MeshComponent* mc = item->getComponent<Rhea::MeshComponent>();
+		rhea::MeshComponent* mc = item->getComponent<rhea::MeshComponent>();
 		if (!mc || !mc->getMesh()) return false;
-		Rhea::Mesh* mesh = mc->getMesh();
+		rhea::Mesh* mesh = mc->getMesh();
 
 		// NOTE: This assumes a changed material will actually be a new material (i.e. the old one gets destroyed)
 
 		// 1) Ensure GPU mesh exists (from cache)
 		Poseidon::Mesh* gpu = rc->gpuMesh;
 		if (!gpu) {
-			auto* meshMgr = static_cast<GraphicsMeshManager*>(m_service->getManager<Rhea::Mesh>());
+			auto* meshMgr = static_cast<GraphicsMeshManager*>(m_service->getManager<rhea::Mesh>());
 
 			gpu = m_service->meshCache().getOrCreate(
 				m_service->getEngine(), // Poseidon::Core*
 				mesh,
 				mesh->isDynamic(),
-				[&](Poseidon::Core* c, Rhea::Mesh* m, Poseidon::Mesh* out) {
+				[&](Poseidon::Core* c, rhea::Mesh* m, Poseidon::Mesh* out) {
 					return meshMgr->FillPoseidonMesh(c, m, out);
 				});
 
@@ -165,10 +165,10 @@ namespace rhea::client {
 
 		// 2) Ensure all submesh materials have GPU materials + apply them to gpu mesh
 		Poseidon::Core* core = m_service->getEngine();
-		auto* matMgr = static_cast<GraphicsMaterialManager*>(m_service->getManager<Rhea::Material>());
+		auto* matMgr = static_cast<GraphicsMaterialManager*>(m_service->getManager<rhea::Material>());
 
 		for (size_t i = 0; i < mesh->getNumSubmeshes(); i++) {
-			Rhea::Material* material = mesh->getMaterial(i);
+			rhea::Material* material = mesh->getMaterial(i);
 			if (!material) {
 				LOG(LOG_ERROR) << "GraphicsItemManager::onUpdate: No material for submesh " << i;
 				continue;
@@ -179,7 +179,7 @@ namespace rhea::client {
 				m_service->materialCache().getOrCreate(
 					core,
 					material,
-					[&](Poseidon::Core* c, Rhea::Material* m, Poseidon::Material* outMat, bool fresh) -> bool {
+					[&](Poseidon::Core* c, rhea::Material* m, Poseidon::Material* outMat, bool fresh) -> bool {
 						return matMgr->FillPoseidonMaterial(c, m, outMat, fresh);
 					});
 			if (!gpuMat) {
@@ -197,9 +197,9 @@ namespace rhea::client {
 		return false;
 	}
 
-	bool GraphicsItemManager::onItemDelete(Rhea::Event* ev, Rhea::Unit* unit)
+	bool GraphicsItemManager::onItemDelete(rhea::Event* ev, rhea::Unit* unit)
 	{
-		Rhea::Item* item = doCast<Rhea::Item>(unit);
+		rhea::Item* item = doCast<rhea::Item>(unit);
 		if (!item) return true;
 
 		auto* rc = item->getComponent<RenderComponent>();

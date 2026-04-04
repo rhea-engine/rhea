@@ -7,11 +7,11 @@
 #include <Rhea/Application.h>
 #include <Rhea/Platform/PlatformService.h>
 
-namespace Rhea
+namespace rhea
 {
 	void ClientService::ready()
 	{
-		Rhea::PlatformService* psio = static_cast<Rhea::PlatformService*>(m_app->getService("platform"));
+		rhea::PlatformService* psio = static_cast<rhea::PlatformService*>(m_app->getService("platform"));
 		m_network = psio->getEngine()->getNet();
 		m_worldname = getValueString("world", "");
 		m_app->registerService("hermesclient", this);

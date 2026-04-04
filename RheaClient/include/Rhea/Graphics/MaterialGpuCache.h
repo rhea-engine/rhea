@@ -9,9 +9,9 @@
 namespace rhea::client {
     class MaterialGpuCache {
     public:
-        using Builder = std::function<bool(Poseidon::Core*, Rhea::Material* , Poseidon::Material*, bool)>;
+        using Builder = std::function<bool(Poseidon::Core*, rhea::Material* , Poseidon::Material*, bool)>;
 
-        Poseidon::Material* getOrCreate(Poseidon::Core* core, Rhea::Material* m, const Builder& builder);
+        Poseidon::Material* getOrCreate(Poseidon::Core* core, rhea::Material* m, const Builder& builder);
 
     private:
         struct Entry {
@@ -19,7 +19,7 @@ namespace rhea::client {
             std::string shaderName;
             std::vector<std::string> textureKeys;
         };
-        std::vector<std::string> collectTexKeys(Rhea::Material* material);
+        std::vector<std::string> collectTexKeys(rhea::Material* material);
         std::unordered_map<std::string, Entry> m_entries; // key: material pathName
     };
 }

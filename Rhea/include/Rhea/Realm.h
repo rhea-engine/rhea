@@ -8,7 +8,7 @@ namespace Orion
 	class Realm;
 }
 
-namespace Rhea
+namespace rhea
 {
 	class Realm : public Unit
 	{

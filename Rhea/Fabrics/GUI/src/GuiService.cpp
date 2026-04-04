@@ -1,7 +1,7 @@
 #include <Rhea/GUI/GuiService.h>
 #include <Rhea/GUI/GUIController.h>
 
-namespace Rhea
+namespace rhea
 {
 	void GuiService::onInit()
 	{
@@ -21,7 +21,7 @@ namespace Rhea
 		return false;
 	}
 
-	void Rhea::GuiService::unregisterController(GUIController* ctrl)
+	void rhea::GuiService::unregisterController(GUIController* ctrl)
 	{
 		m_controllers.erase(std::remove(m_controllers.begin(), m_controllers.end(), ctrl));
 	}

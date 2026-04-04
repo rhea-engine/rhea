@@ -4,7 +4,7 @@
 #include <Rhea/Component.h>
 #include "Bone.h"
 
-namespace Rhea
+namespace rhea
 {
 	class Skeleton : public Component
 	{

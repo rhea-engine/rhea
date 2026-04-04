@@ -1,7 +1,7 @@
 #ifndef RHEA_PHYSICSDEBUGDRAW_H
 #define RHEA_PHYSICSDEBUGDRAW_H
 
-namespace Rhea 
+namespace rhea 
 {
     class IPhysicsDebugDraw
     {
@@ -14,6 +14,6 @@ namespace Rhea
         virtual void toggle() = 0;
     };
 
-} // namespace Rhea
+} // namespace rhea
 
 #endif

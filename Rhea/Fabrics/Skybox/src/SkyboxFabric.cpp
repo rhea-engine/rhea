@@ -3,7 +3,7 @@
 #include <Rhea/Physics/PhysicsManagerService.h>
 #include <Psio/Log.h>
 
-namespace Rhea
+namespace rhea
 {
 	// register skybox
 	void SkyboxFabric::Register(Application* app)

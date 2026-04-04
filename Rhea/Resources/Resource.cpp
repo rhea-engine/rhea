@@ -2,7 +2,7 @@
 #include <Rhea/Resources/ResourceList.h>
 #include <Psio/Log.h>
 
-namespace Rhea {
+namespace rhea {
 	
 	Resource::~Resource()
 	{

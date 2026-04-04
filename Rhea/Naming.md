@@ -106,19 +106,19 @@ namespace rhea::client
 
 ### Format
 
-    Rhea::<Module>
+    rhea::<Module>
 
 ### Examples
 
 -   `Rhea::Core`
 -   `Rhea::Client`
--   `Rhea::Physics`
--   `Rhea::Rendering`
+-   `rhea::Physics`
+-   `rhea::Rendering`
 
 ### Usage
 
 ``` cmake
-target_link_libraries(MyGame PRIVATE Rhea::Core Rhea::Physics)
+target_link_libraries(MyGame PRIVATE Rhea::Core rhea::Physics)
 ```
 
 ------------------------------------------------------------------------

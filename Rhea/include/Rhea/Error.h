@@ -3,7 +3,7 @@
 
 #include <string>
 
-namespace Rhea
+namespace rhea
 {
 	class Error
 	{

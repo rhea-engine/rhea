@@ -3,7 +3,7 @@
 
 #include <Rhea/Service.h>
 
-namespace Rhea
+namespace rhea
 {
     /**
      * Abstract interface for graphics services.

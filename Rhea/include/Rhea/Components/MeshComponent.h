@@ -4,7 +4,7 @@
 #include <Rhea/Component.h>
 #include <string>
 
-namespace Rhea
+namespace rhea
 {
     class Mesh;
     

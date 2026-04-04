@@ -2,7 +2,7 @@ add_library (RheaSkybox
 "src/SkyboxFabric.cpp" 
 "src/Skybox.cpp"
 )
-add_library(Rhea::Skybox ALIAS RheaSkybox)
+add_library(rhea::Skybox ALIAS RheaSkybox)
 
 # Scoped includes are under include/Rhea/GUI/**
 target_include_directories(RheaSkybox PUBLIC

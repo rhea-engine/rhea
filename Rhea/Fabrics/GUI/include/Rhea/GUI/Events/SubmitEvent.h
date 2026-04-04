@@ -5,7 +5,7 @@
 
 #include "../WidgetEvent.h"
 
-namespace Rhea
+namespace rhea
 {
 	class SubmitEvent : public WidgetEvent
 	{

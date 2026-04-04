@@ -4,11 +4,11 @@
 #include <Rhea/Application.h>
 #include <Rhea/FabricSystem.h>
 
-namespace Rhea
+namespace rhea
 {
 	/** Fabric for controllers
 	*/
-	class ControllerFabric : public Rhea::IFabric
+	class ControllerFabric : public rhea::IFabric
 	{
 	public:
 		void Register(Application* app) override;

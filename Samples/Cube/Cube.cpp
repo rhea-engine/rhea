@@ -37,9 +37,9 @@ UINT numElements = ARRAYSIZE(layout);
 
 void CubeApp::setup()
 {		
-	m_services["physics"] = new Rhea::PhysicsService(this);
+	m_services["physics"] = new rhea::PhysicsService(this);
 
-	Rhea::Application::setup();
+	rhea::Application::setup();
 
 	m_scene = core->get_scene_manager();
 	m_material = core->createMaterial();
@@ -61,9 +61,9 @@ void CubeApp::initialize()
 {
 	Viewport* viewport = core->get_scene_manager()->getViewport();
 	
-	Rhea::Scene* scene = new Rhea::Scene("cubescene");
-	static_cast<Rhea::GraphicsService*>(m_services["graphics"])->setScene(scene);
-	static_cast<Rhea::PhysicsService*>(m_services["physics"])->setScene(scene);
+	rhea::Scene* scene = new rhea::Scene("cubescene");
+	static_cast<rhea::GraphicsService*>(m_services["graphics"])->setScene(scene);
+	static_cast<rhea::PhysicsService*>(m_services["physics"])->setScene(scene);
 
 	const int num_faces = 12;
 	const int num_vertices = 24;
@@ -269,7 +269,7 @@ bool CubeApp::onInput(std::shared_ptr<Psio::InputEvent> evt)
 		m_camera->get_position()->lookAt(Poseidon::Vector3(0.0f, 0.0f, 0.0f), Poseidon::Vector3::UNIT_Z);
 	}
 	else {
-		Rhea::ievt_actions iea = m_input_map.getActions(evt);
+		rhea::ievt_actions iea = m_input_map.getActions(evt);
 		for (auto it = iea.actions.begin(); it < iea.actions.end(); ++it)
 			log(*it);
 		

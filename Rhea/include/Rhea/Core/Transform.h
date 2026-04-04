@@ -7,7 +7,7 @@
 #include "SimpleParser/Type.h"
 #include "Rhea/Core/Position.h"
 
-namespace Rhea
+namespace rhea
 {
 	class Item;
 

@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <Rhea/GUI/Styles/CssShorthand.h>
 
-namespace Rhea
+namespace rhea
 {
 	void StyleSheet::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{

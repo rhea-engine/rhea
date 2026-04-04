@@ -19,17 +19,17 @@
 
 using ::testing::_;
 
-class TestApp : public Rhea::Application
+class TestApp : public rhea::Application
 {
 public:
-    void onScene(Rhea::Scene* scene)
+    void onScene(rhea::Scene* scene)
     {}
 	~TestApp() {}
 };
 
 class WorldMock : public World
 {
-	MECLASS(WorldMock, Rhea::Unit)
+	MECLASS(WorldMock, rhea::Unit)
 public:
 	WorldMock(std::string name, std::string type) :
 		World(name, type)
@@ -53,12 +53,12 @@ public:
 	MOCK_METHOD(int, sendMessage, (Hermes::Message*, Hermes::Stream::CompletionHandler));
 };
 
-class PlayerMock : public Rhea::Item
+class PlayerMock : public rhea::Item
 {
-	MECLASS(PlayerMock, Rhea::Item)
+	MECLASS(PlayerMock, rhea::Item)
 public:
 	PlayerMock(std::string name, std::string type) :
-		Rhea::Item(name, type)
+		rhea::Item(name, type)
 	{}
 	~PlayerMock() { }
 
@@ -81,8 +81,8 @@ public:
 class ClientConnectionTest : public ::testing::Test {
 protected:
 	TestApp* app = nullptr;
-	Rhea::Realm* realm = nullptr;
-	Rhea::Scene* scene = nullptr;	
+	rhea::Realm* realm = nullptr;
+	rhea::Scene* scene = nullptr;	
 	std::unique_ptr<HermesServerMock> hermes;
 	Hermes::ServerStream::MessageHandler handler;
 	std::unique_ptr<PlayerMock> player;
@@ -93,7 +93,7 @@ protected:
 		// add an app
 		app = new TestApp();
 		app->init();
-		scene = new Rhea::Scene("testscene", "//meworla/scene");
+		scene = new rhea::Scene("testscene", "//meworla/scene");
 
 		SimpleParser::Type::registerType<ServerServiceMock>("//meworla/serverservice");
 		SimpleParser::Type::registerType<WorldMock>("//meworla/world");
@@ -332,10 +332,10 @@ TEST_F(ClientConnectionTest, OnAvatarSuccess)
 	WorldMock world("testworld", "//meworla/world");
 	app->getUnitTree()->addChild(&world);
 	User user_info("anonymous", "//meworla/user");	
-	Rhea::Avatar* avatar = new Rhea::Avatar("avatar", "//meworla/avatar");
+	rhea::Avatar* avatar = new rhea::Avatar("avatar", "//meworla/avatar");
 	avatar->setValue("model", "//avatar_model");	
 	user_info.addChild(avatar);
-	Rhea::Item* avatar_model = new Rhea::Item("avatar_model", "//meworla/item");
+	rhea::Item* avatar_model = new rhea::Item("avatar_model", "//meworla/item");
 	((ProviderMemory*)acc_srv->getProvider())->addUser(&user_info);
 
 	app->getUnitTree()->addChild(avatar_model);

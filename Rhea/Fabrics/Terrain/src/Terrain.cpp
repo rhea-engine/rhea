@@ -12,7 +12,7 @@
 #include <Rhea/Components/MeshComponent.h>
 #include <cmath>
 
-namespace Rhea
+namespace rhea
 {
 	Terrain::~Terrain()
 	{

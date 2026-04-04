@@ -5,9 +5,9 @@
 #include <Psio/Log.h>
 #include "AuthBackendFile.h"
 
-void AuthorizationService::setup(Rhea::Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
+void AuthorizationService::setup(rhea::Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 {
-	Rhea::Service::setup(app, attributes, values);
+	rhea::Service::setup(app, attributes, values);
 	m_app->registerService("authorization", this);
 
 	// create auth backend
@@ -79,7 +79,7 @@ void AuthorizationService::CreateUser(std::string method, UserInfo info, std::ve
 	m_backend->CreateUser(info, secrets, handler);
 }
 
-void AuthorizationService::RegisterFabrics(Rhea::Application* app)
+void AuthorizationService::RegisterFabrics(rhea::Application* app)
 {
 	// register types
 	SimpleParser::Type::registerType<AuthorizationService>("//meworla/authorizationservice");

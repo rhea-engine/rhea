@@ -5,7 +5,7 @@
 #include <Hermes/Messages/MessageEnterWorld.h>
 #include <Hermes/Messages/MessageCreateAvatar.h>
 
-namespace Rhea
+namespace rhea
 {
 	void LobbyClient::Initialize()
 	{
@@ -68,15 +68,15 @@ namespace Rhea
 		// fill up avatar list of scene
 		if (!m_owner)
 			return;
-		Rhea::Unit* avatar_list = doCast<Rhea::Unit>(m_owner->getChild("avatarlist"));
+		rhea::Unit* avatar_list = doCast<rhea::Unit>(m_owner->getChild("avatarlist"));
 		if (!avatar_list) {
-			avatar_list = new Rhea::Unit("avatarlist", "//meworla/avatarlist");
+			avatar_list = new rhea::Unit("avatarlist", "//meworla/avatarlist");
 			avatar_list->setup(m_app);
 			m_owner->addChild(avatar_list);
 		}
 		if (msg->avatars.size()) {
 			for (auto it = msg->avatars.begin(); it != msg->avatars.end(); it++) {
-				Rhea::Avatar* avatar = (Rhea::Avatar*)m_app->getUnitTree()->createUnit((*it).avatar, "//meworla/avatar");
+				rhea::Avatar* avatar = (rhea::Avatar*)m_app->getUnitTree()->createUnit((*it).avatar, "//meworla/avatar");
 				avatar->setModel((*it).type_name);
 				avatar_list->addChild(avatar);
 			}

@@ -4,7 +4,7 @@
 #include <Rhea/Unit.h>
 #include <Math/Vector3.h>
 
-namespace Rhea
+namespace rhea
 {
 	class Avatar : public Unit
 	{

@@ -9,7 +9,7 @@
 #include <Poseidon/RenderContext.h>
 #include <Poseidon/Material.h>
 
-namespace Rhea
+namespace rhea
 {
 
 	struct BulletDebugDraw::Impl

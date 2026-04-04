@@ -6,10 +6,10 @@
 
 namespace rhea::physics::bullet::debug
 {
-	class RheaPhysicsBulletDebugFabric : public Rhea::IFabric
+	class RheaPhysicsBulletDebugFabric : public rhea::IFabric
 	{
 	public:
-		void Register(Rhea::Application* app) override;
+		void Register(rhea::Application* app) override;
 
 		const char* getName() const override { return "RheaPhysicsBulletDebug"; }
 	};

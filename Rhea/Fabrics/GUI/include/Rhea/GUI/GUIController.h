@@ -4,7 +4,7 @@
 #include "Widget.h"
 #include "Styles/StyleEngine.h"
 
-namespace Rhea
+namespace rhea
 {
 
 	class GUIController : public Widget

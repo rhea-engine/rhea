@@ -4,11 +4,11 @@
 #include <Rhea/Application.h>
 #include <Rhea/FabricSystem.h>
 
-namespace Rhea
+namespace rhea
 {	
 	/** Fabrics for gltf file loading
 	*/
-	class GltfFabric : public Rhea::IFabric
+	class GltfFabric : public rhea::IFabric
 	{
 	public:
 		void Register(Application* app) override;

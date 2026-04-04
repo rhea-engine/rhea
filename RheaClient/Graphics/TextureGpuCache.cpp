@@ -2,7 +2,7 @@
 #include <Psio/Log.h>
 
 namespace rhea::client {
-    GraphicsTexture* TextureGpuCache::getOrCreate(Poseidon::Core* core, Rhea::ImageResource* img)
+    GraphicsTexture* TextureGpuCache::getOrCreate(Poseidon::Core* core, rhea::ImageResource* img)
     {
         if (!core || !img) return nullptr;
 
@@ -21,7 +21,7 @@ namespace rhea::client {
             char* buf = nullptr;
             size_t buflen = 0;
 
-            Rhea::Resource* res = doCast<Rhea::Resource>(img->getImage(0));
+            rhea::Resource* res = doCast<rhea::Resource>(img->getImage(0));
             if (!res) {
                 LOG(LOG_ERROR) << "TextureGpuCache::getOrCreate: image[0] is not a resource";
                 return nullptr;
@@ -42,7 +42,7 @@ namespace rhea::client {
         }
         else {
             for (int index = 0; index < img->getNumImages(); index++) {
-                Rhea::ImageResource* child_res = doCast<Rhea::ImageResource>(img->getImage(index));
+                rhea::ImageResource* child_res = doCast<rhea::ImageResource>(img->getImage(index));
                 if (!child_res) {
                     LOG(LOG_ERROR) << "TextureGpuCache::getOrCreate: image[" << index << "] is not an ImageResource " << img->getPath();
                     return nullptr;
@@ -65,7 +65,7 @@ namespace rhea::client {
         return ret;
     }
 
-    void TextureGpuCache::invalidate(Rhea::ImageResource* img)
+    void TextureGpuCache::invalidate(rhea::ImageResource* img)
     {
     }
 }

@@ -3,7 +3,7 @@
 #include <Rhea/Text/TextWidget.h>
 #include <Rhea/Text/BitmapFont.h>
 
-namespace Rhea
+namespace rhea
 {
 	void TextFabric::Register(Application* app)
 	{

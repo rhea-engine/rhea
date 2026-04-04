@@ -10,13 +10,13 @@
 #include <Rhea/Unit.h>
 #include <Rhea/Core/Transform.h>
 
-using Rhea::Position;
+using rhea::Position;
 
 namespace Poseidon
 {
 	/** A node is an item in the scene tree	 
 	*/
-	class Node : public Rhea::Element
+	class Node : public rhea::Element
 	{
 	public:
 		Node() 
@@ -32,14 +32,14 @@ namespace Poseidon
 		// set the coord space 0: world, 1: parent
 		void setCoordSpace(int space) { m_coord_space = space; }
 
-		void setTransform(Rhea::Transform* transform) { m_transform = transform; }
-		Rhea::Transform* getTransform() { return m_transform; }
+		void setTransform(rhea::Transform* transform) { m_transform = transform; }
+		rhea::Transform* getTransform() { return m_transform; }
 	
 	protected:	
 		
 		int m_coord_space = 0;
 
-		Rhea::Transform* m_transform = nullptr;
+		rhea::Transform* m_transform = nullptr;
 
 		// groups of nodes
 

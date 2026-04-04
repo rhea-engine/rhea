@@ -4,11 +4,11 @@
 #include <Rhea/Application.h>
 #include <Rhea/FabricSystem.h>
 
-namespace Rhea
+namespace rhea
 {
 	/** Fabrics for terrain handling
 	*/
-	class TerrainFabric : public Rhea::IFabric
+	class TerrainFabric : public rhea::IFabric
 	{
 	public:
 		void Register(Application* app) override;

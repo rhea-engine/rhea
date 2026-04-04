@@ -12,7 +12,7 @@
 #define NET_ROLE_PROXY 2
 #define NET_ROLE_CLIENT 3
 
-namespace Rhea
+namespace rhea
 {
 	class Item;
 

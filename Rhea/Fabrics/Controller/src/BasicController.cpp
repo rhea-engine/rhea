@@ -6,7 +6,7 @@
 
 #include <Rhea/EventInput.h>
 
-namespace Rhea
+namespace rhea
 {
 	bool BasicController::onInput(Event* ev, Unit* unit)
 	{

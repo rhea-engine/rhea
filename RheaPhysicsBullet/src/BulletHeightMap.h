@@ -10,7 +10,7 @@
 class btHeightfieldTerrainShape;
 class btRigidBody;
 
-namespace Rhea
+namespace rhea
 {
 	class Item;
 	struct PhysicsBodyDesc;
@@ -21,7 +21,7 @@ namespace rhea::physics::bullet
 	class BulletHeightMap : public BulletPhysicsBody
 	{
 	public:
-		BulletHeightMap(btDynamicsWorld* world, Rhea::Item* item, const Rhea::PhysicsBodyDesc& desc);
+		BulletHeightMap(btDynamicsWorld* world, rhea::Item* item, const rhea::PhysicsBodyDesc& desc);
 		~BulletHeightMap();
 
 		bool init() override { return true; }

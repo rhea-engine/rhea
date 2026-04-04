@@ -3,7 +3,7 @@
 
 #include "Rhea/Core/Item.h"
 
-namespace Rhea
+namespace rhea
 {
 	class Light : public Item
 	{

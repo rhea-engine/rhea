@@ -4,7 +4,7 @@
 #include <Rhea/Component.h>
 #include <Math/Vector3.h>
 
-namespace Rhea
+namespace rhea
 {
 	class MovementListenerComponent : public Component
 	{

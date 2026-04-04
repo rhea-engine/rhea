@@ -10,7 +10,7 @@ namespace rhea::physics::bullet
 	class BulletPhysicsGhost : public BulletPhysicsBody
 	{
 	public:
-		BulletPhysicsGhost(btDynamicsWorld* world, Rhea::Item* item, const Rhea::PhysicsBodyDesc& desc);
+		BulletPhysicsGhost(btDynamicsWorld* world, rhea::Item* item, const rhea::PhysicsBodyDesc& desc);
 		~BulletPhysicsGhost();
 
 		bool init();

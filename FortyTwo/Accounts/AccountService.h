@@ -8,15 +8,15 @@
 
 class User;
 
-class AccountService : public Rhea::Service
+class AccountService : public rhea::Service
 {
-	MECLASS(AccountService, Rhea::Service)
+	MECLASS(AccountService, rhea::Service)
 public:
 	AccountService(std::string name, std::string type) :
-		Rhea::Service(name, type)
+		rhea::Service(name, type)
 	{}
 
-	void setup(Rhea::Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
+	void setup(rhea::Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
 	// set a provider directly
 	void setProvider(std::unique_ptr<Provider> provider);
 
@@ -25,16 +25,16 @@ public:
 
 	void GetAccount(AuthInfo& auth_info, std::function<void(User*, int)> handler);
 
-	void CreateAvatar(User* user, Rhea::Avatar* avatar, std::function<void(int)> handler);
+	void CreateAvatar(User* user, rhea::Avatar* avatar, std::function<void(int)> handler);
 
 	// create a new account
 	void CreateAccount(AuthInfo& auth_info, std::function<void(User*, int)> handler);
 
 	// setup
 
-	std::vector<Rhea::Unit::Export> getReferences();
+	std::vector<rhea::Unit::Export> getReferences();
 
-	static void RegisterFabrics(Rhea::Application* app);
+	static void RegisterFabrics(rhea::Application* app);
 
 protected:
 	std::unique_ptr<Provider> m_provider;

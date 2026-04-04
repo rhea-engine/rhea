@@ -6,11 +6,11 @@
 
 namespace rhea::physics {
 
-	class ColliderComponent : public Rhea::Component {
-		RECLASS(ColliderComponent, Rhea::Component, "//meworla/collider")
+	class ColliderComponent : public rhea::Component {
+		RECLASS(ColliderComponent, rhea::Component, "//meworla/collider")
 	public:
 		ColliderComponent(std::string name, std::string type_name) :			
-			Rhea::Component(name, type_name)
+			rhea::Component(name, type_name)
 		{
 		}
 

@@ -18,9 +18,9 @@ Headless::~Headless()
 {
 }
 
-void Headless::showScene(Rhea::Scene* scene)
+void Headless::showScene(rhea::Scene* scene)
 {
-	auto* mgr = static_cast<Rhea::PhysicsManagerService*>(getService("physics_mgr"));
+	auto* mgr = static_cast<rhea::PhysicsManagerService*>(getService("physics_mgr"));
 	if (!mgr) {
 		LOG(LOG_ERROR) << "physics_mgr missing";
 		return;
@@ -40,16 +40,16 @@ void Headless::showScene(Rhea::Scene* scene)
 	scene->show();
 }
 
-void Headless::onScene(Rhea::Scene* scene)
+void Headless::onScene(rhea::Scene* scene)
 {
 	LOG(LOG_INFO) << "scene displayed";
-	std::unique_ptr<Rhea::Event> ev_r = std::make_unique<Rhea::Event>("ready", scene);
+	std::unique_ptr<rhea::Event> ev_r = std::make_unique<rhea::Event>("ready", scene);
 	scene->sendEvent(std::string("ready"), ev_r.get());
 }
 
 // simulate GeneratedModules
-std::vector<std::unique_ptr<Rhea::IFabric>> createFabrics() {
-	std::vector<std::unique_ptr<Rhea::IFabric>> fabrics;
+std::vector<std::unique_ptr<rhea::IFabric>> createFabrics() {
+	std::vector<std::unique_ptr<rhea::IFabric>> fabrics;
 	//  fabrics.push_back(std::make_unique<Rhea::AnimationFabric>());
 	return fabrics;
 }
@@ -83,10 +83,10 @@ int main(int argc, char* argv[])
 	// Create a minimal in-memory scene
 	std::unordered_map<std::string, std::string> attributes;
 	std::unordered_map<std::string, Variant> values;
-	Rhea::Scene* world_scene = app->getUnitTree()->createUnit<Rhea::Scene>(std::string("HeadlessScene"), attributes, values);
+	rhea::Scene* world_scene = app->getUnitTree()->createUnit<rhea::Scene>(std::string("HeadlessScene"), attributes, values);
 
 	// add one simple test item 
-	Rhea::Item* item = app->getUnitTree()->createUnit<Rhea::Item>(std::string("TestItem"), attributes, values); 
+	rhea::Item* item = app->getUnitTree()->createUnit<rhea::Item>(std::string("TestItem"), attributes, values); 
 
 	// Show the scene
 	app->showScene(world_scene);

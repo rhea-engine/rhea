@@ -7,7 +7,7 @@
 #include <cctype>
 #include <string>
 
-namespace Rhea
+namespace rhea
 {
 	PlatformService::PlatformService(std::string name, std::string type_name) :
 		Service("Platform", type_name)

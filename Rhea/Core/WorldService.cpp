@@ -4,7 +4,7 @@
 #include <Rhea/UnitTree.h>
 #include <Rhea/Core/Item.h>
 
-namespace Rhea
+namespace rhea
 {
 	void WorldService::onInit()
 	{

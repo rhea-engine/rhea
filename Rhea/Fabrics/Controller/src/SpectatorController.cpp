@@ -9,7 +9,7 @@
 #include <Rhea/EventInput.h>
 #include <Psio/Log.h>
 
-namespace Rhea
+namespace rhea
 {
 	bool SpectatorController::onInput(Event* ev, Unit* unit)
 	{

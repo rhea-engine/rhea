@@ -1,6 +1,6 @@
 #include "Rhea/Core/Position.h"
 
-namespace Rhea
+namespace rhea
 {
 	Position::Position() :
 		m_position(Vector3(0, 0, 0)),

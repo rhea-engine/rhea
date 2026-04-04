@@ -10,7 +10,7 @@
 #include <Rhea/Resources/ResourceService.h>
 #include <Psio/Log.h>
 
-namespace Rhea
+namespace rhea
 {	
 	void SceneLoader::load(std::string name, Application* app, Orion::ResourceRequest* req, Resource::LoadedHandler handler)
 	{

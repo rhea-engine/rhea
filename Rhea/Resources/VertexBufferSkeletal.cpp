@@ -1,6 +1,6 @@
 #include "Rhea/Resources/VertexBufferSkeletal.h"
 
-namespace Rhea
+namespace rhea
 {
 	void VertexBufferSkeletal::push_back(const VertexSkeletal& vertex)
 	{

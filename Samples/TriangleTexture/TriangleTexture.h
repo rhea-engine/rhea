@@ -2,7 +2,7 @@
 #include "Poseidon/Viewport.h"
 #include "Hippios/VertexBuffer.h"
 
-class TriangleTextureApp : public Rhea::Application
+class TriangleTextureApp : public rhea::Application
 {
 protected:
 	Poseidon::SceneManager* m_scene = 0;

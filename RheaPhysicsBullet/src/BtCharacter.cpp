@@ -75,7 +75,7 @@ namespace rhea::physics::bullet
 		btScalar m_minSlopeDot;
 	};
 
-	BulletPhysicsCharacter::BulletPhysicsCharacter(btDynamicsWorld* world, Rhea::Item* item, const Rhea::PhysicsBodyDesc& desc) :
+	BulletPhysicsCharacter::BulletPhysicsCharacter(btDynamicsWorld* world, rhea::Item* item, const rhea::PhysicsBodyDesc& desc) :
 		m_world(world),
 		m_move_state(moveState::GROUND),
 		m_last_position(0.0f,0.0f,0.0f),
@@ -246,7 +246,7 @@ namespace rhea::physics::bullet
 		}
 	}
 
-	void BulletPhysicsCharacter::moveStep(Rhea::Position* pos, Math::Vector3& move)
+	void BulletPhysicsCharacter::moveStep(rhea::Position* pos, Math::Vector3& move)
 	{
 		Vector3 trans = pos->get_rotation() * move;
 		//Vector3 position = pos->get_worldspace();
@@ -355,7 +355,7 @@ namespace rhea::physics::bullet
 		m_head_contact_pos = results.m_hitPointWorld;
 	}
 
-	Math::Vector3 BulletPhysicsCharacter::update(Rhea::Position* pos, Math::Vector3& move, Math::Vector3& gravity)
+	Math::Vector3 BulletPhysicsCharacter::update(rhea::Position* pos, Math::Vector3& move, Math::Vector3& gravity)
 	{
 		m_position = pos;
 		Vector3 position = pos->get_worldspace();

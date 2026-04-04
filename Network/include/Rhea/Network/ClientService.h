@@ -12,17 +12,17 @@
 #include <Hermes/MessageFactory.h>
 #include "WorldClient.h"
 
-using Rhea::Unit;
+using rhea::Unit;
 
-namespace Rhea
+namespace rhea
 {
-	class ClientService : public Rhea::Service
+	class ClientService : public rhea::Service
 	{
-		MECLASS(ClientService, Rhea::Service)
+		MECLASS(ClientService, rhea::Service)
 	public:
 		ClientService(std::string name, std::string type) :
 			m_network(nullptr),
-			Rhea::Service(name, type)
+			rhea::Service(name, type)
 		{}
 
 		// init event

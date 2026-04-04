@@ -4,7 +4,7 @@
 #include <Psio/Log.h>
 #include <Rhea/Physics/PhysicsManagerService.h>
 
-namespace Rhea
+namespace rhea
 {
 	void CharacterFabric::Register(Application* app)
 	{
@@ -18,7 +18,7 @@ namespace Rhea
 		}
 		SimpleParser::Type* t = KinematicCharacter::staticType();		
 
-		Rhea::PhysicsBodyDesc desc;
+		rhea::PhysicsBodyDesc desc;
 		desc.kind = "Meworla/RheaPhysics:Character";
 		desc.kinematic = true;
 		desc.mass = 70.0f; // optional

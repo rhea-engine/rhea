@@ -1,6 +1,6 @@
 #include <Rhea/GUI/Styles/CssShorthand.h>
 
-namespace Rhea
+namespace rhea
 {
 	bool CssPadding::Parse(std::vector<CssValue>& value, std::function<void(StylePropertyId, std::vector<CssValue>&)> callback) const
 	{

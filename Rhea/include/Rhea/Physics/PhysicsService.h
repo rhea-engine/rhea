@@ -10,7 +10,7 @@
 #include "PhysicsBody.h"
 #include "IPhysicsDebugDraw.h"
 
-namespace Rhea
+namespace rhea
 {
     class Scene;
     class Item;

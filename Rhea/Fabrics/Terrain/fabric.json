@@ -4,7 +4,7 @@
   "version": "0.9.0",
   "author": "Meworla",
   "description": "Rhea heightmap terrain",
-  "class": "Rhea::TerrainFabric",
+  "class": "rhea::TerrainFabric",
   "include": "Rhea/Terrain/TerrainFabric.h",
   "cmake_target": "Rhea::Terrain"
 }

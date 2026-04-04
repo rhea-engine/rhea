@@ -22,16 +22,16 @@ namespace rhea::client {
 		{}
 
 		// factory function
-		bool Ensure(Poseidon::Core* core, Rhea::Unit* unit);
+		bool Ensure(Poseidon::Core* core, rhea::Unit* unit);
 
 		// handle update event
-		bool onUpdate(Rhea::Event* ev, Rhea::Unit* unit);
+		bool onUpdate(rhea::Event* ev, rhea::Unit* unit);
 
 		// handle frame update
 		void onFrame();
 
 		// handle events
-		bool onItemDelete(Rhea::Event* ev, Rhea::Unit* unit);
+		bool onItemDelete(rhea::Event* ev, rhea::Unit* unit);
 
 	protected:		
 	};

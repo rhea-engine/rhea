@@ -4,13 +4,13 @@
 #include <Rhea/Application.h>
 #include <Rhea/FabricSystem.h>
 
-namespace Rhea
+namespace rhea
 {
 	class Application;
 
 	/** Fabrics for basic image loading
 	*/
-	class MediaFabric : public Rhea::IFabric
+	class MediaFabric : public rhea::IFabric
 	{
 	public:
 		void Register(Application* app) override;

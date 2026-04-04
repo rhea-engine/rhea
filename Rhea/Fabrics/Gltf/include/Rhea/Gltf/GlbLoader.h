@@ -4,7 +4,7 @@
 #include "GltfLoader.h"
 #include <Rhea/Resources/Resource.h>
 
-namespace Rhea
+namespace rhea
 {
 	class GlbLoader
 	{

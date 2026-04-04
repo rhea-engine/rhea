@@ -8,10 +8,10 @@ namespace {{SCOPE}}
 {
 	/** Fabrics for {{PROJECT_NAME}}
 	*/
-	class {{PROJECT_NAME}}Fabric : public Rhea::IFabric
+	class {{PROJECT_NAME}}Fabric : public rhea::IFabric
 	{
 	public:
-		void Register(Rhea::Application* app) override;
+		void Register(rhea::Application* app) override;
 
 		const char* getName() const override { return "{{PROJECT_NAME}}"; }
 	};

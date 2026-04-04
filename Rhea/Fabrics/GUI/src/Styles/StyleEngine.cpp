@@ -1,7 +1,7 @@
 #include <Rhea/GUI/Styles/StyleEngine.h>
 #include <Rhea/GUI/Styles/StyleSheet.h>
 
-namespace Rhea
+namespace rhea
 {
 	void StyleEngine::AppendStylesheet(StyleSheet* sheet)
 	{

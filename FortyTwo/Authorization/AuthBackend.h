@@ -19,7 +19,7 @@ class AuthBackend
 {
 public:
 
-	virtual void setup(Rhea::Application* app) = 0;
+	virtual void setup(rhea::Application* app) = 0;
 
 	typedef std::function<void(UserInfo info)> DBLookupHandler;
 

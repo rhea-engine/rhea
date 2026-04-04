@@ -7,12 +7,12 @@
 namespace Meworla
 {
 
-	class LobbyFabric : public Rhea::IFabric
+	class LobbyFabric : public rhea::IFabric
 	{
 	public:
 
 		// fabrics functions
-		void Register(Rhea::Application* app) override;
+		void Register(rhea::Application* app) override;
 
 		// get name
 		const char* getName() const override { return "Lobby"; }

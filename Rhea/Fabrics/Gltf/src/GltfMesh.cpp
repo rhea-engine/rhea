@@ -5,7 +5,7 @@
 #include <Rhea/UnitTree.h>
 #include <Rhea/Core/Item.h>
 
-namespace Rhea
+namespace rhea
 {
 	std::vector<Unit::Export> GltfMesh::getReferences()
 	{
@@ -15,7 +15,7 @@ namespace Rhea
 		return refs;
 	}
 
-	bool GltfMesh::load(Rhea::Mesh* mesh)
+	bool GltfMesh::load(rhea::Mesh* mesh)
 	{
 		if (m_values.find("path") != m_values.end()) {
 			GltfScene* scene = doCast<GltfScene>(m_app->getUnitTree()->find(m_values["path"].toString(), m_attributes["basepath"], false));

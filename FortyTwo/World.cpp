@@ -12,7 +12,7 @@ void World::setScene(std::string scene)
 	m_scene_name = scene;
 }
 
-void World::setup(Rhea::Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
+void World::setup(rhea::Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 {
 	Unit::setup(app, attributes, values);	
 }
@@ -32,11 +32,11 @@ std::vector<Unit::Export> World::getReferences()
 
 void World::ready()
 {
-	m_scene = (Rhea::Scene*)m_app->getUnitTree()->find(m_values["scenename"].toString(), m_attributes["basepath"], false);
+	m_scene = (rhea::Scene*)m_app->getUnitTree()->find(m_values["scenename"].toString(), m_attributes["basepath"], false);
 
 	if (m_scene) {
 
-		auto* mgr = doCast<Rhea::PhysicsManagerService>(m_app->getService("physics_mgr"));
+		auto* mgr = doCast<rhea::PhysicsManagerService>(m_app->getService("physics_mgr"));
 		if (mgr && !mgr->getPhysicsService()) {
 			std::string backend = "none";
 			std::string phy = m_scene->getValueString("physics", "none");
@@ -51,7 +51,7 @@ void World::ready()
 				backend = phy;
 			}
 			// create service by id (manager handles fallback to "none" if unknown/unavailable)
-			Rhea::PhysicsService* physics = mgr->createPhysicsService(backend);
+			rhea::PhysicsService* physics = mgr->createPhysicsService(backend);
 			if (!physics) {
 				// last-resort fallback if the manager doesn't already do it
 				physics = mgr->createPhysicsService("none");

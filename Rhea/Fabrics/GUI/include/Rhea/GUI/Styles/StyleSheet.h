@@ -6,7 +6,7 @@
 #include "../Widget.h"
 #include "StyleRule.h"
 
-namespace Rhea
+namespace rhea
 {
 	class StyleSheet : public Unit
 	{

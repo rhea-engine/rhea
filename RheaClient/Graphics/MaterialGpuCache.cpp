@@ -2,7 +2,7 @@
 #include <Rhea/Resources/ImageResource.h>
 
 namespace rhea::client {
-	Poseidon::Material* MaterialGpuCache::getOrCreate(Poseidon::Core* core, Rhea::Material* material, const Builder& builder)
+	Poseidon::Material* MaterialGpuCache::getOrCreate(Poseidon::Core* core, rhea::Material* material, const Builder& builder)
 	{
         auto key = material->getPath();
         std::string desiredShader = material->getValueString("shader");
@@ -26,7 +26,7 @@ namespace rhea::client {
         return it->second.mat.get(); 
 	}
 
-    std::vector<std::string> MaterialGpuCache::collectTexKeys(Rhea::Material* material)
+    std::vector<std::string> MaterialGpuCache::collectTexKeys(rhea::Material* material)
     {
         std::vector<std::string> keys;
 
@@ -52,7 +52,7 @@ namespace rhea::client {
             if (img->getNumImages() > 1) {
                 k += "|multi(" + std::to_string(img->getNumImages()) + "):";
                 for (int i = 0; i < img->getNumImages(); ++i) {
-                    auto* child = doCast<Rhea::ImageResource>(img->getImage(i));
+                    auto* child = doCast<rhea::ImageResource>(img->getImage(i));
                     if (child) {
                         k += child->getPath();
                     }

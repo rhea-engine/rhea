@@ -8,33 +8,33 @@
 
 namespace rhea::physics
 {
-	class PhysicsComponent : public Rhea::MovementListenerComponent
+	class PhysicsComponent : public rhea::MovementListenerComponent
 	{
-		RECLASS(PhysicsComponent, Rhea::MovementListenerComponent, "//meworla/physicscomponent")
+		RECLASS(PhysicsComponent, rhea::MovementListenerComponent, "//meworla/physicscomponent")
 	public:
 		PhysicsComponent(std::string name, std::string type_name) :
-			Rhea::MovementListenerComponent(name, type_name)
+			rhea::MovementListenerComponent(name, type_name)
 		{
 		}
 		PhysicsComponent() :
-			Rhea::MovementListenerComponent("physics", "//meworla/physicscomponent")
+			rhea::MovementListenerComponent("physics", "//meworla/physicscomponent")
 		{}
 		~PhysicsComponent() { 
 			// ensure cache cleared (if still pointing to our body)
-			if (auto* p_item = doCast<Rhea::Item>(getParent())) {
+			if (auto* p_item = doCast<rhea::Item>(getParent())) {
 				if (p_item->getPhysicsBody() == m_body.get())
 					p_item->setPhysicsBody(nullptr);
 			}
 		}
 
-		void setBody(std::unique_ptr<Rhea::PhysicsBody> body) { 
+		void setBody(std::unique_ptr<rhea::PhysicsBody> body) { 
 			m_body = std::move(body);
-			if (auto* p_item = doCast<Rhea::Item>(getParent())) {
+			if (auto* p_item = doCast<rhea::Item>(getParent())) {
 				if (m_body)
 					p_item->setPhysicsBody(m_body.get());
 			}
 		}
-		Rhea::PhysicsBody* getBody() { return m_body.get(); }
+		rhea::PhysicsBody* getBody() { return m_body.get(); }
 
 		// movement listener functions
 		void onMovementChanged(const Math::Vector3& move) override {
@@ -48,7 +48,7 @@ namespace rhea::physics
 		void onPositionChanged() override {}
 
 	protected:
-		std::unique_ptr<Rhea::PhysicsBody> m_body;
+		std::unique_ptr<rhea::PhysicsBody> m_body;
 
 	};
 }

@@ -1,7 +1,7 @@
 #include "Rhea/Network/WorldServer.h"
 #include <Psio/Log.h>
 
-namespace Rhea
+namespace rhea
 {
 	void WorldServer::Initialize()
 	{

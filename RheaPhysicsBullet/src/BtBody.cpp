@@ -11,14 +11,14 @@ using Math::Vector3;
 
 namespace rhea::physics::bullet
 {
-	BulletPhysicsBody::BulletPhysicsBody(btDynamicsWorld* world, Rhea::Item* item, const Rhea::PhysicsBodyDesc& desc) :
+	BulletPhysicsBody::BulletPhysicsBody(btDynamicsWorld* world, rhea::Item* item, const rhea::PhysicsBodyDesc& desc) :
 		m_world(world),
 		m_comound_shape(nullptr),		
 		m_mass(0.0f),
 		m_upwards(0.0f),
 		m_body(nullptr),
 		m_turn(0.0f),
-		Rhea::PhysicsBody(item)
+		rhea::PhysicsBody(item)
 	{}
 	
 	bool BulletPhysicsBody::init()
@@ -53,7 +53,7 @@ namespace rhea::physics::bullet
 
 			if (!isDynamic && !m_isKinematic) {
 				TriangleSoup tri;
-				Rhea::Application* app = m_item->getApplication();
+				rhea::Application* app = m_item->getApplication();
 				if (!ExtractTrianglesFromScene(app, m_item, tri) || tri.indices.empty()) {
 					LOG(LOG_ERROR) << "BtBody: no collision triangles for item";
 					colShape = new btBoxShape(btVector3(1, 1, 1));
@@ -151,7 +151,7 @@ namespace rhea::physics::bullet
 			colShape->calculateLocalInertia(m_mass, localInertia);
 
 		// get position and rotation from m_item
-		Rhea::Transform* transform = m_item->getTransform();
+		rhea::Transform* transform = m_item->getTransform();
 		Math::Vector3 pos = transform->get_position()->get_worldspace();
 		Math::Quaternion rot = transform->get_position()->get_rotation();
 		float offset_y = m_item->getValue("collision_shape_offset_y");

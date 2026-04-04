@@ -4,7 +4,7 @@
 #include "Rhea/Resources/Resource.h"
 #include "Rhea/Resources/ResourceLoader.h"
 
-namespace Rhea
+namespace rhea
 {
 	class TextLoader {
 	public:

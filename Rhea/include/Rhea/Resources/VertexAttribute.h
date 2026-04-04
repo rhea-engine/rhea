@@ -3,7 +3,7 @@
 
 #include <string>
 
-namespace Rhea {
+namespace rhea {
 	// a type of the vertex attribute
 	enum class VertexAttributeType {
 		UNKNOWN, 

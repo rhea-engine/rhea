@@ -53,9 +53,9 @@
 
 #undef min
 
-extern std::vector<std::unique_ptr<Rhea::IFabric>> createFabrics();
+extern std::vector<std::unique_ptr<rhea::IFabric>> createFabrics();
 
-namespace Rhea
+namespace rhea
 {
 	Application::~Application()
 	{
@@ -513,7 +513,7 @@ namespace Rhea
 
 	ConfigFile* Application::getConfig()
 	{
-		ConfigFile* config = doCast<Rhea::ConfigFile>(m_unit_tree->getChild("config"));
+		ConfigFile* config = doCast<rhea::ConfigFile>(m_unit_tree->getChild("config"));
 		return config;
 	}
 }

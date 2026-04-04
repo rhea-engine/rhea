@@ -7,7 +7,7 @@
 #include <Poseidon/Core.h>
 #include <Rhea/Resources/ImageResource.h>
 
-namespace Rhea
+namespace rhea
 {
 	class Unit;
 }
@@ -17,7 +17,7 @@ namespace rhea::client {
 	class GraphicsTexture
 	{
 	public:
-		GraphicsTexture(Poseidon::Core* core, Rhea::ImageResource::TextureType texture_type, int num_textures);
+		GraphicsTexture(Poseidon::Core* core, rhea::ImageResource::TextureType texture_type, int num_textures);
 
 		// create a texture from buffer
 		Poseidon::Texture* createTexture(int index, unsigned char* buf, size_t buflen);
@@ -31,7 +31,7 @@ namespace rhea::client {
 	protected:
 		Poseidon::Core* m_core;
 		Poseidon::Texture* m_img;
-		Rhea::ImageResource::TextureType m_type;
+		rhea::ImageResource::TextureType m_type;
 	};
 }
 

@@ -5,6 +5,6 @@
   "author": "Meworla",
   "description": "Animation System",
   "include": "Rhea/Animation/AnimationFabric.h",
-  "class": "Rhea::AnimationFabric",
+  "class": "rhea::AnimationFabric",
   "cmake_target": "Rhea::Animation"
 }

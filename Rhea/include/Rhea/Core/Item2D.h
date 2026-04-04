@@ -8,7 +8,7 @@
 
 using Math::Vector2;
 
-namespace Rhea
+namespace rhea
 {
 	class Item2D : public Item
 	{

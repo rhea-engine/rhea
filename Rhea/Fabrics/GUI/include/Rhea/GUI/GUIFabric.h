@@ -4,15 +4,15 @@
 #include <Rhea/Application.h>
 #include <Rhea/FabricSystem.h>
 
-namespace Rhea
+namespace rhea
 {
 
-	class GUIFabric : public Rhea::IFabric
+	class GUIFabric : public rhea::IFabric
 	{
 	public:
 
 		// fabrics functions
-		void Register(Rhea::Application* app) override;
+		void Register(rhea::Application* app) override;
 
 		const char* getName() const override { return "GUI"; }
 	};

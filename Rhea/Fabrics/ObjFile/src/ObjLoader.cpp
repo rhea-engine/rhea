@@ -12,7 +12,7 @@
 #include <Rhea/Resources/ImageResource.h>
 #include <Rhea/Resources/VertexBufferStandard.h>
 
-namespace Rhea
+namespace rhea
 {
     struct VertexKeyHasher {
         size_t operator()(const ObjLoader::Vertex& v) const {
@@ -50,7 +50,7 @@ namespace Rhea
         }
     };
 
-    bool ObjLoader::load(Rhea::Mesh* mesh)
+    bool ObjLoader::load(rhea::Mesh* mesh)
     {
 		std::vector<VertexAttribute> layout;
 

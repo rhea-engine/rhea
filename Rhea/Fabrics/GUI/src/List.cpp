@@ -3,9 +3,9 @@
 #include <Rhea/Application.h>
 #include <Rhea/UnitTree.h>
 
-namespace Rhea
+namespace rhea
 {
-	void Rhea::ListWidget::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
+	void rhea::ListWidget::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{
 		Widget::setup(app, attributes, values);		
 	}

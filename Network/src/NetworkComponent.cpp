@@ -2,7 +2,7 @@
 #include <Rhea/Core/Item.h>
 #include <Psio/Log.h>
 
-namespace Rhea
+namespace rhea
 {
 	void NetworkComponent::onMovementChanged(const Math::Vector3& move)
 	{

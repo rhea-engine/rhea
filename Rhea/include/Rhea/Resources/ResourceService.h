@@ -5,7 +5,7 @@
 #include <Rhea/Resources/ResourceList.h>
 #include <queue>
 
-namespace Rhea
+namespace rhea
 {
 	class ResourceService : public Service
 	{

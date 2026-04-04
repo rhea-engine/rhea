@@ -2,7 +2,7 @@ add_library (RheaMedia
     "src/ImageLoader.cpp"
     "src/MediaFabric.cpp"
 )
-add_library(Rhea::Media ALIAS RheaMedia)
+add_library(rhea::Media ALIAS RheaMedia)
 
 # Scoped includes are under include/Rhea/GUI/**
 target_include_directories(RheaMedia PUBLIC

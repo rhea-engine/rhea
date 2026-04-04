@@ -6,7 +6,7 @@
 #include <Math/Vector4.h>
 #include <Math/Vector2.h>
 
-namespace Rhea
+namespace rhea
 {
 	class Application;
 	class ImageResource;

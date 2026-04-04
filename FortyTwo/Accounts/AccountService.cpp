@@ -4,7 +4,7 @@
 #include "ProviderMemory.h"
 #include <Psio/Log.h>
 
-void AccountService::setup(Rhea::Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
+void AccountService::setup(rhea::Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 {
 	Unit::setup(app, attributes, values);
 
@@ -48,7 +48,7 @@ void AccountService::GetAccount(AuthInfo& auth_info, std::function<void(User*, i
 			});
 }
 
-void AccountService::CreateAvatar(User* user, Rhea::Avatar* avatar, std::function<void(int)> handler)
+void AccountService::CreateAvatar(User* user, rhea::Avatar* avatar, std::function<void(int)> handler)
 {
 	m_provider->CreateAvatar(user, avatar, handler);
 }
@@ -58,7 +58,7 @@ void AccountService::CreateAccount(AuthInfo& auth_info, std::function<void(User*
 	m_provider->CreateAccount(auth_info.user_id, auth_info.name, handler);
 }
 
-std::vector<Rhea::Unit::Export> AccountService::getReferences()
+std::vector<rhea::Unit::Export> AccountService::getReferences()
 {
 	std::vector<Unit::Export> refs;
 	if (m_provider)
@@ -66,7 +66,7 @@ std::vector<Rhea::Unit::Export> AccountService::getReferences()
 	return refs;
 }
 
-void AccountService::RegisterFabrics(Rhea::Application* app)
+void AccountService::RegisterFabrics(rhea::Application* app)
 {
 	// register types
 	SimpleParser::Type::registerType<User>("//meworla/user");

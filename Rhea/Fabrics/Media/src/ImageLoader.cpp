@@ -7,7 +7,7 @@
 #include "Rhea/Media/ImageLoader.h"
 #include "Rhea/Resources/ImageResource.h"
 
-namespace Rhea
+namespace rhea
 {
 	void ImageLoader::load(std::string name, Application* app, Orion::ResourceRequest* req, Resource::LoadedHandler handler)
 	{

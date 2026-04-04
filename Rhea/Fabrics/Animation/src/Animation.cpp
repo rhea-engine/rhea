@@ -2,7 +2,7 @@
 #include <Math/Interpolation.h>
 #include <Psio/Log.h>
 
-namespace Rhea
+namespace rhea
 {
 	void Animation::UpdateSkeleton(Skeleton* skeleton, float currentTime)
 	{

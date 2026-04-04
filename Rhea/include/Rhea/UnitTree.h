@@ -7,7 +7,7 @@
 
 #include "Unit.h"
 
-namespace Rhea
+namespace rhea
 {
 	class Application;
 

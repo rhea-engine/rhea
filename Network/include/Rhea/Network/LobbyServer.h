@@ -8,7 +8,7 @@
 #include <Hermes/Stream.h>
 #include <Rhea/Core/Avatar.h>
 
-namespace Rhea
+namespace rhea
 {
 	class LobbyServer
 	{
@@ -24,7 +24,7 @@ namespace Rhea
 		void Stop() { m_state = CONN_NONE; }
 
 		// avatar list
-		std::vector<Rhea::Avatar*> avatars;
+		std::vector<rhea::Avatar*> avatars;
 
 		// set the create avatar callback
 		void setOnCreateAvatar(std::function<void(std::string, std::string, std::function<void(Avatar*)>)> on_create_avatar) { m_on_create_avatar = on_create_avatar; }

@@ -1,7 +1,7 @@
 #include "Rhea/InputMap.h"
 #include <Psio/Input/Keyboard.h>
 
-namespace Rhea
+namespace rhea
 {
 	void InputMap::setAction(InputEventSP evt, std::string action)
 	{

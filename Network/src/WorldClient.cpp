@@ -15,7 +15,7 @@
 #include "Rhea/Network/ClientService.h"
 #include "Rhea/Network/NetworkComponent.h"
 
-namespace Rhea
+namespace rhea
 {
 	void WorldClient::Initialize()
 	{
@@ -51,9 +51,9 @@ namespace Rhea
 	void WorldClient::onCreateMessage(Hermes::MessageCreate* msg)
 	{
 		// instancing the player
-		Rhea::Item* gnar = doCast<Rhea::Item>(m_app->getUnitTree()->find(msg->type_name));
+		rhea::Item* gnar = doCast<rhea::Item>(m_app->getUnitTree()->find(msg->type_name));
 		if (gnar) {
-			Rhea::Item* player;
+			rhea::Item* player;
 			if (msg->is_player && m_player_set) {
 				LOG(LOG_ERROR) << "isPlayer set multiple times";
 				msg->is_player = false;
@@ -70,11 +70,11 @@ namespace Rhea
 			Math::Quaternion rot = Math::Quaternion(msg->transform[0], msg->transform[1], msg->transform[2], msg->transform[3]);
 			player->setPosition(position);
 			player->getTransform()->get_position()->setOrientation(rot);
-			Rhea::NetworkComponent* net_comp = new Rhea::NetworkComponent(player, msg->NUID, NET_ROLE_CLIENT);
+			rhea::NetworkComponent* net_comp = new rhea::NetworkComponent(player, msg->NUID, NET_ROLE_CLIENT);
 			net_comp->setDelegate(this);
 			player->addComponent(net_comp);
 			m_net_items[msg->NUID] = player;
-			Rhea::Event e("scene_enter", player);
+			rhea::Event e("scene_enter", player);
 			m_scene->bubbleEvent("scene_enter", &e);
 
 			m_scene->addItem(player);
@@ -92,7 +92,7 @@ namespace Rhea
 	
 	void WorldClient::onPositionMessage(Hermes::MessagePosition* move_msg)
 	{
-		Rhea::Position pos;
+		rhea::Position pos;
 		pos.setPosition(move_msg->pos[0], move_msg->pos[1], move_msg->pos[2]);
 		Math::Quaternion q(move_msg->transform[0], move_msg->transform[1], move_msg->transform[2], move_msg->transform[3]);
 		pos.setOrientation(q);
@@ -111,7 +111,7 @@ namespace Rhea
 		// destruction of item requested
 		auto it = m_net_items.find(msg->NUID);
 		if (it != m_net_items.end()) {
-			Rhea::Item* item = it->second;
+			rhea::Item* item = it->second;
 			if (m_scene) {
 				m_scene->removeItem(item);
 				m_scene->removeChild(item);

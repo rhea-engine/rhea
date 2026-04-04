@@ -2,7 +2,7 @@
 #include "Rhea/Media/ImageLoader.h"
 #include "Rhea/Application.h"
 
-namespace Rhea
+namespace rhea
 {
 	void MediaFabric::Register(Application* app)
 	{		

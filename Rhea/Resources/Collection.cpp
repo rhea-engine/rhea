@@ -1,7 +1,7 @@
 #include "Rhea/Resources/Collection.h"
 #include <Orion/Collection.h>
 
-namespace Rhea
+namespace rhea
 {
 	void Collection::readFromStream(Orion::ResourceStream* stream)
 	{

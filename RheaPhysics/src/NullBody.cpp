@@ -2,11 +2,11 @@
 
 namespace rhea::physics
 {
-	NullPhysicsBody::NullPhysicsBody(Rhea::Item* item) :
+	NullPhysicsBody::NullPhysicsBody(rhea::Item* item) :
 		m_turn(0.0f),		
 		m_isKinematic(false),
 		m_isStatic(false),
-		Rhea::PhysicsBody(item)
+		rhea::PhysicsBody(item)
 	{
 	}
 

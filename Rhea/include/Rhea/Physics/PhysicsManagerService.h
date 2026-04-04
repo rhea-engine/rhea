@@ -10,7 +10,7 @@
 #include "PhysicsBody.h"
 #include "PhysicsBodyDescriptor.h"
 
-namespace Rhea
+namespace rhea
 {
 	class Application;
 	class Item;

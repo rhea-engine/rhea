@@ -6,7 +6,7 @@
 #include <Rhea/Gltf/GltfScene.h>
 #include <Rhea/Gltf/GltfMesh.h>
 
-void Rhea::GltfFabric::Register(Application* app)
+void rhea::GltfFabric::Register(Application* app)
 {
 	// register gltf loader	
 	app->getResourceLoader()->registerLoader<GltfLoader>("model/gltf+json");

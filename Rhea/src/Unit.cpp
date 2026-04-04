@@ -4,7 +4,7 @@
 using SimpleParser::Type;
 using SimpleParser::Method;
 
-namespace Rhea
+namespace rhea
 {
 	void Unit::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{

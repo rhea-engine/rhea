@@ -4,7 +4,7 @@
 #include <Rhea/Core/Avatar.h>
 #include <Hermes/Messages/MessageEnterFailed.h>
 
-namespace Rhea
+namespace rhea
 {
 	void LobbyServer::Initialize()
 	{
@@ -84,7 +84,7 @@ namespace Rhea
 	void LobbyServer::onEnterWorldMessage(Hermes::MessageEnterWorld* msg)
 	{
 		// get the avatar with that name
-		Rhea::Avatar* avatar = nullptr;
+		rhea::Avatar* avatar = nullptr;
 		for (int i = 0; i < avatars.size(); i++)
 		{
 			if (avatars[i]->getPathName() == msg->avatar)

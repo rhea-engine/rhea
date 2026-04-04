@@ -4,7 +4,7 @@
   "version": "0.9.0",
   "author": "Meworla",
   "description": "Rhea Media Loader",
-  "class": "Rhea::MediaFabric",
+  "class": "rhea::MediaFabric",
   "include": "Rhea/Media/MediaFabric.h",
-  "cmake_target": "Rhea::Media"
+  "cmake_target": "rhea::Media"
 }

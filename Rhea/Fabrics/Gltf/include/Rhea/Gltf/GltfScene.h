@@ -16,7 +16,7 @@
 #include <Math/Vector3.h>
 #include <Rhea/Animation/Skeleton.h>
 
-namespace Rhea
+namespace rhea
 {
 	class Material;
 
@@ -33,11 +33,11 @@ namespace Rhea
 		virtual ~GltfScene()
 		{}
 
-		bool load(Rhea::Mesh* mesh);
+		bool load(rhea::Mesh* mesh);
 
 		void CreateSkeleton(int idx, Skeleton* skeleton);
 
-		void CreateAnimations(Rhea::Mesh* mesh);
+		void CreateAnimations(rhea::Mesh* mesh);
 
 		void ready() override;
 

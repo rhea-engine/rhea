@@ -1,6 +1,6 @@
 #include "Rhea/EventInput.h"
 
-namespace Rhea
+namespace rhea
 {
 	bool EventInput::isAction(std::string action)
 	{

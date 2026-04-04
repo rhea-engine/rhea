@@ -1,6 +1,6 @@
 #include <Rhea/GUI/Row.h>
 
-void Rhea::RowWidget::ready()
+void rhea::RowWidget::ready()
 {
 	Widget::ready();
 
@@ -8,7 +8,7 @@ void Rhea::RowWidget::ready()
 		m_alignment = std::make_unique<Alignment>(Alignment::Horizontal::CENTER, Alignment::Vertical::CENTER);
 }
 
-void Rhea::RowWidget::onSetPosition()
+void rhea::RowWidget::onSetPosition()
 {
 	Vector2 cur_position = m_position + m_content_position;
 	if (!m_ordered_children.size())
@@ -50,7 +50,7 @@ void Rhea::RowWidget::onSetPosition()
 	}
 }
 
-Vector2 Rhea::RowWidget::innerSize(Vector2 size_constraints)
+Vector2 rhea::RowWidget::innerSize(Vector2 size_constraints)
 {
 	Vector2 innerSize(0.0f, 0.0f);
 
@@ -74,7 +74,7 @@ Vector2 Rhea::RowWidget::innerSize(Vector2 size_constraints)
 	return innerSize;
 }
 
-void Rhea::RowWidget::innerGetMinSize(Vector2 size_constraints, Vector2& min_size)
+void rhea::RowWidget::innerGetMinSize(Vector2 size_constraints, Vector2& min_size)
 {
 	Vector2 inner_min;
 

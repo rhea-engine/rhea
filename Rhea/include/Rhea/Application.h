@@ -13,7 +13,7 @@
 
 using ReqError = Orion::ResourceRequest::Error;
 
-namespace Rhea
+namespace rhea
 {	
 	class Unit;
 	class UnitTree;	

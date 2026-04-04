@@ -12,7 +12,7 @@
 #include <Rhea/Core/Geometry.h>
 
 
-namespace Rhea
+namespace rhea
 {
 	Mesh::Mesh(const Mesh& m) :
 		Unit(m),
@@ -118,7 +118,7 @@ namespace Rhea
 	void Mesh::getBuffers(std::vector<vertex>& vertices, std::vector<uint32_t>& indices)
 	{
 		vertices = m_vertices;
-		//		indices = Rhea::Mesh::m_v_indices;
+		//		indices = rhea::Mesh::m_v_indices;
 		if (m_submeshes.size())
 			indices = m_submeshes[0].indices;
 	}

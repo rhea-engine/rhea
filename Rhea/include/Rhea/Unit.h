@@ -15,7 +15,7 @@
 
 using SimpleParser::Variant;
 
-namespace Rhea
+namespace rhea
 {
 	class Application;
 	class Visitor;

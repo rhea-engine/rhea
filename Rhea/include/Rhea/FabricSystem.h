@@ -1,7 +1,7 @@
 #ifndef RHEA_FABRICSYSTEM_H
 #define RHEA_FABRICSYSTEM_H
 
-namespace Rhea
+namespace rhea
 {
     class Application;
 

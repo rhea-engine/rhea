@@ -5,7 +5,7 @@
 
 #include <Components/Math/Vector3.h>
 
-namespace Rhea
+namespace rhea
 {
 	class VertexBufferColor : public VertexBuffer
 	{

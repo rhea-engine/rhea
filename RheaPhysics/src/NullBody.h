@@ -14,10 +14,10 @@ namespace
 
 namespace rhea::physics
 {
-	class NullPhysicsBody : public Rhea::PhysicsBody
+	class NullPhysicsBody : public rhea::PhysicsBody
 	{
 	public:
-		NullPhysicsBody(Rhea::Item* item);
+		NullPhysicsBody(rhea::Item* item);
 		virtual ~NullPhysicsBody();
 
 		// move by vector

@@ -5,7 +5,7 @@
 #include <Psio/Log.h>
 #include <Rhea/Physics/PhysicsManagerService.h>
 
-namespace Rhea
+namespace rhea
 {
 	void TerrainFabric::Register(Application* app)
 	{
@@ -21,7 +21,7 @@ namespace Rhea
 				
 		SimpleParser::Type* t = Terrain::staticType();
 
-		Rhea::PhysicsBodyDesc desc;
+		rhea::PhysicsBodyDesc desc;
 		desc.kind = "Meworla/RheaPhysics:HeightMap";
 		desc.mass = 0.0f;     // static
 		phy_mgr->registerBodyForType(t, desc);

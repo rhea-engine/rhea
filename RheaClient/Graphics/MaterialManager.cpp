@@ -14,24 +14,24 @@
 #include <Rhea/Graphics/GraphicsService.h>
 
 namespace rhea::client {
-	static Hippios::InputLayoutFormat ConvertVertexFormat(const Rhea::VertexAttribute& a)
+	static Hippios::InputLayoutFormat ConvertVertexFormat(const rhea::VertexAttribute& a)
 	{
 		if (a.element_size == 4 && a.element_count == 2)
 			return Hippios::InputLayoutFormat::R32G32_FLOAT;
 		if (a.element_size == 4 && a.element_count == 3)
 			return Hippios::InputLayoutFormat::R32G32B32_FLOAT;
 		if (a.element_size == 4 && a.element_count == 4) {
-			if (a.type == Rhea::VertexAttributeType::JOINTS)
+			if (a.type == rhea::VertexAttributeType::JOINTS)
 				return Hippios::InputLayoutFormat::R32G32B32A32_UINT; // if joints are really uint32
 			return Hippios::InputLayoutFormat::R32G32B32A32_FLOAT;
 		}
-		if (a.element_size == 2 && a.element_count == 4 && a.type == Rhea::VertexAttributeType::JOINTS)
+		if (a.element_size == 2 && a.element_count == 4 && a.type == rhea::VertexAttributeType::JOINTS)
 			return Hippios::InputLayoutFormat::R16G16B16A16_UINT;
 
 		return Hippios::InputLayoutFormat::FORMAT_UNKNOWN;
 	}
 
-	Poseidon::Shader* GraphicsMaterialManager::EnsurePoseidonShader(Poseidon::Core* core, Rhea::Material* material_res, Rhea::Shader* shader_res)
+	Poseidon::Shader* GraphicsMaterialManager::EnsurePoseidonShader(Poseidon::Core* core, rhea::Material* material_res, rhea::Shader* shader_res)
 	{
 		if (!material_res || !shader_res)
 			return nullptr;
@@ -47,20 +47,20 @@ namespace rhea::client {
 		// shader not yet defined in core - search from resources and create the shader		
 		auto backend = core->getRendererBackend();
 
-		Rhea::TextResource* vs_res = nullptr;
-		Rhea::TextResource* fs_res = nullptr;
-		Rhea::ShaderBackend shader_backend = Rhea::ShaderBackend::Unknown;
+		rhea::TextResource* vs_res = nullptr;
+		rhea::TextResource* fs_res = nullptr;
+		rhea::ShaderBackend shader_backend = rhea::ShaderBackend::Unknown;
 
 		if (backend == "d3d11") {
-			vs_res = shader_res->getShaderCode(Rhea::ShaderBackend::D3D11, Rhea::ShaderStage::Vertex);
-			fs_res = shader_res->getShaderCode(Rhea::ShaderBackend::D3D11, Rhea::ShaderStage::Fragment);
-			shader_backend = Rhea::ShaderBackend::D3D11;
+			vs_res = shader_res->getShaderCode(rhea::ShaderBackend::D3D11, rhea::ShaderStage::Vertex);
+			fs_res = shader_res->getShaderCode(rhea::ShaderBackend::D3D11, rhea::ShaderStage::Fragment);
+			shader_backend = rhea::ShaderBackend::D3D11;
 
 		}
 		else if (backend == "opengl") {
-			vs_res = shader_res->getShaderCode(Rhea::ShaderBackend::OpenGL, Rhea::ShaderStage::Vertex);
-			fs_res = shader_res->getShaderCode(Rhea::ShaderBackend::OpenGL, Rhea::ShaderStage::Fragment);
-			shader_backend = Rhea::ShaderBackend::OpenGL;
+			vs_res = shader_res->getShaderCode(rhea::ShaderBackend::OpenGL, rhea::ShaderStage::Vertex);
+			fs_res = shader_res->getShaderCode(rhea::ShaderBackend::OpenGL, rhea::ShaderStage::Fragment);
+			shader_backend = rhea::ShaderBackend::OpenGL;
 		}
 
 		if (!vs_res || !fs_res) {
@@ -86,8 +86,8 @@ namespace rhea::client {
 		desc.vertexSourceLength = vs_len;
 		desc.pixelSource = reinterpret_cast<const unsigned char*>(fs_buf);
 		desc.pixelSourceLength = fs_len;
-		desc.vertexEntry = shader_res->getEntryPoint(shader_backend, Rhea::ShaderStage::Vertex);
-		desc.pixelEntry = shader_res->getEntryPoint(shader_backend, Rhea::ShaderStage::Fragment);
+		desc.vertexEntry = shader_res->getEntryPoint(shader_backend, rhea::ShaderStage::Vertex);
+		desc.pixelEntry = shader_res->getEntryPoint(shader_backend, rhea::ShaderStage::Fragment);
 		for (const auto& texSlot : shader_res->getTextureSlots()) {
 			desc.sampler_bindings.push_back({ texSlot.shaderName, texSlot.slot });
 		}
@@ -184,7 +184,7 @@ namespace rhea::client {
 			std::vector<std::string> material_names = shader_res->getInputSlotNamesVS();
 			size_t size = 0;
 			for (auto& name : material_names) {
-				Rhea::Shader::InputSlot* slot = shader_res->getInputSlotVS(name);
+				rhea::Shader::InputSlot* slot = shader_res->getInputSlotVS(name);
 				elements.push_back({ Poseidon::Shader::MatBufferLayoutElementType::VECTOR2, name, size, sizeof(Math::Vector2) });
 				size += sizeof(Math::Vector2);
 			}
@@ -197,17 +197,17 @@ namespace rhea::client {
 		return shader;
 	}
 
-	bool GraphicsMaterialManager::Ensure(Poseidon::Core* core, Rhea::Unit* unit)
+	bool GraphicsMaterialManager::Ensure(Poseidon::Core* core, rhea::Unit* unit)
 	{
 		return true;
 	}
 	
-	bool GraphicsMaterialManager::FillPoseidonMaterial(Poseidon::Core* core, Rhea::Material* material_res, Poseidon::Material* out_mat, bool fresh_build)
+	bool GraphicsMaterialManager::FillPoseidonMaterial(Poseidon::Core* core, rhea::Material* material_res, Poseidon::Material* out_mat, bool fresh_build)
 	{
 		if (!core || !material_res || !out_mat) return false; 
 		
 		// add the shader
-		Rhea::Shader* shader_res = material_res->getShaderRes();
+		rhea::Shader* shader_res = material_res->getShaderRes();
 		if (!shader_res) {
 			LOG(LOG_ERROR) << "FillPoseidonMaterial: no shader resource";
 			return false;
@@ -244,9 +244,9 @@ namespace rhea::client {
 		// vs props
 		std::vector<std::string> material_names = shader_res->getInputSlotNamesVS();
 		for (auto& name : material_names) {
-			Rhea::Shader::InputSlot* slot = shader_res->getInputSlotVS(name);
+			rhea::Shader::InputSlot* slot = shader_res->getInputSlotVS(name);
 			// TODO implement other types
-			if (slot->type == Rhea::Shader::InputType::kVector2) {
+			if (slot->type == rhea::Shader::InputType::kVector2) {
 				Math::Vector2 v2 = material_res->getFloat2VS(slot->slot_id);
 				int poseidon_slot = out_mat->getShader()->getMatBufLayoutMapVS(name);
 				out_mat->SetFloat2VS(poseidon_slot, v2);
@@ -275,7 +275,7 @@ namespace rhea::client {
 		return true;
 	}
 	
-	bool GraphicsMaterialManager::onItemDelete(Rhea::Event* ev, Rhea::Unit* unit)
+	bool GraphicsMaterialManager::onItemDelete(rhea::Event* ev, rhea::Unit* unit)
 	{		
 		return false;
 	}

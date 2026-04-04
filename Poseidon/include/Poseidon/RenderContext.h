@@ -9,7 +9,7 @@
 #include <Rhea/Core/Light.h>
 #include <Hippios/BaseTypes.h>
 
-using Rhea::Item;
+using rhea::Item;
 
 namespace Poseidon
 {
@@ -35,7 +35,7 @@ namespace Poseidon
 		bool isName(std::string& name) { return m_name == name; }
 
 		// get lights
-		void getLights(std::vector<Rhea::Light*>& lights);
+		void getLights(std::vector<rhea::Light*>& lights);
 
 		// cull the visible objects
 		void cullObjects(RenderQueue* queue);

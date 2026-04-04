@@ -3,7 +3,7 @@
 
 #include "Resource.h"
 
-namespace Rhea
+namespace rhea
 {
 	class TextResource : public Resource
 	{

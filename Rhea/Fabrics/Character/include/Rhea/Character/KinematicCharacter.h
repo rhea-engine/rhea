@@ -4,7 +4,7 @@
 #include <Rhea/Core/Position.h>
 #include <Rhea/Core/Item.h>
 
-namespace Rhea
+namespace rhea
 {
 	/* a character that is controlled by the player or some program
 	 *

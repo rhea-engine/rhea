@@ -5,7 +5,7 @@
 
 #include <Rhea/GUI/Modifier/FillSize.h>
 
-namespace Rhea
+namespace rhea
 {
 	void Dialog::ready()
 	{

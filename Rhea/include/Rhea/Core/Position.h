@@ -10,7 +10,7 @@ using Math::Vector3;
 using Math::Quaternion;
 using Math::Matrix3x4;
 
-namespace Rhea
+namespace rhea
 {
 	class Position
 	{

@@ -4,7 +4,7 @@
 #include <Rhea/GUI/Styles/StyleSheet.h>
 #include <Rhea/Resources/ResourceService.h>
 
-namespace Rhea {
+namespace rhea {
 	
 	void CssLoader::load(std::string name, Application* app, Orion::ResourceRequest* req, Resource::LoadedHandler handler)
 	{

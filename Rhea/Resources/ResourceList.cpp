@@ -5,7 +5,7 @@
 
 #include <cassert>
 
-namespace Rhea {
+namespace rhea {
 	
 	ResourceList::~ResourceList()
 	{

@@ -3,7 +3,7 @@
 #include <Psio/Log.h>
 #include <nlohmann/json.hpp>
 
-void AuthBackendFile::setup(Rhea::Application* app)
+void AuthBackendFile::setup(rhea::Application* app)
 {
 	m_app = app;
 	loadUsers();

@@ -5,7 +5,7 @@
 #include <Math/Vector3.h>
 #include <Math/Quaternion.h>
 
-namespace Rhea
+namespace rhea
 {
 	class Item;
 

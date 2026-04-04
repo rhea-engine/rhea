@@ -11,7 +11,7 @@
 #include <Rhea/Components/VisualComponent.h>
 #include <Rhea/Components/MovementListenerComponent.h>
 
-namespace Rhea
+namespace rhea
 {
 	class Application;
 	class Mesh;
@@ -59,7 +59,7 @@ namespace Rhea
 		// update on frame
 		virtual void onFrame(float delta);
 
-		virtual void setPosition(Rhea::Position& position);
+		virtual void setPosition(rhea::Position& position);
 		virtual void setPosition(Math::Vector3 position);
 
 		// set direction

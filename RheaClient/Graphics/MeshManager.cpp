@@ -10,9 +10,9 @@
 #include <Rhea/Graphics/MaterialManager.h>
 
 namespace rhea::client {
-	bool GraphicsMeshManager::Ensure(Poseidon::Core* core, Rhea::Unit* unit)
+	bool GraphicsMeshManager::Ensure(Poseidon::Core* core, rhea::Unit* unit)
 	{
-		Rhea::Mesh* r_mesh = doCast<Rhea::Mesh>(unit);
+		rhea::Mesh* r_mesh = doCast<rhea::Mesh>(unit);
 		if (!r_mesh) return false;
 
 		// Check if this mesh has already failed
@@ -23,7 +23,7 @@ namespace rhea::client {
 
 		Poseidon::Mesh* gpu = m_service->meshCache().getOrCreate(
 			core, r_mesh, r_mesh->isDynamic(),
-			[&](Poseidon::Core* c, Rhea::Mesh* m, Poseidon::Mesh* out) {
+			[&](Poseidon::Core* c, rhea::Mesh* m, Poseidon::Mesh* out) {
 				return FillPoseidonMesh(c, m, out);
 			});
 
@@ -40,7 +40,7 @@ namespace rhea::client {
 		return true;
 	}
 
-	bool GraphicsMeshManager::ensureMaterialElement(Rhea::Material* material)
+	bool GraphicsMeshManager::ensureMaterialElement(rhea::Material* material)
 	{
 		if (!material)
 			return false;
@@ -50,12 +50,12 @@ namespace rhea::client {
 			return false;
 
 		// Ask cache to create or reuse GPU material
-		auto* meshMgr = static_cast<GraphicsMaterialManager*>(m_service->getManager<Rhea::Material>());
+		auto* meshMgr = static_cast<GraphicsMaterialManager*>(m_service->getManager<rhea::Material>());
 		Poseidon::Material* gpuMat =
 			m_service->materialCache().getOrCreate(
 				core,
 				material,
-				[&](Poseidon::Core* c, Rhea::Material* mat_unit, Poseidon::Material* out, bool fresh) -> bool
+				[&](Poseidon::Core* c, rhea::Material* mat_unit, Poseidon::Material* out, bool fresh) -> bool
 				{
 					return meshMgr->FillPoseidonMaterial(c, mat_unit, out, fresh);
 				});
@@ -63,9 +63,9 @@ namespace rhea::client {
 		return gpuMat != nullptr;		
 	}
 
-	bool GraphicsMeshManager::onUpdate(Rhea::Event* ev, Rhea::Unit* unit)
+	bool GraphicsMeshManager::onUpdate(rhea::Event* ev, rhea::Unit* unit)
 	{
-		Rhea::Mesh* meshUnit = doCast<Rhea::Mesh>(unit);
+		rhea::Mesh* meshUnit = doCast<rhea::Mesh>(unit);
 		if (!meshUnit) return true;
 
 		std::string meshKey = meshUnit->getPath();
@@ -82,7 +82,7 @@ namespace rhea::client {
 				m_service->getEngine(),
 				meshUnit,
 				meshUnit->isDynamic(),
-				[&](Poseidon::Core* c, Rhea::Mesh* m, Poseidon::Mesh* out) {
+				[&](Poseidon::Core* c, rhea::Mesh* m, Poseidon::Mesh* out) {
 					return FillPoseidonMesh(c, m, out);
 				});
 			if (!gpu) {
@@ -101,12 +101,12 @@ namespace rhea::client {
 		return false;		
 	}
 
-	bool GraphicsMeshManager::FillPoseidonMesh(Poseidon::Core* core, Rhea::Mesh* mesh, Poseidon::Mesh* out)
+	bool GraphicsMeshManager::FillPoseidonMesh(Poseidon::Core* core, rhea::Mesh* mesh, Poseidon::Mesh* out)
 	{
 		if (!mesh || !out) return false;
 
 		// Add vertex and index buffer
-		Rhea::VertexBuffer* vbuf = mesh->getVertexBuffer();
+		rhea::VertexBuffer* vbuf = mesh->getVertexBuffer();
 		if (vbuf && vbuf->size()) {
 			out->setVertices(vbuf->getVertexSize(), vbuf->size(), vbuf->data());
 			for (size_t idx = 0; idx < mesh->getNumSubmeshes(); idx++) {
@@ -117,7 +117,7 @@ namespace rhea::client {
 					return false;
 				}
 
-				Rhea::Material* mat = mesh->getMaterial(idx);
+				rhea::Material* mat = mesh->getMaterial(idx);
 				if (!mat) {
 					LOG(LOG_ERROR) << "GraphicsMeshManager::FillPoseidonMesh: No material for submesh " << idx;
 					return false;
@@ -126,8 +126,8 @@ namespace rhea::client {
 					m_service->materialCache().getOrCreate(
 						core,
 						mat,
-						[&](Poseidon::Core* c, Rhea::Material* m, Poseidon::Material* outMat, bool fresh) -> bool {							
-							auto* meshMgr = static_cast<GraphicsMaterialManager*>(m_service->getManager<Rhea::Material>());
+						[&](Poseidon::Core* c, rhea::Material* m, Poseidon::Material* outMat, bool fresh) -> bool {							
+							auto* meshMgr = static_cast<GraphicsMaterialManager*>(m_service->getManager<rhea::Material>());
 							return meshMgr->FillPoseidonMaterial(c, m, outMat, fresh);
 						}
 					);
@@ -140,7 +140,7 @@ namespace rhea::client {
 		}
 		else {
 			// Fallback path: CPU vertices + indices
-			std::vector<Rhea::Mesh::vertex> vertices;
+			std::vector<rhea::Mesh::vertex> vertices;
 			std::vector<uint32_t> v_indices;
 
 			mesh->getBuffers(vertices, v_indices);
@@ -157,7 +157,7 @@ namespace rhea::client {
 
 			out->setVertices(sizeof(Hippios::vertex_uv), hippios_vertices.size(), hippios_vertices.data());
 			
-			Rhea::Material* mat0 = mesh->getMaterial(0);
+			rhea::Material* mat0 = mesh->getMaterial(0);
 			if (!mat0) {
 				LOG(LOG_ERROR) << "GraphicsMeshManager::FillPoseidonMesh: No material(0) ";
 				return false;
@@ -166,8 +166,8 @@ namespace rhea::client {
 				m_service->materialCache().getOrCreate(
 					core,
 					mat0,
-					[&](Poseidon::Core* c, Rhea::Material* m, Poseidon::Material* outMat, bool fresh) -> bool {
-						auto* meshMgr = static_cast<GraphicsMaterialManager*>(m_service->getManager<Rhea::Material>());
+					[&](Poseidon::Core* c, rhea::Material* m, Poseidon::Material* outMat, bool fresh) -> bool {
+						auto* meshMgr = static_cast<GraphicsMaterialManager*>(m_service->getManager<rhea::Material>());
 						return meshMgr->FillPoseidonMaterial(c, m, outMat, fresh);
 					}
 				);
@@ -180,10 +180,10 @@ namespace rhea::client {
 		return true;
 	}	
 
-	bool GraphicsMeshManager::onDelete(Rhea::Event* ev, Rhea::Unit* unit)
+	bool GraphicsMeshManager::onDelete(rhea::Event* ev, rhea::Unit* unit)
 	{
 		// On deletion, also remove from negative cache
-		if (Rhea::Mesh* meshUnit = doCast<Rhea::Mesh>(unit)) {
+		if (rhea::Mesh* meshUnit = doCast<rhea::Mesh>(unit)) {
 			m_failed_meshes.erase(meshUnit->getPath());
 		}
 		return false;

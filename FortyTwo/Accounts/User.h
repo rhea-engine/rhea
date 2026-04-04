@@ -11,25 +11,25 @@
 // it does not include the user's login credentials
 // or the user's general data
 
-class User : public Rhea::Unit
+class User : public rhea::Unit
 {
-	MECLASS(User, Rhea::Unit)
+	MECLASS(User, rhea::Unit)
 public:
 	User(std::string name, std::string type) :
 		m_allowed_to_login(true),
 		m_creation_time(0),
 		m_last_login(0),
-		Rhea::Unit(name, type)
+		rhea::Unit(name, type)
 	{}
 	User(std::string name) :
 		User(name, "//meworla/user")
 	{}
 
 	// get the avatar with the given name
-	virtual Rhea::Avatar* getAvatar(std::string name);
+	virtual rhea::Avatar* getAvatar(std::string name);
 
 	// act on all avatars
-	virtual void Avatars(std::function<bool(Rhea::Avatar*)> handler);
+	virtual void Avatars(std::function<bool(rhea::Avatar*)> handler);
 
 	// get the display name
 	std::string getDisplayName() const { return m_display_name; }

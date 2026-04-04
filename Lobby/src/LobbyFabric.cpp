@@ -5,7 +5,7 @@
 
 namespace Meworla
 {
-	void LobbyFabric::Register(Rhea::Application* app)
+	void LobbyFabric::Register(rhea::Application* app)
 	{
 		// register types
 		SimpleParser::Type::registerType<ClientConnect>("//meworla/lobby/connect");

@@ -1,7 +1,7 @@
 #include "Rhea/Dispatcher.h"
 #include <cassert>
 
-namespace Rhea
+namespace rhea
 {
 	bool Dispatcher::dispatch(std::string action, std::shared_ptr<Psio::InputEvent> evt)
 	{

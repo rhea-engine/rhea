@@ -17,7 +17,7 @@ class btCollisionWorld;
 class btIDebugDraw;
 class btKinematicCharacterController;
 
-namespace Rhea
+namespace rhea
 {
 	class Item;
 	class Terrain;
@@ -27,10 +27,10 @@ namespace rhea::physics::bullet
 {
 	class BulletPhysicsGhost;
 
-	class BulletPhysicsCharacter : public BulletPhysicsBody, public Rhea::IPhysicsCharacter
+	class BulletPhysicsCharacter : public BulletPhysicsBody, public rhea::IPhysicsCharacter
 	{
 	public:
-		BulletPhysicsCharacter(btDynamicsWorld *world, Rhea::Item* item, const Rhea::PhysicsBodyDesc& desc);
+		BulletPhysicsCharacter(btDynamicsWorld *world, rhea::Item* item, const rhea::PhysicsBodyDesc& desc);
 		~BulletPhysicsCharacter();
 
 		bool init() override;
@@ -62,7 +62,7 @@ namespace rhea::physics::bullet
 		void detectGhostContacts();
 
 		// move in the given direction - move must be already adjusted to timestep
-		void moveStep(Rhea::Position* pos, Math::Vector3& move);
+		void moveStep(rhea::Position* pos, Math::Vector3& move);
 
 		// check if we are on the floor
 		// if we are not but in step_height distance adjust current position
@@ -73,11 +73,11 @@ namespace rhea::physics::bullet
 		void updateHeadContact();
 
 		// update in physics step
-		Math::Vector3 update(Rhea::Position* pos, Math::Vector3& move, Math::Vector3& gravity) override;
+		Math::Vector3 update(rhea::Position* pos, Math::Vector3& move, Math::Vector3& gravity) override;
 
 		void* queryInterface(const std::string& id) override {
-			if (id == "PhysicsCharacter") return static_cast<Rhea::IPhysicsCharacter*>(this);
-			return Rhea::PhysicsBody::queryInterface(id);
+			if (id == "PhysicsCharacter") return static_cast<rhea::IPhysicsCharacter*>(this);
+			return rhea::PhysicsBody::queryInterface(id);
 		}
 
 	protected:
@@ -91,7 +91,7 @@ namespace rhea::physics::bullet
 		float m_gravity;
 		moveState m_move_state;
 		Math::Vector3 m_forced_movement;
-		Rhea::Position* m_position;
+		rhea::Position* m_position;
 
 		btDynamicsWorld* m_world;
 		BulletPhysicsGhost* m_ghost;

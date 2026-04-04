@@ -3,7 +3,7 @@
 
 #include <SimpleParser/Variant.h>
 
-namespace Rhea
+namespace rhea
 {
 	enum class CssValueId
 	{

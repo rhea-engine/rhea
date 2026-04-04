@@ -11,7 +11,7 @@
 using Math::Quaternion;
 using Math::Vector3;
 
-namespace Rhea
+namespace rhea
 {
 	Character::~Character()
 	{	

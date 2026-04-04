@@ -6,7 +6,7 @@
 class AuthBackendFile : public AuthBackend
 {
 public:
-	virtual void setup(Rhea::Application* app) override;
+	virtual void setup(rhea::Application* app) override;
 	virtual void LookupByUserID(std::string user_id, DBLookupHandler handler) override;
 	virtual void LookupByUsername(std::string user_id, DBLookupHandler handler) override;
 	virtual void LookupByExternalID(std::string ext_id, DBLookupHandler handler) override;
@@ -32,7 +32,7 @@ public:
 
 protected:
 
-	Rhea::Application* m_app = nullptr;
+	rhea::Application* m_app = nullptr;
 	UserStore m_store;
 
 	void loadUsers();

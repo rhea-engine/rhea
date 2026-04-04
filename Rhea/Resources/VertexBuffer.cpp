@@ -2,7 +2,7 @@
 
 #include <cstring>
 
-namespace Rhea
+namespace rhea
 {
 	VertexBuffer::VertexBuffer(const VertexBuffer& vb) :
 		m_vertex_size(vb.m_vertex_size),

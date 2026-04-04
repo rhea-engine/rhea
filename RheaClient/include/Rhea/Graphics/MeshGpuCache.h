@@ -11,10 +11,10 @@
 namespace rhea::client {
     class MeshGpuCache {
     public:
-        using Builder = std::function<bool(Poseidon::Core*, Rhea::Mesh* , Poseidon::Mesh*)>;
+        using Builder = std::function<bool(Poseidon::Core*, rhea::Mesh* , Poseidon::Mesh*)>;
 
-        Poseidon::Mesh* getOrCreate(Poseidon::Core* core, Rhea::Mesh* meshUnit, bool dynamic_usage, const Builder& builder);
-        Poseidon::Mesh* find(Rhea::Mesh* mesh);
+        Poseidon::Mesh* getOrCreate(Poseidon::Core* core, rhea::Mesh* meshUnit, bool dynamic_usage, const Builder& builder);
+        Poseidon::Mesh* find(rhea::Mesh* mesh);
         Poseidon::Mesh* find(std::string key);
 
     private:

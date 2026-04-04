@@ -4,7 +4,7 @@
 #include <SimpleParser/IniFileParser.h>
 #include <Psio/Log.h>
 
-namespace Rhea
+namespace rhea
 {
 	bool ConfigFile::loadFromFile(std::string filename)
 	{

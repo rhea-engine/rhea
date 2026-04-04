@@ -6,7 +6,7 @@
 #include <Math/Math.h>
 #include <Rhea/Components/MeshComponent.h>
 
-namespace Rhea
+namespace rhea
 {
 	void Item::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{
@@ -72,7 +72,7 @@ namespace Rhea
 
 	Item* Item::instance(std::string name)
 	{
-		Item* new_item = (Rhea::Item*)SimpleParser::Type::create(name, getTypeName());
+		Item* new_item = (rhea::Item*)SimpleParser::Type::create(name, getTypeName());
 		if (!new_item) {
 			LOG(LOG_ERROR) << "could not instance type with type " << getTypeName();
 			return nullptr;
@@ -107,7 +107,7 @@ namespace Rhea
 	{
 	}
 
-	void Item::setPosition(Rhea::Position& position)
+	void Item::setPosition(rhea::Position& position)
 	{
 		m_transform.get_position()->setPosition(position);
 		m_transform.update();

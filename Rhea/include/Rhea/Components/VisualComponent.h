@@ -3,7 +3,7 @@
 
 #include <Rhea/Component.h>
 
-namespace Rhea
+namespace rhea
 {
     /** Manages visibility state only */
     class VisualComponent : public Component

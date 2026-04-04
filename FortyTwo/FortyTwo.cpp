@@ -14,22 +14,22 @@
 
 void FortyTwo::init(int argc, char* argv[])
 {
-	Rhea::Application::init(argc, argv);
+	rhea::Application::init(argc, argv);
 
 	// ignore controller and spectator defs
-	SimpleParser::Type::registerType<Rhea::Unit>("//meworla/controller");
-	SimpleParser::Type::registerType<Rhea::Unit>("//meworla/spectator");
+	SimpleParser::Type::registerType<rhea::Unit>("//meworla/controller");
+	SimpleParser::Type::registerType<rhea::Unit>("//meworla/spectator");
 
 	// user and avatar types
 	AccountService::RegisterFabrics(this);
 	AuthorizationService::RegisterFabrics(this);
-	SimpleParser::Type::registerType<Rhea::Avatar>("//meworla/avatar");
+	SimpleParser::Type::registerType<rhea::Avatar>("//meworla/avatar");
 
 	// add world server item
 	SimpleParser::Type::registerType<World>("//meworla/world");
 
 	// setup network server
-	SimpleParser::Type::registerType<Rhea::ServerService>("//meworla/serverservice");
+	SimpleParser::Type::registerType<rhea::ServerService>("//meworla/serverservice");
 
 }
 
@@ -49,7 +49,7 @@ void FortyTwo::setPort(std::string port)
 
 void FortyTwo::setup()
 {
-	Rhea::Application::setup();
+	rhea::Application::setup();
 
 	if (!m_server_name.length()) {
 		LOG(LOG_ERROR) << "No scene defined. Exiting.";
@@ -57,12 +57,12 @@ void FortyTwo::setup()
 	}
 
 	// load the world server definition
-	loadResource(m_server_name, "//meworla/scene", [&](Rhea::Unit* scene_unit, ReqError err) {
-		Rhea::Scene* world_scene = doCast<Rhea::Scene>(scene_unit);
+	loadResource(m_server_name, "//meworla/scene", [&](rhea::Unit* scene_unit, ReqError err) {
+		rhea::Scene* world_scene = doCast<rhea::Scene>(scene_unit);
 		if (world_scene && err == ReqError::OK) {
 
 			// get the server service
-			m_server_service = world_scene->findByType<Rhea::ServerService>();
+			m_server_service = world_scene->findByType<rhea::ServerService>();
 			if (!m_server_service) {
 
 				/* TODO: if not defined in config add one?
@@ -70,7 +70,7 @@ void FortyTwo::setup()
 				m_services["server"] = m_server_service;
 				m_server_service->setup(this);
 
-				m_server_service->setNetwork(static_cast<Rhea::PlatformService*>(m_services["platform"])->getEngine()->getNet());
+				m_server_service->setNetwork(static_cast<rhea::PlatformService*>(m_services["platform"])->getEngine()->getNet());
 				*/
 				LOG(LOG_FATAL) << "no server service defined";
 				exit(1);
@@ -99,7 +99,7 @@ void FortyTwo::setup()
 				LOG(LOG_FATAL) << "world not defined";
 				exit(1);
 			}
-			Rhea::Scene* scene = world->getScene();
+			rhea::Scene* scene = world->getScene();
 			if (scene) {
 				m_server_service->setPort(m_port);
 				m_server_service->setScene(scene);
@@ -120,7 +120,7 @@ void FortyTwo::setup()
 			}
 
 			// set physics cache
-			auto* mgr = doCast<Rhea::PhysicsManagerService>(m_services["physics_mgr"]);
+			auto* mgr = doCast<rhea::PhysicsManagerService>(m_services["physics_mgr"]);
 			if (mgr)
 				m_physics = mgr->getPhysicsService();
 		}
@@ -140,7 +140,7 @@ bool FortyTwo::onFrameEnd()
 		return false;
 }
 
-void FortyTwo::onScene(Rhea::Scene* scene)
+void FortyTwo::onScene(rhea::Scene* scene)
 {
 }
 

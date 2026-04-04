@@ -4,7 +4,7 @@
 #include "Rhea/Core/Item.h"
 #include "Rhea/Core/Camera.h"
 
-namespace Rhea
+namespace rhea
 {
 	class Skybox : public Item
 	{

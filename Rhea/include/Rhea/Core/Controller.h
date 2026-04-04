@@ -5,7 +5,7 @@
 #include <Psio/Input/InputEvent.h>
 #include <memory>
 
-namespace Rhea
+namespace rhea
 {
 	// class to controll an object with user input
 	class Controller : public Unit

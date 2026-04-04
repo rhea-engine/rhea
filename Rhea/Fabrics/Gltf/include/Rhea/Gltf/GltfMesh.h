@@ -4,7 +4,7 @@
 #include <Rhea/Unit.h>
 #include <Rhea/Core/Geometry.h>
 
-namespace Rhea
+namespace rhea
 {
 	class GltfMesh : public Geometry
 	{
@@ -18,7 +18,7 @@ namespace Rhea
 
 		std::vector<Unit::Export> getReferences();
 
-		bool load(Rhea::Mesh* mesh);
+		bool load(rhea::Mesh* mesh);
 	};
 }
 #endif // !RHEA_GLTF_MESH_H

@@ -16,7 +16,7 @@
 class AuthHandler 
 {
 public:
-	AuthHandler(Rhea::Application* app, Rhea::Scene* scene, Hermes::ServerStream* hermes) :
+	AuthHandler(rhea::Application* app, rhea::Scene* scene, Hermes::ServerStream* hermes) :
 		m_app(app),
 		m_scene(scene),
 		m_player(nullptr),
@@ -32,15 +32,15 @@ public:
 	void onAuthSuccess(std::function<void(User* user)> on_succes_handler) { m_on_succes_handler = on_succes_handler; }
 
 	// return the item this connection is responsible for
-	Rhea::Item* getAuthItem() { return m_player; }
+	rhea::Item* getAuthItem() { return m_player; }
 
 
 protected:
 
-	Rhea::Application* m_app;
-	Rhea::Scene* m_scene;
-	Rhea::Item* m_player;
-	Rhea::Unit* m_world;
+	rhea::Application* m_app;
+	rhea::Scene* m_scene;
+	rhea::Item* m_player;
+	rhea::Unit* m_world;
 	std::string m_username;
 	User* m_user;
 

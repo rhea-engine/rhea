@@ -14,16 +14,16 @@
 #include <cstring> // for memset
 
 using rhea::client::GraphicsService;
-using Rhea::Service;
+using rhea::Service;
 
 namespace Poseidon
 {
 	void Application::init(int argc, char* argv[])
 	{
-		Rhea::Application::init(argc, argv);
+		rhea::Application::init(argc, argv);
 
-		SimpleParser::Type::registerType<Rhea::Controller>("//meworla/icontroller");
-		SimpleParser::Type::registerType<Rhea::Unit>("//meworla/avatarlist");
+		SimpleParser::Type::registerType<rhea::Controller>("//meworla/icontroller");
+		SimpleParser::Type::registerType<rhea::Unit>("//meworla/avatarlist");
 	
 		GraphicsService* g_service = static_cast<rhea::client::GraphicsService*>(getService("graphics"));
 		if (g_service) {
@@ -35,16 +35,16 @@ namespace Poseidon
 		std::unordered_map<std::string, std::string> attributes;
 		std::unordered_map<std::string, Variant> values;
 		
-		Rhea::Unit* engine = m_unit_tree->createUnit("engine", "//core/types/unit", attributes, values);
+		rhea::Unit* engine = m_unit_tree->createUnit("engine", "//core/types/unit", attributes, values);
 		m_unit_tree->addChild(engine);		
 	}
 
 	void Application::setup()
 	{
-		Rhea::Application::setup();
+		rhea::Application::setup();
 
 		// load core resources
-		Rhea::ResourceList res_list(this);
+		rhea::ResourceList res_list(this);
 
 		// load shaders
 		res_list.push("standard_shader", "//rhea/shaders/standard.shader", "//meworla/shader");
@@ -63,20 +63,20 @@ namespace Poseidon
 		res_list.push("skybox_shader", "//rhea/shaders/skybox.shader", "//meworla/shader");
 
 		// note: for locally installed resources this is actually synchronous
-		static_cast<Rhea::ResourceService*>(getService("resources"))->loadAsync(res_list, nullptr);
+		static_cast<rhea::ResourceService*>(getService("resources"))->loadAsync(res_list, nullptr);
 	}
 
-	void Application::onScene(Rhea::Scene* scene)
+	void Application::onScene(rhea::Scene* scene)
 	{
 		log("scene displayed");
-		std::unique_ptr<Rhea::Event> ev_r = std::make_unique<Rhea::Event>("ready", scene);
+		std::unique_ptr<rhea::Event> ev_r = std::make_unique<rhea::Event>("ready", scene);
 		scene->sendEvent(std::string("ready"), ev_r.get());
 
 		m_phys_debug = scene->getValue("debug_physics");
 
 		if (m_phys_debug) {
 
-			auto* mgr = doCast<Rhea::PhysicsManagerService>(getService("physics_mgr"));
+			auto* mgr = doCast<rhea::PhysicsManagerService>(getService("physics_mgr"));
 			auto* ps = mgr ? mgr->getPhysicsService() : nullptr;
 
 			auto* m_debug_draw = ps ? ps->debugDraw() : nullptr;			

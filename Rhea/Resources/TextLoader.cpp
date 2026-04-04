@@ -6,7 +6,7 @@
 
 #include <cstring>
 
-namespace Rhea
+namespace rhea
 {
 	void TextLoader::load(std::string name, Application* app, Orion::ResourceRequest* req, Resource::LoadedHandler handler)
 	{

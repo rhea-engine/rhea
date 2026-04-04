@@ -2,7 +2,7 @@
 #include "Rhea/Unit.h"
 #include <SimpleParser/Method.h>
 
-namespace Rhea
+namespace rhea
 {
 	Component* Component::createType(std::string name, std::string type_name)
 	{

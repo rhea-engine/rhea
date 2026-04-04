@@ -4,7 +4,7 @@
 #include "Widget.h"
 #include "Label.h"
 
-namespace Rhea
+namespace rhea
 {
 	class Button : public Widget
 	{

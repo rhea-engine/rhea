@@ -6,7 +6,7 @@
 #include <Rhea/Resources/VertexAttribute.h>
 #include <Rhea/Resources/VertexBuffer.h>
 
-namespace Rhea
+namespace rhea
 {
 	class Geometry : public Unit
 	{

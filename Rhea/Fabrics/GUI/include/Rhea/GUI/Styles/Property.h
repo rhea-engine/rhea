@@ -7,7 +7,7 @@
 
 #include "CssValue.h"
 
-namespace Rhea
+namespace rhea
 {
 	enum class StylePropertyId
 	{

@@ -1,6 +1,6 @@
 #include <Rhea/Animation/Animator.h>
 
-namespace Rhea
+namespace rhea
 {
 
 	void Animator::PlayAnimation(Animation* animation)

@@ -10,7 +10,7 @@ namespace Psio
 	class Engine;
 }
 
-namespace Rhea
+namespace rhea
 {
 	class PlatformService : public Service
 	{

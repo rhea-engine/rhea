@@ -1,4 +1,4 @@
-#include <Rhea/Graphics/GraphicsService.h>
+#include <RheaClient/Graphics/GraphicsService.h>
 #include <functional>
 
 #include <Rhea/Platform/PlatformService.h>
@@ -16,12 +16,11 @@
 #include "Poseidon/Window.h"
 
 #include <Rhea/Element.h>
-#include <Rhea/Graphics/Texture.h>
+#include <RheaClient/Graphics/Texture.h>
 #include "ItemManager.h"
 #include "SceneManager.h"
-
-#include <Rhea/Graphics/MaterialManager.h>
-#include <Rhea/Graphics/CameraManager.h>
+#include <RheaClient/Graphics/MaterialManager.h>
+#include <RheaClient/Graphics/CameraManager.h>
 #include "MeshManager.h"
 
 #include <Rhea/Physics/PhysicsService.h>

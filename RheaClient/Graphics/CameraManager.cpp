@@ -4,11 +4,11 @@
 #include <Poseidon/SceneManager.h>
 #include <Poseidon/RenderContext.h>
 
-#include <Rhea/Graphics/CameraManager.h>
+#include <RheaClient/Graphics/CameraManager.h>
 #include <Rhea/Unit.h>
 #include <Rhea/Core/Camera.h>
 #include <Psio/Log.h>
-#include <Rhea/Components/RenderComponent.h>
+#include <RheaClient/Components/RenderComponent.h>
 
 namespace rhea::client {
 	bool GraphicsCameraManager::Ensure(poseidon::Core* core, rhea::Unit* unit)

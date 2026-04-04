@@ -14,13 +14,13 @@
 #include <Rhea/Animation/Skeleton.h>
 
 #include "ItemManager.h"
-#include <Rhea/Graphics/Texture.h>
-#include <Rhea/Graphics/GraphicsService.h>
+#include <RheaClient/Graphics/Texture.h>
+#include <RheaClient/Graphics/GraphicsService.h>
 
 #include <Psio/Log.h>
 #include <Rhea/Core/Light.h>
-#include <Rhea/Graphics/MaterialManager.h>
-#include <Rhea/Components/RenderComponent.h>
+#include <RheaClient/Graphics/MaterialManager.h>
+#include <RheaClient/Components/RenderComponent.h>
 #include "MeshManager.h"
 #include <Rhea/Components/MeshComponent.h>
 

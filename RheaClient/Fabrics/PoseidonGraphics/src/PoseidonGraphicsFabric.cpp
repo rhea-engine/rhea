@@ -15,9 +15,9 @@
 #include <SimpleParser/Type.h>
 
 // If GraphicsService is now in RheaClient:
-#include <Rhea/Graphics/GraphicsService.h> // via shim or new include path
+#include <RheaClient/Graphics/GraphicsService.h> // via shim or new include path
 #include <Rhea/Platform/PlatformService.h>
-#include <Rhea/Components/RenderComponent.h>
+#include <RheaClient/Components/RenderComponent.h>
 
 namespace rhea::client {
     void PoseidonGraphicsFabric::Register(rhea::Application* app)

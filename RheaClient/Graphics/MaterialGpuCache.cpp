@@ -1,4 +1,4 @@
-#include <Rhea/Graphics/MaterialGpuCache.h>
+#include <RheaClient/Graphics/MaterialGpuCache.h>
 #include <Rhea/Resources/ImageResource.h>
 
 namespace rhea::client {

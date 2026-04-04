@@ -3,7 +3,7 @@
 
 #include <Poseidon/Core.h>
 #include <Poseidon/Node.h>
-#include <Rhea/Components/RenderComponent.h>
+#include <RheaClient/Components/RenderComponent.h>
 
 namespace rhea
 {

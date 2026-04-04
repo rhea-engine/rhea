@@ -1,7 +1,7 @@
 #include "Poseidon/Poseidon.h"
 #include <Rhea/Service.h>
-#include <Rhea/Graphics/GraphicsManager.h>
-#include <Rhea/Graphics/GraphicsService.h>
+#include <RheaClient/Graphics/GraphicsManager.h>
+#include <RheaClient/Graphics/GraphicsService.h>
 #include <Rhea/Core/Controller.h>
 #include <Psio/Log.h>
 #include <Rhea/Platform/PlatformService.h>

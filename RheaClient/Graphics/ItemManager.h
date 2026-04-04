@@ -6,7 +6,7 @@
 #include <Poseidon/RenderContext.h>
 
 #include <Rhea/Element.h>
-#include <Rhea/Graphics/GraphicsManager.h>
+#include <RheaClient/Graphics/GraphicsManager.h>
 
 namespace rhea {
 	class Event;

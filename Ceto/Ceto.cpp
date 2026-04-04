@@ -4,9 +4,9 @@
 #include "Rhea/UnitTree.h"
 #include "Rhea/Controller/BasicController.h"
 #include "Rhea/Controller/SpectatorController.h"
-#include <Rhea/Graphics/GraphicsService.h>
-#include <Rhea/Graphics/GraphicsManager.h>
-#include <Rhea/Graphics/CameraManager.h>
+#include <RheaClient/Graphics/GraphicsService.h>
+#include <RheaClient/Graphics/GraphicsManager.h>
+#include <RheaClient/Graphics/CameraManager.h>
 #include "Rhea/Core/Camera.h"
 #include "Rhea/Physics/PhysicsManagerService.h"
 #include "Rhea/Physics/PhysicsService.h"

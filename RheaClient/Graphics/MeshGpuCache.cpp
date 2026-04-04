@@ -1,4 +1,4 @@
-#include <Rhea/Graphics/MeshGpuCache.h>
+#include <RheaClient/Graphics/MeshGpuCache.h>
 #include <Poseidon/SceneManager.h>
 
 namespace rhea::client

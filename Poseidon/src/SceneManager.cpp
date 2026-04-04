@@ -15,14 +15,14 @@
 #include <Hippios/GraphicsBuffer.h>
 #include <Rhea/Core/Material.h>
 #include <Rhea/Core/Shader.h>
-#include <Rhea/Graphics/MaterialManager.h>
+#include <RheaClient/Graphics/MaterialManager.h>
 #include <Rhea/Core/Mesh.h>
 #include <Rhea/Core/DirectionalLight.h>
 #include <Rhea/Core/PointLight.h>
 #include <Rhea/Core/SpotLight.h>
 #include <Rhea/Animation/Skeleton.h>
 #include <Rhea/Components/VisualComponent.h>
-#include <Rhea/Components/RenderComponent.h>
+#include <RheaClient/Components/RenderComponent.h>
 #include <Psio/Log.h>
 #include <algorithm>
 

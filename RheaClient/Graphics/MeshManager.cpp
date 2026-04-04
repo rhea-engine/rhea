@@ -5,9 +5,9 @@
 #include <Poseidon/SceneManager.h>
 #include <Psio/Log.h>
 #include <Rhea/Core/Material.h>
-#include <Rhea/Graphics/GraphicsService.h>
+#include <RheaClient/Graphics/GraphicsService.h>
 #include <Rhea/Resources/VertexBuffer.h>
-#include <Rhea/Graphics/MaterialManager.h>
+#include <RheaClient/Graphics/MaterialManager.h>
 
 namespace rhea::client {
 	bool GraphicsMeshManager::Ensure(poseidon::Core* core, rhea::Unit* unit)

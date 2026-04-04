@@ -6,7 +6,7 @@
 #include <Rhea/Component.h>
 #include <Rhea/Core/Scene.h>
 
-#include <Rhea/Graphics/GraphicsManager.h>
+#include <RheaClient/Graphics/GraphicsManager.h>
 
 namespace rhea {
 	class Unit;

@@ -4,7 +4,7 @@
 #include <Poseidon/Texture.h>
 #include <Poseidon/Core.h>
 #include <Rhea/Resources/ImageResource.h>
-#include <Rhea/Graphics/Texture.h>
+#include <RheaClient/Graphics/Texture.h>
 
 namespace rhea::client {
     class TextureGpuCache {

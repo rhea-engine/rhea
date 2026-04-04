@@ -7,11 +7,11 @@
 #include <Rhea/Event.h>
 
 #include <Rhea/Core/Material.h>
-#include <Rhea/Graphics/MaterialManager.h>
-#include <Rhea/Graphics/Texture.h>
+#include <RheaClient/Graphics/MaterialManager.h>
+#include <RheaClient/Graphics/Texture.h>
 #include <Psio/Log.h>
 #include <Rhea/Core/Shader.h>
-#include <Rhea/Graphics/GraphicsService.h>
+#include <RheaClient/Graphics/GraphicsService.h>
 
 namespace rhea::client {
 	static hippios::InputLayoutFormat ConvertVertexFormat(const rhea::VertexAttribute& a)

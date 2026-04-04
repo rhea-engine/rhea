@@ -101,6 +101,11 @@ if (HIPPIOS_USE_SDL)
 
 	    if(NOT TARGET SDL3::SDL3)
 	        include(FetchContent)
+	        
+			# Build SDL3 as static
+			set(SDL_SHARED OFF CACHE BOOL "" FORCE)
+			set(SDL_STATIC ON CACHE BOOL "" FORCE)
+
 		    FetchContent_Declare(
 			    SDL3
 				GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
@@ -109,4 +114,6 @@ if (HIPPIOS_USE_SDL)
 			FetchContent_MakeAvailable(SDL3)
 		endif()
 	endif()
+	# use static version of SDL3 to avoid forcing users to have SDL3 dlls in their system. Also, we don't need dynamic features of SDL3, and static linking is simpler for distribution.
+	target_link_libraries(Hippios PUBLIC SDL3::SDL3)
 endif()

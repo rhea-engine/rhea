@@ -33,17 +33,23 @@ include(FetchContent)
 if(PSIO_ENABLE_SDL)
 	if(NOT TARGET SDL3::SDL3)
 		find_package(SDL3 CONFIG QUIET)
-
-	    if(NOT TARGET SDL3::SDL3)
-	        include(FetchContent)
-		    FetchContent_Declare(
-			    SDL3
-				GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
-				GIT_TAG release-3.2.10
-			)
-			FetchContent_MakeAvailable(SDL3)
-		endif()
 	endif()
+
+	if(NOT TARGET SDL3::SDL3)
+		include(FetchContent)
+
+		# Build SDL3 as static
+        set(SDL_SHARED OFF CACHE BOOL "" FORCE)
+        set(SDL_STATIC ON CACHE BOOL "" FORCE)
+
+		FetchContent_Declare(
+			SDL3
+			GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
+			GIT_TAG release-3.2.10
+		)
+		FetchContent_MakeAvailable(SDL3)
+	endif()
+	
     target_link_libraries(Psio PRIVATE SDL3::SDL3)
     target_compile_definitions(Psio PRIVATE PSIO_HAS_SDL=1)
 

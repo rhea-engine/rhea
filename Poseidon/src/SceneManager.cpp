@@ -193,7 +193,7 @@ namespace Poseidon
 					if (!vis || !vis->isVisible()) continue;
 
 					// get render information
-					Rhea::RenderComponent* r_comp = renderable->getComponent<Rhea::RenderComponent>();					
+					rhea::client::RenderComponent* r_comp = renderable->getComponent<rhea::client::RenderComponent>();					
 					if (!r_comp)
 						continue;
 

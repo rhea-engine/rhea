@@ -8,33 +8,36 @@
 
 #include <Rhea/Graphics/GraphicsManager.h>
 
-namespace Rhea
-{
+namespace Rhea {
+	class Unit;
 	class Item;
+}
 
-	class SceneRenderState : public Component {
-		RECLASS(SceneRenderState, Component, "//meworla/scenerenderstate")
+namespace rhea::client {
+
+	class SceneRenderState : public Rhea::Component {
+		RECLASS(SceneRenderState, Rhea::Component, "//meworla/scenerenderstate")
 	public:
 		SceneRenderState(std::string name, std::string type_name) :
 			m_scene(nullptr),
 			m_items_valid(false),
-			Component(name, type_name)
+			Rhea::Component(name, type_name)
 		{
 		}
-		SceneRenderState(Scene* scene) : 
+		SceneRenderState(Rhea::Scene* scene) : 
 			m_scene(scene),
 			m_items_valid(false),
-			Component("scene_render_state", "//meworla/scenerenderstate")
+			Rhea::Component("scene_render_state", "//meworla/scenerenderstate")
 		{}
 
 		void invalidate() { m_items_valid = false; }
 
-		const std::vector<Item*>& getItems(); // cached
+		const std::vector<Rhea::Item* >& getItems(); // cached
 
 	private:
-		Scene* m_scene;
+		Rhea::Scene* m_scene;
 		bool m_items_valid;
-		std::vector<Item*> m_items;
+		std::vector<Rhea::Item* > m_items;
 	};
 
 	class GraphicsSceneManager : public GraphicsManager
@@ -45,13 +48,13 @@ namespace Rhea
 			m_core(nullptr)
 		{}
 		
-		// add one item to the scene (creating the corresponding element)
-		void addItem(Unit* item);
+		// add one item to the scene (creating the corresponding Rhea::element)
+		void addItem(Rhea::Unit* item);
 
 		// handle add item event
-		bool onItemAdd(Event* ev, Unit* unit);
+		bool onItemAdd(Rhea::Event* ev, Rhea::Unit* unit);
 
-		bool Ensure(Poseidon::Core* core, Unit* unit);	
+		bool Ensure(Poseidon::Core* core, Rhea::Unit* unit);	
 
 		void onFrame() {}
 	

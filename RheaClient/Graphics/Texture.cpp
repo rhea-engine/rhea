@@ -5,15 +5,14 @@
 #include <Rhea/Resources/ImageResource.h>
 #include <Poseidon/Texture.h>
 
-namespace Rhea
-{
-	GraphicsTexture::GraphicsTexture(Poseidon::Core* core, ImageResource::TextureType texture_type, int num_textures) :
+namespace rhea::client {
+	GraphicsTexture::GraphicsTexture(Poseidon::Core* core, Rhea::ImageResource::TextureType texture_type, int num_textures) :
 		m_type(texture_type),
 		m_core(core),
 		m_img(nullptr)
 	{
 		if (num_textures > 0) {
-			if (texture_type == ImageResource::TextureType::TEXTURE_2D)
+			if (texture_type == Rhea::ImageResource::TextureType::TEXTURE_2D)
 				m_img = m_core->createTexture(0, num_textures);
 			else
 				m_img = m_core->createTexture(1, num_textures);

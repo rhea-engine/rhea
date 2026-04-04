@@ -10,11 +10,10 @@
 #include <Psio/Log.h>
 #include <Rhea/Components/RenderComponent.h>
 
-namespace Rhea
-{
-	bool GraphicsCameraManager::Ensure(Poseidon::Core* core, Unit* unit)
+namespace rhea::client {
+	bool GraphicsCameraManager::Ensure(Poseidon::Core* core, Rhea::Unit* unit)
 	{	
-		Camera* camera = doCast<Camera>(unit);
+		Rhea::Camera* camera = doCast<Rhea::Camera>(unit);
 		if (!camera) return false;
 
 		// check if already exists
@@ -62,7 +61,7 @@ namespace Rhea
 		// set a default position
 		camera->getTransform()->get_position()->setPosition(m_position); 
 		camera->getTransform()->get_position()->lookAt(Math::Vector3(0.0f, 0.0f, 0.0f), Math::Vector3::UNIT_Z);
-		rc->entity->setTransform(((Item*)unit)->getTransform());
+		rc->entity->setTransform(((Rhea::Item* )unit)->getTransform());
 
 		static_cast<Poseidon::Camera*>(rc->entity)->setAspectRatio((float)Width / (float)Height);
 
@@ -72,7 +71,7 @@ namespace Rhea
 		return true;
 	}
 
-	bool GraphicsCameraManager::onUpdate(Event* ev, Unit* unit)
+	bool GraphicsCameraManager::onUpdate(Rhea::Event* ev, Rhea::Unit* unit)
 	{
 		// TODO (?) what could be an update?
 
@@ -83,9 +82,9 @@ namespace Rhea
 	{
 	}
 
-	bool GraphicsCameraManager::onItemDelete(Event* ev, Unit* unit)
+	bool GraphicsCameraManager::onItemDelete(Rhea::Event* ev, Rhea::Unit* unit)
 	{
-		Camera* item = doCast<Camera>(unit);
+		Rhea::Camera* item = doCast<Rhea::Camera>(unit);
 		if (!item) return true;
 
 		auto* rc = item->getComponent<RenderComponent>();

@@ -6,6 +6,9 @@
 namespace Rhea
 {
     class Application;
+}
+
+namespace rhea::client {
 
     class PoseidonGraphicsFabric : public Rhea::IFabric
     {

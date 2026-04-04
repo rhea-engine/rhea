@@ -9,8 +9,7 @@
 
 #include <unordered_set>
 
-namespace Rhea
-{
+namespace rhea::client {
 	class GraphicsMeshManager : public GraphicsManager
 	{
 	public:
@@ -19,22 +18,22 @@ namespace Rhea
 		{}
 
 		// create an element for this unit
-		bool Ensure(Poseidon::Core* core, Unit* unit);
+		bool Ensure(Poseidon::Core* core, Rhea::Unit* unit);
 
 		// handle frame update
 		void onFrame() {}
 
 		// handle events
-		bool onUpdate(Event* ev, Unit* unit);
-		bool onDelete(Event* ev, Unit* unit);
+		bool onUpdate(Rhea::Event* ev, Rhea::Unit* unit);
+		bool onDelete(Rhea::Event* ev, Rhea::Unit* unit);
 
-		bool FillPoseidonMesh(Poseidon::Core* core, Mesh* mesh, Poseidon::Mesh* out);
+		bool FillPoseidonMesh(Poseidon::Core* core, Rhea::Mesh* mesh, Poseidon::Mesh* out);
 
 		// Removes a mesh from the negative cache so it can be retried
 		void clearFailure(const std::string& key) { m_failed_meshes.erase(key); }
 
 	protected:
-		bool ensureMaterialElement(Material* material);
+		bool ensureMaterialElement(Rhea::Material* material);
 
 		// Negative cache: stores paths of meshes whose build has failed
 		std::unordered_set<std::string> m_failed_meshes;

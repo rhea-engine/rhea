@@ -7,24 +7,27 @@ namespace Poseidon
 	class RenderContext;
 	class Mesh;
 }
-namespace Rhea
-{
+
+namespace Rhea {
 	class Mesh;
 	class Material;
 	class Skeleton;
+}
+
+namespace rhea::client {
 
 	/** GPU Reendering component, holds the mesh and material information of an entity
 	*/
-	class RenderComponent : public Component
+	class RenderComponent : public Rhea::Component
 	{
-		RECLASS(RenderComponent, Component, "//meworla/rendercomponent")
+		RECLASS(RenderComponent, Rhea::Component, "//meworla/rendercomponent")
 	public:
 		RenderComponent(std::string name, std::string type_name) :			
 			entity(nullptr),
 			ctx(nullptr),
 			gpuMesh(nullptr),
 			skeleton(nullptr),
-			Component(name, type_name)
+			Rhea::Component(name, type_name)
 		{}
 
 		Poseidon::Node* entity = nullptr;        // non-owning (Poseidon owns)		
@@ -32,7 +35,7 @@ namespace Rhea
 
 		// Cached asset GPU resources (non-owning, owned by caches)
 		Poseidon::Mesh* gpuMesh = nullptr;       // Optional (nullptr für Lights)
-		Skeleton* skeleton = nullptr;            // Optional (nur für skeletal meshes)
+		Rhea::Skeleton* skeleton = nullptr;            // Optional (nur für skeletal meshes)
 
 
 	};

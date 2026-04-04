@@ -14,9 +14,8 @@
 #include <Psio/Log.h>
 #include <Rhea/GUI/Widget.h>
 
-namespace Rhea
-{
-	Poseidon::Node* GraphicsManager::createRenderable(RenderComponent* rc, Poseidon::Core* core, Unit* item, Poseidon::Mesh* mesh, std::string render_context_name)
+namespace rhea::client {
+	Poseidon::Node* GraphicsManager::createRenderable(RenderComponent* rc, Poseidon::Core* core, Rhea::Unit* item, Poseidon::Mesh* mesh, std::string render_context_name)
 	{
 		Poseidon::SceneManager* scene_mgr = core->get_scene_manager();
 		
@@ -36,12 +35,12 @@ namespace Rhea
 		}
 		rc->ctx = render_context;
 		//render_context->addRenderChild(static_cast<Poseidon::Entity*>(entity));
-		//render_context->addRenderChild((Item*)item);
+		//render_context->addRenderChild((Rhea::Item* )item);
 
 		return entity;
 	}
 
-	Poseidon::Node* GraphicsManager::createEntity(RenderComponent* rc, Poseidon::Core* core, Unit* item, std::string render_context_name, bool dynamic_usage)
+	Poseidon::Node* GraphicsManager::createEntity(RenderComponent* rc, Poseidon::Core* core, Rhea::Unit* item, std::string render_context_name, bool dynamic_usage)
 	{
 		Poseidon::SceneManager* scene_mgr = core->get_scene_manager();
 
@@ -64,7 +63,7 @@ namespace Rhea
 		return entity;
 	}
 
-	void GraphicsManager::setPosition(Unit* u, Transform* t)
+	void GraphicsManager::setPosition(Rhea::Unit* u, Rhea::Transform* t)
 	{
 		Variant pos_sit = u->getValue("position");
 		if (pos_sit != Variant()) {

@@ -10,11 +10,14 @@
 namespace Rhea
 {
 	class Unit;
+}
+
+namespace rhea::client {	
 
 	class GraphicsTexture
 	{
 	public:
-		GraphicsTexture(Poseidon::Core* core, ImageResource::TextureType texture_type, int num_textures);
+		GraphicsTexture(Poseidon::Core* core, Rhea::ImageResource::TextureType texture_type, int num_textures);
 
 		// create a texture from buffer
 		Poseidon::Texture* createTexture(int index, unsigned char* buf, size_t buflen);
@@ -28,7 +31,7 @@ namespace Rhea
 	protected:
 		Poseidon::Core* m_core;
 		Poseidon::Texture* m_img;
-		ImageResource::TextureType m_type;
+		Rhea::ImageResource::TextureType m_type;
 	};
 }
 

@@ -39,22 +39,21 @@
 #include <Rhea/Physics/PhysicsManagerService.h>
 #include <Rhea/ConfigFile.h>
 
-namespace Rhea
-{
+namespace rhea::client {
 	GraphicsService::GraphicsService(std::string name, std::string type_name) :
 		m_platform(nullptr),
 		m_mx(0),
 		m_my(0),
 		m_fullscreen(false),
-		IGraphicsService(name, type_name)	
+		Rhea::IGraphicsService(name, type_name)	
 	{
 		m_core = std::make_unique<Poseidon::Core>();
 
-		addManager<Scene>(std::make_unique<GraphicsSceneManager>(this));
-		addManager<Item>(std::make_unique<GraphicsItemManager>(this));
-		addManager<Mesh>(std::make_unique<GraphicsMeshManager>(this));
-		addManager<Material>(std::make_unique<GraphicsMaterialManager>(this));
-		addManager<Camera>(std::make_unique<GraphicsCameraManager>(this));
+		addManager<Rhea::Scene>(std::make_unique<GraphicsSceneManager>(this));
+		addManager<Rhea::Item>(std::make_unique<GraphicsItemManager>(this));
+		addManager<Rhea::Mesh>(std::make_unique<GraphicsMeshManager>(this));
+		addManager<Rhea::Material>(std::make_unique<GraphicsMaterialManager>(this));
+		addManager<Rhea::Camera>(std::make_unique<GraphicsCameraManager>(this));
 	}
 
 	GraphicsService::~GraphicsService()
@@ -82,7 +81,7 @@ namespace Rhea
 		return nullptr;
 	}
 
-	bool GraphicsService::addElement(Unit* unit)
+	bool GraphicsService::addElement(Rhea::Unit* unit)
 	{
 		// find manager for type name in manager list
 		auto it = m_managers.find(unit->getType());
@@ -94,20 +93,20 @@ namespace Rhea
 		return false;
 	}
 
-	void GraphicsService::setPlatform(Service* platform_service)
+	void GraphicsService::setPlatform(Rhea::Service* platform_service)
 	{
 		m_platform = platform_service;
 	}
 
-	bool GraphicsService::onAddItem(Event* ev, Unit* unit)
+	bool GraphicsService::onAddItem(Rhea::Event* ev, Rhea::Unit* unit)
 	{
-		Unit* root = doCast<Unit>(ev->getTarget());
+		Rhea::Unit* root = doCast<Rhea::Unit>(ev->getTarget());
 		if (!root) return false;
 
-		root->traverse([&](std::string& name, Component* c)->bool {
+		root->traverse([&](std::string& name, Rhea::Component* c)->bool {
 
-			if (Item* item = doCast<Item>(c)) {
-				getManager<Item>()->Ensure(m_core.get(), item);
+			if (Rhea::Item* item = doCast<Rhea::Item>(c)) {
+				getManager<Rhea::Item>()->Ensure(m_core.get(), item);
 				return true;
 			}
 
@@ -120,7 +119,7 @@ namespace Rhea
 
 	}
 
-	void GraphicsService::addItem(std::string render_context, Item* item)
+	void GraphicsService::addItem(std::string render_context, Rhea::Item* item)
 	{
 		Poseidon::Viewport* viewport = m_core->get_scene_manager()->getViewport();
 		if (!viewport) abort();
@@ -131,9 +130,9 @@ namespace Rhea
 		context->addRenderChild(item);
 
 		// Create instance elements for all items in subtree
-		item->traverse([&](std::string name, Component* c)->bool {
-			if (Item* it = doCast<Item>(c)) {
-				getManager<Item>()->Ensure(m_core.get(), it);
+		item->traverse([&](std::string name, Rhea::Component* c)->bool {
+			if (Rhea::Item* it = doCast<Rhea::Item>(c)) {
+				getManager<Rhea::Item>()->Ensure(m_core.get(), it);
 			}
 			return true;
 			});
@@ -148,11 +147,11 @@ namespace Rhea
 		else {
 			// get backend config from application config
 			std::string backend = "auto";
-			ConfigFile* config = m_app->getConfig();			
+			Rhea::ConfigFile* config = m_app->getConfig();			
 			if (config)
 				backend = config->getValueString("renderer.backend", "auto");
 			
-			m_core->init(static_cast<PlatformService*>(m_platform)->getEngine(), backend);
+			m_core->init(static_cast<Rhea::PlatformService*>(m_platform)->getEngine(), backend);
 		}
 
 		// create a render context for HUD / GUI
@@ -179,12 +178,12 @@ namespace Rhea
 
 		// register input handler
 		m_app->getUnitTree()->registerEventHandler("scene_input", this, std::bind(&GraphicsService::onInput, this, std::placeholders::_1, std::placeholders::_2));
-		m_app->getUnitTree()->registerEventHandler("scene_activate", this, [&](Event* ev, Unit* tree)->bool {
-			onSceneActivate(doCast<Scene>(ev->getTarget()));
+		m_app->getUnitTree()->registerEventHandler("scene_activate", this, [&](Rhea::Event* ev, Rhea::Unit* tree)->bool {
+			onSceneActivate(doCast<Rhea::Scene>(ev->getTarget()));
 			return false;
 			});
-		m_app->getUnitTree()->registerEventHandler("scene_deactivate", this, [&](Event* ev, Unit* tree)->bool {
-			onSceneDeactivate(doCast<Scene>(ev->getTarget()));
+		m_app->getUnitTree()->registerEventHandler("scene_deactivate", this, [&](Rhea::Event* ev, Rhea::Unit* tree)->bool {
+			onSceneDeactivate(doCast<Rhea::Scene>(ev->getTarget()));
 			return false;
 			});
 	}
@@ -194,7 +193,7 @@ namespace Rhea
 		return m_core->iterate();
 	}
 	
-	void GraphicsService::onSceneActivate(Scene* scene)
+	void GraphicsService::onSceneActivate(Rhea::Scene* scene)
 	{
 		if (!scene) {
 			LOG(LOG_ERROR) << "No scene object was provided to onSceneActivate";
@@ -214,17 +213,17 @@ namespace Rhea
 		}
 
 		scene->registerEventHandler("add_item", this, std::bind(&GraphicsService::onAddItem, this, std::placeholders::_1, std::placeholders::_2));
-		scene->registerEventHandler("scene_show", this, [&](Event* ev, Unit* unit)->bool {
-			showScene(doCast<Scene>(ev->getTarget()));
+		scene->registerEventHandler("scene_show", this, [&](Rhea::Event* ev, Rhea::Unit* unit)->bool {
+			showScene(doCast<Rhea::Scene>(ev->getTarget()));
 			return false;
 			});
-		scene->registerEventHandler("scene_hide", this, [&](Event* ev, Unit* unit)->bool {
-			hideScene(doCast<Scene>(ev->getTarget()));
+		scene->registerEventHandler("scene_hide", this, [&](Rhea::Event* ev, Rhea::Unit* unit)->bool {
+			hideScene(doCast<Rhea::Scene>(ev->getTarget()));
 			return false;
 			});
 	}
 
-	void GraphicsService::onSceneDeactivate(Scene* scene)
+	void GraphicsService::onSceneDeactivate(Rhea::Scene* scene)
 	{
 		if (!scene) {
 			LOG(LOG_ERROR) << "No scene object was provided to onSceneDeactivate";
@@ -234,7 +233,7 @@ namespace Rhea
 		m_scenes.erase(std::remove(m_scenes.begin(), m_scenes.end(), scene));
 	}
 
-	void GraphicsService::showScene(Scene* scene)
+	void GraphicsService::showScene(Rhea::Scene* scene)
 	{
 		if (!scene) {
 			LOG(LOG_ERROR) << "No scene object was provided to showScene";
@@ -252,14 +251,14 @@ namespace Rhea
 			LOG(LOG_ERROR) << "GraphicsService::showScene: render context '" << render_context_name << "' not found";
 			return;
 		}
-		render_context->addRenderChild((Item*)scene);
+		render_context->addRenderChild((Rhea::Item* )scene);
 
 		// scene children with other contexts
 		// handle all current subtree nodes
-		scene->traverse([scene, scene_mgr](std::string& name, Component* unit)->bool {
+		scene->traverse([scene, scene_mgr](std::string& name, Rhea::Component* unit)->bool {
 			if (scene == unit)
 				return true;
-			Item* item = doCast<Item>(unit);
+			Rhea::Item* item = doCast<Rhea::Item>(unit);
 			if (!item)
 				return true;
 			// we simply assume if the rendercontext is set we must add a render child
@@ -278,7 +277,7 @@ namespace Rhea
 			});
 	}
 
-	void GraphicsService::hideScene(Scene* scene)
+	void GraphicsService::hideScene(Rhea::Scene* scene)
 	{
 		if (!scene) {
 			LOG(LOG_ERROR) << "No scene object was provided to hideScene";
@@ -296,14 +295,14 @@ namespace Rhea
 			LOG(LOG_ERROR) << "GraphicsService::hideScene: render context '" << render_context_name << "' not found";
 			return;
 		}
-		render_context->removeRenderChild((Item*)scene);
+		render_context->removeRenderChild((Rhea::Item* )scene);
 
 		// scene children with other contexts
 		// handle all current subtree nodes
-		scene->traverse([scene, scene_mgr](std::string& name, Component* unit)->bool {
+		scene->traverse([scene, scene_mgr](std::string& name, Rhea::Component* unit)->bool {
 			if (scene == unit)
 				return true;
-			Item* item = doCast<Item>(unit);
+			Rhea::Item* item = doCast<Rhea::Item>(unit);
 			if (!item)
 				return true;
 			// we simply assume if the rendercontext is set we must add a render child
@@ -322,15 +321,15 @@ namespace Rhea
 			});
 	}
 
-	bool GraphicsService::onInput(Event* ev, Unit* unit)
+	bool GraphicsService::onInput(Rhea::Event* ev, Rhea::Unit* unit)
 	{
 		if (ev->isEvent("input")) {
-			EventInput* e = static_cast<EventInput*>(ev);
+			Rhea::EventInput* e = static_cast<Rhea::EventInput*>(ev);
 			std::shared_ptr<Psio::MouseInputEvent> me = std::static_pointer_cast<Psio::MouseInputEvent>(e->getEvent());
 			int viewport_width;
 			int viewport_height;
 			std::string context_name;
-			Unit* picked;
+			Rhea::Unit* picked;
 
 			switch (e->getEvent()->getId()) {
 			case Psio::InputEventId::MOUSE_MOVE:				
@@ -371,7 +370,7 @@ namespace Rhea
 							cam->updateView();
 						}
 						// send resize event to all render children - they may need to update render targets or similar
-						SizeEvent size_ev(nullptr, viewport_width, viewport_height);
+						Rhea::SizeEvent size_ev(nullptr, viewport_width, viewport_height);
 						for (auto& child : context->getRenderChildren()) {
 							child->sendEvent("viewport_size", &size_ev);
 						}
@@ -385,14 +384,14 @@ namespace Rhea
 		return false;
 	}
 
-	Unit* GraphicsService::pick()
+	Rhea::Unit* GraphicsService::pick()
 	{
 		static Poseidon::Mesh* m_mesh = nullptr;
 
 		// ray tracing to current hover object
-		auto* mgr = doCast<PhysicsManagerService>(m_app->getService("physics_mgr"));
+		auto* mgr = doCast<Rhea::PhysicsManagerService>(m_app->getService("physics_mgr"));
 		if (!mgr) return nullptr;
-		PhysicsService* phys = mgr->getPhysicsService();
+		Rhea::PhysicsService* phys = mgr->getPhysicsService();
 		if (!phys) return nullptr;
 		std::string def = "default";
 		Poseidon::Viewport* viewport = m_core->get_scene_manager()->getViewport();

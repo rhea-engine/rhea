@@ -8,11 +8,13 @@
 #include <Rhea/Element.h>
 #include <Rhea/Graphics/GraphicsManager.h>
 
-namespace Rhea
-{
+namespace Rhea {
+	class Event;
 	class Unit;
 	class Item;
-
+}
+namespace rhea::client {
+	
 	class GraphicsItemManager : public GraphicsManager
 	{
 	public:
@@ -22,16 +24,16 @@ namespace Rhea
 		~GraphicsItemManager();
 
 		// create an element for this unit
-		bool Ensure(Poseidon::Core* core, Unit* unit);
+		bool Ensure(Poseidon::Core* core, Rhea::Unit* unit);
 
 		// handle update event
-		bool onUpdate(Event* ev, Unit* unit);
+		bool onUpdate(Rhea::Event* ev, Rhea::Unit* unit);
 
 		// handle frame update
 		void onFrame() {};
 
 		// handle deletion event
-		bool onItemDelete(Event* ev, Unit* unit);
+		bool onItemDelete(Rhea::Event* ev, Rhea::Unit* unit);
 	};
 }
 

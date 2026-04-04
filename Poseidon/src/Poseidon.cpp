@@ -13,7 +13,7 @@
 #include <Rhea/Physics/PhysicsService.h>
 #include <cstring> // for memset
 
-using Rhea::GraphicsService;
+using rhea::client::GraphicsService;
 using Rhea::Service;
 
 namespace Poseidon
@@ -25,7 +25,7 @@ namespace Poseidon
 		SimpleParser::Type::registerType<Rhea::Controller>("//meworla/icontroller");
 		SimpleParser::Type::registerType<Rhea::Unit>("//meworla/avatarlist");
 	
-		GraphicsService* g_service = static_cast<Rhea::GraphicsService*>(getService("graphics"));
+		GraphicsService* g_service = static_cast<rhea::client::GraphicsService*>(getService("graphics"));
 		if (g_service) {
 			core = g_service->getEngine();
 			core->setAppname(m_appname);

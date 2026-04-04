@@ -11,8 +11,7 @@ namespace Poseidon
 	class Viewport;
 }
 
-namespace Rhea
-{
+namespace rhea::client {
 	class Camera;
 	
 	class GraphicsCameraManager : public GraphicsManager
@@ -23,16 +22,16 @@ namespace Rhea
 		{}
 
 		// factory function
-		bool Ensure(Poseidon::Core* core, Unit* unit);
+		bool Ensure(Poseidon::Core* core, Rhea::Unit* unit);
 
 		// handle update event
-		bool onUpdate(Event* ev, Unit* unit);
+		bool onUpdate(Rhea::Event* ev, Rhea::Unit* unit);
 
 		// handle frame update
 		void onFrame();
 
 		// handle events
-		bool onItemDelete(Event* ev, Unit* unit);
+		bool onItemDelete(Rhea::Event* ev, Rhea::Unit* unit);
 
 	protected:		
 	};

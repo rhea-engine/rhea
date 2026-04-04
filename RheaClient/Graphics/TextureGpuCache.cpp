@@ -1,8 +1,7 @@
 #include <Rhea/Graphics/TextureGpuCache.h>
 #include <Psio/Log.h>
 
-namespace Rhea
-{
+namespace rhea::client {
     GraphicsTexture* TextureGpuCache::getOrCreate(Poseidon::Core* core, Rhea::ImageResource* img)
     {
         if (!core || !img) return nullptr;
@@ -22,7 +21,7 @@ namespace Rhea
             char* buf = nullptr;
             size_t buflen = 0;
 
-            Resource* res = doCast<Resource>(img->getImage(0));
+            Rhea::Resource* res = doCast<Rhea::Resource>(img->getImage(0));
             if (!res) {
                 LOG(LOG_ERROR) << "TextureGpuCache::getOrCreate: image[0] is not a resource";
                 return nullptr;
@@ -43,7 +42,7 @@ namespace Rhea
         }
         else {
             for (int index = 0; index < img->getNumImages(); index++) {
-                ImageResource* child_res = doCast<ImageResource>(img->getImage(index));
+                Rhea::ImageResource* child_res = doCast<Rhea::ImageResource>(img->getImage(index));
                 if (!child_res) {
                     LOG(LOG_ERROR) << "TextureGpuCache::getOrCreate: image[" << index << "] is not an ImageResource " << img->getPath();
                     return nullptr;

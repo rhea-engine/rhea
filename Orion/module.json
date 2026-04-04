@@ -1,9 +1,10 @@
 {
-  "vendor": "Meworla",
-  "name": "Orion",
+  "id": "rhea/storage",
+  "displayName": "Rhea Storage (Orion)",
   "version": "0.9.0",
+  "author": "Meworla",
   "dependencies": {
-    "Meworla/Components": "0.9.0",
-    "Meworla/Psio": "0.9.0"
+    "rhea/components": "0.9.0",
+    "rhea/platform": "0.9.0"
   }
 }

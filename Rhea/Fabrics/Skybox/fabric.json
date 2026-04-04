@@ -1,8 +1,8 @@
 {
+  "id": "rhea/core",
   "name": "Skybox",
   "version": "0.9.0",
-  "vendor": "Meworla",
-  "package": "Rhea",
+  "author": "Meworla",
   "description": "Rhea Skybox",
   "class": "Rhea::SkyboxFabric",
   "include": "Rhea/Skybox/SkyboxFabric.h",

@@ -1,9 +1,9 @@
 {
-  "vendor": "{{VENDOR}}",
-  "package": "{{PROJECT_NAME}}",
+  "author": "{{VENDOR}}",
+  "package": "{{MODULE_ID}}",
   "name": "{{PROJECT_NAME}}",
   "version": "0.1.0",
-  "class": "{{VENDOR}}::{{PROJECT_NAME}}Fabric",
-  "include": "{{VENDOR}}/{{PROJECT_NAME}}/{{PROJECT_NAME}}Fabric.h",
-  "cmake_target": "{{VENDOR}}::{{PROJECT_NAME}}"
+  "class": "{{SCOPE}}::{{PROJECT_NAME}}Fabric",
+  "include": "{{INCLUDE_PREFIX}}/{{PROJECT_NAME}}Fabric.h",
+  "cmake_target": "{{SCOPE}}::{{PROJECT_NAME}}"
 }

@@ -78,13 +78,13 @@ function(rhea_fabrics_end)
   endif()
 
  # Build map: fabric_id -> (cmake_target, json_file)
- # fabric_id format: Vendor/Package:ModuleName  e.g. Meworla/Rhea:Gltf
+ # fabric_id format: packageId:FabricName
+ # example: rhea/rendering:Gltf
  set(_known_ids "")
  set(_known_targets "")
  foreach(json_file IN LISTS _all_jsons)
-   _rhea_json_get_string("${json_file}" "vendor" _v)
-   _rhea_json_get_string("${json_file}" "package" _p)
-   _rhea_json_get_string("${json_file}" "name" _n)
+   _rhea_json_get_string("${json_file}" "id" _pkg_id)
+   _rhea_json_get_string("${json_file}" "name" _fabric_name)
    _rhea_json_get_string("${json_file}" "cmake_target" _tgt)
 
    # Ignore non-fabric manifests safely (e.g. package-level module.json)
@@ -92,11 +92,11 @@ function(rhea_fabrics_end)
      continue()
    endif()
 
-   if(NOT _v OR NOT _p OR NOT _n)
-     message(FATAL_ERROR "Fabric manifest json missing vendor/package/name: ${json_file}")
+   if(NOT _pkg_id OR NOT _fabric_name)
+     message(FATAL_ERROR "Fabric manifest json missing id/name: ${json_file}")
    endif()
 
-   set(_id "${_v}/${_p}:${_n}")
+   set(_id "${_pkg_id}:${_fabric_name}")
    list(APPEND _known_ids "${_id}")
    list(APPEND _known_targets "${_tgt}")
 

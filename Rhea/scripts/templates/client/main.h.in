@@ -1,4 +1,4 @@
-// MySelf/{{PROJECT_NAME_LOWER}} public interface
+// {{PROJECT_NAME}} public interface
 
 #ifndef {{PROJECT_NAME_UPPER}}_H
 #define {{PROJECT_NAME_UPPER}}_H

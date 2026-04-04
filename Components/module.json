@@ -1,6 +1,7 @@
 {
-  "vendor": "Meworla",
-  "name": "Components",
+  "id": "rhea/components",
+  "author": "Meworla",
+  "displayName": "Rhea Components",
   "version": "0.9.0",
   "dependencies": {}
 }

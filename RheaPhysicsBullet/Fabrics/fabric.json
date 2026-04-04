@@ -1,7 +1,8 @@
 {
-  "vendor": "Meworla",
-  "package": "RheaPhysicsBullet",
-  "name": "Bullet",
+  "id": "rhea/physicsbullet",
+  "name": "BulletPhysics",
+  "displayName": "Rhea Bullet Physics Fabric",
+  "author": "Meworla",
   "description": "Rhea Bullet Physics Fabric",
   "version": "0.9.0",
   "class": "Rhea::RheaPhysicsBulletFabric",

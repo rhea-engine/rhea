@@ -21,4 +21,4 @@ target_link_libraries(RheaPhysicsBulletDebug PRIVATE
   BulletDynamics BulletCollision LinearMath
 )
 
-rhea_register_fabric("${CMAKE_CURRENT_SOURCE_DIR}/Fabrics/module.json")
+rhea_register_fabric("${CMAKE_CURRENT_SOURCE_DIR}/Fabrics/fabric.json")

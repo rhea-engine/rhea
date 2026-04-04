@@ -1,8 +1,8 @@
 {
+  "id": "rhea/core",
   "name": "Terrain",
   "version": "0.9.0",
-  "vendor": "Meworla",
-  "package": "Rhea",
+  "author": "Meworla",
   "description": "Rhea heightmap terrain",
   "class": "Rhea::TerrainFabric",
   "include": "Rhea/Terrain/TerrainFabric.h",

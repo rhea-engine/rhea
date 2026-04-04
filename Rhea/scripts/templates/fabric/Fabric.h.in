@@ -4,7 +4,7 @@
 #include <Rhea/Application.h>
 #include <Rhea/FabricSystem.h>
 
-namespace {{VENDOR}}
+namespace {{SCOPE}}
 {
 	/** Fabrics for {{PROJECT_NAME}}
 	*/

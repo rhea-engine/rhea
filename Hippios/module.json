@@ -1,8 +1,9 @@
 {
-  "vendor": "Meworla",
-  "name": "Hippios",
+  "id": "rhea/gfx",
+  "displayName": "Rhea Graphics (Hippios)",
   "version": "0.9.0",
+  "author": "Meworla",
   "dependencies": {
-    "Meworla/Components": "0.9.0"
+    "rhea/components": "0.9.0"
   }
 }

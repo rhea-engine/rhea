@@ -1,12 +1,12 @@
 #include "NullBody.h"
 
-namespace Rhea
+namespace rhea::physics
 {
-	NullPhysicsBody::NullPhysicsBody(Item* item) :
+	NullPhysicsBody::NullPhysicsBody(Rhea::Item* item) :
 		m_turn(0.0f),		
 		m_isKinematic(false),
 		m_isStatic(false),
-		PhysicsBody(item)
+		Rhea::PhysicsBody(item)
 	{
 	}
 

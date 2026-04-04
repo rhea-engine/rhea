@@ -13,11 +13,15 @@ class btRigidBody;
 namespace Rhea
 {
 	class Item;
+	struct PhysicsBodyDesc;
+}
 
+namespace rhea::physics::bullet
+{
 	class BulletHeightMap : public BulletPhysicsBody
 	{
 	public:
-		BulletHeightMap(btDynamicsWorld* world, Item* item, const PhysicsBodyDesc& desc);
+		BulletHeightMap(btDynamicsWorld* world, Rhea::Item* item, const Rhea::PhysicsBodyDesc& desc);
 		~BulletHeightMap();
 
 		bool init() override { return true; }

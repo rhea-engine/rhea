@@ -4,7 +4,7 @@
 #include <Rhea/Application.h>
 #include <Rhea/FabricSystem.h>
 
-namespace Rhea
+namespace rhea::physics
 {
 	/** Fabrics for RheaPhysics Null Backend
 	 * -------------------------------------
@@ -21,10 +21,10 @@ namespace Rhea
 	class RheaPhysicsFabric : public Rhea::IFabric
 	{
 	public:
-		void Register(Application* app) override;
+		void Register(Rhea::Application* app) override;
 
 		const char* getName() const override { return "RheaPhysics"; }
 	};
 }
 
-#endif // !RHEA_RHEAPHYSICS_H
+#endif // !RHEA_RHEAPHYSICSFABRIC_H

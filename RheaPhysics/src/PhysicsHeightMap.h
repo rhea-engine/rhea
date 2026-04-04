@@ -6,11 +6,14 @@
 namespace Rhea
 {
 	class Item;
+}
 
+namespace rhea::physics
+{
 	class PhysicsHeightMap : public NullPhysicsBody
 	{
 	public:
-		PhysicsHeightMap(Item* item) :
+		PhysicsHeightMap(Rhea::Item* item) :
 			NullPhysicsBody(item)
 		{
 			m_isStatic = true;

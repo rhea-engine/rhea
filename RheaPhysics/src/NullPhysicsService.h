@@ -11,13 +11,16 @@ namespace Rhea
 {
 	class Controller;
 	class Item;
+}
 
-	class NullPhysicsService : public PhysicsService
+namespace rhea::physics
+{
+	class NullPhysicsService : public Rhea::PhysicsService
 	{
-		MECLASS(NullPhysicsService, PhysicsService)
+		MECLASS(NullPhysicsService, Rhea::PhysicsService)
 	public:
 		NullPhysicsService(std::string name, std::string type_name) :	
-			PhysicsService(name, type_name)
+			Rhea::PhysicsService(name, type_name)
 		{
 		}
 
@@ -25,13 +28,13 @@ namespace Rhea
 		void onPhysicsStep(float delta) override;
 
 		// set scene and initialize objects in it
-		void setScene(Scene* scene) override;		
+		void setScene(Rhea::Scene* scene) override;		
 
 		// initalize one object
-		void initializeItem(Item* item) override;
+		void initializeItem(Rhea::Item* item) override;
 
 		// remove one object
-		void removeItem(Item* item) override;
+		void removeItem(Rhea::Item* item) override;
 
 		// Service functions
 		void onInit();	

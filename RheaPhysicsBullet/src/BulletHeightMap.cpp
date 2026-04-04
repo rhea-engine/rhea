@@ -10,15 +10,15 @@
 #undef min
 #undef max
 
-namespace Rhea
+namespace rhea::physics::bullet
 {
-	BulletHeightMap::BulletHeightMap(btDynamicsWorld* world, Item* item, const PhysicsBodyDesc& desc) :
+	BulletHeightMap::BulletHeightMap(btDynamicsWorld* world, Rhea::Item* item, const Rhea::PhysicsBodyDesc& desc) :
 		m_width(0),
 		m_height(0),
 		m_shape(nullptr),
 		BulletPhysicsBody(world, item, desc)
 	{
-		Unit* heightmap = static_cast<Terrain*>(item)->getHeightmap();
+		Rhea::Unit* heightmap = static_cast<Rhea::Terrain*>(item)->getHeightmap();
 		bool flipZ = true;
 		m_isStatic = true; // static heightmap
 		
@@ -31,7 +31,7 @@ namespace Rhea
 			float max_height = 0.0f;
 
 			m_image = std::make_unique<Poseidon::Image>();
-			if (static_cast<Resource*>(heightmap)->getRaw((char**)&buf, &buflen)) {
+			if (static_cast<Rhea::Resource*>(heightmap)->getRaw((char**)&buf, &buflen)) {
 				m_image->load(buf, buflen);
 				m_width = m_image->getWidth();
 				m_height = m_image->getHeight();

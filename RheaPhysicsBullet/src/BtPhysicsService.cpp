@@ -18,13 +18,13 @@
 #include <Rhea/Physics/PhysicsManagerService.h>
 #include <Rhea/Physics/PhysicsEvent.h>
 
-namespace Rhea
+namespace rhea::physics::bullet
 {
 	BulletPhysicsService::BulletPhysicsService(std::string name, std::string type_name) :
 		m_world(nullptr),
 		m_scene(nullptr),
 		m_debug_drawer(nullptr),
-		PhysicsService("BulletPhysicsService", type_name)
+		Rhea::PhysicsService("BulletPhysicsService", type_name)
 	{
 	}
 
@@ -37,7 +37,7 @@ namespace Rhea
 		std::unique_ptr<Rhea::PhysicsEvent> ev = std::make_unique<Rhea::PhysicsEvent>("physics_pre", delta);
 		sendEvent(std::string("pre_physics"), ev.get());
 
-		std::vector<Item*> items = m_scene->getItems();
+		std::vector<Rhea::Item*> items = m_scene->getItems();
 
 		/*
 		for (auto it = items.begin(); it != items.end(); ++it) {
@@ -53,7 +53,7 @@ namespace Rhea
 		for (int j = m_world->getNumCollisionObjects() - 1; j >= 0; j--)
 		{
 			btCollisionObject* obj = m_world->getCollisionObjectArray()[j];
-			Item* item = doCast<Item>((SimpleParser::Variant*)obj->getUserPointer());
+			Rhea::Item* item = doCast<Rhea::Item>((SimpleParser::Variant*)obj->getUserPointer());
 
 			// TODO: optimize this by keeping track of dynamic objects in the world and only updating those
 			// in the future we may also want to update kinematic objects here, but for now we only update dynamic objects, which are the most common ones to move around
@@ -99,7 +99,7 @@ namespace Rhea
 		}
 	}
 	
-	void BulletPhysicsService::setScene(Scene* scene)
+	void BulletPhysicsService::setScene(Rhea::Scene* scene)
 	{
 		if (!scene) {
 			LOG(LOG_ERROR) << "BulletPhysicsService::setScene: no scene";
@@ -139,10 +139,10 @@ namespace Rhea
 
 		// get items of scene
 		m_scene = scene;
-		std::vector<Item*> items = m_scene->getItems();
+		std::vector<Rhea::Item*> items = m_scene->getItems();
 
 		for (auto it = items.begin(); it != items.end(); ++it) {
-			Item* item = *it;
+			Rhea::Item* item = *it;
 			if (item->getComponent<PhysicsComponent>())
 				continue;
 
@@ -150,9 +150,9 @@ namespace Rhea
 		}
 	}
 
-	void BulletPhysicsService::initializeItem(Item* item)
+	void BulletPhysicsService::initializeItem(Rhea::Item* item)
 	{
-		auto* mgr = doCast<PhysicsManagerService>(m_app->getService("physics_mgr"));
+		auto* mgr = doCast<Rhea::PhysicsManagerService>(m_app->getService("physics_mgr"));
 		const auto* desc = mgr->getBodyDescFor(item);
 		if (!desc || desc->kind.empty()) return;
 
@@ -167,7 +167,7 @@ namespace Rhea
 		return;
 	}
 
-	void BulletPhysicsService::removeItem(Item* item)
+	void BulletPhysicsService::removeItem(Rhea::Item* item)
 	{
 		item->deleteComponent<PhysicsComponent>();
 	}
@@ -190,13 +190,13 @@ namespace Rhea
 
 		m_world->setGravity(btVector3(0.0f, -0.8f, 0.0f));
 
-		m_app->getUnitTree()->registerEventHandler("scene_activate", this, [&](Event* ev, Unit* tree)->bool {
-			setScene(doCast<Scene>(ev->getTarget()));
+		m_app->getUnitTree()->registerEventHandler("scene_activate", this, [&](Rhea::Event* ev, Rhea::Unit* tree)->bool {
+			setScene(doCast<Rhea::Scene>(ev->getTarget()));
 			return false;
 			});
 	}
 	
-	Unit* BulletPhysicsService::ray(Math::Vector3 origin, Math::Vector3 direction)
+	Rhea::Unit* BulletPhysicsService::ray(Math::Vector3 origin, Math::Vector3 direction)
 	{
 		btVector3 btRayFrom = btVector3(origin.x, origin.y, origin.z);
 		btVector3 btRayTo = btVector3(direction.x, direction.y, direction.z);
@@ -216,8 +216,8 @@ namespace Rhea
 		return nullptr;
 	}
 
-	std::unique_ptr<PhysicsBody>
-		BulletPhysicsService::createBody(const PhysicsBodyDesc& desc, Item* item)
+	std::unique_ptr<Rhea::PhysicsBody>
+		BulletPhysicsService::createBody(const Rhea::PhysicsBodyDesc& desc, Rhea::Item* item)
 	{
 		if (desc.kind == "Meworla/RheaPhysics:Character")
 			return std::make_unique<BulletPhysicsCharacter>(m_world, item, desc);

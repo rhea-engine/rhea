@@ -4,13 +4,13 @@
 #include <Rhea/Component.h>
 #include <Components/Math/Vector3.h>
 
-namespace Rhea {
+namespace rhea::physics {
 
-	class ColliderComponent : public Component {
-		RECLASS(ColliderComponent, Component, "//meworla/collider")
+	class ColliderComponent : public Rhea::Component {
+		RECLASS(ColliderComponent, Rhea::Component, "//meworla/collider")
 	public:
 		ColliderComponent(std::string name, std::string type_name) :			
-			Component(name, type_name)
+			Rhea::Component(name, type_name)
 		{
 		}
 

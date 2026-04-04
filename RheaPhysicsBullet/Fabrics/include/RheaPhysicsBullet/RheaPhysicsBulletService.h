@@ -13,9 +13,13 @@ namespace Rhea
 	class Controller;
 	class Scene;
 
-	class BulletPhysicsService : public PhysicsService
+}
+
+namespace rhea::physics::bullet
+{
+	class BulletPhysicsService : public Rhea::PhysicsService
 	{
-		MECLASS(BulletPhysicsService, PhysicsService)
+		MECLASS(BulletPhysicsService, Rhea::PhysicsService)
 	public:
 		BulletPhysicsService(std::string name, std::string type_name);		
 
@@ -26,13 +30,13 @@ namespace Rhea
 		btDynamicsWorld* getWorld() { return m_world; }
 
 		// set scene and initialize objects in it
-		void setScene(Scene* scene);
+		void setScene(Rhea::Scene* scene);
 
 		// initalize one object
-		void initializeItem(Item* item);
+		void initializeItem(Rhea::Item* item);
 
 		// remove one object
-		void removeItem(Item* item);
+		void removeItem(Rhea::Item* item);
 
 		// Service functions
 		void onInit();
@@ -40,19 +44,19 @@ namespace Rhea
 		// ray trace
 		Unit* ray(Math::Vector3 origin, Math::Vector3 direction);
 
-		std::unique_ptr<PhysicsBody> createBody(const PhysicsBodyDesc& desc, Item* item);
+		std::unique_ptr<Rhea::PhysicsBody> createBody(const Rhea::PhysicsBodyDesc& desc, Rhea::Item* item);
 
 		void setDebugDrawer(btIDebugDraw* drawer);
 
-		using BulletDrawerFactory = std::function<IPhysicsDebugDraw* ()>;
+		using BulletDrawerFactory = std::function<Rhea::IPhysicsDebugDraw* ()>;
 		void setDrawerFactory(BulletDrawerFactory f) { m_drawer_factory = f; }
-		IPhysicsDebugDraw* debugDraw() override { if (!m_debug_drawer && m_drawer_factory) m_debug_drawer = m_drawer_factory(); return m_debug_drawer; }
+		Rhea::IPhysicsDebugDraw* debugDraw() override { if (!m_debug_drawer && m_drawer_factory) m_debug_drawer = m_drawer_factory(); return m_debug_drawer; }
 
 	protected:
 		btDynamicsWorld* m_world;
-		Scene* m_scene;
+		Rhea::Scene* m_scene;
 		BulletDrawerFactory m_drawer_factory;
-		IPhysicsDebugDraw* m_debug_drawer;
+		Rhea::IPhysicsDebugDraw* m_debug_drawer;
 	};
 }
 

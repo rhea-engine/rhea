@@ -8,7 +8,7 @@
 
 using Math::Vector3;
 
-namespace Rhea
+namespace rhea::physics::bullet
 {
 	// class from btKinematicCharacterController
 	class btKinematicClosestNotMeRayResultCallback : public btCollisionWorld::ClosestRayResultCallback
@@ -75,7 +75,7 @@ namespace Rhea
 		btScalar m_minSlopeDot;
 	};
 
-	BulletPhysicsCharacter::BulletPhysicsCharacter(btDynamicsWorld* world, Item* item, const PhysicsBodyDesc& desc) :
+	BulletPhysicsCharacter::BulletPhysicsCharacter(btDynamicsWorld* world, Rhea::Item* item, const Rhea::PhysicsBodyDesc& desc) :
 		m_world(world),
 		m_move_state(moveState::GROUND),
 		m_last_position(0.0f,0.0f,0.0f),

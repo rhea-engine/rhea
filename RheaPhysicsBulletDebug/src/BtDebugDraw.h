@@ -13,8 +13,11 @@ class btDynamicsWorld;
 namespace Rhea
 {
     class Application;
+}
 
-	class BulletDebugDraw : public Item, public IPhysicsDebugDraw
+namespace rhea::physics::bullet::debug
+{
+	class BulletDebugDraw : public Rhea::Item, public Rhea::IPhysicsDebugDraw
 	{      
     public:
         struct Line {
@@ -30,7 +33,7 @@ namespace Rhea
             Math::Vector3 color;
         };
         
-        BulletDebugDraw(Application* app, btDynamicsWorld* world, Poseidon::Core* core);
+        BulletDebugDraw(Rhea::Application* app, btDynamicsWorld* world, Poseidon::Core* core);
 		~BulletDebugDraw();
 
         //  Renderable functions

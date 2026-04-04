@@ -1,6 +1,6 @@
 #include "NullPhysicsCharacter.h"
 
-namespace Rhea {
+namespace rhea::physics {
 
 	Math::Vector3 NullPhysicsCharacter::update(Rhea::Position* pos, Math::Vector3& move, Math::Vector3& gravity)
 	{

@@ -7,14 +7,17 @@
 #include <string>
 #include <Rhea/Physics/PhysicsBody.h>
 
-namespace Rhea
+namespace
 {
 	class Item;
+}
 
+namespace rhea::physics
+{
 	class NullPhysicsBody : public Rhea::PhysicsBody
 	{
 	public:
-		NullPhysicsBody(Item* item);
+		NullPhysicsBody(Rhea::Item* item);
 		virtual ~NullPhysicsBody();
 
 		// move by vector

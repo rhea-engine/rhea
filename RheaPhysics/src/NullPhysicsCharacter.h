@@ -5,18 +5,18 @@
 #include <string>
 #include <Rhea/Physics/IPhysicsCharacter.h>
 
-namespace Rhea
+namespace rhea::physics
 {
-	class NullPhysicsCharacter : public NullPhysicsBody, public IPhysicsCharacter
+	class NullPhysicsCharacter : public NullPhysicsBody, public Rhea::IPhysicsCharacter
 	{
 	public:
-		NullPhysicsCharacter(Item* item) :
+		NullPhysicsCharacter(Rhea::Item* item) :
 			NullPhysicsBody(item)
 		{
 		}
 
 		// update in physics step
-		Math::Vector3 update(Position* pos, Math::Vector3& move, Math::Vector3& gravity) override;
+		Math::Vector3 update(Rhea::Position* pos, Math::Vector3& move, Math::Vector3& gravity) override;
 		bool jump(Math::Vector3& pos) override;
 
 		virtual bool isOnGround() const override { return true; }

@@ -21,12 +21,16 @@ namespace Rhea
 {
 	class Item;
 	class Terrain;
+}
+
+namespace rhea::physics::bullet
+{
 	class BulletPhysicsGhost;
 
-	class BulletPhysicsCharacter : public BulletPhysicsBody, public IPhysicsCharacter
+	class BulletPhysicsCharacter : public BulletPhysicsBody, public Rhea::IPhysicsCharacter
 	{
 	public:
-		BulletPhysicsCharacter(btDynamicsWorld *world, Item* item, const PhysicsBodyDesc& desc);
+		BulletPhysicsCharacter(btDynamicsWorld *world, Rhea::Item* item, const Rhea::PhysicsBodyDesc& desc);
 		~BulletPhysicsCharacter();
 
 		bool init() override;
@@ -58,7 +62,7 @@ namespace Rhea
 		void detectGhostContacts();
 
 		// move in the given direction - move must be already adjusted to timestep
-		void moveStep(Position* pos, Math::Vector3& move);
+		void moveStep(Rhea::Position* pos, Math::Vector3& move);
 
 		// check if we are on the floor
 		// if we are not but in step_height distance adjust current position
@@ -69,11 +73,11 @@ namespace Rhea
 		void updateHeadContact();
 
 		// update in physics step
-		Math::Vector3 update(Position* pos, Math::Vector3& move, Math::Vector3& gravity) override;
+		Math::Vector3 update(Rhea::Position* pos, Math::Vector3& move, Math::Vector3& gravity) override;
 
 		void* queryInterface(const std::string& id) override {
-			if (id == "PhysicsCharacter") return static_cast<IPhysicsCharacter*>(this);
-			return PhysicsBody::queryInterface(id);
+			if (id == "PhysicsCharacter") return static_cast<Rhea::IPhysicsCharacter*>(this);
+			return Rhea::PhysicsBody::queryInterface(id);
 		}
 
 	protected:
@@ -87,7 +91,7 @@ namespace Rhea
 		float m_gravity;
 		moveState m_move_state;
 		Math::Vector3 m_forced_movement;
-		Position* m_position;
+		Rhea::Position* m_position;
 
 		btDynamicsWorld* m_world;
 		BulletPhysicsGhost* m_ghost;

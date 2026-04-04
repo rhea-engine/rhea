@@ -5,12 +5,12 @@
 
 class btPairCachingGhostObject;
 
-namespace Rhea
+namespace rhea::physics::bullet
 {
 	class BulletPhysicsGhost : public BulletPhysicsBody
 	{
 	public:
-		BulletPhysicsGhost(btDynamicsWorld* world, Item* item, const PhysicsBodyDesc& desc);
+		BulletPhysicsGhost(btDynamicsWorld* world, Rhea::Item* item, const Rhea::PhysicsBodyDesc& desc);
 		~BulletPhysicsGhost();
 
 		bool init();

@@ -13,11 +13,15 @@ class btCompoundShape;
 namespace Rhea
 {
 	class Item;
+}
+
+namespace rhea::physics::bullet
+{
 
 	class BulletPhysicsBody : public Rhea::PhysicsBody
 	{
 	public:
-		BulletPhysicsBody(btDynamicsWorld* world, Item* item, const PhysicsBodyDesc& desc);
+		BulletPhysicsBody(btDynamicsWorld* world, Rhea::Item* item, const Rhea::PhysicsBodyDesc& desc);
 		~BulletPhysicsBody();
 
 		virtual bool init();

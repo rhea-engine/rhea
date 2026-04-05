@@ -4,13 +4,13 @@
 #include <Rhea/Component.h>
 #include <Components/Math/Vector3.h>
 
-namespace Rhea {
+namespace rhea::physics {
 
-	class ColliderComponent : public Component {
-		RECLASS(ColliderComponent, Component, "//meworla/collider")
+	class ColliderComponent : public rhea::Component {
+		RECLASS(ColliderComponent, rhea::Component, "//meworla/collider")
 	public:
 		ColliderComponent(std::string name, std::string type_name) :			
-			Component(name, type_name)
+			rhea::Component(name, type_name)
 		{
 		}
 
@@ -23,7 +23,7 @@ namespace Rhea {
 		// Common params (used depending on kind)
 		float radius = 0.0f;      // sphere/capsule
 		float height = 0.0f;      // capsule
-		Math::Vector3 halfExtents = Math::Vector3(0, 0, 0); // box
+		math::Vector3 halfExtents = math::Vector3(0, 0, 0); // box
 
 		// Optional transform tweak
 		float offsetY = 0.0f;

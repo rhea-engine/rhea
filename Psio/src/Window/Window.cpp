@@ -1,7 +1,7 @@
 #include <Psio/Window/Window.h>
 #include <Psio/Input/Input.h>
 
-namespace Psio
+namespace psio
 {
 	void Window::setInput(Input* input)
 	{

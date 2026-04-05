@@ -4,7 +4,7 @@
 #include <SimpleParser/IniFileParser.h>
 #include <Psio/Log.h>
 
-namespace Rhea
+namespace rhea
 {
 	bool ConfigFile::loadFromFile(std::string filename)
 	{
@@ -12,15 +12,15 @@ namespace Rhea
 		if (fs->getFs()->fileExists(filename))
 		{
 			// file exists		
-			std::unique_ptr<Orion::FileResourceStream> stream = std::make_unique<Orion::FileResourceStream>(filename);
-			std::unique_ptr<Psio::IOBuffer> buf = std::make_unique<Psio::IOBuffer>(64 * 1024);
+			std::unique_ptr<orion::FileResourceStream> stream = std::make_unique<orion::FileResourceStream>(filename);
+			std::unique_ptr<psio::IOBuffer> buf = std::make_unique<psio::IOBuffer>(64 * 1024);
 			if (stream->Read(buf.get())) {
 				const char* ptr = buf->reader();
 				size_t len = buf->Remaining();
-				SimpleParser::IniFileParser* parser = new SimpleParser::IniFileParser();
-				std::vector<SimpleParser::IniFileParser::Section> sections;
+				simpleparser::IniFileParser* parser = new simpleparser::IniFileParser();
+				std::vector<simpleparser::IniFileParser::Section> sections;
 				int err = parser->parse((char*)ptr, len, sections);
-				if (err == (int)SimpleParser::IniFileParser::Error::PARSE_OK) {
+				if (err == (int)simpleparser::IniFileParser::Error::PARSE_OK) {
 					for (auto& section : sections) {
 						std::string key = section.section_name;
 						// attributes have no meaning for the config file yet
@@ -37,7 +37,7 @@ namespace Rhea
 					return true;
 				}
 				else {
-					LOG(LOG_ERROR) << "Failed to parse config file " << filename << ", " << parser->getErrMsg((SimpleParser::IniFileParser::Error)err);
+					LOG(LOG_ERROR) << "Failed to parse config file " << filename << ", " << parser->getErrMsg((simpleparser::IniFileParser::Error)err);
 				}
 			}
 		}

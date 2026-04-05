@@ -12,7 +12,7 @@
 #include <Rhea/Core/Geometry.h>
 
 
-namespace Rhea
+namespace rhea
 {
 	Mesh::Mesh(const Mesh& m) :
 		Unit(m),
@@ -88,7 +88,7 @@ namespace Rhea
 				if (shader_res) {
 					m_material->setShaderRes(shader_res);
 					int diffuse_id = shader_res->getInputSlotId("DIFFUSE");
-					m_material->setColor(diffuse_id, Math::Vector3(1.0f,1.0f,1.0f));
+					m_material->setColor(diffuse_id, math::Vector3(1.0f,1.0f,1.0f));
 				    int basecolor_id = shader_res->getTextureSlotId("BASECOLOR");
 					m_material->setTexture(basecolor_id, static_cast<ImageResource*>(tex));
 				}
@@ -118,7 +118,7 @@ namespace Rhea
 	void Mesh::getBuffers(std::vector<vertex>& vertices, std::vector<uint32_t>& indices)
 	{
 		vertices = m_vertices;
-		//		indices = Rhea::Mesh::m_v_indices;
+		//		indices = rhea::Mesh::m_v_indices;
 		if (m_submeshes.size())
 			indices = m_submeshes[0].indices;
 	}

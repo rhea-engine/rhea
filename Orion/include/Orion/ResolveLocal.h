@@ -3,7 +3,7 @@
 
 #include <Orion/ResolverInterface.h>
 
-namespace Orion
+namespace orion
 {
 	class ResolveLocal : public ResolverInterface
 	{

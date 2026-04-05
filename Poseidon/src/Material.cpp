@@ -3,7 +3,7 @@
 #include <cassert>
 #include <Poseidon/Core.h>
 
-namespace Poseidon
+namespace poseidon
 {
 	Material::Material(Core* graphics_core) :
 		m_grahpics_core(graphics_core),
@@ -39,13 +39,13 @@ namespace Poseidon
 		if (m_material_buffer && mat_buf_register > 0) {
 			// bind the material buffer
 			m_material_buffer->update((void*)&per_mat_buf);
-			m_grahpics_core->get_renderer()->bindGPUBuffer(m_material_buffer, mat_buf_register, Hippios::ShaderStage::Fragment);
+			m_grahpics_core->get_renderer()->bindGPUBuffer(m_material_buffer, mat_buf_register, hippios::ShaderStage::Fragment);
 		}
 
 		if (m_material_buffer_vs && mat_buf_register_vs > 0 && m_mat_buffer_vs) {
 			if (m_mat_buf_vs_dirty)
 				m_material_buffer_vs->update(m_mat_buffer_vs);
-			m_grahpics_core->get_renderer()->bindGPUBuffer(m_material_buffer_vs, mat_buf_register_vs, Hippios::ShaderStage::Vertex);
+			m_grahpics_core->get_renderer()->bindGPUBuffer(m_material_buffer_vs, mat_buf_register_vs, hippios::ShaderStage::Vertex);
 		}
 	}
 
@@ -112,14 +112,14 @@ namespace Poseidon
 		per_mat_buf.num_textures = (int)m_textures.size();
 	}
 
-	Hippios::ShaderProgram* Material::getShaderProgram()
+	hippios::ShaderProgram* Material::getShaderProgram()
 	{
 		if (!m_shader)
 			return nullptr;
 		return m_shader->getShaderProgram();
 	}
 
-	void Material::SetColor(int slot, const Math::Vector4& color)
+	void Material::SetColor(int slot, const math::Vector4& color)
 	{
 		switch (slot) {
 		case 0:
@@ -136,8 +136,8 @@ namespace Poseidon
 			break;
 		}
 
-		//if (m_mat_buffer && (*m_layout).size() > slot && (*m_layout)[slot].offset + sizeof(Math::Vector4) < m_mat_buffer_size)
-		//	memcpy(m_mat_buffer + (*m_layout)[slot].offset, &color, sizeof(Math::Vector4));
+		//if (m_mat_buffer && (*m_layout).size() > slot && (*m_layout)[slot].offset + sizeof(math::Vector4) < m_mat_buffer_size)
+		//	memcpy(m_mat_buffer + (*m_layout)[slot].offset, &color, sizeof(math::Vector4));
 	}
 	
 	void Material::SetFloat(int slot, float value)
@@ -157,18 +157,18 @@ namespace Poseidon
 	//		memcpy(m_mat_buffer + (*m_layout)[slot].offset, &value, sizeof(int));
 	}
 	
-	void Material::SetFloat2VS(int slot, const Math::Vector2& value)
+	void Material::SetFloat2VS(int slot, const math::Vector2& value)
 	{
 		if (m_mat_buffer_vs) {
-			memcpy((char*)m_mat_buffer_vs + (*m_layout_vs)[slot].offset, &value, sizeof(Math::Vector2));		
+			memcpy((char*)m_mat_buffer_vs + (*m_layout_vs)[slot].offset, &value, sizeof(math::Vector2));		
 			m_mat_buf_vs_dirty = true;
 		}
 	}
 
-	void Material::SetFloat4VS(int slot, const Math::Vector4& value)
+	void Material::SetFloat4VS(int slot, const math::Vector4& value)
 	{
 		if (m_mat_buffer_vs) {
-			memcpy((char*)m_mat_buffer_vs + (*m_layout_vs)[slot].offset, &value, sizeof(Math::Vector4));
+			memcpy((char*)m_mat_buffer_vs + (*m_layout_vs)[slot].offset, &value, sizeof(math::Vector4));
 			m_mat_buf_vs_dirty = true;
 		}
 	}

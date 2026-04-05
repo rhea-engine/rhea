@@ -6,7 +6,7 @@
 #include <Math/Quaternion.h>
 #include <Rhea/Core/Position.h>
 
-namespace Rhea
+namespace rhea
 {
 	class BasicController : public Controller
 	{
@@ -22,10 +22,10 @@ namespace Rhea
 		void message(std::string method_name);
 
 		// set the position manually
-		void setPosition(Math::Vector3 position);
-		void lookAt(Math::Vector3& target);
+		void setPosition(math::Vector3 position);
+		void lookAt(math::Vector3& target);
 
-		Math::Vector3 getPosition();
+		math::Vector3 getPosition();
 
 		// Controller functions
 
@@ -37,15 +37,15 @@ namespace Rhea
 		void logMe();
 
 		// get the current orientation
-		Math::Quaternion getOrientation() {	return m_orientation; }
+		math::Quaternion getOrientation() {	return m_orientation; }
 
 	protected:
 		Position m_position;
-		Math::Quaternion m_orientation;
+		math::Quaternion m_orientation;
 
-		Math::Vector3 m_move;
+		math::Vector3 m_move;
 		float m_turn = 0;
-		Math::Vector3 m_last_move;
+		math::Vector3 m_last_move;
 		float m_last_turn = 0;
 
 		// register event handler

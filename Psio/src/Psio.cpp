@@ -21,7 +21,7 @@
 #endif
 #include <Psio/Log.h>
 
-namespace Psio
+namespace psio
 {
 	std::unique_ptr<IBackend> CreateBackend(BackendKind preferred)
 	{

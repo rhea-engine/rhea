@@ -8,7 +8,7 @@
 #include <Hippios/RenderTarget.h>
 #include <memory>
 
-namespace Poseidon
+namespace poseidon
 {
 	class Renderable;
 	class Entity;
@@ -30,8 +30,8 @@ namespace Poseidon
 		Viewport(std::string name);
 		~Viewport();
 
-		virtual void initRenderTarget(Hippios::Renderer* renderer);
-		Hippios::Renderer* get_renderer() { return m_renderer; };
+		virtual void initRenderTarget(hippios::Renderer* renderer);
+		hippios::Renderer* get_renderer() { return m_renderer; };
 
 		// render contexts
 		RenderContext* getRenderContext(std::string& name);
@@ -49,9 +49,9 @@ namespace Poseidon
 		// create my render target
 		// destroys old render target and all render contexts
 		// creates a default render context with the size of the target
-		void createRenderTarget(int width, int height, Hippios::SwapChain* swap_chain);
+		void createRenderTarget(int width, int height, hippios::SwapChain* swap_chain);
 		// get the render target
-		Hippios::RenderTarget* getRenderTarget() { return m_render_target.get(); }
+		hippios::RenderTarget* getRenderTarget() { return m_render_target.get(); }
 
 		// get width of viewport
 		int getWidth() { return m_width; }
@@ -59,19 +59,19 @@ namespace Poseidon
 		int getHeight() { return m_height; }
 
 		// get the swapchain
-		Hippios::SwapChain* getSwapChain() { return m_swapchain; }
+		hippios::SwapChain* getSwapChain() { return m_swapchain; }
 
 	protected:
 		std::string m_name;
 		Camera* m_camera = 0; // the active camera
-		Hippios::Renderer* m_renderer = 0; // reference to the render system
-		Hippios::SwapChain* m_swapchain;
+		hippios::Renderer* m_renderer = 0; // reference to the render system
+		hippios::SwapChain* m_swapchain;
 
 		int m_width;
 		int m_height;
 
 		std::vector<std::unique_ptr<RenderContext>> m_render_contexts;
-		std::unique_ptr<Hippios::RenderTarget> m_render_target;
+		std::unique_ptr<hippios::RenderTarget> m_render_target;
 
 		virtual void registerNode();
 		virtual void registerGroup(std::string group_name, Node* node);

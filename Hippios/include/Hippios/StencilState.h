@@ -5,7 +5,7 @@
 #include <string>
 #include "BaseTypes.h"
 
-namespace Hippios
+namespace hippios
 {
 	enum class StencilOp
 	{

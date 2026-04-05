@@ -1,6 +1,6 @@
 #include <Rhea/GUI/Box.h>
 
-namespace Rhea
+namespace rhea
 {
 	void BoxWidget::ready()
 	{

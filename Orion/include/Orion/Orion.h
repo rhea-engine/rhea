@@ -11,7 +11,7 @@
 #include <Psio/Psio.h>
 #include <Orion/ResolverInterface.h>
 
-namespace Orion
+namespace orion
 {	
 	class ResourceCache;
 	class ResourceRequest;
@@ -19,7 +19,7 @@ namespace Orion
 	class Orion
 	{
 	public:
-		Orion(Psio::Engine* engine, std::string appname);
+		Orion(psio::Engine* engine, std::string appname);
 		~Orion();
 
 		// Poll the requests
@@ -43,10 +43,10 @@ namespace Orion
 		// callback for resolved resource
 		int resolve(std::string rid, ResourceRequest** resourceId);		
 		// Fs getter
-		Psio::Fs* getFs() { return m_fs; }
+		psio::Fs* getFs() { return m_fs; }
 
 		// psio getter
-		Psio::Engine* getIO() { return m_engine; }
+		psio::Engine* getIO() { return m_engine; }
 
 		// get realm from realm list
 		Realms* getRealms();		
@@ -68,13 +68,13 @@ namespace Orion
 		std::vector<std::unique_ptr<ResolverInterface>> m_caches;
 
 		// pointer to the OS Fs
-		Psio::Fs* m_fs;
+		psio::Fs* m_fs;
 
 		// the appname is used for default paths
 		std::string m_appname;
 
 		// the input output engine - used for network
-		Psio::Engine* m_engine;
+		psio::Engine* m_engine;
 
 		// list of current read requests
 		std::vector<ResourceRequest*> m_requests;

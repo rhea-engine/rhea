@@ -8,7 +8,7 @@
 
 #include <cstring>
 
-namespace Rhea
+namespace rhea
 {
 	ImageResource::~ImageResource()
 	{

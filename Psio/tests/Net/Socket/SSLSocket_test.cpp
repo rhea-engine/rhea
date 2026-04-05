@@ -7,7 +7,7 @@
 #include "../Network.h"
 #include "SocketAddress.h"
 
-namespace Psio
+namespace psio
 {
 	class SSLSocketTest : public ::testing::Test {
 	public:
@@ -27,13 +27,13 @@ namespace Psio
 		std::unique_ptr<TCPSocket> tp_sock;
 		bool finished = false;
 
-		int SendRequest(Psio::IOBuffer* buf, Psio::Socket::CompletionHandler handler) {
+		int SendRequest(psio::IOBuffer* buf, psio::Socket::CompletionHandler handler) {
 			return sock->Write(buf, [&](int err) {
 				handler(err);
 				});
 		}
 
-		int ReadResponse(Psio::IOBuffer* buf, Psio::Socket::CompletionHandler handler) {
+		int ReadResponse(psio::IOBuffer* buf, psio::Socket::CompletionHandler handler) {
 			return sock->Read(buf, [&](int err) {
 				handler(err);
 				});
@@ -112,12 +112,12 @@ namespace Psio
 						res_read = 0;
 						finished = true;
 					}
-					else if (ret != Psio::Network::IO_PENDING) {
+					else if (ret != psio::Network::IO_PENDING) {
 						res_read = ret;
 						finished = true;
 					}
 				}
-				else if (ret != Psio::Network::IO_PENDING) {
+				else if (ret != psio::Network::IO_PENDING) {
 					res = ret;
 					res_read = 0;
 					finished = true;

@@ -1,6 +1,6 @@
 #include <Orion/BufferCollection.h>
 
-namespace Orion
+namespace orion
 {
 	BufferCollection::BufferCollection()
 	{

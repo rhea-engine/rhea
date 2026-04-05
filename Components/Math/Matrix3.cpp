@@ -1,6 +1,6 @@
 #include "Matrix3.h"
 
-namespace Math
+namespace math
 {
 	void Matrix3::SetColumn(size_t col, const Vector3& vec)
 	{		

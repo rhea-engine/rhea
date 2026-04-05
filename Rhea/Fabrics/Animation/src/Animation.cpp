@@ -2,7 +2,7 @@
 #include <Math/Interpolation.h>
 #include <Psio/Log.h>
 
-namespace Rhea
+namespace rhea
 {
 	void Animation::UpdateSkeleton(Skeleton* skeleton, float currentTime)
 	{
@@ -15,12 +15,12 @@ namespace Rhea
 			Bone& bone = skeleton->getBones()[channel.targetNode];
 
 			// Find surrounding timestamps for translation, rotation, and scale
-			Math::Vector3 interpolatedTranslation = InterpolateTranslation(channel, currentTime);
-			Math::Quaternion interpolatedRotation = InterpolateRotation(channel, currentTime);
-			Math::Vector3 interpolatedScale = InterpolateScale(channel, currentTime);
+			math::Vector3 interpolatedTranslation = InterpolateTranslation(channel, currentTime);
+			math::Quaternion interpolatedRotation = InterpolateRotation(channel, currentTime);
+			math::Vector3 interpolatedScale = InterpolateScale(channel, currentTime);
 
 			// Compose the final local transform
-			bone.local_transform = Math::Matrix4::compose(interpolatedTranslation, interpolatedRotation, interpolatedScale);
+			bone.local_transform = math::Matrix4::compose(interpolatedTranslation, interpolatedRotation, interpolatedScale);
 
 #ifdef DEBUG_ANIMATION
 			LOG(LOG_DEBUG) << "Bone: " << bone.name;
@@ -42,7 +42,7 @@ namespace Rhea
 		}	
 		skeleton->UpdateBoneTransforms();  // Recompute global and final transforms for the skeleton
 	}
-	Math::Vector3 Animation::InterpolateTranslation(const AnimationChannel& channel, float currentTime) 
+	math::Vector3 Animation::InterpolateTranslation(const AnimationChannel& channel, float currentTime) 
 	{
 		// check if only one position
 		if (channel.keyframe_positions.size() == 1)
@@ -64,10 +64,10 @@ namespace Rhea
 
 		// Interpolate between the two keyframes
 		float t = NormalizeTime(channel.keyframe_positions[index].time, channel.keyframe_positions[index + 1].time, currentTime);		
-		return Math::lerp(channel.keyframe_positions[index].translation, channel.keyframe_positions[index + 1].translation, t);
+		return math::lerp(channel.keyframe_positions[index].translation, channel.keyframe_positions[index + 1].translation, t);
 	}
 
-	Math::Quaternion Animation::InterpolateRotation(const AnimationChannel& channel, float currentTime)
+	math::Quaternion Animation::InterpolateRotation(const AnimationChannel& channel, float currentTime)
 	{
 		// check if only one position
 		if (channel.keyframe_rotations.size() == 1)
@@ -89,10 +89,10 @@ namespace Rhea
 
 		// Interpolate between the two keyframes
 		float t = NormalizeTime(channel.keyframe_rotations[index].time, channel.keyframe_rotations[index + 1].time, currentTime);		
-		return Math::slerp(channel.keyframe_rotations[index].rotation, channel.keyframe_rotations[index + 1].rotation, t);
+		return math::slerp(channel.keyframe_rotations[index].rotation, channel.keyframe_rotations[index + 1].rotation, t);
 	}
 
-	Math::Vector3 Animation::InterpolateScale(const AnimationChannel& channel, float currentTime) 
+	math::Vector3 Animation::InterpolateScale(const AnimationChannel& channel, float currentTime) 
 	{
 		// check if only one position
 		if (channel.keyframe_scales.size() == 1)
@@ -114,7 +114,7 @@ namespace Rhea
 
 		// Interpolate between the two keyframes
 		float t = NormalizeTime(channel.keyframe_scales[index].time, channel.keyframe_scales[index + 1].time, currentTime);		
-		return Math::lerp(channel.keyframe_scales[index].scale, channel.keyframe_scales[index + 1].scale, t);
+		return math::lerp(channel.keyframe_scales[index].scale, channel.keyframe_scales[index + 1].scale, t);
 	}
 
 	/* Gets normalized value for Lerp & Slerp

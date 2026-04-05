@@ -11,7 +11,7 @@
 #include <Orion/Realm.h>
 #include <Orion/Event.h>
 
-namespace Orion
+namespace orion
 {
 	class Orion;
 	class RealmRequest;

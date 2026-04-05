@@ -4,7 +4,7 @@
 
 #include "D3D11BaseTypes.h"
 
-namespace Hippios {
+namespace hippios {
 
     // constants
     std::unordered_map<StencilOp, D3D11_STENCIL_OP> _stencil_ops = {

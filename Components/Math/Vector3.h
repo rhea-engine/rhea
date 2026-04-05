@@ -5,7 +5,7 @@
 #include "Quaternion.h"
 #include <functional>
 
-namespace Math
+namespace math
 {
 	class Vector3 {	
 	public:

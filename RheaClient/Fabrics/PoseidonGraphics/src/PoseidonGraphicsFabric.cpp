@@ -15,28 +15,27 @@
 #include <SimpleParser/Type.h>
 
 // If GraphicsService is now in RheaClient:
-#include <Rhea/Graphics/GraphicsService.h> // via shim or new include path
+#include <RheaClient/Graphics/GraphicsService.h> // via shim or new include path
 #include <Rhea/Platform/PlatformService.h>
-#include <Rhea/Components/RenderComponent.h>
+#include <RheaClient/Components/RenderComponent.h>
 
-namespace Rhea
-{
-    void PoseidonGraphicsFabric::Register(Rhea::Application* app)
+namespace rhea::client {
+    void PoseidonGraphicsFabric::Register(rhea::Application* app)
     {
         // register services
-        SimpleParser::Type::registerType<GraphicsService>("//meworla/graphicsservice");
+        simpleparser::Type::registerType<GraphicsService>("//meworla/graphicsservice");
         /*
      // --- register types (moved from Application::init) ---
-     SimpleParser::Type::registerType<Mesh>("//meworla/mesh");
+     simpleparser::Type::registerType<rhea::Mesh>("//meworla/mesh");
      // ... etc ...
      */
 
         // --- create and add graphics service
-        GraphicsService* g_service = (GraphicsService*)SimpleParser::Type::create("GraphicsService", "//meworla/graphicsservice");
+        GraphicsService* g_service = (GraphicsService*)simpleparser::Type::create("GraphicsService", "//meworla/graphicsservice");
         g_service->setup(app);
         app->registerService("graphics", g_service);
 
-        Rhea::PlatformService* psio = static_cast<Rhea::PlatformService*>(app->getService("platform"));
+        rhea::PlatformService* psio = static_cast<rhea::PlatformService*>(app->getService("platform"));
         g_service->setPlatform(psio);
      
         // register components

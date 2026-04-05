@@ -8,7 +8,7 @@
 #include <Hippios/SwapChain.h>
 #include <Hippios/Renderer.h>
 
-namespace Hippios
+namespace hippios
 {
 	class GLRenderTarget : public RenderTarget
 	{

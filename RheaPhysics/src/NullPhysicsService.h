@@ -7,17 +7,20 @@
 #include <Rhea/Physics/PhysicsService.h>
 #include "NullBody.h"
 
-namespace Rhea
+namespace rhea
 {
 	class Controller;
 	class Item;
+}
 
-	class NullPhysicsService : public PhysicsService
+namespace rhea::physics
+{
+	class NullPhysicsService : public rhea::PhysicsService
 	{
-		MECLASS(NullPhysicsService, PhysicsService)
+		MECLASS(NullPhysicsService, rhea::PhysicsService)
 	public:
 		NullPhysicsService(std::string name, std::string type_name) :	
-			PhysicsService(name, type_name)
+			rhea::PhysicsService(name, type_name)
 		{
 		}
 
@@ -25,13 +28,13 @@ namespace Rhea
 		void onPhysicsStep(float delta) override;
 
 		// set scene and initialize objects in it
-		void setScene(Scene* scene) override;		
+		void setScene(rhea::Scene* scene) override;		
 
 		// initalize one object
-		void initializeItem(Item* item) override;
+		void initializeItem(rhea::Item* item) override;
 
 		// remove one object
-		void removeItem(Item* item) override;
+		void removeItem(rhea::Item* item) override;
 
 		// Service functions
 		void onInit();	
@@ -40,7 +43,7 @@ namespace Rhea
 		void toggleDebug() override {}
 
 		// ray trace
-		Unit* ray(Math::Vector3 origin, Math::Vector3 direction) override { return nullptr; };
+		Unit* ray(math::Vector3 origin, math::Vector3 direction) override { return nullptr; };
 	};
 }
 

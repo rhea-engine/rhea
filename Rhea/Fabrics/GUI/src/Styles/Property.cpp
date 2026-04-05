@@ -1,7 +1,7 @@
 #include <Rhea/GUI/Styles/Property.h>
 #include <Rhea/GUI/Styles/CssShorthand.h>
 
-namespace Rhea
+namespace rhea
 {
     // A compile-time constant array of CSS properties.
     // Order must match the StylePropertyId enum order.

@@ -7,7 +7,7 @@
 #include "../IOBuffer.h"
 #include "../Socket/Socket.h"
 
-namespace Psio
+namespace psio
 {
 	class HttpStream {
 	public:
@@ -36,7 +36,7 @@ namespace Psio
 		* is ready for reading.
 		* Any other negative value is an error
 		*/
-		int SendRequest(HttpRequest& request, Psio::Network::CompletionHandler handler);
+		int SendRequest(HttpRequest& request, psio::Network::CompletionHandler handler);
 
 		/* Reads a set of Http headers
 		* 
@@ -59,7 +59,7 @@ namespace Psio
 		* If IO_PENDING is returned the handler is called as soon as up to chunk_len bytes where read. The number of actual bytes read may be lower.
 		* Any other negative value is an error
 		*/
-		int ReadBody(IOBuffer* buf, size_t chunk_len, Psio::Network::CompletionHandler handler);
+		int ReadBody(IOBuffer* buf, size_t chunk_len, psio::Network::CompletionHandler handler);
 
 		/* Drain the response body
 		* 
@@ -68,7 +68,7 @@ namespace Psio
 		* If IO_PENDING is returned the handler is called as soon as the body was drained. 
 		* Any other negative value is an error
 		*/
-		int DrainBody(Psio::Network::CompletionHandler handler);
+		int DrainBody(psio::Network::CompletionHandler handler);
 
 		void CallDoLoop(int result);
 		static size_t LocateEndOfHeadersHelper(const char* buf, size_t buf_len, size_t i, bool accept_empty_header_list);

@@ -5,7 +5,7 @@
 #include <utility>
 #include <Psio/Log.h>
 
-namespace Psio
+namespace psio
 {
     SDLWindow::SDLWindow(WindowDesc desc)
         : Window(desc.width, desc.height),

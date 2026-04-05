@@ -9,20 +9,20 @@
 #include <Rhea/Application.h>
 #include <Rhea/Core/Scene.h>
 
-class Headless : public Rhea::Application
+class Headless : public rhea::Application
 {
 public:
 	Headless();
 	~Headless() override;
 
-	void setScene(Rhea::Scene* world_scene) { m_world_scene = world_scene; }
-	Rhea::Scene* getScene() { return m_world_scene; }
+	void setScene(rhea::Scene* world_scene) { m_world_scene = world_scene; }
+	rhea::Scene* getScene() { return m_world_scene; }
 
-	void showScene(Rhea::Scene* scene);
+	void showScene(rhea::Scene* scene);
 
-	void onScene(Rhea::Scene* scene) override;
+	void onScene(rhea::Scene* scene) override;
 protected:
-	Rhea::Scene* m_world_scene;
+	rhea::Scene* m_world_scene;
 };
 
 #endif // SBH4_H

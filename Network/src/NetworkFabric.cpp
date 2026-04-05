@@ -3,8 +3,8 @@
 #include "Rhea/Network/ClientService.h"
 #include "Rhea/Network/NetworkComponent.h"
 
-void Rhea::NetworkFabric::Register(Application* app)
+void rhea::NetworkFabric::Register(Application* app)
 {
-	SimpleParser::Type::registerType<NetworkComponent>("//meworla/networkcomponent");
-	SimpleParser::Type::registerType<ClientService>("//meworla/clientservice");
+	simpleparser::Type::registerType<NetworkComponent>("//meworla/networkcomponent");
+	simpleparser::Type::registerType<ClientService>("//meworla/clientservice");
 }

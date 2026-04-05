@@ -1,7 +1,7 @@
 #include <Psio/IPC/IO.h>
 #include <Psio/Log.h>
 
-namespace Psio
+namespace psio
 {
 	IO::~IO()
 	{

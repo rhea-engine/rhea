@@ -1,6 +1,6 @@
 #include "D3D11BaseTypes.h"
 
-namespace Hippios {
+namespace hippios {
 	std::unordered_map<ComparisonFunction, D3D11_COMPARISON_FUNC> _comparison_functions = {
 		{ ComparisonFunction::COMPARE_NEVER, D3D11_COMPARISON_FUNC::D3D11_COMPARISON_NEVER },
 		{ ComparisonFunction::COMPARE_LESS, D3D11_COMPARISON_FUNC::D3D11_COMPARISON_LESS },

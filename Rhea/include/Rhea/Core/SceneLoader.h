@@ -4,7 +4,7 @@
 #include <Rhea/Resources/Resource.h>
 #include <Rhea/Resources/ResourceLoader.h>
 
-namespace Rhea
+namespace rhea
 {
 	class Application;
 	class Unit;
@@ -13,8 +13,8 @@ namespace Rhea
 	class SceneLoader
 	{
 	public:
-		static void load(std::string name, Application* app, Orion::ResourceRequest* req, Resource::LoadedHandler handler);
-		//void load(Scene* scene, Orion::Resource* resource, Application* app);
+		static void load(std::string name, Application* app, orion::ResourceRequest* req, Resource::LoadedHandler handler);
+		//void load(Scene* scene, orion::Resource* resource, Application* app);
 	};
 }
 #endif // !RHEA_SCENELOADER_H

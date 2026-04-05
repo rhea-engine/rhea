@@ -4,7 +4,7 @@
 #include <Psio/Log.h>
 #include "GLIncludes.h"
 
-namespace Hippios
+namespace hippios
 {
 	GLPipelineStateObject::GLPipelineStateObject(const GLCapabilities& caps, const PipelineStateObjectDesc& desc) :
 		m_caps(caps),

@@ -6,7 +6,7 @@
 #include "../Network.h"
 #include "SocketAddress.h"
 
-namespace Psio
+namespace psio
 {
 	class IOBuffer;
 

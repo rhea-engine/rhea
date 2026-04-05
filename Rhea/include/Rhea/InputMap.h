@@ -9,9 +9,9 @@
 
 #include <Psio/Input/InputEvent.h>
 
-namespace Rhea {
+namespace rhea {
 
-	typedef std::shared_ptr<Psio::InputEvent> InputEventSP;
+	typedef std::shared_ptr<psio::InputEvent> InputEventSP;
 
 	struct ievt_actions {
 		InputEventSP evt;

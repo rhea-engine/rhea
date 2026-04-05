@@ -11,7 +11,7 @@
 #include <Psio/Log.h>
 #include <Rhea/Core/Shader.h>
 
-namespace Rhea
+namespace rhea
 {
 	void BitmapFont::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{

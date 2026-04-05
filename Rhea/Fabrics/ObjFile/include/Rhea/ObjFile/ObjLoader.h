@@ -7,7 +7,7 @@
 #include <Math/Vector3.h>
 #include <Math/Vector2.h>
 
-namespace Rhea
+namespace rhea
 {
 	class Application;
 
@@ -18,16 +18,16 @@ namespace Rhea
 		ObjLoader(std::string path_name, std::string type_name) :
 			Geometry(path_name, type_name)
 		{}		
-		bool load(Rhea::Mesh* mesh);
+		bool load(rhea::Mesh* mesh);
 
 		std::vector<Unit::Export> getReferences();
 	
 		struct Vertex {
-			Math::Vector3 position;
-			Math::Vector3 normal;
-			Math::Vector3 color;
-			Math::Vector2 uv;
-			Math::Vector3 tangent;
+			math::Vector3 position;
+			math::Vector3 normal;
+			math::Vector3 color;
+			math::Vector2 uv;
+			math::Vector3 tangent;
 
 			bool operator==(const Vertex& other) const {
 				return position.equals(other.position)/* && normal.equals(other.normal)*/ && uv.equals(other.uv)/* && color.equals(other.color) */;

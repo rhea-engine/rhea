@@ -6,12 +6,12 @@
 #include <Rhea/Unit.h>
 #include <Rhea/Application.h>
 
-namespace Rhea
+namespace rhea
 {
 	class LobbyClient 
 	{
 	public:
-		LobbyClient(Rhea::Application* app, Hermes::Stream* stream) :
+		LobbyClient(rhea::Application* app, hermes::Stream* stream) :
 			m_app(app),
 			m_stream(stream),
 			m_owner(nullptr),
@@ -19,7 +19,7 @@ namespace Rhea
 		{}
 		void Initialize();
 
-		void setAvatarOwner(Rhea::Unit* owner) { m_owner = owner; } 
+		void setAvatarOwner(rhea::Unit* owner) { m_owner = owner; } 
 
 		void EnterWorld(std::string avatar_name);
 		void CreateAvatar(std::string name, std::string type_name);
@@ -34,9 +34,9 @@ namespace Rhea
 		void Stop() { m_state = CONN_NONE; }
 
 	protected:
-		Hermes::Stream* m_stream;
-		Rhea::Unit* m_owner;
-		Rhea::Application* m_app;
+		hermes::Stream* m_stream;
+		rhea::Unit* m_owner;
+		rhea::Application* m_app;
 
 		enum CONN_STATE {
 			CONN_NONE,
@@ -46,9 +46,9 @@ namespace Rhea
 
 		CONN_STATE m_state;
 
-		void onAvatarlistMessage(Hermes::MessageAvatarList* msg);
-		void onCreateAvatarFailedMessage(Hermes::Message* msg);
-		void onEnterWorldFailedMessage(Hermes::Message* msg);
+		void onAvatarlistMessage(hermes::MessageAvatarList* msg);
+		void onCreateAvatarFailedMessage(hermes::Message* msg);
+		void onEnterWorldFailedMessage(hermes::Message* msg);
 
 		std::function<void(int)> m_avatarlist_handler;
 		std::function<void(int)> m_create_failed_handler;

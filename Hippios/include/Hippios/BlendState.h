@@ -1,7 +1,7 @@
 #ifndef HIPPIOS_BLENDSTATE_H
 #define HIPPIOS_BLENDSTATE_H
 
-namespace Hippios
+namespace hippios
 {
 	class BlendState
 	{

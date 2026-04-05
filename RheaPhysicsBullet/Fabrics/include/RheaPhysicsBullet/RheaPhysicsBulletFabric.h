@@ -4,12 +4,12 @@
 #include <Rhea/Application.h>
 #include <Rhea/FabricSystem.h>
 
-namespace Rhea
+namespace rhea::physics::bullet
 {
-	class RheaPhysicsBulletFabric : public Rhea::IFabric
+	class RheaPhysicsBulletFabric : public rhea::IFabric
 	{
 	public:
-		void Register(Application* app) override;
+		void Register(rhea::Application* app) override;
 
 		const char* getName() const override { return "RheaPhysicsBullet"; }
 	};

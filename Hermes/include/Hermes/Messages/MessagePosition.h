@@ -5,7 +5,7 @@
 #include "../Opcode.h"
 #include <string>
 
-namespace Hermes
+namespace hermes
 {
 	class MessagePosition : public Message
 	{
@@ -17,10 +17,10 @@ namespace Hermes
 			Message(HERMES_MSG_POSITION)
 		{}
 
-		void serialize(Psio::IOBuffer* buf);
-		void unserialize(Psio::IOBuffer* buf);
+		void serialize(psio::IOBuffer* buf);
+		void unserialize(psio::IOBuffer* buf);
 
-		static Message* create(uint16_t opcode, uint16_t size, Psio::IOBuffer* buf);
+		static Message* create(uint16_t opcode, uint16_t size, psio::IOBuffer* buf);
 
 		void setPosition(float x, float y, float z);
 		void setTransform(float w, float x, float y, float z);

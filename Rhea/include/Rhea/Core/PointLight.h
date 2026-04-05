@@ -3,7 +3,7 @@
 
 #include "Light.h"
 
-namespace Rhea
+namespace rhea
 {
 	class PointLight : public Light
 	{
@@ -15,10 +15,10 @@ namespace Rhea
 
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
 
-		Math::Vector3 getAttenuation() { return m_attenuation; }
+		math::Vector3 getAttenuation() { return m_attenuation; }
 
 	protected:
-		Math::Vector3 m_attenuation;
+		math::Vector3 m_attenuation;
 	};
 }
 #endif // !RHEA_POINTLIGHT_H

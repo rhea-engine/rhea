@@ -7,7 +7,7 @@
 #include "../Socket/Connector.h"
 #include "HttpStream.h"
 
-namespace Psio
+namespace psio
 {
 	class HttpHeaders;
 

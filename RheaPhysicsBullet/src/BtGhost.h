@@ -5,12 +5,12 @@
 
 class btPairCachingGhostObject;
 
-namespace Rhea
+namespace rhea::physics::bullet
 {
 	class BulletPhysicsGhost : public BulletPhysicsBody
 	{
 	public:
-		BulletPhysicsGhost(btDynamicsWorld* world, Item* item, const PhysicsBodyDesc& desc);
+		BulletPhysicsGhost(btDynamicsWorld* world, rhea::Item* item, const rhea::PhysicsBodyDesc& desc);
 		~BulletPhysicsGhost();
 
 		bool init();
@@ -18,10 +18,10 @@ namespace Rhea
 		btPairCachingGhostObject* getObject() { return m_ghost_object; }
 
 		// set position
-		void setPosition(const Math::Vector3& position) override;
+		void setPosition(const math::Vector3& position) override;
 
 		// set orientation
-		void setOrientation(const Math::Quaternion& rot) override;
+		void setOrientation(const math::Quaternion& rot) override;
 
 		// stop the current movement
 		void stop() {}

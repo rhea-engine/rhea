@@ -9,7 +9,7 @@
 #include <Rhea/Core/Mesh.h>
 #include <Rhea/Components/MeshComponent.h>
 
-namespace Rhea
+namespace rhea
 {
 	void TextWidget::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{
@@ -86,7 +86,7 @@ namespace Rhea
 	
 	void TextWidget::setMesh()
 	{
-		Rhea::Font* font = getFont();
+		rhea::Font* font = getFont();
 		std::string sentence = getText();
 
 		if (!font) {
@@ -238,7 +238,7 @@ namespace Rhea
 	Vector2 TextWidget::getCursorPosition(size_t pos)
 	{
 		Vector2 res;
-		Rhea::Font* font = getFont();
+		rhea::Font* font = getFont();
 		std::string sentence = getText();
 		if (!font)
 			return Vector2();
@@ -290,7 +290,7 @@ namespace Rhea
 	size_t TextWidget::getTextPosition(Vector2 pos)
 	{
 		size_t txt_pos = 0;
-		Rhea::Font* font = getFont();
+		rhea::Font* font = getFont();
 		std::string sentence = getText();
 		if (!font)
 			return 0;
@@ -314,7 +314,7 @@ namespace Rhea
 	float TextWidget::getTextWidth(size_t pos)
 	{
 		float ret_x = 0.0f;
-		Rhea::Font* font = getFont();
+		rhea::Font* font = getFont();
 		if (!font)
 			return 0.0f;
 		std::string sentence = getText();
@@ -337,7 +337,7 @@ namespace Rhea
 
 	Vector2 TextWidget::getTextSize(Vector2 size_constraints)
 	{
-		Rhea::Font* font = getFont();
+		rhea::Font* font = getFont();
 		std::string sentence = getText();
 		if (!font)
 			return Vector2();

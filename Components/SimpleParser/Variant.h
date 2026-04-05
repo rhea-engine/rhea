@@ -5,7 +5,7 @@
 #include <vector>
 #include "Type.h"
 
-namespace SimpleParser
+namespace simpleparser
 {
 	class Variant
 	{
@@ -105,18 +105,18 @@ namespace SimpleParser
 }
 
 template<class T>
-T* isCast(SimpleParser::Variant* src)
+T* isCast(simpleparser::Variant* src)
 {
 	return src && (src->getType() == T::staticType()) ? (T*)src : nullptr;
 
 };
 
 template<class T>
-T* doCast(SimpleParser::Variant* src)
+T* doCast(simpleparser::Variant* src)
 {
 	if (!src) return nullptr;
 	if (src->getType() == T::staticType()) return (T*)src;
-	SimpleParser::Type* p = src->getType()->getParent();
+	simpleparser::Type* p = src->getType()->getParent();
 	while (p) {
 		if (p == T::staticType()) return (T*)src;
 		p = p->getParent();

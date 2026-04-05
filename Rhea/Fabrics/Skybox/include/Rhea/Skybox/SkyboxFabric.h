@@ -4,11 +4,11 @@
 #include <Rhea/Application.h>
 #include <Rhea/FabricSystem.h>
 
-namespace Rhea
+namespace rhea
 {
 	/** Fabrics for skybox handling
 	*/
-	class SkyboxFabric : public Rhea::IFabric
+	class SkyboxFabric : public rhea::IFabric
 	{
 	public:
 		void Register(Application* app) override;

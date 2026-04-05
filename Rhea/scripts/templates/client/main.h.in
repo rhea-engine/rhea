@@ -1,4 +1,4 @@
-// MySelf/{{PROJECT_NAME_LOWER}} public interface
+// {{PROJECT_NAME}} public interface
 
 #ifndef {{PROJECT_NAME_UPPER}}_H
 #define {{PROJECT_NAME_UPPER}}_H
@@ -7,19 +7,19 @@
 #include <Poseidon/Poseidon.h>
 #include <Rhea/Core/Scene.h>
 
-class {{PROJECT_NAME}} : public Poseidon::Application
+class {{PROJECT_NAME}} : public poseidon::Application
 {
 public:
 	{{PROJECT_NAME}}();
 	~{{PROJECT_NAME}}() override;
 
-	void setScene(Rhea::Scene* world_scene) { m_world_scene = world_scene; }
-	Rhea::Scene* getScene() { return m_world_scene; }
+	void setScene(rhea::Scene* world_scene) { m_world_scene = world_scene; }
+	rhea::Scene* getScene() { return m_world_scene; }
 
-	void showScene(Rhea::Scene* scene);
+	void showScene(rhea::Scene* scene);
 
 protected:
-	Rhea::Scene* m_world_scene;
+	rhea::Scene* m_world_scene;
 };
 
 #endif // {{PROJECT_NAME_UPPER}}_H

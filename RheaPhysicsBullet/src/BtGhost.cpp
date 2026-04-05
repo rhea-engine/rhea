@@ -6,11 +6,11 @@
 #include <bullet/src/btBulletDynamicsCommon.h>
 #include <bullet/src/BulletCollision/CollisionDispatch/btGhostObject.h>
 
-using Math::Vector3;
+using math::Vector3;
 
-namespace Rhea {
+namespace rhea::physics::bullet {
 
-	BulletPhysicsGhost::BulletPhysicsGhost(btDynamicsWorld* world, Item* item, const PhysicsBodyDesc& desc) :
+	BulletPhysicsGhost::BulletPhysicsGhost(btDynamicsWorld* world, rhea::Item* item, const rhea::PhysicsBodyDesc& desc) :
 		m_offset_y(0.0f),
 		m_ghost_object(nullptr),
 		BulletPhysicsBody(world, item, desc)
@@ -28,8 +28,8 @@ namespace Rhea {
 	bool BulletPhysicsGhost::init()
 	{
 		// get position and rotation from m_item
-		Math::Vector3 pos = m_item->getTransform()->get_position()->get_worldspace();
-		Math::Quaternion rot = m_item->getTransform()->get_position()->get_rotation();
+		math::Vector3 pos = m_item->getTransform()->get_position()->get_worldspace();
+		math::Quaternion rot = m_item->getTransform()->get_position()->get_rotation();
 		m_offset_y = m_item->getValue("collision_shape_offset_y");
 		if (m_offset_y)
 			pos.y += m_offset_y;
@@ -53,7 +53,7 @@ namespace Rhea {
 		return true;
 	}
 
-	void BulletPhysicsGhost::setPosition(const Math::Vector3& position)
+	void BulletPhysicsGhost::setPosition(const math::Vector3& position)
 	{
 		if (m_ghost_object) {
 			btTransform newTrans = m_ghost_object->getWorldTransform();
@@ -62,7 +62,7 @@ namespace Rhea {
 		}
 	}
 	
-	void BulletPhysicsGhost::setOrientation(const Math::Quaternion& rot)
+	void BulletPhysicsGhost::setOrientation(const math::Quaternion& rot)
 	{
 		if (m_ghost_object) {
 			btTransform newTrans = m_ghost_object->getWorldTransform();

@@ -3,7 +3,7 @@
 #include <Rhea/UnitTree.h>
 #include <Psio/Log.h>
 
-namespace Rhea
+namespace rhea
 {
 
 	void Button::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)

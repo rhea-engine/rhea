@@ -1,9 +1,11 @@
 {
-  "vendor": "Meworla",
-  "name": "RheaClient",
+  "id": "rhea/client",
+  "displayName": "Rhea Client",
+  "author": "Meworla",
   "version": "0.9.0",
+  "includePrefix": "Rhea",
   "dependencies": {
-    "Meworla/Rhea": "0.9.0",
-    "Meworla/Poseidon": "0.9.0"
+    "rhea/core": "0.9.0",
+    "meworla/poseidon": "0.9.0"
   }
 }

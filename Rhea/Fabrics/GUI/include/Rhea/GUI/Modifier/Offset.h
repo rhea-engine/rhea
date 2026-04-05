@@ -5,12 +5,12 @@
 #include "../Widget.h"
 #include <Math/Vector2.h>
 
-namespace Rhea {
+namespace rhea {
 
 	class OffsetModifier : public Modifier
 	{
 	public:
-		OffsetModifier(Math::Vector2 offset) :
+		OffsetModifier(math::Vector2 offset) :
 			m_offset(offset)
 		{}
 
@@ -21,7 +21,7 @@ namespace Rhea {
 		std::string name() { return "offset"; }
 
 	protected:
-		Math::Vector2 m_offset;
+		math::Vector2 m_offset;
 	};
 }
 

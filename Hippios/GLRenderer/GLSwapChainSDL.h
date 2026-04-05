@@ -4,7 +4,7 @@
 #include <Hippios/SwapChain.h>
 #include <SDL3/SDL.h>
 
-namespace Hippios
+namespace hippios
 {
 	struct NativeWindow;
 

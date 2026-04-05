@@ -11,9 +11,9 @@
 #include <unordered_map>
 #include <memory>
 
-using ReqError = Orion::ResourceRequest::Error;
+using ReqError = orion::ResourceRequest::Error;
 
-namespace Rhea
+namespace rhea
 {	
 	class Unit;
 	class UnitTree;	
@@ -111,7 +111,7 @@ namespace Rhea
 		// close the app
 		virtual void close();
 
-		virtual void onResourceFailed(Orion::ResourceRequest::Error reason);
+		virtual void onResourceFailed(orion::ResourceRequest::Error reason);
 
 		// get a resource and load it as type
 		void loadResource(const std::string resource_id, std::string type_name, std::function<void(Unit*, ReqError error)> handler);
@@ -129,7 +129,7 @@ namespace Rhea
 		virtual void log(std::string message);
 
 		// get fs
-		Orion::Orion* getFS() { return m_fs; }
+		orion::Orion* getFS() { return m_fs; }
 
 		// register a fabric
 		void RegisterFabric(std::unique_ptr<IFabric> fabric);
@@ -139,7 +139,7 @@ namespace Rhea
 		ConfigFile* getConfig();
 
 	protected:
-		Orion::Orion* m_fs = 0;
+		orion::Orion* m_fs = 0;
 		std::string m_appname = "";
 		std::unique_ptr<UnitTree> m_unit_tree;
 		InputMap* m_input_map = 0;

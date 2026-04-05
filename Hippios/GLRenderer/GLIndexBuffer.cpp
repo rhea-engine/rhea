@@ -1,6 +1,6 @@
 #include "GLIndexBuffer.h"
 
-namespace Hippios
+namespace hippios
 {
 	GLIndexBuffer::GLIndexBuffer(size_t index_stride, size_t num_faces, bool dynamic) :
 		is_dirty(true)

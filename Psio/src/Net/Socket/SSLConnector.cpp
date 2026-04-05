@@ -6,7 +6,7 @@
 
 #include <Psio/Net/Socket/SSLConnector.h>
 
-namespace Psio
+namespace psio
 {
 	SSLConnector::SSLConnector(Network* net, std::string& host, unsigned short port) :
 		m_net(net),

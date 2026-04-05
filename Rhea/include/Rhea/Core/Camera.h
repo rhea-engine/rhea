@@ -5,7 +5,7 @@
 
 #include "Rhea/Core/Position.h"
 
-namespace Rhea
+namespace rhea
 {
 	class GraphicsCamera;
 

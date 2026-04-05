@@ -4,11 +4,11 @@
 #include <Rhea/Application.h>
 #include <Rhea/FabricSystem.h>
 
-namespace Rhea
+namespace rhea
 {
 	/** Fabrics for characters
 	*/
-	class CharacterFabric : public Rhea::IFabric
+	class CharacterFabric : public rhea::IFabric
 	{
 	public:
 		void Register(Application* app) override;

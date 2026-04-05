@@ -8,10 +8,10 @@
 #include <Rhea/Physics/PhysicsManagerService.h>
 #include <Rhea/Physics/PhysicsService.h>
 
-using Math::Quaternion;
-using Math::Vector3;
+using math::Quaternion;
+using math::Vector3;
 
-namespace Rhea
+namespace rhea
 {
 	Character::~Character()
 	{	
@@ -41,9 +41,9 @@ namespace Rhea
 
 		m_physics_body->setAngularVelocity(Vector3(0.0, 0.0, 0.0));
 
-		if (m_movement != Math::Vector3::ZERO) {
+		if (m_movement != math::Vector3::ZERO) {
 			// currently moving	
-			Math::Vector3 move;
+			math::Vector3 move;
 
 			// depending on the state we use the players movement or the enforced movement
 			if (m_move_state == MoveState::GROUND || m_move_state == MoveState::FLY)
@@ -53,7 +53,7 @@ namespace Rhea
 			move *= delta;
 
 			// use physics for movement
-			Math::Quaternion rot = m_position->get_rotation();
+			math::Quaternion rot = m_position->get_rotation();
 			m_physics_body->applyImpulse(rot * move);
 
 		}
@@ -64,9 +64,9 @@ namespace Rhea
 
 		if (m_turn != 0) {
 			float turn_step = m_turn * delta;
-			Math::Quaternion q;
-			q.fromAngleAxis(turn_step, Math::Vector3(0, 1, 0));
-			Math::Quaternion m_orientation = q * m_position->get_rotation(); //* m_orientation;
+			math::Quaternion q;
+			q.fromAngleAxis(turn_step, math::Vector3(0, 1, 0));
+			math::Quaternion m_orientation = q * m_position->get_rotation(); //* m_orientation;
 			m_orientation.normalize();
 			//m_position->setOrientation(m_orientation);
 

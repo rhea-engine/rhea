@@ -14,7 +14,7 @@ using testing::Return;
 
 #define CHUNK_LEN 2048*1024
 
-namespace Psio
+namespace psio
 {
 
 	class HttpStreamTest : public ::testing::Test {

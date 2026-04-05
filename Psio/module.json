@@ -1,6 +1,7 @@
 {
-  "vendor": "Meworla",
-  "name": "Psio",
+  "author": "Meworla",
+  "id": "meworla/psio",
+  "displayName": "Meworla Platform Abstraction (Psio)",
   "version": "0.9.0",
   "dependencies": {
   }

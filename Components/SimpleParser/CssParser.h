@@ -4,7 +4,7 @@
 #include "SimpleParser.h"
 #include <unordered_map>
 
-namespace SimpleParser
+namespace simpleparser
 {
 	class CssParser : public SimpleParser
 	{

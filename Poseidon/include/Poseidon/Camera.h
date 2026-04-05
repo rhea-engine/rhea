@@ -12,10 +12,10 @@
 #include "Math/Matrix4.h"
 #include "Math/Ray.h"
 
-using Math::Matrix4;
-using Math::Ray;
+using math::Matrix4;
+using math::Ray;
 
-namespace Poseidon
+namespace poseidon
 {
 	static const float DEFAULT_ORTHOSIZE = 20.0f;
 	static const float DEFAULT_NEARCLIP = 0.1f;
@@ -27,7 +27,7 @@ namespace Poseidon
 	class Camera : public Node
 	{
 	protected:
-		Hippios::Renderer* m_renderer;
+		hippios::Renderer* m_renderer;
 
 		float rot = 0.01f;
 
@@ -61,7 +61,7 @@ namespace Poseidon
 		Vector3 m_projection_offset;
 
 	public:
-		Camera(Hippios::Renderer* renderer);
+		Camera(hippios::Renderer* renderer);
 		bool onUpdate() { return false; };
 		
 		const Matrix4& getProjectionMatrixRS(void) const;

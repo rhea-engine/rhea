@@ -1,10 +1,10 @@
 #include <Rhea/Resources/ResourceLoader.h>
 
-namespace Rhea
+namespace rhea
 {
 	std::unordered_map<std::string, ResourceLoader::LoadFunc> ResourceLoader::m_loaders;
 
-	bool ResourceLoader::load(std::string name, Application* app, std::string mime_type, Orion::ResourceRequest* req, Resource::LoadedHandler handler)
+	bool ResourceLoader::load(std::string name, Application* app, std::string mime_type, orion::ResourceRequest* req, Resource::LoadedHandler handler)
 	{
 		auto l = m_loaders.find(mime_type);
 		if (l == m_loaders.end()) {

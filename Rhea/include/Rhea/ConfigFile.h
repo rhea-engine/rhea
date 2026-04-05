@@ -3,7 +3,7 @@
 
 #include <Rhea/Unit.h>
 
-namespace Rhea
+namespace rhea
 {
 	class ConfigFile : public Unit
 	{

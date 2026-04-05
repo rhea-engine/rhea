@@ -4,7 +4,7 @@
 #include <d3d11.h>
 #include <Hippios/SwapChain.h>
 
-namespace Hippios
+namespace hippios
 {
 	class D3D11SwapChain : public SwapChain
 	{

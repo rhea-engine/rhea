@@ -5,7 +5,7 @@
 
 #include <Hippios/DepthBuffer.h>
 
-namespace Hippios
+namespace hippios
 {
 	class D3D11DepthBuffer : public DepthBuffer
 	{	

@@ -2,7 +2,7 @@
 #include "GLShader.h"
 #include <Psio/Log.h>
 
-namespace Hippios
+namespace hippios
 {
 	/*
 	CPU matrices are row - major / row - vector style

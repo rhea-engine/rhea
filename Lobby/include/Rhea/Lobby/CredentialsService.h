@@ -5,12 +5,12 @@
 
 namespace Meworla
 {
-	class CredentialsService : public Rhea::Service
+	class CredentialsService : public rhea::Service
 	{
-		MECLASS(CredentialsService, Rhea::Service)
+		MECLASS(CredentialsService, rhea::Service)
 	public:
 		CredentialsService(std::string name, std::string type) :
-			Rhea::Service(name, type)
+			rhea::Service(name, type)
 		{}
 
 		struct Credential

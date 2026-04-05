@@ -2,9 +2,9 @@
 #include "Poseidon/Camera.h"
 #include "Poseidon/Node.h"
 
-namespace Poseidon
+namespace poseidon
 {
-	Camera::Camera(Hippios::Renderer* renderer) : m_renderer(renderer), nearClip_(DEFAULT_NEARCLIP),
+	Camera::Camera(hippios::Renderer* renderer) : m_renderer(renderer), nearClip_(DEFAULT_NEARCLIP),
 		farClip_(DEFAULT_FARCLIP),
 		fov_(DEFAULT_CAMERA_FOV),
 		m_ortho_size(DEFAULT_ORTHOSIZE),
@@ -51,7 +51,7 @@ namespace Poseidon
 
 		if (!m_orthographic)
 		{
-			float h = (1.0f / tanf(fov_ * Math::M_DEGTORAD * 0.5f)) * m_zoom;
+			float h = (1.0f / tanf(fov_ * math::M_DEGTORAD * 0.5f)) * m_zoom;
 			float w = h / aspectRatio_;
 			float q = farClip_ / (farClip_ - nearClip_);
 			float r = -q * nearClip_;
@@ -96,11 +96,11 @@ namespace Poseidon
 		const Matrix4* reflectMatrix)
 	{
 		// This is most efficiently done using 3x3 Matrices
-		Math::Matrix3 rot;
+		math::Matrix3 rot;
 		orientation.toRotationMatrix(rot);
 
 		// Make the translation relative to new axes
-		Math::Matrix3 rotT = rot.Transpose();
+		math::Matrix3 rotT = rot.Transpose();
 		Vector3 trans = -rotT * position;
 
 		// Make final matrix
@@ -130,7 +130,7 @@ namespace Poseidon
 
 		//if (!mCustom_view_matrix)
 		{
-			Math::Matrix3 rot;
+			math::Matrix3 rot;
 			if (m_transform) {
 				const Quaternion& orientation = m_transform->get_derived_position()->get_rotation();  //getOrientationForViewUpdate();
 				const Vector3& position = m_transform->get_derived_position()->get_worldspace();  //getPositionForViewUpdate();

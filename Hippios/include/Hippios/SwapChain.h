@@ -1,7 +1,7 @@
 #ifndef HIPPIOS_SWAPCHAIN_H
 #define HIPPIOS_SWAPCHAIN_H
 
-namespace Hippios
+namespace hippios
 {
 	class SwapChain
 	{

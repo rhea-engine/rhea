@@ -10,18 +10,18 @@
 #include <Rhea/Resources/ResourceService.h>
 #include <Psio/Log.h>
 
-namespace Rhea
+namespace rhea
 {	
-	void SceneLoader::load(std::string name, Application* app, Orion::ResourceRequest* req, Resource::LoadedHandler handler)
+	void SceneLoader::load(std::string name, Application* app, orion::ResourceRequest* req, Resource::LoadedHandler handler)
 	{
-		std::unique_ptr<SimpleParser::IniFileParser> parser = std::make_unique<SimpleParser::IniFileParser>();
-		std::vector<SimpleParser::IniFileParser::Section> sections;
+		std::unique_ptr<simpleparser::IniFileParser> parser = std::make_unique<simpleparser::IniFileParser>();
+		std::vector<simpleparser::IniFileParser::Section> sections;
 		UnitTree* tree = app->getUnitTree();
 
 		std::string scene_root = "//" + req->getRealmName() + req->getParentPath();
 
-		Psio::Stream* rs = req->getStream();
-		Psio::IOBuffer* buf = new Psio::IOBuffer(64 * 1024);
+		psio::Stream* rs = req->getStream();
+		psio::IOBuffer* buf = new psio::IOBuffer(64 * 1024);
 		rs->onEnd([&](size_t buflen) {
 
 			int entries = parser->parse(buf->reader(), buflen, sections);
@@ -43,8 +43,8 @@ namespace Rhea
 
 			// get all resources packed in this file to prevent reloading them
 			std::vector<std::string> packed_resources;
-			for (std::vector<SimpleParser::IniFileParser::Section>::iterator it = sections.begin(); it != sections.end(); ++it) {
-				SimpleParser::IniFileParser::Section section = *it;
+			for (std::vector<simpleparser::IniFileParser::Section>::iterator it = sections.begin(); it != sections.end(); ++it) {
+				simpleparser::IniFileParser::Section section = *it;
 				packed_resources.push_back(section.section_name);
 			}
 
@@ -64,8 +64,8 @@ namespace Rhea
 			}
 
 			// setup all resources
-			for (std::vector<SimpleParser::IniFileParser::Section>::iterator it = sections.begin(); it != sections.end(); ++it) {
-				SimpleParser::IniFileParser::Section section = *it;
+			for (std::vector<simpleparser::IniFileParser::Section>::iterator it = sections.begin(); it != sections.end(); ++it) {
+				simpleparser::IniFileParser::Section section = *it;
 				if (section.section_name == "scene")
 					continue;
 

@@ -9,7 +9,7 @@
 #include <memory>
 #include "../../../Input/InputEventBuilder.h"
 
-namespace Psio
+namespace psio
 {
     SDLInput::SDLInput(Engine* engine)
         : m_engine(engine)
@@ -107,7 +107,7 @@ namespace Psio
                 if (!props)
                     break;
 
-                auto* win = static_cast<Psio::Window*>(
+                auto* win = static_cast<psio::Window*>(
                     SDL_GetPointerProperty(props, "psio.window", nullptr));
 
                 if (!win)

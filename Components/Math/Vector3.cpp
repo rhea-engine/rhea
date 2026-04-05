@@ -1,6 +1,6 @@
 #include "Vector3.h"
 
-namespace Math
+namespace math
 {
 	const Vector3 Vector3::ZERO(0.0f, 0.0f, 0.0f);
 	const Vector3 Vector3::UNIT_X(1, 0, 0);

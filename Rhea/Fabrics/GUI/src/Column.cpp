@@ -1,6 +1,6 @@
 #include <Rhea/GUI/Column.h>
 
-void Rhea::ColumnWidget::ready()
+void rhea::ColumnWidget::ready()
 {
 	Widget::ready();
 
@@ -8,7 +8,7 @@ void Rhea::ColumnWidget::ready()
 		m_alignment = std::make_unique<Alignment>(Alignment::Horizontal::CENTER, Alignment::Vertical::CENTER);
 }
 
-void Rhea::ColumnWidget::onSetPosition()
+void rhea::ColumnWidget::onSetPosition()
 {
 	Vector2 cur_position = m_position + m_content_position;
 	if (!m_ordered_children.size())
@@ -48,7 +48,7 @@ void Rhea::ColumnWidget::onSetPosition()
 	}
 }
 
-Vector2 Rhea::ColumnWidget::innerSize(Vector2 size_constraints)
+Vector2 rhea::ColumnWidget::innerSize(Vector2 size_constraints)
 {
 	Vector2 innerSize(0.0f, 0.0f);
 
@@ -72,7 +72,7 @@ Vector2 Rhea::ColumnWidget::innerSize(Vector2 size_constraints)
 	return innerSize;
 }
 
-void Rhea::ColumnWidget::innerGetMinSize(Vector2 size_constraints, Vector2& min_size)
+void rhea::ColumnWidget::innerGetMinSize(Vector2 size_constraints, Vector2& min_size)
 {
 	Vector2 inner_min;
 

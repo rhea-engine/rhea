@@ -2,9 +2,9 @@
 #include <Psio/Psio.h>
 #include <Psio/Window/Window.h>
 
-namespace Psio
+namespace psio
 {
-	class Win32Window : public Psio::Window
+	class Win32Window : public psio::Window
 	{
 	public:
 		Win32Window(WindowDesc desc) :

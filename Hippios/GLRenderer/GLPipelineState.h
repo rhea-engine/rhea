@@ -8,7 +8,7 @@
 #include <vector>
 #include "GLIncludes.h"
 
-namespace Hippios
+namespace hippios
 {
 	class GLShaderProgram;
 

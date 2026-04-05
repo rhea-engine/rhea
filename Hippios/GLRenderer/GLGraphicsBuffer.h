@@ -4,7 +4,7 @@
 #include <Hippios/GraphicsBuffer.h>
 #include "GLIncludes.h"
 
-namespace Hippios
+namespace hippios
 {
 	class GLGraphicsBuffer : public GraphicsBuffer
 	{

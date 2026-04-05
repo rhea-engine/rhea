@@ -8,7 +8,7 @@
 #include <tiny_obj_loader/tiny_obj_loader.h>
 #include <Rhea/Components/MeshComponent.h>
 
-bool ExtractTrianglesFromScene(Rhea::Application* app, Rhea::Item* item, TriangleSoup& out)
+bool ExtractTrianglesFromScene(rhea::Application* app, rhea::Item* item, TriangleSoup& out)
 {
     out.positions.clear();
     out.indices.clear();
@@ -22,7 +22,7 @@ bool ExtractTrianglesFromScene(Rhea::Application* app, Rhea::Item* item, Triangl
     // 1) Get mesh reference from VisualComponent (preferred)
     std::string meshRef;
     std::string basepathRef;
-    if (auto* vis = item->getComponent<Rhea::MeshComponent>()) {
+    if (auto* vis = item->getComponent<rhea::MeshComponent>()) {
         meshRef = vis->meshRef();  // rename to your getter
         basepathRef = vis->basepathRef();
     }
@@ -36,7 +36,7 @@ bool ExtractTrianglesFromScene(Rhea::Application* app, Rhea::Item* item, Triangl
     }
 
     // 2) Resolve mesh unit (this is your ini block [cube2/mesh])
-    Rhea::Unit* meshUnit = doCast<Rhea::Unit>(app->getUnitTree()->find(meshRef, basepathRef, false));
+    rhea::Unit* meshUnit = doCast<rhea::Unit>(app->getUnitTree()->find(meshRef, basepathRef, false));
     if (!meshUnit) {
         LOG(LOG_ERROR) << "ExtractTrianglesFromScene: mesh unit not found: " << meshRef;
         return false;
@@ -53,7 +53,7 @@ bool ExtractTrianglesFromScene(Rhea::Application* app, Rhea::Item* item, Triangl
     }
 
     // 4) Resolve geometry unit (your ini block [cube2/cube_obj], type wavefront)
-    Rhea::Unit* geoUnit = doCast<Rhea::Unit>(app->getUnitTree()->find(geoRef, geoBasepathRef, false));
+    rhea::Unit* geoUnit = doCast<rhea::Unit>(app->getUnitTree()->find(geoRef, geoBasepathRef, false));
     if (!geoUnit) {
         LOG(LOG_ERROR) << "ExtractTrianglesFromScene: geometry unit not found: " << geoRef;
         return false;
@@ -68,7 +68,7 @@ bool ExtractTrianglesFromScene(Rhea::Application* app, Rhea::Item* item, Triangl
     }
 
     // 6) Load triangle soup from OBJ (physics-safe parser)
-    Rhea::TextResource* obj = (Rhea::TextResource*)app->getUnitTree()->find(objPathRef, basepathRef, false);
+    rhea::TextResource* obj = (rhea::TextResource*)app->getUnitTree()->find(objPathRef, basepathRef, false);
     if (!obj) {
         DLOG(LOG_DEBUG) << "Obj not found in objloader. Path was: " << (std::string)objPathRef;
         return false;

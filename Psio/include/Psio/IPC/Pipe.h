@@ -4,7 +4,7 @@
 #include "../Net/Platform.h"
 #include "IO.h"
 
-namespace Psio
+namespace psio
 {
 	class IOBuffer;
 

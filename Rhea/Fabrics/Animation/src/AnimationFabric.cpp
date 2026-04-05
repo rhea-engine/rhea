@@ -4,12 +4,12 @@
 #include <Rhea/Animation/Animator.h>
 #include <Rhea/Animation/Animation.h>
 
-namespace Rhea
+namespace rhea
 {
 	void AnimationFabric::Register(Application* app)
 	{
-		SimpleParser::Type::registerType<Animator>("//meworla/animator");
-		SimpleParser::Type::registerType<Animation>("//meworla/animation");
-		SimpleParser::Type::registerType<Skeleton>("//meworla/skeleton");
+		simpleparser::Type::registerType<Animator>("//meworla/animator");
+		simpleparser::Type::registerType<Animation>("//meworla/animation");
+		simpleparser::Type::registerType<Skeleton>("//meworla/skeleton");
 	}
 }

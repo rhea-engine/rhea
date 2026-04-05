@@ -1,6 +1,6 @@
 #include <Orion/ResourceCache.h>
 
-namespace Orion
+namespace orion
 {
 	ResourceCache::ResourceCache()
 	{

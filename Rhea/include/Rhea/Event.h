@@ -4,7 +4,7 @@
 #include <string>
 #include <functional>
 
-namespace Rhea
+namespace rhea
 {
 	class Unit;
 

@@ -4,20 +4,19 @@
 #include <Poseidon/Texture.h>
 #include <Poseidon/Core.h>
 #include <Rhea/Resources/ImageResource.h>
-#include <Rhea/Graphics/Texture.h>
+#include <RheaClient/Graphics/Texture.h>
 
-namespace Rhea
-{
+namespace rhea::client {
     class TextureGpuCache {
     public:
-        GraphicsTexture* getOrCreate(Poseidon::Core* core, ImageResource* img);
+        GraphicsTexture* getOrCreate(poseidon::Core* core, rhea::ImageResource* img);
 
-        Poseidon::Texture* getPoseidonTexture(Poseidon::Core* core, ImageResource* img) {
+        poseidon::Texture* getPoseidonTexture(poseidon::Core* core, rhea::ImageResource* img) {
             auto* gt = getOrCreate(core, img);
-            return gt ? (Poseidon::Texture*)gt->get() : nullptr;
+            return gt ? (poseidon::Texture*)gt->get() : nullptr;
         }
 
-        void invalidate(ImageResource* img);
+        void invalidate(rhea::ImageResource* img);
         void clear();
 
     private:

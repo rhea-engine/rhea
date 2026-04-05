@@ -8,17 +8,17 @@
 class ProviderMemory : public Provider
 {
 public:
-	void Setup(Rhea::Application* app, std::unordered_map<std::string, Variant>& values) {}
+	void Setup(rhea::Application* app, std::unordered_map<std::string, Variant>& values) {}
 
-	std::vector<Rhea::Unit::Export> getReferences() {
-		return std::vector<Rhea::Unit::Export>();
+	std::vector<rhea::Unit::Export> getReferences() {
+		return std::vector<rhea::Unit::Export>();
 	}
 
 	virtual void GetAccount(AuthInfo& auth_info, std::function<void(User*, int)> handler) override;
 
 	virtual void CreateAccount(std::string user_id, std::string name, std::function<void(User*, int)> handler) override;
 
-	virtual void CreateAvatar(User* user, Rhea::Avatar* avatar, std::function<void(int)> handler) override;
+	virtual void CreateAvatar(User* user, rhea::Avatar* avatar, std::function<void(int)> handler) override;
 
 
 protected:

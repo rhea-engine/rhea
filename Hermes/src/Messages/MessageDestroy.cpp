@@ -1,8 +1,8 @@
 #include "Hermes/Messages/MessageDestroy.h"
 
-namespace Hermes
+namespace hermes
 {
-	void MessageDestroy::serialize(Psio::IOBuffer* buf)
+	void MessageDestroy::serialize(psio::IOBuffer* buf)
 	{
 		base.size = sizeof(BaseMessage) + sizeof(uint32_t) * 1;
 		if (buf->FreeBufSize() < base.size) {
@@ -18,12 +18,12 @@ namespace Hermes
 		buf->Produce(size);
 	}
 
-	void MessageDestroy::unserialize(Psio::IOBuffer* buf)
+	void MessageDestroy::unserialize(psio::IOBuffer* buf)
 	{
 		NUID = readL(buf);
 	}
 
-	Message* MessageDestroy::create(uint16_t opcode, uint16_t size, Psio::IOBuffer* buf)
+	Message* MessageDestroy::create(uint16_t opcode, uint16_t size, psio::IOBuffer* buf)
 	{
 		MessageDestroy* msg;
 		msg = new MessageDestroy();

@@ -12,20 +12,20 @@ public:
 	{}
 
 	// setup phase
-	void Setup(Rhea::Application* app, std::unordered_map<std::string, Variant>& values);
+	void Setup(rhea::Application* app, std::unordered_map<std::string, Variant>& values);
 	
-	std::vector<Rhea::Unit::Export> getReferences();
+	std::vector<rhea::Unit::Export> getReferences();
 
 	virtual void GetAccount(AuthInfo& auth_info, std::function<void(User*, int)> handler) override;
 
 	virtual void CreateAccount(std::string user_id, std::string name, std::function<void(User*, int)> handler) override; 
 
-	virtual void CreateAvatar(User* user, Rhea::Avatar* avatar, std::function<void(int)> handler) override;
+	virtual void CreateAvatar(User* user, rhea::Avatar* avatar, std::function<void(int)> handler) override;
 
 protected:
-	Rhea::Application* m_app;
+	rhea::Application* m_app;
 	std::string m_avatarlist_scene;
-	Rhea::Unit* m_user_list;
+	rhea::Unit* m_user_list;
 
 	// store the user list
 	void Save(std::function<void(int)> handler);

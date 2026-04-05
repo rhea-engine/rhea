@@ -12,9 +12,9 @@ class Provider
 public:
 	virtual ~Provider() {}
 
-	virtual void Setup(Rhea::Application* app, std::unordered_map<std::string, Variant> &values) = 0;
+	virtual void Setup(rhea::Application* app, std::unordered_map<std::string, Variant> &values) = 0;
 
-	virtual std::vector<Rhea::Unit::Export> getReferences() = 0;
+	virtual std::vector<rhea::Unit::Export> getReferences() = 0;
 
 	// get the account with the given user name
 	// if user account not exists create one
@@ -24,7 +24,7 @@ public:
 	virtual void CreateAccount(std::string user_id, std::string name, std::function<void(User*, int)> handler) = 0;
 
 	// add an avatar to the user account and store ist
-	virtual void CreateAvatar(User* user, Rhea::Avatar* avatar, std::function<void(int)> handler) = 0;
+	virtual void CreateAvatar(User* user, rhea::Avatar* avatar, std::function<void(int)> handler) = 0;
 };
 
 #endif // !FORTYTWO_ACCOUNTS_PROVIDER_H

@@ -8,10 +8,10 @@
 #include "User.h"
 #include "AccountService.h"
 
-class TestApp : public Rhea::Application
+class TestApp : public rhea::Application
 {
 public:
-    void onScene(Rhea::Scene* scene)
+    void onScene(rhea::Scene* scene)
     {}
     ~TestApp() {}
 };
@@ -19,13 +19,13 @@ public:
 class ProviderSceneTest : public ::testing::Test {
 protected:
     std::unique_ptr<TestApp> app;
-    Rhea::Scene* scene = nullptr;
+    rhea::Scene* scene = nullptr;
 
     void SetUp() override {
         // add an app
         app = std::make_unique<TestApp>();
         app->init();
-        scene = new Rhea::Scene("testscene", "//meworla/scene");
+        scene = new rhea::Scene("testscene", "//meworla/scene");
         app->getUnitTree()->addChild(scene);
         static bool initialized = false;
 
@@ -49,7 +49,7 @@ TEST_F(ProviderSceneTest, AvatarListConfig)
 
     provider.Setup(app.get(), values);
 
-    std::vector<Rhea::Unit::Export> refs;
+    std::vector<rhea::Unit::Export> refs;
     refs = provider.getReferences();
 
     EXPECT_TRUE(refs[0].value == "//avatarlist");
@@ -64,7 +64,7 @@ TEST_F(ProviderSceneTest, AvatarListWrongConfig)
 
     provider.Setup(app.get(), values);
 
-    std::vector<Rhea::Unit::Export> refs;
+    std::vector<rhea::Unit::Export> refs;
     refs = provider.getReferences();
 
     EXPECT_FALSE(refs[0].value == "//avatarlist");
@@ -78,7 +78,7 @@ TEST_F(ProviderSceneTest, AvatarListNoConfig)
 
     provider.Setup(app.get(), values);
 
-    std::vector<Rhea::Unit::Export> refs;
+    std::vector<rhea::Unit::Export> refs;
     refs = provider.getReferences();
 
     EXPECT_EQ(refs.size(), 0);
@@ -90,16 +90,16 @@ TEST_F(ProviderSceneTest, GetUser)
     ProviderScene provider;
     std::unordered_map<std::string, Variant> values;
     values["avatarlist"] = "//avatarlist";
-    Rhea::Unit avatarlist("avatarlist", "//core/types/unit");
+    rhea::Unit avatarlist("avatarlist", "//core/types/unit");
     app->getUnitTree()->addChild(&avatarlist);
     User* user_someone = new User("someone");
     avatarlist.addChild(user_someone);
-    Rhea::Avatar some_avatar("johndoe", "//meworla/avatar");
+    rhea::Avatar some_avatar("johndoe", "//meworla/avatar");
     user_someone->addChild(&some_avatar);
 
     provider.Setup(app.get(), values);
 
-    std::vector<Rhea::Unit::Export> refs;
+    std::vector<rhea::Unit::Export> refs;
     refs = provider.getReferences();
 
     EXPECT_TRUE(refs[0].value == "//avatarlist");
@@ -118,16 +118,16 @@ TEST_F(ProviderSceneTest, GetUserNoUser)
     ProviderScene provider;
     std::unordered_map<std::string, Variant> values;
     values["avatarlist"] = "//avatarlist";
-    Rhea::Unit avatarlist("avatarlist", "//core/types/unit");
+    rhea::Unit avatarlist("avatarlist", "//core/types/unit");
     app->getUnitTree()->addChild(&avatarlist);
     User* user_someone = new User("someone");
     avatarlist.addChild(user_someone);
-    Rhea::Avatar some_avatar("johndoe", "//meworla/avatar");
+    rhea::Avatar some_avatar("johndoe", "//meworla/avatar");
     user_someone->addChild(&some_avatar);
 
     provider.Setup(app.get(), values);
 
-    std::vector<Rhea::Unit::Export> refs;
+    std::vector<rhea::Unit::Export> refs;
     refs = provider.getReferences();
 
     EXPECT_TRUE(refs[0].value == "//avatarlist");

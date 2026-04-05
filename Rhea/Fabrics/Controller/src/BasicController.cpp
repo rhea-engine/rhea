@@ -6,7 +6,7 @@
 
 #include <Rhea/EventInput.h>
 
-namespace Rhea
+namespace rhea
 {
 	bool BasicController::onInput(Event* ev, Unit* unit)
 	{
@@ -77,8 +77,8 @@ namespace Rhea
 				std::string type_name = u->getTypeName();
 			if ((type_name == "//meworla/item") || (type_name == "//meworla/camera") || (type_name == "//meworla/terrain") || (type_name == "//meworla/character")) {
 				DLOG(LOG_DEBUG) << "debugtree: " << doCast<Unit>(u)->getPath();
-				Math::Vector3 pos = ((Item*)u)->getTransform()->get_position()->get_worldspace();
-				Math::Vector3 pos_d = ((Item*)u)->getTransform()->get_derived_position()->get_worldspace();
+				math::Vector3 pos = ((Item*)u)->getTransform()->get_position()->get_worldspace();
+				math::Vector3 pos_d = ((Item*)u)->getTransform()->get_derived_position()->get_worldspace();
 				DLOG(LOG_DEBUG) << "item:pos(" << pos.x << ", " << pos.y << ", " << pos.z << "); DPos(" << pos_d.x << ", " << pos_d.y << ", " << pos_d.z << ")";
 			}
 			return true;
@@ -127,20 +127,20 @@ namespace Rhea
 			show();
 	}
 
-	void BasicController::setPosition(Math::Vector3 position)
+	void BasicController::setPosition(math::Vector3 position)
 	{
 		m_position.setPosition(position);
-		//m_position.setOrientation(Math::Quaternion(m_rotation, Math::Vector3(0.0f, 1.0f, 0.0f))); 
+		//m_position.setOrientation(math::Quaternion(m_rotation, math::Vector3(0.0f, 1.0f, 0.0f))); 
 		((Item*)m_target)->setPosition(m_position);
 	}
 
-	void BasicController::lookAt(Math::Vector3& target)
+	void BasicController::lookAt(math::Vector3& target)
 	{
-		m_position.lookAt(target, Math::Vector3::UNIT_Z);
+		m_position.lookAt(target, math::Vector3::UNIT_Z);
 		((Item*)m_target)->setPosition(m_position);
 	}
 
-	Math::Vector3 BasicController::getPosition()
+	math::Vector3 BasicController::getPosition()
 	{
 		if (m_target)
 			return m_target->getTransform()->get_derived_position()->get_worldspace();

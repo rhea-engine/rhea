@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <Rhea/GUI/Styles/CssShorthand.h>
 
-namespace Rhea
+namespace rhea
 {
 	void StyleSheet::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{
@@ -19,7 +19,7 @@ namespace Rhea
 		return refs;
 	}
 
-	void StyleSheet::setStyle(std::vector<SimpleParser::CssParser::Entry>& entries)
+	void StyleSheet::setStyle(std::vector<simpleparser::CssParser::Entry>& entries)
 	{
 		int i = 0;
 		for (auto it = entries.begin(); it != entries.end(); ++it) {
@@ -54,7 +54,7 @@ namespace Rhea
 				m_entries.push_back(rule);
 		}
 	}
-	bool StyleSheet::ParseValues(StylePropertyId id, std::vector<SimpleParser::CssParser::Property>& content, std::vector<CssValue>& values)
+	bool StyleSheet::ParseValues(StylePropertyId id, std::vector<simpleparser::CssParser::Property>& content, std::vector<CssValue>& values)
 	{
 		int state = 0;
 		for (int i = 0; i < content.size(); i++)
@@ -64,27 +64,27 @@ namespace Rhea
 				// get value as string
 				std::string value_s = content[i].value.toString();
 				switch (content[i].id) {
-				case SimpleParser::CssParser::PropertyId::kString:
+				case simpleparser::CssParser::PropertyId::kString:
 					values.push_back({ CssValueId::kString, content[i].value });
 					break;
-				case SimpleParser::CssParser::PropertyId::kNumeric:
+				case simpleparser::CssParser::PropertyId::kNumeric:
 					values.push_back({ CssValueId::kNumeric, content[i].value });
 					break;
-				case SimpleParser::CssParser::PropertyId::kFunction:
+				case simpleparser::CssParser::PropertyId::kFunction:
 					if (!value_s.compare("url")) {
 						int anchestor = i;
 						while (i + 1 < content.size() && content[i+1].anchestor == anchestor) {
 							i++;
-							if (content[i].id == SimpleParser::CssParser::PropertyId::kString) {
+							if (content[i].id == simpleparser::CssParser::PropertyId::kString) {
 								values.push_back({ CssValueId::kURI, content[i].value });
 							}							
 						}
 					}
 					break;
-				case SimpleParser::CssParser::PropertyId::kIdentifier:
+				case simpleparser::CssParser::PropertyId::kIdentifier:
 					values.push_back({ CssValueId::kKeyword, content[i].value });
 					break;
-				case SimpleParser::CssParser::PropertyId::kDimension:
+				case simpleparser::CssParser::PropertyId::kDimension:
 					if (content[i].extra=="px")
 						values.push_back({ CssValueId::kNumeric, content[i].value });
 					else if (content[i].extra=="%")

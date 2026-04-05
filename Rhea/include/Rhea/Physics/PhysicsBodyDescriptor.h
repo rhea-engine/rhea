@@ -5,7 +5,7 @@
 //#include <unordered_map>
 //#include <Rhea/Unit.h>
 
-namespace Rhea
+namespace rhea
 {
     struct PhysicsBodyDesc
     {

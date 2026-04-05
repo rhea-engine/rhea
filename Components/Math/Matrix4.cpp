@@ -1,6 +1,6 @@
 #include "Matrix4.h"
 
-namespace Math
+namespace math
 {
 	const Matrix4 Matrix4::ZERO(
 		0.0f, 0.0f, 0.0f, 0.0f,

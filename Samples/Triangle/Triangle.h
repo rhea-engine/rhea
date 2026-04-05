@@ -2,12 +2,12 @@
 #include "Poseidon/SceneManager.h"
 #include "Hippios/VertexBuffer.h"
 
-class TriangleApp : public Rhea::Application
+class TriangleApp : public rhea::Application
 {
 protected:
-	Poseidon::SceneManager* m_scene = 0;
+	poseidon::SceneManager* m_scene = 0;
 
-	Hippios::vertexVec vertices;
+	hippios::vertexVec vertices;
 public:
 	void setup();
 	void initialize();

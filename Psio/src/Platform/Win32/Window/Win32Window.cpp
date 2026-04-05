@@ -11,7 +11,7 @@
 
 #define PSIO_WIN_CLASS_NAME "PoseidonSIOWnd"
 
-namespace Psio
+namespace psio
 {
 	float scaleX = 1.0f;
 	float scaleY = 1.0f;
@@ -66,8 +66,8 @@ namespace Psio
 
 			const uint32_t scancode = (lParam >> 16) & 0xFF;
 			const auto id = (uMsg == WM_KEYDOWN)
-				? Psio::InputEventId::KEY_PRESSED
-				: Psio::InputEventId::KEY_RELEASED;
+				? psio::InputEventId::KEY_PRESSED
+				: psio::InputEventId::KEY_RELEASED;
 
 			evt = BuildKeyEvent(
 				id,

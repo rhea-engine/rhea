@@ -5,7 +5,7 @@
 #include <Math/Vector3.h>
 #include <Math/Quaternion.h>
 
-namespace Rhea
+namespace rhea
 {
 	class Item;
 
@@ -16,22 +16,22 @@ namespace Rhea
 		virtual ~PhysicsBody() = default;
 
 		// move by vector
-		virtual void move(Math::Vector3 move) {};
+		virtual void move(math::Vector3 move) {};
 
 		// turn by radian angle
 		virtual void turn(float turn) {};
 
 		// High-level commands: keep virtual so backends implement
-		virtual void setPosition(const Math::Vector3& position) = 0;
-		virtual void setOrientation(const Math::Quaternion& rot) {}
-		virtual void applyOrientation(const Math::Quaternion& rot) {}
+		virtual void setPosition(const math::Vector3& position) = 0;
+		virtual void setOrientation(const math::Quaternion& rot) {}
+		virtual void applyOrientation(const math::Quaternion& rot) {}
 
 		virtual void stop() {}
 
 		virtual void DisableMassUpdate() {}
 		virtual void EnableMassUpdate() {}
-		virtual void applyImpulse(const Math::Vector3& impulse) {}
-		virtual void setAngularVelocity(const Math::Vector3& velocity) {}
+		virtual void applyImpulse(const math::Vector3& impulse) {}
+		virtual void setAngularVelocity(const math::Vector3& velocity) {}
 
 		virtual bool isMoveControllable() const { return true; }
 		bool isKinematic() const { return m_isKinematic; }

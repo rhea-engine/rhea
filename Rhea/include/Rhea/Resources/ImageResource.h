@@ -3,7 +3,7 @@
 
 #include <Rhea/Resources/Resource.h>
 
-namespace Rhea
+namespace rhea
 {
 	class ImageResource : public Resource
 	{

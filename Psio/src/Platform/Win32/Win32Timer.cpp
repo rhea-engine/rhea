@@ -2,7 +2,7 @@
 
 #include <Windows.h>
 
-namespace Psio
+namespace psio
 {
 	uint64_t Timer::getTicks()
 	{

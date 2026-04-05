@@ -4,7 +4,7 @@
 #include <Rhea/Service.h>
 #include "Rhea/Core/Scene.h"
 
-namespace Rhea
+namespace rhea
 {
 	/** The main service that manages scene and thei lifecycles
 	*/

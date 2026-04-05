@@ -6,9 +6,9 @@
 #include <bullet/src/BulletCollision/CollisionDispatch/btGhostObject.h>
 #include <bullet/src/BulletCollision/NarrowPhaseCollision/btRaycastCallback.h>
 
-using Math::Vector3;
+using math::Vector3;
 
-namespace Rhea
+namespace rhea::physics::bullet
 {
 	// class from btKinematicCharacterController
 	class btKinematicClosestNotMeRayResultCallback : public btCollisionWorld::ClosestRayResultCallback
@@ -75,7 +75,7 @@ namespace Rhea
 		btScalar m_minSlopeDot;
 	};
 
-	BulletPhysicsCharacter::BulletPhysicsCharacter(btDynamicsWorld* world, Item* item, const PhysicsBodyDesc& desc) :
+	BulletPhysicsCharacter::BulletPhysicsCharacter(btDynamicsWorld* world, rhea::Item* item, const rhea::PhysicsBodyDesc& desc) :
 		m_world(world),
 		m_move_state(moveState::GROUND),
 		m_last_position(0.0f,0.0f,0.0f),
@@ -153,13 +153,13 @@ namespace Rhea
 		return m_move_state == moveState::GROUND || m_move_state == moveState::FLY;
 	}
 
-	void BulletPhysicsCharacter::setPosition(const Math::Vector3& position)
+	void BulletPhysicsCharacter::setPosition(const math::Vector3& position)
 	{
 		if (m_ghost)
 			m_ghost->setPosition(position);
 	}
 
-	bool BulletPhysicsCharacter::jump(Math::Vector3& position)
+	bool BulletPhysicsCharacter::jump(math::Vector3& position)
 	{
 		if (m_move_state == moveState::GROUND) {
 			// check if jumping possible
@@ -180,7 +180,7 @@ namespace Rhea
 		m_move_state = moveState::FLY;
 	}
 
-	void BulletPhysicsCharacter::setOrientation(const Math::Quaternion& rot)
+	void BulletPhysicsCharacter::setOrientation(const math::Quaternion& rot)
 	{
 		if (m_ghost)
 			m_ghost->setOrientation(rot);
@@ -246,7 +246,7 @@ namespace Rhea
 		}
 	}
 
-	void BulletPhysicsCharacter::moveStep(Rhea::Position* pos, Math::Vector3& move)
+	void BulletPhysicsCharacter::moveStep(rhea::Position* pos, math::Vector3& move)
 	{
 		Vector3 trans = pos->get_rotation() * move;
 		//Vector3 position = pos->get_worldspace();
@@ -355,7 +355,7 @@ namespace Rhea
 		m_head_contact_pos = results.m_hitPointWorld;
 	}
 
-	Math::Vector3 BulletPhysicsCharacter::update(Rhea::Position* pos, Math::Vector3& move, Math::Vector3& gravity)
+	math::Vector3 BulletPhysicsCharacter::update(rhea::Position* pos, math::Vector3& move, math::Vector3& gravity)
 	{
 		m_position = pos;
 		Vector3 position = pos->get_worldspace();

@@ -4,7 +4,7 @@
 #include "GLContext.h"
 #include <SDL3/SDL.h>
 
-namespace Hippios
+namespace hippios
 {
 	class GLRenderer;
 

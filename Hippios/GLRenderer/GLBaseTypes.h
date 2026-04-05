@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include "GLIncludes.h"
 
-namespace Hippios
+namespace hippios
 {
 	struct GLGPUHandle : public GPUHandle
 	{

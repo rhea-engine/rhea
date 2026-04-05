@@ -24,7 +24,7 @@
 #include <Rhea/GUI/Row.h>
 #include <Rhea/Graphics/SizeEvent.h>
 
-namespace Rhea
+namespace rhea
 {
 	void GUIController::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{
@@ -92,9 +92,9 @@ namespace Rhea
 		// watch for updates
 		registerEventHandler("scene_enter", this, std::bind(&GUIController::onGuiUpdate, this, std::placeholders::_1, std::placeholders::_2));
 		registerEventHandler("scene_leave", this, [&](Event* ev, Unit* u)->bool {
-			Rhea::Unit* target = ev->getTarget();
+			rhea::Unit* target = ev->getTarget();
 			// if the leaving unit is currently captured empty reference
-			target->traverse([&](std::string name, Rhea::Component* c)->bool {
+			target->traverse([&](std::string name, rhea::Component* c)->bool {
 				if (c == m_target)
 					m_target = nullptr;
 				if (c == m_captured)
@@ -157,7 +157,7 @@ namespace Rhea
 
 		}
 
-		Psio::InputEventId id = e->getEvent()->getId();
+		psio::InputEventId id = e->getEvent()->getId();
 
 		if (e->isAction("fullscreen")) {
 			IGraphicsService* gsrv = doCast<IGraphicsService>(m_app->getService("graphics"));
@@ -168,11 +168,11 @@ namespace Rhea
 		}
 
 		switch (id) {
-		case Psio::InputEventId::MOUSE_BTN_PRESSED:
-		case Psio::InputEventId::MOUSE_BTN_RELEASED:
-		case Psio::InputEventId::MOUSE_MOVE:
+		case psio::InputEventId::MOUSE_BTN_PRESSED:
+		case psio::InputEventId::MOUSE_BTN_RELEASED:
+		case psio::InputEventId::MOUSE_MOVE:
 			// always check if the mouse moved
-			std::shared_ptr<Psio::MouseInputEvent> me = std::static_pointer_cast<Psio::MouseInputEvent>(e->getEvent());
+			std::shared_ptr<psio::MouseInputEvent> me = std::static_pointer_cast<psio::MouseInputEvent>(e->getEvent());
 			int mx = me->getX();
 			int my = me->getY();
 
@@ -243,7 +243,7 @@ namespace Rhea
 		}
 
 		switch(id) {
-		case Psio::InputEventId::MOUSE_BTN_PRESSED:
+		case psio::InputEventId::MOUSE_BTN_PRESSED:
 
 			DLOG(LOG_DEBUG) << "Mouse: x=" << m_mx << "/y=" << m_my;
 			
@@ -276,7 +276,7 @@ namespace Rhea
 			}
 			break;
 
-		case Psio::InputEventId::MOUSE_BTN_RELEASED:
+		case psio::InputEventId::MOUSE_BTN_RELEASED:
 			DLOG(LOG_DEBUG) << "Mouse clicked";
 
 			// call currently targeted widget
@@ -286,14 +286,14 @@ namespace Rhea
 				m_target->bubbleEvent("mouse_btn_up", e);
 			}
 
-		case Psio::InputEventId::KEY_PRESSED:
+		case psio::InputEventId::KEY_PRESSED:
 			// text input
 			if (m_target) {
 				m_target->bubbleEvent("key_pressed", e);
 			}
 			break;
 
-		case Psio::InputEventId::TEXT:
+		case psio::InputEventId::TEXT:
 			// text input
 			if (m_target) {
 				m_target->bubbleEvent("text_input", e);

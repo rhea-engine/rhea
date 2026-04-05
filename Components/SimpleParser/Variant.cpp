@@ -2,7 +2,7 @@
 #include "Variant.h"
 #include "Type.h"
 
-namespace SimpleParser
+namespace simpleparser
 {
 	Variant* Variant::s_nullVariant = nullptr;
 

@@ -10,7 +10,7 @@
 
 #endif
 
-namespace Psio
+namespace psio
 {
 	void Network::RunLoop()
 	{

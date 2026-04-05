@@ -3,7 +3,7 @@
 #include "D3D11Texture.h"
 #include <Psio/Log.h>
 
-namespace Hippios
+namespace hippios
 {
 	D3D11Texture::D3D11Texture(TextureDesc& tex_desc, Renderer* renderer) :
 		Texture(tex_desc)

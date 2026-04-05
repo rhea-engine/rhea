@@ -4,7 +4,7 @@
 #include <Hippios/StencilState.h>
 #include "GLIncludes.h"
 
-namespace Hippios
+namespace hippios
 {
 	class GLStencilState : public StencilState
 	{

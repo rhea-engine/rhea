@@ -3,7 +3,7 @@
 
 #include <nlohmann/json.hpp>
 
-namespace Orion
+namespace orion
 {
 	Realm::Realm(std::string name)
 		: m_name(std::move(name))

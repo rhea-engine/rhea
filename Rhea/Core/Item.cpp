@@ -6,7 +6,7 @@
 #include <Math/Math.h>
 #include <Rhea/Components/MeshComponent.h>
 
-namespace Rhea
+namespace rhea
 {
 	void Item::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{
@@ -27,13 +27,13 @@ namespace Rhea
 			float x = rot_sit[0];
 			float y = rot_sit[1];
 			float z = rot_sit[2];
-			Math::Quaternion rot;
+			math::Quaternion rot;
 			if (x != 0.0f)
-				rot.fromAngleAxis(x * Math::M_DEGTORAD, Math::Vector3(1.0f, 0.0f, 0.0f));
+				rot.fromAngleAxis(x * math::M_DEGTORAD, math::Vector3(1.0f, 0.0f, 0.0f));
 			if (y != 0.0f)
-				rot.fromAngleAxis(y * Math::M_DEGTORAD, Math::Vector3(0.0f, 1.0f, 0.0f));
+				rot.fromAngleAxis(y * math::M_DEGTORAD, math::Vector3(0.0f, 1.0f, 0.0f));
 			if (z != 0.0f)
-				rot.fromAngleAxis(z * Math::M_DEGTORAD, Math::Vector3(0.0f, 0.0f, 1.0f));
+				rot.fromAngleAxis(z * math::M_DEGTORAD, math::Vector3(0.0f, 0.0f, 1.0f));
 			m_transform.get_position()->setOrientation(rot);
 		}
 	}
@@ -72,7 +72,7 @@ namespace Rhea
 
 	Item* Item::instance(std::string name)
 	{
-		Item* new_item = (Rhea::Item*)SimpleParser::Type::create(name, getTypeName());
+		Item* new_item = (rhea::Item*)simpleparser::Type::create(name, getTypeName());
 		if (!new_item) {
 			LOG(LOG_ERROR) << "could not instance type with type " << getTypeName();
 			return nullptr;
@@ -107,25 +107,25 @@ namespace Rhea
 	{
 	}
 
-	void Item::setPosition(Rhea::Position& position)
+	void Item::setPosition(rhea::Position& position)
 	{
 		m_transform.get_position()->setPosition(position);
 		m_transform.update();
 	}
 	
-	void Item::setPosition(Math::Vector3 position)
+	void Item::setPosition(math::Vector3 position)
 	{
 		m_transform.get_position()->setPosition(position);
 		m_transform.update();
 	}
 
-	void Item::setLookAt(Math::Vector3 look_at)
+	void Item::setLookAt(math::Vector3 look_at)
 	{
 		m_transform.get_position()->lookAt(look_at);
 		m_transform.update();
 	}
 		
-	void Item::setMovement(Math::Vector3 move)
+	void Item::setMovement(math::Vector3 move)
 	{
 		m_movement = move;
 		for (auto* l : m_movement_listeners) {

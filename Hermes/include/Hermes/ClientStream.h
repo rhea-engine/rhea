@@ -4,7 +4,7 @@
 #include "Stream.h"
 #include <Hermes/Messages/MessageLoginFailed.h>
 
-namespace Hermes
+namespace hermes
 {
 	class ClientStream
 	{

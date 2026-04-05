@@ -6,9 +6,9 @@
 #include <Orion/Realm.h>
 #include <Orion/ResolveLocal.h>
 
-namespace Orion
+namespace orion
 {	
-	Orion::Orion(Psio::Engine* engine, std::string appname)
+	Orion::Orion(psio::Engine* engine, std::string appname)
 	{
 		m_appname = appname;
 		m_fs = engine->getFs();

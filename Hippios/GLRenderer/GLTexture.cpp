@@ -13,7 +13,7 @@ extern PFNGLTEXPARAMETERIPROC glTexParameteri_;
 // With GLAD, these are already available as glGenTextures etc.
 // For simplicity, use the standard GL names (available via GLAD):
 
-namespace Hippios
+namespace hippios
 {
 	GLTexture::GLTexture(TextureDesc& desc) :
 		Texture(desc)

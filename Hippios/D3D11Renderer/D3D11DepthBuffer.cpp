@@ -2,7 +2,7 @@
 
 #include "D3D11DepthBuffer.h"
 
-namespace Hippios
+namespace hippios
 {
 	D3D11DepthBuffer::D3D11DepthBuffer(ID3D11Device* d3d_device, unsigned int bit_depth, unsigned int width, unsigned int height) :
 		DepthBuffer(bit_depth, width, height),

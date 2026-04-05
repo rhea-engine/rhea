@@ -2,7 +2,7 @@
 
 #include <cstring>
 
-namespace SimpleParser
+namespace simpleparser
 {
 	const char* SimpleParser::getErrMsg(SimpleParser::Error err)
 	{

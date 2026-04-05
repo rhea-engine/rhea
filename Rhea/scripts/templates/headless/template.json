@@ -1,16 +1,16 @@
 {
   "name": "headless",
   "required_packages": [
-    "Meworla/Rhea"
+    "rhea/core"
   ],
   "features": {
     "physics": {
       "packages": [
-        "Meworla/RheaPhysicsBullet"
+        "rhea/RheaPhysicsBullet"
       ],
       "enabled_fabrics": [
-        "Meworla/RheaPhysics:Physics",
-        "Meworla/RheaPhysicsBullet:PhysicsBullet"
+        "rhea/physics:Physics",
+        "rhea/physicsbullet:PhysicsBullet"      
       ]
     }
   },
@@ -28,7 +28,7 @@
     },
     {
       "source": "main.h.in",
-      "target": "include/{{VENDOR}}/{{PROJECT_NAME}}/{{PROJECT_NAME}}.h",
+      "target": "include/{{INCLUDE_PREFIX}}/{{PROJECT_NAME}}.h",
       "render": true
     },
     {

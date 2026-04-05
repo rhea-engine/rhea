@@ -8,7 +8,7 @@
 #include <Rhea/Resources/VertexAttribute.h>
 //#include <Rhea/Animation/Skeleton.h>
 
-namespace Rhea
+namespace rhea
 {
 	class Application;
 	class ImageResource;

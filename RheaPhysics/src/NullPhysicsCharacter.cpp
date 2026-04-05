@@ -1,19 +1,19 @@
 #include "NullPhysicsCharacter.h"
 
-namespace Rhea {
+namespace rhea::physics {
 
-	Math::Vector3 NullPhysicsCharacter::update(Rhea::Position* pos, Math::Vector3& move, Math::Vector3& gravity)
+	math::Vector3 NullPhysicsCharacter::update(rhea::Position* pos, math::Vector3& move, math::Vector3& gravity)
 	{
-		Math::Vector3 position = pos->get_worldspace();
+		math::Vector3 position = pos->get_worldspace();
 
-		Math::Vector3 trans = pos->get_rotation() * move;
+		math::Vector3 trans = pos->get_rotation() * move;
 
-		Math::Vector3 target_position = position + Math::Vector3(trans.x, trans.y, trans.z);
+		math::Vector3 target_position = position + math::Vector3(trans.x, trans.y, trans.z);
 
 		return target_position;
 	}
 	
-	bool NullPhysicsCharacter::jump(Math::Vector3& pos)
+	bool NullPhysicsCharacter::jump(math::Vector3& pos)
 	{
 		return false;
 	}

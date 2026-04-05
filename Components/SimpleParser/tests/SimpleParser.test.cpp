@@ -7,7 +7,7 @@
 #include <string>
 #include <sstream>
 
-namespace SimpleParser
+namespace simpleparser
 {
 	// ========================================
 	// Variant Tests
@@ -143,12 +143,12 @@ namespace SimpleParser
 		
 		size_t reader = 0;
 		int line = 1;
-		SimpleParser::Token token;
+		simpleparser::Token token;
 		
 		auto err = parser.nextToken(const_cast<char*>(input.c_str()), reader, input.length(), line, token, false);
 		
 		EXPECT_EQ(err, SimpleParser::Error::PARSE_OK);
-		EXPECT_EQ(token.type, SimpleParser::TokenType::TOKEN_IDENTIFIER);
+		EXPECT_EQ(token.type, simpleparser::TokenType::TOKEN_IDENTIFIER);
 		EXPECT_EQ(static_cast<std::string>(token.value), "identifier");
 	}
 
@@ -159,12 +159,12 @@ namespace SimpleParser
 		
 		size_t reader = 0;
 		int line = 1;
-		SimpleParser::Token token;
+		simpleparser::Token token;
 		
 		auto err = parser.nextToken(const_cast<char*>(input.c_str()), reader, input.length(), line, token, false);
 		
 		EXPECT_EQ(err, SimpleParser::Error::PARSE_OK);
-		EXPECT_EQ(token.type, SimpleParser::TokenType::TOKEN_NUMBER);
+		EXPECT_EQ(token.type, simpleparser::TokenType::TOKEN_NUMBER);
 		EXPECT_EQ(static_cast<int>(token.value), 42);
 	}
 
@@ -175,12 +175,12 @@ namespace SimpleParser
 		
 		size_t reader = 0;
 		int line = 1;
-		SimpleParser::Token token;
+		simpleparser::Token token;
 		
 		auto err = parser.nextToken(const_cast<char*>(input.c_str()), reader, input.length(), line, token, false);
 		
 		EXPECT_EQ(err, SimpleParser::Error::PARSE_OK);
-		EXPECT_EQ(token.type, SimpleParser::TokenType::TOKEN_NUMBER);
+		EXPECT_EQ(token.type, simpleparser::TokenType::TOKEN_NUMBER);
 		EXPECT_FLOAT_EQ(static_cast<float>(token.value), 3.14f);
 	}
 
@@ -191,12 +191,12 @@ namespace SimpleParser
 		
 		size_t reader = 0;
 		int line = 1;
-		SimpleParser::Token token;
+		simpleparser::Token token;
 		
 		auto err = parser.nextToken(const_cast<char*>(input.c_str()), reader, input.length(), line, token, false);
 		
 		EXPECT_EQ(err, SimpleParser::Error::PARSE_OK);
-		EXPECT_EQ(token.type, SimpleParser::TokenType::TOKEN_STRING);
+		EXPECT_EQ(token.type, simpleparser::TokenType::TOKEN_STRING);
 		EXPECT_EQ(static_cast<std::string>(token.value), "Hello World");
 	}
 
@@ -204,28 +204,28 @@ namespace SimpleParser
 	{
 		struct TestCase {
 			std::string input;
-			SimpleParser::TokenType expectedType;
+			simpleparser::TokenType expectedType;
 		};
 		
 		TestCase cases[] = {
-			{"=", SimpleParser::TokenType::TOKEN_EQUEAL},
-			{"{", SimpleParser::TokenType::TOKEN_LEFT_CURLYBRACKET},
-			{"}", SimpleParser::TokenType::TOKEN_RIGHT_CURLYBRACKET},
-			{"[", SimpleParser::TokenType::TOKEN_LEFT_BRACKET},
-			{"]", SimpleParser::TokenType::TOKEN_RIGHT_BRACKET},
-			{"(", SimpleParser::TokenType::TOKEN_LEFT_PARENTHESIS},
-			{")", SimpleParser::TokenType::TOKEN_RIGHT_PARENTHESIS},
-			{",", SimpleParser::TokenType::TOKEN_COMMA},
-			{":", SimpleParser::TokenType::TOKEN_COLON},
-			{";", SimpleParser::TokenType::TOKEN_SEMICOLON},
-			{".", SimpleParser::TokenType::TOKEN_DOT},
+			{"=", simpleparser::TokenType::TOKEN_EQUEAL},
+			{"{", simpleparser::TokenType::TOKEN_LEFT_CURLYBRACKET},
+			{"}", simpleparser::TokenType::TOKEN_RIGHT_CURLYBRACKET},
+			{"[", simpleparser::TokenType::TOKEN_LEFT_BRACKET},
+			{"]", simpleparser::TokenType::TOKEN_RIGHT_BRACKET},
+			{"(", simpleparser::TokenType::TOKEN_LEFT_PARENTHESIS},
+			{")", simpleparser::TokenType::TOKEN_RIGHT_PARENTHESIS},
+			{",", simpleparser::TokenType::TOKEN_COMMA},
+			{":", simpleparser::TokenType::TOKEN_COLON},
+			{";", simpleparser::TokenType::TOKEN_SEMICOLON},
+			{".", simpleparser::TokenType::TOKEN_DOT},
 		};
 		
 		SimpleParser parser;
 		for (const auto& testCase : cases) {
 			size_t reader = 0;
 			int line = 1;
-			SimpleParser::Token token;
+			simpleparser::Token token;
 			
 			auto err = parser.nextToken(const_cast<char*>(testCase.input.c_str()), 
 			                           reader, testCase.input.length(), line, token, false);
@@ -243,12 +243,12 @@ namespace SimpleParser
 		
 		size_t reader = 0;
 		int line = 1;
-		SimpleParser::Token token;
+		simpleparser::Token token;
 		
 		auto err = parser.nextToken(const_cast<char*>(input.c_str()), reader, input.length(), line, token, false);
 		
 		EXPECT_EQ(err, SimpleParser::Error::PARSE_OK);
-		EXPECT_EQ(token.type, SimpleParser::TokenType::TOKEN_IDENTIFIER);
+		EXPECT_EQ(token.type, simpleparser::TokenType::TOKEN_IDENTIFIER);
 	}
 
 	TEST(SimpleParserTest, SkipComments)
@@ -258,12 +258,12 @@ namespace SimpleParser
 		
 		size_t reader = 0;
 		int line = 1;
-		SimpleParser::Token token;
+		simpleparser::Token token;
 		
 		auto err = parser.nextToken(const_cast<char*>(input.c_str()), reader, input.length(), line, token, false);
 		
 		EXPECT_EQ(err, SimpleParser::Error::PARSE_OK);
-		EXPECT_EQ(token.type, SimpleParser::TokenType::TOKEN_IDENTIFIER);
+		EXPECT_EQ(token.type, simpleparser::TokenType::TOKEN_IDENTIFIER);
 		EXPECT_EQ(static_cast<std::string>(token.value), "identifier");
 	}
 
@@ -274,12 +274,12 @@ namespace SimpleParser
 		
 		size_t reader = 0;
 		int line = 1;
-		SimpleParser::Token token;
+		simpleparser::Token token;
 		
 		auto err = parser.nextToken(const_cast<char*>(input.c_str()), reader, input.length(), line, token, false);
 		
 		EXPECT_EQ(err, SimpleParser::Error::PARSE_OK);
-		EXPECT_EQ(token.type, SimpleParser::TokenType::TOKEN_NUMBER);
+		EXPECT_EQ(token.type, simpleparser::TokenType::TOKEN_NUMBER);
 		EXPECT_EQ(static_cast<int>(token.value), -42);
 	}
 
@@ -290,7 +290,7 @@ namespace SimpleParser
 		
 		size_t reader = 0;
 		int line = 1;
-		SimpleParser::Token token;
+		simpleparser::Token token;
 		
 		auto err = parser.nextToken(const_cast<char*>(input.c_str()), reader, input.length(), line, token, false);
 		
@@ -383,4 +383,4 @@ namespace SimpleParser
 		            "Invalid character in identifier");
 	}
 
-} // namespace SimpleParser
+} // namespace simpleparser

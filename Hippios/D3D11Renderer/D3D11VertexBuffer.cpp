@@ -7,7 +7,7 @@
 
 #include "D3D11VertexBuffer.h"
 
-namespace Hippios
+namespace hippios
 {
 	D3D11VertexBuffer::D3D11VertexBuffer(ID3D11Device* d3d_device, ID3D11DeviceContext* device_context, size_t vertex_size, size_t num_vertices, bool dynamic) :
 		is_dirty(true)

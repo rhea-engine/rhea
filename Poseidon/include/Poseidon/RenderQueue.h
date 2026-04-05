@@ -4,9 +4,9 @@
 #include <vector>
 #include <Rhea/Core/Item.h>
 
-using Rhea::Item;
+using rhea::Item;
 
-namespace Poseidon
+namespace poseidon
 {
 	class RenderQueue
 	{

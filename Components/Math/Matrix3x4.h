@@ -4,7 +4,7 @@
 #include "Matrix3.h"
 #include "Quaternion.h"
 
-namespace Math
+namespace math
 {
 	class Matrix3x4
 	{

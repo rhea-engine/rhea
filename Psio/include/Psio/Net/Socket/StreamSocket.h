@@ -4,7 +4,7 @@
 #include "./Socket.h"
 #include "SocketAddress.h"
 
-namespace Psio
+namespace psio
 {
 	class StreamSocket : public Socket
 	{

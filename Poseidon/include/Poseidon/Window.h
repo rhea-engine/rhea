@@ -8,7 +8,7 @@
 #include <Hippios/Renderer.h>
 #include <memory>
 
-namespace Poseidon
+namespace poseidon
 {
 	class Window : public Viewport
 	{
@@ -16,22 +16,22 @@ namespace Poseidon
 		Window(std::string& name) :
 			Viewport(name)
 		{}
-		void initRenderTarget(Hippios::Renderer* renderer);
-		void CreateFromNativeWindow(Psio::Engine* psio, std::string name, int width, int height);
+		void initRenderTarget(hippios::Renderer* renderer);
+		void CreateFromNativeWindow(psio::Engine* psio, std::string name, int width, int height);
 		void onResize(int width, int height) override;
 
 		// set fullscreen mode
 		void SetFullscreen(bool mode);
 
 		// get the renderer swpachain of this window
-		Hippios::SwapChain* getSwapChain() { return m_swap_chain.get(); }
+		hippios::SwapChain* getSwapChain() { return m_swap_chain.get(); }
 
-		Psio::Window* getNativeWindow() { return m_native_win.get(); }
+		psio::Window* getNativeWindow() { return m_native_win.get(); }
 	protected:
-		std::unique_ptr<Hippios::SwapChain> m_swap_chain;
-		std::unique_ptr<Psio::Window> m_native_win;
+		std::unique_ptr<hippios::SwapChain> m_swap_chain;
+		std::unique_ptr<psio::Window> m_native_win;
 		std::string m_win_name;
-		Hippios::NativeWindow m_render_window{};
+		hippios::NativeWindow m_render_window{};
 	};
 }
 #endif // !POSEIDON_WINDOW_H

@@ -1,9 +1,9 @@
 #include "Hermes/Messages/MessageCreate.h"
 #include <Psio/Net/Network.h>
 
-namespace Hermes
+namespace hermes
 {
-	void MessageCreate::serialize(Psio::IOBuffer* buf)
+	void MessageCreate::serialize(psio::IOBuffer* buf)
 	{
 		base.size = sizeof(BaseMessage) + sizeof(uint32_t) * 10 + sizeof(uint16_t) + (uint16_t)path.size() + (uint16_t)type_name.size();
 		if (buf->FreeBufSize() < base.size) {
@@ -28,7 +28,7 @@ namespace Hermes
 		buf->Produce(size);
 	}
 
-	void MessageCreate::unserialize(Psio::IOBuffer* buf)
+	void MessageCreate::unserialize(psio::IOBuffer* buf)
 	{
 		NUID = readL(buf);
 		path = readStr(buf);
@@ -43,7 +43,7 @@ namespace Hermes
 		is_player = (bool)readS(buf);
 	}
 
-	Message* MessageCreate::create(uint16_t opcode, uint16_t size, Psio::IOBuffer* buf)
+	Message* MessageCreate::create(uint16_t opcode, uint16_t size, psio::IOBuffer* buf)
 	{
 		MessageCreate* msg;
 		msg = new MessageCreate();

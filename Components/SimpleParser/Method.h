@@ -10,31 +10,10 @@
 #include "Variant.h"
 #include "Type.h"
 
-namespace SimpleParser
+namespace simpleparser
 {
     namespace Detail
     {
-#if defined(__cpp_lib_apply) && __cpp_lib_apply > 201603L
-		using std::apply;
-#else
-        // Fallback für C++14 und älter
-        template<typename F, typename Tuple, std::size_t... I>
-        decltype(auto) apply_impl(F&& f, Tuple&& t, std::index_sequence<I...>)
-        {
-            return std::forward<F>(f)(std::get<I>(std::forward<Tuple>(t))...);
-        }
-
-        template<typename F, typename Tuple>
-        decltype(auto) apply(F&& f, Tuple&& t)
-        {
-            return apply_impl(
-                std::forward<F>(f),
-                std::forward<Tuple>(t),
-                std::make_index_sequence<std::tuple_size<std::decay_t<Tuple>>::value>{}
-            );
-        }
-#endif
-
         template<typename T>
         using DecayNoRef = std::remove_cv_t<std::remove_reference_t<T>>;
 
@@ -59,24 +38,15 @@ namespace SimpleParser
             if constexpr (std::is_same_v<U, Variant>)
                 return std::forward<T>(value);
             else
+            {
+
+            }
                 return Variant(std::forward<T>(value));
         }
 
         inline Variant to_variant_void()
         {
             return Variant();
-        }
-
-        template<typename... Args, std::size_t... I>
-        std::tuple<Args...> build_args_tuple_impl(Variant** vals, std::index_sequence<I...>)
-        {
-            return std::tuple<Args...>{ variant_cast<Args>(*vals[I])... };
-        }
-
-        template<typename... Args>
-        std::tuple<Args...> build_args_tuple(Variant** vals)
-        {
-            return build_args_tuple_impl<Args...>(vals, std::index_sequence_for<Args...>{});
         }
     }
 
@@ -116,30 +86,24 @@ namespace SimpleParser
                 return Variant();
 
             O* obj = static_cast<O*>(v);
+            
+            return execute_impl(obj, vals, std::index_sequence_for<Args...>{});
+        }
 
-            auto args = Detail::build_args_tuple<Args...>(vals);
-
+    private:
+        template<std::size_t... I>
+        Variant execute_impl(O* obj, Variant** vals, std::index_sequence<I...>)
+        {
             if constexpr (std::is_void_v<R>) {
-                std::apply(
-                    [&](auto&&... unpacked) {
-                        (obj->*m_method)(std::forward<decltype(unpacked)>(unpacked)...);
-                    },
-                    args
-                );
+                (obj->*m_method)(Detail::variant_cast<Args>(*vals[I])...);
                 return Detail::to_variant_void();
             }
             else {
-                R result = std::apply(
-                    [&](auto&&... unpacked) -> R {
-                        return (obj->*m_method)(std::forward<decltype(unpacked)>(unpacked)...);
-                    },
-                    args
-                );
+                R result = (obj->*m_method)(Detail::variant_cast<Args>(*vals[I])...);
                 return Detail::to_variant(std::move(result));
             }
         }
 
-    private:
         MethodPtr m_method = nullptr;
     };
 
@@ -157,30 +121,24 @@ namespace SimpleParser
                 return Variant();
 
             const O* obj = static_cast<const O*>(v);
+            
+            return execute_impl(obj, vals, std::index_sequence_for<Args...>{});
+        }
 
-            auto args = Detail::build_args_tuple<Args...>(vals);
-
+    private:
+        template<std::size_t... I>
+        Variant execute_impl(const O* obj, Variant** vals, std::index_sequence<I...>)
+        {
             if constexpr (std::is_void_v<R>) {
-                std::apply(
-                    [&](auto&&... unpacked) {
-                        (obj->*m_method)(std::forward<decltype(unpacked)>(unpacked)...);
-                    },
-                    args
-                );
+                (obj->*m_method)(Detail::variant_cast<Args>(*vals[I])...);
                 return Detail::to_variant_void();
             }
             else {
-                R result = std::apply(
-                    [&](auto&&... unpacked) -> R {
-                        return (obj->*m_method)(std::forward<decltype(unpacked)>(unpacked)...);
-                    },
-                    args
-                );
+                R result = (obj->*m_method)(Detail::variant_cast<Args>(*vals[I])...);
                 return Detail::to_variant(std::move(result));
             }
         }
 
-    private:
         MethodPtr m_method = nullptr;
     };
 
@@ -197,7 +155,7 @@ namespace SimpleParser
     }
 }
 
-namespace SimpleParser
+namespace simpleparser
 {
     template<class M>
     void Type::registerMethod(std::string name, M method)

@@ -5,33 +5,33 @@
 
 #include <Rhea/Core/Item2D.h>
 
-namespace Rhea
+namespace rhea::physics
 {
-	void RheaPhysicsFabric::Register(Application* app)
+	void RheaPhysicsFabric::Register(rhea::Application* app)
 	{
         PhysicsComponent::_register_PhysicsComponent();
 
 		// register physics service
-		auto* mgr = static_cast<PhysicsManagerService*>(app->getService("physics_mgr"));
+		auto* mgr = static_cast<rhea::PhysicsManagerService*>(app->getService("physics_mgr"));
         if (!mgr) {
-            mgr = new PhysicsManagerService("PhysicsManagerService", "//meworla/physicsmanagerservice");
+            mgr = new rhea::PhysicsManagerService("PhysicsManagerService", "//meworla/physicsmanagerservice");
             mgr->setup(app);           // if you have setup()
             app->registerService("PhysicsManager", mgr);
         }
 
         // register null backend
-        mgr->registerBackend("none", [](Application* app)->std::unique_ptr<PhysicsService> {
-            return std::make_unique<NullPhysicsService>("PhysicsService", "//meworla/service");			
+        mgr->registerBackend("none", [](rhea::Application* app)->std::unique_ptr<rhea::PhysicsService> {
+            return std::make_unique<rhea::physics::NullPhysicsService>("PhysicsService", "//meworla/service");			
             });
 
         // register a default for all types
-        PhysicsBodyDesc rigidbody;
+        rhea::PhysicsBodyDesc rigidbody;
         rigidbody.kind = "Meworla/RheaPhysics:RigidBody";
-        mgr->registerBodyForType(Item::staticType(), rigidbody);
+        mgr->registerBodyForType(rhea::Item::staticType(), rigidbody);
 
         // opt-out: no creator - move to rheaclient/fabrics
-        PhysicsBodyDesc none;
+        rhea::PhysicsBodyDesc none;
         none.kind = ""; // means disabled
-        mgr->registerBodyForType(Item2D::staticType(), none);
+        mgr->registerBodyForType(rhea::Item2D::staticType(), none);
 	}
 }

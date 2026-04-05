@@ -22,7 +22,7 @@
 #include "Window/Win32Window.h"
 #include "Net/Win32Network.h"
 
-namespace Psio
+namespace psio
 {
     Win32Backend::Win32Backend()
     {

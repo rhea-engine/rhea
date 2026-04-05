@@ -1,5 +1,5 @@
 #include "Rhea/Core/Camera.h"
 
-namespace Rhea
+namespace rhea
 {	
 }

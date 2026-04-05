@@ -8,9 +8,9 @@
 #include <Hermes/Messages/MessageLoginFailed.h>
 #include <Hermes/Messages/MessageCreateUser.h>
 
-using Psio::Network;
+using psio::Network;
 
-namespace Hermes
+namespace hermes
 {
 	void ServerStream::Initialize()
 	{
@@ -39,7 +39,7 @@ namespace Hermes
 
 	int ServerStream::AuthSuccess(Stream::CompletionHandler handler)
 	{
-		Hermes::Message msg_auth(HERMES_MSG_LOGIN_SUCCEEDED);
+		hermes::Message msg_auth(HERMES_MSG_LOGIN_SUCCEEDED);
 		m_state = HERMES_READMESSAGE;
 
 		int ret = m_stream->sendMessage(&msg_auth, [&, handler](int result) {
@@ -55,7 +55,7 @@ namespace Hermes
 
 	int ServerStream::AuthFailure(Stream::CompletionHandler handler, std::vector<std::string> methods)
 	{
-		Hermes::MessageLoginFailed msg_auth;
+		hermes::MessageLoginFailed msg_auth;
 		msg_auth.methods = methods;
 
 		return m_stream->sendMessage(&msg_auth, [&, handler](int result) {

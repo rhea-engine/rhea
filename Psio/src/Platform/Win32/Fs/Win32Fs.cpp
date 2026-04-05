@@ -13,7 +13,7 @@
 
 using std::string;
 
-namespace Psio
+namespace psio
 {
     static bool widePathToString(string& dest, const WCHAR* wpath)
     {

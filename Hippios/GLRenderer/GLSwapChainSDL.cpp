@@ -3,7 +3,7 @@
 #include "GLSwapChainSDL.h"
 #include <Psio/Log.h>
 
-namespace Hippios
+namespace hippios
 {
 	GLSwapChainSDL::GLSwapChainSDL(NativeWindow* win)
 		: SwapChain()

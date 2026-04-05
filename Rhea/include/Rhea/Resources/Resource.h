@@ -8,9 +8,9 @@
 
 #include "../Unit.h"
 
-using ReqError = Orion::ResourceRequest::Error;
+using ReqError = orion::ResourceRequest::Error;
 
-namespace Rhea
+namespace rhea
 {
 	// a resource is a unit that holds some data structure and may be loaded from remote	
 	class Resource : public Unit
@@ -44,7 +44,7 @@ namespace Rhea
 		~Resource();
 
 		// load the resource from request (may be asynchronus) - call handler on ready
-		virtual void load(Orion::ResourceRequest* req, ReadyHandler handler);
+		virtual void load(orion::ResourceRequest* req, ReadyHandler handler);
 
 		// get the status of the Unit
 		Status getStatus() { return m_status; }

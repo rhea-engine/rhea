@@ -10,7 +10,7 @@
 #include <Rhea/Core/Mesh.h>
 #include <Rhea/Graphics/SizeEvent.h>
 
-namespace Rhea
+namespace rhea
 {
 	void Item2D::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{
@@ -111,16 +111,16 @@ namespace Rhea
 		}
 	}
 	
-	void Rhea::Item2D::update()
+	void rhea::Item2D::update()
 	{
 		if (getComponent<MeshComponent>() && getComponent<MeshComponent>()->getMesh())
 			setMesh();
 		sendEvent("update", nullptr);
 	}
 
-	void Rhea::Item2D::setBackgroundColor(int r, int g, int b, float opacity)
+	void rhea::Item2D::setBackgroundColor(int r, int g, int b, float opacity)
 	{
-		Math::Vector4 bg_color;
+		math::Vector4 bg_color;
 		bg_color.x = r / 255.0f;
 		bg_color.y = g / 255.0f;
 		bg_color.z = b / 255.0f;
@@ -139,7 +139,7 @@ namespace Rhea
 		}
 	}
 
-	void Rhea::Item2D::UpdateMaterial()
+	void rhea::Item2D::UpdateMaterial()
 	{
 		// only update if really changed
 		if (!m_material_dirty)

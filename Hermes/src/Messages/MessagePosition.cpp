@@ -1,8 +1,8 @@
 #include "Hermes/Messages/MessagePosition.h"
 
-namespace Hermes
+namespace hermes
 {
-	void MessagePosition::serialize(Psio::IOBuffer* buf)
+	void MessagePosition::serialize(psio::IOBuffer* buf)
 	{
 		base.size = sizeof(BaseMessage) + sizeof(uint32_t) * 8;
 		if (buf->FreeBufSize() < base.size) {
@@ -25,7 +25,7 @@ namespace Hermes
 		buf->Produce(size);
 	}
 
-	void MessagePosition::unserialize(Psio::IOBuffer* buf)
+	void MessagePosition::unserialize(psio::IOBuffer* buf)
 	{
 		NUID = readL(buf);
 		pos[0] = readF(buf);
@@ -37,7 +37,7 @@ namespace Hermes
 		transform[3] = readF(buf);
 	}
 	
-	Message* MessagePosition::create(uint16_t opcode, uint16_t size, Psio::IOBuffer* buf)
+	Message* MessagePosition::create(uint16_t opcode, uint16_t size, psio::IOBuffer* buf)
 	{
 		MessagePosition* msg;
 		msg = new MessagePosition();

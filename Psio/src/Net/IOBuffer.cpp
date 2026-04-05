@@ -3,7 +3,7 @@
 #include <malloc.h>
 #include <string.h>
 
-namespace Psio
+namespace psio
 {
 	IOBuffer::IOBuffer(size_t size)
 	{

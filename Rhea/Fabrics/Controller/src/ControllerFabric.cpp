@@ -3,8 +3,8 @@
 #include <Rhea/Controller/BasicController.h>
 #include <Rhea/Controller/SpectatorController.h>
 
-void Rhea::ControllerFabric::Register(Application* app)
+void rhea::ControllerFabric::Register(Application* app)
 {
-	SimpleParser::Type::registerType<BasicController>("//meworla/controller");
-	SimpleParser::Type::registerType<SpectatorController>("//meworla/spectator");
+	simpleparser::Type::registerType<BasicController>("//meworla/controller");
+	simpleparser::Type::registerType<SpectatorController>("//meworla/spectator");
 }

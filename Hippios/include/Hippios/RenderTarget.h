@@ -3,7 +3,7 @@
 
 #include "BaseTypes.h"
 
-namespace Hippios
+namespace hippios
 {
 	class Renderer;
 	class SwapChain;

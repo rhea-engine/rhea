@@ -2,7 +2,7 @@
 #include <Rhea/Resources/ResourceList.h>
 #include <Psio/Log.h>
 
-namespace Rhea {
+namespace rhea {
 	
 	Resource::~Resource()
 	{
@@ -12,7 +12,7 @@ namespace Rhea {
 		}
 	}
 
-	void Resource::load(Orion::ResourceRequest* req, ReadyHandler handler)
+	void Resource::load(orion::ResourceRequest* req, ReadyHandler handler)
 	{
 		handler(ReqError::OK);
 	}

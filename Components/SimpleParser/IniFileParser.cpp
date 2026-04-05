@@ -4,7 +4,7 @@
 
 #include "IniFileParser.h"
 
-namespace SimpleParser
+namespace simpleparser
 {
 	char* IniFileParser::getErrMsg(Error err)
 	{

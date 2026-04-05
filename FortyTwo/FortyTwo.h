@@ -4,7 +4,7 @@
 #include <Rhea/Application.h>
 #include <Rhea/Network/ServerService.h>
 
-class FortyTwo : public Rhea::Application
+class FortyTwo : public rhea::Application
 {
 public:
 	FortyTwo() : 
@@ -22,11 +22,11 @@ public:
 	// listen to actions
 	bool onFrameEnd();
 
-	void onScene(Rhea::Scene* scene);
+	void onScene(rhea::Scene* scene);
 
 protected:
 	std::string m_server_name;
-	Rhea::ServerService* m_server_service;
+	rhea::ServerService* m_server_service;
 	uint16_t m_port;
 };
 

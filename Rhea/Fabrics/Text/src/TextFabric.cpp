@@ -3,12 +3,12 @@
 #include <Rhea/Text/TextWidget.h>
 #include <Rhea/Text/BitmapFont.h>
 
-namespace Rhea
+namespace rhea
 {
 	void TextFabric::Register(Application* app)
 	{
-		SimpleParser::Type::registerType<TextWidget>("//meworla/textwidget");
-		SimpleParser::Type::registerType<Font>("//meworla/font");
-		SimpleParser::Type::registerType<BitmapFont>("//meworla/bitmapfont");
+		simpleparser::Type::registerType<TextWidget>("//meworla/textwidget");
+		simpleparser::Type::registerType<Font>("//meworla/font");
+		simpleparser::Type::registerType<BitmapFont>("//meworla/bitmapfont");
 	}
 }

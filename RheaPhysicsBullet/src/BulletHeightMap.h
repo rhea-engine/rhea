@@ -10,14 +10,18 @@
 class btHeightfieldTerrainShape;
 class btRigidBody;
 
-namespace Rhea
+namespace rhea
 {
 	class Item;
+	struct PhysicsBodyDesc;
+}
 
+namespace rhea::physics::bullet
+{
 	class BulletHeightMap : public BulletPhysicsBody
 	{
 	public:
-		BulletHeightMap(btDynamicsWorld* world, Item* item, const PhysicsBodyDesc& desc);
+		BulletHeightMap(btDynamicsWorld* world, rhea::Item* item, const rhea::PhysicsBodyDesc& desc);
 		~BulletHeightMap();
 
 		bool init() override { return true; }
@@ -27,7 +31,7 @@ namespace Rhea
 		int m_width;
 		int m_height;
 		std::vector<unsigned char> m_map;
-		std::unique_ptr<Poseidon::Image> m_image;
+		std::unique_ptr<poseidon::Image> m_image;
 	};
 }
 

@@ -2,7 +2,7 @@
 #include <Psio/Net/Network.h>
 #include <cstring>
 
-namespace Hermes
+namespace hermes
 {
 	Message::Message(uint16_t opcode)
 	{
@@ -10,7 +10,7 @@ namespace Hermes
 		base.size = sizeof(BaseMessage);
 	}
 
-	void Message::serialize(Psio::IOBuffer* buf)
+	void Message::serialize(psio::IOBuffer* buf)
 	{
 		if (buf->FreeBufSize() < sizeof(BaseMessage)) {
 			buf->Grow(sizeof(BaseMessage));
@@ -20,7 +20,7 @@ namespace Hermes
 		buf->Produce(size);
 	}
 	
-	Message* Message::create(uint16_t opcode, uint16_t size, Psio::IOBuffer* buf)
+	Message* Message::create(uint16_t opcode, uint16_t size, psio::IOBuffer* buf)
 	{
 		Message* msg = new Message(opcode);
 		msg->base.size = size;
@@ -56,7 +56,7 @@ namespace Hermes
 		return 4;
 	}
 
-	uint32_t Message::readL(Psio::IOBuffer* buf)
+	uint32_t Message::readL(psio::IOBuffer* buf)
 	{
 		if (buf->Remaining() < 4)
 			return 0;
@@ -65,7 +65,7 @@ namespace Hermes
 		return l;
 	}
 	
-	uint16_t Message::readS(Psio::IOBuffer* buf)
+	uint16_t Message::readS(psio::IOBuffer* buf)
 	{
 		if (buf->Remaining() < 2)
 			return 0;
@@ -74,7 +74,7 @@ namespace Hermes
 		return s;
 	}
 	
-	std::string Message::readStr(Psio::IOBuffer* buf)
+	std::string Message::readStr(psio::IOBuffer* buf)
 	{
 		uint32_t strlen = readL(buf);
 		if (!strlen || buf->Remaining() < strlen)
@@ -84,7 +84,7 @@ namespace Hermes
 		return str;
 	}
 	
-	float Message::readF(Psio::IOBuffer* buf)
+	float Message::readF(psio::IOBuffer* buf)
 	{
 		if (buf->Remaining() < 4)
 			return 0;

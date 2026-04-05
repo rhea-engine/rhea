@@ -7,7 +7,7 @@ target_include_directories(RheaThirdPartyTinyObj INTERFACE
 )
 
 add_library(RheaThirdPartyTinyGltf INTERFACE)
-add_library(Rhea::TinyGltf ALIAS RheaThirdPartyTinyGltf)
+add_library(rhea::TinyGltf ALIAS RheaThirdPartyTinyGltf)
 
 target_include_directories(RheaThirdPartyTinyGltf INTERFACE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>

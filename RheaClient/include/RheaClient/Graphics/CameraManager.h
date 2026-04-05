@@ -4,15 +4,14 @@
 #include <Rhea/Event.h>
 #include "GraphicsManager.h"
 
-namespace Poseidon
+namespace poseidon
 {
 	class Core;
 	class Camera;
 	class Viewport;
 }
 
-namespace Rhea
-{
+namespace rhea::client {
 	class Camera;
 	
 	class GraphicsCameraManager : public GraphicsManager
@@ -23,16 +22,16 @@ namespace Rhea
 		{}
 
 		// factory function
-		bool Ensure(Poseidon::Core* core, Unit* unit);
+		bool Ensure(poseidon::Core* core, rhea::Unit* unit);
 
 		// handle update event
-		bool onUpdate(Event* ev, Unit* unit);
+		bool onUpdate(rhea::Event* ev, rhea::Unit* unit);
 
 		// handle frame update
 		void onFrame();
 
 		// handle events
-		bool onItemDelete(Event* ev, Unit* unit);
+		bool onItemDelete(rhea::Event* ev, rhea::Unit* unit);
 
 	protected:		
 	};

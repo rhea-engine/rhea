@@ -4,7 +4,7 @@
 #include <string>
 #include <ctime>
 
-namespace Orion
+namespace orion
 {
 	class Realm
 	{

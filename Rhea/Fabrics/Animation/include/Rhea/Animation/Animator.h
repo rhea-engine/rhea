@@ -6,7 +6,7 @@
 #include <Rhea/Animation/Skeleton.h>
 #include "Animation.h"
 
-namespace Rhea
+namespace rhea
 {
 	class Animator : public Item
 	{

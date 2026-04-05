@@ -1,9 +1,10 @@
 {
-  "vendor": "Meworla",
-  "name": "Orion",
+  "id": "meworla/orion",
+  "displayName": "Meworla Resource System (Orion)",
   "version": "0.9.0",
+  "author": "Meworla",
   "dependencies": {
-    "Meworla/Components": "0.9.0",
-    "Meworla/Psio": "0.9.0"
+    "meworla/components": "0.9.0",
+    "meworla/psio": "0.9.0"
   }
 }

@@ -7,7 +7,7 @@
 #include <Rhea/Core/Item2D.h>
 #include "Math/Vector2.h"
 
-namespace Rhea
+namespace rhea
 {
 	class TextWidget : public Item2D
 	{

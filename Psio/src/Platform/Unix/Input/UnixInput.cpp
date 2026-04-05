@@ -1,7 +1,7 @@
 #include "UnixInput.h"
 #include <Psio/Input/InputEvent.h>
 
-namespace Psio
+namespace psio
 {
     void InputUnix::update()
     {

@@ -1,7 +1,7 @@
 #include "Rhea/InputMap.h"
 #include <Psio/Input/Keyboard.h>
 
-namespace Rhea
+namespace rhea
 {
 	void InputMap::setAction(InputEventSP evt, std::string action)
 	{
@@ -30,38 +30,38 @@ namespace Rhea
 	};
 
 	actdef default_keypress_map[] = {
-		{ Psio::CODE_LEFT, "turn_left" },
-		{ Psio::CODE_RIGHT, "turn_right" },
-		{ Psio::CODE_UP, "move_forward" },
-		{ Psio::CODE_DOWN, "move_back" },
-		{ Psio::CODE_Q, "move_left" },
-		{ Psio::CODE_E, "move_right" },
-		{ Psio::CODE_A, "turn_left" },
-		{ Psio::CODE_D, "turn_right" },
-		{ Psio::CODE_W, "move_forward" },
-		{ Psio::CODE_S, "move_back" },
-		{ Psio::CODE_HOME, "move_up" },
-		{ Psio::CODE_END, "move_down" },
-		{ Psio::CODE_ESC, "cancel" },
-		{ Psio::CODE_SPACE, "jump"},
-		{ Psio::CODE_F2, "debug"},
+		{ psio::CODE_LEFT, "turn_left" },
+		{ psio::CODE_RIGHT, "turn_right" },
+		{ psio::CODE_UP, "move_forward" },
+		{ psio::CODE_DOWN, "move_back" },
+		{ psio::CODE_Q, "move_left" },
+		{ psio::CODE_E, "move_right" },
+		{ psio::CODE_A, "turn_left" },
+		{ psio::CODE_D, "turn_right" },
+		{ psio::CODE_W, "move_forward" },
+		{ psio::CODE_S, "move_back" },
+		{ psio::CODE_HOME, "move_up" },
+		{ psio::CODE_END, "move_down" },
+		{ psio::CODE_ESC, "cancel" },
+		{ psio::CODE_SPACE, "jump"},
+		{ psio::CODE_F2, "debug"},
 		
 	};
 
 	actdef default_keyup_map[] = {
-		{ Psio::CODE_LEFT, "turn_left_stop" },
-		{ Psio::CODE_RIGHT, "turn_right_stop" },
-		{ Psio::CODE_UP, "move_forward_stop" },
-		{ Psio::CODE_DOWN, "move_back_stop" },
-		{ Psio::CODE_Q, "move_left_stop" },
-		{ Psio::CODE_E, "move_right_stop" },
-		{ Psio::CODE_A, "turn_left_stop" },
-		{ Psio::CODE_D, "turn_right_stop" },
-		{ Psio::CODE_W, "move_forward_stop" },
-		{ Psio::CODE_S, "move_back_stop" },
-		{ Psio::CODE_HOME, "move_up_stop" },
-		{ Psio::CODE_END, "move_down_stop" },
-		{ Psio::CODE_F11, "fullscreen"}
+		{ psio::CODE_LEFT, "turn_left_stop" },
+		{ psio::CODE_RIGHT, "turn_right_stop" },
+		{ psio::CODE_UP, "move_forward_stop" },
+		{ psio::CODE_DOWN, "move_back_stop" },
+		{ psio::CODE_Q, "move_left_stop" },
+		{ psio::CODE_E, "move_right_stop" },
+		{ psio::CODE_A, "turn_left_stop" },
+		{ psio::CODE_D, "turn_right_stop" },
+		{ psio::CODE_W, "move_forward_stop" },
+		{ psio::CODE_S, "move_back_stop" },
+		{ psio::CODE_HOME, "move_up_stop" },
+		{ psio::CODE_END, "move_down_stop" },
+		{ psio::CODE_F11, "fullscreen"}
 	};
 
 
@@ -71,14 +71,14 @@ namespace Rhea
 		if (!m_evt_map.empty())
 			return;
 
-		InputEventSP evt = std::make_shared<Psio::KeyInputEvent>(Psio::InputEventId::KEY_PRESSED);
+		InputEventSP evt = std::make_shared<psio::KeyInputEvent>(psio::InputEventId::KEY_PRESSED);
 		for (int i = 0; i < sizeof(default_keypress_map) / sizeof(actdef); i++) {
-			std::dynamic_pointer_cast<Psio::KeyInputEvent>(evt)->set(default_keypress_map[i].code, 0, 0);
+			std::dynamic_pointer_cast<psio::KeyInputEvent>(evt)->set(default_keypress_map[i].code, 0, 0);
 			setAction(evt, default_keypress_map[i].action);
 		}
-		evt = std::make_shared<Psio::KeyInputEvent>(Psio::InputEventId::KEY_RELEASED);
+		evt = std::make_shared<psio::KeyInputEvent>(psio::InputEventId::KEY_RELEASED);
 		for (int i = 0; i < sizeof(default_keyup_map) / sizeof(actdef); i++) {
-			std::dynamic_pointer_cast<Psio::KeyInputEvent>(evt)->set(default_keyup_map[i].code, 0, 0);
+			std::dynamic_pointer_cast<psio::KeyInputEvent>(evt)->set(default_keyup_map[i].code, 0, 0);
 			setAction(evt, default_keyup_map[i].action);
 		}
 	}

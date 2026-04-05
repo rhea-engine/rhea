@@ -3,7 +3,7 @@
 
 #include <cstddef>
 
-namespace Psio
+namespace psio
 {
 	class IOBuffer
 	{

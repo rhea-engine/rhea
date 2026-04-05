@@ -5,7 +5,7 @@
 #include <Rhea/Resources/TextResource.h>
 #include <Rhea/Resources/VertexAttribute.h>
 
-namespace Rhea
+namespace rhea
 {
 	enum class ShaderBackend
 	{

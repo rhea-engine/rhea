@@ -3,14 +3,17 @@
 
 #include "NullBody.h"
 
-namespace Rhea
+namespace rhea
 {
 	class Item;
+}
 
+namespace rhea::physics
+{
 	class PhysicsHeightMap : public NullPhysicsBody
 	{
 	public:
-		PhysicsHeightMap(Item* item) :
+		PhysicsHeightMap(rhea::Item* item) :
 			NullPhysicsBody(item)
 		{
 			m_isStatic = true;

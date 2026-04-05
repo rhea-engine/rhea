@@ -8,53 +8,52 @@
 #include <Rhea/Unit.h>
 #include <Rhea/Core/Material.h>
 
-#include <Rhea/Graphics/GraphicsManager.h>
-#include <Rhea/Graphics/MaterialManager.h>
-#include <Rhea/Graphics/GraphicsService.h>
+#include <RheaClient/Graphics/GraphicsManager.h>
+#include <RheaClient/Graphics/MaterialManager.h>
+#include <RheaClient/Graphics/GraphicsService.h>
 #include <Psio/Log.h>
 #include <Rhea/GUI/Widget.h>
 
-namespace Rhea
-{
-	Poseidon::Node* GraphicsManager::createRenderable(RenderComponent* rc, Poseidon::Core* core, Unit* item, Poseidon::Mesh* mesh, std::string render_context_name)
+namespace rhea::client {
+	poseidon::Node* GraphicsManager::createRenderable(RenderComponent* rc, poseidon::Core* core, rhea::Unit* item, poseidon::Mesh* mesh, std::string render_context_name)
 	{
-		Poseidon::SceneManager* scene_mgr = core->get_scene_manager();
+		poseidon::SceneManager* scene_mgr = core->get_scene_manager();
 		
 		// create an entity using the shared mesh
-		Poseidon::Node* entity = core->createEntity(mesh);	
+		poseidon::Node* entity = core->createEntity(mesh);	
 		rc->entity = entity;
 		
-		Poseidon::Viewport* viewport = scene_mgr->getViewport();
+		poseidon::Viewport* viewport = scene_mgr->getViewport();
 		if (!viewport) {
 			LOG(LOG_ERROR) << "No root viewport found - cannot create element";
 			return nullptr;
 		}
-		Poseidon::RenderContext* render_context = viewport->getRenderContext(render_context_name);
+		poseidon::RenderContext* render_context = viewport->getRenderContext(render_context_name);
 		if (!render_context) {
 			LOG(LOG_ERROR) << "GraphicsText::createText: render context '" << render_context_name << "' not found";
 			return nullptr;
 		}
 		rc->ctx = render_context;
-		//render_context->addRenderChild(static_cast<Poseidon::Entity*>(entity));
-		//render_context->addRenderChild((Item*)item);
+		//render_context->addRenderChild(static_cast<poseidon::Entity*>(entity));
+		//render_context->addRenderChild((rhea::Item* )item);
 
 		return entity;
 	}
 
-	Poseidon::Node* GraphicsManager::createEntity(RenderComponent* rc, Poseidon::Core* core, Unit* item, std::string render_context_name, bool dynamic_usage)
+	poseidon::Node* GraphicsManager::createEntity(RenderComponent* rc, poseidon::Core* core, rhea::Unit* item, std::string render_context_name, bool dynamic_usage)
 	{
-		Poseidon::SceneManager* scene_mgr = core->get_scene_manager();
+		poseidon::SceneManager* scene_mgr = core->get_scene_manager();
 
 		// create an entity
-		Poseidon::Node* entity = core->createEntity(nullptr);
+		poseidon::Node* entity = core->createEntity(nullptr);
 		rc->entity = entity;
 
-		Poseidon::Viewport* viewport = scene_mgr->getViewport();
+		poseidon::Viewport* viewport = scene_mgr->getViewport();
 		if (!viewport) {
 			LOG(LOG_ERROR) << "No root viewport found - cannot create element";
 			return nullptr;
 		}
-		Poseidon::RenderContext* render_context = viewport->getRenderContext(render_context_name);
+		poseidon::RenderContext* render_context = viewport->getRenderContext(render_context_name);
 		if (!render_context) {
 			LOG(LOG_ERROR) << "GraphicsText::createText: render context '" << render_context_name << "' not found";
 			return nullptr;
@@ -64,7 +63,7 @@ namespace Rhea
 		return entity;
 	}
 
-	void GraphicsManager::setPosition(Unit* u, Transform* t)
+	void GraphicsManager::setPosition(rhea::Unit* u, rhea::Transform* t)
 	{
 		Variant pos_sit = u->getValue("position");
 		if (pos_sit != Variant()) {

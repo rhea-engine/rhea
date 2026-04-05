@@ -5,7 +5,7 @@
 #include "GLGraphicsBuffer.h"
 #include <memory>
 
-namespace Hippios
+namespace hippios
 {
 	class GLIndexBuffer : public IndexBuffer
 	{

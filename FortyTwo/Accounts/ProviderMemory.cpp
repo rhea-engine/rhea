@@ -20,11 +20,11 @@ void ProviderMemory::CreateAccount(std::string user_id, std::string name, std::f
 	handler(user, 0);
 }
 
-void ProviderMemory::CreateAvatar(User* user, Rhea::Avatar* avatar, std::function<void(int)> handler)
+void ProviderMemory::CreateAvatar(User* user, rhea::Avatar* avatar, std::function<void(int)> handler)
 {
 	// check if name exists
 	for (auto& u : m_users) {
-		Rhea::Avatar* check = doCast<Rhea::Avatar>(u.second->find(avatar->getPathName()));
+		rhea::Avatar* check = doCast<rhea::Avatar>(u.second->find(avatar->getPathName()));
 		if (check)
 			return handler(1);
 	}

@@ -5,7 +5,7 @@
 #include <Hermes/Messages/MessageConnect.h>
 #include <Hermes/Messages/MessageCreateUser.h>
 
-namespace Hermes
+namespace hermes
 {
 
 	void ClientStream::Initialize()
@@ -54,7 +54,7 @@ namespace Hermes
 			return -2;
 		}
 
-		Hermes::MessageLogin msg;
+		hermes::MessageLogin msg;
 		msg.auth_method = method;
 		msg.user_name = username;
 		msg.secrets = secrets;
@@ -72,7 +72,7 @@ namespace Hermes
 			return -2;
 		}
 
-		Hermes::MessageCreateUser msg(HERMES_MSG_CREATE_USER);
+		hermes::MessageCreateUser msg(HERMES_MSG_CREATE_USER);
 		msg.auth_method = method;
 		msg.user_name = username;
 		if (name != "")

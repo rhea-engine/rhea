@@ -11,7 +11,7 @@
 #include <SimpleParser/Variant.h>
 #include "StyleRule.h"
 
-namespace Rhea
+namespace rhea
 {
 	class StyleSheet;
 	class Widget;

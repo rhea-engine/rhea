@@ -6,7 +6,7 @@
 #include <Math/Quaternion.h>
 #include <Rhea/Core/Position.h>
 
-namespace Rhea
+namespace rhea
 {
 	class Camera;
 
@@ -23,8 +23,8 @@ namespace Rhea
 		void message(std::string method_name);
 
 		// set the position manually
-		void setPosition(Math::Vector3 position);
-		void lookAt(Math::Vector3& target);
+		void setPosition(math::Vector3 position);
+		void lookAt(math::Vector3& target);
 
 		// Controller functions
 

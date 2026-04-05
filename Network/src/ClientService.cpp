@@ -7,22 +7,22 @@
 #include <Rhea/Application.h>
 #include <Rhea/Platform/PlatformService.h>
 
-namespace Rhea
+namespace rhea
 {
 	void ClientService::ready()
 	{
-		Rhea::PlatformService* psio = static_cast<Rhea::PlatformService*>(m_app->getService("platform"));
+		rhea::PlatformService* psio = static_cast<rhea::PlatformService*>(m_app->getService("platform"));
 		m_network = psio->getEngine()->getNet();
 		m_worldname = getValueString("world", "");
 		m_app->registerService("hermesclient", this);
-		m_msg_factory = std::make_unique<Hermes::MessageFactory>();
+		m_msg_factory = std::make_unique<hermes::MessageFactory>();
 		m_msg_factory->registerCoreMessages();
 	}
 
 	void ClientService::Connect(std::string host, ConnectionHandler handler)
 	{
-		Psio::StreamSocket* m_sock = m_network->CreateTCPSocket();
-		Psio::SocketAddress addr;
+		psio::StreamSocket* m_sock = m_network->CreateTCPSocket();
+		psio::SocketAddress addr;
 		addr.SetHost("127.0.0.1", 4242);
 
 		// fill message factory
@@ -46,11 +46,11 @@ namespace Rhea
 		}
 	}
 
-	void ClientService::OnTCPConnect(Psio::StreamSocket* sock)
+	void ClientService::OnTCPConnect(psio::StreamSocket* sock)
 	{
-		std::unique_ptr<Psio::StreamSocket> new_sock;
+		std::unique_ptr<psio::StreamSocket> new_sock;
 		new_sock.reset(sock);
-		Hermes::Stream* stream = new Hermes::Stream(std::move(new_sock), m_msg_factory.get());
+		hermes::Stream* stream = new hermes::Stream(std::move(new_sock), m_msg_factory.get());
 		int ret = stream->Connect(m_worldname, [&, stream](int err) {
 			if (!err) {
 				m_handler(stream, 0);

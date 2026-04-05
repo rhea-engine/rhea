@@ -1,7 +1,7 @@
 #include "Type.h"
 #include "Variant.h"
 
-namespace SimpleParser
+namespace simpleparser
 {
 	Type* Type::Register(std::string name, CreatorFunc factory)
 	{

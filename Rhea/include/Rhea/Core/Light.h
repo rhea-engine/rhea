@@ -3,7 +3,7 @@
 
 #include "Rhea/Core/Item.h"
 
-namespace Rhea
+namespace rhea
 {
 	class Light : public Item
 	{
@@ -26,18 +26,18 @@ namespace Rhea
 		}
 
 		// get properties
-		Math::Quaternion getAmbient() { return m_ambient; }
-		Math::Quaternion getDiffuse() { return m_diffuse; }
-		Math::Quaternion getSpecular() { return m_specular; }
-		Math::Vector3 getColor() { return m_color; }
+		math::Quaternion getAmbient() { return m_ambient; }
+		math::Quaternion getDiffuse() { return m_diffuse; }
+		math::Quaternion getSpecular() { return m_specular; }
+		math::Vector3 getColor() { return m_color; }
 
 	protected:
 		bool m_is_enabled;
 
-		Math::Quaternion m_ambient;
-		Math::Quaternion m_diffuse;
-		Math::Quaternion m_specular;
-		Math::Vector3 m_color;
+		math::Quaternion m_ambient;
+		math::Quaternion m_diffuse;
+		math::Quaternion m_specular;
+		math::Vector3 m_color;
 	};
 }
 #endif // !RHEA_LIGHT_H

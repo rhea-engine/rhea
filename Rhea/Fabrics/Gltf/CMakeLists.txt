@@ -8,14 +8,14 @@ add_library (RheaGltf
 "src/GltfMesh.cpp" 
 "include/Rhea/Gltf/GltfScene.h" 
 "src/GltfScene.cpp")
-add_library(Rhea::Gltf ALIAS RheaGltf)
+add_library(rhea::Gltf ALIAS RheaGltf)
 
 # Scoped includes are under include/Rhea/GUI/**
 target_include_directories(RheaGltf PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_link_libraries(RheaGltf PRIVATE Meworla::Math Rhea::TinyGltf Rhea::Core Meworla::Orion Rhea::Animation Meworla::StbImage nlohmann_json::nlohmann_json)
+target_link_libraries(RheaGltf PRIVATE Meworla::Math rhea::TinyGltf Rhea::Core Meworla::Orion Rhea::Animation Meworla::StbImage nlohmann_json::nlohmann_json)
 
 # register for auto registry generation
 rhea_register_fabric("${CMAKE_CURRENT_SOURCE_DIR}/fabric.json")

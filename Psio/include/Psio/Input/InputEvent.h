@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <string>
 
-namespace Psio
+namespace psio
 {
 	enum class InputEventId {
 		NONE,

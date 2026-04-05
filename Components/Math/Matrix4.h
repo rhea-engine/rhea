@@ -5,7 +5,7 @@
 #include "Matrix3x4.h"
 #include "Vector4.h"
 
-namespace Math
+namespace math
 {
 	class Matrix4
 	{

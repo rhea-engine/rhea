@@ -6,7 +6,7 @@
 #include <memory>
 #include <string>
 
-namespace Hippios
+namespace hippios
 {
 	class GLShader;
 

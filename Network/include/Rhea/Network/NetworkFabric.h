@@ -3,13 +3,13 @@
 
 #include <Rhea/FabricSystem.h>
 
-namespace Rhea
+namespace rhea
 {
 	class Application;
 
 	/** Fabrics for network package
 	*/
-	class NetworkFabric : public Rhea::IFabric
+	class NetworkFabric : public rhea::IFabric
 	{
 	public:
 		void Register(Application* app) override;

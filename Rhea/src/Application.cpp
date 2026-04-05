@@ -53,9 +53,9 @@
 
 #undef min
 
-extern std::vector<std::unique_ptr<Rhea::IFabric>> createFabrics();
+extern std::vector<std::unique_ptr<rhea::IFabric>> createFabrics();
 
-namespace Rhea
+namespace rhea
 {
 	Application::~Application()
 	{
@@ -77,34 +77,34 @@ namespace Rhea
 #endif // DEBUG
 		
 		// register core types
-		SimpleParser::Type::registerType<Component>("//core/types/component"); 
-		SimpleParser::Type::registerType<Unit>("//core/types/unit");
-		SimpleParser::Type::registerType<UnitTree>("//core/unittree");
-		SimpleParser::Type::registerType<Collection>("//core/collection");
-		SimpleParser::Type::registerType<ConfigFile>("//core/types/configfile");
+		simpleparser::Type::registerType<Component>("//core/types/component"); 
+		simpleparser::Type::registerType<Unit>("//core/types/unit");
+		simpleparser::Type::registerType<UnitTree>("//core/unittree");
+		simpleparser::Type::registerType<Collection>("//core/collection");
+		simpleparser::Type::registerType<ConfigFile>("//core/types/configfile");
 
 		// register services
-		SimpleParser::Type::registerType<Service>("//meworla/service");
-		SimpleParser::Type::registerType<PlatformService>("//meworla/platformservice");
-		SimpleParser::Type::registerType<PhysicsManagerService>("//meworla/physicsmanagerservice");
-		SimpleParser::Type::registerType<WorldService>("//meworla/worldservice");
-		SimpleParser::Type::registerType<ResourceService>("//meworla/resourceservice");
+		simpleparser::Type::registerType<Service>("//meworla/service");
+		simpleparser::Type::registerType<PlatformService>("//meworla/platformservice");
+		simpleparser::Type::registerType<PhysicsManagerService>("//meworla/physicsmanagerservice");
+		simpleparser::Type::registerType<WorldService>("//meworla/worldservice");
+		simpleparser::Type::registerType<ResourceService>("//meworla/resourceservice");
 
-		m_unit_tree.reset((UnitTree*)SimpleParser::Type::create("/", "//core/unittree"));
+		m_unit_tree.reset((UnitTree*)simpleparser::Type::create("/", "//core/unittree"));
 		m_unit_tree->setup(this);
 
-		ConfigFile* config = SimpleParser::Type::create<ConfigFile>("config");
+		ConfigFile* config = simpleparser::Type::create<ConfigFile>("config");
 		config->setup(this);
 		m_unit_tree->addChild(config);
 		config->fromCommandLineArgs(argc, argv);
 
-		Service* psio = (PlatformService*)SimpleParser::Type::create("PlatformService", "//meworla/platformservice");
+		Service* psio = (PlatformService*)simpleparser::Type::create("PlatformService", "//meworla/platformservice");
 		std::string psio_backend = config->getValueString("platform.backend", "auto");
 		psio->setValue("backend", psio_backend);
 		psio->setup(this);
 		m_services["platform"] = psio;
 
-		m_fs = new Orion::Orion(static_cast<PlatformService*>(psio)->getEngine(), m_appname);
+		m_fs = new orion::Orion(static_cast<PlatformService*>(psio)->getEngine(), m_appname);
 
 		std::string app_dir = config->getValueString("appdir", "");
 		if (!app_dir.empty()) {
@@ -129,54 +129,54 @@ namespace Rhea
 			printf("Invalid log level in config: %s\n", log_level.c_str());
 		}
 
-		Service* world = (WorldService*)SimpleParser::Type::create("WorldService", "//meworla/worldservice");
+		Service* world = (WorldService*)simpleparser::Type::create("WorldService", "//meworla/worldservice");
 		world->setup(this);
 		m_services["world"] = world;
 
-		Service* phy_mgr = (PhysicsManagerService*)SimpleParser::Type::create("PhysicsManagerService", "//meworla/physicsmanagerservice");
+		Service* phy_mgr = (PhysicsManagerService*)simpleparser::Type::create("PhysicsManagerService", "//meworla/physicsmanagerservice");
 		phy_mgr->setup(this);
 		m_services["physics_mgr"] = phy_mgr;		
 
-		Service* res_service = (Service*)SimpleParser::Type::create("ResourceService", "//meworla/resourceservice");
+		Service* res_service = (Service*)simpleparser::Type::create("ResourceService", "//meworla/resourceservice");
 		m_services["resources"] = res_service;
-		SimpleParser::Type::registerType<Resource>("//meworla/resource");
+		simpleparser::Type::registerType<Resource>("//meworla/resource");
 
 		// register generic text loader
-		SimpleParser::Type::registerType<TextResource>("//meworla/text");
+		simpleparser::Type::registerType<TextResource>("//meworla/text");
 		m_resource_loader.registerLoader<TextLoader>("text/*");
 
 		// register scene types
-		SimpleParser::Type::registerType<Realm>("//meworla/realm");
-		SimpleParser::Type::registerType<Scene>("//meworla/scene");
+		simpleparser::Type::registerType<Realm>("//meworla/realm");
+		simpleparser::Type::registerType<Scene>("//meworla/scene");
 		m_resource_loader.registerLoader<SceneLoader>("application/vnd.meworla.scene");
-		SimpleParser::Type::registerType<Resources>("//meworla/resources");
-		SimpleParser::Type::registerType<Transform>("//meworla/transform");
-		SimpleParser::Type::registerType<Item>("//meworla/item");
-		SimpleParser::Type::registerType<Mesh>("//meworla/mesh");				
-		SimpleParser::Type::registerType<Shader>("//meworla/shader");
-		SimpleParser::Type::registerType<Lighting>("//meworla/lighting");
-		SimpleParser::Type::registerType<Light>("//meworla/light");
-		SimpleParser::Type::registerType<PointLight>("//meworla/pointlight");
-		SimpleParser::Type::registerType<SpotLight>("//meworla/spotlight");
-		SimpleParser::Type::registerType<DirectionalLight>("//meworla/directionallight");
-		Orion::MIME::RegisterExtenstion("application/vnd.meworla.scene", "shader");
-		SimpleParser::Type::registerType<Material>("//meworla/material");
-		SimpleParser::Type::registerType<Avatar>("//meworla/avatar");
+		simpleparser::Type::registerType<Resources>("//meworla/resources");
+		simpleparser::Type::registerType<Transform>("//meworla/transform");
+		simpleparser::Type::registerType<Item>("//meworla/item");
+		simpleparser::Type::registerType<Mesh>("//meworla/mesh");				
+		simpleparser::Type::registerType<Shader>("//meworla/shader");
+		simpleparser::Type::registerType<Lighting>("//meworla/lighting");
+		simpleparser::Type::registerType<Light>("//meworla/light");
+		simpleparser::Type::registerType<PointLight>("//meworla/pointlight");
+		simpleparser::Type::registerType<SpotLight>("//meworla/spotlight");
+		simpleparser::Type::registerType<DirectionalLight>("//meworla/directionallight");
+		orion::MIME::RegisterExtenstion("application/vnd.meworla.scene", "shader");
+		simpleparser::Type::registerType<Material>("//meworla/material");
+		simpleparser::Type::registerType<Avatar>("//meworla/avatar");
 		
 		ImageResource::_register_ImageResource();
-		SimpleParser::Type::registerType<ImageResource>("//meworla/texture");
+		simpleparser::Type::registerType<ImageResource>("//meworla/texture");
 		CubeMap::_register_CubeMap();
 
-		SimpleParser::Type::registerType<Camera>("//meworla/camera");
-		SimpleParser::Type::registerType<Item2D>("//meworla/widget");
-		SimpleParser::Type::registerType<TextResource>("//meworla/fontinfo");
+		simpleparser::Type::registerType<Camera>("//meworla/camera");
+		simpleparser::Type::registerType<Item2D>("//meworla/widget");
+		simpleparser::Type::registerType<TextResource>("//meworla/fontinfo");
 		//GUIController::Register(this);
 		
-		SimpleParser::Type::registerType<Geometry>("//meworla/geometry");
+		simpleparser::Type::registerType<Geometry>("//meworla/geometry");
 
 		// register mime type for shader
-		Orion::MIME::RegisterExtenstion("text/plain", "hlsl");
-		Orion::MIME::RegisterExtenstion("text/plain", "glsl");
+		orion::MIME::RegisterExtenstion("text/plain", "hlsl");
+		orion::MIME::RegisterExtenstion("text/plain", "glsl");
 
 		// register optional fabrics
 		for (auto& mod : createFabrics()) {
@@ -224,35 +224,35 @@ namespace Rhea
 			exit(-1);
 		}
 		m_fs->setLocalDir(path);
-		m_services["platform"]->setValue("AppDir", SimpleParser::Variant(path));
+		m_services["platform"]->setValue("AppDir", simpleparser::Variant(path));
 	}
 
-	void Application::onResourceFailed(Orion::ResourceRequest::Error reason)
+	void Application::onResourceFailed(orion::ResourceRequest::Error reason)
 	{
 		LOG(LOG_ERROR) << "Resource loading failed";
 	}
 
 	bool Application::onInput(EventInput* e, Unit* unit)
 	{
-		std::shared_ptr<Psio::InputEvent> evt = e->getEvent();
+		std::shared_ptr<psio::InputEvent> evt = e->getEvent();
 
 		// close on esc
-		Psio::KeyInputEvent esc(Psio::InputEventId::KEY_PRESSED);
-		esc.set(Psio::Key::CODE_ESC, 0, 0);
+		psio::KeyInputEvent esc(psio::InputEventId::KEY_PRESSED);
+		esc.set(psio::Key::CODE_ESC, 0, 0);
 
 		if (evt->isEvent(&esc)) {
 			return true;
 		}
 
 		// toggle physics service
-		esc.set(Psio::Key::CODE_F9, 0, 0);
+		esc.set(psio::Key::CODE_F9, 0, 0);
 		if (evt->isEvent(&esc)) {
 			PhysicsManagerService* mgr = static_cast<PhysicsManagerService*>(m_services["physics_mgr"]);
 			if (mgr && mgr->getPhysicsService()) mgr->getPhysicsService()->toggleDebug();
 		}
 
 		// pressed mouse button
-		Psio::MouseInputEvent btn(Psio::InputEventId::MOUSE_BTN_PRESSED);
+		psio::MouseInputEvent btn(psio::InputEventId::MOUSE_BTN_PRESSED);
 
 
 		return false;
@@ -281,8 +281,8 @@ namespace Rhea
 	{
 		// start the loop
 		int ret = 0;	
-		Psio::Engine* psio = static_cast<PlatformService*>(m_services["platform"])->getEngine();
-		std::shared_ptr<Psio::InputEvent> evt;
+		psio::Engine* psio = static_cast<PlatformService*>(m_services["platform"])->getEngine();
+		std::shared_ptr<psio::InputEvent> evt;
 		ievt_actions iea;		
 
 		int iterations_per_second = 60;
@@ -340,7 +340,7 @@ namespace Rhea
 			while (evt = psio->pollInput()) {
 
 				// always handle OS quit
-				if (evt->getId() == Psio::InputEventId::WMGR_QUIT) {
+				if (evt->getId() == psio::InputEventId::WMGR_QUIT) {
 					return true;
 				}
 
@@ -420,10 +420,10 @@ namespace Rhea
 	void Application::loadResource(const std::string resource_id, std::string type_name, std::function<void(Unit*, ReqError error)> handler)
 	{
 		log("loading resource: " + resource_id);
-		Orion::ResourceRequest* req = m_fs->getResourceByRid(resource_id);
-		req->resolve([&, handler, resource_id](Orion::ResourceRequest* req, int err) {
+		orion::ResourceRequest* req = m_fs->getResourceByRid(resource_id);
+		req->resolve([&, handler, resource_id](orion::ResourceRequest* req, int err) {
 
-			if (err == Orion::ResourceRequest::Error::OK) {
+			if (err == orion::ResourceRequest::Error::OK) {
 
 				// we got the resource
 
@@ -513,7 +513,7 @@ namespace Rhea
 
 	ConfigFile* Application::getConfig()
 	{
-		ConfigFile* config = doCast<Rhea::ConfigFile>(m_unit_tree->getChild("config"));
+		ConfigFile* config = doCast<rhea::ConfigFile>(m_unit_tree->getChild("config"));
 		return config;
 	}
 }

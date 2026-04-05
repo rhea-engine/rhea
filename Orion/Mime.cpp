@@ -1,6 +1,6 @@
 #include <Orion/Mime.h>
 
-namespace Orion
+namespace orion
 {
 	std::unordered_map<std::string, std::string> _base_mime_ext =
 	{

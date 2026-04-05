@@ -6,18 +6,18 @@
 #include "AuthBackend.h"
 #include "AuthInfo.h"
 
-class AuthorizationService : public Rhea::Service
+class AuthorizationService : public rhea::Service
 {
-	MECLASS(AuthorizationService, Rhea::Service)
+	MECLASS(AuthorizationService, rhea::Service)
 public:
 	AuthorizationService(std::string name, std::string type) :
 		m_anonymous(false),
 		m_sessions_enabled(false),
-		Rhea::Service(name, type)
+		rhea::Service(name, type)
 	{}
 	virtual ~AuthorizationService() {}
 
-	void setup(Rhea::Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
+	void setup(rhea::Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
 
 	// get the challenge for oauth2
 	void getChallenge() {}
@@ -31,7 +31,7 @@ public:
 	// get available methods for authentication
 	std::vector<std::string> getMethods() { return m_methods; }
 
-	static void RegisterFabrics(Rhea::Application* app);
+	static void RegisterFabrics(rhea::Application* app);
 
 protected:
 	std::unordered_map<std::string, Authorization*> m_authorizations;

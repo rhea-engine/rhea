@@ -10,7 +10,7 @@
 
 using std::string;
 
-namespace Psio
+namespace psio
 {
 	enum http_header
 	{
@@ -157,15 +157,15 @@ namespace Psio
 		m_ondata_handler = data_handler;
 	}
 
-	int Http::OnRequest(std::unique_ptr<Psio::StreamSocket> new_sock, RequestHandler onrequest_handler)
+	int Http::OnRequest(std::unique_ptr<psio::StreamSocket> new_sock, RequestHandler onrequest_handler)
 	{
 		m_sock = std::move(new_sock);
 		m_next_state = HTTP_TERMINALCHECK;
 		m_echo = false;
 		m_onrequest_handler = onrequest_handler;		
 
-		m_inbuf = std::make_unique<Psio::IOBuffer>(64 * 1024);
-		m_outbuf = std::make_unique<Psio::IOBuffer>(64 * 1024);
+		m_inbuf = std::make_unique<psio::IOBuffer>(64 * 1024);
+		m_outbuf = std::make_unique<psio::IOBuffer>(64 * 1024);
 
 		// start the http server state machine
 		return DoLoop(0);

@@ -10,7 +10,7 @@ add_library (RheaNet
 	"src/NetworkFabric.cpp"
 )
 
-add_library(Rhea::Network ALIAS RheaNet)
+add_library(rhea::Network ALIAS RheaNet)
 
 target_include_directories(RheaNet PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}/include

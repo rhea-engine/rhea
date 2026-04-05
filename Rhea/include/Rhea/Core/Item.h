@@ -11,7 +11,7 @@
 #include <Rhea/Components/VisualComponent.h>
 #include <Rhea/Components/MovementListenerComponent.h>
 
-namespace Rhea
+namespace rhea
 {
 	class Application;
 	class Mesh;
@@ -59,16 +59,16 @@ namespace Rhea
 		// update on frame
 		virtual void onFrame(float delta);
 
-		virtual void setPosition(Rhea::Position& position);
-		virtual void setPosition(Math::Vector3 position);
+		virtual void setPosition(rhea::Position& position);
+		virtual void setPosition(math::Vector3 position);
 
 		// set direction
-		virtual void setLookAt(Math::Vector3 look_at);
+		virtual void setLookAt(math::Vector3 look_at);
 
 		// movement
-		virtual void setMovement(Math::Vector3 move);
+		virtual void setMovement(math::Vector3 move);
 		virtual void setTurn(float turn);
-		Math::Vector3 getMovement() { return m_movement; }
+		math::Vector3 getMovement() { return m_movement; }
 		float getTurn() { return m_turn; }
 		virtual void jump() {}
 
@@ -91,7 +91,7 @@ namespace Rhea
 
 	protected:
 		PhysicsBody* m_physics_body; // cached - not owned
-		Math::Vector3 m_movement;
+		math::Vector3 m_movement;
 		float m_turn;				
 		std::vector<MovementListenerComponent*> m_movement_listeners;
 		bool m_is_renderable;

@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <string>
 
-namespace Psio
+namespace psio
 {
 	class Http;
 

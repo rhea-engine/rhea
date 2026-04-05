@@ -8,7 +8,7 @@
 
 #include <Rhea/Core/Item.h>
 
-namespace Rhea
+namespace rhea
 {
 	class ImageResource;
 	class Unit;
@@ -44,18 +44,18 @@ namespace Rhea
 		// load terrain
 		void ready();
 		
-		Math::Vector3 calculateNormal(int x, int y);
+		math::Vector3 calculateNormal(int x, int y);
 
 	protected:
 		int m_width;
 		int m_length;
 		float m_min_height;
 		float m_max_height;
-		std::unique_ptr<Poseidon::Image> m_heightmap;
+		std::unique_ptr<poseidon::Image> m_heightmap;
 		float* m_heights;
 		Material* m_material;
 		
-		static float barryCentric(Math::Vector3 p1, Math::Vector3 p2, Math::Vector3 p3, float x, float z);			
+		static float barryCentric(math::Vector3 p1, math::Vector3 p2, math::Vector3 p3, float x, float z);			
 	};
 }
 

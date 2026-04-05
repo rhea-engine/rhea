@@ -1,8 +1,8 @@
 #include "Hermes/Messages/MessageAvatarList.h"
 #include <Psio/Net/Network.h>
 
-namespace Hermes {
-	void MessageAvatarList::serialize(Psio::IOBuffer* buf)
+namespace hermes {
+	void MessageAvatarList::serialize(psio::IOBuffer* buf)
 	{
 		BaseMessage* bmsg = (BaseMessage*)buf->writer();
 		uint16_t nof_avatars = (uint16_t)avatars.size();
@@ -24,7 +24,7 @@ namespace Hermes {
 		bmsg->size = htons(sizeof(BaseMessage) + (uint16_t)size);
 	}
 
-	void MessageAvatarList::unserialize(Psio::IOBuffer* buf)
+	void MessageAvatarList::unserialize(psio::IOBuffer* buf)
 	{
 		uint16_t nof_avatars = readS(buf);
 		for (int i = 0; i < nof_avatars; i++) {
@@ -35,7 +35,7 @@ namespace Hermes {
 		}
 	}
 
-	Message* MessageAvatarList::create(uint16_t opcode, uint16_t size, Psio::IOBuffer* buf)
+	Message* MessageAvatarList::create(uint16_t opcode, uint16_t size, psio::IOBuffer* buf)
 	{
 		MessageAvatarList* msg;
 		msg = new MessageAvatarList();

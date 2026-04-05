@@ -5,7 +5,7 @@
 
 #include "RealmJson.h"
 
-namespace Orion
+namespace orion
 {
 	RealmRequest::RealmRequest(Orion* orion,std::deque<std::string>& iris) :
 		m_error(0),
@@ -24,12 +24,12 @@ namespace Orion
 	
 	void RealmRequest::Lookup(std::string realm_name, RealmHandler handler)
 	{
-		m_request = new Psio::UrlRequest(m_orion->getIO());		
+		m_request = new psio::UrlRequest(m_orion->getIO());		
 		// call UrlRequest
-		m_request->OnResponse([handler](Psio::UrlResponse* res) {
+		m_request->OnResponse([handler](psio::UrlResponse* res) {
 			// got a response
 			// try reading the body in IOBuffer buf
-			Psio::IOBuffer* buf = new Psio::IOBuffer(64 * 1024);
+			psio::IOBuffer* buf = new psio::IOBuffer(64 * 1024);
 			res->onEnd([buf, handler](size_t bytes_read) {
 				// success -  we got the result in body
 				// the result is json -> parse it

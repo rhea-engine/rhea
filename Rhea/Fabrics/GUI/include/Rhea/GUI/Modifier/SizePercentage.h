@@ -5,12 +5,12 @@
 #include "../Widget.h"
 #include <Math/Vector2.h>
 
-namespace Rhea {
+namespace rhea {
 
 	class SizePercentageModifier : public Modifier
 	{
 	public:
-		SizePercentageModifier(Math::Vector2 size) :
+		SizePercentageModifier(math::Vector2 size) :
 			m_size(size)
 		{}
 
@@ -50,7 +50,7 @@ namespace Rhea {
 		std::string name() { return "size_percentage"; }
 
 	protected:
-		Math::Vector2 m_size;
+		math::Vector2 m_size;
 	};
 }
 

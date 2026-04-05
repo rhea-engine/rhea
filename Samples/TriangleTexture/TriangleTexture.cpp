@@ -6,15 +6,15 @@
 
 #include "TriangleTexture.h"
 
-using Hippios::vertex_uv;
-using Poseidon::Viewport;
+using hippios::vertex_uv;
+using poseidon::Viewport;
 
 void TriangleTextureApp::setup()
 {
-	Rhea::Application::setup();
+	rhea::Application::setup();
 
 	m_scene = core->get_scene_manager();
-	Poseidon::Material* material = core->createMaterial();
+	poseidon::Material* material = core->createMaterial();
 	material->setType(1);
 	if (!material->loadFromFile("Data\\Rhea\\shaders\\uvshader.hlsl", "vs", "VShader"))
 		exit(-1);
@@ -26,13 +26,13 @@ void TriangleTextureApp::setup()
 
 void TriangleTextureApp::initialize()
 {
-	Poseidon::Mesh* mesh;	
+	poseidon::Mesh* mesh;	
 
 	const int num_faces = 12;
 	const int num_vertices = 24;
 	Viewport* viewport = core->get_scene_manager()->getViewport();
 
-	Hippios::vertex_uv OurVertices[num_vertices] = {
+	hippios::vertex_uv OurVertices[num_vertices] = {
 		// Front Face
 		vertex_uv(-1.0f, -1.0f, -1.0f, 0.0f, 1.0f),
 		vertex_uv(-1.0f,  1.0f, -1.0f, 0.0f, 0.0f),
@@ -79,9 +79,9 @@ void TriangleTextureApp::initialize()
 		vertices.push_back(OurVertices[i++]);
 	}
 
-	mesh = new Poseidon::Mesh();
+	mesh = new poseidon::Mesh();
 	mesh->setViewport(viewport);
-	mesh->setVertices(sizeof(Hippios::vertex_uv), num_vertices, OurVertices);	
+	mesh->setVertices(sizeof(hippios::vertex_uv), num_vertices, OurVertices);	
 
 	
 	// Load the index array with data.
@@ -119,7 +119,7 @@ void TriangleTextureApp::initialize()
 	mesh->setIndices(sizeof(unsigned long), num_faces, indices);
 
 	// load texture
-	Poseidon::Texture* tex;
+	poseidon::Texture* tex;
 	tex = core->createTexture("Samples\\assets\\images\\kies.png");
 	mesh->addTexture(tex);
 }

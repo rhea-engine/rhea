@@ -6,21 +6,20 @@
 #include <Rhea/Core/Material.h>
 #include <functional>
 
-namespace Rhea
-{
+namespace rhea::client {
     class MaterialGpuCache {
     public:
-        using Builder = std::function<bool(Poseidon::Core*, Material*, Poseidon::Material*, bool)>;
+        using Builder = std::function<bool(poseidon::Core*, rhea::Material* , poseidon::Material*, bool)>;
 
-        Poseidon::Material* getOrCreate(Poseidon::Core* core, Material* m, const Builder& builder);
+        poseidon::Material* getOrCreate(poseidon::Core* core, rhea::Material* m, const Builder& builder);
 
     private:
         struct Entry {
-            std::unique_ptr<Poseidon::Material> mat;
+            std::unique_ptr<poseidon::Material> mat;
             std::string shaderName;
             std::vector<std::string> textureKeys;
         };
-        std::vector<std::string> collectTexKeys(Material* material);
+        std::vector<std::string> collectTexKeys(rhea::Material* material);
         std::unordered_map<std::string, Entry> m_entries; // key: material pathName
     };
 }

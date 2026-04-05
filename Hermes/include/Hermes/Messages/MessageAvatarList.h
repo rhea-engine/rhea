@@ -5,7 +5,7 @@
 #include "../Opcode.h"
 #include <vector>
 
-namespace Hermes
+namespace hermes
 {
 	class MessageAvatarList : public Message
 	{
@@ -14,10 +14,10 @@ namespace Hermes
 			Message(HERMES_MSG_AVATARLIST)
 		{}
 
-		void serialize(Psio::IOBuffer* buf);
-		void unserialize(Psio::IOBuffer* buf);
+		void serialize(psio::IOBuffer* buf);
+		void unserialize(psio::IOBuffer* buf);
 
-		static Message* create(uint16_t opcode, uint16_t size, Psio::IOBuffer* buf);
+		static Message* create(uint16_t opcode, uint16_t size, psio::IOBuffer* buf);
 		
 		void addAvatar(std::string& avatar_name, std::string& type_name);
 

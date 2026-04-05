@@ -1,7 +1,7 @@
 #include "Poseidon/Poseidon.h"
 #include <Rhea/Service.h>
-#include <Rhea/Graphics/GraphicsManager.h>
-#include <Rhea/Graphics/GraphicsService.h>
+#include <RheaClient/Graphics/GraphicsManager.h>
+#include <RheaClient/Graphics/GraphicsService.h>
 #include <Rhea/Core/Controller.h>
 #include <Psio/Log.h>
 #include <Rhea/Platform/PlatformService.h>
@@ -13,19 +13,19 @@
 #include <Rhea/Physics/PhysicsService.h>
 #include <cstring> // for memset
 
-using Rhea::GraphicsService;
-using Rhea::Service;
+using rhea::client::GraphicsService;
+using rhea::Service;
 
-namespace Poseidon
+namespace poseidon
 {
 	void Application::init(int argc, char* argv[])
 	{
-		Rhea::Application::init(argc, argv);
+		rhea::Application::init(argc, argv);
 
-		SimpleParser::Type::registerType<Rhea::Controller>("//meworla/icontroller");
-		SimpleParser::Type::registerType<Rhea::Unit>("//meworla/avatarlist");
+		simpleparser::Type::registerType<rhea::Controller>("//meworla/icontroller");
+		simpleparser::Type::registerType<rhea::Unit>("//meworla/avatarlist");
 	
-		GraphicsService* g_service = static_cast<Rhea::GraphicsService*>(getService("graphics"));
+		GraphicsService* g_service = static_cast<rhea::client::GraphicsService*>(getService("graphics"));
 		if (g_service) {
 			core = g_service->getEngine();
 			core->setAppname(m_appname);
@@ -35,16 +35,16 @@ namespace Poseidon
 		std::unordered_map<std::string, std::string> attributes;
 		std::unordered_map<std::string, Variant> values;
 		
-		Rhea::Unit* engine = m_unit_tree->createUnit("engine", "//core/types/unit", attributes, values);
+		rhea::Unit* engine = m_unit_tree->createUnit("engine", "//core/types/unit", attributes, values);
 		m_unit_tree->addChild(engine);		
 	}
 
 	void Application::setup()
 	{
-		Rhea::Application::setup();
+		rhea::Application::setup();
 
 		// load core resources
-		Rhea::ResourceList res_list(this);
+		rhea::ResourceList res_list(this);
 
 		// load shaders
 		res_list.push("standard_shader", "//rhea/shaders/standard.shader", "//meworla/shader");
@@ -54,29 +54,29 @@ namespace Poseidon
 		res_list.push("skeletal_shader", "//rhea/shaders/skeletal.shader", "//meworla/shader");
 
 		// skybox		
-		Hippios::DepthStencilStateDesc dss;
+		hippios::DepthStencilStateDesc dss;
 		std::memset(&dss, 0, sizeof(dss));
 		dss.depth_enable = true;
-		dss.depth_write_mask = Hippios::DepthWriteMask::DEPTH_WRITE_ALL;
-		dss.depth_func = Hippios::ComparisonFunction::COMPARE_LESS_EQUAL;
+		dss.depth_write_mask = hippios::DepthWriteMask::DEPTH_WRITE_ALL;
+		dss.depth_func = hippios::ComparisonFunction::COMPARE_LESS_EQUAL;
 		doCast<GraphicsService>(getService("graphics"))->getEngine()->get_renderer()->createStencilState("skybox", dss);
 		res_list.push("skybox_shader", "//rhea/shaders/skybox.shader", "//meworla/shader");
 
 		// note: for locally installed resources this is actually synchronous
-		static_cast<Rhea::ResourceService*>(getService("resources"))->loadAsync(res_list, nullptr);
+		static_cast<rhea::ResourceService*>(getService("resources"))->loadAsync(res_list, nullptr);
 	}
 
-	void Application::onScene(Rhea::Scene* scene)
+	void Application::onScene(rhea::Scene* scene)
 	{
 		log("scene displayed");
-		std::unique_ptr<Rhea::Event> ev_r = std::make_unique<Rhea::Event>("ready", scene);
+		std::unique_ptr<rhea::Event> ev_r = std::make_unique<rhea::Event>("ready", scene);
 		scene->sendEvent(std::string("ready"), ev_r.get());
 
 		m_phys_debug = scene->getValue("debug_physics");
 
 		if (m_phys_debug) {
 
-			auto* mgr = doCast<Rhea::PhysicsManagerService>(getService("physics_mgr"));
+			auto* mgr = doCast<rhea::PhysicsManagerService>(getService("physics_mgr"));
 			auto* ps = mgr ? mgr->getPhysicsService() : nullptr;
 
 			auto* m_debug_draw = ps ? ps->debugDraw() : nullptr;			

@@ -25,9 +25,9 @@ public:
 
 protected:
 	Registry* m_registry;
-	std::unique_ptr<Psio::TCPSocket> m_server_sock;
+	std::unique_ptr<psio::TCPSocket> m_server_sock;
 	Middleware* m_middleware;
-	std::unique_ptr<Psio::Network> m_network;
+	std::unique_ptr<psio::Network> m_network;
 
 };
 

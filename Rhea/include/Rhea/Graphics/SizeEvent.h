@@ -3,7 +3,7 @@
 
 #include "../Event.h"
 
-namespace Rhea
+namespace rhea
 {
 	class SizeEvent :
 		public Event

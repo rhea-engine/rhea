@@ -1,11 +1,11 @@
 #include <Orion/FileCollection.h>
 
-namespace Orion
+namespace orion
 {
 	FileCollection::FileCollection(std::string path) :
 		m_end(false)
 	{
-		m_handle.reset(Psio::Fs::openDirectory(path));
+		m_handle.reset(psio::Fs::openDirectory(path));
 	}
 
 	FileCollection::~FileCollection()
@@ -16,13 +16,13 @@ namespace Orion
 	{
 		if (m_handle && !m_end) {
 			Entry* entry = nullptr;
-			Psio::Fs::FileAttributes attributes;
-			int ret = Psio::Fs::readEntry(m_handle.get(), &attributes);
+			psio::Fs::FileAttributes attributes;
+			int ret = psio::Fs::readEntry(m_handle.get(), &attributes);
 			if (!ret) {
 				entry = new Entry();
 				entry->name = attributes.name;
 				entry->length = attributes.size;
-				if (!Psio::Fs::nextEntry(m_handle.get())) {
+				if (!psio::Fs::nextEntry(m_handle.get())) {
 					m_end = true;
 					m_handle.reset();
 				}

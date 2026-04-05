@@ -8,7 +8,7 @@
 
 #include "../UrlRequest/Url.h"
 
-namespace Psio
+namespace psio
 {
 	class HttpHeaders
 	{

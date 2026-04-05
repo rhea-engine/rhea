@@ -1,9 +1,10 @@
-{
-  "vendor": "Meworla",
-  "name": "RheaNet",
+{ 
+  "id": "rhea/network",
+  "displayName": "Rhea Network",
+  "author": "Meworla",
   "version": "0.9.0",
   "dependencies": {
-    "Meworla/Rhea": "0.9.0",
-    "Meworla/Hermes": "0.9.0"
+    "rhea/core": "0.9.0",
+    "meworla/hermes": "0.9.0"
   }
 }

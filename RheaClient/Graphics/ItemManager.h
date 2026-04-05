@@ -6,13 +6,15 @@
 #include <Poseidon/RenderContext.h>
 
 #include <Rhea/Element.h>
-#include <Rhea/Graphics/GraphicsManager.h>
+#include <RheaClient/Graphics/GraphicsManager.h>
 
-namespace Rhea
-{
+namespace rhea {
+	class Event;
 	class Unit;
 	class Item;
-
+}
+namespace rhea::client {
+	
 	class GraphicsItemManager : public GraphicsManager
 	{
 	public:
@@ -22,16 +24,16 @@ namespace Rhea
 		~GraphicsItemManager();
 
 		// create an element for this unit
-		bool Ensure(Poseidon::Core* core, Unit* unit);
+		bool Ensure(poseidon::Core* core, rhea::Unit* unit);
 
 		// handle update event
-		bool onUpdate(Event* ev, Unit* unit);
+		bool onUpdate(rhea::Event* ev, rhea::Unit* unit);
 
 		// handle frame update
 		void onFrame() {};
 
 		// handle deletion event
-		bool onItemDelete(Event* ev, Unit* unit);
+		bool onItemDelete(rhea::Event* ev, rhea::Unit* unit);
 	};
 }
 

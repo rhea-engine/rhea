@@ -4,7 +4,7 @@
 #include "InputEvent.h"
 #include <string>
 
-namespace Psio
+namespace psio
 {
 	
 

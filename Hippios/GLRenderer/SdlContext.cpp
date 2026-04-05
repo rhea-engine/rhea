@@ -4,7 +4,7 @@
 #include <Psio/Log.h>
 #include "GLRenderer.h"
 
-namespace Hippios
+namespace hippios
 {
 	SdlGlContext::SdlGlContext(GLRenderer* renderer) :
 		m_renderer(renderer)

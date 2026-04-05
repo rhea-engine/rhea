@@ -1,4 +1,4 @@
-#include <MySelf/{{PROJECT_NAME}}/{{PROJECT_NAME}}.h>
+#include <{{INCLUDE_PREFIX}}/{{PROJECT_NAME}}.h>
 #include <Rhea/Physics/PhysicsManagerService.h>
 #include <Rhea/Physics/PhysicsService.h>
 #include <Psio/Log.h>
@@ -15,9 +15,9 @@
 {
 }
 
-void {{PROJECT_NAME}}::showScene(Rhea::Scene* scene)
+void {{PROJECT_NAME}}::showScene(rhea::Scene* scene)
 {
-	auto* mgr = static_cast<Rhea::PhysicsManagerService*>(getService("physics_mgr"));
+	auto* mgr = static_cast<rhea::PhysicsManagerService*>(getService("physics_mgr"));
 	if (!mgr) {
 		LOG(LOG_ERROR) << "physics_mgr missing";
 		return;
@@ -62,8 +62,8 @@ int main(int argc, char* argv[])
 
 	app->setup();
 
-	app->loadResource("//{{PROJECT_NAME_LOWER}}/world.scene", "meworla/scene", [&, app](Rhea::Unit* scene, ReqError error) {
-		Rhea::Scene* world_scene = doCast<Rhea::Scene>(scene);
+	app->loadResource("//{{PROJECT_NAME_LOWER}}/world.scene", "meworla/scene", [&, app](rhea::Unit* scene, ReqError error) {
+		rhea::Scene* world_scene = doCast<rhea::Scene>(scene);
 		if (world_scene) {
 			app->showScene(world_scene);
 		}

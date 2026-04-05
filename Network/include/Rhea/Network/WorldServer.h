@@ -6,12 +6,12 @@
 #include <Hermes/Messages/MessageTurn.h>
 #include <Rhea/Core/Item.h>
 
-namespace Rhea
+namespace rhea
 {
 	class WorldServer
 	{
 	public:
-		WorldServer(Hermes::Stream* stream) : 
+		WorldServer(hermes::Stream* stream) : 
 			m_stream(stream),
 			m_state(CONN_NONE),
 			m_player(nullptr)
@@ -19,7 +19,7 @@ namespace Rhea
 
 		void Initialize();
 
-		void setPlayer(Rhea::Item* player) { m_player = player; }
+		void setPlayer(rhea::Item* player) { m_player = player; }
 
 		void Start();
 		void Stop() { m_state = CONN_NONE; }
@@ -33,11 +33,11 @@ namespace Rhea
 
 		CONN_STATE m_state;
 
-		void onMoveMessage(Hermes::MessageMove* move_msg);
-		void onTurnMessage(Hermes::MessageTurn* turn_msg);
+		void onMoveMessage(hermes::MessageMove* move_msg);
+		void onTurnMessage(hermes::MessageTurn* turn_msg);
 
-		Hermes::Stream* m_stream;
-		Rhea::Item* m_player;
+		hermes::Stream* m_stream;
+		rhea::Item* m_player;
 	};
 }
 

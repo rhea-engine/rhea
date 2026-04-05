@@ -4,7 +4,7 @@
 #include <Rhea/Core/Position.h>
 #include <Rhea/Core/Item.h>
 
-namespace Rhea
+namespace rhea
 {
 	/* a character that is controlled by the player or some program
 	 *
@@ -53,7 +53,7 @@ namespace Rhea
 
 	protected:
 		MoveState m_move_state;
-		Math::Vector3 m_forced_movement;
+		math::Vector3 m_forced_movement;
 		Position* m_position;
 		float m_gravity;
 		float m_upwards;

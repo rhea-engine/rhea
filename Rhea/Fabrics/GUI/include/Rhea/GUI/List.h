@@ -6,7 +6,7 @@
 #include "ListItem.h"
 #include <Rhea/UnitTree.h>
 
-namespace Rhea
+namespace rhea
 {
 	class ListWidget : public Widget
 	{

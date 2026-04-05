@@ -1,7 +1,7 @@
 #include "D3D11BlendState.h"
 #include <Psio/Log.h>
 
-namespace Hippios
+namespace hippios
 {
 	D3D11BlendState::D3D11BlendState(ID3D11Device* device, const BlendStateDesc& desc)
 	{

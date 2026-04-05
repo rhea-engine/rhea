@@ -6,9 +6,9 @@
 #include <Rhea/Core/Item.h>
 #include <Math/Vector2.h>
 
-using Math::Vector2;
+using math::Vector2;
 
-namespace Rhea
+namespace rhea
 {
 	class Item2D : public Item
 	{
@@ -22,8 +22,8 @@ namespace Rhea
 			m_position(0.0f, 0.0f),
 			m_bg_image(nullptr),
 			m_material_dirty(false),
-			m_tiling(Math::Vector2(1.0f, 1.0f)),
-			m_scaling(Math::Vector2(1.0f, 1.0f)),
+			m_tiling(math::Vector2(1.0f, 1.0f)),
+			m_scaling(math::Vector2(1.0f, 1.0f)),
 			m_viewport_width(0),
 			m_viewport_height(0),
 			Item(name, type_name)
@@ -68,7 +68,7 @@ namespace Rhea
 		Vector2 m_scaling;
 
 		// background-color
-		Math::Vector4 m_bg_color;
+		math::Vector4 m_bg_color;
 
 		// background image
 		ImageResource* m_bg_image;

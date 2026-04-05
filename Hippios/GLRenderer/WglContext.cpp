@@ -42,7 +42,7 @@ namespace
 	}
 }
 
-namespace Hippios
+namespace hippios
 {
 	WglContext::WglContext(GLRenderer* renderer) :
 		m_renderer(renderer)

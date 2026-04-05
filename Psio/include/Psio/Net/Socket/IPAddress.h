@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-namespace Psio
+namespace psio
 {
 	class IPAddress
 	{

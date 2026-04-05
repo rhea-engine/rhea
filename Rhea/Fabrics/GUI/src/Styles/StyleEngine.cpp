@@ -1,7 +1,7 @@
 #include <Rhea/GUI/Styles/StyleEngine.h>
 #include <Rhea/GUI/Styles/StyleSheet.h>
 
-namespace Rhea
+namespace rhea
 {
 	void StyleEngine::AppendStylesheet(StyleSheet* sheet)
 	{
@@ -13,15 +13,15 @@ namespace Rhea
             // TODO Add selector based on full sequence 
             // e.g with: for (const auto& selector : rule.selector) 
             if (rule.selector.size() > 0 && rule.selector[0].sequence.size() > 0) {
-                SimpleParser::CssParser::SimpleSelector simple_sel = rule.selector[0].sequence[0];
+                simpleparser::CssParser::SimpleSelector simple_sel = rule.selector[0].sequence[0];
 
-                if (simple_sel.type == SimpleParser::CssParser::SimpleSelectorType::kClass) {
+                if (simple_sel.type == simpleparser::CssParser::SimpleSelectorType::kClass) {
                     m_class_rules[simple_sel.name] = rule.properties;
                 }
-                else if (simple_sel.type == SimpleParser::CssParser::SimpleSelectorType::kId) {
+                else if (simple_sel.type == simpleparser::CssParser::SimpleSelectorType::kId) {
                     m_name_rules[simple_sel.name] = rule.properties;
                 }
-                else if (simple_sel.type == SimpleParser::CssParser::SimpleSelectorType::kType) {
+                else if (simple_sel.type == simpleparser::CssParser::SimpleSelectorType::kType) {
                     m_type_rules[simple_sel.name] = rule.properties;
                 }
             }

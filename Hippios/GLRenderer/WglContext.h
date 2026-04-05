@@ -4,7 +4,7 @@
 #include "GLContext.h"
 #include "GLIncludes.h"
 
-namespace Hippios
+namespace hippios
 {
 	class GLRenderer;
 

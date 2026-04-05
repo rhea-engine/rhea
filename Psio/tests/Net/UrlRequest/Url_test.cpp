@@ -3,7 +3,7 @@
 
 #include "Url.h"
 
-namespace Psio {
+namespace psio {
 
 	// test for empty url
 	TEST(URLTest, Empty) {

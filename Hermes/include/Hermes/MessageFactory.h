@@ -7,17 +7,17 @@
 #include <Psio/Net/IOBuffer.h>
 
 
-namespace Hermes
+namespace hermes
 {
 	class MessageFactory
 	{
 	public:
-		typedef std::function<Message*(uint16_t, uint16_t, Psio::IOBuffer*)> CreatorFunction;
+		typedef std::function<Message*(uint16_t, uint16_t, psio::IOBuffer*)> CreatorFunction;
 		typedef std::function<void(Message*)> HandlerCaller;
 		typedef std::function<bool(uint16_t)> MessageFilter;
 		
 		void registerMessageType(uint16_t opcode, std::string name, CreatorFunction creator);
-		Message* getMessage(Psio::IOBuffer* buf);
+		Message* getMessage(psio::IOBuffer* buf);
 		// helper for core messages
 		void registerCoreMessages();
 

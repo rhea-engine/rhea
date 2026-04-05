@@ -5,7 +5,7 @@
 #include <Hippios/BaseTypes.h>
 #include <vector>
 
-namespace Hippios
+namespace hippios
 {
     struct ShaderProgramDesc
     {

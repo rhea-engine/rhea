@@ -6,7 +6,7 @@
 #include "RegistryFileParser.h"
 #include "Entry.h"
 
-using SimpleParser::TokenType;
+using simpleparser::TokenType;
 
 char* RegistryFileParser::getErrMsg(Error err)
 {
@@ -35,19 +35,19 @@ char* RegistryFileParser::getErrMsg(Error err)
 
 RegistryFileParser::Error RegistryFileParser::parseHeader(char* buf, size_t& reader, size_t buflen, int &line, std::string& path)
 {
-	SimpleParser::Token token;
-	SimpleParser::SimpleParser::Error err;
+	simpleparser::Token token;
+	simpleparser::SimpleParser::Error err;
 
 	int state = 0;
 
 	while (reader < buflen) {
 		err = parser->nextToken(buf, reader, buflen, line, token);
-		if (err >= SimpleParser::SimpleParser::Error::PARSE_ERR)
+		if (err >= simpleparser::SimpleParser::Error::PARSE_ERR)
 			return Error::PARSE_ERROR;
 		else {
 			switch (state) {
 			case 0:
-				if (err == SimpleParser::SimpleParser::Error::PARSE_EOF)
+				if (err == simpleparser::SimpleParser::Error::PARSE_EOF)
 					return Error::PARSE_EOF;
 				else {
 					if (token.type == TokenType::TOKEN_LEFT_BRACKET) {
@@ -61,7 +61,7 @@ RegistryFileParser::Error RegistryFileParser::parseHeader(char* buf, size_t& rea
 				}
 				break;
 			case 1: // path
-				if (err == SimpleParser::SimpleParser::Error::PARSE_EOF ||
+				if (err == simpleparser::SimpleParser::Error::PARSE_EOF ||
 					(token.type != TokenType::TOKEN_IDENTIFIER) && 
 					(token.type != TokenType::TOKEN_STRING))
 					return Error::PARSE_EXPECT_HEADER_IDENTIFIER;
@@ -71,7 +71,7 @@ RegistryFileParser::Error RegistryFileParser::parseHeader(char* buf, size_t& rea
 				}
 				break;
 			case 2:
-				if (err == SimpleParser::SimpleParser::Error::PARSE_EOF ||
+				if (err == simpleparser::SimpleParser::Error::PARSE_EOF ||
 					token.type != TokenType::TOKEN_RIGHT_BRACKET) {
 					return Error::PARSE_EXPECT_HEADER_END;
 				}
@@ -104,18 +104,18 @@ RegistryFileParser::Error RegistryFileParser::parseContent(char* buf, size_t& re
 
 RegistryFileParser::Error RegistryFileParser::parseContentEntry(char* buf, size_t& reader, size_t buflen, int &line, std::string& key, std::string &value)
 {
-	SimpleParser::Token token;
-	SimpleParser::SimpleParser::Error err;
+	simpleparser::Token token;
+	simpleparser::SimpleParser::Error err;
 
 	int state = 0;
 	while (reader < buflen) {
 		err = parser->nextToken(buf, reader, buflen, line, token);
-		if (err >= SimpleParser::SimpleParser::Error::PARSE_ERR)
+		if (err >= simpleparser::SimpleParser::Error::PARSE_ERR)
 			return Error::PARSE_ERROR;
 		else {
 			switch (state) {
 			case 0:
-				if (err == SimpleParser::SimpleParser::Error::PARSE_EOF)
+				if (err == simpleparser::SimpleParser::Error::PARSE_EOF)
 					return Error::PARSE_EOF;
 				else {
 					if (token.type == TokenType::TOKEN_LEFT_BRACKET) {
@@ -134,7 +134,7 @@ RegistryFileParser::Error RegistryFileParser::parseContentEntry(char* buf, size_
 				}
 				break;
 			case 1: // assign
-				if (err == SimpleParser::SimpleParser::Error::PARSE_EOF ||
+				if (err == simpleparser::SimpleParser::Error::PARSE_EOF ||
 					token.type != TokenType::TOKEN_EQUEAL)
 					return Error::PARSE_EXPECT_ASSIGN;
 				else {
@@ -142,7 +142,7 @@ RegistryFileParser::Error RegistryFileParser::parseContentEntry(char* buf, size_
 				}
 				break;
 			case 2:
-				if (err == SimpleParser::SimpleParser::Error::PARSE_EOF) {
+				if (err == simpleparser::SimpleParser::Error::PARSE_EOF) {
 					// an empty value is allowed
 					value = "";
 					return Error::PARSE_EOF;
@@ -203,8 +203,8 @@ enum class REGFILE_STATE {
 int RegistryFileParser::parse(char* buf, size_t buflen)
 {
 	Entry* entry;
-	parser = std::make_unique<SimpleParser::SimpleParser>();
-	SimpleParser::Token next_token;
+	parser = std::make_unique<simpleparser::SimpleParser>();
+	simpleparser::Token next_token;
 	Error err;
 	std::string path;
 	int line = 1;

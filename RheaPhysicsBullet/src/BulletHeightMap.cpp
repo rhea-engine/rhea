@@ -10,15 +10,15 @@
 #undef min
 #undef max
 
-namespace Rhea
+namespace rhea::physics::bullet
 {
-	BulletHeightMap::BulletHeightMap(btDynamicsWorld* world, Item* item, const PhysicsBodyDesc& desc) :
+	BulletHeightMap::BulletHeightMap(btDynamicsWorld* world, rhea::Item* item, const rhea::PhysicsBodyDesc& desc) :
 		m_width(0),
 		m_height(0),
 		m_shape(nullptr),
 		BulletPhysicsBody(world, item, desc)
 	{
-		Unit* heightmap = static_cast<Terrain*>(item)->getHeightmap();
+		rhea::Unit* heightmap = static_cast<rhea::Terrain*>(item)->getHeightmap();
 		bool flipZ = true;
 		m_isStatic = true; // static heightmap
 		
@@ -30,15 +30,15 @@ namespace Rhea
 			float min_height = 0.0f;
 			float max_height = 0.0f;
 
-			m_image = std::make_unique<Poseidon::Image>();
-			if (static_cast<Resource*>(heightmap)->getRaw((char**)&buf, &buflen)) {
+			m_image = std::make_unique<poseidon::Image>();
+			if (static_cast<rhea::Resource*>(heightmap)->getRaw((char**)&buf, &buflen)) {
 				m_image->load(buf, buflen);
 				m_width = m_image->getWidth();
 				m_height = m_image->getHeight();
 				if (!flipZ) {
 					for (size_t h = 0; h < (size_t)m_height; h++) {
 						for (size_t w = 0; w < (size_t)m_width; w++) {
-							Poseidon::Image::Color c = m_image->getPixel(w, h);
+							poseidon::Image::Color c = m_image->getPixel(w, h);
 							unsigned char grey = (unsigned char)(0.299 * c.r + 0.587 * c.g + 0.114 * c.b);
 							min_height = std::min((float)grey, min_height);
 							max_height = std::max((float)grey, max_height);
@@ -50,7 +50,7 @@ namespace Rhea
 				else {
 					for (int h = m_height - 1; h >= 0; h--) {
 						for (size_t w = 0; w < (size_t)m_width; w++) {
-							Poseidon::Image::Color c = m_image->getPixel(w, h);
+							poseidon::Image::Color c = m_image->getPixel(w, h);
 							unsigned char grey = (unsigned char)(0.299 * c.r + 0.587 * c.g + 0.114 * c.b);
 							min_height = std::min((float)grey, min_height);
 							max_height = std::max((float)grey, max_height);

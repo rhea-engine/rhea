@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <string>
 
-namespace Hermes
+namespace hermes
 {
 	class Message
 	{
@@ -16,11 +16,11 @@ namespace Hermes
 		Message(uint16_t opcode);
 		virtual ~Message() {}
 
-		virtual void serialize(Psio::IOBuffer* buf);
+		virtual void serialize(psio::IOBuffer* buf);
 
 		uint16_t getOpcode() { return base.opcode; }
 
-		static Message* create(uint16_t opcode, uint16_t size, Psio::IOBuffer* buf);
+		static Message* create(uint16_t opcode, uint16_t size, psio::IOBuffer* buf);
 
 		uint16_t getSize() { return base.size; }
 
@@ -39,10 +39,10 @@ namespace Hermes
 		int write(char* buf, std::string str);
 		int write(char* buf, float f);
 
-		uint32_t readL(Psio::IOBuffer* buf);
-		uint16_t readS(Psio::IOBuffer* buf);
-		std::string readStr(Psio::IOBuffer* buf);
-		float readF(Psio::IOBuffer* buf);
+		uint32_t readL(psio::IOBuffer* buf);
+		uint16_t readS(psio::IOBuffer* buf);
+		std::string readStr(psio::IOBuffer* buf);
+		float readF(psio::IOBuffer* buf);
 
 	};
 }

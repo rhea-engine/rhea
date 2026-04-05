@@ -4,7 +4,7 @@
 #include <Hippios/DepthBuffer.h>
 #include "GLIncludes.h"
 
-namespace Hippios
+namespace hippios
 {
 	class GLDepthBuffer : public DepthBuffer
 	{

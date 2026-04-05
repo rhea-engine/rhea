@@ -7,15 +7,15 @@
 #include "Rhea/Media/ImageLoader.h"
 #include "Rhea/Resources/ImageResource.h"
 
-namespace Rhea
+namespace rhea
 {
-	void ImageLoader::load(std::string name, Application* app, Orion::ResourceRequest* req, Resource::LoadedHandler handler)
+	void ImageLoader::load(std::string name, Application* app, orion::ResourceRequest* req, Resource::LoadedHandler handler)
 	{
 		if (req) {
 
-			Psio::IOBuffer* buf = new Psio::IOBuffer(64 * 1024);
-			Psio::Stream* rs = req->getStream();
-			rs->SetMode(Psio::Fs::READ | Psio::Fs::BINARY);
+			psio::IOBuffer* buf = new psio::IOBuffer(64 * 1024);
+			psio::Stream* rs = req->getStream();
+			rs->SetMode(psio::Fs::READ | psio::Fs::BINARY);
 			rs->onEnd([name, app, buf, handler](size_t bytes_read) {
 				ImageResource* img = new ImageResource(name);
 				char* dest = (char*)malloc(buf->Remaining());

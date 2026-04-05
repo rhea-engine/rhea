@@ -2,12 +2,12 @@
 #include "SimpleParser/Type.h"
 
 
-namespace Rhea
+namespace rhea
 {
 	Unit* UnitTree::createUnit(std::string basename, std::string type_name)
 	{
-		Unit* unit = static_cast<Unit*>(SimpleParser::Type::create(basename, type_name));
-		if (unit->getType() != SimpleParser::Type::get(SimpleParser::Type::BaseType::NONE))
+		Unit* unit = static_cast<Unit*>(simpleparser::Type::create(basename, type_name));
+		if (unit->getType() != simpleparser::Type::get(simpleparser::Type::BaseType::NONE))
 		{
 			unit->setup(m_app);
 			return unit;
@@ -23,8 +23,8 @@ namespace Rhea
 
 	Unit* UnitTree::createUnit(std::string basename, std::string type_name, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{
-		Unit* unit = static_cast<Unit*>(SimpleParser::Type::create(basename, type_name));
-		if (unit->getType() != SimpleParser::Type::get(SimpleParser::Type::BaseType::NONE))
+		Unit* unit = static_cast<Unit*>(simpleparser::Type::create(basename, type_name));
+		if (unit->getType() != simpleparser::Type::get(simpleparser::Type::BaseType::NONE))
 		{
 			unit->setup(m_app, attributes, values);
 			return unit;

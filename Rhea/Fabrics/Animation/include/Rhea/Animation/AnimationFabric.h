@@ -1,13 +1,13 @@
 #ifndef RHEA_ANIMATIONFABRIC_H
 #define RHEA_ANIMATIONFABRIC_H
 
-namespace Rhea
+namespace rhea
 {
 	class Application;
 
 	/** Fabrics for animations
 	*/
-	class AnimationFabric : public Rhea::IFabric
+	class AnimationFabric : public rhea::IFabric
 	{
 	public:
 		void Register(Application* app) override;

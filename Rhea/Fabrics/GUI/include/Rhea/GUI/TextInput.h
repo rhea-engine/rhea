@@ -4,7 +4,7 @@
 #include "Widget.h"
 #include <Rhea/UnitTree.h>
 
-namespace Rhea
+namespace rhea
 {
 	class TextWidget;
 	class Label;

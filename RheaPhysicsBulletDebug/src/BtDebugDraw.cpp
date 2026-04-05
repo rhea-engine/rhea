@@ -9,7 +9,7 @@
 #include <Poseidon/RenderContext.h>
 #include <Poseidon/Material.h>
 
-namespace Rhea
+namespace rhea
 {
 
 	struct BulletDebugDraw::Impl
@@ -48,12 +48,12 @@ namespace Rhea
 			int m_mode;
 		};
 
-		Impl(Application* a, btDynamicsWorld* w, Item* owner, Poseidon::Core* core)
+		Impl(Application* a, btDynamicsWorld* w, Item* owner, poseidon::Core* core)
 			: m_app(a),
 			m_world(w),
 			m_owner(owner)
 		{
-			m_mesh = new Poseidon::Mesh();
+			m_mesh = new poseidon::Mesh();
 
 			m_mesh->setViewport(core->get_scene_manager()->getViewport());			
 			m_num_faces = 0;
@@ -64,7 +64,7 @@ namespace Rhea
 			if (!material) {
 				material = core->createMaterial();
 				material->setTopology(2);
-				Poseidon::Shader* shader = core->getShader("shader_vp");
+				poseidon::Shader* shader = core->getShader("shader_vp");
 				if (!shader) {
 					shader = core->createShader("shader_vp");
 					shader->setVertexType(0);
@@ -97,9 +97,9 @@ namespace Rhea
 
 		DebugDraw m_drawer;
 
-		Poseidon::Mesh* m_mesh = nullptr;
-		Poseidon::Material* material = nullptr;
-		std::vector<Poseidon::Texture*> m_textures;
+		poseidon::Mesh* m_mesh = nullptr;
+		poseidon::Material* material = nullptr;
+		std::vector<poseidon::Texture*> m_textures;
 
 		int m_num_faces = 0;
 		bool m_enabled = false;
@@ -116,7 +116,7 @@ namespace Rhea
 		}	
 	};
 
-	BulletDebugDraw::BulletDebugDraw(Application* app, btDynamicsWorld* world, Poseidon::Core* core) :
+	BulletDebugDraw::BulletDebugDraw(Application* app, btDynamicsWorld* world, poseidon::Core* core) :
 		Item("DebugDraw")
 	{
 		m_impl = new Impl(app, world, this, core);
@@ -128,7 +128,7 @@ namespace Rhea
 		m_impl = nullptr;
 	}
 
-	void BulletDebugDraw::cullPhase(Poseidon::RenderQueue* queue, Poseidon::Camera* camera)
+	void BulletDebugDraw::cullPhase(poseidon::RenderQueue* queue, poseidon::Camera* camera)
 	{
 		if (!m_impl)
 			return;
@@ -154,7 +154,7 @@ namespace Rhea
 		// draw to the mesh
 
 		// Render lines		
-		std::vector<Hippios::vertex> l_vertices;
+		std::vector<hippios::vertex> l_vertices;
 		float fact = 1;
 		for (auto lit = m_impl->m_drawer.m_lines.begin(); lit != m_impl->m_drawer.m_lines.end(); lit++) {
 			Line& line = *lit;	
@@ -167,12 +167,12 @@ namespace Rhea
 			l_vertices.push_back({ line.p1.x, line.p1.y, line.p1.z, line.color.x, line.color.y, line.color.z, 1.0f });
 		}
 
-		m_impl->m_mesh->setVertices(sizeof(Hippios::vertex), l_vertices.size(), l_vertices.data());
+		m_impl->m_mesh->setVertices(sizeof(hippios::vertex), l_vertices.size(), l_vertices.data());
 		m_impl->m_num_faces = (int)l_vertices.size();
 
 		// render triangles
 		/*
-		std::vector<Hippios::vertex> t_vertices;
+		std::vector<hippios::vertex> t_vertices;
 		std::vector<unsigned long> t_indices;
 		for (auto t_it = m_drawer.m_triangles.begin(); t_it != m_drawer.m_triangles.end(); t_it++) {
 			const Triangle& tri = *t_it;
@@ -184,7 +184,7 @@ namespace Rhea
 			t_vertices.push_back({ tri.p2.x, tri.p2.y, tri.p2.z, tri.color.x, tri.color.y, tri.color.z, 1.0 });
 		}
 		if (t_vertices.size() && m_num_faces) {
-			m_mesh->setVertices(sizeof(Hippios::vertex), t_vertices.size(), t_vertices.data());
+			m_mesh->setVertices(sizeof(hippios::vertex), t_vertices.size(), t_vertices.data());
 			m_num_faces = t_indices.size() / 3;
 			m_mesh->setIndices(sizeof(unsigned long), m_num_faces, t_indices.data());
 		}
@@ -192,7 +192,7 @@ namespace Rhea
 
 	}
 
-	void BulletDebugDraw::getRenderInput(Hippios::VertexBuffer** pvb, Hippios::IndexBuffer** pib, int& num_indices)
+	void BulletDebugDraw::getRenderInput(hippios::VertexBuffer** pvb, hippios::IndexBuffer** pib, int& num_indices)
 	{
 		*pvb = m_impl->m_mesh->get_vbuffer();
 		//*pib = m_mesh->get_ibuffer();
@@ -201,12 +201,12 @@ namespace Rhea
 		num_indices = m_impl->m_num_faces;
 	}
 
-	Poseidon::Material* BulletDebugDraw::getMaterial()
+	poseidon::Material* BulletDebugDraw::getMaterial()
 	{
 		return m_impl->material;
 	}
 
-	Poseidon::Texture* BulletDebugDraw::getTexture()
+	poseidon::Texture* BulletDebugDraw::getTexture()
 	{
 		return nullptr;
 	}
@@ -255,13 +255,13 @@ namespace Rhea
 
 		Line line;
 
-		line.p0 = Math::Vector3((float)from.getX(),
+		line.p0 = math::Vector3((float)from.getX(),
 			(float)from.getY(),
 			(float)from.getZ());
-		line.p1 = Math::Vector3((float)to.getX(),
+		line.p1 = math::Vector3((float)to.getX(),
 			(float)to.getY(),
 			(float)to.getZ());
-		line.color = Math::Vector3((float)r,
+		line.color = math::Vector3((float)r,
 			(float)g,
 			(float)b);
 
@@ -288,19 +288,19 @@ namespace Rhea
 
 		Triangle tri;
 
-		tri.p0 = Math::Vector3((float)v0.getX(),
+		tri.p0 = math::Vector3((float)v0.getX(),
 			(float)v0.getY(),
 			(float)v0.getZ());
 
-		tri.p1 = Math::Vector3((float)v1.getX(),
+		tri.p1 = math::Vector3((float)v1.getX(),
 			(float)v1.getY(),
 			(float)v1.getZ());
 
-		tri.p2 = Math::Vector3((float)v2.getX(),
+		tri.p2 = math::Vector3((float)v2.getX(),
 			(float)v2.getY(),
 			(float)v2.getZ());
 
-		tri.color = Math::Vector3((float)r,
+		tri.color = math::Vector3((float)r,
 			(float)g,
 			(float)b);
 

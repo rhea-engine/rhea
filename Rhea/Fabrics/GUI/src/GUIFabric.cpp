@@ -17,35 +17,35 @@
 #include <Rhea/Text/TextWidget.h>
 #include <Rhea/GUI/Spacer.h>
 
-namespace Rhea
+namespace rhea
 {
-	void Rhea::GUIFabric::Register(Rhea::Application* app)
+	void rhea::GUIFabric::Register(rhea::Application* app)
 	{
 		// register widget types
-		SimpleParser::Type::registerType<Widget>("//meworla/gui/widget");
+		simpleparser::Type::registerType<Widget>("//meworla/gui/widget");
 
 		// layout types
-		SimpleParser::Type::registerType<BoxWidget>("//meworla/gui/box");
-		SimpleParser::Type::registerType<ColumnWidget>("//meworla/gui/column");
-		SimpleParser::Type::registerType<RowWidget>("//meworla/gui/row");
-		SimpleParser::Type::registerType<SpacerWidget>("//meworla/gui/spacer");
+		simpleparser::Type::registerType<BoxWidget>("//meworla/gui/box");
+		simpleparser::Type::registerType<ColumnWidget>("//meworla/gui/column");
+		simpleparser::Type::registerType<RowWidget>("//meworla/gui/row");
+		simpleparser::Type::registerType<SpacerWidget>("//meworla/gui/spacer");
 
 		// basic widgets
-		SimpleParser::Type::registerType<Label>("//meworla/gui/label");
-		SimpleParser::Type::registerType<TextInput>("//meworla/gui/textinput");
-		SimpleParser::Type::registerType<Button>("//meworla/gui/button");
-		SimpleParser::Type::registerType<Dialog>("//meworla/gui/dialog");
-		SimpleParser::Type::registerType<ListWidget>("//meworla/gui/list");
-		SimpleParser::Type::registerType<ListWidgetItem>("//meworla/gui/listitem");
+		simpleparser::Type::registerType<Label>("//meworla/gui/label");
+		simpleparser::Type::registerType<TextInput>("//meworla/gui/textinput");
+		simpleparser::Type::registerType<Button>("//meworla/gui/button");
+		simpleparser::Type::registerType<Dialog>("//meworla/gui/dialog");
+		simpleparser::Type::registerType<ListWidget>("//meworla/gui/list");
+		simpleparser::Type::registerType<ListWidgetItem>("//meworla/gui/listitem");
 
 		// general gui types
-		SimpleParser::Type::registerType<GUIController>("//meworla/gui");
+		simpleparser::Type::registerType<GUIController>("//meworla/gui");
 
 		// register helpers
 		app->getResourceLoader()->registerLoader<CssLoader>("text/css");
-		SimpleParser::Type::registerType<GuiService>("//meworla/gui/service");
+		simpleparser::Type::registerType<GuiService>("//meworla/gui/service");
 
-		GuiService* service = SimpleParser::Type::create<GuiService>("GuiService");
+		GuiService* service = simpleparser::Type::create<GuiService>("GuiService");
 		service->setup(app);
 		app->registerService("gui", service);
 

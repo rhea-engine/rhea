@@ -1,6 +1,6 @@
 #include "GLDepthBuffer.h"
 
-namespace Hippios
+namespace hippios
 {
 	GLDepthBuffer::GLDepthBuffer(unsigned int bit_depth, unsigned int width, unsigned int height) :
 		DepthBuffer(bit_depth, width, height)

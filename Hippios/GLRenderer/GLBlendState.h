@@ -5,7 +5,7 @@
 #include <Hippios/PipelineState.h>
 #include "GLIncludes.h"
 
-namespace Hippios
+namespace hippios
 {
 	class GLBlendState : public BlendState
 	{

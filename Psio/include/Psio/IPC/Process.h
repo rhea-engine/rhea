@@ -4,7 +4,7 @@
 #include "../Net/Platform.h"
 #include "Pipe.h"
 
-namespace Psio
+namespace psio
 {
 	class Process
 	{

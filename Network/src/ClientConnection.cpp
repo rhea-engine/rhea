@@ -15,9 +15,9 @@
 #include <Hermes/Messages/MessageLogin.h>
 #include <Hermes/Messages/MessageCreateAvatar.h>
 
-namespace Rhea
+namespace rhea
 {
-	int ClientConnection::Start(Psio::Network::CompletionHandler err_handler)
+	int ClientConnection::Start(psio::Network::CompletionHandler err_handler)
 	{
 		m_error_handler = err_handler;
 
@@ -37,7 +37,7 @@ namespace Rhea
 		return m_hermes->Start();
 	}
 
-	int ClientConnection::sendMessage(Hermes::Message* msg)
+	int ClientConnection::sendMessage(hermes::Message* msg)
 	{
 		// forward to stream
 		return m_hermes->sendMessage(msg, [&](int err) {
@@ -55,7 +55,7 @@ namespace Rhea
 	}
 
 	// helper for testing
-	void ClientConnection::StartEstablishedConnection(Rhea::Item* player)
+	void ClientConnection::StartEstablishedConnection(rhea::Item* player)
 	{
 		m_player = player;
 	}

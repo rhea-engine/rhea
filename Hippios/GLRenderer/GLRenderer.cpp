@@ -26,7 +26,7 @@
 #include "GLSwapChainSDL.h"
 #include "SdlContext.h"
 
-namespace Hippios
+namespace hippios
 {
 	static const InputBindingDesc* findBindingDesc(const InputLayoutDesc& layout, int inputSlot)
 	{
@@ -462,13 +462,13 @@ namespace Hippios
 		glBindBufferBase(GL_UNIFORM_BUFFER, slot, gl_buf->get_buffer());
 	}
 
-	void GLRenderer::prepareMatricesForShader(Math::Matrix4* dst, const Math::Matrix4* src, size_t count) const
+	void GLRenderer::prepareMatricesForShader(math::Matrix4* dst, const math::Matrix4* src, size_t count) const
 	{
 		for (size_t i = 0; i < count; ++i)
 			dst[i] = src[i].transpose();
 	}
 
-	void Hippios::GLRenderer::detectCapabilities()
+	void hippios::GLRenderer::detectCapabilities()
 	{
 		m_caps.majorVersion = GLVersion.major;
 		m_caps.minorVersion = GLVersion.minor;

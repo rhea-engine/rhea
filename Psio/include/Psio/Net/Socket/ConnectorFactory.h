@@ -4,7 +4,7 @@
 #include "Connector.h"
 #include "../Network.h"
 
-namespace Psio
+namespace psio
 {
 	class ConnectorFactory
 	{

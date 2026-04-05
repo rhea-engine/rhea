@@ -8,7 +8,7 @@
 #include <SimpleParser/Variant.h>
 #include "CssValue.h"
 
-namespace Rhea
+namespace rhea
 {
 	struct CssShorthand : public CssProperty
 	{

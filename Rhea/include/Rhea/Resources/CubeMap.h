@@ -3,7 +3,7 @@
 
 #include "ImageResource.h"
 
-namespace Rhea
+namespace rhea
 {
 	class CubeMap : public ImageResource
 	{

@@ -1,6 +1,6 @@
 #include "SDLKeyTranslation.h"
 
-namespace Psio
+namespace psio
 {
     Key TranslateSDLScancode(SDL_Scancode sc)
     {

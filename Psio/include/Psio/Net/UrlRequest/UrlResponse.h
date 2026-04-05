@@ -4,7 +4,7 @@
 #include <Psio/IO/Stream.h>
 #include <Psio/Net/IOBuffer.h>
 
-namespace Psio
+namespace psio
 {
 	class HttpTransaction;
 
@@ -23,7 +23,7 @@ namespace Psio
 		size_t Push(char* chunk, size_t size);
 
 		// called when data is read - a chunk of the data is passed to handler until all data is sent
-		void ReadAsync(Psio::IOBuffer* buf);
+		void ReadAsync(psio::IOBuffer* buf);
 
 		// no modes for url stream
 		void SetMode(int mode) {}

@@ -7,7 +7,7 @@
 #include "StreamSocket.h"
 #include "TCPSocket.h"
 
-namespace Psio
+namespace psio
 {
 	class SSLSocket : public StreamSocket
 	{

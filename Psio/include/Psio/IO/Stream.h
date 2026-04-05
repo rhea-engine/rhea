@@ -4,7 +4,7 @@
 #include <functional>
 #include <Psio/Net/IOBuffer.h>
 
-namespace Psio
+namespace psio
 {
 	class Stream
 	{

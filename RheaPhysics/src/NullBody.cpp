@@ -1,12 +1,12 @@
 #include "NullBody.h"
 
-namespace Rhea
+namespace rhea::physics
 {
-	NullPhysicsBody::NullPhysicsBody(Item* item) :
+	NullPhysicsBody::NullPhysicsBody(rhea::Item* item) :
 		m_turn(0.0f),		
 		m_isKinematic(false),
 		m_isStatic(false),
-		PhysicsBody(item)
+		rhea::PhysicsBody(item)
 	{
 	}
 
@@ -14,10 +14,10 @@ namespace Rhea
 	{
 	}
 
-	void NullPhysicsBody::move(Math::Vector3 move)
+	void NullPhysicsBody::move(math::Vector3 move)
 	{
-		if (move == Math::Vector3::ZERO &&
-			m_movement != Math::Vector3::ZERO) {
+		if (move == math::Vector3::ZERO &&
+			m_movement != math::Vector3::ZERO) {
 			stop();
 		}
 		m_movement = move;
@@ -28,7 +28,7 @@ namespace Rhea
 		m_turn = turn;
 	}
 
-	void NullPhysicsBody::setPosition(const Math::Vector3& position)
+	void NullPhysicsBody::setPosition(const math::Vector3& position)
 	{
 
 	}

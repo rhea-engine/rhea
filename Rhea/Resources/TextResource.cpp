@@ -4,20 +4,20 @@
 
 #include <cstring>
 
-namespace Rhea
+namespace rhea
 {
 	TextResource::~TextResource()
 	{
 	}
 
-	void TextResource::load(Orion::ResourceRequest* req, ReadyHandler handler)
+	void TextResource::load(orion::ResourceRequest* req, ReadyHandler handler)
 	{
 		if (m_status >= Status::LOADED)
 			return handler(ReqError::OK);
 
 		if (req) {
-			Psio::Stream* rs = req->getStream();
-			Psio::IOBuffer* buf = new Psio::IOBuffer(64 * 1024);
+			psio::Stream* rs = req->getStream();
+			psio::IOBuffer* buf = new psio::IOBuffer(64 * 1024);
 			rs->onEnd([&](size_t buflen) {
 				if (!buflen) {
 					m_buflen = 0;

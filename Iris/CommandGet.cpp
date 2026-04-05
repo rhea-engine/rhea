@@ -3,7 +3,7 @@
 #include <Psio/Log.h>
 #include <Psio/Net/Http/HttpHeaders.h>
 
-int CommandGet::OnRequest(Psio::HttpRequest* req, Psio::HttpResponse* res)
+int CommandGet::OnRequest(psio::HttpRequest* req, psio::HttpResponse* res)
 {
 	// search for entry
 	m_path = req->headers.GetUrl();

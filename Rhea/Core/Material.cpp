@@ -5,7 +5,7 @@
 #include "Rhea/Resources/TextResource.h"
 #include <Rhea/Core/Shader.h>
 
-namespace Rhea 
+namespace rhea 
 {
 	std::vector<Unit::Export> Material::getReferences()
 	{
@@ -33,7 +33,7 @@ namespace Rhea
 		}
 	}
 
-	void Rhea::Material::setShaderRes(Shader* shader)
+	void rhea::Material::setShaderRes(Shader* shader)
 	{
 		m_shader_res = shader; 
 

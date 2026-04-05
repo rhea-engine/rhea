@@ -4,7 +4,7 @@
 #include "StencilState.h"
 #include "ShaderProgram.h"
 
-namespace Hippios
+namespace hippios
 {
 	class PipelineStateObject
 	{

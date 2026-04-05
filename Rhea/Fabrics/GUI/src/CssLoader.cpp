@@ -4,21 +4,21 @@
 #include <Rhea/GUI/Styles/StyleSheet.h>
 #include <Rhea/Resources/ResourceService.h>
 
-namespace Rhea {
+namespace rhea {
 	
-	void CssLoader::load(std::string name, Application* app, Orion::ResourceRequest* req, Resource::LoadedHandler handler)
+	void CssLoader::load(std::string name, Application* app, orion::ResourceRequest* req, Resource::LoadedHandler handler)
 	{
-		Psio::Stream* rs = req->getStream();
-		Psio::IOBuffer* buf = new Psio::IOBuffer(64 * 1024);
+		psio::Stream* rs = req->getStream();
+		psio::IOBuffer* buf = new psio::IOBuffer(64 * 1024);
 		rs->onEnd([&, buf, handler](size_t buflen) {
 			if (buflen) {
-				std::unique_ptr<SimpleParser::CssParser> parser = std::make_unique<SimpleParser::CssParser>();
-				std::vector<SimpleParser::CssParser::Entry> entries;
+				std::unique_ptr<simpleparser::CssParser> parser = std::make_unique<simpleparser::CssParser>();
+				std::vector<simpleparser::CssParser::Entry> entries;
 
 				int nof_entries = parser->parse(buf->reader(), buflen, entries);
 
 				// how to find the target?
-				StyleSheet* css = SimpleParser::Type::create<StyleSheet>(name);
+				StyleSheet* css = simpleparser::Type::create<StyleSheet>(name);
 				std::unordered_map<std::string, std::string> attributes;
 				std::unordered_map<std::string, Variant> values;
 				css->setup(app, attributes, values);

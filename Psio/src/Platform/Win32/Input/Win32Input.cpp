@@ -4,7 +4,7 @@
 #include "Win32Input.h"
 #include "../../../Input/InputEventBuilder.h"
 
-namespace Psio
+namespace psio
 {
 	void InputWin32::update()
 	{

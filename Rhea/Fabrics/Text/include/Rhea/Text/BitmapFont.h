@@ -4,7 +4,7 @@
 #include "Font.h"
 #include "Rhea/Core/Material.h"
 
-namespace Rhea
+namespace rhea
 {
 	class BitmapFont : public Font
 	{

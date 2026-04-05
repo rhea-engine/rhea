@@ -5,7 +5,7 @@
 #include "TCPSocket.h"
 #include "Connector.h"
 
-namespace Psio
+namespace psio
 {
 	class TCPConnector : public Connector
 	{

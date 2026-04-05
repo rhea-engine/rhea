@@ -7,7 +7,7 @@
 
 #include "D3D11IndexBuffer.h"
 
-namespace Hippios
+namespace hippios
 {
 	D3D11IndexBuffer::D3D11IndexBuffer(ID3D11Device* d3dDevice, ID3D11DeviceContext* device_context, size_t index_stride, size_t num_faces, bool dynamic) :
 		is_dirty(true)

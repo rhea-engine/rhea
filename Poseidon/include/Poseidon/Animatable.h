@@ -3,7 +3,7 @@
 
 #include "Renderable.h"
 
-namespace Poseidon
+namespace poseidon
 {
 	class Viewport;
 	class Camera;

@@ -2,7 +2,7 @@
 #include <Psio/Util.h>
 
 
-namespace Psio
+namespace psio
 {
 	std::unordered_map<int, std::string> HttpHeaders::Codes = {
 		{200, "OK"},

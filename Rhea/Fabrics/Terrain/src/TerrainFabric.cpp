@@ -5,12 +5,12 @@
 #include <Psio/Log.h>
 #include <Rhea/Physics/PhysicsManagerService.h>
 
-namespace Rhea
+namespace rhea
 {
 	void TerrainFabric::Register(Application* app)
 	{
-		SimpleParser::Type::registerType<ImageResource>("//meworla/heightmap");
-		SimpleParser::Type::registerType<Terrain>("//meworla/terrain");
+		simpleparser::Type::registerType<ImageResource>("//meworla/heightmap");
+		simpleparser::Type::registerType<Terrain>("//meworla/terrain");
 
 		//register physics component
 		PhysicsManagerService* phy_mgr = doCast<PhysicsManagerService>(app->getService("physics_mgr"));
@@ -19,9 +19,9 @@ namespace Rhea
 			return;
 		}
 				
-		SimpleParser::Type* t = Terrain::staticType();
+		simpleparser::Type* t = Terrain::staticType();
 
-		Rhea::PhysicsBodyDesc desc;
+		rhea::PhysicsBodyDesc desc;
 		desc.kind = "Meworla/RheaPhysics:HeightMap";
 		desc.mass = 0.0f;     // static
 		phy_mgr->registerBodyForType(t, desc);

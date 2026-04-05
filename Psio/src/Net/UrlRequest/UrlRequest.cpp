@@ -2,7 +2,7 @@
 #include <Psio/Net/Http/HttpNetworkTransaction.h>
 #include <Psio/Log.h>
 
-namespace Psio
+namespace psio
 {
 	UrlRequest::~UrlRequest()
 	{

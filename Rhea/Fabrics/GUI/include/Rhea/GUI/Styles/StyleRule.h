@@ -7,7 +7,7 @@
 #include "Property.h"
 #include "CssValue.h"
 
-namespace Rhea
+namespace rhea
 {
 	typedef std::unordered_map<StylePropertyId, std::vector<CssValue>> CssRuleSet;
 
@@ -15,7 +15,7 @@ namespace Rhea
 	{
 		// For simplicity, the selector here is assumed to be a class name,
 		// optionally prefixed with a dot (e.g., ".button").
-		SimpleParser::CssParser::Selector selector;
+		simpleparser::CssParser::Selector selector;
 		// A mapping of style properties (e.g., "background-color") to their values.
 		CssRuleSet properties;
 	};

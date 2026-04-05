@@ -7,7 +7,7 @@
 
 #include "Unit.h"
 
-namespace Rhea
+namespace rhea
 {
 	class Application;
 
@@ -33,7 +33,7 @@ namespace Rhea
 		
 		template<typename T>
 		T* createUnit(std::string basename, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values) {
-			T* ret = SimpleParser::Type::create<T>(basename);
+			T* ret = simpleparser::Type::create<T>(basename);
 			if (doCast<Unit>(ret))
 				ret->setup(m_app, attributes, values);
 			return ret;

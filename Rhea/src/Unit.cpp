@@ -1,10 +1,10 @@
 #include "Rhea/Unit.h"
 #include "SimpleParser/Method.h"
 
-using SimpleParser::Type;
-using SimpleParser::Method;
+using simpleparser::Type;
+using simpleparser::Method;
 
-namespace Rhea
+namespace rhea
 {
 	void Unit::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{
@@ -57,7 +57,7 @@ namespace Rhea
 		if (!component) return;
 
 		// Traverse the type hierarchy and register the component under each type
-		SimpleParser::Type* type = component->getType();
+		simpleparser::Type* type = component->getType();
 		while (type) {
 			m_unique_components[type] = component;
 			type = type->getParent();
@@ -74,7 +74,7 @@ namespace Rhea
 		removeChild(component);
 		
 		// remove from map, but only if the stored pointer == component
-		SimpleParser::Type* type = component->getType();
+		simpleparser::Type* type = component->getType();
 		while (type) {
 			auto it = m_unique_components.find(type);
 			if (it != m_unique_components.end() && it->second == component) {

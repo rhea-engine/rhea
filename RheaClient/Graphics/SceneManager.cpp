@@ -6,17 +6,16 @@
 
 #include "SceneManager.h"
 #include "ItemManager.h"
-#include <Rhea/Graphics/CameraManager.h>
+#include <RheaClient/Graphics/CameraManager.h>
 #include <Rhea/Unit.h>
 #include <Rhea/Core/Item.h>
 #include <Rhea/Core/Item2D.h>
-#include <Rhea/Graphics/GraphicsService.h>
+#include <RheaClient/Graphics/GraphicsService.h>
 #include <Psio/Log.h>
 #include <Rhea/Core/Lighting.h>
 
-namespace Rhea
-{
-	const std::vector<Item*>& SceneRenderState::getItems()
+namespace rhea::client {
+	const std::vector<rhea::Item* >& SceneRenderState::getItems()
 	{
 		if (!m_items_valid) {
 			m_items = m_scene->getItems(); // your existing Scene API
@@ -25,7 +24,7 @@ namespace Rhea
 		return m_items;
 	}	
 
-	void GraphicsSceneManager::addItem(Unit* item)
+	void GraphicsSceneManager::addItem(rhea::Unit* item)
 	{
 		//printf("GraphicsSceneManager::addItem: %s add typename: %s\n", item->getPathName().c_str(), item->getTypeName().c_str());
 
@@ -34,31 +33,31 @@ namespace Rhea
 		if (mgr) {
 			mgr->Ensure(m_core, item);
 		}
-		else if (doCast<Item>(item)) {
-			mgr = m_service->getManager<Item>();
+		else if (doCast<rhea::Item>(item)) {
+			mgr = m_service->getManager<rhea::Item>();
 			mgr->Ensure(m_core, item);
 		}
-		else if (doCast<Lighting>(item)) {
-			Poseidon::SceneManager* scene_mgr = m_core->get_scene_manager();
+		else if (doCast<rhea::Lighting>(item)) {
+			poseidon::SceneManager* scene_mgr = m_core->get_scene_manager();
 			if (scene_mgr) {
 				std::string render_context = "default";
-				scene_mgr->getViewport()->getRenderContext(render_context)->setAmbient(doCast<Lighting>(item)->getAmbient());
+				scene_mgr->getViewport()->getRenderContext(render_context)->setAmbient(doCast<rhea::Lighting>(item)->getAmbient());
 			}		
 		}
 	}
 
-	bool GraphicsSceneManager::onItemAdd(Event* ev, Unit* unit)
+	bool GraphicsSceneManager::onItemAdd(rhea::Event* ev, rhea::Unit* unit)
 	{		
-		Item* item = doCast<Item>(ev->getTarget());
+		rhea::Item* item = doCast<rhea::Item>(ev->getTarget());
 		if (item)
 			addItem(item);
 
 		return false;
 	}
 
-	bool GraphicsSceneManager::Ensure(Poseidon::Core* core, Unit* unit)
+	bool GraphicsSceneManager::Ensure(poseidon::Core* core, rhea::Unit* unit)
 	{
-		Scene* scene = doCast<Scene>(unit);
+		rhea::Scene* scene = doCast<rhea::Scene>(unit);
 		if (!scene) {
 			LOG(LOG_ERROR) << "GraphicsSceneManager::Ensure: unit is not a scene ";
 			return false;
@@ -75,8 +74,8 @@ namespace Rhea
 		// Initialize: add existing items + register handler
 		m_core = core;
 
-		scene->traverse([&](std::string& name, Component* c)->bool {
-			Unit* u = doCast<Unit>(c);
+		scene->traverse([&](std::string& name, rhea::Component* c)->bool {
+			rhea::Unit* u = doCast<rhea::Unit>(c);
 			if (u && c != scene) addItem(u);
 			return true;
 			});

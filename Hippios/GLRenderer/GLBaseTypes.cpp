@@ -1,6 +1,6 @@
 #include "GLBaseTypes.h"
 
-namespace Hippios
+namespace hippios
 {
 	std::unordered_map<ComparisonFunction, GLenum> gl_comparison_functions = {
 		{ComparisonFunction::COMPARE_NEVER, GL_NEVER},

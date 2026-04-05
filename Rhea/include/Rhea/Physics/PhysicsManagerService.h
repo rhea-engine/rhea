@@ -10,7 +10,7 @@
 #include "PhysicsBody.h"
 #include "PhysicsBodyDescriptor.h"
 
-namespace Rhea
+namespace rhea
 {
 	class Application;
 	class Item;
@@ -31,7 +31,7 @@ namespace Rhea
 		// Backends call this during module/fabric register
 		void registerBackend(const std::string& id, BackendCreator creator);
 
-		void registerBodyForType(SimpleParser::Type* typedesc, PhysicsBodyDesc desc);
+		void registerBodyForType(simpleparser::Type* typedesc, PhysicsBodyDesc desc);
 		const PhysicsBodyDesc* getBodyDescFor(Item* item) const;
 
 		// Components register their body creators here
@@ -61,7 +61,7 @@ namespace Rhea
 		std::unordered_map<std::string, ComponentCreator> m_component_creators;
 		std::vector<BackendHook> m_backend_hooks;
 
-		std::unordered_map<SimpleParser::Type*, PhysicsBodyDesc> m_type_to_body;
+		std::unordered_map<simpleparser::Type*, PhysicsBodyDesc> m_type_to_body;
 	};		
 }
 

@@ -9,7 +9,7 @@
 #include "Rhea/UnitTree.h"
 #include <Psio/Log.h>
 
-namespace Rhea
+namespace rhea
 {
 	void Scene::onParented()
 	{		
@@ -59,7 +59,7 @@ namespace Rhea
 		if (!m_is_active)
 			activate();
 
-		Rhea::Event ev("scene_show", this);
+		rhea::Event ev("scene_show", this);
 		sendEventChildren(std::string("scene_show"), &ev);
 		broadcast("show");
 		m_app->onScene(this);
@@ -67,7 +67,7 @@ namespace Rhea
 
 	void Scene::hide()
 	{
-		Rhea::Event ev("scene_hide", this);
+		rhea::Event ev("scene_hide", this);
 		sendEventChildren("scene_hide", &ev);
 	}
 

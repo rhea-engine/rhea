@@ -13,10 +13,10 @@
 #include <algorithm>
 #include <Psio/Log.h>
 
-using Math::Quaternion;
-using Math::Vector3;
+using math::Quaternion;
+using math::Vector3;
 
-namespace Rhea
+namespace rhea
 {
 	KinematicCharacter::~KinematicCharacter()
 	{
@@ -53,8 +53,8 @@ namespace Rhea
 		}
 
 		// handle movement except if if currently standing still on the ground
-		if (m_move_state != MoveState::GROUND || m_movement != Math::Vector3::ZERO) {
-			Math::Vector3 move;
+		if (m_move_state != MoveState::GROUND || m_movement != math::Vector3::ZERO) {
+			math::Vector3 move;
 
 			// depending on the state we use the players movement or the enforced movement
 			if (m_move_state == MoveState::GROUND || m_move_state == MoveState::FLY)
@@ -81,10 +81,10 @@ namespace Rhea
 				//if (vertical_offset > 0.0f)
 				m_upwards = vertical_offset;
 			}
-			Math::Vector3 gravity = Vector3(0, m_upwards, 0);
+			math::Vector3 gravity = Vector3(0, m_upwards, 0);
 
 			// compute the next position
-			Math::Vector3 pos = character->update(m_position, move, gravity);			
+			math::Vector3 pos = character->update(m_position, move, gravity);			
 			if (!pos.equals(m_position->get_worldspace())) {
 				m_position->setPosition(pos);
 				m_physics_body->setPosition(pos);
@@ -107,9 +107,9 @@ namespace Rhea
 
 		if (m_turn != 0) {
 			float turn_step = m_turn * delta;
-			Math::Quaternion q;
-			q.fromAngleAxis(turn_step, Math::Vector3(0, 1, 0));
-			Math::Quaternion m_orientation = q * m_position->get_rotation();
+			math::Quaternion q;
+			q.fromAngleAxis(turn_step, math::Vector3(0, 1, 0));
+			math::Quaternion m_orientation = q * m_position->get_rotation();
 			m_orientation.normalize();
 			m_position->setOrientation(m_orientation);
 			dirty = true;
@@ -132,7 +132,7 @@ namespace Rhea
 			// set the forced movement to the current movement
 			m_forced_movement = m_movement;			
 
-			Math::Vector3 pos = m_position->get_worldspace();
+			math::Vector3 pos = m_position->get_worldspace();
 			m_jump_start_y = pos.y;
 			auto* character = m_physics_body->query<IPhysicsCharacter>("PhysicsCharacter");
 			if (!character) {

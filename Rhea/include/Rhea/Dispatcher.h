@@ -7,19 +7,19 @@
 #include <list>
 #include <unordered_map>
 
-namespace Psio
+namespace psio
 {
 	class InputEvent;
 }
 
-namespace Rhea
+namespace rhea
 {
     class CBID;
 
 	class Dispatcher
 	{
 	public:
-        typedef std::function<bool(std::string, std::shared_ptr<Psio::InputEvent>)> actionHandler;
+        typedef std::function<bool(std::string, std::shared_ptr<psio::InputEvent>)> actionHandler;
         typedef std::vector<actionHandler> handler_v;
 
         struct action_list {
@@ -28,7 +28,7 @@ namespace Rhea
         };
 
         // dispatch an event
-        bool dispatch(std::string action, std::shared_ptr<Psio::InputEvent> evt);
+        bool dispatch(std::string action, std::shared_ptr<psio::InputEvent> evt);
 
 		CBID subscribeEvent(std::string action, actionHandler handler);
         void unsubscribeEbent(std::string action, CBID& cbid);

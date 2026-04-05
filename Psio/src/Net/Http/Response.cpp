@@ -1,6 +1,6 @@
 #include "Response.h"
 
-namespace Psio
+namespace psio
 {
 	Response::~Response()
 	{

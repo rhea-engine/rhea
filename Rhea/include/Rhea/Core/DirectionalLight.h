@@ -3,7 +3,7 @@
 
 #include "Light.h"
 
-namespace Rhea
+namespace rhea
 {
 	class DirectionalLight : public Light
 	{
@@ -15,10 +15,10 @@ namespace Rhea
 		
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
 
-		Math::Vector3 getDirection() { return m_direction; }
+		math::Vector3 getDirection() { return m_direction; }
 
 	protected:
-		Math::Vector3 m_direction;		
+		math::Vector3 m_direction;		
 	};
 }
 #endif // !RHEA_DIRECTIONAL_LIGHT_H

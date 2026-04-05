@@ -16,7 +16,7 @@
 #include "Hermes/Messages/MessageCreateUser.h"
 #include "Hermes/Messages/MessageCreateAvatar.h"
 
-namespace Hermes
+namespace hermes
 {
 	void MessageFactory::registerMessageType(uint16_t opcode, std::string name, CreatorFunction creator)
 	{
@@ -24,7 +24,7 @@ namespace Hermes
 		m_info[opcode].name = name;
 	}
 	
-	Message* MessageFactory::getMessage(Psio::IOBuffer* buf)
+	Message* MessageFactory::getMessage(psio::IOBuffer* buf)
 	{
 		// check if message is received completely
 		if (buf->Remaining() >= sizeof(Message::BaseMessage)) {

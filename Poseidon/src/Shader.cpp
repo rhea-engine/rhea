@@ -2,7 +2,7 @@
 #include <cassert>
 #include <Psio/Log.h>
 
-namespace Poseidon
+namespace poseidon
 {
 	Shader::Shader(Core* core) :
 		m_grahpics_core(core),
@@ -37,7 +37,7 @@ namespace Poseidon
 	}
 
 	void Shader::setInputLayout(const std::vector<VertexInputAttribute>& elements,
-		const std::vector<Hippios::InputBindingDesc>& bindings)
+		const std::vector<hippios::InputBindingDesc>& bindings)
 	{
 		m_input_layout = elements;
 		m_input_bindings = bindings;
@@ -45,7 +45,7 @@ namespace Poseidon
 
 	bool Shader::loadFromFile(std::string filename, char* vs_entry_point, char* ps_entry_point)
 	{
-		Hippios::ShaderProgramDesc desc;
+		hippios::ShaderProgramDesc desc;
 		desc.vertexFile = filename;
 		desc.vertexEntry = vs_entry_point ? vs_entry_point : "VSMain";
 		desc.pixelFile = filename;
@@ -58,7 +58,7 @@ namespace Poseidon
 
 	bool Shader::loadFromBuffer(unsigned char* buf, size_t buflen, char* vs_entry_point, char* ps_entry_point)
 	{
-		Hippios::ShaderProgramSourceDesc desc;
+		hippios::ShaderProgramSourceDesc desc;
 		desc.vertexSource = buf;
 		desc.vertexSourceLength = (int)buflen;
 		desc.vertexEntry = vs_entry_point ? vs_entry_point : "VSMain";
@@ -74,17 +74,17 @@ namespace Poseidon
 
 	bool Shader::loadFromSourceDesc(const ShaderProgramSourceDesc& desc)
 	{
-		Hippios::ShaderProgramSourceDesc source_desc;
+		hippios::ShaderProgramSourceDesc source_desc;
 		source_desc.vertexSource = desc.vertexSource;
 		source_desc.vertexSourceLength = desc.vertexSourceLength;
 		source_desc.vertexEntry = desc.vertexEntry;
 		source_desc.pixelSource = desc.pixelSource;
 		source_desc.pixelSourceLength = desc.pixelSourceLength;
 		source_desc.pixelEntry = desc.pixelEntry;
-		// set samplerBindings by iterating over desc.samplerBindings and converting them to Hippios::ShaderSamplerBinding
+		// set samplerBindings by iterating over desc.samplerBindings and converting them to hippios::ShaderSamplerBinding
 		source_desc.samplerBindings.reserve(desc.sampler_bindings.size());
 		for (const auto& sb : desc.sampler_bindings) {
-			Hippios::SamplerBindingDesc binding;
+			hippios::SamplerBindingDesc binding;
 			binding.uniformName = sb.uniformName;
 			binding.slot = sb.slot;
 			source_desc.samplerBindings.push_back(binding);
@@ -102,18 +102,18 @@ namespace Poseidon
 				return;
 			}
 
-			Hippios::PipelineStateObjectDesc pso_desc;
+			hippios::PipelineStateObjectDesc pso_desc;
 
 			// stencil state
 			// start from default preset
-			Hippios::DepthStencilStateDesc dsDesc;
+			hippios::DepthStencilStateDesc dsDesc;
 			if (!m_grahpics_core->get_renderer()->getStencilStateDesc("default", dsDesc)) {
-				dsDesc = Hippios::DepthStencilStateDesc{};
+				dsDesc = hippios::DepthStencilStateDesc{};
 			}
 
 			// apply named preset if present
 			if (!m_depth_stencil_state.empty()) {
-				Hippios::DepthStencilStateDesc presetDesc;
+				hippios::DepthStencilStateDesc presetDesc;
 				if (m_grahpics_core->get_renderer()->getStencilStateDesc(m_depth_stencil_state, presetDesc)) {
 					dsDesc = presetDesc;
 				}
@@ -126,17 +126,17 @@ namespace Poseidon
 			}
 			if (m_has_depth_write_override) {
 				pso_desc.depthStencilState.depth_write_mask =
-					m_depth_write ? Hippios::DepthWriteMask::DEPTH_WRITE_ALL
-					: Hippios::DepthWriteMask::DEPTH_WRITE_ZERO;
+					m_depth_write ? hippios::DepthWriteMask::DEPTH_WRITE_ALL
+					: hippios::DepthWriteMask::DEPTH_WRITE_ZERO;
 			}
 
 			// defaults
-			pso_desc.blendState.renderTarget[0].src_blend = Hippios::BlendFactor::BLEND_SRC_ALPHA;//Hippios::BlendFactor::BLEND_ONE;
-			pso_desc.blendState.renderTarget[0].dest_blend = Hippios::BlendFactor::BLEND_INV_SRC_ALPHA;
-			pso_desc.blendState.renderTarget[0].blend_op = Hippios::BlendOp::BLEND_ADD;
-			pso_desc.blendState.renderTarget[0].src_blend_alpha = Hippios::BlendFactor::BLEND_ONE;
-			pso_desc.blendState.renderTarget[0].dest_blend_alpha = Hippios::BlendFactor::BLEND_ZERO;
-			pso_desc.blendState.renderTarget[0].blend_op_alpha = Hippios::BlendOp::BLEND_ADD;
+			pso_desc.blendState.renderTarget[0].src_blend = hippios::BlendFactor::BLEND_SRC_ALPHA;//hippios::BlendFactor::BLEND_ONE;
+			pso_desc.blendState.renderTarget[0].dest_blend = hippios::BlendFactor::BLEND_INV_SRC_ALPHA;
+			pso_desc.blendState.renderTarget[0].blend_op = hippios::BlendOp::BLEND_ADD;
+			pso_desc.blendState.renderTarget[0].src_blend_alpha = hippios::BlendFactor::BLEND_ONE;
+			pso_desc.blendState.renderTarget[0].dest_blend_alpha = hippios::BlendFactor::BLEND_ZERO;
+			pso_desc.blendState.renderTarget[0].blend_op_alpha = hippios::BlendOp::BLEND_ADD;
 			pso_desc.blendState.renderTarget[0].render_target_write_mask = 0x0f;
 			if (m_alpha_blending) {
 				pso_desc.blendState.renderTarget[0].blend_enable = true;
@@ -144,16 +144,16 @@ namespace Poseidon
 
 			// cull mode in raster state
 			if (!m_cull_mode)
-				pso_desc.rasterizerState.cull_mode = Hippios::CullMode::NONE;
+				pso_desc.rasterizerState.cull_mode = hippios::CullMode::NONE;
 
 			// shader programs
 			pso_desc.shaderProgram = getShaderProgram();			
 
-			std::vector<Hippios::InputLayoutElement> native_elements;
+			std::vector<hippios::InputLayoutElement> native_elements;
 			native_elements.reserve(m_input_layout.size());
 
 			for (const auto& e : m_input_layout) {
-				Hippios::InputLayoutElement native{};
+				hippios::InputLayoutElement native{};
 				native.semantic_name = e.semantic.c_str();
 				native.semantic_index = e.semanticIndex;
 				native.location = e.location;
@@ -209,7 +209,7 @@ namespace Poseidon
 			return;
 		}
 		m_grahpics_core->get_renderer()->setPipelineState(m_pso.get());
-		m_grahpics_core->get_renderer()->setSampler(0, m_sampler_state, Hippios::ShaderStage::Fragment);
+		m_grahpics_core->get_renderer()->setSampler(0, m_sampler_state, hippios::ShaderStage::Fragment);
 	}
 
 }

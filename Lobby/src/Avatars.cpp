@@ -9,7 +9,7 @@
 
 namespace Meworla
 {
-	bool Avatars::onDisplay(Rhea::Event* ev, Rhea::Unit* unit)
+	bool Avatars::onDisplay(rhea::Event* ev, rhea::Unit* unit)
 	{
 		// if network is not defined this is an configuration error
 		if (!m_net) {
@@ -43,11 +43,11 @@ namespace Meworla
 		}
 
 		// fill list?
-		Rhea::Unit* avatar_list = doCast<Rhea::Unit>(m_connector->find("avatarlist"));
+		rhea::Unit* avatar_list = doCast<rhea::Unit>(m_connector->find("avatarlist"));
 		std::vector<Variant> avatars_arr;		
 		if (avatar_list) {
-			avatar_list->children([&avatars_arr](std::string& name, Rhea::Component* unit)->bool {
-				Rhea::Avatar* avatar = isCast<Rhea::Avatar>(unit);
+			avatar_list->children([&avatars_arr](std::string& name, rhea::Component* unit)->bool {
+				rhea::Avatar* avatar = isCast<rhea::Avatar>(unit);
 				if (avatar) {
 					avatars_arr.push_back(name);
 				}
@@ -79,8 +79,8 @@ namespace Meworla
 
 	void Avatars::ready()
 	{
-		m_avatar_w = doCast<Rhea::Widget>(m_app->getUnitTree()->find(m_values["avatarwidget"], m_attributes["basepath"], false));
-		m_newavatar_w = doCast<Rhea::Widget>(m_app->getUnitTree()->find(m_values["newavatarwidget"], m_attributes["basepath"], false));
+		m_avatar_w = doCast<rhea::Widget>(m_app->getUnitTree()->find(m_values["avatarwidget"], m_attributes["basepath"], false));
+		m_newavatar_w = doCast<rhea::Widget>(m_app->getUnitTree()->find(m_values["newavatarwidget"], m_attributes["basepath"], false));
 
 		std::vector<Variant> avatars_arr;
 		m_values["avatars"] = avatars_arr;
@@ -94,26 +94,26 @@ namespace Meworla
 		registerEventHandler("scene_show", this, std::bind(&Avatars::onDisplay, this, std::placeholders::_1, std::placeholders::_2));
 	}
 
-	bool Avatars::onSetAvatarname(Rhea::Event* ev, Rhea::Unit* unit)
+	bool Avatars::onSetAvatarname(rhea::Event* ev, rhea::Unit* unit)
 	{
 		m_avatar_name = ev->getTarget()->getValue("text", "");
 		return false;
 	}
 
-	bool Avatars::onSetAvatarType(Rhea::Event* ev, Rhea::Unit* unit)
+	bool Avatars::onSetAvatarType(rhea::Event* ev, rhea::Unit* unit)
 	{
 		m_avatar_type = ev->getTarget()->getValue("text", "");
 		return false;
 	}
 
-	bool Avatars::onCreate(Rhea::Event* ev, Rhea::Unit* unit)
+	bool Avatars::onCreate(rhea::Event* ev, rhea::Unit* unit)
 	{
 		m_avatar_type = "//local/scene2/gus";
 		if (m_avatar_name.length() && m_avatar_type.length()) {
 			m_newavatar_w->hide();
 
 			// scene already loaded?
-			Rhea::Scene* entry_scene = doCast<Rhea::Scene>(m_app->getUnitTree()->find(m_values["entrypoint"]));
+			rhea::Scene* entry_scene = doCast<rhea::Scene>(m_app->getUnitTree()->find(m_values["entrypoint"]));
 			if (entry_scene) {
 				m_connector->setScene(entry_scene);
 				m_connector->CreateAvatar(m_avatar_name, m_avatar_type);
@@ -121,9 +121,9 @@ namespace Meworla
 			else {
 				// scene must be loaded first
 
-				m_app->loadResource(m_values["entryscene"], "//meworla/scene", [&](Rhea::Unit* u, ReqError err) {
+				m_app->loadResource(m_values["entryscene"], "//meworla/scene", [&](rhea::Unit* u, ReqError err) {
 					if (err == ReqError::OK) {
-						Rhea::Scene* entry_scene = doCast<Rhea::Scene>(m_app->getUnitTree()->find(m_values["entrypoint"]));
+						rhea::Scene* entry_scene = doCast<rhea::Scene>(m_app->getUnitTree()->find(m_values["entrypoint"]));
 						if (!entry_scene) {
 							LOG(LOG_ERROR) << "No entrypoint defined.";
 							return;
@@ -137,20 +137,20 @@ namespace Meworla
 		return false;
 	}
 
-	bool Avatars::onCreateCancel(Rhea::Event* ev, Rhea::Unit* unit)
+	bool Avatars::onCreateCancel(rhea::Event* ev, rhea::Unit* unit)
 	{
 		m_newavatar_w->hide();
 		m_avatar_w->show();
 		return false;
 	}
 
-	bool Avatars::onCreateFailed(Rhea::Event* ev, Rhea::Unit* unit)
+	bool Avatars::onCreateFailed(rhea::Event* ev, rhea::Unit* unit)
 	{
 		m_newavatar_w->show();
 		return false;
 	}
 
-	bool Avatars::onOpen(Rhea::Event* ev, Rhea::Unit* unit)
+	bool Avatars::onOpen(rhea::Event* ev, rhea::Unit* unit)
 	{	
 		if (m_avatar_w) {
 			m_avatar_w->hide();
@@ -161,9 +161,9 @@ namespace Meworla
 		DLOG(LOG_DEBUG) << "target selected was '" << (std::string)target->getValue("value") << "'";
 		std::string avatar_name = (std::string)target->getValue("value");
 
-		m_app->loadResource(m_values["entryscene"], "//meworla/scene", [&, avatar_name](Rhea::Unit* u, ReqError err) {
+		m_app->loadResource(m_values["entryscene"], "//meworla/scene", [&, avatar_name](rhea::Unit* u, ReqError err) {
 			if (err == ReqError::OK) {
-				Rhea::Scene* entry_scene = doCast<Rhea::Scene>(m_app->getUnitTree()->find(m_values["entrypoint"]));
+				rhea::Scene* entry_scene = doCast<rhea::Scene>(m_app->getUnitTree()->find(m_values["entrypoint"]));
 				if (!entry_scene) {
 					LOG(LOG_ERROR) << "No entrypoint defined.";
 					return;
@@ -176,7 +176,7 @@ namespace Meworla
 		return false;
 	}
 
-	bool Avatars::onCallCreate(Rhea::Event* ev, Rhea::Unit* unit)
+	bool Avatars::onCallCreate(rhea::Event* ev, rhea::Unit* unit)
 	{
 		if (m_newavatar_w) {
 			m_avatar_w->hide();
@@ -185,23 +185,23 @@ namespace Meworla
 		return false;
 	}
 
-	bool Avatars::onWorldEnter(Rhea::Event* ev, Rhea::Unit* unit)
+	bool Avatars::onWorldEnter(rhea::Event* ev, rhea::Unit* unit)
 	{
-		Rhea::Scene* entry_scene = doCast<Rhea::Scene>(m_app->getUnitTree()->find(getValue("entrypoint"), m_attributes["basepath"], false));
+		rhea::Scene* entry_scene = doCast<rhea::Scene>(m_app->getUnitTree()->find(getValue("entrypoint"), m_attributes["basepath"], false));
 		if (entry_scene) {
 			LOG(LOG_INFO) << "Entering world scene";
-			if (doCast<Rhea::Scene>(m_parent))
-				static_cast<Rhea::Scene*>(m_parent)->hide();
+			if (doCast<rhea::Scene>(m_parent))
+				static_cast<rhea::Scene*>(m_parent)->hide();
 			entry_scene->show();
 		}
 		else {
 			// need to load the scene
-			m_app->loadResource(m_values["entryscene"], "//meworla/scene", [&](Rhea::Unit* u, ReqError err) {
+			m_app->loadResource(m_values["entryscene"], "//meworla/scene", [&](rhea::Unit* u, ReqError err) {
 				if (err == ReqError::OK) {
-					Rhea::Scene* entry_scene = doCast<Rhea::Scene>(m_app->getUnitTree()->find(m_values["entrypoint"]));
+					rhea::Scene* entry_scene = doCast<rhea::Scene>(m_app->getUnitTree()->find(m_values["entrypoint"]));
 					if (entry_scene) {
-						if (doCast<Rhea::Scene>(m_parent))
-							static_cast<Rhea::Scene*>(m_parent)->hide();
+						if (doCast<rhea::Scene>(m_parent))
+							static_cast<rhea::Scene*>(m_parent)->hide();
 						entry_scene->show();
 					}
 					else {

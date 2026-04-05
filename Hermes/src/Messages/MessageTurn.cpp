@@ -1,9 +1,9 @@
 #include "Hermes/Messages/MessageTurn.h"
 
-namespace Hermes
+namespace hermes
 {
 
-	void MessageTurn::serialize(Psio::IOBuffer* buf)
+	void MessageTurn::serialize(psio::IOBuffer* buf)
 	{
 		base.size = sizeof(BaseMessage) + sizeof(uint32_t) * 2;
 		if (buf->FreeBufSize() < base.size) {
@@ -20,13 +20,13 @@ namespace Hermes
 		buf->Produce(size);
 	}
 
-	void MessageTurn::unserialize(Psio::IOBuffer* buf)
+	void MessageTurn::unserialize(psio::IOBuffer* buf)
 	{
 		NUID = readL(buf);
 		turn = readF(buf);
 	}
 
-	Message* MessageTurn::create(uint16_t opcode, uint16_t size, Psio::IOBuffer* buf)
+	Message* MessageTurn::create(uint16_t opcode, uint16_t size, psio::IOBuffer* buf)
 	{
 		MessageTurn* msg;
 		msg = new MessageTurn();

@@ -3,7 +3,7 @@
 
 #include <memory>
 
-namespace Hippios
+namespace hippios
 {
 	struct NativeWindow;
 	class SwapChain;

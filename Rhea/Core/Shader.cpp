@@ -3,7 +3,7 @@
 #include <Rhea/Core/Shader.h>
 
 
-namespace Rhea
+namespace rhea
 {
 	void Shader::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{
@@ -117,7 +117,7 @@ namespace Rhea
 		m_num_texture_slots = (int)m_texture_slot_descs.size();
 	}
 
-	std::vector<Unit::Export> Rhea::Shader::getReferences()
+	std::vector<Unit::Export> rhea::Shader::getReferences()
 	{
 		std::vector<Export> refs = std::vector<Unit::Export>();
 
@@ -137,7 +137,7 @@ namespace Rhea
 		return refs;
 	}
 
-	TextResource* Rhea::Shader::getShaderCode(ShaderBackend backend, ShaderStage stage)
+	TextResource* rhea::Shader::getShaderCode(ShaderBackend backend, ShaderStage stage)
 	{
 		std::string key;
 
@@ -160,7 +160,7 @@ namespace Rhea
 		);
 	}
 
-	std::string Rhea::Shader::getEntryPoint(ShaderBackend backend, ShaderStage stage) const
+	std::string rhea::Shader::getEntryPoint(ShaderBackend backend, ShaderStage stage) const
 	{		
 		if (backend == ShaderBackend::D3D11) {
 			if (stage == ShaderStage::Vertex)

@@ -9,7 +9,7 @@
 #include "HttpRequest.h"
 #include <Psio/Net/IOBuffer.h>
 
-namespace Psio
+namespace psio
 {
 	//class Request;
 	class HttpResponse;
@@ -59,7 +59,7 @@ namespace Psio
 		void OnClose(Network::CompletionHandler onclose_handler) { m_onclose_handler = onclose_handler; }
 		
 		// call Protocol on request with the response object
-		int OnRequest(std::unique_ptr<Psio::StreamSocket> new_sock, RequestHandler onrequest_handler);
+		int OnRequest(std::unique_ptr<psio::StreamSocket> new_sock, RequestHandler onrequest_handler);
 
 		// send chunk of data
 		int Write(const char* buf, size_t buflen, bool no_buffering = true);
@@ -116,9 +116,9 @@ namespace Psio
 
 		HttpHeaders* m_headers;
 
-		std::unique_ptr<Psio::StreamSocket> m_sock;
-		std::unique_ptr<Psio::IOBuffer> m_inbuf;
-		std::unique_ptr<Psio::IOBuffer> m_outbuf;
+		std::unique_ptr<psio::StreamSocket> m_sock;
+		std::unique_ptr<psio::IOBuffer> m_inbuf;
+		std::unique_ptr<psio::IOBuffer> m_outbuf;
 
 		std::unique_ptr<HttpRequest> m_request;
 		std::unique_ptr<HttpResponse> m_response;

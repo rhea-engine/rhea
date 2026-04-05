@@ -5,7 +5,7 @@
 #include <Hermes/Opcode.h>
 #include <vector>
 
-namespace Hermes
+namespace hermes
 {
 	class MessageLoginFailed : public Message
 	{
@@ -14,10 +14,10 @@ namespace Hermes
 			Message(HERMES_MSG_LOGIN_FAILED)
 		{}
 
-		void serialize(Psio::IOBuffer* buf);
-		void unserialize(Psio::IOBuffer* buf);
+		void serialize(psio::IOBuffer* buf);
+		void unserialize(psio::IOBuffer* buf);
 
-		static Message* create(uint16_t opcode, uint16_t size, Psio::IOBuffer* buf);
+		static Message* create(uint16_t opcode, uint16_t size, psio::IOBuffer* buf);
 
 		std::vector<std::string> methods;
 	};

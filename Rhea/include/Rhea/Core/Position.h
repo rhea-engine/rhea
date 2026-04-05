@@ -6,21 +6,21 @@
 #include "Math/Matrix3x4.h"
 #include "Math/Matrix4.h"
 
-using Math::Vector3;
-using Math::Quaternion;
-using Math::Matrix3x4;
+using math::Vector3;
+using math::Quaternion;
+using math::Matrix3x4;
 
-namespace Rhea
+namespace rhea
 {
 	class Position
 	{
 	protected:
-		Math::Vector3 m_position;
-		Math::Quaternion m_rotation;
-		Math::Matrix3x4 m_wtm;
+		math::Vector3 m_position;
+		math::Quaternion m_rotation;
+		math::Matrix3x4 m_wtm;
 
 		/// Fixed axis to yaw around
-		Math::Vector3 m_yaw_fixed_axis;
+		math::Vector3 m_yaw_fixed_axis;
 
 		bool m_dirty_wtm;
 	public:
@@ -31,11 +31,11 @@ namespace Rhea
 		void setDirection(float x, float y, float z, const Vector3& localDirectionVector = Vector3::NEGATIVE_UNIT_Z);
 		void setDirection(const Vector3& vec, const Vector3& localDirectionVector = Vector3::NEGATIVE_UNIT_Z);
 		Vector3 moveRelative(const Vector3& vec);
-		void setOrientation(const Math::Quaternion& q);
+		void setOrientation(const math::Quaternion& q);
 		void lookAt(const Vector3& targetPoint, const Vector3& localDirectionVector = Vector3::NEGATIVE_UNIT_Z);
-		Math::Matrix3x4 getWorldTransform();
+		math::Matrix3x4 getWorldTransform();
 		Vector3 get_worldspace() { return m_position; }
-		Math::Quaternion get_rotation() { return m_rotation; }
+		math::Quaternion get_rotation() { return m_rotation; }
 	};
 }
 #endif // !RHEA_POSITION_H

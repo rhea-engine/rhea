@@ -2,7 +2,7 @@
 #include <Rhea/Application.h>
 #include <Rhea/UnitTree.h>
 
-namespace Rhea 
+namespace rhea 
 {
 	void ListWidgetItem::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{

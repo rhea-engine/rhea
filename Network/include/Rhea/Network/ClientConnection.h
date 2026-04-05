@@ -11,12 +11,12 @@
 #include <Hermes/Messages/MessageCreateAvatar.h>
 #include "IConnectionData.h"
 
-namespace Rhea
+namespace rhea
 {
 	class ClientConnection
 	{
 	public:
-		ClientConnection(Rhea::Application* app, Rhea::Scene* scene, std::unique_ptr<Hermes::Stream> stream) :
+		ClientConnection(rhea::Application* app, rhea::Scene* scene, std::unique_ptr<hermes::Stream> stream) :
 			m_app(app),
 			m_scene(scene),
 			m_player(nullptr),
@@ -24,8 +24,8 @@ namespace Rhea
 			m_hermes(std::move(stream))
 		{}
 
-		int Start(Psio::Network::CompletionHandler err_handler);
-		int sendMessage(Hermes::Message* msg);
+		int Start(psio::Network::CompletionHandler err_handler);
+		int sendMessage(hermes::Message* msg);
 		void Close();
 
 		void onClosed(std::function<void(int)> handler) { m_on_closed = handler; }
@@ -33,25 +33,25 @@ namespace Rhea
 		void setConnectionData(std::unique_ptr<IConnectionData> data) { m_connection_data = std::move(data); }
 
 		// set the item this connection is responsible for
-		void setAuthItem(Rhea::Item* item) { m_player = item; }
+		void setAuthItem(rhea::Item* item) { m_player = item; }
 		// return the item this connection is responsible for
-		Rhea::Item* getAuthItem() { return m_player; }
+		rhea::Item* getAuthItem() { return m_player; }
 
 		// start with an already connected player
-		void StartEstablishedConnection(Rhea::Item* player);
+		void StartEstablishedConnection(rhea::Item* player);
 
-		Hermes::Stream* getStream() { return m_hermes.get(); }
+		hermes::Stream* getStream() { return m_hermes.get(); }
 
 	protected:
 
-		Rhea::Application* m_app;
-		Rhea::Scene* m_scene;
-		Rhea::Item* m_player;
-		Rhea::Unit* m_world;
+		rhea::Application* m_app;
+		rhea::Scene* m_scene;
+		rhea::Item* m_player;
+		rhea::Unit* m_world;
 		std::string m_username;
 
-		std::unique_ptr<Hermes::Stream> m_hermes;
-		Psio::Network::CompletionHandler m_error_handler;
+		std::unique_ptr<hermes::Stream> m_hermes;
+		psio::Network::CompletionHandler m_error_handler;
 
 		void CreateUser(std::string method, std::string username, std::string name, std::string ext_id, std::vector<std::string> secrets);
 		void Login(std::string method, std::string username, std::vector<std::string> secrets);

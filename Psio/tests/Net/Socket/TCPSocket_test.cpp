@@ -7,7 +7,7 @@
 
 // testing tcp socket
 // run a lokal server from the test
-namespace Psio
+namespace psio
 {
 	class TCPSocketTest : public ::testing::Test {
 	public:

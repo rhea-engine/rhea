@@ -13,29 +13,29 @@
 
 #include "ClientConnection.h"
 
-using Rhea::Unit;
+using rhea::Unit;
 
-namespace Rhea
+namespace rhea
 {
 
-	class ServerService : public Rhea::Service
+	class ServerService : public rhea::Service
 	{
-		MECLASS(ServerService, Rhea::Service)
+		MECLASS(ServerService, rhea::Service)
 	public:
 		ServerService(std::string name, std::string type) :
 			m_network(nullptr),
 			m_scene(nullptr),
 			nuid(1),
 			m_port(4242),
-			Rhea::Service(name, type)
+			rhea::Service(name, type)
 		{}
 
-		void setup(Rhea::Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
+		void setup(rhea::Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
 
 		// ready event
 		void ready();
 
-		void setNetwork(Psio::Network* network) { m_network = network; }
+		void setNetwork(psio::Network* network) { m_network = network; }
 
 		// set port
 		void setPort(uint16_t port) { m_port = port; }
@@ -43,7 +43,7 @@ namespace Rhea
 		void onConnection(std::function<void(ClientConnection*)> connection_handler) { m_on_connection = connection_handler; }
 
 		// set the scene we control
-		void setScene(Rhea::Scene* scene) { m_scene = scene; }
+		void setScene(rhea::Scene* scene) { m_scene = scene; }
 
 		// handle frameupdate
 		bool onFrameEnd();
@@ -52,16 +52,16 @@ namespace Rhea
 
 		// broadcast message
 		// is source is set it is not sent there
-		virtual void broadcast(Hermes::Message* msg, ClientConnection* source);
+		virtual void broadcast(hermes::Message* msg, ClientConnection* source);
 
 	protected:
 		// disconnect an item
 		void disconnect(ClientConnection* stream);
 
-		std::unique_ptr<Psio::TCPSocket> m_server_sock;
-		Psio::Network* m_network;
-		std::unique_ptr<Hermes::MessageFactory> m_msg_factory;
-		Rhea::Scene* m_scene;
+		std::unique_ptr<psio::TCPSocket> m_server_sock;
+		psio::Network* m_network;
+		std::unique_ptr<hermes::MessageFactory> m_msg_factory;
+		rhea::Scene* m_scene;
 		std::vector<ClientConnection*> m_connections;
 		std::string ip;
 		uint16_t m_port;

@@ -1,8 +1,8 @@
 #include "Hermes/Messages/MessageCreateAvatar.h"
 
-namespace Hermes
+namespace hermes
 {
-	void MessageCreateAvatar::serialize(Psio::IOBuffer* buf)
+	void MessageCreateAvatar::serialize(psio::IOBuffer* buf)
 	{
 		base.size = (uint16_t)(sizeof(BaseMessage) + 2 * sizeof(uint32_t) + avatar.name.length() + avatar.type_name.length());
 		if (buf->FreeBufSize() < base.size) {
@@ -19,13 +19,13 @@ namespace Hermes
 		buf->Produce(size);
 	}
 
-	void MessageCreateAvatar::unserialize(Psio::IOBuffer* buf)
+	void MessageCreateAvatar::unserialize(psio::IOBuffer* buf)
 	{
 		avatar.name = readStr(buf);
 		avatar.type_name = readStr(buf);
 	}
 
-	Message* MessageCreateAvatar::create(uint16_t opcode, uint16_t size, Psio::IOBuffer* buf)
+	Message* MessageCreateAvatar::create(uint16_t opcode, uint16_t size, psio::IOBuffer* buf)
 	{
 		MessageCreateAvatar* msg;
 		msg = new MessageCreateAvatar(opcode);

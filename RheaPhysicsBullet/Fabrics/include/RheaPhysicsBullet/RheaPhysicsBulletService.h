@@ -8,14 +8,18 @@
 class btDynamicsWorld;
 class btIDebugDraw;
 
-namespace Rhea
+namespace rhea
 {
 	class Controller;
 	class Scene;
 
-	class BulletPhysicsService : public PhysicsService
+}
+
+namespace rhea::physics::bullet
+{
+	class BulletPhysicsService : public rhea::PhysicsService
 	{
-		MECLASS(BulletPhysicsService, PhysicsService)
+		MECLASS(BulletPhysicsService, rhea::PhysicsService)
 	public:
 		BulletPhysicsService(std::string name, std::string type_name);		
 
@@ -26,33 +30,33 @@ namespace Rhea
 		btDynamicsWorld* getWorld() { return m_world; }
 
 		// set scene and initialize objects in it
-		void setScene(Scene* scene);
+		void setScene(rhea::Scene* scene);
 
 		// initalize one object
-		void initializeItem(Item* item);
+		void initializeItem(rhea::Item* item);
 
 		// remove one object
-		void removeItem(Item* item);
+		void removeItem(rhea::Item* item);
 
 		// Service functions
 		void onInit();
 
 		// ray trace
-		Unit* ray(Math::Vector3 origin, Math::Vector3 direction);
+		Unit* ray(math::Vector3 origin, math::Vector3 direction);
 
-		std::unique_ptr<PhysicsBody> createBody(const PhysicsBodyDesc& desc, Item* item);
+		std::unique_ptr<rhea::PhysicsBody> createBody(const rhea::PhysicsBodyDesc& desc, rhea::Item* item);
 
 		void setDebugDrawer(btIDebugDraw* drawer);
 
-		using BulletDrawerFactory = std::function<IPhysicsDebugDraw* ()>;
+		using BulletDrawerFactory = std::function<rhea::IPhysicsDebugDraw* ()>;
 		void setDrawerFactory(BulletDrawerFactory f) { m_drawer_factory = f; }
-		IPhysicsDebugDraw* debugDraw() override { if (!m_debug_drawer && m_drawer_factory) m_debug_drawer = m_drawer_factory(); return m_debug_drawer; }
+		rhea::IPhysicsDebugDraw* debugDraw() override { if (!m_debug_drawer && m_drawer_factory) m_debug_drawer = m_drawer_factory(); return m_debug_drawer; }
 
 	protected:
 		btDynamicsWorld* m_world;
-		Scene* m_scene;
+		rhea::Scene* m_scene;
 		BulletDrawerFactory m_drawer_factory;
-		IPhysicsDebugDraw* m_debug_drawer;
+		rhea::IPhysicsDebugDraw* m_debug_drawer;
 	};
 }
 

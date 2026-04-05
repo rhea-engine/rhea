@@ -13,7 +13,7 @@ public:
 		m_error_code(error_code)
 	{}
 	// IRequestHandler functions
-	int OnRequest(Psio::HttpRequest* req, Psio::HttpResponse* res);
+	int OnRequest(psio::HttpRequest* req, psio::HttpResponse* res);
 protected:
 	int m_error_code;
 };

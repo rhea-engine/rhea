@@ -5,7 +5,7 @@
 #include <Hippios/PipelineState.h>
 #include <Hippios/BlendState.h>
 
-namespace Hippios
+namespace hippios
 {
 	class D3D11BlendState : public BlendState
 	{

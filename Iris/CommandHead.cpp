@@ -1,6 +1,6 @@
 #include "CommandHead.h"
 
-int CommandHead::OnRequest(Psio::HttpRequest* req, Psio::HttpResponse* res)
+int CommandHead::OnRequest(psio::HttpRequest* req, psio::HttpResponse* res)
 {
 	return res->end();
 }

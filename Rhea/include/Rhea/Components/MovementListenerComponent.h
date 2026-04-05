@@ -4,7 +4,7 @@
 #include <Rhea/Component.h>
 #include <Math/Vector3.h>
 
-namespace Rhea
+namespace rhea
 {
 	class MovementListenerComponent : public Component
 	{
@@ -14,7 +14,7 @@ namespace Rhea
 			Component(name, type_name)
 		{
 		}
-		virtual void onMovementChanged(const Math::Vector3& move) = 0;
+		virtual void onMovementChanged(const math::Vector3& move) = 0;
 		virtual void onTurnChanged(float turn) = 0;
 		virtual void onPositionChanged() = 0;
 	};

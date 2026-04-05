@@ -1,6 +1,6 @@
 #include "Rhea/Core/Avatar.h"
 
-namespace Rhea {
+namespace rhea {
 	
 	void Avatar::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{

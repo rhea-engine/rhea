@@ -11,7 +11,7 @@
 #include "Input/UnixInput.h"
 #include "Net/UnixNetwork.h"
 
-namespace Psio
+namespace psio
 {
     UnixBackend::UnixBackend()
     {

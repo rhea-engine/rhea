@@ -16,9 +16,9 @@
 
 #define MAX_BONES 100
 
-namespace Rhea
+namespace rhea
 {
-	bool GltfScene::load(Rhea::Mesh* mesh)
+	bool GltfScene::load(rhea::Mesh* mesh)
 	{
 		// instanced?
 		if (m_instance)
@@ -53,7 +53,7 @@ namespace Rhea
 				}
 			}
 			else {
-				Bone rootBone(0, -1, Math::Matrix4());
+				Bone rootBone(0, -1, math::Matrix4());
 				skel->addBone(rootBone);
 			}
 			//addComponent(skel);
@@ -124,16 +124,16 @@ namespace Rhea
 
 				// traditional shader - fill as good as possible
 				// pbr to traditional ambient - not implemented
-				//mat->setColor(ambient_id, Math::Vector3(material.ambient[0], material.ambient[1], material.ambient[2]));
+				//mat->setColor(ambient_id, math::Vector3(material.ambient[0], material.ambient[1], material.ambient[2]));
 				// pbr to traditional specular - not implemented
-				//mat->setColor(specular_id, Math::Vector3(material.specular[0], material.specular[1], material.specular[2]));
-				Math::Vector3 diffuse(
+				//mat->setColor(specular_id, math::Vector3(material.specular[0], material.specular[1], material.specular[2]));
+				math::Vector3 diffuse(
 					(float)material.pbrMetallicRoughness.baseColorFactor[0],
 					(float)material.pbrMetallicRoughness.baseColorFactor[1],
 					(float)material.pbrMetallicRoughness.baseColorFactor[2]
 				);
 				mat->setColor(diffuse_id, diffuse);
-				Math::Vector3 emmissive(
+				math::Vector3 emmissive(
 					(float)material.emissiveFactor[0],
 					(float)material.emissiveFactor[1],
 					(float)material.emissiveFactor[2]
@@ -181,8 +181,8 @@ namespace Rhea
 			mat->setShaderRes(shader_res);
 			mat->setValue("shader", shader_name);
 
-			mat->setColor(diffuse_id, Math::Vector3(0.8f, 0.8f, 0.8f));
-			mat->setColor(emmission_id, Math::Vector3(0.0f, 0.0f, 0.0f));
+			mat->setColor(diffuse_id, math::Vector3(0.8f, 0.8f, 0.8f));
+			mat->setColor(emmission_id, math::Vector3(0.0f, 0.0f, 0.0f));
 
 			if (diffuse_maps.size() > 0)
 				mat->setTexture(basecolor_id, diffuse_maps[0]);
@@ -211,13 +211,13 @@ namespace Rhea
 		bool handedness_transform = false;
 
 		// Extract the inverse bind matrices
-		Math::Matrix4 handedness_conversion(
+		math::Matrix4 handedness_conversion(
 			1, 0, 0, 0,
 			0, 0, 1, 0,
 			0, -1, 0, 0,
 			0, 0, 0, 1
 		);
-		std::vector<Math::Matrix4> inverseBindMatrices;
+		std::vector<math::Matrix4> inverseBindMatrices;
 		if (skin.inverseBindMatrices != -1) {
 			
 			const tinygltf::Accessor& accessor = m_model.accessors[skin.inverseBindMatrices];
@@ -233,7 +233,7 @@ namespace Rhea
 			size_t matrixCount = accessor.count;
 			inverseBindMatrices.resize(matrixCount);
 			for (int i = 0; i < matrixCount; ++i) {
-				inverseBindMatrices[i] = Math::Matrix4(data + i * stride / sizeof(float)); // Assumes column-major format
+				inverseBindMatrices[i] = math::Matrix4(data + i * stride / sizeof(float)); // Assumes column-major format
 				if (handedness_transform)
 					inverseBindMatrices[i] = handedness_conversion * inverseBindMatrices[i];
 			}
@@ -243,40 +243,40 @@ namespace Rhea
 		for (int i = 0; i < skin.joints.size(); ++i) {
 			int nodeIndex = skin.joints[i];
 			tinygltf::Node& node = m_model.nodes[nodeIndex];
-			Math::Matrix4 invBindMatrix = (i < inverseBindMatrices.size()) ? inverseBindMatrices[i] : Math::Matrix4();
+			math::Matrix4 invBindMatrix = (i < inverseBindMatrices.size()) ? inverseBindMatrices[i] : math::Matrix4();
 
 			Bone bone(i, -1, invBindMatrix);
 			bone.name = node.name;
 
 			// initialize local_transform
-			Math::Matrix4 localTransform;
+			math::Matrix4 localTransform;
 
 			if (!node.matrix.empty()) {
 				// If the node has a matrix, use it directly (GLTF stores this in column-major order)
-				localTransform = Math::Matrix4(node.matrix.data());				
+				localTransform = math::Matrix4(node.matrix.data());				
 			}
 			else {
 				// Otherwise, construct the matrix from translation, rotation, and scale
-				Math::Vector3 translation;
-				Math::Quaternion rotation;
-				Math::Vector3 scale;
+				math::Vector3 translation;
+				math::Quaternion rotation;
+				math::Vector3 scale;
 				if (node.translation.size() < 3)
-					translation = Math::Vector3(0.0f, 0.0f, 0.0f);
+					translation = math::Vector3(0.0f, 0.0f, 0.0f);
 				else
-					translation = Math::Vector3((float)node.translation[0], (float)node.translation[1], (float)node.translation[2]);
+					translation = math::Vector3((float)node.translation[0], (float)node.translation[1], (float)node.translation[2]);
 				if (node.rotation.size() < 4)
-					rotation = Math::Quaternion(0.0f, 0.0f, 0.0f, 1.0f);
+					rotation = math::Quaternion(0.0f, 0.0f, 0.0f, 1.0f);
 				else {
 					// attention: gltf defines the rotation as [x,y,z,w]
-					rotation = Math::Quaternion((float)node.rotation[3], (float)node.rotation[0], (float)node.rotation[1], (float)node.rotation[2]);
+					rotation = math::Quaternion((float)node.rotation[3], (float)node.rotation[0], (float)node.rotation[1], (float)node.rotation[2]);
 					rotation.normalize();
 				}
 				if (node.scale.size() < 3)
-					scale = Math::Vector3(1.0f,1.0f,1.0f);
+					scale = math::Vector3(1.0f,1.0f,1.0f);
 				else
-					scale = Math::Vector3((float)node.scale[0], (float)node.scale[1], (float)node.scale[2]);
+					scale = math::Vector3((float)node.scale[0], (float)node.scale[1], (float)node.scale[2]);
 
-				localTransform = Math::Matrix4::compose(translation, rotation, scale); 				
+				localTransform = math::Matrix4::compose(translation, rotation, scale); 				
 			}
 			if (!handedness_transform)
 				bone.local_transform = localTransform;
@@ -296,7 +296,7 @@ namespace Rhea
 					LOG(LOG_DEBUG) << "Rotation: " << node.rotation[3] << ", " << node.rotation[0] << ", " << node.rotation[1] << ", " << node.rotation[2];
 					Quaternion rotation = Quaternion((float)node.rotation[3], (float)node.rotation[0], (float)node.rotation[2], (float)node.rotation[2]);					
 					rotation.normalize();
-					Math::Matrix3 rotationMatrix = rotation.RotationMatrix();				
+					math::Matrix3 rotationMatrix = rotation.RotationMatrix();				
 				}
 				if (node.scale.size() >= 3)
 					LOG(LOG_DEBUG) << "Scale: " << node.scale[0] << ", " << node.scale[1] << ", " << node.scale[2];
@@ -322,7 +322,7 @@ namespace Rhea
 		}	
 	}
 
-	void GltfScene::CreateAnimations(Rhea::Mesh* mesh)
+	void GltfScene::CreateAnimations(rhea::Mesh* mesh)
 	{
 		std::vector<Animation*> animations;
 
@@ -378,13 +378,13 @@ namespace Rhea
 						if (channel.target_path == "translation") {
 							Animation::KeyframePosition key_position;
 							key_position.time = time;
-							key_position.translation = Math::Vector3(outputValues[i * 3 + 0], outputValues[i * 3 + 1], outputValues[i * 3 + 2]);
+							key_position.translation = math::Vector3(outputValues[i * 3 + 0], outputValues[i * 3 + 1], outputValues[i * 3 + 2]);
 							animChannel->keyframe_positions.push_back(key_position);
 						}
 						else if (channel.target_path == "rotation") {
 							Animation::KeyframeRotation key_rotation;
 							key_rotation.time = time;
-							key_rotation.rotation = Math::Quaternion(
+							key_rotation.rotation = math::Quaternion(
 								outputValues[i * 4 + 3], // w
 								outputValues[i * 4 + 0], // x
 								outputValues[i * 4 + 1], // y
@@ -395,7 +395,7 @@ namespace Rhea
 						else if (channel.target_path == "scale") {
 							Animation::KeyframeScale key_scale;
 							key_scale.time = time;
-							key_scale.scale = Math::Vector3(outputValues[i * 3 + 0], outputValues[i * 3 + 1], outputValues[i * 3 + 2]);
+							key_scale.scale = math::Vector3(outputValues[i * 3 + 0], outputValues[i * 3 + 1], outputValues[i * 3 + 2]);
 							animChannel->keyframe_scales.push_back(key_scale);
 						}
 					}

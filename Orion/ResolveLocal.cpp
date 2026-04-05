@@ -2,7 +2,7 @@
 #include <Psio/Fs/Fs.h>
 #include <Orion/FileStream.h>
 
-std::unique_ptr<Orion::ResourceStream> Orion::ResolveLocal::getResource(std::string realm_name, std::string resource_path)
+std::unique_ptr<orion::ResourceStream> orion::ResolveLocal::getResource(std::string realm_name, std::string resource_path)
 {
 	std::unique_ptr<ResourceStream> stream;
 	std::string path;
@@ -12,7 +12,7 @@ std::unique_ptr<Orion::ResourceStream> Orion::ResolveLocal::getResource(std::str
 	else
 		path = m_path + resource_path;
 
-	if (Psio::Fs::fileExists(path))
+	if (psio::Fs::fileExists(path))
 	{
 		// file exists
 		// create file resource and return it
@@ -23,7 +23,7 @@ std::unique_ptr<Orion::ResourceStream> Orion::ResolveLocal::getResource(std::str
 	return nullptr;
 }
 
-bool Orion::ResolveLocal::checkResourceExists(std::string realm_name, std::string resource_path)
+bool orion::ResolveLocal::checkResourceExists(std::string realm_name, std::string resource_path)
 {
 	std::string path;
 
@@ -32,5 +32,5 @@ bool Orion::ResolveLocal::checkResourceExists(std::string realm_name, std::strin
 	else
 		path = m_path + resource_path;
 
-	return Psio::Fs::fileExists(path);
+	return psio::Fs::fileExists(path);
 }

@@ -6,7 +6,7 @@
 class CommandHello : public Command
 {
 public:
-	int OnRequest(Psio::HttpRequest* req, Psio::HttpResponse* res);
+	int OnRequest(psio::HttpRequest* req, psio::HttpResponse* res);
 };
 
 #endif // !HELLO_COMMAND_H

@@ -9,9 +9,9 @@
 #include <Rhea/Core/Light.h>
 #include <Hippios/BaseTypes.h>
 
-using Rhea::Item;
+using rhea::Item;
 
-namespace Poseidon
+namespace poseidon
 {
 	class Camera;
 //	class Renderable;
@@ -35,7 +35,7 @@ namespace Poseidon
 		bool isName(std::string& name) { return m_name == name; }
 
 		// get lights
-		void getLights(std::vector<Rhea::Light*>& lights);
+		void getLights(std::vector<rhea::Light*>& lights);
 
 		// cull the visible objects
 		void cullObjects(RenderQueue* queue);
@@ -57,19 +57,19 @@ namespace Poseidon
 		int getStencilState() { return m_stencil_state; }
 
 		void setSize(float width, float height) { m_size.w = width; m_size.h = height; }
-		Hippios::ViewportDesc* getSize() { return &m_size; }
+		hippios::ViewportDesc* getSize() { return &m_size; }
 
 		// ambient light
-		void setAmbient(Math::Quaternion ambient) { m_ambient = ambient; }
-		Math::Quaternion getAmbient() { return m_ambient; }
+		void setAmbient(math::Quaternion ambient) { m_ambient = ambient; }
+		math::Quaternion getAmbient() { return m_ambient; }
 
 	protected:
 		std::string m_name;
 		Camera* m_camera;
 		std::vector<Item*> m_render_children;
 		int m_stencil_state;
-		Math::Quaternion m_ambient;
-		Hippios::ViewportDesc m_size;
+		math::Quaternion m_ambient;
+		hippios::ViewportDesc m_size;
 	};
 }
 

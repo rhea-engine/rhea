@@ -15,21 +15,21 @@
 #include <Hippios/GraphicsBuffer.h>
 #include <Rhea/Core/Material.h>
 #include <Rhea/Core/Shader.h>
-#include <Rhea/Graphics/MaterialManager.h>
+#include <RheaClient/Graphics/MaterialManager.h>
 #include <Rhea/Core/Mesh.h>
 #include <Rhea/Core/DirectionalLight.h>
 #include <Rhea/Core/PointLight.h>
 #include <Rhea/Core/SpotLight.h>
 #include <Rhea/Animation/Skeleton.h>
 #include <Rhea/Components/VisualComponent.h>
-#include <Rhea/Components/RenderComponent.h>
+#include <RheaClient/Components/RenderComponent.h>
 #include <Psio/Log.h>
 #include <algorithm>
 
-namespace Poseidon
+namespace poseidon
 {
 	struct BoneBuffer {
-		Math::Matrix4 boneMatrices[100];
+		math::Matrix4 boneMatrices[100];
 	};
 
 	SceneManager::SceneManager() :
@@ -52,17 +52,17 @@ namespace Poseidon
 		return m_tree;
 	}
 
-	void SceneManager::setRenderer(Hippios::Renderer* renderer)
+	void SceneManager::setRenderer(hippios::Renderer* renderer)
 	{
 		m_renderer = renderer;
 
 		//initialize graphic buffers
 		m_frame_buffer = m_renderer->createGraphicsBuffer(sizeof(cbPerFrame));
-		m_renderer->bindGPUBuffer(m_frame_buffer.get(), 0, Hippios::ShaderStage::Vertex);
+		m_renderer->bindGPUBuffer(m_frame_buffer.get(), 0, hippios::ShaderStage::Vertex);
 		m_object_buffer = m_renderer->createGraphicsBuffer(sizeof(cbPerObject));
-		//m_renderer->bindGPUBuffer(m_object_buffer.get(), 1, Hippios::ShaderStage::Vertex);
+		//m_renderer->bindGPUBuffer(m_object_buffer.get(), 1, hippios::ShaderStage::Vertex);
 		m_light_buffer = m_renderer->createGraphicsBuffer(sizeof(cbLight));
-		m_renderer->bindGPUBuffer(m_light_buffer.get(), 2, Hippios::ShaderStage::Fragment);		
+		m_renderer->bindGPUBuffer(m_light_buffer.get(), 2, hippios::ShaderStage::Fragment);		
 		m_bone_buffer = m_renderer->createGraphicsBuffer(sizeof(BoneBuffer));
 	}
 
@@ -107,12 +107,12 @@ namespace Poseidon
 
 				// fill per frame buffer
 				per_frame_buf = {};
-				Math::Matrix4 frameSrc[3];
+				math::Matrix4 frameSrc[3];
 				frameSrc[0] = camera->getViewMatrix();
 				frameSrc[1] = camera->getProjectionMatrixRS();
 				frameSrc[2] = frameSrc[1] * frameSrc[0];
 
-				Math::Matrix4 frameDst[3];
+				math::Matrix4 frameDst[3];
 				m_renderer->prepareMatricesForShader(frameDst, frameSrc, 3);
 
 				per_frame_buf.v = frameDst[0];
@@ -123,10 +123,10 @@ namespace Poseidon
 					per_frame_buf.cameraPos = camera->get_position()->get_worldspace();
 
 				m_frame_buffer->update((void*)&per_frame_buf);
-				m_renderer->bindGPUBuffer(m_frame_buffer.get(), 0, Hippios::ShaderStage::Vertex);
+				m_renderer->bindGPUBuffer(m_frame_buffer.get(), 0, hippios::ShaderStage::Vertex);
 
 				// fill lights buffer
-				std::vector<Rhea::Light*> lights;
+				std::vector<rhea::Light*> lights;
 				context->getLights(lights);
 				light_buf = {};
 
@@ -135,43 +135,43 @@ namespace Poseidon
 
 				// iterate lights and add them to the light buffer
 				int idx = 0;
-				for (std::vector<Rhea::Light*>::iterator it = lights.begin(); it != lights.end(); ++it) {
+				for (std::vector<rhea::Light*>::iterator it = lights.begin(); it != lights.end(); ++it) {
 					if (idx >= MAX_LIGHTS) {
 						break;
 					}
-					Rhea::Light* light = doCast<Rhea::Light>(*it);
+					rhea::Light* light = doCast<rhea::Light>(*it);
 					if (light) {
 						light_buf.lights[idx].specular = light->getSpecular();
 						light_buf.lights[idx].diffuse = light->getDiffuse();
 						light_buf.lights[idx].lightColor = light->getColor();
 
-						Rhea::DirectionalLight* dir_light = doCast<Rhea::DirectionalLight>(*it);
+						rhea::DirectionalLight* dir_light = doCast<rhea::DirectionalLight>(*it);
 						if (dir_light) {
 							light_buf.lights[idx].Type = 0;
 							light_buf.lights[idx].direction = dir_light->getDirection();
 						}
 						else {
-							Rhea::PointLight* point_light = doCast<Rhea::PointLight>(*it);
+							rhea::PointLight* point_light = doCast<rhea::PointLight>(*it);
 							if (point_light) {
 								light_buf.lights[idx].Type = 1;
 								Vector3 pos = point_light->getTransform()->get_position()->get_worldspace();
-								light_buf.lights[idx].position = Math::Quaternion(pos.x, pos.y, pos.z, 1.0f);
-								Math::Vector3 attenuation = point_light->getAttenuation();
+								light_buf.lights[idx].position = math::Quaternion(pos.x, pos.y, pos.z, 1.0f);
+								math::Vector3 attenuation = point_light->getAttenuation();
 								light_buf.lights[idx].ConstantAttenuation = attenuation.x;
 								light_buf.lights[idx].LinearAttenuation = attenuation.y;
 								light_buf.lights[idx].QuadraticAttenuation = attenuation.z;
 							}
 							else
 							{
-								Rhea::SpotLight* spot_light = doCast<Rhea::SpotLight>(*it);
+								rhea::SpotLight* spot_light = doCast<rhea::SpotLight>(*it);
 								if (spot_light) {
 									light_buf.lights[idx].Type = 2;
 									Vector3 pos = point_light->getTransform()->get_position()->get_worldspace();
-									light_buf.lights[idx].position = Math::Quaternion(pos.x, pos.y, pos.z, 1.0f);
-									pos = Math::Vector3(-pos.x, -pos.y, -pos.z);
+									light_buf.lights[idx].position = math::Quaternion(pos.x, pos.y, pos.z, 1.0f);
+									pos = math::Vector3(-pos.x, -pos.y, -pos.z);
 									pos.normalize();
 									light_buf.lights[idx].direction = pos;
-									Math::Vector3 attenuation = spot_light->getAttenuation();
+									math::Vector3 attenuation = spot_light->getAttenuation();
 									light_buf.lights[idx].ConstantAttenuation = attenuation.x;
 									light_buf.lights[idx].LinearAttenuation = attenuation.y;
 									light_buf.lights[idx].QuadraticAttenuation = attenuation.z;
@@ -184,33 +184,33 @@ namespace Poseidon
 				}
 				light_buf.num_lights = (float)idx;
 				m_light_buffer->update((void*)&light_buf);
-				m_renderer->bindGPUBuffer(m_light_buffer.get(), 2, Hippios::ShaderStage::Fragment);
+				m_renderer->bindGPUBuffer(m_light_buffer.get(), 2, hippios::ShaderStage::Fragment);
 
 				Item* renderable = m_rend_queue->first();
 				for (Item* renderable = m_rend_queue->first(); renderable != NULL; renderable = m_rend_queue->next()) {
 
-					auto* vis = renderable->getComponent<Rhea::VisualComponent>();
+					auto* vis = renderable->getComponent<rhea::VisualComponent>();
 					if (!vis || !vis->isVisible()) continue;
 
 					// get render information
-					Rhea::RenderComponent* r_comp = renderable->getComponent<Rhea::RenderComponent>();					
+					rhea::client::RenderComponent* r_comp = renderable->getComponent<rhea::client::RenderComponent>();					
 					if (!r_comp)
 						continue;
 
 					// fill per object buffer
-					Rhea::Transform* transform = renderable->getTransform();
+					rhea::Transform* transform = renderable->getTransform();
 					Position* position = nullptr;
 					if (transform)
 						position = transform->get_derived_position();
 					// check if renderable has a position
 					if (position) {// model world transform matrix (also called world matrix)
-						Math::Matrix4 objectSrc[2];
+						math::Matrix4 objectSrc[2];
 
-						Math::Matrix3x4 model_wtm = position->getWorldTransform();
+						math::Matrix3x4 model_wtm = position->getWorldTransform();
 						objectSrc[0] = model_wtm;
 						objectSrc[1] = objectSrc[0].inverse().transpose();
 
-						Math::Matrix4 objectDst[2];
+						math::Matrix4 objectDst[2];
 						m_renderer->prepareMatricesForShader(objectDst, objectSrc, 2);
 
 						per_obj_buf.world_matrix = objectDst[0];
@@ -218,24 +218,24 @@ namespace Poseidon
 						per_obj_buf.inverse = objectDst[1];
 						
 						m_object_buffer->update((void*)&per_obj_buf);
-						m_renderer->bindGPUBuffer(m_object_buffer.get(), 1, Hippios::ShaderStage::Vertex);
+						m_renderer->bindGPUBuffer(m_object_buffer.get(), 1, hippios::ShaderStage::Vertex);
 					}
 					
 					// get render mesh
 					// Ensure GPU mesh is available
-					Poseidon::Mesh* mesh = r_comp->gpuMesh;
+					poseidon::Mesh* mesh = r_comp->gpuMesh;
 					if (!mesh) {
 						continue;
 					}
 					
 					// skeleton handling if any
-					Rhea::Skeleton* skeleton = r_comp->skeleton;
+					rhea::Skeleton* skeleton = r_comp->skeleton;
 					if (skeleton) {
 						// Fill the bone buffer
 						BoneBuffer boneBuffer{};
 						for (int i = 0; i < 100; ++i)
 						{
-							boneBuffer.boneMatrices[i] = Math::Matrix4::IDENTITY;
+							boneBuffer.boneMatrices[i] = math::Matrix4::IDENTITY;
 						}
 						const auto& boneMatrices = skeleton->getBoneMatrices();
 						size_t max_bones = std::min(boneMatrices.size(), static_cast<size_t>(100)); // Ensure we do not exceed buffer capacity.
@@ -244,7 +244,7 @@ namespace Poseidon
 
 						// Update the bone matrix buffer
 						m_bone_buffer->update((void*)&boneBuffer);
-						m_renderer->bindGPUBuffer(m_bone_buffer.get(), 4, Hippios::ShaderStage::Vertex); // Bind bone buffer to slot 4 for vertex shader
+						m_renderer->bindGPUBuffer(m_bone_buffer.get(), 4, hippios::ShaderStage::Vertex); // Bind bone buffer to slot 4 for vertex shader
 					}
 
 					// iterate over submeshes
@@ -272,7 +272,7 @@ namespace Poseidon
 
 						// set texture(s)
 
-						std::vector<Poseidon::Texture*> texs = m_current_material->getTextures();
+						std::vector<poseidon::Texture*> texs = m_current_material->getTextures();
 						if (texs.size()) {
 							for (int i = 0; i < texs.size(); i++) {
 								m_renderer->setTexture(texs[i]->get_texture(), i);
@@ -282,8 +282,8 @@ namespace Poseidon
 						// draw the entity
 
 						// bind the vertex and index buffer
-						Hippios::VertexBuffer* vb;
-						Hippios::IndexBuffer* ib;
+						hippios::VertexBuffer* vb;
+						hippios::IndexBuffer* ib;
 						int num_indices;
 
 						mesh->getRenderInput(i, &vb, &ib, num_indices);
@@ -336,7 +336,7 @@ namespace Poseidon
 		return nullptr;
 	}
 
-	Window* SceneManager::getWindow(Psio::Window* win)
+	Window* SceneManager::getWindow(psio::Window* win)
 	{
 		for (std::vector<Window*>::iterator it = m_windows.begin(); it != m_windows.end(); ++it) {
 			Window* window = *it;

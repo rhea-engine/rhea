@@ -6,8 +6,7 @@
 #include <Poseidon/Shader.h>
 #include <Rhea/Core/Shader.h>
 
-namespace Rhea
-{
+namespace rhea::client {
 	class GraphicsMaterialManager : public GraphicsManager
 	{
 	public:
@@ -16,18 +15,18 @@ namespace Rhea
 		{}
 
 		// ensure shader is created
-		Poseidon::Shader* EnsurePoseidonShader(Poseidon::Core* core, Material* material_res, Shader* shader_res);
+		poseidon::Shader* EnsurePoseidonShader(poseidon::Core* core, rhea::Material* material_res, rhea::Shader* shader_res);
 
 		// create an element for this unit
-		bool Ensure(Poseidon::Core* core, Unit* unit);
+		bool Ensure(poseidon::Core* core, rhea::Unit* unit);
 
-		bool FillPoseidonMaterial(Poseidon::Core* core, Rhea::Material* material_res, Poseidon::Material* out_mat, bool fresh_build);
+		bool FillPoseidonMaterial(poseidon::Core* core, rhea::Material* material_res, poseidon::Material* out_mat, bool fresh_build);
 
 		// handle frame update
 		void onFrame() {}
 
 		// handle events
-		bool onItemDelete(Event* ev, Unit* unit);	
+		bool onItemDelete(rhea::Event* ev, rhea::Unit* unit);	
 	};
 }
 

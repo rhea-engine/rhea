@@ -4,7 +4,7 @@
 #include <Rhea/Component.h>
 #include "Bone.h"
 
-namespace Rhea
+namespace rhea
 {
 	class Skeleton : public Component
 	{
@@ -22,7 +22,7 @@ namespace Rhea
 		
 		std::vector<Bone>& getBones() {	return m_bones;	}
 
-		const std::vector<Math::Matrix4>& getBoneMatrices() const;
+		const std::vector<math::Matrix4>& getBoneMatrices() const;
 
 	protected:
 		std::vector<Bone> m_bones;		

@@ -1,7 +1,7 @@
 #include "Hermes/Messages/MessageEnterWorld.h"
 
-namespace Hermes {
-	void MessageEnterWorld::serialize(Psio::IOBuffer* buf)
+namespace hermes {
+	void MessageEnterWorld::serialize(psio::IOBuffer* buf)
 	{
 
 		base.size = sizeof(BaseMessage) + sizeof(uint32_t) * 1 + (uint16_t)avatar.length();
@@ -18,12 +18,12 @@ namespace Hermes {
 		buf->Produce(size);
 	}
 	
-	void MessageEnterWorld::unserialize(Psio::IOBuffer* buf)
+	void MessageEnterWorld::unserialize(psio::IOBuffer* buf)
 	{
 		avatar = readStr(buf);
 	}
 
-	Message* MessageEnterWorld::create(uint16_t opcode, uint16_t size, Psio::IOBuffer* buf)
+	Message* MessageEnterWorld::create(uint16_t opcode, uint16_t size, psio::IOBuffer* buf)
 	{
 		MessageEnterWorld* msg;
 		msg = new MessageEnterWorld();

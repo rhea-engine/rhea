@@ -4,16 +4,16 @@
 #include <vector>
 #include <Math/Vector3.h>
 
-namespace Rhea {
+namespace rhea {
 	class Application;
 	class Item;
 }
 
 struct TriangleSoup {
-	std::vector<Math::Vector3> positions;
+	std::vector<math::Vector3> positions;
 	std::vector<unsigned long> indices;
 };
 
-bool ExtractTrianglesFromScene(Rhea::Application* app, Rhea::Item* item, TriangleSoup& out);
+bool ExtractTrianglesFromScene(rhea::Application* app, rhea::Item* item, TriangleSoup& out);
 
 #endif //  RHEA_OBJTRIANGLELOADER_H

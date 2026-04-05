@@ -7,7 +7,7 @@
 #include <Rhea/Components/MeshComponent.h>
 #include <Rhea/Core/Mesh.h>
 
-namespace Rhea
+namespace rhea
 {
 	void Skybox::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{
@@ -109,7 +109,7 @@ namespace Rhea
 		}
 	}
 
-	void Rhea::Skybox::onFrame(float delta)
+	void rhea::Skybox::onFrame(float delta)
 	{
 		// set skybox to camera position
 		if (!m_camera) {

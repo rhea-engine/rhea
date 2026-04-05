@@ -1,8 +1,11 @@
 {
-  "name": "RheaPhysics",
+  "id": "rhea/physics",
+  "displayName": "Rhea Physics",
   "version": "0.9.0",
-  "vendor": "Meworla",
+  "author": "Meworla",
   "package": "RheaPhysics",
   "description": "Rhea null physics module",
-  "dependencies": { "Meworla/Rhea": "0.9.0" }
+  "dependencies": {
+    "rhea/core": "0.9.0"
+  }
 }

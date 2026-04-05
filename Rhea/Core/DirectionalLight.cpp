@@ -1,6 +1,6 @@
 #include "Rhea/Core/DirectionalLight.h"
 
-namespace Rhea
+namespace rhea
 {
 	void DirectionalLight::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{
@@ -8,7 +8,7 @@ namespace Rhea
 	
 		Variant dir_r = getValue("direction");
 		if (dir_r.size() == 3) {
-			m_direction = Math::Vector3(dir_r[0], dir_r[1], dir_r[2]);
+			m_direction = math::Vector3(dir_r[0], dir_r[1], dir_r[2]);
 		}
 	}
 }

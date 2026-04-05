@@ -3,7 +3,7 @@
 
 #include "Widget.h"
 
-namespace Rhea {
+namespace rhea {
 
 	class SpacerWidget : public Widget
 	{

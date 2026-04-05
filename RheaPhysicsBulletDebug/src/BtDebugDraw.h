@@ -6,39 +6,42 @@
 #include <Rhea/Core/Item.h>
 #include <Rhea/Physics/IPhysicsDebugDraw.h>
 
-namespace Poseidon { class RenderQueue; class Camera; class Material; class Texture; class Mesh; class Core; }
-namespace Hippios { class VertexBuffer; class IndexBuffer; }
+namespace poseidon { class RenderQueue; class Camera; class Material; class Texture; class Mesh; class Core; }
+namespace hippios { class VertexBuffer; class IndexBuffer; }
 class btDynamicsWorld;
 
-namespace Rhea
+namespace rhea
 {
     class Application;
+}
 
-	class BulletDebugDraw : public Item, public IPhysicsDebugDraw
+namespace rhea::physics::bullet::debug
+{
+	class BulletDebugDraw : public rhea::Item, public rhea::IPhysicsDebugDraw
 	{      
     public:
         struct Line {
-            Math::Vector3 p0;
-            Math::Vector3 p1;
-            Math::Vector3 color;
+            math::Vector3 p0;
+            math::Vector3 p1;
+            math::Vector3 color;
         };
 
         struct Triangle {
-            Math::Vector3 p0;
-            Math::Vector3 p1;
-            Math::Vector3 p2;
-            Math::Vector3 color;
+            math::Vector3 p0;
+            math::Vector3 p1;
+            math::Vector3 p2;
+            math::Vector3 color;
         };
         
-        BulletDebugDraw(Application* app, btDynamicsWorld* world, Poseidon::Core* core);
+        BulletDebugDraw(rhea::Application* app, btDynamicsWorld* world, poseidon::Core* core);
 		~BulletDebugDraw();
 
         //  Renderable functions
-        void cullPhase(Poseidon::RenderQueue* queue, Poseidon::Camera* camera);
-        void getRenderInput(Hippios::VertexBuffer** pvb, Hippios::IndexBuffer** pib, int& num_indices);
-        Poseidon::Material* getMaterial();
-        Poseidon::Texture* getTexture();
-        std::vector<Poseidon::Texture*>& getTextures();
+        void cullPhase(poseidon::RenderQueue* queue, poseidon::Camera* camera);
+        void getRenderInput(hippios::VertexBuffer** pvb, hippios::IndexBuffer** pib, int& num_indices);
+        poseidon::Material* getMaterial();
+        poseidon::Texture* getTexture();
+        std::vector<poseidon::Texture*>& getTextures();
 
         void toggle() override;        
 

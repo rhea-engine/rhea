@@ -6,7 +6,7 @@
 
 #include <d3d11.h>
 
-namespace Hippios
+namespace hippios
 {
 	class D3D11RenderTarget : public RenderTarget
 	{
@@ -29,7 +29,7 @@ namespace Hippios
 		std::unique_ptr<D3D11DepthBuffer> m_depth_buffer;
 		int m_width = 0;
 		int m_height = 0;
-		Hippios::SwapChain* m_swap_chain = nullptr;
+		hippios::SwapChain* m_swap_chain = nullptr;
 	};
 }
 

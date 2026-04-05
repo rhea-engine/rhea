@@ -5,7 +5,7 @@
 // Chunk size is 64 kB
 #define CHUNK_SIZE 64 * 1024 
 
-namespace Psio
+namespace psio
 {
 	UrlResponse::~UrlResponse()
 	{
@@ -27,7 +27,7 @@ namespace Psio
 			return 0;
 	}
 
-	void UrlResponse::ReadAsync(Psio::IOBuffer* buf)
+	void UrlResponse::ReadAsync(psio::IOBuffer* buf)
 	{
 		if (!m_buffer)
 			m_buffer = buf;

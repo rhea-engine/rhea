@@ -9,7 +9,7 @@
 #include <Rhea/EventInput.h>
 #include <Psio/Log.h>
 
-namespace Rhea
+namespace rhea
 {
 	bool SpectatorController::onInput(Event* ev, Unit* unit)
 	{
@@ -68,11 +68,11 @@ namespace Rhea
 
 		// add relative position of view
 		auto it = m_values.find("position");
-		Math::Vector3 position;
+		math::Vector3 position;
 		if (it != m_values.end())
-			position = Math::Vector3(it->second[0], it->second[1], it->second[2]);
+			position = math::Vector3(it->second[0], it->second[1], it->second[2]);
 		else
-			position = Math::Vector3(0.0f, 1.7f, -3.0f);
+			position = math::Vector3(0.0f, 1.7f, -3.0f);
 		m_view->setPosition(position);
 		m_position.setPosition(position);
 
@@ -89,17 +89,17 @@ namespace Rhea
 			show();
 	}
 
-	void SpectatorController::setPosition(Math::Vector3 position)
+	void SpectatorController::setPosition(math::Vector3 position)
 	{
 		m_position.setPosition(position);
-		//m_position.setOrientation(Math::Quaternion(m_rotation, Math::Vector3(0.0f, 1.0f, 0.0f))); 
+		//m_position.setOrientation(math::Quaternion(m_rotation, math::Vector3(0.0f, 1.0f, 0.0f))); 
 		((Item*)m_target)->setPosition(m_position);
 
 	}
 
-	void SpectatorController::lookAt(Math::Vector3& target)
+	void SpectatorController::lookAt(math::Vector3& target)
 	{
-		m_position.lookAt(target, Math::Vector3::UNIT_Z);
+		m_position.lookAt(target, math::Vector3::UNIT_Z);
 		((Item*)m_target)->setPosition(m_position);
 	}
 

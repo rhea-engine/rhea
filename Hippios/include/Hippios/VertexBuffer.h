@@ -3,7 +3,7 @@
 
 #include "GraphicsBuffer.h"
 
-namespace Hippios
+namespace hippios
 {
 	struct D3DXCOLOR {
 		float a, b, c, d;

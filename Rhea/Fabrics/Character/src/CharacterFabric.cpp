@@ -4,11 +4,11 @@
 #include <Psio/Log.h>
 #include <Rhea/Physics/PhysicsManagerService.h>
 
-namespace Rhea
+namespace rhea
 {
 	void CharacterFabric::Register(Application* app)
 	{
-		SimpleParser::Type::registerType<KinematicCharacter>("//meworla/character");
+		simpleparser::Type::registerType<KinematicCharacter>("//meworla/character");
 
 		//register physics component
 		PhysicsManagerService* phy_mgr = doCast<PhysicsManagerService>(app->getService("physics_mgr"));
@@ -16,9 +16,9 @@ namespace Rhea
 			LOG(LOG_ERROR) << "No physics manager found.";
 			return;
 		}
-		SimpleParser::Type* t = KinematicCharacter::staticType();		
+		simpleparser::Type* t = KinematicCharacter::staticType();		
 
-		Rhea::PhysicsBodyDesc desc;
+		rhea::PhysicsBodyDesc desc;
 		desc.kind = "Meworla/RheaPhysics:Character";
 		desc.kinematic = true;
 		desc.mass = 70.0f; // optional

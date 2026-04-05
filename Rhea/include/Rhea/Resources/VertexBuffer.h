@@ -3,7 +3,7 @@
 
 #include <string>
 
-namespace Rhea
+namespace rhea
 {
 	// a generic vertex buffer
 	class VertexBuffer

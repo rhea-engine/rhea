@@ -3,7 +3,7 @@
 
 #include <Psio/Net/Network.h>
 
-namespace Psio
+namespace psio
 {
 	class NullNetwork : public Network
 	{

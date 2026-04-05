@@ -4,10 +4,10 @@
 #include <Rhea/UnitTree.h>
 #include <Rhea/Core/Avatar.h>
 
-class TestApp : public Rhea::Application
+class TestApp : public rhea::Application
 {
 public:
-    void onScene(Rhea::Scene* scene)
+    void onScene(rhea::Scene* scene)
     {}
 };
 
@@ -16,7 +16,7 @@ class UserInfoTest : public ::testing::Test {
 protected:
     World *world;
     TestApp* app;
-    Rhea::Realm *realm;
+    rhea::Realm *realm;
 
     void SetUp() override {
         // add an app
@@ -24,14 +24,14 @@ protected:
         app->init();
 
         // add local Realm
-        realm = new Rhea::Realm ("local", "//meworla/realm");
+        realm = new rhea::Realm ("local", "//meworla/realm");
 		app->getUnitTree()->addChild(realm);
 
         // add world server item
-        SimpleParser::Type::registerType<World>("//meworla/world");
+        simpleparser::Type::registerType<World>("//meworla/world");
         // user and avatar types
-        SimpleParser::Type::registerTypeName<Rhea::Unit>("//meworla/user");
-        SimpleParser::Type::registerType<Rhea::Avatar>("//meworla/avatar");
+        simpleparser::Type::registerTypeName<rhea::Unit>("//meworla/user");
+        simpleparser::Type::registerType<rhea::Avatar>("//meworla/avatar");
 
         // World
         world = new World("testworld", "//meworla/world");

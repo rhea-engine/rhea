@@ -5,7 +5,7 @@
 
 #include "Hippios/Renderer.h"
 
-namespace Poseidon
+namespace poseidon
 {
 	Entity::Entity() :
 		m_hidden(false),
@@ -46,7 +46,7 @@ namespace Poseidon
 		}		
 	}
 
-	void Entity::getRenderInput(size_t mesh_idx, Hippios::VertexBuffer** pvb, Hippios::IndexBuffer** pib, size_t& num_indices)
+	void Entity::getRenderInput(size_t mesh_idx, hippios::VertexBuffer** pvb, hippios::IndexBuffer** pib, size_t& num_indices)
 	{
 		if (m_mesh) {
 			*pvb = m_mesh->get_vbuffer();

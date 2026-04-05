@@ -7,20 +7,20 @@
 
 namespace Meworla
 {
-	bool ClientConnect::onDisplay(Rhea::Event* ev, Rhea::Unit* unit)
+	bool ClientConnect::onDisplay(rhea::Event* ev, rhea::Unit* unit)
 	{
 		doConnect();
 		return false;
 	}
 
-	bool ClientConnect::onAbort(Rhea::Event* ev, Rhea::Unit* unit)
+	bool ClientConnect::onAbort(rhea::Event* ev, rhea::Unit* unit)
 	{
 		// quit the application?
 		exit(0);
 		return false;
 	}
 
-	bool ClientConnect::onRetry(Rhea::Event* ev, Rhea::Unit* unit)
+	bool ClientConnect::onRetry(rhea::Event* ev, rhea::Unit* unit)
 	{
 		if (m_error_w)
 			m_error_w->hide();
@@ -45,7 +45,7 @@ namespace Meworla
 		m_lobby_client->EnterWorld(avatar_name);
 	}
 
-	bool ClientConnect::onLoginTrust(Rhea::Event* ev, Rhea::Unit* unit)
+	bool ClientConnect::onLoginTrust(rhea::Event* ev, rhea::Unit* unit)
 	{
 		if (m_username != "") {
 			m_trust_w->hide();
@@ -64,7 +64,7 @@ namespace Meworla
 		return false;
 	}
 
-	bool ClientConnect::onRegister(Rhea::Event* ev, Rhea::Unit* unit)
+	bool ClientConnect::onRegister(rhea::Event* ev, rhea::Unit* unit)
 	{
 		if (m_username != "") {
 			m_register_w->hide();
@@ -88,13 +88,13 @@ namespace Meworla
 		return false;
 	}
 
-	bool ClientConnect::onRegisterFailed(Rhea::Event* ev, Rhea::Unit* unit)
+	bool ClientConnect::onRegisterFailed(rhea::Event* ev, rhea::Unit* unit)
 	{
 		m_values["info"] = "Registering user failed";
 		return false;
 	}
 
-	bool ClientConnect::onCallRegister(Rhea::Event* ev, Rhea::Unit* unit)
+	bool ClientConnect::onCallRegister(rhea::Event* ev, rhea::Unit* unit)
 	{
 		if (m_register_w) {
 			m_info_w->hide();
@@ -107,7 +107,7 @@ namespace Meworla
 		return false;
 	}
 
-	bool ClientConnect::onSetUsername(Rhea::Event* ev, Rhea::Unit* unit)
+	bool ClientConnect::onSetUsername(rhea::Event* ev, rhea::Unit* unit)
 	{
 		m_username = ev->getTarget()->getValue("text", "");
 		return false;
@@ -126,12 +126,12 @@ namespace Meworla
 			LOG(LOG_ERROR) << "Configuration error: no hermesclient service defined";
 			m_error = 1;
 			m_values["error"] = "Configuration error: \nNo hermesclient service defined in ClientConnect!";
-			Rhea::Event ev("error", this);
+			rhea::Event ev("error", this);
 			sendEvent("error", &ev);
 			return;
 		}
 
-		service->Connect(m_values["server"], [&, service](Hermes::Stream* stream, int err) {
+		service->Connect(m_values["server"], [&, service](hermes::Stream* stream, int err) {
 			if (!err) {
 				m_stream.reset(stream);
 
@@ -145,7 +145,7 @@ namespace Meworla
 				m_error = 1;
 				doError();
 				
-				Rhea::Event ev("error", this);
+				rhea::Event ev("error", this);
 				sendEvent("error", &ev);
 			}
 			});
@@ -155,18 +155,18 @@ namespace Meworla
 	{
 		// setup the protocols
 
-		m_auth_client = std::make_unique<Hermes::ClientStream>(m_stream.get());
+		m_auth_client = std::make_unique<hermes::ClientStream>(m_stream.get());
 		m_auth_client->Initialize();
 
-		m_lobby_client = std::make_unique<Rhea::LobbyClient>(m_app, m_stream.get());
+		m_lobby_client = std::make_unique<rhea::LobbyClient>(m_app, m_stream.get());
 		m_lobby_client->Initialize();
 
-		m_world_client = std::make_unique<Rhea::WorldClient>(m_app, m_stream.get());
+		m_world_client = std::make_unique<rhea::WorldClient>(m_app, m_stream.get());
 		m_world_client->Initialize();
 
 		m_world_client->onWorldEnter([&](int err) {
 			m_in_world = true;
-			Rhea::Event ev("world_enter", this);
+			rhea::Event ev("world_enter", this);
 			sendEvent("world_enter", &ev);
 			});
 
@@ -193,7 +193,7 @@ namespace Meworla
 		}
 
 		// get credentials
-		Rhea::Unit* engine = doCast<Rhea::Unit>(m_app->getUnitTree()->getChild("engine"));
+		rhea::Unit* engine = doCast<rhea::Unit>(m_app->getUnitTree()->getChild("engine"));
 		std::string world = engine->getValue("origin");
 		std::vector<std::string> methods;
 		methods.push_back("password");
@@ -250,15 +250,15 @@ namespace Meworla
 		m_lobby_client->setAvatarOwner(this);
 
 		// handle lobby events
-		Rhea::Scene* avatar_select_scene = doCast<Rhea::Scene>(m_app->getUnitTree()->find(getValue("onAvatarSelectScene"), m_attributes["basepath"], false));
+		rhea::Scene* avatar_select_scene = doCast<rhea::Scene>(m_app->getUnitTree()->find(getValue("onAvatarSelectScene"), m_attributes["basepath"], false));
 		if (avatar_select_scene) {
 			m_lobby_client->onAvatarlist([&, avatar_select_scene](int err) {
 				// goto scene avatar_select_scene
 				m_values["info"] = "select avatar";
 				if (m_info_w)
 					m_info_w->hide();
-				if (doCast<Rhea::Scene>(m_parent))
-					static_cast<Rhea::Scene*>(m_parent)->hide();
+				if (doCast<rhea::Scene>(m_parent))
+					static_cast<rhea::Scene*>(m_parent)->hide();
 				avatar_select_scene->show();
 				});
 		}
@@ -271,11 +271,11 @@ namespace Meworla
 
 		m_lobby_client->onCreateFailed([&](int err) {
 			// inform user
-			Rhea::Event ev("create_avatar_failed", this);
+			rhea::Event ev("create_avatar_failed", this);
 			sendEvent("create_avatar_failed", &ev);
 			});
 		m_lobby_client->onEnterFailed([&](int err) {
-			Rhea::Event ev("entering_failed", this);
+			rhea::Event ev("entering_failed", this);
 			sendEvent("entering_failed", &ev);
 			});
 
@@ -292,8 +292,8 @@ namespace Meworla
 			m_values["info"] = "Connecting";
 			m_error = 1;
 
-			if (doCast<Rhea::Scene>(m_parent))
-				static_cast<Rhea::Scene*>(m_parent)->show();
+			if (doCast<rhea::Scene>(m_parent))
+				static_cast<rhea::Scene*>(m_parent)->show();
 		}
 
 		if (m_info_w)
@@ -316,10 +316,10 @@ namespace Meworla
 	{
 		// preapre my references
 		m_net = doCast<Rhea::ClientService>(m_app->getService("hermesclient"));
-		m_info_w = doCast<Rhea::Widget>(m_app->getUnitTree()->find(m_values["infowidget"], m_attributes["basepath"], false));
-		m_error_w = doCast<Rhea::Widget>(m_app->getUnitTree()->find(m_values["errorwidget"], m_attributes["basepath"], false));
-		m_trust_w = doCast<Rhea::Widget>(m_app->getUnitTree()->find(m_values["logintrustwidget"], m_attributes["basepath"], false));
-		m_register_w = doCast<Rhea::Widget>(m_app->getUnitTree()->find(m_values["registerwidget"], m_attributes["basepath"], false));
+		m_info_w = doCast<rhea::Widget>(m_app->getUnitTree()->find(m_values["infowidget"], m_attributes["basepath"], false));
+		m_error_w = doCast<rhea::Widget>(m_app->getUnitTree()->find(m_values["errorwidget"], m_attributes["basepath"], false));
+		m_trust_w = doCast<rhea::Widget>(m_app->getUnitTree()->find(m_values["logintrustwidget"], m_attributes["basepath"], false));
+		m_register_w = doCast<rhea::Widget>(m_app->getUnitTree()->find(m_values["registerwidget"], m_attributes["basepath"], false));
 		
 		// register event handlers
 

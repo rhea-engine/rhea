@@ -4,7 +4,7 @@
 #include <Hippios/SamplerState.h>
 #include "GLIncludes.h"
 
-namespace Hippios
+namespace hippios
 {
 	class GLSamplerState : public SamplerState
 	{

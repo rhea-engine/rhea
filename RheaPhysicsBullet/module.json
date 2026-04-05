@@ -1,8 +1,9 @@
 {
-  "vendor": "Meworla",
-  "name": "RheaPhysicsBullet",
+  "id": "rhea/physicsbullet",
+  "displayName": "Rhea Physics Bullet",
+  "author": "Meworla",
   "version": "0.9.0",
   "dependencies": {
-    "Meworla/RheaPhysics": "0.9.0"
+    "rhea/physics": "0.9.0"
   }
 }

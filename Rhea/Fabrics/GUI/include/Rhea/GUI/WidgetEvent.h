@@ -3,7 +3,7 @@
 
 #include <Rhea/Event.h>
 
-namespace Rhea
+namespace rhea
 {
 	class Widget;
 

@@ -11,7 +11,7 @@
     },
     {
       "source": "Fabric.h.in",
-      "target": "include/{{VENDOR}}/{{PROJECT_NAME}}/{{PROJECT_NAME}}Fabric.h",
+      "target": "include/{{INCLUDE_PREFIX}}/{{PROJECT_NAME}}Fabric.h",
       "render": true
     },
     {

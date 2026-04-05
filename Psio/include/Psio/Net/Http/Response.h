@@ -5,7 +5,7 @@
 #include <string>
 #include <memory>
 
-namespace Psio
+namespace psio
 {
 	class Response
 	{

@@ -4,7 +4,7 @@
 #include "BaseTypes.h"
 #include <cfloat>
 
-namespace Hippios
+namespace hippios
 {	
 	struct SamplerDesc
 	{

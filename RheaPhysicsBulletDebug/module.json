@@ -1,9 +1,10 @@
 {
-  "vendor": "Meworla",
-  "name": "RheaPhysicsBulletDebug",
+  "id": "rhea/physicsbulletdebug",
+  "displayName": "Rhea Physics Bullet Debug",
+  "author": "Meworla",
   "version": "0.9.0",
   "dependencies": {
-    "Meworla/RheaPhysicsBullet": "0.9.0",
-    "Meworla/Poseidon"
+    "rhea/physicsbullet": "0.9.0",
+    "rhea/poseidon": "0.9.0"
   }
 }

@@ -6,7 +6,7 @@
 #include "../Widget.h"
 #include "StyleRule.h"
 
-namespace Rhea
+namespace rhea
 {
 	class StyleSheet : public Unit
 	{
@@ -19,11 +19,11 @@ namespace Rhea
 
 		std::vector<Unit::Export> getReferences();
 
-		void setStyle(std::vector<SimpleParser::CssParser::Entry>& entries);
+		void setStyle(std::vector<simpleparser::CssParser::Entry>& entries);
 
 		std::vector<StyleRule>& getRules() { return m_entries; }
 
-		static bool ParseValues(StylePropertyId id, std::vector<SimpleParser::CssParser::Property>& content, std::vector<CssValue>& values);
+		static bool ParseValues(StylePropertyId id, std::vector<simpleparser::CssParser::Property>& content, std::vector<CssValue>& values);
 
 	protected:
 		std::vector<StyleRule> m_entries;

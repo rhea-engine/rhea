@@ -5,7 +5,7 @@
 #include "HttpHeaders.h"
 #include "Http.h"
 
-namespace Psio
+namespace psio
 {
 	class  HttpRequest
 	{
@@ -22,9 +22,9 @@ namespace Psio
 		{}
 
 		// callback that receives data
-		typedef std::function<void(Psio::IOBuffer*)> DataCallback;
+		typedef std::function<void(psio::IOBuffer*)> DataCallback;
 		// callback that ends the request
-		typedef std::function<void(Psio::IOBuffer*)> RequestCompletedCallback;
+		typedef std::function<void(psio::IOBuffer*)> RequestCompletedCallback;
 
 		// the request url
 		Url url;
@@ -37,12 +37,12 @@ namespace Psio
 		void OnData(DataCallback callback) { m_on_data = callback; }
 		void OnEnd(RequestCompletedCallback callback) { m_on_request_completed = callback; }
 
-		void SendData(Psio::IOBuffer* buffer) {
+		void SendData(psio::IOBuffer* buffer) {
 			if (m_on_data)
 				m_on_data(buffer);
 		}
 
-		void End(Psio::IOBuffer* buffer) {
+		void End(psio::IOBuffer* buffer) {
 			if (m_on_request_completed)
 				m_on_request_completed(buffer);
 		}

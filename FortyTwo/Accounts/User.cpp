@@ -1,15 +1,15 @@
 #include "User.h"
 
-Rhea::Avatar* User::getAvatar(std::string name)
+rhea::Avatar* User::getAvatar(std::string name)
 {
-	Rhea::Avatar* avatar = doCast<Rhea::Avatar>(getChild(name));
+	rhea::Avatar* avatar = doCast<rhea::Avatar>(getChild(name));
 	return avatar;
 }
 
-void User::Avatars(std::function<bool(Rhea::Avatar*)> handler)
+void User::Avatars(std::function<bool(rhea::Avatar*)> handler)
 {
-	children([handler](std::string& name, Rhea::Component* unit)->bool {
-		Rhea::Avatar* avatar = doCast<Rhea::Avatar>(unit);
+	children([handler](std::string& name, rhea::Component* unit)->bool {
+		rhea::Avatar* avatar = doCast<rhea::Avatar>(unit);
 		if (avatar)
 			return handler(avatar);
 		else

@@ -3,12 +3,12 @@
 
 #include <Rhea/Resources/Resource.h>
 
-namespace Rhea
+namespace rhea
 {
 	class ResourceLoader
 	{
 	public:
-		typedef std::function<void(std::string, Application* app, Orion::ResourceRequest*, Resource::LoadedHandler)> LoadFunc;
+		typedef std::function<void(std::string, Application* app, orion::ResourceRequest*, Resource::LoadedHandler)> LoadFunc;
 
 		// call initialize and register loader by class
 		template <class T>
@@ -21,7 +21,7 @@ namespace Rhea
 
 		// load a resource
 		// returns false if no loader found
-		bool load(std::string name, Application* app, std::string mime_type, Orion::ResourceRequest* req, Resource::LoadedHandler handler);
+		bool load(std::string name, Application* app, std::string mime_type, orion::ResourceRequest* req, Resource::LoadedHandler handler);
 
 	protected:
 

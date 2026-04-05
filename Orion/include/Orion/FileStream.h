@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <functional>
 
-namespace Orion
+namespace orion
 {
 	class FileResourceStream : public ResourceStream
 	{
@@ -23,8 +23,8 @@ namespace Orion
 
 		size_t Write(const void* data, size_t length);
 		size_t Read(void* dest, size_t length);
-		size_t Read(Psio::IOBuffer* buf);
-		void ReadAsync(Psio::IOBuffer* buf);
+		size_t Read(psio::IOBuffer* buf);
+		void ReadAsync(psio::IOBuffer* buf);
 		std::string getLine();
 		bool eof();
 		int error();

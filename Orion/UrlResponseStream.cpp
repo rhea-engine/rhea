@@ -1,6 +1,6 @@
 #include <Orion/UrlResponseStream.h>
 
-namespace Orion
+namespace orion
 {
 	size_t UrlResponseStream::Read(void* dest, size_t length)
 	{

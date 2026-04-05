@@ -1,6 +1,7 @@
 {
-  "vendor": "Meworla",
-  "name": "Components",
+  "id": "meworla/components",
+  "author": "Meworla",
+  "displayName": "Meworla Components",
   "version": "0.9.0",
   "dependencies": {}
 }

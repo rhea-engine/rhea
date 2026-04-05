@@ -1,6 +1,6 @@
 #include "GLVertexBuffer.h"
 
-namespace Hippios
+namespace hippios
 {
 	GLVertexBuffer::GLVertexBuffer(size_t vertex_size, size_t num_vertices, bool dynamic) :
 		is_dirty(true)

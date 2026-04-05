@@ -6,7 +6,7 @@
 #include "SocketAddress.h"
 #include "../IOBuffer.h"
 
-namespace Psio
+namespace psio
 {
 	class TCPSocket : public StreamSocket
 	{

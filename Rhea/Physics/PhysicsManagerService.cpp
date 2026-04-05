@@ -3,7 +3,7 @@
 #include <Rhea/Physics/PhysicsBody.h>
 #include <Rhea/Core/Item.h>
 
-namespace Rhea
+namespace rhea
 {
 	PhysicsManagerService::PhysicsManagerService(std::string name, std::string type_name)
 		: Service(std::move(name), std::move(type_name))
@@ -15,7 +15,7 @@ namespace Rhea
 		m_backend_creators[id] = std::move(creator);
 	}
 
-	void PhysicsManagerService::registerBodyForType(SimpleParser::Type* typedesc, PhysicsBodyDesc desc)
+	void PhysicsManagerService::registerBodyForType(simpleparser::Type* typedesc, PhysicsBodyDesc desc)
 	{
 		if (!typedesc) return;
 		m_type_to_body[typedesc] = std::move(desc);
@@ -24,7 +24,7 @@ namespace Rhea
 	const PhysicsBodyDesc* PhysicsManagerService::getBodyDescFor(Item* item) const
 	{
 		if (!item) return nullptr;
-		SimpleParser::Type* t = item->getType();
+		simpleparser::Type* t = item->getType();
 		while (t) {
 			auto it = m_type_to_body.find(t);
 			if (it != m_type_to_body.end())

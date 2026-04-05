@@ -115,7 +115,7 @@ bool psio::Process::Fork(std::string exe_name, std::string arg, Pipe* std_in, Pi
 
     // If an error occurs, exit the application. 
     if (!success)
-        return -1;
+        return false;
     else
     {
         // Close handles to the child process and its primary thread.

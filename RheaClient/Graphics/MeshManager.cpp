@@ -145,9 +145,10 @@ namespace rhea::client {
 
 			mesh->getBuffers(vertices, v_indices);
 
-			if (!vertices.size() || !v_indices.size()) {
-				LOG(LOG_ERROR) << "Vertex is empty";
-				return false; 
+			if (!vertices.size() || !v_indices.size()) {				
+				// Empty mesh is valid (e.g., invisible or empty text widget)
+				// Just don't add any geometry, but don't treat it as an error
+				return true;
 			}
 
 			std::vector<hippios::vertex_uv> hippios_vertices;

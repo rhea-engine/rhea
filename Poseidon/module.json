@@ -1,9 +1,9 @@
 { 
-  "id": "rhea/renderer",
-  "displayName": "Rhea Rendering (Poseidon)",
+  "id": "meworla/poseidon",
+  "displayName": "Meworla Renderer (Poseidon)",
   "version": "0.9.0",
   "dependencies": {
-    "rhea/components": "0.9.0",
-    "rhea/gfx": "0.9.0"
+    "meworla/components": "0.9.0",
+    "meworla/hippios": "0.9.0"
   }
 }

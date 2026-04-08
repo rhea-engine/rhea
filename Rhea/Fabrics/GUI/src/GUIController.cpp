@@ -90,7 +90,7 @@ namespace rhea
 		registerEventHandler("scene_hide", this, std::bind(&GUIController::onHide, this, std::placeholders::_1, std::placeholders::_2));
 
 		// watch for updates
-		registerEventHandler("scene_enter", this, std::bind(&GUIController::onGuiUpdate, this, std::placeholders::_1, std::placeholders::_2));
+		registerEventHandler("scene_enter", this, std::bind(&GUIController::onSceneEnter, this, std::placeholders::_1, std::placeholders::_2));
 		registerEventHandler("scene_leave", this, [&](Event* ev, Unit* u)->bool {
 			rhea::Unit* target = ev->getTarget();
 			// if the leaving unit is currently captured empty reference
@@ -115,15 +115,22 @@ namespace rhea
 
 	bool GUIController::onViewportSize(Event* ev, Unit* unit)
 	{
-		SizeEvent* e = static_cast<SizeEvent*>(ev);
-		int width = e->width;
-		int height = e->height;	
-		if (width != m_viewport_width || height != m_viewport_height) {
-			m_viewport_width = width;
-			m_viewport_height = height;
-			// send event to all children to update their size
-			sendEventChildren("viewport_size", ev);
-			return onGuiUpdate(ev, unit);
+		if (ev) {
+			SizeEvent* e = static_cast<SizeEvent*>(ev);
+			int width = e->width;
+			int height = e->height;
+			if (width != m_viewport_width || height != m_viewport_height) {
+				m_viewport_width = width;
+				m_viewport_height = height;
+				// send event to all children to update their size
+				sendEventChildren("viewport_size", ev);
+				return onGuiUpdate(ev, unit);
+			}
+		}
+		else {
+			SizeEvent e(this, m_viewport_width, m_viewport_height);
+			sendEventChildren("viewport_size", &e);
+			return onGuiUpdate(&e, unit);
 		}
 		return false;
 	}
@@ -285,6 +292,7 @@ namespace rhea
 				e->setTarget(m_target);
 				m_target->bubbleEvent("mouse_btn_up", e);
 			}
+			break;
 
 		case psio::InputEventId::KEY_PRESSED:
 			// text input
@@ -326,6 +334,17 @@ namespace rhea
 		return onGuiUpdate(ev, unit);
 	}
 
+	bool GUIController::onSceneEnter(Event* ev, Unit* unit)
+	{
+		if (m_style_engine) {
+			Widget* w = doCast<Widget>(ev->getTarget());
+			if (w) {
+				w->RecalculateStyle(m_style_engine.get());							
+			}
+		}
+		return onGuiUpdate(ev, unit);
+	}
+
 	bool GUIController::onGuiUpdate(Event* ev, Unit* unit)
 	{
 		// sizing with constraint of viewport size
@@ -349,10 +368,22 @@ namespace rhea
 
 	void GUIController::onFrame()
 	{
+		// 1. style pass
 		UpdateStyle();
-		if (m_need_resize) {
-			onGuiUpdate(nullptr, nullptr);
-			m_need_resize = false;
+
+		// 2. layout pass only if the root is dirty
+		if (m_layout_dirty) {
+			Vector2 vp_size((float)m_viewport_width, (float)m_viewport_height);
+
+			if (m_viewport_width > 0 || m_viewport_height > 0) {
+				size(vp_size);
+				setPosition(Vector2(m_base_position));
+			}
+
+			clearLayoutDirtyRecursive();
 		}
+
+		// 3. render sync pass
+		syncRenderTree();
 	}
 }

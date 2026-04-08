@@ -45,11 +45,13 @@ namespace rhea
 			m_user_ptr(nullptr),
 			m_base_position(0.0f, 0.0f),
 			m_cur_position(0.0f, 0.0f),
-			m_font_size(0.0),
+			m_anchor_position(0.0f, 0.0f),
+			m_font_size(0.0f),
 			m_sizing_mode_w(TextureSizingMode::kAuto),
 			m_sizing_mode_h(TextureSizingMode::kAuto),
 			m_screen_position_valid(false),
 			m_style_dirty(true),
+			m_layout_dirty(true),
 			m_justify_mode(0),
 			m_is_rtl(false),
 			m_essential_size_valid(false)
@@ -68,7 +70,7 @@ namespace rhea
 		 * @brief Event handler called when the widget is ready.
 		 * This function is triggered by the engine's ready event.
 		 */
-		void ready();
+		void ready();		
 
 		/**
 		 * @brief Sets the onClick event handler target.
@@ -171,6 +173,9 @@ namespace rhea
 		 * @param pos The new content position.
 		 */
 		void setContentPosition(Vector2 pos) { m_content_position = pos; }
+
+		// Invalidate the layout, causing it to be recalculated on the next render.
+		virtual void invalidateLayout();
 
 		/**
 		 * @brief Recalculates the style of the widget using the given style engine.
@@ -346,10 +351,11 @@ namespace rhea
 
 		// Defined coordinates
 
-		// Position of box with border (w/o margin) relative to parent
+		// Layout authored/style/modifier result relative to parent
 		Vector2 m_base_position;
-		// Size of the box with border (w/o margin)
-		// Vector2 m_size defined in Item2D
+
+		// Parent-assigned position before widget-local adjustments
+		Vector2 m_anchor_position;
 
 		// Position of content area relative to parent
 		Vector2 m_content_position;
@@ -361,6 +367,9 @@ namespace rhea
 
 		// Cached font size
 		float m_font_size;
+
+		// Recursively clear the layout dirty flag for this widget and all its children.
+		virtual void clearLayoutDirtyRecursive();
 
 		// Scaling the background-image
 		enum class TextureSizingMode {
@@ -403,6 +412,8 @@ namespace rhea
 		CssRuleSet m_computed_properties;
 		// Store if style is changed
 		bool m_style_dirty;
+		// Store if layout is changed
+		bool m_layout_dirty;
 
 		// RTL layout
 		bool m_is_rtl;

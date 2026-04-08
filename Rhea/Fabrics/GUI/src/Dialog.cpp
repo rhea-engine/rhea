@@ -47,9 +47,14 @@ namespace rhea
 		if (p) {
 			Vector2 parent_size = p->getSize();
 
-			// m_size contains the size parameter or the size needed by its children
+			// m_outer_size contains the size including margin
+			// Calculate padding to center the dialog
 			Vector2 padding = Vector2((parent_size.x - m_outer_size.x) / 2, (parent_size.y - m_outer_size.y) / 2);
-			m_position += padding;
+			
+			// Override the position calculation:
+			// Instead of using anchor + base_position, we use anchor + centering offset
+			// This means we ignore any authored x/y offset (m_base_position)
+			m_position = m_anchor_position + padding;
 		}
 
 		// set children position

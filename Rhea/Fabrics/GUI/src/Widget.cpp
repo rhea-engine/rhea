@@ -45,6 +45,8 @@ namespace rhea
 
 		if (m_base_position.x || m_base_position.y) {
 			m_modifiers.push_back(std::make_unique<OffsetModifier>(m_base_position));
+			m_properties[StylePropertyId::kLeft].push_back({ CssValueId::kNumeric, m_base_position.x });
+			m_properties[StylePropertyId::kTop].push_back({ CssValueId::kNumeric, m_base_position.y });
 		}
 
 		// size set
@@ -149,7 +151,7 @@ namespace rhea
 		if (!visual_component || !visual_component->isVisible()) {
 			hide();
 		}
-	}
+	}	
 
 	void Widget::setOnClick(const std::string& target)
 	{
@@ -177,16 +179,18 @@ namespace rhea
 		if (!getComponent<VisualComponent>() || !getComponent<VisualComponent>()->isVisible())
 			return;
 
-		// set the screen coords
-		m_position = position + m_base_position;
+		m_anchor_position = position;
 
+		Vector2 old_final_position = m_position;
+		
+		// default final position = anchor + authored offset
+		m_position = m_anchor_position + m_base_position;
+
+		// allow subclasses to adjust m_position further
 		onSetPosition();
-		if (m_material) {
-		/*	DLOG(LOG_DEBUG) << "GUI::Widget: widget " << m_pathname <<
-				": screen(x,y)=(" << m_position.x << ", " << m_position.y <<
-				"); size(w,h)=(" << m_size.x << ", " << m_size.y << ")";
-				*/
-			update();
+
+		if (m_position != old_final_position) {
+			invalidateRender();
 		}
 	}
 
@@ -206,6 +210,11 @@ namespace rhea
 	// compute and return outer_size
 	Vector2 Widget::size(Vector2 size_constraints)
 	{
+		Vector2 old_size = m_size;
+		Vector2 old_outer = m_outer_size;
+		Vector2 old_content_pos = m_content_position;
+		Vector2 old_content_size = m_content_size;
+
 		m_size = Vector2(-1.0f, -1.0f);
 		m_base_position = Vector2(0.0f, 0.0f);
 		m_content_position = Vector2(0.0f, 0.0f);
@@ -260,6 +269,13 @@ namespace rhea
 
 		// Compute tiling if necessary
 		ApplyTextureSizing();		
+
+		if (m_size != old_size ||
+			m_outer_size != old_outer ||
+			m_content_position != old_content_pos ||
+			m_content_size != old_content_size) {
+			invalidateRender();
+		}
 
 		return m_outer_size;
 	}
@@ -390,9 +406,12 @@ namespace rhea
 		Vector2 base_position;
 		Vector2 base_size;
 		CssValueId position_types[4] = { CssValueId::kString, CssValueId::kString, CssValueId::kString, CssValueId::kString };
-		m_font_size = -1.0f;
-		m_sizing_mode_w = TextureSizingMode::kAuto;
-		m_sizing_mode_h = TextureSizingMode::kAuto;
+		float prev_font_size = m_font_size;
+		TextureSizingMode prev_sizing_mode_w = m_sizing_mode_w;
+		TextureSizingMode prev_sizing_mode_h = m_sizing_mode_h;
+
+		bool layout_changed = false;
+		bool render_changed = false;
 
 		for (const auto& property : m_computed_properties) {          
 			auto property_id = property.first;  
@@ -403,14 +422,15 @@ namespace rhea
 				continue;
 			switch (property_id) {
 			case StylePropertyId::kBackgroundImage:
-				setBackgroundImage(values[0].value == "none" ? nullptr : doCast<ImageResource>(m_app->getUnitTree()->find(values[0].value.toString())));
+				setBackgroundImage(values[0].value == "none" ? nullptr : doCast<ImageResource>(m_app->getUnitTree()->find(values[0].value.toString())));				
 				break;
 			case StylePropertyId::kBackgroundColor:
 				if (values.size() >= 3) {
-					setBackgroundColor(values[0].value, values[1].value, values[2].value, values.size() > 3 ? values[3].value.toFloat() : 1.0f);
+					setBackgroundColor(values[0].value, values[1].value, values[2].value, values.size() > 3 ? values[3].value.toFloat() : 1.0f);					
 				}
 				break;
 			case StylePropertyId::kBackgroundSize:
+				
 				if (values[0].value == "contain") {
 					m_sizing_mode_w = TextureSizingMode::kContain;
 				}
@@ -427,11 +447,13 @@ namespace rhea
 				}
 				else {
 					m_sizing_mode_h = m_sizing_mode_w;
-				}				
+				}
+				if (prev_sizing_mode_w != m_sizing_mode_w || prev_sizing_mode_h != m_sizing_mode_h)
+					render_changed = true;
 				break;
 			case StylePropertyId::kLeft:
 				base_position.x = values[0].value;
-				position_types[0] = values[0].id;
+				position_types[0] = values[0].id;				
 				break;
 			case StylePropertyId::kTop:
 				base_position.y = values[0].value;
@@ -445,19 +467,23 @@ namespace rhea
 				base_size.y = values[0].value;
 				position_types[3] = values[0].id;
 				break;
-			case StylePropertyId::kFontSize:
+			case StylePropertyId::kFontSize:				
 				m_font_size = calculateFontSize(values[0]);
-				break;			
+				if (prev_font_size != m_font_size)
+					layout_changed = true;
+				break;
 			}
 		}
 		
-		ApplyTextureSizing();
-		UpdateMaterial();
-		sendEvent("update", nullptr);
+		ApplyTextureSizing();		
+		//UpdateMaterial();
 
 		recreateModifiers(base_position, base_size, position_types);
 
-		
+		if (layout_changed)
+			invalidateLayout();
+		if (render_changed)
+			invalidateRender();
 	}
 
 	float Widget::calculateFontSize(const CssValue& value) const
@@ -478,16 +504,16 @@ namespace rhea
 	}
 
 	void Widget::recreateModifiers(const Vector2& base_position, const Vector2& base_size, const CssValueId position_types[4])
-	{
-		size_t num_old_modifiers = m_modifiers.size();
-		m_modifiers.clear();
-
-		if (m_base_position.x || m_base_position.y) {
-			m_modifiers.push_back(std::make_unique<OffsetModifier>(m_base_position));
+	{		
+		std::vector<std::unique_ptr<Modifier>> new_modifiers;
+	
+		if (base_position.x || base_position.y) {
+			new_modifiers.push_back(std::make_unique<OffsetModifier>(base_position));
 		}
 
 		// get my font size
-		if (m_font_size < 0) {
+		if (m_font_size <= 0.0f) {
+			// if we don't have font size set try to inherit from parent
 			if (doCast<Widget>(m_parent))
 				m_font_size = doCast<Widget>(m_parent)->getFontSize();
 			else {
@@ -498,6 +524,8 @@ namespace rhea
 					// TODO parse size names
 					m_font_size = 16;
 			}
+			if (m_font_size > 0.0f)
+				invalidateLayout();
 		}
 
 		// size set
@@ -521,22 +549,22 @@ namespace rhea
 				size.y = m_font_size * base_size.y;
 				break;
 			}
-			m_modifiers.push_back(std::make_unique<SizeModifier>(size));
+			new_modifiers.push_back(std::make_unique<SizeModifier>(size));
 		}
 		else {
 			if (base_size.x > 0.0f) {
 				switch (position_types[2]) {
 				case CssValueId::kNumeric:
-					m_modifiers.push_back(std::make_unique<SizeWidthModifier>(base_size.x));
+					new_modifiers.push_back(std::make_unique<SizeWidthModifier>(base_size.x));
 					break;
 				case CssValueId::kDimensionEm:
-					m_modifiers.push_back(std::make_unique<SizeWidthModifier>(base_size.x * m_font_size));
+					new_modifiers.push_back(std::make_unique<SizeWidthModifier>(base_size.x * m_font_size));
 					break;
 				case CssValueId::kPercentage:
 					if (base_size.x < 100.0f)
-						m_modifiers.push_back(std::make_unique<SizePercentageWidthModifier>(base_size.x / 100.0f));
+						new_modifiers.push_back(std::make_unique<SizePercentageWidthModifier>(base_size.x / 100.0f));
 					else
-						m_modifiers.push_back(std::make_unique<FillWidthModifier>());
+						new_modifiers.push_back(std::make_unique<FillWidthModifier>());
 					break;
 				}
 
@@ -544,16 +572,16 @@ namespace rhea
 			if (base_size.y > 0.0f) {
 				switch (position_types[3]) {
 				case CssValueId::kNumeric:
-					m_modifiers.push_back(std::make_unique<SizeHeightModifier>(base_size.y));
+					new_modifiers.push_back(std::make_unique<SizeHeightModifier>(base_size.y));
 					break;
 				case CssValueId::kDimensionEm:
-					m_modifiers.push_back(std::make_unique<SizeHeightModifier>(base_size.y * m_font_size));
+					new_modifiers.push_back(std::make_unique<SizeHeightModifier>(base_size.y * m_font_size));
 					break;
 				case CssValueId::kPercentage:
 					if (base_size.y < 100.0f)
-						m_modifiers.push_back(std::make_unique<SizePercentageHeightModifier>(base_size.y / 100.0f));
+						new_modifiers.push_back(std::make_unique<SizePercentageHeightModifier>(base_size.y / 100.0f));
 					else
-						m_modifiers.push_back(std::make_unique<FillHeightModifier>());
+						new_modifiers.push_back(std::make_unique<FillHeightModifier>());
 					break;
 				}
 			}
@@ -570,20 +598,33 @@ namespace rhea
 		if (m_computed_properties.find(StylePropertyId::kPaddingBottom) != m_computed_properties.end())
 			padding[3] = m_computed_properties[StylePropertyId::kPaddingBottom][0].value;
 		if (padding[0] > 0.0f || padding[1] > 0.0f || padding[2] > 0.0f || padding[3] > 0.0f)
-			m_modifiers.push_back(std::make_unique<PaddingModifier>(padding[0], padding[1], padding[2], padding[3]));
+			new_modifiers.push_back(std::make_unique<PaddingModifier>(padding[0], padding[1], padding[2], padding[3]));
 
 		// fillsize
 		if (getValue("fillsize", false)) {
-			m_modifiers.push_back(std::make_unique<FillSizeModifier>());
+			new_modifiers.push_back(std::make_unique<FillSizeModifier>());
 		}
 		if (getValue("fillwidth", false)) {
-			m_modifiers.push_back(std::make_unique<FillWidthModifier>());
+			new_modifiers.push_back(std::make_unique<FillWidthModifier>());
 		}
 
-		// if we had or now have size modifiers we need a resize
-		if (num_old_modifiers || !m_modifiers.empty()) {
-			Event resize_ev("need_resize", this);
-			bubbleEvent("need_resize", &resize_ev);
+		// check if modifiers changed
+		bool modifers_changed = false;
+
+		if (new_modifiers.size() != m_modifiers.size()) {
+			modifers_changed = true;
+		}
+		else {
+			for (size_t i = 0; i < new_modifiers.size(); ++i) {
+				if (!new_modifiers[i]->equals(*m_modifiers[i])) {
+					modifers_changed = true;
+					break;
+				}
+			}
+		}
+		if (modifers_changed) {
+			m_modifiers = std::move(new_modifiers);
+			invalidateLayout();
 		}
 	}
 	void Widget::setAlignment(std::string horizontal, std::string vertical)
@@ -625,6 +666,7 @@ namespace rhea
 			if (m_tiling != tiling) {
 				m_tiling = tiling;
 				m_material_dirty = true;
+				invalidateRender();
 			}
 
 			if (m_sizing_mode_w == TextureSizingMode::kContain) {
@@ -667,10 +709,9 @@ namespace rhea
 				if (scaling != m_scaling) {
 					m_scaling = scaling;
 					m_material_dirty = true;
+					invalidateRender();
 				}
-			}
-
-			UpdateMaterial();
+			}			
 		}		
 	}
 
@@ -735,6 +776,14 @@ namespace rhea
 	void Widget::show()
 	{
 		Item::show();
+		invalidateRender();
+		// recursively invalidate all children
+		children([&](std::string name, rhea::Component* child)->bool {
+			if (doCast<Widget>(child)) {
+				doCast<Widget>(child)->invalidateRender();
+			}
+			return true;
+			});
 		Event e("show", this);
 		bubbleEvent("show", &e);
 	}
@@ -811,5 +860,28 @@ namespace rhea
 	Vector2 Widget::getScreenPosition()
 	{
 		return m_position;
+	}
+
+	void Widget::invalidateLayout()
+	{
+		if (m_layout_dirty)
+			return;
+
+		m_layout_dirty = true;
+
+		if (auto* p = doCast<Widget>(m_parent))
+			p->invalidateLayout();		
+	}
+
+	void Widget::clearLayoutDirtyRecursive()
+	{
+		m_layout_dirty = false;
+
+		for (auto it = m_children.begin(); it != m_children.end(); ++it) {
+			Widget* w = doCast<Widget>(it->second);
+			if (w) {
+				w->clearLayoutDirtyRecursive();
+			}
+		}
 	}
 }

@@ -118,7 +118,7 @@ namespace rhea
 				m_textwidget->setOffset(offset_x);
 				m_offset_x = offset_x;
 				// force redraw
-				m_textwidget->setMesh();
+				m_textwidget->computeMesh();
 			}
 		}
 		
@@ -270,8 +270,8 @@ namespace rhea
 		if (offset_x != m_offset_x) {
 			m_textwidget->setOffset(offset_x);
 			m_offset_x = offset_x;
-			// force redraw
-			m_textwidget->setMesh();
+			// mark for redraw
+			m_textwidget->markTextDirty();
 		}
 		
 		if (isEvent)

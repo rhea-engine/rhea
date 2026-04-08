@@ -25,10 +25,7 @@ namespace rhea
 		m_list_items.push_back(item);
 		item->ready();
 
-		Event e("scene_enter", item);
-		bubbleEvent("scene_enter", &e);
-		Event e2("need_resize", item);
-		bubbleEvent("need_resize", &e2);
+		invalidateLayout();
 	}
 
 	void ListWidget::clear()

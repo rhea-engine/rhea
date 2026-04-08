@@ -20,7 +20,8 @@ namespace rhea
 			m_vertex_size(0),
 			m_word_wrap(true),
 			m_multiline(true),
-			m_offset_x(0.0f)
+			m_offset_x(0.0f),
+			m_text_dirty(true)
 		{}
 
 		// setup from strings
@@ -33,8 +34,10 @@ namespace rhea
 
 		void setFont(Font* font);
 
+		void syncRender() override;
+
 		// reset the mesh for the text
-		void setMesh();
+		void computeMesh() override;
 
 		// get the Text
 		std::string getText() { return m_text; }
@@ -65,6 +68,9 @@ namespace rhea
 		// get the font
 		Font* getFont() { return m_font; }
 
+		// mark text dirty
+		void markTextDirty() { m_text_dirty = true; invalidateRender(); }
+
 	protected:
 		std::string m_text;
 		Font* m_font;
@@ -73,6 +79,8 @@ namespace rhea
 		bool m_word_wrap;
 		bool m_multiline;
 		float m_offset_x;
+
+		bool m_text_dirty;
 	};
 }
 

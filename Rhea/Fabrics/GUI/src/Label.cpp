@@ -51,7 +51,12 @@ namespace rhea
 			parseText(text);
 			text = getText();
 		}		
-		m_label_item->setText(text);
+		if (m_label_item)
+			m_label_item->setText(text);
+		else
+			LOG(LOG_ERROR) << "Label: No text widget found to set text: Did you forget to call setup?";
+
+		invalidateLayout();
 	}
 
 	Vector2 Label::innerSize(Vector2 size_constraints)
@@ -74,9 +79,6 @@ namespace rhea
 				child_size.y = size_constraints.y;
 		}
 
-		// set the size for the label
-		m_label_item->resize(child_size.x, child_size.y);
-
 		return child_size;
 	}
 
@@ -91,15 +93,27 @@ namespace rhea
 
 	void Label::onSetPosition()
 	{
-		if (m_label_item) {
+		if (!m_label_item)
+			return;
+
+		float pos_x = floor(m_position.x + m_content_position.x + 0.5f);
+		float pos_y = floor(m_position.y + m_content_position.y + 0.5f);
+
+		bool size_changed = (m_label_item->W() != m_size.x || m_label_item->H() != m_size.y);
+		bool pos_changed = (m_label_item->X() != pos_x || m_label_item->Y() != pos_y);
+
 			
 			// prevent Text Rendering at Fractional Coordinates
-			float pos_x = floor(m_position.x + m_content_position.x + 0.5f);
-			float pos_y = floor(m_position.y + m_content_position.y + 0.5f);
+		//	float pos_x = floor(m_position.x + m_content_position.x + 0.5f);
+		//	float pos_y = floor(m_position.y + m_content_position.y + 0.5f);
 
+		if (pos_changed) {
 			m_label_item->move(pos_x, pos_y);
+			m_label_item->markTextDirty();
+		}
+		if (size_changed) {
 			m_label_item->resize(m_size.x, m_size.y);
-			m_label_item->update();
+			m_label_item->markTextDirty(); // wrapping area changed
 		}
 	}
 
@@ -113,10 +127,14 @@ namespace rhea
 			std::vector<CssValue> font_prop = getStyle(StylePropertyId::kFont);
 			if (font_prop.size()) {
 				Font* font = doCast<Font>(m_app->getUnitTree()->find(font_prop[0].value.toString()));
-				if (!font)
-					LOG(LOG_ERROR) << "font " << (std::string)(font_prop[0].value) << " not found";
-				else
-					m_label_item->setFont(font);
+				if (font != m_label_item->getFont()) {
+					if (!font)
+						LOG(LOG_ERROR) << "font " << (std::string)(font_prop[0].value) << " not found";
+					else {
+						m_label_item->setFont(font); // local text dirty only
+						invalidateLayout();			 // font can change measured size
+					}
+				}
 			}
 			else
 				LOG(LOG_ERROR) << "No font style found for label";
@@ -206,9 +224,5 @@ namespace rhea
 	void Label::ready()
 	{
 		Widget::ready();
-
-		if (m_label_item) {
-			m_label_item->ready();
-		}
 	}
 }

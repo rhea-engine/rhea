@@ -15,7 +15,12 @@ namespace rhea
 			size_constraints.y = inner_size.y;
 		}
 
-		std::string name() { return "fill_height"; }
+		std::string name() const override { return "fill_height"; }
+
+		// equals is used to check if the modifier is the same as another for updating
+		bool equals(const Modifier& other) const override {
+			return name() == other.name();
+		}
 	};
 }
 #endif // !RHEA_GUI_MODIFIER_FILL_HEIGHT_H

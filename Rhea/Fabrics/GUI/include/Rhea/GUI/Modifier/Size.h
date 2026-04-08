@@ -33,7 +33,15 @@ namespace rhea {
 			max_inner_size = m_size;
 		}
 
-		std::string name() { return "size"; }
+		std::string name() const override { return "size"; }
+
+		// equality check for updating
+		bool equals(const Modifier& other) const override {
+			if (name() != other.name())
+				return false;
+			const SizeModifier& size_other = static_cast<const SizeModifier&>(other);
+			return m_size == size_other.m_size;
+		}
 
 	protected:
 		math::Vector2 m_size;

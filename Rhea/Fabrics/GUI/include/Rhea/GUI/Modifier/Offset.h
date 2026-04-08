@@ -18,7 +18,14 @@ namespace rhea {
 			w->setBasePosition(m_offset + w->getBasePosition());
 		};
 
-		std::string name() { return "offset"; }
+		std::string name() const override { return "offset"; }
+
+		// equal operator
+		bool equals(const Modifier& other) const override {
+			if (name() != other.name()) return false;
+			const OffsetModifier& o = static_cast<const OffsetModifier&>(other);
+			return m_offset == o.m_offset;
+		}
 
 	protected:
 		math::Vector2 m_offset;

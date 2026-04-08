@@ -46,6 +46,9 @@ namespace rhea
 		// hide widget event handler
 		bool onHideWidget(Event* ev, Unit* unit);
 
+		// widget added to gui
+		bool onSceneEnter(Event* ev, Unit* unit);
+
 		// redraw requested
 		bool onGuiUpdate(Event* ev, Unit* unit);
 

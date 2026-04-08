@@ -20,7 +20,7 @@ namespace rhea
 		m_handle_input = true;
 
 		// add a label
-		m_label = (Label*)m_app->getUnitTree()->createUnit(m_path + "/label", "//meworla/gui/label", attr, val);
+		m_label = (Label*)m_app->getUnitTree()->createUnit(m_path + "_label", "//meworla/gui/label", attr, val);
 		addChild(m_label);
 
 		if (!m_alignment)
@@ -74,15 +74,19 @@ namespace rhea
 		// for now we assume only one child is possible
 		// currently the label
 
-		Vector2 child_pos = m_position + m_content_position;
+		// Calculate the anchor position for the label
+		// This is the top-left of the content area
+		Vector2 label_anchor = m_position + m_content_position;
+		
 		if (m_alignment)
 		{
-			// Korrigiert: Übergabe von lvalue-Referenzen an Alignment::apply
+			// Apply alignment to calculate offset within content area
 			Vector2 labelOuterSize = m_label->getOuterSize();
-			m_alignment->apply(m_content_size, labelOuterSize, child_pos);
+			m_alignment->apply(m_content_size, labelOuterSize, label_anchor);
 		}
 
-		m_label->setPosition(child_pos);
-
+		// setPosition expects an anchor position
+		// The label's base_position (if any) will be added inside setPosition()
+		m_label->setPosition(label_anchor);
 	}
 }

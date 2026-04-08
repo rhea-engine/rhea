@@ -35,10 +35,6 @@ namespace rhea::client {
 		rhea::Item* item = doCast<rhea::Item>(unit);
 		if (!item) return false;
 
-		if (unit->getPathName() == "cancel")
-			LOG(LOG_DEBUG) << "GraphicsItemManager::Ensure: Processing mesh '" << unit->getPath() << "' (parent path: '" << unit->getParent()->getPath() << "')";
-
-
 		// register event handlers for delete and update - these will be called even if the item is not renderable, so we can catch changes to renderable state and mesh assignment
 		static auto deleteHandler = std::bind(&GraphicsItemManager::onItemDelete, this, std::placeholders::_1, std::placeholders::_2);
 		static auto updateHandler = std::bind(&GraphicsItemManager::onUpdate, this, std::placeholders::_1, std::placeholders::_2);
@@ -107,10 +103,6 @@ namespace rhea::client {
 	{
 		rhea::Item* item = doCast<rhea::Item>(unit);
 		if (!item) return false;
-
-		if (unit->getPathName() == "cancel")
-			LOG(LOG_DEBUG) << "GraphicsItemManager::onUpdate: Processing mesh '" << unit->getPath() << "' (parent path: '" << unit->getParent()->getPath() << "')";
-
 
 		// Not renderable - clean up GPU resources if present
 		if (!item->isRenderable()) {

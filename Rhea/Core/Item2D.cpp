@@ -229,7 +229,6 @@ namespace rhea
 		if (!m_viewport_width || !m_viewport_height) {
 			Item2D* p = doCast<Item2D>(m_parent);
 			if (!p) {
-				LOG(LOG_ERROR) << "Item2D::onParented(): parent of Item2D '" << m_pathname << "' is not an Item2D, cannot get viewport size";
 				return;
 			}
 			int width = p->m_viewport_width;

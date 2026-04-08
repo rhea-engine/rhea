@@ -58,6 +58,8 @@ namespace rhea
 		{
 		}
 
+		~Widget() override;
+
 		/**
 		 * @brief Sets up the widget with the given application, attributes, and values.
 		 * @param app The application instance.
@@ -224,7 +226,7 @@ namespace rhea
 		 * @param style The style property ID.
 		 * @return The style property value.
 		 */
-		std::vector<CssValue>& getStyle(StylePropertyId style);
+		const std::vector<CssValue>& getStyle(StylePropertyId style) const;
 
 		/**
 		 * @brief Sets a style property of the widget using a string value.

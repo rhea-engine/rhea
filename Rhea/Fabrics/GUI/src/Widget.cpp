@@ -29,6 +29,13 @@
 
 namespace rhea
 {
+	Widget::~Widget()
+	{
+		if (!m_onClick.empty()) {
+			unregisterEventHandler("mouse_btn_down", this);
+		}
+	}
+
 	void Widget::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{
 		Item2D::setup(app, attributes, values);
@@ -159,7 +166,7 @@ namespace rhea
 		bool is_new_set = !target.empty();
 		m_onClick = target;
 		if (!is_set && is_new_set)
-			registerEventHandler("mouse_btn_down", this, [&](Event* e, Unit* u)->bool {
+			registerEventHandler("mouse_btn_down", this, [this](Event* e, Unit* u)->bool {
 			return onClicked(e, u);
 				});
 		if (is_set && !is_new_set)
@@ -729,13 +736,13 @@ namespace rhea
 		m_style_dirty = true;
 	}
 
-	std::vector<CssValue>& Widget::getStyle(StylePropertyId style)
+	const std::vector<CssValue>& Widget::getStyle(StylePropertyId style) const
 	{
 		auto it = m_computed_properties.find(style);
 		if (it != m_computed_properties.end())
 			return it->second;
 		else {
-			static std::vector<CssValue> empty;
+			static const std::vector<CssValue> empty;
 			return empty;
 		}
 	}

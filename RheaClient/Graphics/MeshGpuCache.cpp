@@ -28,7 +28,7 @@ namespace rhea::client
 
     poseidon::Mesh* MeshGpuCache::find(rhea::Mesh* mesh)
     {
-        return find(mesh->getPathName());
+        return find(mesh->getPath());
     }
 
     poseidon::Mesh* MeshGpuCache::find(std::string key)

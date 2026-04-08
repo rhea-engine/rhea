@@ -115,7 +115,11 @@ namespace rhea
 		config->loadFromFile("config.ini");
 
 		// log-level from config
+#ifdef _DEBUG
+		std::string log_level = config->getValueString("log.level", "debug");
+#else
 		std::string log_level = config->getValueString("log.level", "info");
+#endif
 		std::transform(log_level.begin(), log_level.end(), log_level.begin(), ::tolower);
 		if (log_level == "debug")
 			Log::logger().setLevel(LOG_DEBUG);

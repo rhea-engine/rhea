@@ -35,90 +35,72 @@ namespace rhea::client {
 		rhea::Item* item = doCast<rhea::Item>(unit);
 		if (!item) return false;
 
-		// ignore if not renderable - this allows non-renderable items to still be in the scene and have their render components updated without creating GPU resources
-		if (!item->isRenderable())
-			return true;
+		if (unit->getPathName() == "cancel")
+			LOG(LOG_DEBUG) << "GraphicsItemManager::Ensure: Processing mesh '" << unit->getPath() << "' (parent path: '" << unit->getParent()->getPath() << "')";
 
-		// check if already exists
+
+		// register event handlers for delete and update - these will be called even if the item is not renderable, so we can catch changes to renderable state and mesh assignment
+		static auto deleteHandler = std::bind(&GraphicsItemManager::onItemDelete, this, std::placeholders::_1, std::placeholders::_2);
+		static auto updateHandler = std::bind(&GraphicsItemManager::onUpdate, this, std::placeholders::_1, std::placeholders::_2);
+		
+		if (!unit->hasEventHandler("delete", this)) {
+			unit->registerEventHandler("delete", this, deleteHandler);
+		}
+		if (!unit->hasEventHandler("update", this)) {
+			unit->registerEventHandler("update", this, updateHandler);
+		}
+
+		// Early exit: nicht renderable - Handler sind trotzdem registriert
+		if (!item->isRenderable()) {
+			return true;
+		}
+
+		// Check if already exists
 		auto* rc = item->getComponent<RenderComponent>();
 		if (rc && rc->entity)
 			return true;
 
-//		DLOG(LOG_DEBUG) << "GraphicsItemManager::Ensure called for: " << item->getPathName();
-
 		if (!rc) rc = item->addComponentUnique<RenderComponent>("renderer");
 		
-		// special handling for light
+		// Special handling for light
 		rhea::Light* light = doCast<rhea::Light>(item);
 		if (light) {
 			DLOG(LOG_DEBUG) << "GraphicsItemManager::Ensure: light";			
-			poseidon::Renderable* light_entity = static_cast<poseidon::Renderable*>(createEntity(rc, core, unit, "default", false));			
+			poseidon::Renderable* light_entity = static_cast<poseidon::Renderable*>(
+				createEntity(rc, core, unit, "default", false));
+			return true;
 		}
-		else {
-			rhea::MeshComponent* mc = item->getComponent<rhea::MeshComponent>();
-			rhea::Mesh* mesh = nullptr;
-			if (!mc) {
-				LOG(LOG_DEBUG) << "  -> Item '" << item->getPathName() << "' has no MeshComponent, skipping";
-				return false;
-			}
-			if (!mc->getMesh()) {
-				// Resolve mesh unit if needed
-				
-				rhea::Application* app = m_service->getApplication();
-				if (!app) { LOG(LOG_ERROR) << "Graphics service has no app"; return false; }
 
-				mesh = doCast<rhea::Mesh>(app->getUnitTree()->find(mc->meshRef(), mc->basepathRef(), false));
-				if (!mesh) {
-					LOG(LOG_ERROR) << "  -> FAILED: No mesh found for '" << mc->meshRef() << "'";
-					return false;
-				}
-				else {
-					mc->setMesh(mesh);
-				}
-				mesh->ready(); // ok for now
-			}
-			else
-				mesh = mc->getMesh();
-
-			auto* meshMgr = static_cast<GraphicsMeshManager*>(m_service->getManager<rhea::Mesh>());
-
-			// Get shared GPU mesh from cache 
-			poseidon::Mesh* shared = m_service->meshCache().getOrCreate(core, mesh, mesh->isDynamic(),
-				[&](poseidon::Core* core, rhea::Mesh* mesh, poseidon::Mesh* out)->bool {
-					return meshMgr->FillPoseidonMesh(core, mesh, out);
-				});
-			if (!shared) {
-				LOG(LOG_ERROR) << "  -> FAILED: GPU mesh creation failed for '" << item->getPathName() << "'";
-				return false;
-			}
-			rc->gpuMesh = shared;
-			rhea::Skeleton* skeleton = mesh->getComponent<rhea::Skeleton>();
-			if (skeleton) {
-				/*poseidon::Skeleton* gpuSkeleton = meshMgr->getOrCreateGPUSkeleton(core, skeleton);
-				if (!gpuSkeleton) {
-					LOG(LOG_ERROR) << "  -> FAILED: GPU skeleton creation failed for '" << item->getPathName() << "'";
-					return false;
-				}
-				*/
-				rc->skeleton = skeleton;
-			}
-		
-			// Create instance render entity using shared mesh
-			rc->entity = static_cast<poseidon::Renderable*>(
-				createRenderable(rc, core, unit, shared, "default")
-				);
-
-			if (!rc->entity) {
-				LOG(LOG_ERROR) << "  -> FAILED: createRenderable returned null for '" << item->getPathName() << "'";
-				return false;
-			}
+		// Mesh handling
+		rhea::MeshComponent* mc = item->getComponent<rhea::MeshComponent>();
+		if (!mc) {
+			// No MeshComponent - Handler registered, will be caught later
+			return true;
 		}
-		
-		// register handlers
-		unit->registerEventHandler("delete", this, std::bind(&GraphicsItemManager::onItemDelete, this, std::placeholders::_1, std::placeholders::_2));
-		unit->registerEventHandler("update", this, std::bind(&GraphicsItemManager::onUpdate, this, std::placeholders::_1, std::placeholders::_2));
 
-		return true;
+		rhea::Mesh* mesh = mc->getMesh();
+		if (!mesh) {
+			// Try to resolve the mesh
+			rhea::Application* app = m_service->getApplication();
+			if (!app) { 
+				LOG(LOG_ERROR) << "Graphics service has no app"; 
+				return false; 
+			}
+
+			mesh = doCast<rhea::Mesh>(app->getUnitTree()->find(
+				mc->meshRef(), mc->basepathRef(), false));
+			
+			if (!mesh) {
+				// Mesh not found yet - Handlers are registered, wait for update
+				return true;
+			}
+			
+			mc->setMesh(mesh);
+			mesh->ready();
+		}
+
+		// create GPU mesh
+		return createGPUResources(core, item, rc, mesh);
 	}
 
 	bool GraphicsItemManager::onUpdate(rhea::Event* ev, rhea::Unit* unit)
@@ -126,46 +108,64 @@ namespace rhea::client {
 		rhea::Item* item = doCast<rhea::Item>(unit);
 		if (!item) return false;
 
-		// ignore if not renderable - this allows non-renderable items to still be in the scene and have their render components updated without creating GPU resources
-		if (!item->isRenderable())
+		if (unit->getPathName() == "cancel")
+			LOG(LOG_DEBUG) << "GraphicsItemManager::onUpdate: Processing mesh '" << unit->getPath() << "' (parent path: '" << unit->getParent()->getPath() << "')";
+
+
+		// Not renderable - clean up GPU resources if present
+		if (!item->isRenderable()) {
+			auto* rc = item->getComponent<RenderComponent>();
+			if (rc && rc->entity) {
+				if (rc->ctx)
+					rc->ctx->removeRenderChild(item);
+				delete rc->entity;
+				rc->entity = nullptr;
+				rc->gpuMesh = nullptr;
+			}
 			return true;
+		}
 
-		// possible material change - check if material has element		
 		auto* rc = item->getComponent<RenderComponent>();
-		if (!rc) return false;
+		if (!rc) {
+			// Newly renderable - create RenderComponent
+			rc = item->addComponentUnique<RenderComponent>("renderer");
+		}
+
 		rhea::MeshComponent* mc = item->getComponent<rhea::MeshComponent>();
-		if (!mc || !mc->getMesh()) return false;
+		if (!mc) {
+			// No mesh - nothing to do
+			return false;
+		}
+
 		rhea::Mesh* mesh = mc->getMesh();
+		if (!mesh) {
+			// Try to resolve the mesh again
+			rhea::Application* app = m_service->getApplication();
+			if (app) {
+				mesh = doCast<rhea::Mesh>(app->getUnitTree()->find(
+					mc->meshRef(), mc->basepathRef(), false));
+				if (mesh) {
+					mc->setMesh(mesh);
+					mesh->ready();
+				}
+			}
+		}
 
-		// NOTE: This assumes a changed material will actually be a new material (i.e. the old one gets destroyed)
+		if (!mesh) {
+			// Still no mesh
+			return false;
+		}
 
-		// 1) Ensure GPU mesh exists (from cache)
+		// create/update GPU resources
 		poseidon::Mesh* gpu = rc->gpuMesh;
 		if (!gpu) {
-			auto* meshMgr = static_cast<GraphicsMeshManager*>(m_service->getManager<rhea::Mesh>());
-
-			gpu = m_service->meshCache().getOrCreate(
-				m_service->getEngine(), // poseidon::Core*
-				mesh,
-				mesh->isDynamic(),
-				[&](poseidon::Core* c, rhea::Mesh* m, poseidon::Mesh* out) {
-					return meshMgr->FillPoseidonMesh(c, m, out);
-				});
-
-			if (!gpu) return false;
-			rc->gpuMesh = gpu;
+			return createGPUResources(m_service->getEngine(), item, rc, mesh);
 		}
 
-		// lazy-create entity if missing
-		if (!rc->entity && gpu) {
-			rc->entity = static_cast<poseidon::Renderable*>(
-				createRenderable(rc, m_service->getEngine(), unit, gpu, "default")
-				);
-		}
-
-		// 2) Ensure all submesh materials have GPU materials + apply them to gpu mesh
+		// Update: actualize Materials
 		poseidon::Core* core = m_service->getEngine();
-		auto* matMgr = static_cast<GraphicsMaterialManager*>(m_service->getManager<rhea::Material>());
+		auto* matMgr = static_cast<GraphicsMaterialManager*>(
+			m_service->getManager<rhea::Material>());
 
 		for (size_t i = 0; i < mesh->getNumSubmeshes(); i++) {
 			rhea::Material* material = mesh->getMaterial(i);
@@ -174,24 +174,18 @@ namespace rhea::client {
 				continue;
 			}
 
-			// Ask cache for GPU material (create/rebuild if needed)
 			poseidon::Material* gpuMat =
 				m_service->materialCache().getOrCreate(
-					core,
-					material,
-					[&](poseidon::Core* c, rhea::Material* m, poseidon::Material* outMat, bool fresh) -> bool {
+					core, material,
+					[&](poseidon::Core* c, rhea::Material* m, 
+					    poseidon::Material* outMat, bool fresh) -> bool {
 						return matMgr->FillPoseidonMaterial(c, m, outMat, fresh);
 					});
-			if (!gpuMat) {
-				LOG(LOG_ERROR) << "GraphicsItemManager::onUpdate: Failed to get GPU material for " << material->getPathName();
-				continue;
-			}
 			
-			// Apply Poseidon material to cached gpu mesh
-			poseidon::Mesh::SubMesh* sub = gpu->getSubMesh(i);
-			if (!sub) continue;
-
-			sub->material = gpuMat;			
+			if (gpuMat) {
+				poseidon::Mesh::SubMesh* sub = gpu->getSubMesh(i);
+				if (sub) sub->material = gpuMat;
+			}
 		}
 
 		return false;
@@ -214,5 +208,59 @@ namespace rhea::client {
 			rc->entity = nullptr;			
 		}
 		return false;
+	}
+
+	// New helper method for GPU resource creation
+	bool GraphicsItemManager::createGPUResources(poseidon::Core* core, 
+                                                  rhea::Item* item,
+                                                  RenderComponent* rc, 
+                                                  rhea::Mesh* mesh)
+	{
+		if (!mesh) {
+			LOG(LOG_ERROR) << "GraphicsItemManager::createGPUResources: mesh is null";
+			return false;
+		}
+
+		// Ensure the mesh is managed by MeshManager
+		// This will register event handlers and create GPU resources
+		auto* meshMgr = static_cast<GraphicsMeshManager*>(
+			m_service->getManager<rhea::Mesh>());
+		
+		if (!meshMgr->Ensure(core, mesh)) {
+			LOG(LOG_ERROR) << "GraphicsItemManager::createGPUResources: MeshManager::Ensure failed for mesh '" 
+			               << mesh->getPathName() << "'";
+			return false;
+		}
+
+		// Get shared GPU mesh from cache (should exist after Ensure)
+		poseidon::Mesh* shared = m_service->meshCache().find(mesh);
+		
+		if (!shared) {
+			LOG(LOG_ERROR) << "  -> FAILED: GPU mesh not in cache after Ensure for '" 
+			               << item->getPathName() << "'";
+			return false;
+		}
+		
+		rc->gpuMesh = shared;
+		
+		// Skeleton handling
+		rhea::Skeleton* skeleton = mesh->getComponent<rhea::Skeleton>();
+		if (skeleton) {
+			rc->skeleton = skeleton;
+		}
+
+		// Create render entity if missing
+		if (!rc->entity) {
+			rc->entity = static_cast<poseidon::Renderable*>(
+				createRenderable(rc, core, item, shared, "default"));
+			
+			if (!rc->entity) {
+				LOG(LOG_ERROR) << "  -> FAILED: createRenderable returned null for '" 
+				               << item->getPathName() << "'";
+				return false;
+			}
+		}
+
+		return true;
 	}
 }

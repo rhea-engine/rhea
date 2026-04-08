@@ -34,6 +34,12 @@ namespace rhea::client {
 
 		// handle deletion event
 		bool onItemDelete(rhea::Event* ev, rhea::Unit* unit);
+
+	private:
+		bool createGPUResources(poseidon::Core* core, 
+		                        rhea::Item* item,
+		                        RenderComponent* rc, 
+		                        rhea::Mesh* mesh);
 	};
 }
 

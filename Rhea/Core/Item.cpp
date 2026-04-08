@@ -70,6 +70,13 @@ namespace rhea
 			visual_component->hide();
 	}	
 
+	void Item::onParented()
+	{
+		Unit::onParented();
+		Event add_event("attached_item", this);
+		bubbleEvent("attached_item", &add_event);
+	}
+
 	Item* Item::instance(std::string name)
 	{
 		Item* new_item = (rhea::Item*)simpleparser::Type::create(name, getTypeName());

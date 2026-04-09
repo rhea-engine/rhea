@@ -40,6 +40,9 @@ namespace rhea
 		// input event handler
 		bool onInput(Event* ev, Unit* unit);
 
+		// update hover state based on current mouse position
+		void refreshHoverState();
+
 		// show widget event handler
 		bool onShowWidget(Event* ev, Unit* unit);
 

@@ -23,8 +23,8 @@ namespace rhea
 		void setText(std::string text);
 
 		// input handling
-		bool onMouseClick(Event* ev, Unit* unit);
-		bool onMouseClicked(Event* ev, Unit* unit);
+		bool onMouseClick(Event* ev, Unit* unit) override;
+		bool onMouseClicked(Event* ev, Unit* unit) override;
 
 		// sizing
 		void onSetPosition();

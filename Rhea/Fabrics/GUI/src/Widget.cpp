@@ -133,8 +133,8 @@ namespace rhea
 		std::unordered_map<std::string, std::string> attr;
 		std::unordered_map<std::string, Variant> val;
 
-		if (m_values.find("onClick") != m_values.end())
-			setOnClick(m_values["onClick"].toString());
+		if (m_values.find("onClicked") != m_values.end())
+			setOnClicked(m_values["onClicked"].toString());
 	}
 
 	void Widget::ready()
@@ -153,30 +153,24 @@ namespace rhea
 		if (!mesh_component) {
 			mesh_component = addComponentUnique<MeshComponent>("mesh");
 		}
-		
+
 		// if we are hidden at the beggining - send the event
 		if (!visual_component || !visual_component->isVisible()) {
 			hide();
 		}
-	}	
 
-	void Widget::setOnClick(const std::string& target)
-	{
-		bool is_set = !m_onClick.empty();
-		bool is_new_set = !target.empty();
-		m_onClick = target;
-		if (!is_set && is_new_set)
-			registerEventHandler("mouse_btn_down", this, [this](Event* e, Unit* u)->bool {
-			return onClicked(e, u);
-				});
-		if (is_set && !is_new_set)
-			unregisterEventHandler("mouse_btn_down", this);
+		registerDefaultInputHandlers();
+	}
+
+	void Widget::setOnClicked(const std::string& target)
+	{		
+		m_onClick = target;	
 	}
 
 	bool Widget::onClicked(Event* ev, Unit* unit)
 	{
-		if (m_values.find("onClick") != m_values.end()) {
-			sendBoundEvent(m_values["onClick"].toString(), ev);
+		if (m_values.find("onClicked") != m_values.end()) {
+			sendBoundEvent(m_values["onClicked"].toString(), ev);
 		}
 		return false;
 	}
@@ -189,7 +183,7 @@ namespace rhea
 		m_anchor_position = position;
 
 		Vector2 old_final_position = m_position;
-		
+
 		// default final position = anchor + authored offset
 		m_position = m_anchor_position + m_base_position;
 
@@ -237,7 +231,7 @@ namespace rhea
 		// apply modifiers
 		for (auto it = m_modifiers.begin(); it < m_modifiers.end(); ++it) {
 			(*it)->apply(this, inner_size, m_size, outer_size, margin);
-		}				
+		}
 
 		// get the content without modifiers from the concrete widget
 		Vector2 content_size = innerSize(inner_size);
@@ -275,7 +269,7 @@ namespace rhea
 			m_outer_size.y = size_constraints.y;
 
 		// Compute tiling if necessary
-		ApplyTextureSizing();		
+		ApplyTextureSizing();
 
 		if (m_size != old_size ||
 			m_outer_size != old_outer ||
@@ -393,11 +387,15 @@ namespace rhea
 		}
 
 		// Recursively recalculate style for all child widgets.
-		children([&](std::string name, rhea::Component* child)->bool {
-			if (doCast<Widget>(child))
-				doCast<Widget>(child)->RecalculateStyle(style_engine);
-			return true;
-			});
+		for (auto child : m_children) {
+			if (doCast<Unit>(child.second)) {
+				doCast<Unit>(child.second)->traverse([&](std::string name, rhea::Component* child)->bool {
+					if (doCast<Widget>(child))
+						doCast<Widget>(child)->RecalculateStyle(style_engine);
+					return true;
+					});
+			}
+		}
 	}
 
 	void Widget::AppendStyles(CssRuleSet& styles)
@@ -420,24 +418,24 @@ namespace rhea
 		bool layout_changed = false;
 		bool render_changed = false;
 
-		for (const auto& property : m_computed_properties) {          
-			auto property_id = property.first;  
-            auto values = property.second;
+		for (const auto& property : m_computed_properties) {
+			auto property_id = property.first;
+			auto values = property.second;
 
 			// make sure we have at least one value
 			if (values.empty())
 				continue;
 			switch (property_id) {
 			case StylePropertyId::kBackgroundImage:
-				setBackgroundImage(values[0].value == "none" ? nullptr : doCast<ImageResource>(m_app->getUnitTree()->find(values[0].value.toString())));				
+				setBackgroundImage(values[0].value == "none" ? nullptr : doCast<ImageResource>(m_app->getUnitTree()->find(values[0].value.toString())));
 				break;
 			case StylePropertyId::kBackgroundColor:
 				if (values.size() >= 3) {
-					setBackgroundColor(values[0].value, values[1].value, values[2].value, values.size() > 3 ? values[3].value.toFloat() : 1.0f);					
+					setBackgroundColor(values[0].value, values[1].value, values[2].value, values.size() > 3 ? values[3].value.toFloat() : 1.0f);
 				}
 				break;
 			case StylePropertyId::kBackgroundSize:
-				
+
 				if (values[0].value == "contain") {
 					m_sizing_mode_w = TextureSizingMode::kContain;
 				}
@@ -460,7 +458,7 @@ namespace rhea
 				break;
 			case StylePropertyId::kLeft:
 				base_position.x = values[0].value;
-				position_types[0] = values[0].id;				
+				position_types[0] = values[0].id;
 				break;
 			case StylePropertyId::kTop:
 				base_position.y = values[0].value;
@@ -474,15 +472,15 @@ namespace rhea
 				base_size.y = values[0].value;
 				position_types[3] = values[0].id;
 				break;
-			case StylePropertyId::kFontSize:				
+			case StylePropertyId::kFontSize:
 				m_font_size = calculateFontSize(values[0]);
 				if (prev_font_size != m_font_size)
 					layout_changed = true;
 				break;
 			}
 		}
-		
-		ApplyTextureSizing();		
+
+		ApplyTextureSizing();
 		//UpdateMaterial();
 
 		recreateModifiers(base_position, base_size, position_types);
@@ -511,9 +509,9 @@ namespace rhea
 	}
 
 	void Widget::recreateModifiers(const Vector2& base_position, const Vector2& base_size, const CssValueId position_types[4])
-	{		
+	{
 		std::vector<std::unique_ptr<Modifier>> new_modifiers;
-	
+
 		if (base_position.x || base_position.y) {
 			new_modifiers.push_back(std::make_unique<OffsetModifier>(base_position));
 		}
@@ -658,7 +656,7 @@ namespace rhea
 
 	void Widget::ApplyTextureSizing() {
 
-		if (m_bg_image && m_bg_image->width > 0 && m_bg_image->height > 0 && (m_content_size.x > 1.0f || m_content_size.y>1.0f) ) 
+		if (m_bg_image && m_bg_image->width > 0 && m_bg_image->height > 0 && (m_content_size.x > 1.0f || m_content_size.y > 1.0f))
 		{
 			// image and image size is set and content is not 1x1
 
@@ -706,20 +704,20 @@ namespace rhea
 						// Widget is taller than image, fit width, scale height					
 						scaling.y = image_aspect / widget_aspect;
 					}
-					
+
 					break;
-				}				
+				}
 				case TextureSizingMode::kFixed:
 					// scaling = { 1.0f, 1.0f };
 					break;
-				}				
+				}
 				if (scaling != m_scaling) {
 					m_scaling = scaling;
 					m_material_dirty = true;
 					invalidateRender();
 				}
-			}			
-		}		
+			}
+		}
 	}
 
 	void Widget::setStyles(CssRuleSet& styles)
@@ -746,7 +744,7 @@ namespace rhea
 			return empty;
 		}
 	}
-	
+
 	void Widget::setStyle(StylePropertyId id, std::string value)
 	{
 		std::vector<CssValue> values;
@@ -785,7 +783,7 @@ namespace rhea
 		Item::show();
 		invalidateRender();
 		// recursively invalidate all children
-		children([&](std::string name, rhea::Component* child)->bool {
+		traverse([&](std::string name, rhea::Component* child)->bool {
 			if (doCast<Widget>(child)) {
 				doCast<Widget>(child)->invalidateRender();
 			}
@@ -805,6 +803,14 @@ namespace rhea
 		Item::hide();
 		Event e("hide", this);
 		bubbleEvent("hide", &e);
+		clearTransientInputState();
+		// clear transient states for all children
+		traverse([&](std::string name, rhea::Component* child)->bool {
+			if (doCast<Widget>(child)) {
+				doCast<Widget>(child)->clearTransientInputState();
+			}
+			return true;
+			});
 	}
 
 	void Widget::makeInvisble()
@@ -877,7 +883,7 @@ namespace rhea
 		m_layout_dirty = true;
 
 		if (auto* p = doCast<Widget>(m_parent))
-			p->invalidateLayout();		
+			p->invalidateLayout();
 	}
 
 	void Widget::clearLayoutDirtyRecursive()
@@ -890,5 +896,114 @@ namespace rhea
 				w->clearLayoutDirtyRecursive();
 			}
 		}
+	}
+
+	void Widget::registerDefaultInputHandlers()
+	{
+		// Mouse Enter/Leave for :hover
+
+		registerEventHandler("mouse_enter", this, [this](Event* e, Unit* u)->bool {
+			handleMouseEnter(e, u);
+			return false;
+			});
+		registerEventHandler("mouse_leave", this, [this](Event* e, Unit* u)->bool {
+			handleMouseLeave(e, u);
+			return false;
+			});
+
+		// Mouse Down/Up for :active
+
+		registerEventHandler("mouse_btn_down", this, [this](Event* e, Unit* u)->bool {
+			handleMouseClick(e, u);
+			return false;
+			});
+		registerEventHandler("mouse_btn_up", this, [this](Event* e, Unit* u)->bool {
+			onClicked(e, u);
+			handleMouseClicked(e, u);
+			return false;
+			});
+
+
+		// Focus/Blur for :focus
+
+		registerEventHandler("focus", this, [this](Event* e, Unit* u)->bool {
+			setWidgetState(WidgetState::kFocus, true);
+			handleFocusGained(e, u);
+			return false;
+			});
+		registerEventHandler("blur", this, [this](Event* e, Unit* u)->bool {
+			setWidgetState(WidgetState::kFocus, false);
+			handleFocusLost(e, u);
+			return false;
+			});
+
+	}
+
+	void Widget::setWidgetState(WidgetState state, bool enable)
+	{
+		int state_bit = static_cast<int>(state);
+		int old_states = m_widget_states;
+
+		if (enable) {
+			m_widget_states |= state_bit;
+		}
+		else {
+			m_widget_states &= ~state_bit;
+		}
+
+		// Wenn sich der Zustand geändert hat, Styles neu berechnen
+		if (old_states != m_widget_states) {
+			m_style_dirty = true;
+			invalidateRender();
+		}
+	}
+
+	bool Widget::handleMouseEnter(Event* ev, Unit* sender)
+	{
+		setWidgetState(WidgetState::kHover, true);
+		return onMouseEnter(ev, sender);
+	}
+
+	bool Widget::handleMouseLeave(Event* ev, Unit* sender)
+	{
+		setWidgetState(WidgetState::kHover, false);
+		setWidgetState(WidgetState::kActive, false);
+
+		return onMouseLeave(ev, sender);
+	}
+
+	bool rhea::Widget::handleMouseMove(Event* ev, Unit* sender)
+	{
+		return onMouseMove(ev, sender);
+	}
+
+	bool Widget::handleMouseClick(Event* ev, Unit* sender)
+	{
+		setWidgetState(WidgetState::kActive, true);
+		return onMouseClick(ev, sender);
+	}
+
+	bool Widget::handleMouseClicked(Event* ev, Unit* sender)
+	{
+		setWidgetState(WidgetState::kActive, false);
+		return onMouseClicked(ev, sender);
+	}
+
+	bool Widget::handleFocusGained(Event* ev, Unit* sender)
+	{
+		setWidgetState(WidgetState::kFocus, true);
+		return onFocusGained(ev, sender);
+	}
+
+	bool Widget::handleFocusLost(Event* ev, Unit* sender)
+	{
+		setWidgetState(WidgetState::kFocus, false);
+		return onFocusLost(ev, sender);
+	}
+
+	void Widget::clearTransientInputState()
+	{
+		setWidgetState(WidgetState::kHover, false);
+		setWidgetState(WidgetState::kActive, false);
 	}
 }

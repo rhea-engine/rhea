@@ -25,9 +25,6 @@ namespace rhea
 
 		if (!m_alignment)
 			m_alignment = std::make_unique<Alignment>(Alignment::Horizontal::CENTER, Alignment::Vertical::CENTER);
-
-		registerEventHandler("mouse_btn_down", this, std::bind(&Button::onMouseClick, this, std::placeholders::_1, std::placeholders::_2));
-		registerEventHandler("mouse_btn_up", this, std::bind(&Button::onMouseClicked, this, std::placeholders::_1, std::placeholders::_2));
 	}
 
 	void Button::setText(std::string text)
@@ -42,11 +39,15 @@ namespace rhea
 		ev->stopPropagation();
 
 		// send clicked event
-		Event my_ev = Event("clicked", this);
-		bubbleEvent("clicked", &my_ev);
+		Event my_ev = Event("pressed", this);
+
+		// send to local listeners
+		sendEvent("pressed", &my_ev);
+
 		if (m_values.find("onClick") != m_values.end()) {
 			sendBoundEvent(m_values["onClick"].toString(), ev);
 		}
+
 		return false;
 	}
 
@@ -58,13 +59,16 @@ namespace rhea
 		// send clicked event
 		Event my_ev = Event("clicked", this);
 		
+		// always send to local listeners
+		sendEvent("clicked", &my_ev);
+
 		if (m_values.find("action") != m_values.end()) {
-			bubbleEvent(m_values["action"].toString(), &my_ev);
+			m_parent->bubbleEvent(m_values["action"].toString(), &my_ev);
 		}
+
 		if (m_values.find("onClicked") != m_values.end()) {
 			sendBoundEvent(m_values["onClicked"].toString(), ev);
 		}
-
 
 		return false;
 	}

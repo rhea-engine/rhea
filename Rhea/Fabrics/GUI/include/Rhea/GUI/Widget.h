@@ -54,7 +54,8 @@ namespace rhea
 			m_layout_dirty(true),
 			m_justify_mode(0),
 			m_is_rtl(false),
-			m_essential_size_valid(false)
+			m_essential_size_valid(false),
+			m_widget_states(0)
 		{
 		}
 
@@ -72,13 +73,13 @@ namespace rhea
 		 * @brief Event handler called when the widget is ready.
 		 * This function is triggered by the engine's ready event.
 		 */
-		void ready();		
+		void ready();
 
 		/**
-		 * @brief Sets the onClick event handler target.
-		 * @param target The target for the onClick event.
+		 * @brief Sets the onClicked event handler target.
+		 * @param target The target for the onClicked event.
 		 */
-		void setOnClick(const std::string& target);
+		void setOnClicked(const std::string& target);
 
 		/**
 		 * @brief Handles the onClick event.
@@ -194,7 +195,7 @@ namespace rhea
 		/**
 		 * @brief Applies the styles to the widget.
 		 */
-		virtual void ApplyStyles();		
+		virtual void ApplyStyles();
 
 		/**
 		 * @brief Sets the alignment of the widget.
@@ -203,129 +204,160 @@ namespace rhea
 		 */
 		void setAlignment(std::string horizontal, std::string vertical);
 
+		/**
+		 * @brief Sets the justify mode of the widget.
+		 * @param mode The justify mode (0 for no justification, 1 for space evenly).
+		 */void setJustifyMode(int mode) { m_justify_mode = mode; }
+
 		 /**
-		  * @brief Sets the justify mode of the widget.
-		  * @param mode The justify mode (0 for no justification, 1 for space evenly).
-		  */void setJustifyMode(int mode) { m_justify_mode = mode; }
+		  * @brief Sets the styles of the widget.
+		  * @param styles The styles to set.
+		  */
+		 void setStyles(CssRuleSet& styles);
 
-		/**
-		 * @brief Sets the styles of the widget.
-		 * @param styles The styles to set.
-		 */
-		void setStyles(CssRuleSet& styles);
+		 /**
+		  * @brief Sets a style property of the widget.
+		  * @param id The style property ID.
+		  * @param value The style property value.
+		  */
+		 void setStyle(StylePropertyId id, std::vector<CssValue> value);
 
-		/**
-		 * @brief Sets a style property of the widget.
-		 * @param id The style property ID.
-		 * @param value The style property value.
-		 */
-		void setStyle(StylePropertyId id, std::vector<CssValue> value);
+		 /**
+		  * @brief Gets a style property of the widget.
+		  * @param style The style property ID.
+		  * @return The style property value.
+		  */
+		 const std::vector<CssValue>& getStyle(StylePropertyId style) const;
 
-		/**
-		 * @brief Gets a style property of the widget.
-		 * @param style The style property ID.
-		 * @return The style property value.
-		 */
-		const std::vector<CssValue>& getStyle(StylePropertyId style) const;
+		 /**
+		  * @brief Sets a style property of the widget using a string value.
+		  * @param id The style property ID.
+		  * @param value The string value.
+		  */
+		 void setStyle(StylePropertyId id, std::string value);
 
-		/**
-		 * @brief Sets a style property of the widget using a string value.
-		 * @param id The style property ID.
-		 * @param value The string value.
-		 */
-		void setStyle(StylePropertyId id, std::string value);
+		 /**
+		  * @brief Sets a style property of the widget using a numeric value.
+		  * @param id The style property ID.
+		  * @param value The numeric value.
+		  */
+		 void setStyle(StylePropertyId id, int value);
 
-		/**
-		 * @brief Sets a style property of the widget using a numeric value.
-		 * @param id The style property ID.
-		 * @param value The numeric value.
-		 */
-		void setStyle(StylePropertyId id, int value);
+		 /**
+		  * @brief Sets a style property of the widget using a dimension value.
+		  * @param id The style property ID.
+		  * @param value The numeric value.
+		  * @param dim The dimension unit.
+		  */
+		 void setStyle(StylePropertyId id, int value, std::string dim);
 
-		/**
-		 * @brief Sets a style property of the widget using a dimension value.
-		 * @param id The style property ID.
-		 * @param value The numeric value.
-		 * @param dim The dimension unit.
-		 */
-		void setStyle(StylePropertyId id, int value, std::string dim);
+		 /**
+		  * @brief Gets the CSS selector for the widget.
+		  * @return The CSS selector.
+		  */
+		 virtual const std::string getSelector() { return "Widget"; }
 
-		/**
-		 * @brief Gets the CSS selector for the widget.
-		 * @return The CSS selector.
-		 */
-		virtual const std::string getSelector() { return "Widget"; }
+		 /**
+		  * @brief Gets the font size of the widget.
+		  * @return The font size.
+		  */
+		 float getFontSize() { return m_font_size; }
 
-		/**
-		 * @brief Gets the font size of the widget.
-		 * @return The font size.
-		 */
-		float getFontSize() { return m_font_size; }
+		 /**
+		  * @brief Sets the widget to be at the top level (not a child of another widget).
+		  * @param top True if the widget is at the top level, false otherwise.
+		  */
+		 void setToplevel(bool top) { m_top_window = top; }
 
-		/**
-		 * @brief Sets the widget to be at the top level (not a child of another widget).
-		 * @param top True if the widget is at the top level, false otherwise.
-		 */
-		void setToplevel(bool top) { m_top_window = top; }
+		 /**
+		  * @brief Shows the widget.
+		  */
+		 void show() override;
 
-		/**
-		 * @brief Shows the widget.
-		 */
-		void show() override;
+		 /**
+		  * @brief Makes the widget visible without sending an event.
+		  */
+		 void makeVisble();
 
-		/**
-		 * @brief Makes the widget visible without sending an event.
-		 */
-		void makeVisble();
+		 /**
+		  * @brief Hides the widget.
+		  */
+		 void hide() override;
 
-		/**
-		 * @brief Hides the widget.
-		 */
-		void hide() override;
+		 /**
+		  * @brief Makes the widget invisible without sending an event.
+		  */
+		 void makeInvisble();
 
-		/**
-		 * @brief Makes the widget invisible without sending an event.
-		 */
-		void makeInvisble();
+		 /**
+		  * @brief Captures the lowest widget at the given position.
+		  * @param x The x-coordinate.
+		  * @param y The y-coordinate.
+		  * @return The captured widget.
+		  */
+		 Widget* capture(int x, int y);
 
-		/**
-		 * @brief Captures the lowest widget at the given position.
-		 * @param x The x-coordinate.
-		 * @param y The y-coordinate.
-		 * @return The captured widget.
-		 */
-		Widget* capture(int x, int y);
+		 /**
+		  * @brief Gets the input target widget.
+		  * @return The input target widget.
+		  */
+		 Widget* getInputTarget();
 
-		/**
-		 * @brief Gets the input target widget.
-		 * @return The input target widget.
-		 */
-		Widget* getInputTarget();
+		 /**
+		  * @brief Sets whether the widget handles input events.
+		  * @param handle True if the widget handles input events, false otherwise.
+		  */
+		 void setHandleInput(bool handle) { m_handle_input = handle; }
 
-		/**
-		 * @brief Sets whether the widget handles input events.
-		 * @param handle True if the widget handles input events, false otherwise.
-		 */
-		void setHandleInput(bool handle) { m_handle_input = handle; }
+		 /**
+		  * @brief Sends a bound event to the widget.
+		  * @param binding The event binding.
+		  * @param ev The event instance.
+		  */
+		 void sendBoundEvent(std::string binding, Event* ev);
 
-		/**
-		 * @brief Sends a bound event to the widget.
-		 * @param binding The event binding.
-		 * @param ev The event instance.
-		 */
-		void sendBoundEvent(std::string binding, Event* ev);
+		 /**
+		  * @brief Sets a user pointer for the widget.
+		  * @param ptr The user pointer.
+		  */
+		 void setUserPtr(void* ptr) { m_user_ptr = ptr; }
 
-		/**
-		 * @brief Sets a user pointer for the widget.
-		 * @param ptr The user pointer.
-		 */
-		void setUserPtr(void* ptr) { m_user_ptr = ptr; }
+		 /**
+		  * @brief Gets the user pointer of the widget.
+		  * @return The user pointer.
+		  */
+		 void* getUserPtr() { return m_user_ptr; }
 
-		/**
-		 * @brief Gets the user pointer of the widget.
-		 * @return The user pointer.
-		 */
-		void* getUserPtr() { return m_user_ptr; }
+		 /**
+		  * @brief Enum class representing the various states a widget can have.
+		  */
+		 enum class WidgetState {
+			 kNormal = 0,
+			 kHover = 1 << 0,
+			 kActive = 1 << 1,
+			 kFocus = 1 << 2,
+			 kDisabled = 1 << 3
+		 };
+
+		 /**
+		  * @brief Sets the state of the widget.
+		  * @param state The state to set.
+		  * @param enable True to enable the state, false to disable it.
+		  */
+		 void setWidgetState(WidgetState state, bool enable);
+
+		 /**
+		  * @brief Checks if the widget has a specific state.
+		  * @param state The state to check.
+		  * @return True if the widget has the state, false otherwise.
+		  */
+		 bool hasWidgetState(WidgetState state) const { return (m_widget_states & static_cast<int>(state)) != 0; }
+
+		 /**
+		  * @brief Gets the current widget states bitmask.
+		  * @return The widget states bitmask.
+		  */
+		 int getWidgetStates() const { return m_widget_states; }
 
 	protected:
 
@@ -422,6 +454,31 @@ namespace rhea
 
 		// Event handler cache
 		std::string m_onClick;
+
+		// Widget states bitmask
+		int m_widget_states;
+
+		// handlers
+		virtual bool onMouseEnter(Event* ev, Unit* u) { return false; }
+		virtual bool onMouseLeave(Event* ev, Unit* u) { return false; }
+		virtual bool onMouseMove(Event* ev, Unit* u) { return false; }
+		virtual bool onMouseClick(Event* ev, Unit* u) { return false; }
+		virtual bool onMouseClicked(Event* ev, Unit* u) { return false; }
+		virtual bool onFocusGained(Event* ev, Unit* u) { return false; }
+		virtual bool onFocusLost(Event* ev, Unit* u) { return false; }
+
+	private:
+		bool handleMouseEnter(Event* ev, Unit* sender);
+		bool handleMouseLeave(Event* ev, Unit* sender);
+		bool handleMouseMove(Event* ev, Unit* sender);
+		bool handleMouseClick(Event* ev, Unit* sender);
+		bool handleMouseClicked(Event* ev, Unit* sender);
+		bool handleFocusGained(Event* ev, Unit* sender);
+		bool handleFocusLost(Event* ev, Unit* sender);
+
+		void registerDefaultInputHandlers();
+
+		void clearTransientInputState();
 	};
 }
 

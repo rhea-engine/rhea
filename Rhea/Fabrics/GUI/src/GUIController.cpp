@@ -64,7 +64,7 @@ namespace rhea
 		});
 		*/
 		m_style_engine = std::make_unique<StyleEngine>();
-		if (m_values["stylesheet"] != Variant()) {
+		if (m_values.find("stylesheet") != m_values.end()) {
 			StyleSheet* css = (StyleSheet*)m_app->getUnitTree()->find(m_values["stylesheet"].toString(), m_attributes["basepath"], false);
 			m_style_engine->AppendStylesheet(css);
 		}
@@ -186,68 +186,15 @@ namespace rhea
 			if (mx != m_mx || my != m_my) {
 				// mouse really moved - call mouse move
 
-				// new captured window
-				Widget* captured = nullptr;
-				Widget* root_capture = nullptr;
-
-				// check all top level windows
-				for (auto it = m_ordered_children.rbegin(); it != m_ordered_children.rend(); ++it)
-				{
-					Widget* w = doCast<Widget>(*it);
-					if (w) {
-						
-						// get the captured widget (if in this tree)
-						captured = w->capture(me->getX(), me->getY());
-						if (captured) {
-							root_capture = w;
-							break;
-						}
-					}
-				}
-
-				// do nothing if the new widget is the old
-				if (captured != m_captured) {
-
-					// if we have old and new search for common ancestor
-					// at least the controller is always a common ancestor
-					if (captured) {
-
-						DLOG(LOG_DEBUG) << "Mouse captured by " << captured->getPath();
-
-						// inform all about leave and enter that are not common ancestors
-						Widget* ancestor = doCast<Widget>(captured->getCommonAncestor(m_captured));
-						if (ancestor) {
-
-							// leave old captured widget
-							Event leave("mouse_leave", captured);
-							m_captured->sendEventSubtree(ancestor, "mouse_leave", &leave);
-
-							// enter new captured widget
-							Event enter("mouse_enter", captured);
-							captured->sendEventSubtree(ancestor, "mouse_enter", &enter);
-						}
-						else {
-							// no ancestor found - m_captured was probably null
-
-							// enter new captured widget
-							Event enter("mouse_enter", captured);
-							captured->sendEventSubtree(root_capture, "mouse_enter", &enter);
-						}						
-					}
-					else if (m_captured) {
-
-						// leave old widget
-						Event leave("mouse_leave", m_captured);
-						m_captured->sendEventSubtree(this, "mouse_leave", &leave);
-					}
-
-					// set the capture
-					m_captured = captured;
-				}
-
-				// store current mouse position
+				// update mouse position
 				m_mx = mx;
 				m_my = my;
+
+				refreshHoverState();
+
+				
+
+
 			}
 		}
 
@@ -312,6 +259,68 @@ namespace rhea
 		}
 		
 		return false;
+	}
+
+	void GUIController::refreshHoverState()
+	{
+		// new captured window
+		Widget* captured = nullptr;
+		Widget* root_capture = nullptr;
+
+		// check all top level windows
+		for (auto it = m_ordered_children.rbegin(); it != m_ordered_children.rend(); ++it)
+		{
+			Widget* w = doCast<Widget>(*it);
+			if (w) {
+
+				// get the captured widget (if in this tree)
+				captured = w->capture(m_mx, m_my);
+				if (captured) {
+					root_capture = w;
+					break;
+				}
+			}
+		}
+
+		// do nothing if the new widget is the old
+		if (captured != m_captured) {
+
+			// if we have old and new search for common ancestor
+			// at least the controller is always a common ancestor
+			if (captured) {
+
+				DLOG(LOG_DEBUG) << "Mouse captured by " << captured->getPath();
+
+				// inform all about leave and enter that are not common ancestors
+				Widget* ancestor = doCast<Widget>(captured->getCommonAncestor(m_captured));
+				if (ancestor) {
+
+					// leave old captured widget
+					Event leave("mouse_leave", captured);
+					m_captured->sendEventSubtree(ancestor, "mouse_leave", &leave);
+
+					// enter new captured widget
+					Event enter("mouse_enter", captured);
+					captured->sendEventSubtree(ancestor, "mouse_enter", &enter);
+				}
+				else {
+					// no ancestor found - m_captured was probably null
+
+					// enter new captured widget
+					Event enter("mouse_enter", captured);
+					captured->sendEventSubtree(root_capture, "mouse_enter", &enter);
+				}
+			}
+			else if (m_captured) {
+
+				// leave old widget
+				Event leave("mouse_leave", m_captured);
+				m_captured->sendEventSubtree(this, "mouse_leave", &leave);
+			}
+
+			// set the capture
+			m_captured = captured;
+		}
 	}
 
 	bool GUIController::onShowWidget(Event* ev, Unit* unit)
@@ -383,6 +392,8 @@ namespace rhea
 			}
 
 			clearLayoutDirtyRecursive();
+
+			refreshHoverState();
 		}
 
 		// 3. render sync pass

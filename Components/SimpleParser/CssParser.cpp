@@ -7,7 +7,8 @@ namespace simpleparser
 		kNone,
 		kSequence,
 		kClass,
-		kId
+		kId,
+		kPseudo  // NEU: Pseudo-Klassen State
 	};
 
 	CssParser::Error CssParser::parseSelector(char* buf, size_t& reader, size_t buflen, int& line, Selector& selector)
@@ -88,6 +89,9 @@ namespace simpleparser
 						// start of id selector
 						state = SelectorStates::kId;
 						break;
+					case TokenType::TOKEN_COLON:  // NEU: Pseudo-Klasse
+						state = SelectorStates::kPseudo;
+						break;
 					case TokenType::TOKEN_WHITESPACE:
 						// current sequence ended
 						state = SelectorStates::kNone;
@@ -150,6 +154,14 @@ namespace simpleparser
 							token.type == TokenType::TOKEN_STRING))
 						return Error::PARSE_EXPECT_IDENTIFIER;
 					cur_simple_seq.push_back({ SimpleSelectorType::kId, token.value.toString() });
+					state = SelectorStates::kSequence;
+					break;
+				case SelectorStates::kPseudo:  // NEU: Pseudo-Klassen Handler
+					if (err == SimpleParser::Error::PARSE_EOF ||
+						!(token.type == TokenType::TOKEN_IDENTIFIER ||
+							token.type == TokenType::TOKEN_STRING))
+						return Error::PARSE_EXPECT_IDENTIFIER;
+					cur_simple_seq.push_back({ SimpleSelectorType::kPseudo, token.value.toString() });
 					state = SelectorStates::kSequence;
 					break;
 				}

@@ -17,7 +17,17 @@ namespace rhea
 			Widget(path_name, type_name)		
 		{}
 
-		void ready();		
+		class FinishedEvent : public Event {
+			public:
+			enum class FinishType {
+				Submit,
+				Cancel
+			} finishType;
+
+			FinishedEvent(Unit* target, FinishType type) : Event("finished", target), finishType(type) {}
+		};
+
+		void ready() override;
 
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
 
@@ -26,8 +36,16 @@ namespace rhea
 		// styling
 		const std::string getSelector() { return "Dialog"; }
 
+		// dialog specific events
+		virtual void cancel();
+		virtual void submit();
+
+		void show() override;
+
+		virtual void closeDialog() { hide(); }
+
 	protected:
-		
+		bool m_finished = false;
 	};
 }
 

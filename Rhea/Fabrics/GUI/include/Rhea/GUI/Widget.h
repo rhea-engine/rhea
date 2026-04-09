@@ -271,7 +271,7 @@ namespace rhea
 		/**
 		 * @brief Shows the widget.
 		 */
-		void show();
+		void show() override;
 
 		/**
 		 * @brief Makes the widget visible without sending an event.
@@ -281,7 +281,7 @@ namespace rhea
 		/**
 		 * @brief Hides the widget.
 		 */
-		void hide();
+		void hide() override;
 
 		/**
 		 * @brief Makes the widget invisible without sending an event.

@@ -44,7 +44,7 @@ namespace rhea
 		// send clicked event
 		Event my_ev = Event("clicked", this);
 		bubbleEvent("clicked", &my_ev);
-		if (m_values["onClick"] != Variant()) {
+		if (m_values.find("onClick") != m_values.end()) {
 			sendBoundEvent(m_values["onClick"].toString(), ev);
 		}
 		return false;
@@ -58,10 +58,10 @@ namespace rhea
 		// send clicked event
 		Event my_ev = Event("clicked", this);
 		
-		if (m_values["action"] != Variant()) {
+		if (m_values.find("action") != m_values.end()) {
 			bubbleEvent(m_values["action"].toString(), &my_ev);
 		}
-		if (m_values["onClicked"] != Variant()) {
+		if (m_values.find("onClicked") != m_values.end()) {
 			sendBoundEvent(m_values["onClicked"].toString(), ev);
 		}
 

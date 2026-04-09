@@ -363,8 +363,9 @@ namespace rhea
 					m_unit_tree->sendEvent("scene_input", &e);
 
 				// application input handling comes last
-				if (onInput(&e, nullptr))
-					ret = true;
+				if (!e.isPropagationStoppped())
+					if (onInput(&e, nullptr))
+						ret = true;
 			}
 
 			// 3.2 Run network updates (e.g., sync data, process packets)

@@ -212,6 +212,8 @@ namespace rhea
 					// at least the controller is always a common ancestor
 					if (captured) {
 
+						DLOG(LOG_DEBUG) << "Mouse captured by " << captured->getPath();
+
 						// inform all about leave and enter that are not common ancestors
 						Widget* ancestor = doCast<Widget>(captured->getCommonAncestor(m_captured));
 						if (ancestor) {

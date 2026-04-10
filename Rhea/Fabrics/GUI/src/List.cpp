@@ -76,6 +76,7 @@ namespace rhea
 		}
 
 		registerEventHandler("selected", this, std::bind(&ListWidget::onSelected, this, std::placeholders::_1, std::placeholders::_2));
+		registerEventHandler("clicked", this, std::bind(&ListWidget::onClicked, this, std::placeholders::_1, std::placeholders::_2));
 	}
 
 	void ListWidget::onFrame(float delta)
@@ -139,6 +140,33 @@ namespace rhea
 	{
 		if (m_values.find("onSelected") != m_values.end()) {
 			sendBoundEvent(m_values["onSelected"].toString(), ev);
+		}
+
+		// selected item in list is the event target
+		ListWidgetItem* item = doCast<ListWidgetItem>(ev->getTarget());
+		if (item && m_selected_item != item) {
+			if (m_selected_item) {
+				m_selected_item->setWidgetState(Widget::WidgetState::kFocus, false);
+			}
+			if (item) {
+				item->setWidgetState(Widget::WidgetState::kFocus, true);				
+			}
+			m_selected_item = item;
+			m_selected_value = item->getValueString("value");
+			invalidateLayout();
+		}
+
+		return false;
+	}
+
+	bool ListWidget::onClicked(Event* ev, Unit* unit)
+	{
+		if (m_values.find("onClicked") != m_values.end()) {
+			sendBoundEvent(m_values["onClicked"].toString(), ev);
+		}
+
+		if (m_values.find("action") != m_values.end()) {
+			sendEvent(m_values["action"].toString(), ev);
 		}
 		return false;
 	}

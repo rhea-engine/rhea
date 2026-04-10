@@ -225,7 +225,7 @@ namespace rhea
 		return false;
 	}
 
-	bool TextInput::onMouseClick(Event* ev, Unit* unit)
+	bool TextInput::onMousePressed(Event* ev, Unit* unit)
 	{
 		// consume the mouse event
 		ev->stopPropagation();

@@ -110,7 +110,9 @@ namespace rhea
 		Widget* m_previous_focus_before_scope = nullptr;
 
 		// the current hover widget
-		Widget* m_captured;		
+		Widget* m_captured;
+		// the last hover widget, used to detect changes in hover state
+		Widget* m_pressed;
 
 		// handle key press events for focus navigation and other global shortcuts
 		bool onKeyPressed(Event* ev, Unit* u) override;

@@ -53,7 +53,7 @@ namespace rhea
 		bool onFocusLost(Event* ev, Unit* unit) override;
 		bool onKeyPressed(Event* ev, Unit* unit) override;
 		bool onTextInput(Event* ev, Unit* unit) override;
-		bool onMouseClick(Event* ev, Unit* unit) override;
+		bool onMousePressed(Event* ev, Unit* unit) override;		
 
 		// events
 

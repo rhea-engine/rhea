@@ -33,7 +33,7 @@ namespace rhea
 			m_label->setText(text);
 	}
 	
-	bool Button::onMouseClick(Event* ev, Unit* unit)
+	bool Button::onMousePressed(Event* ev, Unit* unit)
 	{
 		// consume the mouse event
 		ev->stopPropagation();
@@ -45,7 +45,7 @@ namespace rhea
 		sendEvent("pressed", &my_ev);
 
 		if (m_values.find("onClick") != m_values.end()) {
-			sendBoundEvent(m_values["onClick"].toString(), ev);
+			sendBoundEvent(m_values["onClick"].toString(), &my_ev);
 		}
 
 		return false;
@@ -63,11 +63,11 @@ namespace rhea
 		sendEvent("clicked", &my_ev);
 
 		if (m_values.find("action") != m_values.end()) {
-			m_parent->bubbleEvent(m_values["action"].toString(), &my_ev);
+			bubbleEvent(m_values["action"].toString(), &my_ev);
 		}
 
 		if (m_values.find("onClicked") != m_values.end()) {
-			sendBoundEvent(m_values["onClicked"].toString(), ev);
+			sendBoundEvent(m_values["onClicked"].toString(), &my_ev);
 		}
 
 		return false;
@@ -86,7 +86,7 @@ namespace rhea
 			return false;
 
 		if (e->getKeyCode() == psio::Key::CODE_ENTER || e->getKeyCode() == psio::Key::CODE_SPACE) {
-			onMouseClicked(ev, unit);
+			onMouseReleased(ev, unit);
 			return true;
 		}
 

@@ -36,6 +36,8 @@ namespace rhea
 
 		// list item selected
 		bool onSelected(Event* ev, Unit* unit);
+		// handle action event
+		bool onClicked(Event* ev, Unit* unit);
 		
 		// move the current position
 		void onSetPosition();

@@ -5,6 +5,7 @@
 #include <Psio/Input/InputEvent.h>
 
 #include <vector>
+#include <memory>
 
 namespace rhea
 {
@@ -16,6 +17,20 @@ namespace rhea
 			m_evt(evt),
 			m_actions(actions)
 		{}
+
+		EventInput(const EventInput& other) :
+			Event(other.m_name, other.m_target),
+			m_evt(other.m_evt),
+			m_actions(other.m_actions)
+		{}
+
+		EventInput* clone() const {
+			return new EventInput(*this);
+		}
+
+		std::unique_ptr<EventInput> cloneUnique() const {
+			return std::make_unique<EventInput>(*this);
+		}
 
 		bool isAction(std::string action);
 		bool isAction(EventInput* ev);

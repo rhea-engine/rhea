@@ -100,6 +100,8 @@ namespace rhea
 					m_target = nullptr;
 				if (c == m_captured)
 					m_captured = nullptr;
+				if (c == m_pressed)
+					m_pressed = nullptr;
 				validateFocus();
 				return true;
 				});
@@ -230,7 +232,13 @@ namespace rhea
 			
 			if (m_pressed) {
 				e->setTarget(m_pressed);
-				m_pressed->bubbleEvent("mouse_btn_up", e);				
+				m_pressed->bubbleEvent("mouse_btn_up", e); // this could trigger m_pressed=nullptr
+
+				// if the mouse is released on the same widget as it was pressed send click event
+				if (m_pressed && m_pressed == m_captured) {
+					auto e_click = e->cloneUnique();
+					m_pressed->bubbleEvent("mouse_click", e_click.get());
+				}
 			}
 			break;
 
@@ -515,6 +523,9 @@ namespace rhea
 		}
 		if (m_captured && hidden_widget && (hidden_widget == m_captured || m_captured->isAncestor(hidden_widget))) {
 			m_captured = nullptr;
+		}
+		if (m_pressed && hidden_widget && (hidden_widget == m_pressed || m_pressed->isAncestor(hidden_widget))) {
+			m_pressed = nullptr;
 		}
 
 		return onGuiUpdate(ev, unit);

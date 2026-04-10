@@ -23,7 +23,8 @@ namespace rhea
 		void ready();
 
 		// input handling
-		bool onMouseClick(Event* ev, Unit* unit) override;
+		bool onMousePressed(Event* ev, Unit* unit) override;
+		bool onMouseClicked(Event* ev, Unit* unit) override;
 		bool onKeyPressed(Event* ev, Unit* unit) override;
 
 		// styling

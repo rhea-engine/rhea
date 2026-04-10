@@ -907,36 +907,32 @@ namespace rhea
 		// Mouse Enter/Leave for :hover
 
 		registerEventHandler("mouse_enter", this, [this](Event* e, Unit* u)->bool {
-			handleMouseEnter(e, u);
-			return false;
+			return handleMouseEnter(e, u);			
 			});
 		registerEventHandler("mouse_leave", this, [this](Event* e, Unit* u)->bool {
-			handleMouseLeave(e, u);
-			return false;
+			return handleMouseLeave(e, u);
 			});
 
 		// Mouse Down/Up for :active
 
 		registerEventHandler("mouse_btn_down", this, [this](Event* e, Unit* u)->bool {
-			handleMouseClick(e, u);
-			return false;
+			return handleMousePressed(e, u);
 			});
 		registerEventHandler("mouse_btn_up", this, [this](Event* e, Unit* u)->bool {
-			onClicked(e, u);
-			handleMouseClicked(e, u);
-			return false;
+			return handleMouseReleased(e, u);			
 			});
 
+		registerEventHandler("mouse_click", this, [this](Event* e, Unit* u)->bool {			
+			return onMouseClicked(e, u);
+			});
 
 		// Focus/Blur for :focus
 
 		registerEventHandler("focus", this, [this](Event* e, Unit* u)->bool {
-			handleFocusGained(e, u);
-			return false;
+			return handleFocusGained(e, u);
 			});
 		registerEventHandler("focus_lost", this, [this](Event* e, Unit* u)->bool {
-			handleFocusLost(e, u);
-			return false;
+			return handleFocusLost(e, u);
 			});
 
 		// keyboard / text events
@@ -991,16 +987,16 @@ namespace rhea
 		return onMouseMove(ev, sender);
 	}
 
-	bool Widget::handleMouseClick(Event* ev, Unit* sender)
+	bool Widget::handleMousePressed(Event* ev, Unit* sender)
 	{
 		setWidgetState(WidgetState::kActive, true);
-		return onMouseClick(ev, sender);
+		return onMousePressed(ev, sender);
 	}
 
-	bool Widget::handleMouseClicked(Event* ev, Unit* sender)
+	bool Widget::handleMouseReleased(Event* ev, Unit* sender)
 	{
 		setWidgetState(WidgetState::kActive, false);
-		return onMouseClicked(ev, sender);
+		return onMouseReleased(ev, sender);
 	}
 
 	bool Widget::handleFocusGained(Event* ev, Unit* sender)

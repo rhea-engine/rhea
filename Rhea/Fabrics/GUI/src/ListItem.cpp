@@ -32,7 +32,7 @@ namespace rhea
 			m_label->ready();
 	}
 	
-	bool ListWidgetItem::onMouseClick(Event* ev, Unit* unit)
+	bool ListWidgetItem::onMousePressed(Event* ev, Unit* unit)
 	{
 		// consume the mouse event
 		ev->stopPropagation();
@@ -40,6 +40,16 @@ namespace rhea
 		// send selected event
 		Event my_ev = Event("selected", this);
 		bubbleEvent("selected", &my_ev);		
+		return false;
+	}
+
+	bool ListWidgetItem::onMouseClicked(Event* ev, Unit* unit)
+	{
+		// consume the mouse event
+		ev->stopPropagation();
+		// send clicked event
+		Event my_ev = Event("clicked", this);
+		bubbleEvent("clicked", &my_ev);
 		return false;
 	}
 
@@ -53,7 +63,7 @@ namespace rhea
 			return false;
 
 		if (e->getKeyCode() == psio::Key::CODE_ENTER || e->getKeyCode() == psio::Key::CODE_SPACE) {
-			onMouseClick(ev, unit);
+			onMouseReleased(ev, unit);
 			return true;
 		}
 

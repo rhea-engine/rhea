@@ -60,10 +60,6 @@ namespace rhea
 		addChild(m_cursor_item);
 		m_cursor_item->setText("|");
 		m_cursor_item->hide();
-
-		// register to focus events
-		registerEventHandler("key_pressed", this, std::bind(&TextInput::onKeyPressed, this, std::placeholders::_1, std::placeholders::_2));
-		registerEventHandler("text_input", this, std::bind(&TextInput::onTextInput, this, std::placeholders::_1, std::placeholders::_2));	
 	}
 
 	void TextInput::setText(std::string text)

@@ -937,6 +937,18 @@ namespace rhea
 			return false;
 			});
 
+		// keyboard / text events
+
+		registerEventHandler("key_pressed", this, [this](Event* e, Unit* u)->bool {
+			return onKeyPressed(e, u);
+			});
+		registerEventHandler("key_released", this, [this](Event* e, Unit* u)->bool {
+			return onKeyReleased(e, u);
+			});
+		registerEventHandler("text_input", this, [this](Event* e, Unit* u)->bool {
+			return onTextInput(e, u);
+			});
+
 	}
 
 	void Widget::setWidgetState(WidgetState state, bool enable)

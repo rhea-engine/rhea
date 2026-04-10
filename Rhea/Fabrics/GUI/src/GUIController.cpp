@@ -250,6 +250,13 @@ namespace rhea
 			}
 			break;
 
+		case psio::InputEventId::KEY_RELEASED:
+			// text input
+			if (m_target) {
+				m_target->bubbleEvent("key_released", e);
+			}
+			break;
+
 		case psio::InputEventId::TEXT:
 			// text input
 			if (m_target) {

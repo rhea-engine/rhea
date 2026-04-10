@@ -41,7 +41,6 @@ namespace rhea
 		Widget(std::string path_name, std::string type_name) :
 			Item2D(path_name, type_name),
 			m_top_window(false),
-			m_handle_input(false),
 			m_user_ptr(nullptr),
 			m_base_position(0.0f, 0.0f),
 			m_cur_position(0.0f, 0.0f),
@@ -277,7 +276,7 @@ namespace rhea
 		 /**
 		  * @brief Makes the widget visible without sending an event.
 		  */
-		 void makeVisble();
+		 void makeVisible();
 
 		 /**
 		  * @brief Hides the widget.
@@ -287,7 +286,7 @@ namespace rhea
 		 /**
 		  * @brief Makes the widget invisible without sending an event.
 		  */
-		 void makeInvisble();
+		 void makeInvisible();
 
 		 /**
 		  * @brief Captures the lowest widget at the given position.
@@ -298,16 +297,10 @@ namespace rhea
 		 Widget* capture(int x, int y);
 
 		 /**
-		  * @brief Gets the input target widget.
-		  * @return The input target widget.
+		  * @brief Gets the widget or widget parent that is focusable.
+		  * @return The focus target widget.
 		  */
-		 Widget* getInputTarget();
-
-		 /**
-		  * @brief Sets whether the widget handles input events.
-		  * @param handle True if the widget handles input events, false otherwise.
-		  */
-		 void setHandleInput(bool handle) { m_handle_input = handle; }
+		 Widget* getFocusTarget();		 
 
 		 /**
 		  * @brief Sends a bound event to the widget.
@@ -359,6 +352,21 @@ namespace rhea
 		  */
 		 int getWidgetStates() const { return m_widget_states; }
 
+		 virtual bool isFocusable() const { return false; }
+		 virtual bool acceptsTextInput() const { return false; }
+
+		 bool hasFocus() const { return (m_widget_states & static_cast<int>(WidgetState::kFocus)) != 0; }
+
+		 // Flag for Runtime-State (Disabled/Enabled)
+		 void setEnabled(bool enabled) { 
+			 setWidgetState(WidgetState::kDisabled, !enabled); 
+		 }
+
+		 bool isEnabled() const { 
+			 return !hasWidgetState(WidgetState::kDisabled); 
+		 }
+
+
 	protected:
 
 		/**
@@ -379,9 +387,6 @@ namespace rhea
 
 		// Whether this is a top window
 		bool m_top_window;
-
-		// Does widget handle input events
-		bool m_handle_input;
 
 		// Defined coordinates
 

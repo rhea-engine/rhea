@@ -31,10 +31,6 @@ namespace rhea
 
 		m_computed_properties = m_properties;
 
-		// DEBUG
-		// always handle input 
-		m_handle_input = true;
-
 		if (m_templating) {
 			parseText(val["text"].toString());
 			val["text"] = getText();

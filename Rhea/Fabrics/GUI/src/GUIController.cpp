@@ -23,6 +23,7 @@
 #include <Rhea/GUI/Column.h>
 #include <Rhea/GUI/Row.h>
 #include <Rhea/Graphics/SizeEvent.h>
+#include <Psio/Input/Keyboard.h>
 
 namespace rhea
 {
@@ -93,12 +94,13 @@ namespace rhea
 		registerEventHandler("scene_enter", this, std::bind(&GUIController::onSceneEnter, this, std::placeholders::_1, std::placeholders::_2));
 		registerEventHandler("scene_leave", this, [&](Event* ev, Unit* u)->bool {
 			rhea::Unit* target = ev->getTarget();
-			// if the leaving unit is currently captured empty reference
+			// if the leaving unit is currently captured clear the reference
 			target->traverse([&](std::string name, rhea::Component* c)->bool {
 				if (c == m_target)
 					m_target = nullptr;
 				if (c == m_captured)
 					m_captured = nullptr;
+				validateFocus();
 				return true;
 				});
 			return GUIController::onGuiUpdate(ev, u);
@@ -174,6 +176,8 @@ namespace rhea
 			return false;
 		}
 
+		// Hovering
+
 		switch (id) {
 		case psio::InputEventId::MOUSE_BTN_PRESSED:
 		case psio::InputEventId::MOUSE_BTN_RELEASED:
@@ -191,12 +195,12 @@ namespace rhea
 				m_my = my;
 
 				refreshHoverState();
-
-				
-
-
 			}
 		}
+
+		// Focus handling
+
+		// handle input events
 
 		switch(id) {
 		case psio::InputEventId::MOUSE_BTN_PRESSED:
@@ -205,41 +209,28 @@ namespace rhea
 			
 			// do btn down on current input target
 			if (m_captured) {
-				Widget* new_target = m_captured->getInputTarget();
-				if (new_target != m_target) {
-					if (m_target) {
-						Event focus_lost("focus_lost", m_target);
-						m_target->bubbleEvent("focus_lost", &focus_lost);
-					}
-					if (new_target) {
-						Event focus("focus", new_target);
-						new_target->bubbleEvent("focus", &focus);
-					}
-					m_target = new_target;
-				}
-				if (m_target) {
-					e->setTarget(m_target);
-					m_target->bubbleEvent("mouse_btn_down", e);
-				}
+				// get the first focusable parent of the captured widget
+				setFocus(m_captured->getFocusTarget());								
 			}
 			else {
-				// click outsode of gui - always loose focus
-				if (m_target) {
-					Event focus_lost("focus_lost", m_target);
-					m_target->bubbleEvent("focus_lost", &focus_lost);
-					m_target = nullptr;
-				}
+				// click outside of gui - always lose focus
+				setFocus(nullptr);
+			}
+
+			m_pressed = m_captured;
+
+			if (m_pressed) {
+				e->setTarget(m_pressed);
+				m_pressed->bubbleEvent("mouse_btn_down", e);
 			}
 			break;
 
 		case psio::InputEventId::MOUSE_BTN_RELEASED:
 			DLOG(LOG_DEBUG) << "Mouse clicked";
-
-			// call currently targeted widget
-			// if none - ignore
-			if (m_target) {
-				e->setTarget(m_target);
-				m_target->bubbleEvent("mouse_btn_up", e);
+			
+			if (m_pressed) {
+				e->setTarget(m_pressed);
+				m_pressed->bubbleEvent("mouse_btn_up", e);				
 			}
 			break;
 
@@ -247,6 +238,10 @@ namespace rhea
 			// text input
 			if (m_target) {
 				m_target->bubbleEvent("key_pressed", e);
+			}
+			else {
+				// try global keys
+				onKeyPressed(e, this);
 			}
 			break;
 
@@ -266,6 +261,177 @@ namespace rhea
 		}
 		
 		return false;
+	}
+
+	bool GUIController::setFocus(Widget* w)
+	{
+		if (w == m_target)
+			return true;
+
+		if (w && !w->isFocusable())
+			return false;
+
+		if (w && !w->isEnabled())
+			return false;
+
+		Widget* old = m_target;
+		m_target = w;
+
+		if (old) {
+			Event focus_lost("focus_lost", old);
+			old->sendEvent("focus_lost", &focus_lost);
+			LOG(LOG_DEBUG) << "Focus lost: " << old->getPath();
+		}
+
+		if (w) {
+			Event focus("focus", w);
+			w->sendEvent("focus", &focus);
+			LOG(LOG_DEBUG) << "Focus gained: " << w->getPath();
+		}
+
+		return true;
+	}
+
+	void GUIController::clearFocus()
+	{
+		setFocus(nullptr);
+	}
+
+	bool GUIController::isWidgetInActiveScope(Widget* w) const
+	{
+		if (!w)
+			return false;
+
+		if (!m_focus_scope_root)
+			return true;
+
+		Widget* cur = w;
+		while (cur) {
+			if (cur == m_focus_scope_root)
+				return true;			
+			cur = doCast<Widget>(cur->getParent());
+		}
+		return false;
+	}
+
+	bool GUIController::canFocusWidget(Widget* w) const
+	{
+		if (!w)
+			return false;
+
+		Widget* cur = w;
+		while (cur) {
+			if (!cur->isEnabled() || !cur->isVisible())
+				return false;
+			cur = doCast<Widget>(cur->getParent());
+		}
+
+		if (!isWidgetInActiveScope(w))
+			return false;
+
+		if (!w->isFocusable())
+			return false;
+
+		return true;
+	}
+
+	void GUIController::setFocusScope(Widget* root)
+	{
+		if (m_focus_scope_root == root)
+			return;
+
+		m_previous_focus_before_scope = m_target;
+		m_focus_scope_root = root;
+
+		validateFocus();
+
+		if (!m_target || !isWidgetInActiveScope(m_target)) {
+			setFocus(findFirstFocusableInScope());
+		}
+	}
+
+	void GUIController::clearFocusScope()
+	{
+		Widget* restore = m_previous_focus_before_scope;
+
+		m_focus_scope_root = nullptr;
+		m_previous_focus_before_scope = nullptr;
+
+		if (restore && canFocusWidget(restore)) {
+			setFocus(restore);
+			return;
+		}
+
+		validateFocus();
+	}
+
+	void GUIController::validateFocus()
+	{
+		if (m_target && canFocusWidget(m_target))
+			return;
+
+		Widget* replacement = findFirstFocusableInScope();
+		if (replacement) {
+			setFocus(replacement);
+		}
+		else {
+			clearFocus();
+		}
+	}
+
+	void GUIController::collectFocusableWidgets(Widget* root, std::vector<Widget*>& out) const
+	{
+	    if (!root)
+	        return;
+
+		//if (canFocusWidget(root))
+		//	LOG(LOG_DEBUG) << "can focus";
+
+	    if (canFocusWidget(root))
+	        out.push_back(root);
+
+	    // Verwende die children() Methode, die bereits existiert
+	    root->children([this, &out](std::string& name, Component* c) -> bool {
+	        if (Widget* w = doCast<Widget>(c))
+	            collectFocusableWidgets(w, out);
+	        return true;
+	    }, true);
+	}
+
+	Widget* GUIController::findFirstFocusableInScope() const
+	{
+		std::vector<Widget*> focusable_widgets;
+		const Widget* root = m_focus_scope_root ? m_focus_scope_root : this;
+		collectFocusableWidgets(const_cast<Widget*>(root), focusable_widgets);
+		return focusable_widgets.empty() ? nullptr : focusable_widgets[0];
+	}
+
+	bool GUIController::focusNextWidget()
+	{
+		std::vector<Widget*> focusable_widgets;
+		const Widget* root = m_focus_scope_root ? m_focus_scope_root : this;
+		collectFocusableWidgets(const_cast<Widget*>(root), focusable_widgets);
+		if (focusable_widgets.empty())
+			return false;
+		auto it = std::find(focusable_widgets.begin(), focusable_widgets.end(), m_target);
+		if (it == focusable_widgets.end() || ++it == focusable_widgets.end())
+			it = focusable_widgets.begin();
+		setFocus(*it);
+		return true;
+	}
+
+	bool GUIController::focusPreviousWidget()
+	{
+		std::vector<Widget*> focusable_widgets;
+		const Widget* root = m_focus_scope_root ? m_focus_scope_root : this;
+		collectFocusableWidgets(const_cast<Widget*>(root), focusable_widgets);
+		if (focusable_widgets.empty())
+			return false;
+		auto it = std::find(focusable_widgets.begin(), focusable_widgets.end(), m_target);
+		if (it == focusable_widgets.end() || it == focusable_widgets.begin())
+			it = focusable_widgets.end();
+		setFocus(*--it);
+		return true;
 	}
 
 	void GUIController::refreshHoverState()
@@ -298,10 +464,12 @@ namespace rhea
 
 				DLOG(LOG_DEBUG) << "Mouse captured by " << captured->getPath();
 
-				// inform all about leave and enter that are not common ancestors
-				Widget* ancestor = doCast<Widget>(captured->getCommonAncestor(m_captured));
+				// inform all about leave and enter that are not common ancestors				
+				Widget* ancestor = nullptr;
+				if (m_captured) {
+					ancestor = doCast<Widget>(captured->getCommonAncestor(m_captured));
+				}
 				if (ancestor) {
-
 					// leave old captured widget
 					Event leave("mouse_leave", captured);
 					m_captured->sendEventSubtree(ancestor, "mouse_leave", &leave);
@@ -384,6 +552,30 @@ namespace rhea
 			RecalculateStyle(m_style_engine.get());
 	}
 
+	bool GUIController::onKeyPressed(Event* ev, Unit* unit)
+	{
+		EventInput* inputEv = dynamic_cast<EventInput*>(ev);
+		if (!inputEv)
+			return false;
+		psio::KeyInputEvent* e = dynamic_cast<psio::KeyInputEvent*>(inputEv->getEvent().get());
+		if (!e)
+			return false;
+
+		if (e->getKeyCode() == psio::Key::CODE_TAB ) {
+			if (e->isShift()) {
+				if (focusPreviousWidget())
+					ev->stopPropagation();
+			}
+			else {
+				if (focusNextWidget())
+					ev->stopPropagation();
+			}
+			return true;
+		}
+
+		return false;
+	}
+
 	void GUIController::onFrame()
 	{
 		// 1. style pass
@@ -399,7 +591,7 @@ namespace rhea
 			}
 
 			clearLayoutDirtyRecursive();
-
+						
 			refreshHoverState();
 		}
 

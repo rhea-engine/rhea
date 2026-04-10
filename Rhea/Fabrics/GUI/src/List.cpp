@@ -2,6 +2,8 @@
 #include <Rhea/GUI/ListItem.h>
 #include <Rhea/Application.h>
 #include <Rhea/UnitTree.h>
+#include <Psio/Input/Keyboard.h>
+#include <Rhea/EventInput.h>
 
 namespace rhea
 {
@@ -25,6 +27,16 @@ namespace rhea
 		m_list_items.push_back(item);
 		item->ready();
 
+		if (!m_selected_item)
+			if (m_selected_value.empty()) {
+				m_selected_item = item;				
+				m_selected_value = value;
+			}
+			else if (m_selected_value.compare(value) == 0) {
+				m_selected_item = item;
+				m_selected_value = value;	
+			}
+
 		invalidateLayout();
 	}
 
@@ -46,6 +58,7 @@ namespace rhea
 		}
 		// clear list
 		m_list_items.clear();
+		m_selected_item = nullptr;
 	}
 
 	void ListWidget::ready()
@@ -124,7 +137,7 @@ namespace rhea
 
 	bool ListWidget::onSelected(Event* ev, Unit* unit)
 	{
-		if (m_values["onSelected"] != Variant()) {
+		if (m_values.find("onSelected") != m_values.end()) {
 			sendBoundEvent(m_values["onSelected"].toString(), ev);
 		}
 		return false;
@@ -160,5 +173,111 @@ namespace rhea
 			}
 		}
 		return innerSize;
+	}
+
+	bool ListWidget::onFocusGained(Event* ev, Unit* unit)
+	{
+		Widget::onFocusGained(ev, unit);
+		if (!m_selected_item && m_list_items.size()) {
+			m_selected_item = m_list_items[0];
+			m_selected_value = m_selected_item->getValueString("value");
+			m_selected_item->setWidgetState(Widget::WidgetState::kFocus, true);
+			invalidateLayout();
+		}
+		else if (m_selected_item) {
+			m_selected_item->setWidgetState(Widget::WidgetState::kFocus, true);
+			invalidateLayout();
+		}
+		return true;
+	}
+
+	bool ListWidget::onFocusLost(Event* ev, Unit* unit)
+	{
+		Widget::onFocusLost(ev, unit);
+		if (m_selected_item) {
+			m_selected_item->setWidgetState(Widget::WidgetState::kFocus, false);
+			invalidateLayout();
+		}
+		return true;
+	}
+
+	bool ListWidget::onKeyPressed(Event* ev, Unit* unit)
+	{
+		if (!hasFocus())
+			return false;
+
+		EventInput* inputEv = dynamic_cast<EventInput*>(ev);
+		if (!inputEv)
+			return false;
+		psio::KeyInputEvent* e = dynamic_cast<psio::KeyInputEvent*>(inputEv->getEvent().get());
+		if (!e)
+			return false;
+
+		switch (e->getKeyCode()) {
+		case psio::Key::CODE_UP:
+			moveActive(-1);
+			ev->stopPropagation();
+			return true;
+
+		case psio::Key::CODE_DOWN:
+			moveActive(1);
+			ev->stopPropagation();
+			return true;
+
+		case psio::Key::CODE_ENTER:
+		case psio::Key::CODE_SPACE:
+		{
+			if (m_selected_item) {
+				// send selected event
+				Event my_ev = Event("selected", m_selected_item);
+				onSelected(&my_ev, m_selected_item);
+				ev->stopPropagation();
+				return true;
+			}
+			return true;
+		}
+		default:
+			return false;
+		}
+	}
+
+	void ListWidget::moveActive(int direction)
+	{
+		if (m_list_items.empty())
+			return;
+
+		auto it = std::find(m_list_items.begin(), m_list_items.end(), m_selected_item);
+		
+		int current_index = 0;
+		if (it != m_list_items.end()) {
+			current_index = static_cast<int>(std::distance(m_list_items.begin(), it));
+		}
+		
+		int new_index = current_index + direction;
+		
+		// Clamp: Keep within bounds
+		if (new_index < 0) {
+			new_index = 0;  // Stay at the first element
+		}
+		else if (new_index >= static_cast<int>(m_list_items.size())) {
+			new_index = static_cast<int>(m_list_items.size()) - 1;  // Stay at the last element
+		}
+		
+		// No change needed if we're at the end
+		if (new_index == current_index)
+			return;
+		
+		ListWidgetItem* old_selected = m_selected_item;
+		m_selected_item = m_list_items[new_index];
+		m_selected_value = m_selected_item->getValueString("value");
+		
+		if (old_selected) {
+			old_selected->setWidgetState(Widget::WidgetState::kFocus, false);
+		}
+		
+		if (m_selected_item) {
+			m_selected_item->setWidgetState(Widget::WidgetState::kFocus, true);
+			invalidateLayout();
+		}
 	}
 }

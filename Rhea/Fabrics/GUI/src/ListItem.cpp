@@ -1,6 +1,8 @@
 #include <Rhea/GUI/ListItem.h>
 #include <Rhea/Application.h>
 #include <Rhea/UnitTree.h>
+#include <Psio/Input/Keyboard.h>
+#include <Rhea/EventInput.h>
 
 namespace rhea 
 {
@@ -11,15 +13,11 @@ namespace rhea
 		std::unordered_map<std::string, std::string> attr;
 		std::unordered_map<std::string, Variant> val;
 
-		m_is_renderable = false;
-
 		val["padding"] = getValue("padding", 5.0f);
 		val["text"] = getValue("text", "");
 		val["fillwidth"] = true;
 		if (m_values.find("font") != m_values.end())
 			val["font"] = getValue("font");
-
-		m_handle_input = true;
 
 		// add a label
 		m_label = (Label*)m_app->getUnitTree()->createUnit(m_path + "/label", "//meworla/gui/label", attr, val);
@@ -42,6 +40,23 @@ namespace rhea
 		// send selected event
 		Event my_ev = Event("selected", this);
 		bubbleEvent("selected", &my_ev);		
+		return false;
+	}
+
+	bool ListWidgetItem::onKeyPressed(Event* ev, Unit* unit)
+	{
+		EventInput* inputEv = dynamic_cast<EventInput*>(ev);
+		if (!inputEv)
+			return false;
+		psio::KeyInputEvent* e = dynamic_cast<psio::KeyInputEvent*>(inputEv->getEvent().get());
+		if (!e)
+			return false;
+
+		if (e->getKeyCode() == psio::Key::CODE_ENTER || e->getKeyCode() == psio::Key::CODE_SPACE) {
+			onMouseClick(ev, unit);
+			return true;
+		}
+
 		return false;
 	}
 }

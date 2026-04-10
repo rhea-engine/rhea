@@ -62,6 +62,9 @@ namespace rhea
 		// styling
 		const std::string getSelector() { return "Input"; }
 
+		virtual bool isFocusable() const override { return true; }
+		virtual bool acceptsTextInput() const override { return true; }
+
 	protected:
 
 		void updateText(bool isEvent);

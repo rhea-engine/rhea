@@ -24,6 +24,7 @@ namespace rhea
 
 		// input handling
 		bool onMouseClick(Event* ev, Unit* unit) override;
+		bool onKeyPressed(Event* ev, Unit* unit) override;
 
 		// styling
 		const std::string getSelector() { return "ListItem"; }

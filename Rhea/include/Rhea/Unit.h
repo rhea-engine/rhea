@@ -193,7 +193,7 @@ namespace rhea
 
 		// execute handler on all children
 		// if the handler return false the traverse is stopped
-		void children(std::function<bool(std::string&, Component*)> handler);
+		void children(std::function<bool(std::string&, Component*)> handler, bool ordered = false);
 
 		// set Application
 		void setApplication(Application* app) { m_app = app; }

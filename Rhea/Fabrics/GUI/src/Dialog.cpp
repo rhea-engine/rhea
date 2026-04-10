@@ -50,7 +50,7 @@ namespace rhea
 			});
 
 		// dialogs are not visible by default and must be "opened"
-		makeInvisble();
+		makeInvisible();
 	}
 
 	void Dialog::cancel()

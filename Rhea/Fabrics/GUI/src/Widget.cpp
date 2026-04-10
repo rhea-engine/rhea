@@ -30,10 +30,7 @@
 namespace rhea
 {
 	Widget::~Widget()
-	{
-		if (!m_onClick.empty()) {
-			unregisterEventHandler("mouse_btn_down", this);
-		}
+	{		
 	}
 
 	void Widget::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
@@ -155,7 +152,7 @@ namespace rhea
 		}
 
 		// if we are hidden at the beggining - send the event
-		if (!visual_component || !visual_component->isVisible()) {
+		if (!visual_component->isVisible()) {
 			hide();
 		}
 
@@ -480,8 +477,7 @@ namespace rhea
 			}
 		}
 
-		ApplyTextureSizing();
-		//UpdateMaterial();
+		ApplyTextureSizing();		
 
 		recreateModifiers(base_position, base_size, position_types);
 
@@ -663,7 +659,7 @@ namespace rhea
 			// tiling
 			// assume background-reapat
 			// if image is scaled to fit into the widget we can't also tile the image
-			math::Vector2 tiling;
+			math::Vector2 tiling(1.0f, 1.0f);;
 			if (m_sizing_mode_w == TextureSizingMode::kAuto)
 				tiling.x = std::max(m_content_size.x / m_bg_image->width, 1.0f); // dont tile if image is larger than content
 			if (m_sizing_mode_h == TextureSizingMode::kAuto)
@@ -782,6 +778,7 @@ namespace rhea
 	{
 		Item::show();
 		invalidateRender();
+		invalidateLayout();
 		// recursively invalidate all children
 		traverse([&](std::string name, rhea::Component* child)->bool {
 			if (doCast<Widget>(child)) {
@@ -793,7 +790,7 @@ namespace rhea
 		bubbleEvent("show", &e);
 	}
 
-	void Widget::makeVisble()
+	void Widget::makeVisible()
 	{
 		Item::show();
 	}
@@ -811,9 +808,10 @@ namespace rhea
 			}
 			return true;
 			});
+		invalidateLayout();
 	}
 
-	void Widget::makeInvisble()
+	void Widget::makeInvisible()
 	{
 		Item::hide();
 	}
@@ -845,15 +843,21 @@ namespace rhea
 		return this;
 	}
 
-	Widget* Widget::getInputTarget()
+	Widget* Widget::getFocusTarget()
 	{
 		// if we handle input return myself
-		if (m_handle_input)
+		if (isFocusable())
 			return this;
 
-		// if we are not a top window we have a Widget parent - check it.
-		if (!m_top_window)
-			return static_cast<Widget*>(m_parent)->getInputTarget();
+		// if we are not a top window we try our parents
+		if (!m_top_window) {
+			Widget* parent_widget = doCast<Widget>(m_parent);
+			while(parent_widget) {
+				if (parent_widget->isFocusable())
+					return parent_widget;
+				parent_widget = doCast<Widget>(parent_widget->m_parent);
+			}
+		}
 
 		return nullptr;
 	}
@@ -927,12 +931,10 @@ namespace rhea
 		// Focus/Blur for :focus
 
 		registerEventHandler("focus", this, [this](Event* e, Unit* u)->bool {
-			setWidgetState(WidgetState::kFocus, true);
 			handleFocusGained(e, u);
 			return false;
 			});
-		registerEventHandler("blur", this, [this](Event* e, Unit* u)->bool {
-			setWidgetState(WidgetState::kFocus, false);
+		registerEventHandler("focus_lost", this, [this](Event* e, Unit* u)->bool {
 			handleFocusLost(e, u);
 			return false;
 			});

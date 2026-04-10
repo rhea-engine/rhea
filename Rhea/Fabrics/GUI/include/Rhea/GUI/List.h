@@ -17,6 +17,7 @@ namespace rhea
 		{}
 		ListWidget(std::string path_name, std::string type_name) :
 			m_data_binding({nullptr, std::string("")}),
+			m_selected_item(nullptr),
 			Widget(path_name, type_name)
 		{}
 
@@ -42,12 +43,22 @@ namespace rhea
 		// recalculate my size
 		Vector2 innerSize(Vector2 size_constraints);
 
+		// input handling
+		bool onFocusGained(Event* ev, Unit* unit) override;
+		bool onFocusLost(Event* ev, Unit* unit) override;
+		bool onKeyPressed(Event* ev, Unit* unit) override;
+
+		virtual bool isFocusable() const override { return true; }
+
 		// styling
 		const std::string getSelector() { return "List"; }
 
 	protected:
+		void moveActive(int direction);
 		UnitTree::Binding m_data_binding;
 		std::vector<ListWidgetItem*> m_list_items; // list item
+		ListWidgetItem* m_selected_item; // currently selected item
+		std::string m_selected_value; // value of the currently selected item
 	};
 }
 

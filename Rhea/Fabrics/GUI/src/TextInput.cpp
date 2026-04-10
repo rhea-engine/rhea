@@ -42,10 +42,6 @@ namespace rhea
 		if (m_values.find("font") != m_values.end())
 			val["font"] = getValue("font");
 
-		// DEBUG
-		// always handle input 
-		m_handle_input = true;
-
 		m_label_item = (Label*)m_app->getUnitTree()->createUnit(m_path + "_label", "//meworla/gui/label", attr, val);
 		addChild(m_label_item);
 		// store reference to textwidget
@@ -79,7 +75,7 @@ namespace rhea
 		if (m_cursor_timer >= 0.7f) {
 			m_cursor_shown = !m_cursor_shown;
 			m_cursor_timer = 0.0f;
-			(m_cursor_shown) ? m_cursor_item->makeVisble() : m_cursor_item->makeInvisble();
+			(m_cursor_shown) ? m_cursor_item->makeVisible() : m_cursor_item->makeInvisible();
 		}
 	}
 
@@ -120,7 +116,7 @@ namespace rhea
 		// reset timer
 		m_cursor_timer = 0.0f;
 		m_cursor_shown = true;
-		m_cursor_item->makeVisble();
+		m_cursor_item->makeVisible();
 
 		Event gui_update("gui_update", this);
 		bubbleEvent("gui_redraw", &gui_update);
@@ -158,16 +154,23 @@ namespace rhea
 				m_pos--;
 				updateCursor(true);
 			}
+			ev->stopPropagation();
 			break;
 		case psio::Key::CODE_RIGHT:
 			if (m_pos < m_length) {
 				m_pos++;
 				updateCursor(true);
 			}
+			ev->stopPropagation();
 			break;
+		case psio::Key::CODE_TAB:
+			// consume only if multiline, otherwise let it propagate for focus change
+			if (multiline)
+				ev->stopPropagation();
+			break;
+		default:
+			ev->stopPropagation();
 		}
-		// always consume the key event if we have focus, even if we dont handle it
-		ev->stopPropagation();
 
 		return false;
 	}

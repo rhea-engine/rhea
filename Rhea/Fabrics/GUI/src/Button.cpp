@@ -2,6 +2,8 @@
 #include <Rhea/Application.h>
 #include <Rhea/UnitTree.h>
 #include <Psio/Log.h>
+#include <Psio/Input/Keyboard.h>
+#include <Rhea/EventInput.h>
 
 namespace rhea
 {
@@ -16,8 +18,6 @@ namespace rhea
 		val["text"] = getValue("text", "");
 		if (m_values.find("font") != m_values.end())
 			val["font"] = getValue("font");
-
-		m_handle_input = true;
 
 		// add a label
 		m_label = (Label*)m_app->getUnitTree()->createUnit(m_path + "_label", "//meworla/gui/label", attr, val);
@@ -68,6 +68,26 @@ namespace rhea
 
 		if (m_values.find("onClicked") != m_values.end()) {
 			sendBoundEvent(m_values["onClicked"].toString(), ev);
+		}
+
+		return false;
+	}
+
+	bool Button::onKeyPressed(Event* ev, Unit* unit)
+	{
+		if (!hasFocus())
+			return false;
+
+		EventInput* inputEv = dynamic_cast<EventInput*>(ev);
+		if (!inputEv)
+			return false;
+		psio::KeyInputEvent* e = dynamic_cast<psio::KeyInputEvent*>(inputEv->getEvent().get());
+		if (!e)
+			return false;
+
+		if (e->getKeyCode() == psio::Key::CODE_ENTER || e->getKeyCode() == psio::Key::CODE_SPACE) {
+			onMouseClicked(ev, unit);
+			return true;
 		}
 
 		return false;

@@ -24,8 +24,6 @@ namespace rhea
 		// add a label
 		m_label = (Label*)m_app->getUnitTree()->createUnit(m_path + "/label", "//meworla/gui/label", attr, val);
 		addChild(m_label);
-
-		registerEventHandler("mouse_btn_down", this, std::bind(&ListWidgetItem::onMouseClick, this, std::placeholders::_1, std::placeholders::_2));
 	}
 
 	void ListWidgetItem::ready()

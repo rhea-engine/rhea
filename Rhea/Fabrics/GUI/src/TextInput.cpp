@@ -62,11 +62,8 @@ namespace rhea
 		m_cursor_item->hide();
 
 		// register to focus events
-		registerEventHandler("focus", this, std::bind(&TextInput::onFocus, this, std::placeholders::_1, std::placeholders::_2));
-		registerEventHandler("focus_lost", this, std::bind(&TextInput::onLooseFocus, this, std::placeholders::_1, std::placeholders::_2));
 		registerEventHandler("key_pressed", this, std::bind(&TextInput::onKeyPressed, this, std::placeholders::_1, std::placeholders::_2));
-		registerEventHandler("text_input", this, std::bind(&TextInput::onTextInput, this, std::placeholders::_1, std::placeholders::_2));
-		registerEventHandler("mouse_btn_down", this, std::bind(&TextInput::onMouseButton, this, std::placeholders::_1, std::placeholders::_2));	
+		registerEventHandler("text_input", this, std::bind(&TextInput::onTextInput, this, std::placeholders::_1, std::placeholders::_2));	
 	}
 
 	void TextInput::setText(std::string text)
@@ -133,7 +130,7 @@ namespace rhea
 		bubbleEvent("gui_redraw", &gui_update);
 	}
 
-	bool TextInput::onFocus(Event* ev, Unit* unit)
+	bool TextInput::onFocusGained(Event* ev, Unit* unit)
 	{
 		if (!m_text.size() && m_placeholder.size()) {
 			m_label_item->setText("");
@@ -143,7 +140,7 @@ namespace rhea
 		return false;
 	}
 
-	bool TextInput::onLooseFocus(Event* ev, Unit* unit)
+	bool TextInput::onFocusLost(Event* ev, Unit* unit)
 	{
 		m_has_focus = false;
 		if (!m_text.size() && m_placeholder.size()) {
@@ -163,18 +160,19 @@ namespace rhea
 		case psio::Key::CODE_LEFT:
 			if (m_pos > 0) {
 				m_pos--;
-				updateCursor(true);				
+				updateCursor(true);
 			}
-			ev->stopPropagation();
 			break;
 		case psio::Key::CODE_RIGHT:
 			if (m_pos < m_length) {
 				m_pos++;
 				updateCursor(true);
 			}
-			ev->stopPropagation();
 			break;
 		}
+		// always consume the key event if we have focus, even if we dont handle it
+		ev->stopPropagation();
+
 		return false;
 	}
 
@@ -228,7 +226,7 @@ namespace rhea
 		return false;
 	}
 
-	bool TextInput::onMouseButton(Event* ev, Unit* unit)
+	bool TextInput::onMouseClick(Event* ev, Unit* unit)
 	{
 		// consume the mouse event
 		ev->stopPropagation();

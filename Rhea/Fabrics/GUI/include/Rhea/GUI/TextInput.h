@@ -49,11 +49,11 @@ namespace rhea
 		void updateCursor(bool onlyCursor = false);
 
 		// input handling
-		bool onFocus(Event* ev, Unit* unit);
-		bool onLooseFocus(Event* ev, Unit* unit);
+		bool onFocusGained(Event* ev, Unit* unit) override;
+		bool onFocusLost(Event* ev, Unit* unit) override;
 		bool onKeyPressed(Event* ev, Unit* unit);
 		bool onTextInput(Event* ev, Unit* unit);
-		bool onMouseButton(Event* ev, Unit* unit);
+		bool onMouseClick(Event* ev, Unit* unit) override;
 
 		// events
 

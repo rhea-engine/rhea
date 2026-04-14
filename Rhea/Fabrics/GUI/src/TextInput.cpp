@@ -198,15 +198,6 @@ namespace rhea
 				updateText(true);
 				updateCursor();
 			}
-			else {
-				SubmitEvent my_ev = SubmitEvent("submit", this);
-				m_values["value"] = m_text;
-				my_ev.values[m_pathname] = m_text;
-				bubbleEvent("submit", &my_ev);
-				if (m_values["onSubmit"] != Variant()) {
-					sendBoundEvent(m_values["onSubmit"].toString(), &my_ev);
-				}
-			}
 			ev->stopPropagation();
 			break;
 		default:

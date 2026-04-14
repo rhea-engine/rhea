@@ -132,6 +132,9 @@ namespace rhea
 
 		if (m_values.find("onClicked") != m_values.end())
 			setOnClicked(m_values["onClicked"].toString());
+
+		if (getValue("default", false))
+			m_widget_states |= static_cast<int>(WidgetState::kDefault);
 	}
 
 	void Widget::ready()

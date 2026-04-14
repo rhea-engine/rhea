@@ -271,6 +271,72 @@ namespace rhea
 		return false;
 	}
 
+	void GUIController::openDialog(Dialog* dialog)
+	{
+		if (!dialog)
+			return;
+
+		dialog->show();
+		bringToFront(dialog);
+
+		if (dialog->isModal())
+			setFocusScope(dialog);
+
+		Widget* initial = findInitialFocusForDialog(dialog);
+		setFocus(initial);
+	}
+
+	void GUIController::closeDialog(Dialog* dialog)
+	{
+		if (!dialog)
+			return;
+		dialog->closeDialog();
+
+		if (dialog->isModal() && m_focus_scope_root == dialog) {
+			clearFocusScope();
+		}
+		else {
+			// If focus was in dialog validate anew
+			if (m_target && (m_target == dialog || dialog->isAncestor(m_target))) {
+				validateFocus();
+			}
+		}
+	}
+
+	void GUIController::bringToFront(Widget* w)
+	{
+		if (!w)
+			return;
+
+		auto it = std::find(m_ordered_children.begin(), m_ordered_children.end(), w);
+		if (it != m_ordered_children.end()) {
+			m_ordered_children.erase(it);
+			m_ordered_children.push_back(w);
+			invalidateRender();
+		}
+	}
+
+	Widget* GUIController::findInitialFocusForDialog(Dialog* dialog) const
+	{
+		if (!dialog)
+			return nullptr;
+
+		Widget* preferred = dialog->getInitialFocusWidget();
+		if (preferred && canFocusWidget(preferred))
+			return preferred;
+
+		std::vector<Widget*> focusable_widgets;
+		collectFocusableWidgets(dialog, focusable_widgets);
+
+		if (!focusable_widgets.empty())
+			return focusable_widgets.front();
+
+		if (canFocusWidget(dialog))
+			return dialog;
+
+		return nullptr;
+	}
+
 	bool GUIController::setFocus(Widget* w)
 	{
 		if (w == m_target)
@@ -343,6 +409,11 @@ namespace rhea
 		return true;
 	}
 
+	bool GUIController::canTabToWidget(Widget* w) const
+	{
+		return canFocusWidget(w) && w->isTabStop();
+	}
+
 	void GUIController::setFocusScope(Widget* root)
 	{
 		if (m_focus_scope_root == root)
@@ -354,7 +425,11 @@ namespace rhea
 		validateFocus();
 
 		if (!m_target || !isWidgetInActiveScope(m_target)) {
-			setFocus(findFirstFocusableInScope());
+			Dialog* dlg = doCast<Dialog>(root);
+			if (dlg)
+				setFocus(findInitialFocusForDialog(dlg));
+			else
+				setFocus(findFirstFocusableInScope());
 		}
 	}
 
@@ -395,7 +470,7 @@ namespace rhea
 		//if (canFocusWidget(root))
 		//	LOG(LOG_DEBUG) << "can focus";
 
-	    if (canFocusWidget(root))
+	    if (canTabToWidget(root))
 	        out.push_back(root);
 
 	    // Verwende die children() Methode, die bereits existiert

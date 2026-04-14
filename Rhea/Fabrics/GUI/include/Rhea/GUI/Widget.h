@@ -329,7 +329,8 @@ namespace rhea
 			 kHover = 1 << 0,
 			 kActive = 1 << 1,
 			 kFocus = 1 << 2,
-			 kDisabled = 1 << 3
+			 kDisabled = 1 << 3,
+			 kDefault = 1 << 4
 		 };
 
 		 /**
@@ -354,8 +355,11 @@ namespace rhea
 
 		 virtual bool isFocusable() const { return false; }
 		 virtual bool acceptsTextInput() const { return false; }
+		 virtual bool isTabStop() const { return isFocusable(); }
 
 		 bool hasFocus() const { return (m_widget_states & static_cast<int>(WidgetState::kFocus)) != 0; }
+
+		 bool isDefault() const { return (m_widget_states & static_cast<int>(WidgetState::kDefault)) != 0; }
 
 		 // Flag for Runtime-State (Disabled/Enabled)
 		 void setEnabled(bool enabled) { 

@@ -86,7 +86,7 @@ namespace rhea
 			return false;
 
 		if (e->getKeyCode() == psio::Key::CODE_ENTER || e->getKeyCode() == psio::Key::CODE_SPACE) {
-			onMouseReleased(ev, unit);
+			onMouseClicked(ev, unit);
 			return true;
 		}
 

@@ -6,6 +6,7 @@
 
 namespace rhea
 {
+	class Dialog;
 
 	class GUIController : public Widget
 	{
@@ -40,6 +41,18 @@ namespace rhea
 		// input event handler
 		bool onInput(Event* ev, Unit* unit);
 		
+		// open a dialog
+		void openDialog(Dialog* dialog);
+
+		// close a dialog
+		void closeDialog(Dialog* dialog);
+
+		// find a focus for dialog
+		Widget* findInitialFocusForDialog(Dialog* dlg) const;
+
+		// bring widget to front
+		void bringToFront(Widget* w);
+
 		// set the currently active widget that receives user input
 		bool setFocus(Widget* w);
 
@@ -54,6 +67,9 @@ namespace rhea
 
 		// check if a widget can receive focus (is visible and enabled)
 		bool canFocusWidget(Widget* w) const;
+
+		// check if a widget can receive focus through tab navigation (is focusable and visible)
+		bool canTabToWidget(Widget* w) const;
 
 		// set a new focus scope with the given root widget
 		void setFocusScope(Widget* root);

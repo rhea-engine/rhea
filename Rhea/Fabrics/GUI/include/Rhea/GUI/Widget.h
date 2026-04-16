@@ -302,6 +302,8 @@ namespace rhea
 		  */
 		 Widget* getFocusTarget();		 
 
+		 bool isTopLevel() const { return m_top_window; }
+
 		 /**
 		  * @brief Sends a bound event to the widget.
 		  * @param binding The event binding.

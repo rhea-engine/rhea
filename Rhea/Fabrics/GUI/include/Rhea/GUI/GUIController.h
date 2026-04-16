@@ -41,6 +41,9 @@ namespace rhea
 		// input event handler
 		bool onInput(Event* ev, Unit* unit);
 		
+		// active top-level widget
+		void activateDialog(Widget* w);
+
 		// open a dialog
 		void openDialog(Dialog* dialog);
 
@@ -64,6 +67,8 @@ namespace rhea
 
 		// check if a widget is within the current focus scope
 		bool isWidgetInActiveScope(Widget* w) const;
+
+		Widget* findOwningContainer(Widget* w);
 
 		// check if a widget can receive focus (is visible and enabled)
 		bool canFocusWidget(Widget* w) const;
@@ -124,6 +129,9 @@ namespace rhea
 
 		// the previously focused widget before entering the current focus scope
 		Widget* m_previous_focus_before_scope = nullptr;
+
+		// current active top-level widget
+		Widget* m_top_widget = nullptr;
 
 		// the current hover widget
 		Widget* m_captured;

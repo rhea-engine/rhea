@@ -160,6 +160,18 @@ namespace rhea
 		return false;
 	}
 
+	Widget* GUIController::findOwningContainer(Widget* w)
+	{
+		Widget* parent = w->getParent() ? doCast<Widget>(w->getParent()) : nullptr;
+		
+		while (parent) {
+			if (parent->isTopLevel())
+				return parent;
+			parent = parent->getParent() ? doCast<Widget>(parent->getParent()) : nullptr;
+		}
+		return nullptr;
+	}
+
 	bool GUIController::onInput(Event* ev, Unit* unit)
 	{
 		EventInput* e = static_cast<EventInput*>(ev);
@@ -211,8 +223,21 @@ namespace rhea
 			
 			// do btn down on current input target
 			if (m_captured) {
+				// if clicked in toplevel window - activate it
+				Widget* topWidget = findOwningContainer(m_captured);
+				if (topWidget != m_top_widget) {
+					activateDialog(topWidget);
+				}
 				// get the first focusable parent of the captured widget
-				setFocus(m_captured->getFocusTarget());								
+				Widget* setFocusWidget = m_captured->getFocusTarget();
+				if (setFocusWidget && setFocusWidget != topWidget)
+					setFocus(setFocusWidget);
+				else if (m_target)
+					// no focus found - use old focus if still valid
+					;
+				else
+					// no focusable parent - set focus to toplevel window
+					setFocus(topWidget);
 			}
 			else {
 				// click outside of gui - always lose focus
@@ -243,6 +268,7 @@ namespace rhea
 			break;
 
 		case psio::InputEventId::KEY_PRESSED:
+
 			// text input
 			if (m_target) {
 				m_target->bubbleEvent("key_pressed", e);
@@ -271,19 +297,32 @@ namespace rhea
 		return false;
 	}
 
+	void GUIController::activateDialog(Widget* w)
+	{
+		bringToFront(w);
+
+		m_top_widget = w;
+
+		Dialog* dialog = doCast<Dialog>(w);
+		if (dialog) {
+			if (dialog->isModal())
+				setFocusScope(dialog);
+
+			Widget* initial = findInitialFocusForDialog(dialog);
+			setFocus(initial);
+		}
+		else
+			setFocus(w);
+	}
+
 	void GUIController::openDialog(Dialog* dialog)
 	{
 		if (!dialog)
 			return;
 
 		dialog->show();
-		bringToFront(dialog);
-
-		if (dialog->isModal())
-			setFocusScope(dialog);
-
-		Widget* initial = findInitialFocusForDialog(dialog);
-		setFocus(initial);
+		
+		activateDialog(dialog);
 	}
 
 	void GUIController::closeDialog(Dialog* dialog)
@@ -499,6 +538,13 @@ namespace rhea
 		auto it = std::find(focusable_widgets.begin(), focusable_widgets.end(), m_target);
 		if (it == focusable_widgets.end() || ++it == focusable_widgets.end())
 			it = focusable_widgets.begin();
+
+		// if tabbed to new toplevel window - activate it
+		Widget * topWidget = findOwningContainer(*it);
+		if (topWidget != m_top_widget) {
+			activateDialog(topWidget);
+		}
+
 		setFocus(*it);
 		return true;
 	}

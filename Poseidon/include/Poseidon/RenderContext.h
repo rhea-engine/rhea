@@ -29,6 +29,11 @@ namespace poseidon
 		{}
 		RenderContext(std::string name);
 
+		enum class RenderOrderMode {
+			Insertion,   // sort by insertion order
+			TreeOrdered     // sort by tree order
+		};
+
 		// name handling
 		void setName(std::string& name) { m_name = name; }
 		std::string getName() { return m_name; }
@@ -40,8 +45,16 @@ namespace poseidon
 		// cull the visible objects
 		void cullObjects(RenderQueue* queue);
 
+		void cullOrderedRecursive(Item* item, RenderQueue* queue);
+
 		// add render child
 		void addRenderChild(Item* child);
+
+		// check if render child is already added
+		bool containsRenderChild(Item* item) const;
+
+		// check if item is a root in this context
+		bool isRootInContext(Item* item) const;
 
 		// get all render children
 		std::vector<Item*>& getRenderChildren() { return m_render_children; }
@@ -63,6 +76,12 @@ namespace poseidon
 		void setAmbient(math::Quaternion ambient) { m_ambient = ambient; }
 		math::Quaternion getAmbient() { return m_ambient; }
 
+		// render order mode
+		void setRenderOrderMode(RenderOrderMode mode) { m_render_order_mode = mode; }
+		RenderOrderMode getRenderOrderMode() { return m_render_order_mode; }
+
+		void rebuildRoots();
+
 	protected:
 		std::string m_name;
 		Camera* m_camera;
@@ -70,6 +89,8 @@ namespace poseidon
 		int m_stencil_state;
 		math::Quaternion m_ambient;
 		hippios::ViewportDesc m_size;
+		RenderOrderMode m_render_order_mode = RenderOrderMode::Insertion;
+		std::vector<Item*> m_render_roots;
 	};
 }
 

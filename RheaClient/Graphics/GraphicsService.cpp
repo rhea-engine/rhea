@@ -120,13 +120,30 @@ namespace rhea::client {
 
 	void GraphicsService::addItem(std::string render_context, rhea::Item* item)
 	{
+		if (!item) {
+			LOG(LOG_ERROR) << "GraphicsService::addItem: item is null";
+			return;
+		}
+
 		poseidon::Viewport* viewport = m_core->get_scene_manager()->getViewport();
-		if (!viewport) abort();
+		if (!viewport) {
+			LOG(LOG_ERROR) << "GraphicsService::addItem: no viewport available";
+			return;
+		}
 
 		poseidon::RenderContext* context = viewport->getRenderContext(render_context);
-		if (!context) abort();
+		if (!context) {
+			LOG(LOG_ERROR) << "GraphicsService::addItem: render context '" << render_context << "' not found";
+			return;
+		}
 
 		context->addRenderChild(item);
+
+		// Store context reference in RenderComponent
+		auto* rc = item->getComponent<rhea::client::RenderComponent>();
+		if (rc) {
+			rc->ctx = context;
+		}
 
 		// Create instance elements for all items in subtree
 		item->traverse([&](std::string name, rhea::Component* c)->bool {
@@ -157,6 +174,7 @@ namespace rhea::client {
 		poseidon::Viewport* viewport = m_core->get_scene_manager()->getViewport();
 		std::string hud_context_name = "HUD";
 		poseidon::RenderContext* context = viewport->createRenderContext(hud_context_name);
+		context->setRenderOrderMode(poseidon::RenderContext::RenderOrderMode::TreeOrdered);
 		context->setStencilState(1);
 		// add a camera for this context
 		poseidon::Camera* cam = m_core->createCamera();
@@ -244,36 +262,81 @@ namespace rhea::client {
 			LOG(LOG_ERROR) << "GraphicsService::showScene: no scene manager";
 			return;
 		}
+		
 		std::string render_context_name = scene->getValueString("rendercontext", "default");
 		poseidon::RenderContext* render_context = scene_mgr->getViewport()->getRenderContext(render_context_name);
 		if (!render_context) {
 			LOG(LOG_ERROR) << "GraphicsService::showScene: render context '" << render_context_name << "' not found";
 			return;
 		}
-		render_context->addRenderChild((rhea::Item* )scene);
 
-		// scene children with other contexts
-		// handle all current subtree nodes
+		// DON'T cast Scene to Item - instead add all Item children directly
+		
+		// Add direct Item children to the render context
+		scene->children([&](std::string& name, rhea::Component* c)->bool {
+			rhea::Item* item = doCast<rhea::Item>(c);
+			if (!item)
+				return true;
+
+			// Check if item has specific render context
+			std::string item_ctx_name = item->getValueString("rendercontext", "");
+			poseidon::RenderContext* target_ctx = render_context;
+
+			if (!item_ctx_name.empty()) {
+				target_ctx = scene_mgr->getViewport()->getRenderContext(item_ctx_name);
+				if (!target_ctx) {
+					LOG(LOG_ERROR) << "GraphicsService::showScene: render context '" 
+								<< item_ctx_name << "' not found for item '" 
+								<< item->getPathName() << "'";
+					return true; // Continue with other items
+				}
+			}
+
+			// Add item to appropriate context
+			target_ctx->addRenderChild(item);
+			
+			// Store context reference
+			auto* rc = item->getComponent<rhea::client::RenderComponent>();
+			if (rc) {
+				rc->ctx = target_ctx;
+			}
+
+			return true;
+		}, false); // false = non-recursive, only direct children
+
+		// Handle any nested items with explicit rendercontext attribute
 		scene->traverse([scene, scene_mgr](std::string& name, rhea::Component* unit)->bool {
 			if (scene == unit)
 				return true;
+				
 			rhea::Item* item = doCast<rhea::Item>(unit);
 			if (!item)
 				return true;
-			// we simply assume if the rendercontext is set we must add a render child
-			std::string render_context_name = item->getValueString("rendercontext", "");
-			if (render_context_name != "") {
-				poseidon::RenderContext* render_context = scene_mgr->getViewport()->getRenderContext(render_context_name);
-				if (!render_context) {
-					LOG(LOG_ERROR) << "GraphicsService::showScene: render context '" << render_context_name << "' not found";
+
+			// Only process items with explicit rendercontext
+			// (direct children already handled above)
+			if (item->getParent() == scene)
+				return true;
+				
+			std::string item_ctx_name = item->getValueString("rendercontext", "");
+			if (!item_ctx_name.empty()) {
+				poseidon::RenderContext* target_ctx = scene_mgr->getViewport()->getRenderContext(item_ctx_name);
+				if (!target_ctx) {
+					LOG(LOG_ERROR) << "GraphicsService::showScene: render context '" 
+								<< item_ctx_name << "' not found for nested item '" 
+								<< item->getPathName() << "'";
 					return false;
 				}
-				else {
-					render_context->addRenderChild(item);
+				
+				target_ctx->addRenderChild(item);
+				
+				auto* rc = item->getComponent<rhea::client::RenderComponent>();
+				if (rc) {
+					rc->ctx = target_ctx;
 				}
 			}
 			return true;
-			});
+		});
 	}
 
 	void GraphicsService::hideScene(rhea::Scene* scene)
@@ -283,41 +346,22 @@ namespace rhea::client {
 			return;
 		}
 
-		poseidon::SceneManager* scene_mgr = m_core->get_scene_manager();
-		if (!scene_mgr) {
-			LOG(LOG_ERROR) << "GraphicsService::hideScene: no scene manager";
-			return;
-		}
-		std::string render_context_name = scene->getValueString("rendercontext", "default");
-		poseidon::RenderContext* render_context = scene_mgr->getViewport()->getRenderContext(render_context_name);
-		if (!render_context) {
-			LOG(LOG_ERROR) << "GraphicsService::hideScene: render context '" << render_context_name << "' not found";
-			return;
-		}
-		render_context->removeRenderChild((rhea::Item* )scene);
-
-		// scene children with other contexts
-		// handle all current subtree nodes
-		scene->traverse([scene, scene_mgr](std::string& name, rhea::Component* unit)->bool {
+		// Remove all items from their render contexts using stored context reference
+		scene->traverse([scene](std::string& name, rhea::Component* unit)->bool {
 			if (scene == unit)
 				return true;
+				
 			rhea::Item* item = doCast<rhea::Item>(unit);
 			if (!item)
 				return true;
-			// we simply assume if the rendercontext is set we must add a render child
-			std::string render_context_name = item->getValueString("rendercontext", "");
-			if (render_context_name != "") {
-				poseidon::RenderContext* render_context = scene_mgr->getViewport()->getRenderContext(render_context_name);
-				if (!render_context) {
-					LOG(LOG_ERROR) << "GraphicsService::hideScene: render context '" << render_context_name << "' not found";
-					return false;
-				}
-				else {
-					render_context->removeRenderChild(item);
-				}
+			
+			auto* rc = item->getComponent<rhea::client::RenderComponent>();
+			if (rc && rc->ctx) {
+				rc->ctx->removeRenderChild(item);
+				rc->ctx = nullptr;
 			}
 			return true;
-			});
+		});
 	}
 
 	bool GraphicsService::onInput(rhea::Event* ev, rhea::Unit* unit)

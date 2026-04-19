@@ -6,8 +6,6 @@
 #include "Orion/ResourceRequest.h"
 #include <Orion/Mime.h>
 #include "Psio/Psio.h"
-#include <Psio/Input/InputEvent.h>
-#include <Psio/Input/Keyboard.h>
 #include "Psio/Log.h"
 #include "Rhea/Core/SceneLoader.h"
 #include "Rhea/Unit.h"
@@ -23,7 +21,8 @@
 #include "Rhea/Resources/CubeMap.h"
 #include "Rhea/Resources/TextLoader.h"
 #include "Rhea/Resources/ImageResource.h"
-#include "Rhea/InputMap.h"
+#include "Rhea/Input/InputMap.h"
+#include "Rhea/Input/IInputService.h"
 #include "Rhea/Dispatcher.h"
 #include "Rhea/Resources/ResourceService.h"
 
@@ -188,6 +187,9 @@ namespace rhea
 		}
 		InitFabrics();
 
+		// get the input service and set the input handler
+		m_input_service = doCast<IInputService>(m_services["input"]);
+
 		// add a default input map
 		m_input_map = new InputMap();
 		m_input_map->loadDefaultMap();
@@ -238,27 +240,16 @@ namespace rhea
 
 	bool Application::onInput(EventInput* e, Unit* unit)
 	{
-		std::shared_ptr<psio::InputEvent> evt = e->getEvent();
-
 		// close on esc
-		psio::KeyInputEvent esc(psio::InputEventId::KEY_PRESSED);
-		esc.set(psio::Key::CODE_ESC, 0, 0);
-
-		if (evt->isEvent(&esc)) {
+		if (e->isKeyPressed(rhea::Key::Escape) || e->isAction("cancel")) {
 			return true;
 		}
 
 		// toggle physics service
-		esc.set(psio::Key::CODE_F9, 0, 0);
-		if (evt->isEvent(&esc)) {
+		if (e->isKeyPressed(rhea::Key::F9)) {
 			PhysicsManagerService* mgr = static_cast<PhysicsManagerService*>(m_services["physics_mgr"]);
 			if (mgr && mgr->getPhysicsService()) mgr->getPhysicsService()->toggleDebug();
 		}
-
-		// pressed mouse button
-		psio::MouseInputEvent btn(psio::InputEventId::MOUSE_BTN_PRESSED);
-
-
 		return false;
 	}
 
@@ -285,9 +276,7 @@ namespace rhea
 	{
 		// start the loop
 		int ret = 0;	
-		psio::Engine* psio = static_cast<PlatformService*>(m_services["platform"])->getEngine();
-		std::shared_ptr<psio::InputEvent> evt;
-		ievt_actions iea;		
+		psio::Engine* psio = static_cast<PlatformService*>(m_services["platform"])->getEngine();			
 
 		int iterations_per_second = 60;
 		float frame_slice = 1.0f / iterations_per_second;
@@ -340,32 +329,32 @@ namespace rhea
 				ret = true;
 
 			// 3.1 check for window and input events
-			psio->iterateInput();
-			while (evt = psio->pollInput()) {
+			if (m_input_service) {
 
-				// always handle OS quit
-				if (evt->getId() == psio::InputEventId::WMGR_QUIT) {
-					return true;
+				m_input_service->update();
+
+				InputEvent evt;
+				while (m_input_service->pollEvent(evt)) {
+					// always handle OS quit
+					if (evt.isQuit()) {
+						return true;
+					}
+					// get actions from input map
+					std::vector<std::string> actions = m_input_map->getActions(evt);
+					// send the input events
+					// TODO: make the event list configurable
+					EventInput e("input", evt, actions);
+					m_unit_tree->sendEvent("input", &e);
+					if (!e.isPropagationStoppped())
+						m_unit_tree->sendEvent("gui_input", &e);
+					if (!e.isPropagationStoppped())
+						m_unit_tree->sendEvent("unhandled_input", &e);
+					if (!e.isPropagationStoppped())
+						m_unit_tree->sendEvent("scene_input", &e);
+
+					if (!e.isPropagationStoppped())
+						ret = onInput(&e, nullptr);
 				}
-
-				// get actions from input map
-				iea = m_input_map->getActions(evt);
-
-				// send the input events
-				// TODO: make the event list configurable
-				EventInput e("input", evt, iea.actions);
-				m_unit_tree->sendEvent("input", &e);
-				if (!e.isPropagationStoppped())
-					m_unit_tree->sendEvent("gui_input", &e);
-				if (!e.isPropagationStoppped())
-					m_unit_tree->sendEvent("unhandled_input", &e);
-				if (!e.isPropagationStoppped())
-					m_unit_tree->sendEvent("scene_input", &e);
-
-				// application input handling comes last
-				if (!e.isPropagationStoppped())
-					if (onInput(&e, nullptr))
-						ret = true;
 			}
 
 			// 3.2 Run network updates (e.g., sync data, process packets)

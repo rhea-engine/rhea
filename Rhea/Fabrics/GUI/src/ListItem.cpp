@@ -58,11 +58,9 @@ namespace rhea
 		EventInput* inputEv = dynamic_cast<EventInput*>(ev);
 		if (!inputEv)
 			return false;
-		psio::KeyInputEvent* e = dynamic_cast<psio::KeyInputEvent*>(inputEv->getEvent().get());
-		if (!e)
-			return false;
+		InputEvent e = inputEv->getEvent();
 
-		if (e->getKeyCode() == psio::Key::CODE_ENTER || e->getKeyCode() == psio::Key::CODE_SPACE) {
+		if (e.key == Key::Enter || e.key == Key::Space) {
 			onMouseReleased(ev, unit);
 			return true;
 		}

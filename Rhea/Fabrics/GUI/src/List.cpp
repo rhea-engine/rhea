@@ -237,28 +237,26 @@ namespace rhea
 		EventInput* inputEv = dynamic_cast<EventInput*>(ev);
 		if (!inputEv)
 			return false;
-		psio::KeyInputEvent* e = dynamic_cast<psio::KeyInputEvent*>(inputEv->getEvent().get());
-		if (!e)
-			return false;
+		InputEvent e = inputEv->getEvent();
 
-		switch (e->getKeyCode()) {
-		case psio::Key::CODE_UP:
+		switch (e.key) {
+		case Key::Up:
 			moveActive(-1);
 			ev->stopPropagation();
 			return true;
 
-		case psio::Key::CODE_DOWN:
+		case Key::Down:
 			moveActive(1);
 			ev->stopPropagation();
 			return true;
 
-		case psio::Key::CODE_ENTER:
-		case psio::Key::CODE_SPACE:
+		case Key::Enter:
+		case Key::Space:
 		{
 			if (m_selected_item) {
-				// send selected event
-				Event my_ev = Event("selected", m_selected_item);
-				onSelected(&my_ev, m_selected_item);
+				// send clicked event
+				Event my_ev = Event("clicked", m_selected_item);
+				onClicked(&my_ev, m_selected_item);
 				ev->stopPropagation();
 				return true;
 			}

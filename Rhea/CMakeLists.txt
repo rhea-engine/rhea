@@ -5,7 +5,7 @@ add_subdirectory(Fabrics)
 
 option(RHEA_WITH_GRAPHICS "Enable graphics support for Rhea" ON)
 
-add_library(RheaBase "src/Unit.cpp" "src/UnitTree.cpp" "src/Realm.cpp" "src/InputMap.cpp" "src/Dispatcher.cpp"  "Platform/PlatformService.cpp" 
+add_library(RheaBase "src/Unit.cpp" "src/UnitTree.cpp" "src/Realm.cpp" "src/Dispatcher.cpp"  "Platform/PlatformService.cpp" 
  "src/EventInput.cpp" "src/Application.cpp" "src/Component.cpp"
 "Core/Material.cpp" "Core/SceneLoader.cpp" "Core/Scene.cpp" "Core/Avatar.cpp" "Core/Position.cpp"
 "Core/Transform.cpp" "Core/Shader.cpp" "Core/Item.cpp" "Core/Item2D.cpp"
@@ -13,7 +13,8 @@ add_library(RheaBase "src/Unit.cpp" "src/UnitTree.cpp" "src/Realm.cpp" "src/Inpu
 "Core/Camera.cpp" "Core/Mesh.cpp" 
 "Core/Light.cpp" "Core/DirectionalLight.cpp" "Core/PointLight.cpp" 
 "Core/SpotLight.cpp"
-"Physics/PhysicsManagerService.cpp" "include/Rhea/Graphics/SizeEvent.h" "include/Rhea/ConfigFile.h" "src/ConfigFile.cpp")
+"Physics/PhysicsManagerService.cpp" "include/Rhea/Graphics/SizeEvent.h" "include/Rhea/ConfigFile.h" "src/ConfigFile.cpp" 
+"src/Input/InputMap.cpp" "include/Rhea/Graphics/Window.h")
 add_library(Rhea::Core ALIAS RheaBase)
 
 target_link_libraries(RheaBase PUBLIC Meworla::Math Meworla::Orion SimpleParser RheaResources Psio)

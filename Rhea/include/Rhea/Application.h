@@ -26,6 +26,7 @@ namespace rhea
 	class EventInput;
 	class PhysicsService;
 	class ConfigFile;
+	class IInputService;
 
 	class Application
 	{
@@ -148,6 +149,7 @@ namespace rhea
 		std::unordered_map<std::string, Service*> m_services;
 		PhysicsService* m_physics = nullptr;
 		Service* m_wold_service = nullptr;
+		IInputService* m_input_service = nullptr;
 
 		ResourceLoader m_resource_loader;
 

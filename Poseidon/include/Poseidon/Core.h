@@ -74,6 +74,8 @@ namespace poseidon
 
 		hippios::GraphicsBuffer* getGraphicsBuffer(std::string facility, size_t size);
 
+		poseidon::Window* getRootWindow() { return m_window ? m_window : nullptr; }
+
 	protected:
 		std::unique_ptr<hippios::Renderer> m_renderer;
 		int quit = 0;

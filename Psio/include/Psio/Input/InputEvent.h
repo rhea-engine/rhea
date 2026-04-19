@@ -135,6 +135,10 @@ namespace psio
 		int getX() const { return m_x; }
 		int getY() const { return m_y; }
 
+		bool isLeft() const { return m_left; }
+		bool isRight() const { return m_right; }
+		bool isMiddle() const { return m_middle; }
+
 	protected:
 		bool m_left;
 		bool m_right;

@@ -147,23 +147,23 @@ namespace rhea
 		if (!m_has_focus)
 			return false;
 
-		psio::KeyInputEvent* e = static_cast<psio::KeyInputEvent*>(static_cast<EventInput*>(ev)->getEvent().get());
-		switch (e->getKeyCode()) {
-		case psio::Key::CODE_LEFT:
+		InputEvent e = static_cast<EventInput*>(ev)->getEvent();
+		switch (e.key) {
+		case Key::Left:
 			if (m_pos > 0) {
 				m_pos--;
 				updateCursor(true);
 			}
 			ev->stopPropagation();
 			break;
-		case psio::Key::CODE_RIGHT:
+		case Key::Right:
 			if (m_pos < m_length) {
 				m_pos++;
 				updateCursor(true);
 			}
 			ev->stopPropagation();
 			break;
-		case psio::Key::CODE_TAB:
+		case Key::Tab:
 			// consume only if multiline, otherwise let it propagate for focus change
 			if (multiline)
 				ev->stopPropagation();
@@ -177,8 +177,8 @@ namespace rhea
 
 	bool TextInput::onTextInput(Event* ev, Unit* unit)
 	{
-		std::shared_ptr<psio::InputEvent> e = static_cast<EventInput*>(ev)->getEvent();
-		std::string text = static_cast<psio::TextInputEvent*>(e.get())->getText();
+		InputEvent e = static_cast<EventInput*>(ev)->getEvent();
+		std::string text = e.text;
 		switch (text[0]) {
 		case '\b':
 			if (m_pos > 0) {
@@ -221,10 +221,9 @@ namespace rhea
 		// consume the mouse event
 		ev->stopPropagation();
 
-		EventInput* ei = static_cast<EventInput*>(ev);
-		std::shared_ptr<psio::MouseInputEvent> e = std::static_pointer_cast<psio::MouseInputEvent>(ei->getEvent());
-		int mx = e->getX();
-		int my = e->getY();
+		EventInput* ei = static_cast<EventInput*>(ev);		
+		int mx = ei->getEvent().x;
+		int my = ei->getEvent().y;
 
 		// get text position from label item
 		if (!m_textwidget)

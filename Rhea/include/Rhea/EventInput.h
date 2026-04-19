@@ -2,9 +2,10 @@
 #define RHEA_INPUTEVENT_H
 
 #include "Event.h"
-#include <Psio/Input/InputEvent.h>
+#include <Rhea/Input/InputEvent.h>
 
 #include <vector>
+#include <string>
 #include <memory>
 
 namespace rhea
@@ -12,7 +13,7 @@ namespace rhea
 	class EventInput : public Event
 	{
 	public:
-		EventInput(std::string e_name, std::shared_ptr<psio::InputEvent> evt, std::vector<std::string> &actions) :
+		EventInput(std::string e_name, const InputEvent& evt, std::vector<std::string> &actions) :
 			Event(e_name, nullptr),
 			m_evt(evt),
 			m_actions(actions)
@@ -32,12 +33,19 @@ namespace rhea
 			return std::make_unique<EventInput>(*this);
 		}
 
-		bool isAction(std::string action);
-		bool isAction(EventInput* ev);
-		std::shared_ptr<psio::InputEvent> getEvent() { return m_evt; }
+		bool isAction(std::string& action) const;
+		bool isAction(std::string action) const;
+		bool isAction(EventInput* ev) const;
+		const InputEvent& getEvent() const { return m_evt; }
+
+		bool isKeyPressed(Key key) const { return m_evt.isKeyPressed(key); }
+		bool isKeyReleased(Key key) const { return m_evt.isKeyReleased(key); }
+		bool isMousePressed(MouseButton btn) const { return m_evt.isMousePressed(btn); }
+		bool isMouseReleased(MouseButton btn) const { return m_evt.isMouseReleased(btn); }
+		bool isTextEntered() const { return m_evt.isTextEntered(); }
 
 	protected:
-		std::shared_ptr<psio::InputEvent> m_evt;
+		InputEvent m_evt;
 		std::vector<std::string> m_actions;
 	};
 }

@@ -20,8 +20,11 @@ namespace rhea {
 
 	class InputMap {
 	public:
-		// set an action for an event
+		// add an action for an event
 		void setAction(InputEventSP evt, std::string action);
+
+		// clear all actions for an event
+		void clearActions(InputEventSP evt);
 
 		// get all actions registered for this event
 		ievt_actions getActions(InputEventSP evt);

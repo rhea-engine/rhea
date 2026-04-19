@@ -37,6 +37,7 @@
 #include <Psio/Log.h>
 #include <Rhea/Physics/PhysicsManagerService.h>
 #include <Rhea/ConfigFile.h>
+#include <RheaClient/Window/WindowService.h>
 
 namespace rhea::client {
 	GraphicsService::GraphicsService(std::string name, std::string type_name) :
@@ -168,6 +169,11 @@ namespace rhea::client {
 				backend = config->getValueString("renderer.backend", "auto");
 			
 			m_core->init(static_cast<rhea::PlatformService*>(m_platform)->getEngine(), backend);
+			poseidon::Window* window = m_core->getRootWindow();
+			WindowRegistryService* window_registry = doCast<WindowRegistryService>(m_app->getService("window_registry"));
+			if (window && window_registry) {
+				window_registry->registerWindow(window);
+			}
 		}
 
 		// create a render context for HUD / GUI
@@ -368,32 +374,35 @@ namespace rhea::client {
 	{
 		if (ev->isEvent("input")) {
 			rhea::EventInput* e = static_cast<rhea::EventInput*>(ev);
-			std::shared_ptr<psio::MouseInputEvent> me = std::static_pointer_cast<psio::MouseInputEvent>(e->getEvent());
+			InputEvent me = e->getEvent();
 			int viewport_width;
 			int viewport_height;
 			std::string context_name;
 			rhea::Unit* picked;
 
-			switch (e->getEvent()->getId()) {
-			case psio::InputEventId::MOUSE_MOVE:				
-				m_mx = me->getX();
-				m_my = me->getY();				
+			switch (me.type) {
+			case InputEventType::MouseMoved:
+				m_mx = me.x;
+				m_my = me.y;
 				break;
-			case psio::InputEventId::MOUSE_BTN_PRESSED:
+			case InputEventType::MouseButtonPressed:
 				picked = pick();
 				if (picked)
 					picked->sendEvent("scene_input", ev);
 				break;
 
-			case psio::InputEventId::WIN_SIZE:
+			case InputEventType::WindowResized:
 				// resize window
-				
-				std::shared_ptr<psio::WinSizeEvent> me = std::static_pointer_cast<psio::WinSizeEvent>(e->getEvent());
-				viewport_width = me->width();
-				viewport_height = me->height();
+								
+				viewport_width = me.width;
+				viewport_height = me.height;
 				if (viewport_width > 0 && viewport_height > 0)
 				{
-					poseidon::Window* window = m_core->get_scene_manager()->getWindow(me->getWindow());
+					WindowRegistryService* window_registry = doCast<WindowRegistryService>(m_app->getService("window_registry"));
+					poseidon::Window* window = nullptr;
+					if (window_registry) {
+						window = window_registry->getRenderWindow(me.window);
+					}					
 					if (!window) {
 						LOG(LOG_ERROR) << "Resize event for unknown window";
 						break;

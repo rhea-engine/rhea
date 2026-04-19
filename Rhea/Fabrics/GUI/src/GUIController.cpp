@@ -180,7 +180,8 @@ namespace rhea
 
 		}
 
-		psio::InputEventId id = e->getEvent()->getId();
+		InputEventType id = e->getEvent().type;
+		//psio::InputEventId id = e->getEvent()->getId();
 
 		if (e->isAction("fullscreen")) {
 			IGraphicsService* gsrv = doCast<IGraphicsService>(m_app->getService("graphics"));
@@ -193,13 +194,13 @@ namespace rhea
 		// Hovering
 
 		switch (id) {
-		case psio::InputEventId::MOUSE_BTN_PRESSED:
-		case psio::InputEventId::MOUSE_BTN_RELEASED:
-		case psio::InputEventId::MOUSE_MOVE:
-			// always check if the mouse moved
-			std::shared_ptr<psio::MouseInputEvent> me = std::static_pointer_cast<psio::MouseInputEvent>(e->getEvent());
-			int mx = me->getX();
-			int my = me->getY();
+		case InputEventType::MouseButtonPressed:
+		case InputEventType::MouseButtonReleased:
+		case InputEventType::MouseButtonDoubleClicked:
+		case InputEventType::MouseMoved:
+			// always check if the mouse moved			
+			int mx = e->getEvent().x;
+			int my = e->getEvent().y;
 
 			if (mx != m_mx || my != m_my) {
 				// mouse really moved - call mouse move
@@ -217,7 +218,7 @@ namespace rhea
 		// handle input events
 
 		switch(id) {
-		case psio::InputEventId::MOUSE_BTN_PRESSED:
+		case InputEventType::MouseButtonPressed:
 
 			DLOG(LOG_DEBUG) << "Mouse: x=" << m_mx << "/y=" << m_my;
 			
@@ -252,7 +253,7 @@ namespace rhea
 			}
 			break;
 
-		case psio::InputEventId::MOUSE_BTN_RELEASED:
+		case InputEventType::MouseButtonReleased:
 			DLOG(LOG_DEBUG) << "Mouse clicked";
 			
 			if (m_pressed) {
@@ -267,7 +268,7 @@ namespace rhea
 			}
 			break;
 
-		case psio::InputEventId::KEY_PRESSED:
+		case InputEventType::KeyPressed:
 
 			// text input
 			if (m_target) {
@@ -279,14 +280,14 @@ namespace rhea
 			}
 			break;
 
-		case psio::InputEventId::KEY_RELEASED:
+		case InputEventType::KeyReleased:
 			// text input
 			if (m_target) {
 				m_target->bubbleEvent("key_released", e);
 			}
 			break;
 
-		case psio::InputEventId::TEXT:
+		case InputEventType::Text:
 			// text input
 			if (m_target) {
 				m_target->bubbleEvent("text_input", e);
@@ -686,15 +687,12 @@ namespace rhea
 
 	bool GUIController::onKeyPressed(Event* ev, Unit* unit)
 	{
-		EventInput* inputEv = dynamic_cast<EventInput*>(ev);
-		if (!inputEv)
-			return false;
-		psio::KeyInputEvent* e = dynamic_cast<psio::KeyInputEvent*>(inputEv->getEvent().get());
+		EventInput* e = dynamic_cast<EventInput*>(ev);
 		if (!e)
-			return false;
+			return false;		
 
-		if (e->getKeyCode() == psio::Key::CODE_TAB ) {
-			if (e->isShift()) {
+		if (e->isKeyPressed(Key::Tab)) {
+			if (e->getEvent().modifiers.shift) {
 				if (focusPreviousWidget())
 					ev->stopPropagation();
 			}

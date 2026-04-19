@@ -2,20 +2,33 @@
 
 namespace rhea
 {
-	bool EventInput::isAction(std::string action)
+	bool EventInput::isAction(std::string& action) const
 	{
 		// for empty action list fail fast
 		if (!m_actions.size())
 			return false;
 
-		for (auto& act : m_actions) {
+		for (const auto& act : m_actions) {
+			if (!act.compare(action))
+				return true;
+		}
+		return false;
+	}
+
+	bool EventInput::isAction(std::string action) const
+	{
+		// for empty action list fail fast
+		if (!m_actions.size())
+			return false;
+		
+		for (const auto& act : m_actions) {
 			if (!act.compare(action))
 				return true;
 		}
 		return false;
 	}
 	
-	bool EventInput::isAction(EventInput* ev)
+	bool EventInput::isAction(EventInput* ev) const
 	{
 		return (m_actions==ev->m_actions);
 	}

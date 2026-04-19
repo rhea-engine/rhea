@@ -4,32 +4,25 @@
 #include <SimpleParser/Type.h>
 #include <SimpleParser/Method.h>
 
-// include whatever types you register:
 #include <Rhea/Core/Material.h>
 #include <Rhea/Core/Shader.h>
 #include <Rhea/Core/Lighting.h>
 #include <Rhea/Core/Mesh.h>
 #include <Rhea/Core/Camera.h>
-// plus GUI/widget includes, etc.
 
-#include <SimpleParser/Type.h>
-
-// If GraphicsService is now in RheaClient:
-#include <RheaClient/Graphics/GraphicsService.h> // via shim or new include path
+#include <RheaClient/Graphics/GraphicsService.h>
 #include <Rhea/Platform/PlatformService.h>
 #include <RheaClient/Components/RenderComponent.h>
+
+#include <RheaClient/Input/PsioInputService.h>
+#include <RheaClient/Window/WindowService.h>
 
 namespace rhea::client {
     void PoseidonGraphicsFabric::Register(rhea::Application* app)
     {
         // register services
         simpleparser::Type::registerType<GraphicsService>("//meworla/graphicsservice");
-        /*
-     // --- register types (moved from Application::init) ---
-     simpleparser::Type::registerType<rhea::Mesh>("//meworla/mesh");
-     // ... etc ...
-     */
-
+    
         // --- create and add graphics service
         GraphicsService* g_service = (GraphicsService*)simpleparser::Type::create("GraphicsService", "//meworla/graphicsservice");
         g_service->setup(app);
@@ -42,5 +35,17 @@ namespace rhea::client {
         RenderComponent::_register_RenderComponent();
         // MediaFabrics::Register(app);       
         
+        // register input service
+        PsioInputService* input_service = simpleparser::Type::create<PsioInputService>("PsioInputService");
+		input_service->setup(app);
+		app->registerService("input", input_service);
+
+		// register window service
+		WindowRegistryService* window_service = simpleparser::Type::create<WindowRegistryService>("WindowRegistryService");
+		window_service->setup(app);
+		app->registerService("window_registry", window_service);
+		
+		input_service->setPsioInput(psio->getEngine()->getInput());
+        input_service->setWindowRegistryService(window_service);
     }
 }

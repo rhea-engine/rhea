@@ -40,6 +40,9 @@ namespace rhea
 		// handle new items in scene
 		bool onSceneEnter(Event* ev, Unit* unit);
 
+		// handle new items in scene
+		bool onItemAttached(Event* ev, Unit* unit);
+
 		// handle scene show/hide
 		void show();
 		void hide();

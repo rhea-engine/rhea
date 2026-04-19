@@ -13,19 +13,27 @@ void rhea::RowWidget::onSetPosition()
 	Vector2 cur_position = m_position + m_content_position;
 	if (!m_ordered_children.size())
 		return;
-	float slot_padding;
+	float slot_padding = 0.0f;
+
+	std::vector<Widget*> widgets;
+	for (auto it = m_ordered_children.begin(); it != m_ordered_children.end(); ++it) {
+		Widget* w = doCast<Widget>(*it);
+		if (w) {
+			widgets.push_back(w);
+		}
+	}
 
 	switch (m_justify_mode) {
 	case 0:
 		slot_padding = 0.0f;
 		break;
 	case 1:
-		slot_padding = (m_content_size.x - m_children_size) / m_ordered_children.size();
+		slot_padding = (m_content_size.x - m_children_size) / widgets.size();
 		break;
 	}
 	Vector2 slot_size = Vector2(0.0f, m_content_size.y);
 
-	for (auto it = m_ordered_children.begin(); it != m_ordered_children.end(); ++it) {
+	for (auto it = widgets.begin(); it != widgets.end(); ++it) {
 		Widget* w = doCast<Widget>(*it);
 		if (w) {
 			// get size of child

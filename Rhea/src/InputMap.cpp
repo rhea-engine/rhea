@@ -17,6 +17,11 @@ namespace rhea
 			it->second.actions.push_back(action);
 		}
 	}
+
+	void InputMap::clearActions(InputEventSP evt)
+	{
+		m_evt_map.erase(evt->hash());
+	}
 		
 	ievt_actions InputMap::getActions(InputEventSP evt)
 	{
@@ -43,6 +48,8 @@ namespace rhea
 		{ psio::CODE_HOME, "move_up" },
 		{ psio::CODE_END, "move_down" },
 		{ psio::CODE_ESC, "cancel" },
+		{ psio::CODE_ENTER, "submit"},
+		{ psio::CODE_F1, "help"},
 		{ psio::CODE_SPACE, "jump"},
 		{ psio::CODE_F2, "debug"},
 		

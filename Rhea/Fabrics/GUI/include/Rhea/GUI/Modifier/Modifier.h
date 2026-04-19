@@ -26,7 +26,10 @@ namespace rhea
 
 		// return a name of this modifier 
 		// this allows the updating of the modifier
-		virtual std::string name() = 0;
+		virtual std::string name() const = 0;
+
+		// check if this modifier is the same as another (for updating)
+		virtual bool equals(const Modifier& other) const = 0;
 	};
 }
 

@@ -83,6 +83,7 @@ namespace rhea::client {
 
 	protected:
 		std::unique_ptr<poseidon::Core> m_core;
+		poseidon::Window* m_main_window;
 		rhea::Service* m_platform;
 		std::unordered_map<simpleparser::Type*, std::unique_ptr<GraphicsManager>> m_managers;
 

@@ -49,7 +49,14 @@ namespace rhea
 			min_outer_size += m_topleft + m_rightbottom;
 		}
 
-		std::string name() { return "padding"; }
+		std::string name() const override { return "padding"; }
+
+		bool equals(const Modifier& other) const override {
+			if (name() != other.name())
+				return false;
+			const PaddingModifier& o = static_cast<const PaddingModifier&>(other);
+			return m_topleft == o.m_topleft && m_rightbottom == o.m_rightbottom;
+		}
 	protected:		
 		Vector2 m_topleft; 
 		Vector2 m_rightbottom;

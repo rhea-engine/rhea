@@ -37,6 +37,7 @@
 #include <Psio/Log.h>
 #include <Rhea/Physics/PhysicsManagerService.h>
 #include <Rhea/ConfigFile.h>
+#include <RheaClient/Window/WindowService.h>
 
 namespace rhea::client {
 	GraphicsService::GraphicsService(std::string name, std::string type_name) :
@@ -44,6 +45,7 @@ namespace rhea::client {
 		m_mx(0),
 		m_my(0),
 		m_fullscreen(false),
+		m_main_window(nullptr),
 		rhea::IGraphicsService(name, type_name)	
 	{
 		m_core = std::make_unique<poseidon::Core>();
@@ -120,13 +122,34 @@ namespace rhea::client {
 
 	void GraphicsService::addItem(std::string render_context, rhea::Item* item)
 	{
-		poseidon::Viewport* viewport = m_core->get_scene_manager()->getViewport();
-		if (!viewport) abort();
+		if (!item) {
+			LOG(LOG_ERROR) << "GraphicsService::addItem: item is null";
+			return;
+		}
+
+		if (!m_main_window) {
+			LOG(LOG_ERROR) << "GraphicsService::addItem: main window not initialized";
+			return;
+		}
+		poseidon::Viewport* viewport = m_main_window->getDefaultViewport();
+		if (!viewport) {
+			LOG(LOG_ERROR) << "GraphicsService::addItem: no viewport available";
+			return;
+		}
 
 		poseidon::RenderContext* context = viewport->getRenderContext(render_context);
-		if (!context) abort();
+		if (!context) {
+			LOG(LOG_ERROR) << "GraphicsService::addItem: render context '" << render_context << "' not found";
+			return;
+		}
 
 		context->addRenderChild(item);
+
+		// Store context reference in RenderComponent
+		auto* rc = item->getComponent<rhea::client::RenderComponent>();
+		if (rc) {
+			rc->ctx = context;
+		}
 
 		// Create instance elements for all items in subtree
 		item->traverse([&](std::string name, rhea::Component* c)->bool {
@@ -151,12 +174,24 @@ namespace rhea::client {
 				backend = config->getValueString("renderer.backend", "auto");
 			
 			m_core->init(static_cast<rhea::PlatformService*>(m_platform)->getEngine(), backend);
+			poseidon::Window* window = m_core->createWindow(m_app->getAppname(), 1152, 864, "root");
+			
+			// For OpenGL we nned to call is after window creation, for D3D12 it can be called before -
+			// but it needs to be called after backend initialization and before any render context creation
+			m_core->initializeRenderStates();
+			
+			WindowRegistryService* window_registry = doCast<WindowRegistryService>(m_app->getService("window_registry"));
+			if (window && window_registry) {
+				window_registry->registerWindow(window);
+			}
+			m_main_window = window;
 		}
 
 		// create a render context for HUD / GUI
-		poseidon::Viewport* viewport = m_core->get_scene_manager()->getViewport();
+		poseidon::Viewport* viewport = m_main_window->getDefaultViewport();
 		std::string hud_context_name = "HUD";
 		poseidon::RenderContext* context = viewport->createRenderContext(hud_context_name);
+		context->setRenderOrderMode(poseidon::RenderContext::RenderOrderMode::TreeOrdered);
 		context->setStencilState(1);
 		// add a camera for this context
 		poseidon::Camera* cam = m_core->createCamera();
@@ -244,36 +279,85 @@ namespace rhea::client {
 			LOG(LOG_ERROR) << "GraphicsService::showScene: no scene manager";
 			return;
 		}
+		
 		std::string render_context_name = scene->getValueString("rendercontext", "default");
-		poseidon::RenderContext* render_context = scene_mgr->getViewport()->getRenderContext(render_context_name);
+		if (!m_main_window) {
+			LOG(LOG_ERROR) << "GraphicsService::showScene: main window not initialized";
+			return;
+		}
+		poseidon::RenderContext* render_context = m_main_window->getDefaultViewport()->getRenderContext(render_context_name);
 		if (!render_context) {
 			LOG(LOG_ERROR) << "GraphicsService::showScene: render context '" << render_context_name << "' not found";
 			return;
 		}
-		render_context->addRenderChild((rhea::Item* )scene);
 
-		// scene children with other contexts
-		// handle all current subtree nodes
-		scene->traverse([scene, scene_mgr](std::string& name, rhea::Component* unit)->bool {
+		// DON'T cast Scene to Item - instead add all Item children directly
+		
+		// Add direct Item children to the render context
+		scene->children([&](std::string& name, rhea::Component* c)->bool {
+			rhea::Item* item = doCast<rhea::Item>(c);
+			if (!item)
+				return true;
+
+			// Check if item has specific render context
+			std::string item_ctx_name = item->getValueString("rendercontext", "");
+			poseidon::RenderContext* target_ctx = render_context;
+
+			if (!item_ctx_name.empty()) {
+				target_ctx = m_main_window->getDefaultViewport()->getRenderContext(item_ctx_name);
+				if (!target_ctx) {
+					LOG(LOG_ERROR) << "GraphicsService::showScene: render context '" 
+								<< item_ctx_name << "' not found for item '" 
+								<< item->getPathName() << "'";
+					return true; // Continue with other items
+				}
+			}
+
+			// Add item to appropriate context
+			target_ctx->addRenderChild(item);
+			
+			// Store context reference
+			auto* rc = item->getComponent<rhea::client::RenderComponent>();
+			if (rc) {
+				rc->ctx = target_ctx;
+			}
+
+			return true;
+		}, false); // false = non-recursive, only direct children
+
+		// Handle any nested items with explicit rendercontext attribute
+		scene->traverse([scene, scene_mgr, this](std::string& name, rhea::Component* unit)->bool {
 			if (scene == unit)
 				return true;
+				
 			rhea::Item* item = doCast<rhea::Item>(unit);
 			if (!item)
 				return true;
-			// we simply assume if the rendercontext is set we must add a render child
-			std::string render_context_name = item->getValueString("rendercontext", "");
-			if (render_context_name != "") {
-				poseidon::RenderContext* render_context = scene_mgr->getViewport()->getRenderContext(render_context_name);
-				if (!render_context) {
-					LOG(LOG_ERROR) << "GraphicsService::showScene: render context '" << render_context_name << "' not found";
+
+			// Only process items with explicit rendercontext
+			// (direct children already handled above)
+			if (item->getParent() == scene)
+				return true;
+				
+			std::string item_ctx_name = item->getValueString("rendercontext", "");
+			if (!item_ctx_name.empty()) {
+				poseidon::RenderContext* target_ctx = this->m_main_window->getDefaultViewport()->getRenderContext(item_ctx_name);
+				if (!target_ctx) {
+					LOG(LOG_ERROR) << "GraphicsService::showScene: render context '" 
+								<< item_ctx_name << "' not found for nested item '" 
+								<< item->getPathName() << "'";
 					return false;
 				}
-				else {
-					render_context->addRenderChild(item);
+				
+				target_ctx->addRenderChild(item);
+				
+				auto* rc = item->getComponent<rhea::client::RenderComponent>();
+				if (rc) {
+					rc->ctx = target_ctx;
 				}
 			}
 			return true;
-			});
+		});
 	}
 
 	void GraphicsService::hideScene(rhea::Scene* scene)
@@ -283,73 +367,57 @@ namespace rhea::client {
 			return;
 		}
 
-		poseidon::SceneManager* scene_mgr = m_core->get_scene_manager();
-		if (!scene_mgr) {
-			LOG(LOG_ERROR) << "GraphicsService::hideScene: no scene manager";
-			return;
-		}
-		std::string render_context_name = scene->getValueString("rendercontext", "default");
-		poseidon::RenderContext* render_context = scene_mgr->getViewport()->getRenderContext(render_context_name);
-		if (!render_context) {
-			LOG(LOG_ERROR) << "GraphicsService::hideScene: render context '" << render_context_name << "' not found";
-			return;
-		}
-		render_context->removeRenderChild((rhea::Item* )scene);
-
-		// scene children with other contexts
-		// handle all current subtree nodes
-		scene->traverse([scene, scene_mgr](std::string& name, rhea::Component* unit)->bool {
+		// Remove all items from their render contexts using stored context reference
+		scene->traverse([scene](std::string& name, rhea::Component* unit)->bool {
 			if (scene == unit)
 				return true;
+				
 			rhea::Item* item = doCast<rhea::Item>(unit);
 			if (!item)
 				return true;
-			// we simply assume if the rendercontext is set we must add a render child
-			std::string render_context_name = item->getValueString("rendercontext", "");
-			if (render_context_name != "") {
-				poseidon::RenderContext* render_context = scene_mgr->getViewport()->getRenderContext(render_context_name);
-				if (!render_context) {
-					LOG(LOG_ERROR) << "GraphicsService::hideScene: render context '" << render_context_name << "' not found";
-					return false;
-				}
-				else {
-					render_context->removeRenderChild(item);
-				}
+			
+			auto* rc = item->getComponent<rhea::client::RenderComponent>();
+			if (rc && rc->ctx) {
+				rc->ctx->removeRenderChild(item);
+				rc->ctx = nullptr;
 			}
 			return true;
-			});
+		});
 	}
 
 	bool GraphicsService::onInput(rhea::Event* ev, rhea::Unit* unit)
 	{
 		if (ev->isEvent("input")) {
 			rhea::EventInput* e = static_cast<rhea::EventInput*>(ev);
-			std::shared_ptr<psio::MouseInputEvent> me = std::static_pointer_cast<psio::MouseInputEvent>(e->getEvent());
+			InputEvent me = e->getEvent();
 			int viewport_width;
 			int viewport_height;
 			std::string context_name;
 			rhea::Unit* picked;
 
-			switch (e->getEvent()->getId()) {
-			case psio::InputEventId::MOUSE_MOVE:				
-				m_mx = me->getX();
-				m_my = me->getY();				
+			switch (me.type) {
+			case InputEventType::MouseMoved:
+				m_mx = me.x;
+				m_my = me.y;
 				break;
-			case psio::InputEventId::MOUSE_BTN_PRESSED:
+			case InputEventType::MouseButtonPressed:
 				picked = pick();
 				if (picked)
 					picked->sendEvent("scene_input", ev);
 				break;
 
-			case psio::InputEventId::WIN_SIZE:
+			case InputEventType::WindowResized:
 				// resize window
-				
-				std::shared_ptr<psio::WinSizeEvent> me = std::static_pointer_cast<psio::WinSizeEvent>(e->getEvent());
-				viewport_width = me->width();
-				viewport_height = me->height();
+								
+				viewport_width = me.width;
+				viewport_height = me.height;
 				if (viewport_width > 0 && viewport_height > 0)
 				{
-					poseidon::Window* window = m_core->get_scene_manager()->getWindow(me->getWindow());
+					WindowRegistryService* window_registry = doCast<WindowRegistryService>(m_app->getService("window_registry"));
+					poseidon::Window* window = nullptr;
+					if (window_registry) {
+						window = window_registry->getRenderWindow(me.window);
+					}					
 					if (!window) {
 						LOG(LOG_ERROR) << "Resize event for unknown window";
 						break;
@@ -357,21 +425,24 @@ namespace rhea::client {
 					// TODO handle special render targets that are not bound to this window
 					window->onResize(viewport_width, viewport_height);
 
-					// iterate over contexts and their cameras and set new values
-					float aspect_ratio = (float)viewport_width / (float)viewport_height;
-					for (const auto& context : window->getRenderContextList()) {
-						context->setSize((float)viewport_width, (float)viewport_height);
-						poseidon::Camera* cam = context->get_camera();
-						if (cam) {
-							cam->setAspectRatio(aspect_ratio);
-							cam->setOrthographicSize((float)viewport_height);
-							cam->updateProjection();
-							cam->updateView();
-						}
-						// send resize event to all render children - they may need to update render targets or similar
-						rhea::SizeEvent size_ev(nullptr, viewport_width, viewport_height);
-						for (auto& child : context->getRenderChildren()) {
-							child->sendEvent("viewport_size", &size_ev);
+					// iterate over all viewports and find those bound to this window, then update their contexts and cameras
+					for (auto& vp : window->getViewports()) {
+						// iterate over contexts and their cameras and set new values
+						float aspect_ratio = (float)viewport_width / (float)viewport_height;
+						for (const auto& context : vp->getRenderContextList()) {
+							context->setSize((float)viewport_width, (float)viewport_height);
+							poseidon::Camera* cam = context->get_camera();
+							if (cam) {
+								cam->setAspectRatio(aspect_ratio);
+								cam->setOrthographicSize((float)viewport_height);
+								cam->updateProjection();
+								cam->updateView();
+							}
+							// send resize event to all render children - they may need to update render targets or similar
+							rhea::SizeEvent size_ev(nullptr, viewport_width, viewport_height);
+							for (auto& child : context->getRenderChildren()) {
+								child->sendEvent("viewport_size", &size_ev);
+							}
 						}
 					}
 					sendEvent("resize", nullptr);

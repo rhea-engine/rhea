@@ -23,14 +23,17 @@ namespace rhea
 		void setText(std::string text);
 
 		// input handling
-		bool onMouseClick(Event* ev, Unit* unit);
-		bool onMouseClicked(Event* ev, Unit* unit);
+		bool onMousePressed(Event* ev, Unit* unit) override;
+		bool onMouseClicked(Event* ev, Unit* unit) override;
+		bool onKeyPressed(Event* ev, Unit* unit) override;
 
 		// sizing
 		void onSetPosition();
 
 		// styling
 		const std::string getSelector() { return "Button"; }
+
+		virtual bool isFocusable() const override { return true; }
 
 	protected:
 		Label* m_label;

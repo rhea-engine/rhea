@@ -43,6 +43,10 @@ namespace psio
 
 		// set the modifiers
 		void setModifiers(bool shift, bool alt, bool ctrl);
+		// get modifiers
+		bool isShift() const { return m_shift; }
+		bool isAlt() const { return m_alt; }
+		bool isCtrl() const { return m_ctrl; }
 
 		// get id
 		InputEventId getId() const { return m_id; }
@@ -130,6 +134,10 @@ namespace psio
 
 		int getX() const { return m_x; }
 		int getY() const { return m_y; }
+
+		bool isLeft() const { return m_left; }
+		bool isRight() const { return m_right; }
+		bool isMiddle() const { return m_middle; }
 
 	protected:
 		bool m_left;

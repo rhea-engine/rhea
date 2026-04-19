@@ -28,7 +28,14 @@ namespace rhea {
 			max_inner_size.y = m_size;
 		}
 
-		std::string name() { return "height"; }
+		std::string name() const override { return "height"; }
+
+		bool equals(const Modifier& other) const override {
+			if (name() != other.name())
+				return false;
+			const SizeHeightModifier& size_other = static_cast<const SizeHeightModifier&>(other);
+			return m_size == size_other.m_size;
+		}
 
 	protected:
 		float m_size;

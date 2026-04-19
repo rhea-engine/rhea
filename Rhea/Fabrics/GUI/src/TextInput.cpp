@@ -42,10 +42,6 @@ namespace rhea
 		if (m_values.find("font") != m_values.end())
 			val["font"] = getValue("font");
 
-		// DEBUG
-		// always handle input 
-		m_handle_input = true;
-
 		m_label_item = (Label*)m_app->getUnitTree()->createUnit(m_path + "_label", "//meworla/gui/label", attr, val);
 		addChild(m_label_item);
 		// store reference to textwidget
@@ -60,13 +56,6 @@ namespace rhea
 		addChild(m_cursor_item);
 		m_cursor_item->setText("|");
 		m_cursor_item->hide();
-
-		// register to focus events
-		registerEventHandler("focus", this, std::bind(&TextInput::onFocus, this, std::placeholders::_1, std::placeholders::_2));
-		registerEventHandler("focus_lost", this, std::bind(&TextInput::onLooseFocus, this, std::placeholders::_1, std::placeholders::_2));
-		registerEventHandler("key_pressed", this, std::bind(&TextInput::onKeyPressed, this, std::placeholders::_1, std::placeholders::_2));
-		registerEventHandler("text_input", this, std::bind(&TextInput::onTextInput, this, std::placeholders::_1, std::placeholders::_2));
-		registerEventHandler("mouse_btn_down", this, std::bind(&TextInput::onMouseButton, this, std::placeholders::_1, std::placeholders::_2));	
 	}
 
 	void TextInput::setText(std::string text)
@@ -86,7 +75,7 @@ namespace rhea
 		if (m_cursor_timer >= 0.7f) {
 			m_cursor_shown = !m_cursor_shown;
 			m_cursor_timer = 0.0f;
-			(m_cursor_shown) ? m_cursor_item->makeVisble() : m_cursor_item->makeInvisble();
+			(m_cursor_shown) ? m_cursor_item->makeVisible() : m_cursor_item->makeInvisible();
 		}
 	}
 
@@ -118,7 +107,7 @@ namespace rhea
 				m_textwidget->setOffset(offset_x);
 				m_offset_x = offset_x;
 				// force redraw
-				m_textwidget->setMesh();
+				m_textwidget->computeMesh();
 			}
 		}
 		
@@ -127,13 +116,13 @@ namespace rhea
 		// reset timer
 		m_cursor_timer = 0.0f;
 		m_cursor_shown = true;
-		m_cursor_item->makeVisble();
+		m_cursor_item->makeVisible();
 
 		Event gui_update("gui_update", this);
 		bubbleEvent("gui_redraw", &gui_update);
 	}
 
-	bool TextInput::onFocus(Event* ev, Unit* unit)
+	bool TextInput::onFocusGained(Event* ev, Unit* unit)
 	{
 		if (!m_text.size() && m_placeholder.size()) {
 			m_label_item->setText("");
@@ -143,7 +132,7 @@ namespace rhea
 		return false;
 	}
 
-	bool TextInput::onLooseFocus(Event* ev, Unit* unit)
+	bool TextInput::onFocusLost(Event* ev, Unit* unit)
 	{
 		m_has_focus = false;
 		if (!m_text.size() && m_placeholder.size()) {
@@ -158,30 +147,38 @@ namespace rhea
 		if (!m_has_focus)
 			return false;
 
-		psio::KeyInputEvent* e = static_cast<psio::KeyInputEvent*>(static_cast<EventInput*>(ev)->getEvent().get());
-		switch (e->getKeyCode()) {
-		case psio::Key::CODE_LEFT:
+		InputEvent e = static_cast<EventInput*>(ev)->getEvent();
+		switch (e.key) {
+		case Key::Left:
 			if (m_pos > 0) {
 				m_pos--;
-				updateCursor(true);				
+				updateCursor(true);
 			}
 			ev->stopPropagation();
 			break;
-		case psio::Key::CODE_RIGHT:
+		case Key::Right:
 			if (m_pos < m_length) {
 				m_pos++;
 				updateCursor(true);
 			}
 			ev->stopPropagation();
 			break;
+		case Key::Tab:
+			// consume only if multiline, otherwise let it propagate for focus change
+			if (multiline)
+				ev->stopPropagation();
+			break;
+		default:
+			ev->stopPropagation();
 		}
+
 		return false;
 	}
 
 	bool TextInput::onTextInput(Event* ev, Unit* unit)
 	{
-		std::shared_ptr<psio::InputEvent> e = static_cast<EventInput*>(ev)->getEvent();
-		std::string text = static_cast<psio::TextInputEvent*>(e.get())->getText();
+		InputEvent e = static_cast<EventInput*>(ev)->getEvent();
+		std::string text = e.text;
 		switch (text[0]) {
 		case '\b':
 			if (m_pos > 0) {
@@ -201,15 +198,6 @@ namespace rhea
 				updateText(true);
 				updateCursor();
 			}
-			else {
-				SubmitEvent my_ev = SubmitEvent("submit", this);
-				m_values["value"] = m_text;
-				my_ev.values[m_pathname] = m_text;
-				bubbleEvent("submit", &my_ev);
-				if (m_values["onSubmit"] != Variant()) {
-					sendBoundEvent(m_values["onSubmit"].toString(), &my_ev);
-				}
-			}
 			ev->stopPropagation();
 			break;
 		default:
@@ -228,15 +216,14 @@ namespace rhea
 		return false;
 	}
 
-	bool TextInput::onMouseButton(Event* ev, Unit* unit)
+	bool TextInput::onMousePressed(Event* ev, Unit* unit)
 	{
 		// consume the mouse event
 		ev->stopPropagation();
 
-		EventInput* ei = static_cast<EventInput*>(ev);
-		std::shared_ptr<psio::MouseInputEvent> e = std::static_pointer_cast<psio::MouseInputEvent>(ei->getEvent());
-		int mx = e->getX();
-		int my = e->getY();
+		EventInput* ei = static_cast<EventInput*>(ev);		
+		int mx = ei->getEvent().x;
+		int my = ei->getEvent().y;
 
 		// get text position from label item
 		if (!m_textwidget)
@@ -270,8 +257,8 @@ namespace rhea
 		if (offset_x != m_offset_x) {
 			m_textwidget->setOffset(offset_x);
 			m_offset_x = offset_x;
-			// force redraw
-			m_textwidget->setMesh();
+			// mark for redraw
+			m_textwidget->markTextDirty();
 		}
 		
 		if (isEvent)

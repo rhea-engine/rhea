@@ -73,14 +73,18 @@ namespace rhea
 	{
 		SizeEvent* size_ev = static_cast<SizeEvent*>(ev);
 		if (size_ev) {
-			m_viewport_width = size_ev->width;
-			m_viewport_height = size_ev->height;
-			setMesh();
+			int width = size_ev->width;
+			int height = size_ev->height;
+			if (width != m_viewport_width || height != m_viewport_height) {
+				m_viewport_width = width;
+				m_viewport_height = height;
+				m_render_dirty = true;
+			}
 		}
 		return false;
 	}
 
-	void Item2D::setMesh()
+	void Item2D::computeMesh()
 	{
 		float z = 0.0f;
 		float m_x = X();
@@ -111,13 +115,6 @@ namespace rhea
 		}
 	}
 	
-	void rhea::Item2D::update()
-	{
-		if (getComponent<MeshComponent>() && getComponent<MeshComponent>()->getMesh())
-			setMesh();
-		sendEvent("update", nullptr);
-	}
-
 	void rhea::Item2D::setBackgroundColor(int r, int g, int b, float opacity)
 	{
 		math::Vector4 bg_color;
@@ -128,6 +125,7 @@ namespace rhea
 		if (bg_color != m_bg_color) {
 			m_bg_color = bg_color;
 			m_material_dirty = true;
+			invalidateRender();
 		}
 	}
 
@@ -136,6 +134,28 @@ namespace rhea
 		if (tex != m_bg_image) {
 			m_bg_image = tex;
 			m_material_dirty = true;
+			invalidateRender();
+		}
+	}
+
+	void Item2D::syncRender()
+	{
+		bool changed = false;
+
+		if (m_material_dirty) {
+			UpdateMaterial();
+			m_material_dirty = false;
+			changed = true;
+		}
+
+		if (m_render_dirty) {
+			computeMesh();
+			m_render_dirty = false;
+			changed = true;
+		}
+
+		if (changed) {
+			sendEvent("update", nullptr);
 		}
 	}
 
@@ -144,25 +164,24 @@ namespace rhea
 		// only update if really changed
 		if (!m_material_dirty)
 			return;
+
+		//LOG(LOG_INFO) << "Item2D::UpdateMaterial() for '" << m_pathname << "', is dirty: " << m_material_dirty;
+
+		// (re-)create material
+		//if (!m_material)
+		m_material = nullptr; // old material gets destroyed 
+		m_material = std::make_unique<Material>(m_path + "_material");
+		m_material->setup(m_app);
+		m_material->setValue("shader", "widget");
+
+		// get the shader
+		Shader* shader_res = doCast<Shader>(m_app->getUnitTree()->find(m_values["shader"].toString(), m_attributes["basepath"], false));
+		if (shader_res) {
+			m_material->setShaderRes(shader_res);
+		}
 		else {
-			m_material_dirty = false;
-
-			// (re-)create material
-			//if (!m_material)
-			m_material = nullptr; // old material gets destroyed 
-			m_material = std::make_unique<Material>(m_path + "_material");
-			m_material->setup(m_app);
-			m_material->setValue("shader", "widget");
-
-			// get the shader
-			Shader* shader_res = doCast<Shader>(m_app->getUnitTree()->find(m_values["shader"].toString(), m_attributes["basepath"], false));
-			if (shader_res) {
-				m_material->setShaderRes(shader_res);
-			}
-			else {
-				LOG(LOG_ERROR) << "item2d::ready(): Shader '" << (std::string)m_values["shader"] << "' for " << m_pathname << " not found";
-				return;
-			}
+			LOG(LOG_ERROR) << "item2d::ready(): Shader '" << (std::string)m_values["shader"] << "' for " << m_pathname << " not found";
+			return;
 		}
 
 		// make sure visualcomponent is set
@@ -196,13 +215,55 @@ namespace rhea
 			mesh->setMaterial(m_material.get());
 			addChild(mesh);
 			mesh_component->setMesh(mesh);
-
-			setMesh();
 		}
 		else {
 			// set current material
 			Mesh* mesh = mesh_component->getMesh();
 			mesh->setMaterial(m_material.get());
+		}
+	}
+
+	void Item2D::onParented()
+	{
+		Item::onParented();
+		if (!m_viewport_width || !m_viewport_height) {
+			Item2D* p = doCast<Item2D>(m_parent);
+			if (!p) {
+				return;
+			}
+			int width = p->m_viewport_width;
+			int height = p->m_viewport_height;
+			setViewportSize(width, height);
+		}
+	}
+
+	void Item2D::syncRenderTree()
+	{
+		syncRender();
+		for (auto it = m_children.begin(); it != m_children.end(); ++it) {
+			Item2D* child = doCast<Item2D>(it->second);
+			if (child) {
+				child->syncRenderTree();
+			}
+		}
+	}
+
+	void Item2D::setViewportSize(int width, int height)
+	{
+		if (width != m_viewport_width || height != m_viewport_height) {			
+			m_viewport_width = width;
+			m_viewport_height = height;
+			
+			// need to update render data for this item
+			m_render_dirty = true;
+
+			// iterate to children and update their viewport size
+			for (auto it = m_children.begin(); it != m_children.end(); ++it) {
+				Item2D* child = doCast<Item2D>(it->second);
+				if (child) {
+					child->setViewportSize(m_viewport_width, m_viewport_height);
+				}
+			}
 		}
 	}
 }

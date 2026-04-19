@@ -41,6 +41,7 @@ namespace rhea
 				m_items.push_back(child);
 		}
 		registerEventHandler("scene_enter", this, std::bind(&Scene::onSceneEnter, this, std::placeholders::_1, std::placeholders::_2));
+		registerEventHandler("attached_item", this, std::bind(&Scene::onItemAttached, this, std::placeholders::_1, std::placeholders::_2));
 	}
 
 	bool Scene::onSceneEnter(Event* ev, Unit* unit)
@@ -50,6 +51,29 @@ namespace rhea
 		// send add item
 		Event e("add_item", ev->getTarget());
 		sendEvent("add_item", &e);
+		return true;
+	}
+
+	bool Scene::onItemAttached(Event* ev, Unit* unit)
+	{
+		// we capture this event
+		ev->stopPropagation();
+
+		if (m_is_active) {
+			// send add item for subtree
+			Item* item = doCast<Item>(ev->getTarget());
+			Event e("add_item", item);
+			sendEvent("add_item", &e);
+
+			item->children([&](std::string evname, Component* child)->bool {
+				Item* child_item = doCast<Item>(child);
+				if (child_item) {
+					Event e("add_item", child_item);
+					sendEvent("add_item", &e);
+				}
+				return true;
+				});
+		}
 		return true;
 	}
 

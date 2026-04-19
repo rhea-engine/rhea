@@ -388,12 +388,20 @@ namespace rhea
 		}
 	}
 
-	void Unit::children(std::function<bool(std::string&, Component*)> handler)
+	void Unit::children(std::function<bool(std::string&, Component*)> handler, bool ordered)
 	{
-		for (auto it = m_children.begin(); it != m_children.end(); ++it) {
-			std::string name = it->first;
-			if (!handler(name, it->second))
-				return;
+		if (ordered) {
+			for (auto it = m_ordered_children.begin(); it != m_ordered_children.end(); ++it) {
+				std::string name = (*it)->getPathName();
+				if (!handler(name, *it))
+					return;
+			}
+		} else {
+			for (auto it = m_children.begin(); it != m_children.end(); ++it) {
+				std::string name = it->first;
+				if (!handler(name, it->second))
+					return;
+			}
 		}
 	}
 

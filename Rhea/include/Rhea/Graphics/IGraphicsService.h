@@ -6,8 +6,7 @@
 namespace rhea
 {
     /**
-     * Abstract interface for graphics services.
-     * Allows to query viewport info
+     * Abstract interface for graphics services.     
      */
     class IGraphicsService : public Service
     {

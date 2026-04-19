@@ -49,11 +49,11 @@ namespace rhea
 		void updateCursor(bool onlyCursor = false);
 
 		// input handling
-		bool onFocus(Event* ev, Unit* unit);
-		bool onLooseFocus(Event* ev, Unit* unit);
-		bool onKeyPressed(Event* ev, Unit* unit);
-		bool onTextInput(Event* ev, Unit* unit);
-		bool onMouseButton(Event* ev, Unit* unit);
+		bool onFocusGained(Event* ev, Unit* unit) override;
+		bool onFocusLost(Event* ev, Unit* unit) override;
+		bool onKeyPressed(Event* ev, Unit* unit) override;
+		bool onTextInput(Event* ev, Unit* unit) override;
+		bool onMousePressed(Event* ev, Unit* unit) override;		
 
 		// events
 
@@ -61,6 +61,9 @@ namespace rhea
 
 		// styling
 		const std::string getSelector() { return "Input"; }
+
+		virtual bool isFocusable() const override { return true; }
+		virtual bool acceptsTextInput() const override { return true; }
 
 	protected:
 

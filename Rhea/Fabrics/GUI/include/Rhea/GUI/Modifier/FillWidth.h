@@ -15,7 +15,12 @@ namespace rhea
 			size_constraints.x = inner_size.x;
 		}
 
-		std::string name() { return "fill_width"; }
+		std::string name() const override { return "fill_width"; }
+
+		// equal operator for updating
+		bool equals(const Modifier& other) const override {
+			return name() == other.name();
+		}
 	};
 }
 #endif // !RHEA_GUI_MODIFIER_FILL_WIDTH_H

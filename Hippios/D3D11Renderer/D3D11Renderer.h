@@ -127,6 +127,9 @@ namespace hippios
 
 		RendererBackend getRendererBackend() const override { return RendererBackend::D3D11; }
 
+	private:
+		// Ensures device is created, returns true if successful
+		bool ensureDevice();
 	protected:
 		Texture* m_current_texture;		
 		PipelineStateObject* m_current_pso;

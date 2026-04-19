@@ -47,7 +47,10 @@ namespace rhea
 
 	void TextWidget::setFont(Font* font)
 	{
-		m_font = font;
+		if (m_font == font)
+			return;
+
+		m_font = font;		
 
 		if (m_font) {
 			m_font->ready();
@@ -74,20 +77,29 @@ namespace rhea
 				mesh->setDynamic(true);
 				addChild(mesh);
 				mesh_component->setMesh(mesh);
-
-				setMesh();
-
-				// newly created mesh: update my item
-				Event e("update", this);
-				sendEvent("update", &e);
 			}
 		}
+
+		markTextDirty();
 	}
 	
-	void TextWidget::setMesh()
+	void TextWidget::syncRender()
+	{
+		if (m_text_dirty || m_render_dirty) {
+			//LOG(LOG_INFO) << "TextWidget::syncRender() for " << m_pathname << ", is dirty: " << m_text_dirty;
+
+			computeMesh();
+			m_text_dirty = false;
+			m_render_dirty = false;
+			Event e("update", this);
+			sendEvent("update", &e);
+		}
+	}
+
+	void TextWidget::computeMesh()
 	{
 		rhea::Font* font = getFont();
-		std::string sentence = getText();
+		std::string sentence = getText();		
 
 		if (!font) {
 			LOG(LOG_ERROR) << "TextWidget has no font defined";
@@ -330,9 +342,11 @@ namespace rhea
 
 	void TextWidget::setText(std::string text)
 	{
+		if (m_text == text)
+			return;
+
 		m_text = text;
-		if (getComponent<MeshComponent>() && getComponent<MeshComponent>()->getMesh())
-			setMesh();
+		markTextDirty();
 	}
 
 	Vector2 TextWidget::getTextSize(Vector2 size_constraints)

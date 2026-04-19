@@ -92,6 +92,9 @@ namespace hippios
 
 		std::unordered_map<std::string, std::unique_ptr<GLStencilState>> m_stencil_states;
 		std::vector<std::unique_ptr<GLSamplerState>> m_sampler_states;
+
+		bool ensureContext();
+		bool m_context_ready = false;
 	};
 }
 #endif // !HIPPIOS_GLRENDERER_H

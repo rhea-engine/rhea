@@ -18,6 +18,7 @@ namespace rhea
 			m_target(target),
 			m_is_stopped(false)
 		{}
+		virtual ~Event() {}
 
 		bool isEvent(std::string ev_name) { return ev_name == m_name; }
 

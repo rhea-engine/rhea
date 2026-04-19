@@ -223,8 +223,28 @@ namespace hippios
 		}
 	}
 
+	bool GLRenderer::ensureContext()
+	{
+		if (m_context_ready) {
+			return true;
+		}
+		
+		if (!gladLoadGL()) {
+			LOG(LOG_ERROR) << "No OpenGL context available";
+			return false;
+		}
+
+		m_context_ready = true;
+		return true;
+	}
+
 	SamplerState* GLRenderer::createSampler(const SamplerDesc& desc)
 	{
+		if (!ensureContext()) {
+			LOG(LOG_ERROR) << "Cannot create sampler: No OpenGL context available";
+			return nullptr;
+		}
+
 		auto sampler = std::make_unique<GLSamplerState>(desc);
 		SamplerState* raw = sampler.get();
 		m_sampler_states.push_back(std::move(sampler));

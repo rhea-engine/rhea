@@ -2,6 +2,8 @@
 #include <Rhea/GUI/ListItem.h>
 #include <Rhea/Application.h>
 #include <Rhea/UnitTree.h>
+#include <Psio/Input/Keyboard.h>
+#include <Rhea/EventInput.h>
 
 namespace rhea
 {
@@ -25,10 +27,17 @@ namespace rhea
 		m_list_items.push_back(item);
 		item->ready();
 
-		Event e("scene_enter", item);
-		bubbleEvent("scene_enter", &e);
-		Event e2("need_resize", item);
-		bubbleEvent("need_resize", &e2);
+		if (!m_selected_item)
+			if (m_selected_value.empty()) {
+				m_selected_item = item;				
+				m_selected_value = value;
+			}
+			else if (m_selected_value.compare(value) == 0) {
+				m_selected_item = item;
+				m_selected_value = value;	
+			}
+
+		invalidateLayout();
 	}
 
 	void ListWidget::clear()
@@ -49,6 +58,7 @@ namespace rhea
 		}
 		// clear list
 		m_list_items.clear();
+		m_selected_item = nullptr;
 	}
 
 	void ListWidget::ready()
@@ -66,6 +76,7 @@ namespace rhea
 		}
 
 		registerEventHandler("selected", this, std::bind(&ListWidget::onSelected, this, std::placeholders::_1, std::placeholders::_2));
+		registerEventHandler("clicked", this, std::bind(&ListWidget::onClicked, this, std::placeholders::_1, std::placeholders::_2));
 	}
 
 	void ListWidget::onFrame(float delta)
@@ -127,8 +138,35 @@ namespace rhea
 
 	bool ListWidget::onSelected(Event* ev, Unit* unit)
 	{
-		if (m_values["onSelected"] != Variant()) {
+		if (m_values.find("onSelected") != m_values.end()) {
 			sendBoundEvent(m_values["onSelected"].toString(), ev);
+		}
+
+		// selected item in list is the event target
+		ListWidgetItem* item = doCast<ListWidgetItem>(ev->getTarget());
+		if (item && m_selected_item != item) {
+			if (m_selected_item) {
+				m_selected_item->setWidgetState(Widget::WidgetState::kFocus, false);
+			}
+			if (item) {
+				item->setWidgetState(Widget::WidgetState::kFocus, true);				
+			}
+			m_selected_item = item;
+			m_selected_value = item->getValueString("value");
+			invalidateLayout();
+		}
+
+		return false;
+	}
+
+	bool ListWidget::onClicked(Event* ev, Unit* unit)
+	{
+		if (m_values.find("onClicked") != m_values.end()) {
+			sendBoundEvent(m_values["onClicked"].toString(), ev);
+		}
+
+		if (m_values.find("action") != m_values.end()) {
+			sendEvent(m_values["action"].toString(), ev);
 		}
 		return false;
 	}
@@ -163,5 +201,109 @@ namespace rhea
 			}
 		}
 		return innerSize;
+	}
+
+	bool ListWidget::onFocusGained(Event* ev, Unit* unit)
+	{
+		Widget::onFocusGained(ev, unit);
+		if (!m_selected_item && m_list_items.size()) {
+			m_selected_item = m_list_items[0];
+			m_selected_value = m_selected_item->getValueString("value");
+			m_selected_item->setWidgetState(Widget::WidgetState::kFocus, true);
+			invalidateLayout();
+		}
+		else if (m_selected_item) {
+			m_selected_item->setWidgetState(Widget::WidgetState::kFocus, true);
+			invalidateLayout();
+		}
+		return true;
+	}
+
+	bool ListWidget::onFocusLost(Event* ev, Unit* unit)
+	{
+		Widget::onFocusLost(ev, unit);
+		if (m_selected_item) {
+			m_selected_item->setWidgetState(Widget::WidgetState::kFocus, false);
+			invalidateLayout();
+		}
+		return true;
+	}
+
+	bool ListWidget::onKeyPressed(Event* ev, Unit* unit)
+	{
+		if (!hasFocus())
+			return false;
+
+		EventInput* inputEv = dynamic_cast<EventInput*>(ev);
+		if (!inputEv)
+			return false;
+		InputEvent e = inputEv->getEvent();
+
+		switch (e.key) {
+		case Key::Up:
+			moveActive(-1);
+			ev->stopPropagation();
+			return true;
+
+		case Key::Down:
+			moveActive(1);
+			ev->stopPropagation();
+			return true;
+
+		case Key::Enter:
+		case Key::Space:
+		{
+			if (m_selected_item) {
+				// send clicked event
+				Event my_ev = Event("clicked", m_selected_item);
+				onClicked(&my_ev, m_selected_item);
+				ev->stopPropagation();
+				return true;
+			}
+			return true;
+		}
+		default:
+			return false;
+		}
+	}
+
+	void ListWidget::moveActive(int direction)
+	{
+		if (m_list_items.empty())
+			return;
+
+		auto it = std::find(m_list_items.begin(), m_list_items.end(), m_selected_item);
+		
+		int current_index = 0;
+		if (it != m_list_items.end()) {
+			current_index = static_cast<int>(std::distance(m_list_items.begin(), it));
+		}
+		
+		int new_index = current_index + direction;
+		
+		// Clamp: Keep within bounds
+		if (new_index < 0) {
+			new_index = 0;  // Stay at the first element
+		}
+		else if (new_index >= static_cast<int>(m_list_items.size())) {
+			new_index = static_cast<int>(m_list_items.size()) - 1;  // Stay at the last element
+		}
+		
+		// No change needed if we're at the end
+		if (new_index == current_index)
+			return;
+		
+		ListWidgetItem* old_selected = m_selected_item;
+		m_selected_item = m_list_items[new_index];
+		m_selected_value = m_selected_item->getValueString("value");
+		
+		if (old_selected) {
+			old_selected->setWidgetState(Widget::WidgetState::kFocus, false);
+		}
+		
+		if (m_selected_item) {
+			m_selected_item->setWidgetState(Widget::WidgetState::kFocus, true);
+			invalidateLayout();
+		}
 	}
 }

@@ -16,7 +16,12 @@ namespace rhea
 
 		}
 
-		std::string name() { return "fill_size"; }
+		std::string name() const override{ return "fill_size"; }
+
+		// equals is used to check if the modifier is the same as another for updating
+		bool equals(const Modifier& other) const override {
+			return name() == other.name();
+		}
 	};
 }
 

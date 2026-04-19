@@ -35,141 +35,141 @@ namespace poseidon
 
 	void Core::init(psio::Engine* psio, std::string backend)
 	{
-		// initialize the psio subsystem
 		m_psio = psio;
 
-		// get backend for windowing system
-		std::string window_backend = m_psio->getBackendName();
-		hippios::WindowBackend win_backend;
-
-		// set win_backend based on psio backend
-		if (window_backend == "Win32") {
-			win_backend = hippios::WindowBackend::Win32;
-		}
-		else if (window_backend == "X11") {
-			win_backend = hippios::WindowBackend::X11;
-		}
-		else if (window_backend == "Wayland") {
-			win_backend = hippios::WindowBackend::Wayland;
-		}
-		else if (window_backend == "SDL") {
-			win_backend = hippios::WindowBackend::SDL;
-		}
-		else if (window_backend == "GLFW") {
-			win_backend = hippios::WindowBackend::GLFW;
-		}
-		else {
-			LOG(LOG_INFO) << "Unknown window backend: " << window_backend << ", defaulting to GLFW";
-			win_backend = hippios::WindowBackend::GLFW;
-		}
-
-		// initialize render sub system		
-		hippios::RendererBackend renderer_backend;
-		if (backend == "auto") {
-#if defined(_WIN32) || defined(_WIN64)
-			renderer_backend = hippios::RendererBackend::D3D11;
-			m_renderer_backend = "d3d11";
-#else
-			renderer_backend = hippios::RendererBackend::OpenGL;
-			m_renderer_backend = "opengl";
-#endif
-		}
-		else if (backend == "d3d11") {
-#if defined(_WIN32) || defined(_WIN64)
-			renderer_backend = hippios::RendererBackend::D3D11;
-			m_renderer_backend = backend;
-#else
-			LOG(LOG_INFO) << "D3D11 is not supported on this platform, defaulting to OpenGL";
-			renderer_backend = hippios::RendererBackend::OpenGL;
-			m_renderer_backend = "opengl";
-#endif
-		}
-		else if (backend == "opengl") {
-			renderer_backend = hippios::RendererBackend::OpenGL;
-			m_renderer_backend = backend;
-		}
-		else {
-#if defined(_WIN32) || defined(_WIN64)
-			LOG(LOG_INFO) << "Unknown renderer backend: " << backend << ", defaulting to D3D11";
-			renderer_backend = hippios::RendererBackend::D3D11;
-			m_renderer_backend = backend;
-#else
-			LOG(LOG_INFO) << "Unknown renderer backend: " << backend << ", defaulting to OpenGL";
-			renderer_backend = hippios::RendererBackend::OpenGL;
-			m_renderer_backend = "opengl";
-#endif
-		}
+		// 1. Determine backends
+		hippios::WindowBackend win_backend = determineWindowBackend(m_psio->getBackendName());
+		hippios::RendererBackend renderer_backend = determineRendererBackend(backend);
+		
+		// 2. Create renderer (independent of windows)
 		m_renderer = hippios::Renderer::CreateRenderer(renderer_backend, win_backend);
 
-		// add a root window which is also the root viewport		
-		std::string name = "root";
-		m_window = new Window(name);
-		m_window->initRenderTarget(m_renderer.get());
-		int width = 1152;
-		int height = 864;
-		m_window->CreateFromNativeWindow(psio, m_appname, width, height);		
+		// 3. For D3D11 create default render states (renderer-wide, not per-window)
+		if (renderer_backend == hippios::RendererBackend::D3D11) {
+			createDefaultStencilStates();
+			createDefaultSamplers();
+		}
 
-		// create the default stencil states
+		// 4. Create scene manager
+		m_scene_manager = new SceneManager();		
+	}
+
+	Window* Core::createWindow(const std::string& title, int width, int height, const std::string& name)
+	{
+		auto* window = new Window(name);
+		window->init(m_renderer.get(), m_psio, title, width, height);
+
+		m_windows.push_back(window);
+
+		if (m_scene_manager)
+			m_scene_manager->registerWindow(window);
+
+		return window;
+	}
+
+	void Core::createDefaultStencilStates()
+	{
 		hippios::DepthStencilStateDesc desc;
+		
+		// Default state
 		desc.depth_enable = true;
 		desc.depth_write_mask = hippios::DepthWriteMask::DEPTH_WRITE_ALL;
 		desc.depth_func = hippios::ComparisonFunction::COMPARE_LESS;
 		desc.stencil_enable = false;
 		m_renderer->createStencilState("default", desc);
 
+		// Disabled state
 		desc.depth_enable = false;
 		desc.depth_write_mask = hippios::DepthWriteMask::DEPTH_WRITE_ZERO;
 		desc.depth_func = hippios::ComparisonFunction::COMPARE_ALWAYS;
 		desc.stencil_enable = false;
 		m_renderer->createStencilState("disabled", desc);
 		
+		// Skybox state
 		desc.depth_enable = true;
 		desc.depth_write_enable = false;
 		desc.depth_write_mask = hippios::DepthWriteMask::DEPTH_WRITE_ZERO;
 		desc.depth_func = hippios::ComparisonFunction::COMPARE_LESS_EQUAL;
 		desc.stencil_enable = false;
 		m_renderer->createStencilState("skybox", desc);
+	}
 
-		// create default samplers
-
+	void Core::createDefaultSamplers()
+	{
 		hippios::SamplerDesc sampler_desc;
-		// linear sampler
-		memset(&sampler_desc, 0, sizeof(sampler_desc));
-		sampler_desc.filter = SamplerDesc::Filter::LINEAR;
-		sampler_desc.address_u = SamplerDesc::AddressMode::WRAP;
-		sampler_desc.address_v = SamplerDesc::AddressMode::WRAP;
-		sampler_desc.address_w = SamplerDesc::AddressMode::WRAP;
-		sampler_desc.comparison_func = hippios::ComparisonFunction::COMPARE_NEVER;
-		sampler_desc.min_lod = 0;
-		sampler_desc.max_lod = FLT_MAX;
-		hippios::SamplerState* linear_sampler = m_renderer->createSampler(sampler_desc);
-		if (!linear_sampler)
-			LOG(LOG_ERROR) << "Could not create linear sampler";
-		else
-			m_sampler_states["linear"] = linear_sampler;
 		
-		// nearest sampler
+		// Linear sampler
 		memset(&sampler_desc, 0, sizeof(sampler_desc));
-		sampler_desc.filter = SamplerDesc::Filter::MIP_POINT; // Nearest-neighbor filtering
-		sampler_desc.address_u = SamplerDesc::AddressMode::CLAMP;
-		sampler_desc.address_v = SamplerDesc::AddressMode::CLAMP;
-		sampler_desc.address_w = SamplerDesc::AddressMode::CLAMP;
+		sampler_desc.filter = hippios::SamplerDesc::Filter::LINEAR;
+		sampler_desc.address_u = hippios::SamplerDesc::AddressMode::WRAP;
+		sampler_desc.address_v = hippios::SamplerDesc::AddressMode::WRAP;
+		sampler_desc.address_w = hippios::SamplerDesc::AddressMode::WRAP;
 		sampler_desc.comparison_func = hippios::ComparisonFunction::COMPARE_NEVER;
 		sampler_desc.min_lod = 0;
 		sampler_desc.max_lod = FLT_MAX;
+		
+		hippios::SamplerState* linear_sampler = m_renderer->createSampler(sampler_desc);
+		if (linear_sampler)
+			m_sampler_states["linear"] = linear_sampler;
+		else
+			LOG(LOG_ERROR) << "Could not create linear sampler";
+		
+		// Nearest sampler
+		memset(&sampler_desc, 0, sizeof(sampler_desc));
+		sampler_desc.filter = hippios::SamplerDesc::Filter::MIP_POINT;
+		sampler_desc.address_u = hippios::SamplerDesc::AddressMode::CLAMP;
+		sampler_desc.address_v = hippios::SamplerDesc::AddressMode::CLAMP;
+		sampler_desc.address_w = hippios::SamplerDesc::AddressMode::CLAMP;
+		sampler_desc.comparison_func = hippios::ComparisonFunction::COMPARE_NEVER;
+		sampler_desc.min_lod = 0;
+		sampler_desc.max_lod = FLT_MAX;
+		
 		hippios::SamplerState* nearest_sampler = m_renderer->createSampler(sampler_desc);
 		if (nearest_sampler)
 			m_sampler_states["nearest"] = nearest_sampler;
-		 else
+		else
 			LOG(LOG_ERROR) << "Could not create nearest sampler";
+	}
 
-		// add a scene manager 
-		m_scene_manager = new SceneManager();
-		m_scene_manager->setRenderer(m_renderer.get());
-		m_scene_manager->setRoot(m_window);
-		m_scene_manager->registerViewport(m_window);
-		m_scene_manager->registerWindow(m_window);
-	}	
+	hippios::WindowBackend Core::determineWindowBackend(const std::string& backend_name)
+	{
+		if (backend_name == "Win32") return hippios::WindowBackend::Win32;
+		if (backend_name == "X11") return hippios::WindowBackend::X11;
+		if (backend_name == "Wayland") return hippios::WindowBackend::Wayland;
+		if (backend_name == "SDL") return hippios::WindowBackend::SDL;
+		if (backend_name == "GLFW") return hippios::WindowBackend::GLFW;
+		
+		LOG(LOG_INFO) << "Unknown window backend: " << backend_name << ", defaulting to GLFW";
+		return hippios::WindowBackend::GLFW;
+	}
+
+	hippios::RendererBackend Core::determineRendererBackend(const std::string& backend)
+	{
+		if (backend == "d3d11") {
+#if defined(_WIN32) || defined(_WIN64)
+			m_renderer_backend = "d3d11";
+			return hippios::RendererBackend::D3D11;
+#else
+			LOG(LOG_INFO) << "D3D11 not supported on this platform, using OpenGL";
+			m_renderer_backend = "opengl";
+			return hippios::RendererBackend::OpenGL;
+#endif
+		}
+		
+		if (backend == "opengl") {
+			m_renderer_backend = "opengl";
+			return hippios::RendererBackend::OpenGL;
+		}
+		
+		// Auto-detect
+#if defined(_WIN32) || defined(_WIN64)
+		m_renderer_backend = "d3d11";
+		return hippios::RendererBackend::D3D11;
+#else
+		m_renderer_backend = "opengl";
+		return hippios::RendererBackend::OpenGL;
+#endif
+	}
 
 	int Core::loop(std::function<void()> onFrame)
 	{
@@ -188,18 +188,17 @@ namespace poseidon
 				quit = true;
 
 			// present pass for all windows
-			// currently only one
-			if (m_renderer->presentPass(m_window->getSwapChain()))
-				quit = true;
+			for (auto& win : m_windows) {
+				if (m_renderer->presentPass(win->getSwapChain()))
+					quit = true;
+			}
 		}
 		return 0;
 	}
 
 	int Core::iterate()
 	{
-		// prepare swapchain for rendering
-		if (!m_renderer->setActiveSwapChain(m_window->getSwapChain()))
-			return 1;
+		
 
 		// update passes
 
@@ -210,10 +209,18 @@ namespace poseidon
 		if (m_scene_manager->render())
 			quit = true;
 
-		// present pass for all windows
-		// currently only one
-		if (m_renderer->presentPass(m_window->getSwapChain()))
-			quit = true;
+		if (!quit) {
+			// present pass for all windows
+			for (auto& win : m_windows) {
+				// prepare swapchain for rendering
+				if (!m_renderer->setActiveSwapChain(win->getSwapChain()))
+					return 1;
+
+				
+				if (m_renderer->presentPass(win->getSwapChain()))
+					quit = true;
+			}
+		}
 
 		if (quit)
 			return 1;
@@ -298,7 +305,7 @@ namespace poseidon
 
 	void Core::SetFullscreen(bool mode)
 	{
-		m_window->SetFullscreen(mode);
+		m_windows[0]->SetFullscreen(mode);
 	}
 
 	hippios::GraphicsBuffer* Core::getGraphicsBuffer(std::string facility, size_t size)
@@ -315,5 +322,15 @@ namespace poseidon
 		auto* raw = newBuffer.get();
 		m_buffer_pool[desc] = std::move(newBuffer);
 		return raw;
+	}
+
+	void Core::initializeRenderStates()
+	{
+		m_scene_manager->setRenderer(m_renderer.get());
+
+		if (m_renderer->getRendererBackend() == hippios::RendererBackend::OpenGL) {
+			createDefaultStencilStates();
+			createDefaultSamplers();
+		}
 	}
 }

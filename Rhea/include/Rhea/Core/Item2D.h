@@ -21,11 +21,12 @@ namespace rhea
 			m_size(0.0f, 0.0f),
 			m_position(0.0f, 0.0f),
 			m_bg_image(nullptr),
-			m_material_dirty(false),
+			m_material_dirty(true),
 			m_tiling(math::Vector2(1.0f, 1.0f)),
 			m_scaling(math::Vector2(1.0f, 1.0f)),
 			m_viewport_width(0),
 			m_viewport_height(0),
+			m_render_dirty(true),			
 			Item(name, type_name)
 		{}
 
@@ -37,11 +38,17 @@ namespace rhea
 		// ready event handler
 		void ready();
 
-		virtual void setMesh();
+		void onParented() override;
+
+		virtual void syncRender();
+		void syncRenderTree();
+
+		virtual void invalidateRender() { m_render_dirty = true; }		
+
+		virtual void computeMesh();
 
 		void move(float _x, float _y) { m_position.x = _x; m_position.y = _y; }
 		void resize(float _w, float _h) { m_size.x = _w; m_size.y = _h; }
-		void update();
 
 		void setBackgroundColor(int r, int g, int b, float opacity = 1.0f);
 		void setBackgroundImage(ImageResource* tex);
@@ -54,6 +61,11 @@ namespace rhea
 
 		// viewport size event
 		bool onViewportSize(Event* ev, Unit* unit);
+		void setViewportSize(int width, int height);
+
+		// get viewport size
+		int getViewportWidth() { return m_viewport_width; }
+		int getViewportHeight() { return m_viewport_height; }
 
 	protected:
 		// dimensions in screen space
@@ -77,6 +89,9 @@ namespace rhea
 		// update (or create) the material if material is dirty
 		void UpdateMaterial();
 		std::unique_ptr<Material> m_material;
+
+		// flag if dirty and needs update
+		bool m_render_dirty;		
 
 		int m_viewport_width;
 		int m_viewport_height;

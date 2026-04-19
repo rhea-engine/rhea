@@ -26,6 +26,7 @@ namespace rhea
 	class EventInput;
 	class PhysicsService;
 	class ConfigFile;
+	class IInputService;
 
 	class Application
 	{
@@ -35,6 +36,8 @@ namespace rhea
 		void init(int argc, char* argv[]);
 		// set the applications name to appname
 		void setAppname(std::string appname) { m_appname = appname; };
+		// get the applications name
+		std::string getAppname() { return m_appname; }
 		// get a specific service
 		Service* getService(std::string name);
 		// register a service
@@ -148,6 +151,7 @@ namespace rhea
 		std::unordered_map<std::string, Service*> m_services;
 		PhysicsService* m_physics = nullptr;
 		Service* m_wold_service = nullptr;
+		IInputService* m_input_service = nullptr;
 
 		ResourceLoader m_resource_loader;
 

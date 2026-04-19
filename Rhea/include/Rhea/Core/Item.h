@@ -45,6 +45,9 @@ namespace rhea
 		// ready event handler
 		void ready();
 
+		// handle adding to tree
+		void onParented() override;
+
 		// get dependent data
 		//Mesh* getMesh() { if (getComponent<RenderComponent>()) return getComponent<RenderComponent>()->getMesh(); else return nullptr; }
 

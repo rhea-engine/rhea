@@ -168,6 +168,13 @@ namespace rhea
 		// register event handler in all children of the unit
 		void registerEventHandlerChildren(std::string event_name, void* owner, Event::EventHandler handler);
 
+		// check if an event-handler is registered for an event and an owner
+		bool hasEventHandler(const std::string& event_name, void* owner) const {
+			auto it = m_eventhandlers.find(event_name);
+			if (it == m_eventhandlers.end()) return false;
+			return it->second.find(owner) != it->second.end();
+		}
+
 		// send Event
 		void sendEvent(std::string event_name, Event* event);
 
@@ -186,7 +193,7 @@ namespace rhea
 
 		// execute handler on all children
 		// if the handler return false the traverse is stopped
-		void children(std::function<bool(std::string&, Component*)> handler);
+		void children(std::function<bool(std::string&, Component*)> handler, bool ordered = false);
 
 		// set Application
 		void setApplication(Application* app) { m_app = app; }
@@ -205,6 +212,7 @@ namespace rhea
 
 		// print my info
 		virtual void logMe();
+		
 	protected:
 		Application* m_app;
 		std::string m_path;

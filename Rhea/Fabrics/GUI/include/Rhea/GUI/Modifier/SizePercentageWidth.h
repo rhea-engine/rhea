@@ -41,7 +41,14 @@ namespace rhea {
 			max_inner_size = min_inner_size;
 		}
 
-		std::string name() { return "size_percentage_width"; }
+		std::string name() const override { return "size_percentage_width"; }
+
+		bool equals(const Modifier& other) const override {
+			if (other.name() != name())
+				return false;
+			const SizePercentageWidthModifier& o = static_cast<const SizePercentageWidthModifier&>(other);
+			return m_size == o.m_size;
+		}
 
 	protected:
 		float m_size;

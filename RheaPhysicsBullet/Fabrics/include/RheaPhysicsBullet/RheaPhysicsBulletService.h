@@ -51,6 +51,8 @@ namespace rhea::physics::bullet
 		using BulletDrawerFactory = std::function<rhea::IPhysicsDebugDraw* ()>;
 		void setDrawerFactory(BulletDrawerFactory f) { m_drawer_factory = f; }
 		rhea::IPhysicsDebugDraw* debugDraw() override { if (!m_debug_drawer && m_drawer_factory) m_debug_drawer = m_drawer_factory(); return m_debug_drawer; }
+		
+		bool onItemAdd(rhea::Event* ev, rhea::Unit* unit);
 
 	protected:
 		btDynamicsWorld* m_world;

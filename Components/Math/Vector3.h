@@ -105,6 +105,11 @@ namespace math
 			return ret;
 		}
 
+		Vector3 operator-() const
+		{
+			return Vector3(-x, -y, -z);
+		}
+
 
 
 		bool operator==(const Vector3& v) const

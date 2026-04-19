@@ -49,6 +49,7 @@ namespace rhea::physics::bullet {
         m_world->getBroadphase()->getOverlappingPairCache()->setInternalGhostPairCallback(new btGhostPairCallback());
         m_ghost_object->setCollisionShape(capsule);
         m_ghost_object->setCollisionFlags(btCollisionObject::CF_CHARACTER_OBJECT);
+		m_ghost_object->setUserPointer((void*)m_item);
 		m_world->addCollisionObject(m_ghost_object);
 		return true;
 	}

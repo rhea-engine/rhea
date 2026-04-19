@@ -6,6 +6,7 @@
 #include "BtCharacter.h"
 
 #include <bullet/src/btBulletDynamicsCommon.h>
+#include <bullet/src/BulletCollision/CollisionDispatch/btGhostObject.h>
 #include <Psio/Log.h>
 #include <Rhea/Application.h>
 #include <Rhea/UnitTree.h>
@@ -17,6 +18,7 @@
 #include "BulletHeightMap.h"
 #include <Rhea/Physics/PhysicsManagerService.h>
 #include <Rhea/Physics/PhysicsEvent.h>
+#include <Rhea/Physics/CollisionEvent.h>
 
 namespace rhea::physics::bullet
 {
@@ -50,9 +52,76 @@ namespace rhea::physics::bullet
 
 		m_world->stepSimulation(delta, 1);
 
+		// Collision Detection durchführen
+		int numManifolds = m_world->getDispatcher()->getNumManifolds();
+		for (int i = 0; i < numManifolds; i++)
+		{
+			btPersistentManifold* contactManifold = m_world->getDispatcher()->getManifoldByIndexInternal(i);
+			const btCollisionObject* objA = contactManifold->getBody0();
+			const btCollisionObject* objB = contactManifold->getBody1();
+
+			rhea::Item* itemA = doCast<rhea::Item>((simpleparser::Variant*)objA->getUserPointer());
+			rhea::Item* itemB = doCast<rhea::Item>((simpleparser::Variant*)objB->getUserPointer());
+
+			if (!itemA || !itemB) continue;
+
+			int numContacts = contactManifold->getNumContacts();
+			for (int j = 0; j < numContacts; j++)
+			{
+				btManifoldPoint& pt = contactManifold->getContactPoint(j);
+				if (pt.getDistance() < 0.f)
+				{
+					const btVector3& ptA = pt.getPositionWorldOnA();
+					const btVector3& normalOnB = pt.m_normalWorldOnB;
+
+					math::Vector3 collisionPoint(ptA.getX(), ptA.getY(), ptA.getZ());
+					math::Vector3 collisionNormal(normalOnB.getX(), normalOnB.getY(), normalOnB.getZ());
+
+					// Event an beide Items senden
+					auto evA = std::make_unique<rhea::CollisionEvent>(itemA, itemB, collisionPoint, collisionNormal);
+					itemA->sendEvent("collision", evA.get());
+
+					auto evB = std::make_unique<rhea::CollisionEvent>(itemB, itemA, collisionPoint, -collisionNormal);
+					itemB->sendEvent("collision", evB.get());
+				}
+			}
+		}
+
+		// HINZUGEFÜGT: Ghost Object Kollisionen für Kinematic Bodies
 		for (int j = m_world->getNumCollisionObjects() - 1; j >= 0; j--)
 		{
 			btCollisionObject* obj = m_world->getCollisionObjectArray()[j];
+			
+			// Prüfen ob es ein Ghost Object ist
+			if (obj->getInternalType() == btCollisionObject::CO_GHOST_OBJECT)
+			{
+				btGhostObject* ghost = static_cast<btGhostObject*>(obj);
+				rhea::Item* itemA = doCast<rhea::Item>((simpleparser::Variant*)ghost->getUserPointer());
+				
+				if (itemA) {
+					int numOverlaps = ghost->getNumOverlappingObjects();
+					for (int k = 0; k < numOverlaps; k++)
+					{
+						btCollisionObject* overlappingObj = ghost->getOverlappingObject(k);
+						rhea::Item* itemB = doCast<rhea::Item>((simpleparser::Variant*)overlappingObj->getUserPointer());
+						
+						if (itemB) {
+							// Collision Event senden (ohne genaue Kontaktpunkte)
+							auto evA = std::make_unique<rhea::CollisionEvent>(itemA, itemB, math::Vector3(0,0,0), math::Vector3(0,1,0));
+							itemA->sendEvent("collision", evA.get());
+						}
+					}
+				}
+			}
+		}
+
+		for (int j = m_world->getNumCollisionObjects() - 1; j >= 0; j--)
+		{
+			btCollisionObject* obj = m_world->getCollisionObjectArray()[j];
+
+			if (obj->getInternalType() == btCollisionObject::CO_GHOST_OBJECT)
+				continue;
+
 			rhea::Item* item = doCast<rhea::Item>((simpleparser::Variant*)obj->getUserPointer());
 
 			// TODO: optimize this by keeping track of dynamic objects in the world and only updating those
@@ -148,6 +217,20 @@ namespace rhea::physics::bullet
 
 			initializeItem(item);
 		}
+
+		scene->registerEventHandler(
+			"add_item", this,
+			std::bind(&BulletPhysicsService::onItemAdd, this, std::placeholders::_1, std::placeholders::_2)
+		);
+	}
+
+	bool BulletPhysicsService::onItemAdd(rhea::Event* ev, rhea::Unit* unit)
+	{
+		rhea::Item* item = doCast<rhea::Item>(ev->getTarget());
+		if (item)
+			initializeItem(item);
+
+		return false;
 	}
 
 	void BulletPhysicsService::initializeItem(rhea::Item* item)

@@ -5,6 +5,7 @@
 #include <memory>
 
 #include "Camera.h"
+#include "Window.h"
 #include <Math/Vector4.h>
 
 namespace psio
@@ -25,7 +26,6 @@ namespace poseidon
 	class Viewport;
 	class RenderQueue;
 	class Material;
-	class Window;
 
 	/** The scene that holds and organises the objects in the world
 	*/
@@ -48,23 +48,22 @@ namespace poseidon
 		bool render();
 
 		// set up the root node
-		void setRoot(Node* node) { m_tree = node; }
-		
-		// Viewports
-		void registerViewport(Viewport* viewport);
-		void deregisterViewport(Viewport* viewport);
-
-		// helper 
-		Viewport* getViewport(std::string name = "root");
+		void setRoot(Node* node) { m_tree = node; }		
 		
 		// window helper
 		Window* getWindow(psio::Window* win);
 		void registerWindow(Window* win) { m_windows.push_back(win); }
 
+		Viewport* getViewport() {
+			if (!m_windows.empty() && m_windows[0]) {
+				return m_windows[0]->getDefaultViewport();
+			}
+			return nullptr;
+		}
+
 	protected:
 		Node* m_tree = 0;
-		hippios::Renderer* m_renderer;
-		std::vector<Viewport*> m_viewports;
+		hippios::Renderer* m_renderer;		
 		std::vector<Window*> m_windows;
 		RenderQueue* m_rend_queue = NULL;
 		Material* m_current_material;

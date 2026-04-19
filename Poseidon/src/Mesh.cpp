@@ -4,6 +4,7 @@
 
 #include "Poseidon/Mesh.h"
 #include "Poseidon/Material.h"
+#include "Poseidon/Window.h"
 
 namespace poseidon
 {
@@ -78,6 +79,6 @@ namespace poseidon
 	void Mesh::setViewport(Viewport* viewport)
 	{
 		m_viewport = viewport;		
-		m_renderer = m_viewport->get_renderer();
+		m_renderer = m_viewport->getWindow()->getRenderer();
 	}	
 }

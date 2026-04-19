@@ -45,6 +45,7 @@ namespace rhea::client {
 		m_mx(0),
 		m_my(0),
 		m_fullscreen(false),
+		m_main_window(nullptr),
 		rhea::IGraphicsService(name, type_name)	
 	{
 		m_core = std::make_unique<poseidon::Core>();
@@ -126,7 +127,11 @@ namespace rhea::client {
 			return;
 		}
 
-		poseidon::Viewport* viewport = m_core->get_scene_manager()->getViewport();
+		if (!m_main_window) {
+			LOG(LOG_ERROR) << "GraphicsService::addItem: main window not initialized";
+			return;
+		}
+		poseidon::Viewport* viewport = m_main_window->getDefaultViewport();
 		if (!viewport) {
 			LOG(LOG_ERROR) << "GraphicsService::addItem: no viewport available";
 			return;
@@ -169,15 +174,16 @@ namespace rhea::client {
 				backend = config->getValueString("renderer.backend", "auto");
 			
 			m_core->init(static_cast<rhea::PlatformService*>(m_platform)->getEngine(), backend);
-			poseidon::Window* window = m_core->getRootWindow();
+			poseidon::Window* window = m_core->createWindow(m_app->getAppname(), 1152, 864, "root");
 			WindowRegistryService* window_registry = doCast<WindowRegistryService>(m_app->getService("window_registry"));
 			if (window && window_registry) {
 				window_registry->registerWindow(window);
 			}
+			m_main_window = window;
 		}
 
 		// create a render context for HUD / GUI
-		poseidon::Viewport* viewport = m_core->get_scene_manager()->getViewport();
+		poseidon::Viewport* viewport = m_main_window->getDefaultViewport();
 		std::string hud_context_name = "HUD";
 		poseidon::RenderContext* context = viewport->createRenderContext(hud_context_name);
 		context->setRenderOrderMode(poseidon::RenderContext::RenderOrderMode::TreeOrdered);
@@ -270,7 +276,11 @@ namespace rhea::client {
 		}
 		
 		std::string render_context_name = scene->getValueString("rendercontext", "default");
-		poseidon::RenderContext* render_context = scene_mgr->getViewport()->getRenderContext(render_context_name);
+		if (!m_main_window) {
+			LOG(LOG_ERROR) << "GraphicsService::showScene: main window not initialized";
+			return;
+		}
+		poseidon::RenderContext* render_context = m_main_window->getDefaultViewport()->getRenderContext(render_context_name);
 		if (!render_context) {
 			LOG(LOG_ERROR) << "GraphicsService::showScene: render context '" << render_context_name << "' not found";
 			return;
@@ -289,7 +299,7 @@ namespace rhea::client {
 			poseidon::RenderContext* target_ctx = render_context;
 
 			if (!item_ctx_name.empty()) {
-				target_ctx = scene_mgr->getViewport()->getRenderContext(item_ctx_name);
+				target_ctx = m_main_window->getDefaultViewport()->getRenderContext(item_ctx_name);
 				if (!target_ctx) {
 					LOG(LOG_ERROR) << "GraphicsService::showScene: render context '" 
 								<< item_ctx_name << "' not found for item '" 
@@ -311,7 +321,7 @@ namespace rhea::client {
 		}, false); // false = non-recursive, only direct children
 
 		// Handle any nested items with explicit rendercontext attribute
-		scene->traverse([scene, scene_mgr](std::string& name, rhea::Component* unit)->bool {
+		scene->traverse([scene, scene_mgr, this](std::string& name, rhea::Component* unit)->bool {
 			if (scene == unit)
 				return true;
 				
@@ -326,7 +336,7 @@ namespace rhea::client {
 				
 			std::string item_ctx_name = item->getValueString("rendercontext", "");
 			if (!item_ctx_name.empty()) {
-				poseidon::RenderContext* target_ctx = scene_mgr->getViewport()->getRenderContext(item_ctx_name);
+				poseidon::RenderContext* target_ctx = this->m_main_window->getDefaultViewport()->getRenderContext(item_ctx_name);
 				if (!target_ctx) {
 					LOG(LOG_ERROR) << "GraphicsService::showScene: render context '" 
 								<< item_ctx_name << "' not found for nested item '" 
@@ -410,21 +420,24 @@ namespace rhea::client {
 					// TODO handle special render targets that are not bound to this window
 					window->onResize(viewport_width, viewport_height);
 
-					// iterate over contexts and their cameras and set new values
-					float aspect_ratio = (float)viewport_width / (float)viewport_height;
-					for (const auto& context : window->getRenderContextList()) {
-						context->setSize((float)viewport_width, (float)viewport_height);
-						poseidon::Camera* cam = context->get_camera();
-						if (cam) {
-							cam->setAspectRatio(aspect_ratio);
-							cam->setOrthographicSize((float)viewport_height);
-							cam->updateProjection();
-							cam->updateView();
-						}
-						// send resize event to all render children - they may need to update render targets or similar
-						rhea::SizeEvent size_ev(nullptr, viewport_width, viewport_height);
-						for (auto& child : context->getRenderChildren()) {
-							child->sendEvent("viewport_size", &size_ev);
+					// iterate over all viewports and find those bound to this window, then update their contexts and cameras
+					for (auto& vp : window->getViewports()) {
+						// iterate over contexts and their cameras and set new values
+						float aspect_ratio = (float)viewport_width / (float)viewport_height;
+						for (const auto& context : vp->getRenderContextList()) {
+							context->setSize((float)viewport_width, (float)viewport_height);
+							poseidon::Camera* cam = context->get_camera();
+							if (cam) {
+								cam->setAspectRatio(aspect_ratio);
+								cam->setOrthographicSize((float)viewport_height);
+								cam->updateProjection();
+								cam->updateView();
+							}
+							// send resize event to all render children - they may need to update render targets or similar
+							rhea::SizeEvent size_ev(nullptr, viewport_width, viewport_height);
+							for (auto& child : context->getRenderChildren()) {
+								child->sendEvent("viewport_size", &size_ev);
+							}
 						}
 					}
 					sendEvent("resize", nullptr);

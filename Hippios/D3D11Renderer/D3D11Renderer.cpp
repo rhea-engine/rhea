@@ -341,6 +341,11 @@ namespace hippios {
 
 	SamplerState* D3D11Renderer::createSampler(const SamplerDesc& desc)
 	{
+		if (!ensureDevice()) {
+			LOG(LOG_ERROR) << "Failed to create D3D11 device for sampler creation";
+			return nullptr;
+		}
+
 		// Create default sampler states
 		D3D11_SAMPLER_DESC sampDesc;
 
@@ -394,6 +399,11 @@ namespace hippios {
 
 	std::unique_ptr<VertexBuffer> D3D11Renderer::createVertexBuffer(size_t vertexSize, size_t numVertices, bool dynamic)
 	{
+		if (!ensureDevice()) {
+			LOG(LOG_ERROR) << "Failed to create D3D11 device for vertex buffer creation";
+			return nullptr;
+		}
+
 		return std::make_unique<D3D11VertexBuffer>(m_device, m_device_context, vertexSize, numVertices, dynamic);
 	}
 	
@@ -518,11 +528,10 @@ namespace hippios {
 		if (!win)
 			return nullptr;
 
-		if (!m_device) {
-			HRESULT hr = createDevice(mDriverType, mMinRequestedFeatureLevel, mMaxRequestedFeatureLevel, &mFeatureLevel);
-			if (FAILED(hr))
-				return nullptr;
-		}
+		if (!ensureDevice()) {
+            LOG(LOG_ERROR) << "Failed to create D3D11 device for swap chain creation";
+            return nullptr;
+        }
 
 		IDXGISwapChain* d3_swap_chain = nullptr;
 		HRESULT hr = createSwapChainForWindow(win, &d3_swap_chain);
@@ -564,6 +573,11 @@ namespace hippios {
 
 	StencilState* D3D11Renderer::createStencilState(const std::string& name, const DepthStencilStateDesc& desc)
 	{
+		if (!ensureDevice()) {
+			LOG(LOG_ERROR) << "Failed to create D3D11 device for stencil state creation";
+			return nullptr;
+		}
+
 		D3D11StencilState* state = new D3D11StencilState(m_device, m_device_context, desc);
 		if (state) {
 			m_stencil_states[name].reset(state);
@@ -640,4 +654,13 @@ namespace hippios {
 			dst[i] = src[i];
 	}
 
+	bool D3D11Renderer::ensureDevice()
+	{
+		if (m_device && m_device_context) {
+			return true;
+		}
+
+		HRESULT hr = createDevice(mDriverType, mMinRequestedFeatureLevel, mMaxRequestedFeatureLevel, &mFeatureLevel);
+		return SUCCEEDED(hr);
+	}
 }

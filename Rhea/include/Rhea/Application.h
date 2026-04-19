@@ -36,6 +36,8 @@ namespace rhea
 		void init(int argc, char* argv[]);
 		// set the applications name to appname
 		void setAppname(std::string appname) { m_appname = appname; };
+		// get the applications name
+		std::string getAppname() { return m_appname; }
 		// get a specific service
 		Service* getService(std::string name);
 		// register a service

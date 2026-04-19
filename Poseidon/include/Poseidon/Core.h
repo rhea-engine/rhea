@@ -2,11 +2,13 @@
 #define POSEIDON_CORE_H
 
 #include <Psio/Psio.h>
+#include <Hippios/Renderer.h>
 
 #include <string>
 #include <functional>
 #include <memory>
 #include <unordered_map>
+#include <vector>
 
 namespace hippios { class Renderer; class GraphicsBuffer; class SamplerState; }
 
@@ -72,14 +74,19 @@ namespace poseidon
 		// fullscreen mode
 		void SetFullscreen(bool mode);
 
-		hippios::GraphicsBuffer* getGraphicsBuffer(std::string facility, size_t size);
+		hippios::GraphicsBuffer* getGraphicsBuffer(std::string facility, size_t size);		
 
-		poseidon::Window* getRootWindow() { return m_window ? m_window : nullptr; }
-
-	protected:
+		// Create additional windows (uses same renderer & states)
+		Window* createWindow(const std::string& title, int width, int height, const std::string& name = "");
+	
+	private:
+		void createDefaultStencilStates();
+		void createDefaultSamplers();
+		hippios::WindowBackend determineWindowBackend(const std::string& backend_name);
+		hippios::RendererBackend determineRendererBackend(const std::string& backend);
+	
 		std::unique_ptr<hippios::Renderer> m_renderer;
-		int quit = 0;
-		Window* m_window = 0;		
+		int quit = 0;				
 		SceneManager* m_scene_manager = 0;
 		std::string m_appname;
 		std::string m_renderer_backend;		
@@ -115,6 +122,7 @@ namespace poseidon
 			}
 		};
 		std::unordered_map<BufferDescription, std::unique_ptr<hippios::GraphicsBuffer>, BufferDescriptionHash, BufferDescriptionEqual> m_buffer_pool;
+		std::vector<Window*> m_windows; // For multi-window support
 	};
 }
 #endif // !POSEIDON_CORE_H

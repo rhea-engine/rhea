@@ -11,30 +11,25 @@ namespace poseidon
 {	
 	Viewport::Viewport(std::string name) :
 		m_name(name),
-		m_width(-1),
-		m_height(-1),
-		m_swapchain(nullptr)
+		m_x(0),
+		m_y(0),
+		m_width(0),
+		m_height(0)
 	{
 		m_groups.emplace("renderable", std::vector<Node*>());
+
+		// default context
+		std::string ctx_name = "default";
+		createRenderContext(ctx_name);
 	}
 
-	Viewport::~Viewport()
-	{
-		Node::~Node();
-	}
-
-	void Viewport::initRenderTarget(hippios::Renderer* renderer)
-	{		
-		m_renderer = renderer;
-	}
-
+	Viewport::~Viewport() = default;
+	
 	RenderContext* Viewport::getRenderContext(std::string& name)
 	{
-		for (auto it = m_render_contexts.begin(); it != m_render_contexts.end(); ++it)
-		{
-			RenderContext* context = (*it).get();
-			if (context->isName(name))
-				return context;
+		for (auto& rc : m_render_contexts) {
+			if (rc->isName(const_cast<std::string&>(name)))
+				return rc.get();
 		}
 		return nullptr;
 	}
@@ -42,27 +37,15 @@ namespace poseidon
 	RenderContext* Viewport::createRenderContext(std::string& name)
 	{
 		m_render_contexts.push_back(std::make_unique<RenderContext>(name));
+		m_render_contexts.back()->setSize((float)m_width, (float)m_height);
 		return m_render_contexts.back().get();
-	}
+	}	
 
-	void Viewport::createRenderTarget(int width, int height, hippios::SwapChain* swap_chain)
+	void Viewport::setRect(int x, int y, int width, int height)
 	{
-		m_width = width;
-		m_height = height;
-		m_swapchain = swap_chain;
-
-		hippios::RenderTargetDesc desc;
-		desc.type = hippios::RenderTargetType::SwapChain;
-		desc.width = width;
-		desc.height = height;
-		desc.swap_chain = swap_chain;
-		m_render_target = m_renderer->createRenderTarget(desc);
-
-		// create a default context
-		m_render_contexts.clear();
-		std::string name = "default";
-		RenderContext* context = createRenderContext(name);
-		context->setSize((float)width, (float)height);
+		m_x = x;
+		m_y = y;
+		onResize(width, height);
 	}
 
 	void Viewport::onResize(int width, int height)
@@ -71,11 +54,7 @@ namespace poseidon
 			return;
 
 		m_width = width;
-		m_height = height;
-
-		// Update render target
-		if (m_render_target)
-			m_render_target->resize(m_width, m_height);
+		m_height = height;		
 
 		// Update RenderContexts
 		for (auto& context : m_render_contexts) {

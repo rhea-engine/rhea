@@ -16,6 +16,13 @@ target_link_libraries(Ceto Rhea::Core RheaFabrics Rhea::Client  nlohmann_json::n
 add_executable (Headless "Headless.cpp" "Headless.h")
 target_link_libraries(Headless Rhea::Core nlohmann_json::nlohmann_json)
 
+# option to enable dev tools
+option(ENABLE_DEV_TOOLS "Enable development tools" ON)
+
+if(ENABLE_DEV_TOOLS)
+    add_definitions(-DCETO_DEV_TOOLS)
+endif()
+
 add_custom_command(TARGET Ceto POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory
                 ${CMAKE_CURRENT_SOURCE_DIR}/Assets

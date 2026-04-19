@@ -27,91 +27,240 @@
 #include <Rhea/GUI/GUIController.h>
 #include <Rhea/Core/Mesh.h>
 #include <Rhea/ConfigFile.h>
+#include <Rhea/GUI/Button.h>
+#include <Rhea/GUI/Dialog.h>
 
 bool Ceto::onQuit(rhea::Event* ev, rhea::Unit* unit)
 {
 	ev->stopPropagation();
 
+	// user confirmed quit
 	m_exiting = true;
 
+	return true;
+}
+
+bool Ceto::onQuitCancel(rhea::Event* ev, rhea::Unit* unit)
+{
+	ev->stopPropagation();
+
+	// user cancelled quit
+	m_gui_controller->closeDialog((rhea::Dialog*)unit);
+	// show realms dialog again
+	if (!inScene) {
+		// if we are not in a scene, show the realms dialog again
+		// if we are in a scene, we just stay there and ignore the quit request
+		rhea::Widget* w = doCast<rhea::Widget>(m_gui_controller->find("realms"));
+		if (w) {
+		//	m_gui_controller->openDialog((rhea::Dialog*)w);
+		}
+		return true;
+	}
 	return false;
 }
 
 bool Ceto::onInput(rhea::EventInput* e, rhea::Unit* unit)
 {
-	std::shared_ptr<psio::InputEvent> evt = e->getEvent();
+	rhea::InputEvent evt = e->getEvent();
 
-	// close on esc
-	psio::KeyInputEvent esc(psio::InputEventId::KEY_PRESSED);
-	esc.set(psio::Key::CODE_ESC, 0, 0);
+	if (handleAppShortcuts(evt))
+		return true;
 
-	if (evt->isEvent(&esc)) {
-		rhea::Widget* w = doCast<rhea::Widget>(m_unit_tree->find("//local/cetogui/gui/quit"));
-		if (w) {
-			w->show();
-			w = doCast<rhea::Widget>(m_unit_tree->find("//local/cetogui/gui/realms"));
-			if (w) {
-				w->hide();
-			}
-		}
-		return false;
+#if defined(CETO_DEV_TOOLS)
+	if (handleDevShortcuts(evt))
+		return true;
+#endif
+
+	return false;
+}
+
+bool Ceto::handleAppShortcuts(const rhea::InputEvent& evt)
+{
+	if (evt.isKeyPressed(rhea::Key::Escape)) {
+		openQuitDialog();
+		return true;
 	}
 
-	// open
-	esc.set(psio::Key::CODE_O, 0, 0);
-	if (evt->isEvent(&esc)) {
-		rhea::Widget* w = doCast<rhea::Widget>(m_unit_tree->find("//local/cetogui/gui/realms"));
-		if (w) {
-			w->show();
-		}
-		return false;
-	}	
-
-	// next frame of animation loop
-	esc.set(psio::Key::CODE_F, 0, 0);
-	if (evt->isEvent(&esc)) {
-		rhea::Item* gus2 = doCast<rhea::Item>(m_unit_tree->find("//local/scene1/gus2"));
-		if (gus2)
-		{
-			rhea::Animation* anim = nullptr;
-			rhea::Mesh* mesh = doCast<rhea::Mesh>(gus2->getChild("mesh"));
-			if (mesh) {
-				if (!walk_state) {
-					anim = doCast<rhea::Animation>(mesh->getChild("IdleAction"));
-					walk_state = 1;
-				}
-				else {
-					anim = doCast<rhea::Animation>(mesh->getChild("RunningAction"));
-					walk_state = 0;
-				}
-			}
-
-			rhea::Animator* animator = doCast<rhea::Animator>(m_unit_tree->find("//local/scene1/Animator"));
-			if (animator && anim) {
-				animator->PlayAnimation(anim);
-			}
-			/*
-			rhea::Skeleton* skeleton = doCast<rhea::Skeleton>(doCast<rhea::Mesh>(gus2->getChild("mesh"))->getSkeleton());
-			if (anim && skeleton) {
-				m_current_time += 0.05f;
-				if (m_current_time > anim->duration) {
-					m_current_time = fmod(m_current_time, anim->duration);
-				}
-				anim->UpdateSkeleton(skeleton, m_current_time);
-				//anim->Dump(skeleton);
-				// add the animator to the scene
-			//	rhea::Animator* animator = new rhea::Animator("Animator", "//meworla/animator");
-			//		animator->setSkeleton(skeleton);
-			//	animator->PlayAnimation(anim);
-				//scene->addChild(animator);
-			
-			}
-			*/
-		}
+	if (evt.isKeyPressed(rhea::Key::O)) {
+		openRealmDialog();
+		return true;
 	}
 
 	return false;
 }
+
+void Ceto::openQuitDialog()
+{
+	if (!m_gui_controller)
+		return;
+
+	rhea::Widget* w = doCast<rhea::Widget>(m_gui_controller->find("quit"));
+	if (w) {
+		m_gui_controller->openDialog((rhea::Dialog*)w);
+	}
+}
+
+void Ceto::openRealmDialog()
+{
+	if (!m_gui_controller)
+		return;
+
+	rhea::Widget* w = doCast<rhea::Widget>(m_gui_controller->find("realms"));
+	if (w) {
+		m_gui_controller->openDialog((rhea::Dialog*)w);
+	}
+}
+
+#if defined(CETO_DEV_TOOLS)
+bool Ceto::handleDevShortcuts(const rhea::InputEvent& evt)
+{
+	if (evt.isKeyPressed(rhea::Key::F)) {
+		devToggleSceneAnimation();
+		return true;
+	}
+
+	if (evt.isKeyPressed(rhea::Key::T)) {
+		devAddTestLabel();
+		return true;
+	}
+
+	if (evt.isKeyPressed(rhea::Key::Z)) {
+		devAddTestWidget();
+		return true;
+	}
+
+	if (evt.isKeyPressed(rhea::Key::U)) {
+		devAddTestButton();
+		return true;
+	}
+
+	if (evt.isKeyPressed(rhea::Key::I)) {
+		devAddTestDialog();
+		return true;
+	}
+
+	return false;
+}
+
+rhea::Widget* Ceto::getMainGuiRoot() const
+{
+	return doCast<rhea::Widget>(m_unit_tree->find("//local/cetogui/gui"));
+}
+
+void Ceto::devAddTestLabel()
+{
+	rhea::Widget* w = getMainGuiRoot();
+	if (!w)
+		return;
+
+	rhea::Label* test_label =
+		simpleparser::Type::create<rhea::Label>("testlabel_" + std::to_string(m_dev_test_counter));
+
+	std::unordered_map<std::string, Variant> values;
+	values["x"] = 60;
+	values["y"] = 80 + (m_dev_test_counter - 1) * 20;
+	values["w"] = 200;
+	values["h"] = 50;
+
+	test_label->setup(this, {}, values);
+	w->addChild(test_label);
+	test_label->ready();
+	test_label->setText("This is a test label " + std::to_string(m_dev_test_counter));
+	w->invalidateLayout();
+
+	++m_dev_test_counter;
+}
+
+void Ceto::devAddTestWidget()
+{
+	rhea::Widget* w = getMainGuiRoot();
+	if (!w)
+		return;
+
+	rhea::Widget* testw = simpleparser::Type::create<rhea::Widget>("testwidget");
+
+	std::unordered_map<std::string, Variant> values;
+	values["x"] = 100;
+	values["y"] = 100;
+	values["w"] = 200;
+	values["h"] = 50;
+	values["texture"] = "//local/darkred.png";
+
+	testw->setup(this, {}, values);
+	w->addChild(testw);
+	testw->ready();
+	w->invalidateLayout();
+}
+
+void Ceto::devAddTestButton()
+{
+	rhea::Widget* w = getMainGuiRoot();
+	if (!w)
+		return;
+
+	rhea::Button* testbtn = simpleparser::Type::create<rhea::Button>("testbutton");
+
+	std::unordered_map<std::string, Variant> values;
+	values["x"] = 100;
+	values["y"] = 100;
+	values["w"] = 200;
+	values["h"] = 50;
+	values["texture"] = "//local/darkred.png";
+	values["text"] = "Test Button";
+
+	testbtn->setup(this, {}, values);
+	w->addChild(testbtn);
+	testbtn->ready();
+	w->invalidateLayout();
+}
+
+void Ceto::devAddTestDialog()
+{
+	rhea::Widget* w = getMainGuiRoot();
+	if (!w)
+		return;
+
+	rhea::Dialog* testdlg = simpleparser::Type::create<rhea::Dialog>("testdialog");
+
+	std::unordered_map<std::string, Variant> values;
+	values["x"] = 100;
+	values["y"] = 100;
+	values["w"] = 200;
+	values["h"] = 250;
+	values["texture"] = "//local/darkred.png";
+
+	testdlg->setup(this, {}, values);
+	w->addChild(testdlg);
+	testdlg->ready();
+	w->invalidateLayout();
+}
+
+void Ceto::devToggleSceneAnimation()
+{
+	rhea::Item* gus2 = doCast<rhea::Item>(m_unit_tree->find("//local/scene1/gus2"));
+	if (!gus2)
+		return;
+
+	rhea::Animation* anim = nullptr;
+	rhea::Mesh* mesh = doCast<rhea::Mesh>(gus2->getChild("mesh"));
+	if (mesh) {
+		if (!walk_state) {
+			anim = doCast<rhea::Animation>(mesh->getChild("IdleAction"));
+			walk_state = 1;
+		}
+		else {
+			anim = doCast<rhea::Animation>(mesh->getChild("RunningAction"));
+			walk_state = 0;
+		}
+	}
+
+	rhea::Animator* animator = doCast<rhea::Animator>(m_unit_tree->find("//local/scene1/Animator"));
+	if (animator && anim) {
+		animator->PlayAnimation(anim);
+	}
+}
+
+#endif
 
 bool Ceto::onRealmSelect(rhea::Event* ev, rhea::Unit* unit)
 {
@@ -129,7 +278,7 @@ void Ceto::setRealmSelectDialog()
 	// show dialog
 	rhea::Widget* w = doCast<rhea::Widget>(m_unit_tree->find("//local/cetogui/gui/realms"));
 	if (w) {
-		w->show();
+		m_gui_controller->openDialog((rhea::Dialog*)w);
 	}
 }
 
@@ -137,7 +286,7 @@ void Ceto::openScene(std::string scene_name)
 {
 	rhea::Widget* w = doCast<rhea::Widget>(m_unit_tree->find("//local/cetogui/gui/realms"));
 	if (w) {
-		w->hide();
+		m_gui_controller->closeDialog((rhea::Dialog*)w);
 	}
 	m_home_scene = scene_name;
 
@@ -228,6 +377,8 @@ void Ceto::setScene(bool mark_preferrences)
 				w->UpdateStyle();
 			}				
 
+			inScene = true;
+
 			// display scene
 			std::string start_scene = scene->getValueString("startscene", "");
 			if (start_scene != "") {
@@ -255,7 +406,7 @@ void Ceto::setScene(bool mark_preferrences)
 			log("Could not open scene");
 			rhea::Widget* w = doCast<rhea::Widget>(m_unit_tree->find("//local/cetogui/gui/realms"));
 			if (w) {
-				w->hide();
+				m_gui_controller->closeDialog((rhea::Dialog*)w);
 			}
 			showAlert("Could not open scene");
 		}
@@ -371,6 +522,7 @@ void Ceto::loadMainGUI()
 			
 			gui->show();
 			m_gui = gui;
+			m_gui_controller = doCast<rhea::GUIController>(gui->find("gui"));
 			log("gui ready");
 			
 			// find label for debug text
@@ -382,6 +534,11 @@ void Ceto::loadMainGUI()
 			// setup system dialogs
 
 			// quit dialog
+			rhea::Dialog* quit_dlg = doCast<rhea::Dialog>(m_unit_tree->find("//local/cetogui/gui/quit"));
+			if (quit_dlg) {
+				quit_dlg->registerEventHandler("submitted", this, std::bind(&Ceto::onQuit, this, std::placeholders::_1, std::placeholders::_2));
+				quit_dlg->registerEventHandler("canceled", this, std::bind(&Ceto::onQuitCancel, this, std::placeholders::_1, std::placeholders::_2));
+			}
 			gui->registerEventHandler("quit", this, std::bind(&Ceto::onQuit, this, std::placeholders::_1, std::placeholders::_2));
 
 			// realm selection

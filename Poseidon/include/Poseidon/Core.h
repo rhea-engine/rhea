@@ -78,6 +78,8 @@ namespace poseidon
 
 		// Create additional windows (uses same renderer & states)
 		Window* createWindow(const std::string& title, int width, int height, const std::string& name = "");
+
+		void initializeRenderStates();
 	
 	private:
 		void createDefaultStencilStates();

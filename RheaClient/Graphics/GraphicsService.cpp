@@ -175,6 +175,11 @@ namespace rhea::client {
 			
 			m_core->init(static_cast<rhea::PlatformService*>(m_platform)->getEngine(), backend);
 			poseidon::Window* window = m_core->createWindow(m_app->getAppname(), 1152, 864, "root");
+			
+			// For OpenGL we nned to call is after window creation, for D3D12 it can be called before -
+			// but it needs to be called after backend initialization and before any render context creation
+			m_core->initializeRenderStates();
+			
 			WindowRegistryService* window_registry = doCast<WindowRegistryService>(m_app->getService("window_registry"));
 			if (window && window_registry) {
 				window_registry->registerWindow(window);

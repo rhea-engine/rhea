@@ -44,13 +44,14 @@ namespace poseidon
 		// 2. Create renderer (independent of windows)
 		m_renderer = hippios::Renderer::CreateRenderer(renderer_backend, win_backend);
 
-		// 3. Create default render states (renderer-wide, not per-window)
-		createDefaultStencilStates();
-		createDefaultSamplers();
+		// 3. For D3D11 create default render states (renderer-wide, not per-window)
+		if (renderer_backend == hippios::RendererBackend::D3D11) {
+			createDefaultStencilStates();
+			createDefaultSamplers();
+		}
 
 		// 4. Create scene manager
-		m_scene_manager = new SceneManager();
-		m_scene_manager->setRenderer(m_renderer.get());		
+		m_scene_manager = new SceneManager();		
 	}
 
 	Window* Core::createWindow(const std::string& title, int width, int height, const std::string& name)
@@ -321,5 +322,15 @@ namespace poseidon
 		auto* raw = newBuffer.get();
 		m_buffer_pool[desc] = std::move(newBuffer);
 		return raw;
+	}
+
+	void Core::initializeRenderStates()
+	{
+		m_scene_manager->setRenderer(m_renderer.get());
+
+		if (m_renderer->getRendererBackend() == hippios::RendererBackend::OpenGL) {
+			createDefaultStencilStates();
+			createDefaultSamplers();
+		}
 	}
 }

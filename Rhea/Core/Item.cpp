@@ -77,6 +77,13 @@ namespace rhea
 		bubbleEvent("attached_item", &add_event);
 	}
 
+	void Item::onRemoved()
+	{
+		Unit::onRemoved();
+		Event add_event("detached_item", this);
+		bubbleEvent("detached_item", &add_event);
+	}
+
 	Item* Item::instance(std::string name)
 	{
 		Item* new_item = (rhea::Item*)simpleparser::Type::create(name, getTypeName());

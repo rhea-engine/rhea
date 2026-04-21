@@ -46,11 +46,40 @@ namespace rhea::client {
 		}
 	}
 
+	void GraphicsSceneManager::removeItem(rhea::Unit* item)
+	{
+		rhea::Item* ritem = doCast<rhea::Item>(item);
+		if (!ritem) return;
+
+		// Get RenderComponent to access the stored render context
+		auto* rc = ritem->getComponent<rhea::client::RenderComponent>();
+		if (!rc) return;
+
+		// Remove from render context if present
+		if (rc->ctx) {
+			rc->ctx->removeRenderChild(ritem);
+			rc->ctx = nullptr;
+		}
+
+		// Note: GPU resources (entity, mesh) are NOT deleted here!
+		// They are managed by GraphicsItemManager::onItemDelete
+		// which is triggered by the Item's "delete" event
+	}
+
 	bool GraphicsSceneManager::onItemAdd(rhea::Event* ev, rhea::Unit* unit)
 	{		
 		rhea::Item* item = doCast<rhea::Item>(ev->getTarget());
 		if (item)
 			addItem(item);
+
+		return false;
+	}
+
+	bool GraphicsSceneManager::onItemRemove(rhea::Event* ev, rhea::Unit* unit)
+	{
+		rhea::Item* item = doCast<rhea::Item>(ev->getTarget());
+		if (item)
+			removeItem(item);
 
 		return false;
 	}
@@ -83,6 +112,10 @@ namespace rhea::client {
 		scene->registerEventHandler(
 			"add_item", this,
 			std::bind(&GraphicsSceneManager::onItemAdd, this, std::placeholders::_1, std::placeholders::_2)
+		);
+		scene->registerEventHandler(
+			"remove_item", this,
+			std::bind(&GraphicsSceneManager::onItemRemove, this, std::placeholders::_1, std::placeholders::_2)
 		);
 
 		return true;

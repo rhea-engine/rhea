@@ -48,6 +48,9 @@ namespace rhea
 		// handle adding to tree
 		void onParented() override;
 
+		// handle removing from tree
+		void onRemoved() override;
+
 		// get dependent data
 		//Mesh* getMesh() { if (getComponent<RenderComponent>()) return getComponent<RenderComponent>()->getMesh(); else return nullptr; }
 

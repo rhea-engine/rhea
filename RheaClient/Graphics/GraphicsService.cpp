@@ -108,6 +108,44 @@ namespace rhea::client {
 
 			if (rhea::Item* item = doCast<rhea::Item>(c)) {
 				getManager<rhea::Item>()->Ensure(m_core.get(), item);
+
+				// add to render context if parented to scene
+				rhea::Scene* scene = doCast<rhea::Scene>(item->getParent());
+				if (scene) {
+					std::string render_context_name = scene->getValueString("rendercontext", "default");
+					if (!m_main_window) {
+						LOG(LOG_ERROR) << "GraphicsService::showScene: main window not initialized";
+						return false;
+					}
+					poseidon::RenderContext* render_context = m_main_window->getDefaultViewport()->getRenderContext(render_context_name);
+					if (!render_context) {
+						LOG(LOG_ERROR) << "GraphicsService::showScene: render context '" << render_context_name << "' not found";
+						return false;
+					}
+					// Check if item has specific render context
+					std::string item_ctx_name = item->getValueString("rendercontext", "");
+					poseidon::RenderContext* target_ctx = render_context;
+
+					if (!item_ctx_name.empty()) {
+						target_ctx = m_main_window->getDefaultViewport()->getRenderContext(item_ctx_name);
+						if (!target_ctx) {
+							LOG(LOG_ERROR) << "GraphicsService::showScene: render context '"
+								<< item_ctx_name << "' not found for item '"
+								<< item->getPathName() << "'";
+							return true; // Continue with other items
+						}
+					}
+
+					// Add item to appropriate context
+					target_ctx->addRenderChild(item);
+
+					// Store context reference
+					auto* rc = item->getComponent<rhea::client::RenderComponent>();
+					if (rc) {
+						rc->ctx = target_ctx;
+					}
+				}
+
 				return true;
 			}
 

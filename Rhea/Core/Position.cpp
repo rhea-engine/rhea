@@ -1,4 +1,5 @@
 #include "Rhea/Core/Position.h"
+#include <Psio/Log.h>
 
 namespace rhea
 {
@@ -38,43 +39,45 @@ namespace rhea
 
 	void Position::setDirection(const Vector3& direction, const Vector3& localDirectionVector)
 	{
-		// The direction we want the local direction point to
 		Vector3 forward = direction.normalizedCopy();
+		if (forward == Vector3::ZERO)
+			return;
+		
 		m_dirty_wtm = true;
 
-		// Calculate target orientation relative to world space
-		Quaternion targetOrientation;
-		if (true) //(mYawFixed)
-		{
-			// Calculate the quaternion for rotate local Z to target direction
-			Vector3 yawAxis = m_yaw_fixed_axis;
-
-			/*
-			if (mInheritOrientation && mParent)
-			{
-				yawAxis = mParent->_getDerivedOrientation() * yawAxis;
-			}
-			*/
-
-			Vector3 right = yawAxis.crossProduct(forward);
-			right.normalize();
-			Vector3 up = forward.crossProduct(right);
-			up.normalize();			
-			Quaternion unitZToTarget = Quaternion(right, up, forward);
-
-			if (localDirectionVector == Vector3::NEGATIVE_UNIT_Z)
-			{
-				// Special case for avoid calculate 180 degree turn
-				targetOrientation =
-					Quaternion(-unitZToTarget.y, -unitZToTarget.z, unitZToTarget.w, unitZToTarget.x);
-			}
-			else
-			{
-				// Calculate the quaternion for rotate local direction to target direction
-				//Quaternion localToUnitZ = localDirectionVector.getRotationTo(Vector3::UNIT_Z);
-				//targetOrientation = unitZToTarget * localToUnitZ;
-			}
+		Vector3 yawAxis = m_yaw_fixed_axis;
+		Vector3 right = yawAxis.crossProduct(forward);
+		
+		// DEBUG: Check if cross product is zero (parallel vectors!)
+		if (right.length() < 0.0001f) {
+			LOG(LOG_ERROR) << "setDirection: forward and yawAxis are parallel! forward=" 
+			               << forward.x << "," << forward.y << "," << forward.z;
+			// Fallback: use a different up vector
+			yawAxis = Vector3::UNIT_X;
+			right = yawAxis.crossProduct(forward);
 		}
+		
+		right.normalize();
+		Vector3 up = forward.crossProduct(right);
+		up.normalize();
+
+		Quaternion targetOrientation;
+
+		if (localDirectionVector == Vector3::NEGATIVE_UNIT_Z)
+		{
+			targetOrientation = Quaternion(right, up, -forward);
+		}
+		else if (localDirectionVector == Vector3::UNIT_Z)
+		{
+			targetOrientation = Quaternion(right, up, forward);
+		}
+		else
+		{
+			targetOrientation = Quaternion(right, up, -forward);
+		}
+
+		LOG(LOG_DEBUG) << "setDirection result quat: " << targetOrientation.w << "," 
+		               << targetOrientation.x << "," << targetOrientation.y << "," << targetOrientation.z;
 
 		setOrientation(targetOrientation);
 	}

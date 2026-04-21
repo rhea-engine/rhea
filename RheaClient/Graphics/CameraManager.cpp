@@ -61,6 +61,15 @@ namespace rhea::client {
 		// set a default position
 		camera->getTransform()->get_position()->setPosition(m_position); 
 		camera->getTransform()->get_position()->lookAt(math::Vector3(0.0f, 0.0f, 0.0f), math::Vector3::UNIT_Z);
+
+		math::Quaternion rot_after = camera->getTransform()->get_position()->get_rotation();
+		
+		// Check if rotation is valid (not NaN)
+		if (std::isnan(rot_after.w) || std::isnan(rot_after.x) || std::isnan(rot_after.y) || std::isnan(rot_after.z)) {
+			LOG(LOG_ERROR) << "Camera rotation is NaN! Setting identity quaternion.";
+			camera->getTransform()->get_position()->setOrientation(math::Quaternion(1.0f, 0.0f, 0.0f, 0.0f));
+		}
+
 		rc->entity->setTransform(((rhea::Item* )unit)->getTransform());
 
 		static_cast<poseidon::Camera*>(rc->entity)->setAspectRatio((float)Width / (float)Height);

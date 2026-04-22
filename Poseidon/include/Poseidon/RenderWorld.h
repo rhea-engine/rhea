@@ -34,7 +34,7 @@ namespace poseidon
 
 		LightHandle createLight();
 		void destroyLight(LightHandle handle);
-
+		Light* resolveLight(LightHandle handle);
 	
 	private:
 		Core* m_core; // for resource creation, maybe not needed if you pass renderer directly to the world
@@ -42,20 +42,20 @@ namespace poseidon
 		struct RenderableRecord
 		{
 			poseidon::RenderableHandle id;
-			poseidon::Renderable* legacyPtr = nullptr; // temporary only
+			poseidon::Renderable* ptr = nullptr;
 			poseidon::Mesh* mesh = nullptr;
 		};
 
 		struct LightRecord
 		{
 			poseidon::LightHandle id;
-			// no legacy node required if you do not need one
+			poseidon::Light* ptr = nullptr;
 		};
 
 		struct CameraRecord
 		{
 			poseidon::CameraHandle id;
-			poseidon::Camera* legacyPtr = nullptr; // maybe direct camera object
+			poseidon::Camera* ptr = nullptr;
 		};
 
 		CameraHandle m_nextCameraId = 0;

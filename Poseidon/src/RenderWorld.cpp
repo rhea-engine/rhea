@@ -4,6 +4,7 @@
 #include <Poseidon/Entity.h>
 #include <Poseidon/Camera.h>
 #include <Poseidon/Renderable.h>
+#include <Poseidon/Light.h>
 
 namespace poseidon
 {
@@ -23,7 +24,7 @@ namespace poseidon
 	{
 		auto it = m_renderables.find(handle);
 		if (it != m_renderables.end()) {
-			delete it->second.legacyPtr;
+			delete it->second.ptr;
 			m_renderables.erase(it);
 		}
 	}
@@ -39,7 +40,8 @@ namespace poseidon
 	LightHandle RenderWorld::createLight()
 	{
 		LightHandle h = ++m_nextLightId;
-		m_lights[h] = { h };
+		Light* light = new Light();
+		m_lights[h] = { h, light };
 		return h;
 	}
 
@@ -47,15 +49,26 @@ namespace poseidon
 	{
 		auto it = m_lights.find(handle);
 		if (it != m_lights.end()) {
+			delete it->second.ptr;
 			m_lights.erase(it);
 		}
+	}
+
+	Light* RenderWorld::resolveLight(LightHandle handle)
+	{
+		auto it = m_lights.find(handle);
+		if (it != m_lights.end()) {		
+			return it->second.ptr;
+		}
+		else
+			return nullptr;
 	}
 
 	Camera* RenderWorld::resolveCamera(CameraHandle handle)
 	{
 		auto it = m_cameras.find(handle);
 		if (it != m_cameras.end())
-			return it->second.legacyPtr;
+			return it->second.ptr;
 		else
 			return nullptr;
 	}
@@ -64,7 +77,7 @@ namespace poseidon
 	{
 		auto it = m_cameras.find(handle);
 		if (it != m_cameras.end()) {
-			delete it->second.legacyPtr;
+			delete it->second.ptr;
 			m_cameras.erase(it);
 		}
 	}

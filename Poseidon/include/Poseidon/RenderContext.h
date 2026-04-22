@@ -41,7 +41,7 @@ namespace poseidon
 		bool isName(std::string& name) { return m_name == name; }
 
 		// get lights
-		void getLights(std::vector<rhea::Light*>& lights);		
+		const std::vector<LightHandle>& getLights() const { return m_lights; }
 
 		// add a light
 		void addLight(LightHandle handle);

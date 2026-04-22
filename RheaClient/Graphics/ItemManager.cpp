@@ -36,6 +36,11 @@ namespace rhea::client {
 		rhea::Item* item = doCast<rhea::Item>(unit);
 		if (!item) return false;
 
+		rhea::Light* light = doCast<rhea::Light>(item);
+		if (light) {
+			return m_service->getManager<rhea::Light>()->Ensure(core, light);
+		}
+
 		// register event handlers for delete and update - these will be called even if the item is not renderable, so we can catch changes to renderable state and mesh assignment
 		static auto deleteHandler = std::bind(&GraphicsItemManager::onItemDelete, this, std::placeholders::_1, std::placeholders::_2);
 		static auto updateHandler = std::bind(&GraphicsItemManager::onUpdate, this, std::placeholders::_1, std::placeholders::_2);
@@ -57,22 +62,8 @@ namespace rhea::client {
 
 		if (!rc) rc = item->addComponentUnique<RenderComponent>("renderer");
 
-		rhea::Light* light = doCast<rhea::Light>(item);
-		if (light) {
-			if (!rc->hasLight()) {
-				DLOG(LOG_DEBUG) << "GraphicsItemManager::Ensure: registering light";
-				poseidon::RenderContext* context = getRenderContext(core, "default");
-				if (context) {
-					rc->ctx = context;
-					rc->light = createLight(core);
-				}
-			}
-			return rc->hasLight();
-		}
-		else {
-			if (rc->hasRenderable())
-				return true;
-		}
+		if (rc->hasRenderable())
+			return true;
 
 		// Mesh handling
 		rhea::MeshComponent* mc = item->getComponent<rhea::MeshComponent>();

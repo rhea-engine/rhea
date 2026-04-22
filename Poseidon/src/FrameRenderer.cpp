@@ -11,6 +11,7 @@
 #include "Poseidon/Mesh.h"
 #include "Poseidon/Window.h"
 #include "Poseidon/RenderWorld.h"
+#include "Poseidon/Light.h"
 
 #include <Hippios/Renderer.h>
 #include <Hippios/GraphicsBuffer.h>
@@ -18,9 +19,6 @@
 #include <Rhea/Core/Shader.h>
 #include <RheaClient/Graphics/MaterialManager.h>
 #include <Rhea/Core/Mesh.h>
-#include <Rhea/Core/DirectionalLight.h>
-#include <Rhea/Core/PointLight.h>
-#include <Rhea/Core/SpotLight.h>
 #include <Rhea/Animation/Skeleton.h>
 #include <Rhea/Components/VisualComponent.h>
 #include <RheaClient/Components/RenderComponent.h>
@@ -180,62 +178,68 @@ namespace poseidon
 		m_renderer->bindGPUBuffer(m_frame_buffer.get(), 0, hippios::ShaderStage::Vertex);
 
 		// fill lights buffer
-		std::vector<rhea::Light*> lights;
-		context->getLights(lights);
 		light_buf = {};
-
-		// global ambient light
 		light_buf.ambient = context->getAmbient();
-
-		// iterate lights and add them to the light buffer
+		
 		int idx = 0;
-		for (std::vector<rhea::Light*>::iterator it = lights.begin(); it != lights.end(); ++it) {
-			if (idx >= MAX_LIGHTS) {
+		for (poseidon::LightHandle handle : context->getLights())
+		{
+			if (idx >= MAX_LIGHTS)
+				break;
+
+			poseidon::Light* light = world->resolveLight(handle);
+			if (!light)
+				continue;
+
+			if (!light->isVisible())
+				continue;
+
+			auto& dst = light_buf.lights[idx];
+			dst.specular = light->getSpecular();
+			dst.diffuse = light->getDiffuse();
+			dst.lightColor = light->getColor();
+
+			switch (light->getType())
+			{
+			case poseidon::Light::LightType::Directional:
+				dst.Type = 0.0f;
+				dst.direction = light->getDirection();
+				break;
+
+			case poseidon::Light::LightType::Point:
+			{
+				dst.Type = 1.0f;
+
+				math::Vector3 pos = light->getPosition();
+				dst.position = math::Quaternion(pos.x, pos.y, pos.z, 1.0f);
+
+				math::Vector3 attenuation = light->getAttenuation();
+				dst.ConstantAttenuation = attenuation.x;
+				dst.LinearAttenuation = attenuation.y;
+				dst.QuadraticAttenuation = attenuation.z;
 				break;
 			}
-			rhea::Light* light = doCast<rhea::Light>(*it);
-			if (light) {
-				light_buf.lights[idx].specular = light->getSpecular();
-				light_buf.lights[idx].diffuse = light->getDiffuse();
-				light_buf.lights[idx].lightColor = light->getColor();
 
-				rhea::DirectionalLight* dir_light = doCast<rhea::DirectionalLight>(*it);
-				if (dir_light) {
-					light_buf.lights[idx].Type = 0;
-					light_buf.lights[idx].direction = dir_light->getDirection();
-				}
-				else {
-					rhea::PointLight* point_light = doCast<rhea::PointLight>(*it);
-					if (point_light) {
-						light_buf.lights[idx].Type = 1;
-						Vector3 pos = point_light->getTransform()->get_position()->get_worldspace();
-						light_buf.lights[idx].position = math::Quaternion(pos.x, pos.y, pos.z, 1.0f);
-						math::Vector3 attenuation = point_light->getAttenuation();
-						light_buf.lights[idx].ConstantAttenuation = attenuation.x;
-						light_buf.lights[idx].LinearAttenuation = attenuation.y;
-						light_buf.lights[idx].QuadraticAttenuation = attenuation.z;
-					}
-					else
-					{
-						rhea::SpotLight* spot_light = doCast<rhea::SpotLight>(*it);
-						if (spot_light) {
-							light_buf.lights[idx].Type = 2;
-							Vector3 pos = point_light->getTransform()->get_position()->get_worldspace();
-							light_buf.lights[idx].position = math::Quaternion(pos.x, pos.y, pos.z, 1.0f);
-							pos = math::Vector3(-pos.x, -pos.y, -pos.z);
-							pos.normalize();
-							light_buf.lights[idx].direction = pos;
-							math::Vector3 attenuation = spot_light->getAttenuation();
-							light_buf.lights[idx].ConstantAttenuation = attenuation.x;
-							light_buf.lights[idx].LinearAttenuation = attenuation.y;
-							light_buf.lights[idx].QuadraticAttenuation = attenuation.z;
-							light_buf.lights[idx].ConeAngle = spot_light->getConeAngle();
-						}
-					}
-				}
+			case poseidon::Light::LightType::Spot:
+			{
+				dst.Type = 2.0f;
+
+				math::Vector3 pos = light->getPosition();
+				dst.position = math::Quaternion(pos.x, pos.y, pos.z, 1.0f);
+				dst.direction = light->getDirection();
+
+				math::Vector3 attenuation = light->getAttenuation();
+				dst.ConstantAttenuation = attenuation.x;
+				dst.LinearAttenuation = attenuation.y;
+				dst.QuadraticAttenuation = attenuation.z;
+				dst.ConeAngle = light->getConeAngle();
+				break;
 			}
-			idx++;
+			}
+
+			++idx;
 		}
+
 		light_buf.num_lights = (float)idx;
 		m_light_buffer->update((void*)&light_buf);
 		m_renderer->bindGPUBuffer(m_light_buffer.get(), 2, hippios::ShaderStage::Fragment);

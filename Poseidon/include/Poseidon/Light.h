@@ -9,33 +9,58 @@
 
 namespace poseidon
 {
-    enum class LightType
+    
+
+    class Light
     {
-        Directional,
-        Point,
-        Spot
-    };
+    public:
+        enum class LightType
+        {
+            Directional,
+            Point,
+            Spot
+        };
+        
+        void setType(LightType type) { m_type = type; }
+        LightType getType() const { return m_type; }
 
-    struct Light
-    {
-        LightHandle handle = InvalidLight;
-        LightType type = LightType::Point;
+        void setVisible(bool v) { m_visible = v; }
+        bool isVisible() const { return m_visible; }
 
-        math::Vector3 direction;
-        math::Quaternion position;
+        void setColor(const math::Vector3& c) { m_color = c; }
+        const math::Vector3& getColor() const { return m_color; }
 
-        math::Vector3 color;
-        math::Quaternion diffuse;
-        math::Quaternion specular;
+        void setDiffuse(const math::Quaternion& d) { m_diffuse = d; }
+        const math::Quaternion& getDiffuse() const { return m_diffuse; }
 
-        float coneAngle = 0.0f;
-        float constantAttenuation = 1.0f;
-        float linearAttenuation = 0.0f;
-        float quadraticAttenuation = 0.0f;
+        void setSpecular(const math::Quaternion& s) { m_specular = s; }
+        const math::Quaternion& getSpecular() const { return m_specular; }
 
-        bool visible = true;
+        void setPosition(const math::Vector3& p) { m_position = p; }
+        const math::Vector3& getPosition() const { return m_position; }
 
-        rhea::Light* sourceLight = nullptr;
+        void setDirection(const math::Vector3& d) { m_direction = d; }
+        const math::Vector3& getDirection() const { return m_direction; }
+
+        void setAttenuation(const math::Vector3& a) { m_attenuation = a; }
+        const math::Vector3& getAttenuation() const { return m_attenuation; }
+
+        void setConeAngle(float angle) { m_coneAngle = angle; }
+        float getConeAngle() const { return m_coneAngle; }
+
+    private:
+        LightType m_type = LightType::Point;
+        bool m_visible = true;
+
+        math::Vector3 m_color = math::Vector3::UNIT_SCALE;
+        math::Quaternion m_diffuse;
+        math::Quaternion m_specular;
+
+        math::Vector3 m_position = math::Vector3::ZERO;
+        math::Vector3 m_direction = math::Vector3::UNIT_Z;
+
+        math::Vector3 m_attenuation = math::Vector3(1.0f, 0.0f, 0.0f);
+        float m_coneAngle = 0.0f;
     };
 }
 

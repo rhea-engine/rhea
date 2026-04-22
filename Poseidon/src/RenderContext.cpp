@@ -15,22 +15,6 @@ namespace poseidon
 		m_size.max_depth = 1.0f;
 	}
 
-	void RenderContext::getLights(std::vector<rhea::Light*>& lights)
-	{
-		for (std::vector<Item*>::iterator it = m_render_children.begin(); it != m_render_children.end(); ++it)
-		{
-			rhea::Unit* robj = doCast<rhea::Unit>(*it);
-			if (robj) {
-				robj->traverse([&](std::string name, rhea::Component* uitem)->bool {
-					rhea::Light* light = doCast<rhea::Light>(uitem);
-					if (light)
-						lights.push_back(light);
-					return true;
-					});
-			}
-		}
-	}
-
 	void RenderContext::addLight(LightHandle handle)
 	{
 		m_lights.push_back(handle);

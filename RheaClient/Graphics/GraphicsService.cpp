@@ -39,6 +39,7 @@
 #include <Rhea/Physics/PhysicsManagerService.h>
 #include <Rhea/ConfigFile.h>
 #include <RheaClient/Window/WindowService.h>
+#include "LightManager.h"
 
 namespace rhea::client {
 	GraphicsService::GraphicsService(std::string name, std::string type_name) :
@@ -52,10 +53,11 @@ namespace rhea::client {
 		m_core = std::make_unique<poseidon::Core>();
 
 		addManager<rhea::Scene>(std::make_unique<GraphicsSceneManager>(this));
+		addManager<rhea::Light>(std::make_unique<GraphicsLightManager>(this)); 
 		addManager<rhea::Item>(std::make_unique<GraphicsItemManager>(this));
 		addManager<rhea::Mesh>(std::make_unique<GraphicsMeshManager>(this));
 		addManager<rhea::Material>(std::make_unique<GraphicsMaterialManager>(this));
-		addManager<rhea::Camera>(std::make_unique<GraphicsCameraManager>(this));
+		addManager<rhea::Camera>(std::make_unique<GraphicsCameraManager>(this));		
 	}
 
 	GraphicsService::~GraphicsService()

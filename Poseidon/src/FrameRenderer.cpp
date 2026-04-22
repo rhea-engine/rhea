@@ -157,7 +157,7 @@ namespace poseidon
 			camera = world->resolveCamera(context->getCameraHandle());
 
 		if (!camera)
-			return true;
+			return true; // not an error, just nothing to render for this context
 
 		// fill per frame buffer
 		per_frame_buf = {};
@@ -321,7 +321,7 @@ namespace poseidon
 				}
 				if (!m_current_material) {
 					printf("FrameRenderer::render: No shader found\n");
-					return true;
+					return false;
 				}
 
 				// set texture(s)
@@ -364,7 +364,7 @@ namespace poseidon
 				}
 			}
 		}
-		return false;
+		return true;
 	}
 
 	Window* FrameRenderer::getWindow(psio::Window* win)

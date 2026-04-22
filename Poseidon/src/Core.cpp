@@ -186,7 +186,7 @@ namespace poseidon
 				quit = true;
 
 			// main pass: render frame
-			if (m_frame_renderer->render(m_render_world.get()))
+			if (!m_frame_renderer->render(m_render_world.get()))
 				quit = true;
 
 			// present pass for all windows
@@ -208,7 +208,7 @@ namespace poseidon
 			quit = true;
 
 		// main pass: render frame
-		if (m_frame_renderer->render(m_render_world.get()))
+		if (!m_frame_renderer->render(m_render_world.get()))
 			quit = true;
 
 		if (!quit) {

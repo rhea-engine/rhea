@@ -23,6 +23,7 @@
 #include <RheaClient/Components/RenderComponent.h>
 #include "MeshManager.h"
 #include <Rhea/Components/MeshComponent.h>
+#include <Poseidon/RenderWorld.h>
 
 namespace rhea::client {
 	GraphicsItemManager::~GraphicsItemManager()
@@ -53,18 +54,24 @@ namespace rhea::client {
 
 		// Check if already exists
 		auto* rc = item->getComponent<RenderComponent>();
-		if (rc && rc->entity)
-			return true;
 
 		if (!rc) rc = item->addComponentUnique<RenderComponent>("renderer");
-		
-		// Special handling for light
+
 		rhea::Light* light = doCast<rhea::Light>(item);
 		if (light) {
-			DLOG(LOG_DEBUG) << "GraphicsItemManager::Ensure: light";			
-			poseidon::Renderable* light_entity = static_cast<poseidon::Renderable*>(
-				createEntity(rc, core, unit, "default", false));
-			return true;
+			if (!rc->hasLight()) {
+				DLOG(LOG_DEBUG) << "GraphicsItemManager::Ensure: registering light";
+				poseidon::RenderContext* context = getRenderContext(core, "default");
+				if (context) {
+					rc->ctx = context;
+					rc->light = createLight(core);
+				}
+			}
+			return rc->hasLight();
+		}
+		else {
+			if (rc->hasRenderable())
+				return true;
 		}
 
 		// Mesh handling
@@ -107,11 +114,11 @@ namespace rhea::client {
 		// Not renderable - clean up GPU resources if present
 		if (!item->isRenderable()) {
 			auto* rc = item->getComponent<RenderComponent>();
-			if (rc && rc->entity) {
+			if (rc && rc->hasRenderable()) {
 				if (rc->ctx)
 					rc->ctx->removeRenderChild(item);
-				delete rc->entity;
-				rc->entity = nullptr;
+				m_service->getEngine()->getRenderWorld()->destroyRenderable(rc->renderable);
+				rc->renderable = poseidon::InvalidRenderable;				
 				rc->gpuMesh = nullptr;
 			}
 			return true;
@@ -189,16 +196,35 @@ namespace rhea::client {
 		if (!item) return true;
 
 		auto* rc = item->getComponent<RenderComponent>();
-		if (rc) {
+		if (!rc) return true;
+
+		if (rc->hasRenderable()) {
 
 			if (rc->ctx)
 				rc->ctx->removeRenderChild(item);
 
-			if (rc->entity)
-				delete rc->entity;
-
-			rc->entity = nullptr;			
+			m_service->getEngine()->getRenderWorld()->destroyRenderable(rc->renderable);
+			rc->renderable = poseidon::InvalidRenderable;
 		}
+		if (rc->hasLight()) {
+			if (rc->ctx)
+				rc->ctx->removeLight(rc->light);
+			m_service->getEngine()->getRenderWorld()->destroyLight(rc->light);
+			rc->light = poseidon::InvalidLight;
+		}
+		if (rc->hasCamera()) {
+			if (rc->ctx) {
+				rc->ctx->setCameraHandle(poseidon::InvalidCamera);
+				rc->ctx->setCamera(nullptr);
+			}
+			m_service->getEngine()->getRenderWorld()->destroyCamera(rc->camera);
+			rc->camera = poseidon::InvalidCamera;
+		}
+
+		rc->ctx = nullptr;
+		rc->gpuMesh = nullptr;
+		rc->skeleton = nullptr;
+
 		return false;
 	}
 
@@ -242,12 +268,11 @@ namespace rhea::client {
 		}
 
 		// Create render entity if missing
-		if (!rc->entity) {
-			rc->entity = static_cast<poseidon::Renderable*>(
-				createRenderable(rc, core, item, shared, "default"));
+		if (!rc->hasRenderable()) {
+			rc->renderable = createRenderable(rc, core, item, shared, "default");
 			
-			if (!rc->entity) {
-				LOG(LOG_ERROR) << "  -> FAILED: createRenderable returned null for '" 
+			if (rc->renderable == poseidon::InvalidRenderable) {
+				LOG(LOG_ERROR) << "  -> FAILED: createRenderable returned invalid handle for '" 
 				               << item->getPathName() << "'";
 				return false;
 			}

@@ -1,0 +1,71 @@
+#include "Poseidon/RenderWorld.h"
+#include <Poseidon/Mesh.h>
+#include <Poseidon/Core.h>
+#include <Poseidon/Entity.h>
+#include <Poseidon/Camera.h>
+#include <Poseidon/Renderable.h>
+
+namespace poseidon
+{
+	RenderWorld::~RenderWorld()
+	{
+	}
+
+	RenderableHandle RenderWorld::createRenderable(Mesh* mesh)
+	{
+		auto* legacy = static_cast<Renderable*>(m_core->createEntity(mesh)); // old path, temporary
+		RenderableHandle h = ++m_nextRenderableId;
+		m_renderables[h] = { h, legacy };
+		return h;
+	}
+
+	void RenderWorld::destroyRenderable(RenderableHandle handle)
+	{
+		auto it = m_renderables.find(handle);
+		if (it != m_renderables.end()) {
+			delete it->second.legacyPtr;
+			m_renderables.erase(it);
+		}
+	}
+
+	CameraHandle RenderWorld::createCamera()
+	{
+		auto* cam = new Camera(m_core->get_renderer());
+		CameraHandle h = ++m_nextCameraId;
+		m_cameras[h] = { h, cam };
+		return h;
+	}
+
+	LightHandle RenderWorld::createLight()
+	{
+		LightHandle h = ++m_nextLightId;
+		m_lights[h] = { h };
+		return h;
+	}
+
+	void RenderWorld::destroyLight(LightHandle handle)
+	{
+		auto it = m_lights.find(handle);
+		if (it != m_lights.end()) {
+			m_lights.erase(it);
+		}
+	}
+
+	Camera* RenderWorld::resolveCamera(CameraHandle handle)
+	{
+		auto it = m_cameras.find(handle);
+		if (it != m_cameras.end())
+			return it->second.legacyPtr;
+		else
+			return nullptr;
+	}
+
+	void RenderWorld::destroyCamera(CameraHandle handle)
+	{
+		auto it = m_cameras.find(handle);
+		if (it != m_cameras.end()) {
+			delete it->second.legacyPtr;
+			m_cameras.erase(it);
+		}
+	}
+}

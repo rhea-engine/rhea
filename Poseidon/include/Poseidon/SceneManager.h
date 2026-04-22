@@ -18,6 +18,7 @@ namespace hippios
 {
 	class Renderer;
 	class GraphicsBuffer;
+	class RenderTarget;
 }
 
 namespace poseidon
@@ -26,6 +27,7 @@ namespace poseidon
 	class Viewport;
 	class RenderQueue;
 	class Material;
+	class RenderWorld;	
 
 	/** The scene that holds and organises the objects in the world
 	*/
@@ -45,7 +47,10 @@ namespace poseidon
 		bool update();
 
 		// render all viewports
-		bool render();
+		bool render(RenderWorld* world);
+		bool renderWindow(Window* window, RenderWorld* world);
+		bool renderViewport(Viewport* viewport, hippios::RenderTarget* target, RenderWorld* world);
+		bool renderContext(RenderContext* context, hippios::RenderTarget* target, RenderWorld* world);
 
 		// set up the root node
 		void setRoot(Node* node) { m_tree = node; }		

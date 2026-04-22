@@ -14,6 +14,7 @@
 #include "Poseidon/RenderContext.h"
 #include "Poseidon/Camera.h"
 #include "Poseidon/Window.h"
+#include "Poseidon/RenderWorld.h"
 
 #include <Rhea/Element.h>
 #include <RheaClient/Graphics/Texture.h>
@@ -232,8 +233,9 @@ namespace rhea::client {
 		context->setRenderOrderMode(poseidon::RenderContext::RenderOrderMode::TreeOrdered);
 		context->setStencilState(1);
 		// add a camera for this context
-		poseidon::Camera* cam = m_core->createCamera();
-		context->setCamera(cam);
+		poseidon::CameraHandle cam_handle = m_core->getRenderWorld()->createCamera();
+		poseidon::Camera* cam = m_core->getRenderWorld()->resolveCamera(cam_handle);
+		context->setCameraHandle(cam_handle);
 		int viewport_width = viewport->getWidth();
 		int viewport_height = viewport->getHeight();
 		if (!viewport_width)

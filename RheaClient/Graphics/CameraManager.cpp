@@ -3,6 +3,7 @@
 #include <Poseidon/Core.h>
 #include <Poseidon/SceneManager.h>
 #include <Poseidon/RenderContext.h>
+#include <Poseidon/RenderWorld.h>
 
 #include <RheaClient/Graphics/CameraManager.h>
 #include <Rhea/Unit.h>
@@ -10,20 +11,24 @@
 #include <Psio/Log.h>
 #include <RheaClient/Components/RenderComponent.h>
 
+#include <RheaClient/Graphics/GraphicsService.h>
+
 namespace rhea::client {
 	bool GraphicsCameraManager::Ensure(poseidon::Core* core, rhea::Unit* unit)
-	{	
+	{
 		rhea::Camera* camera = doCast<rhea::Camera>(unit);
 		if (!camera) return false;
 
 		// check if already exists
 		auto* rc = camera->getComponent<RenderComponent>();
-		if (rc && rc->entity)	return true;
 
 		if (!rc) rc = camera->addComponentUnique<RenderComponent>("renderer");
-		
+
+		if (rc->hasCamera())
+			return true;
+
 		// create
-		
+
 		poseidon::SceneManager* m_scene_mgr = core->get_scene_manager();
 		// get dimensions from viewport
 		poseidon::Viewport* viewport = m_scene_mgr->getViewport();
@@ -39,14 +44,15 @@ namespace rhea::client {
 			Height = 600.0f;
 
 		// add a graphics sys camera
-		rc->entity = core->createCamera();
 		
+		rc->camera = createCamera(core);
+
 		// TODO get viewport from setup
 
 		// get default viewport
 		std::string render_context = "default";
-		m_scene_mgr->getViewport()->getRenderContext(render_context)->setCamera(static_cast<poseidon::Camera*>(rc->entity));
-
+		m_scene_mgr->getViewport()->getRenderContext(render_context)->setCameraHandle(rc->camera);
+		
 		math::Vector3 m_position;
 		Variant pos_sit = unit->getValue("position");
 		if (pos_sit != Variant()) {
@@ -59,20 +65,19 @@ namespace rhea::client {
 			m_position = math::Vector3(0.0f, 0.0f, 0.0f);
 
 		// set a default position
-		camera->getTransform()->get_position()->setPosition(m_position); 
+		camera->getTransform()->get_position()->setPosition(m_position);
 		camera->getTransform()->get_position()->lookAt(math::Vector3(0.0f, 0.0f, 0.0f), math::Vector3::UNIT_Z);
 
 		math::Quaternion rot_after = camera->getTransform()->get_position()->get_rotation();
-		
+
 		// Check if rotation is valid (not NaN)
 		if (std::isnan(rot_after.w) || std::isnan(rot_after.x) || std::isnan(rot_after.y) || std::isnan(rot_after.z)) {
 			LOG(LOG_ERROR) << "Camera rotation is NaN! Setting identity quaternion.";
 			camera->getTransform()->get_position()->setOrientation(math::Quaternion(1.0f, 0.0f, 0.0f, 0.0f));
 		}
 
-		rc->entity->setTransform(((rhea::Item* )unit)->getTransform());
-
-		static_cast<poseidon::Camera*>(rc->entity)->setAspectRatio((float)Width / (float)Height);
+		syncCameraTransform(core, rc->camera, camera->getTransform());
+		syncCameraProjection(core, rc->camera, camera, Width, Height);
 
 		// register handlers
 		unit->registerEventHandler("delete", this, std::bind(&GraphicsCameraManager::onItemDelete, this, std::placeholders::_1, std::placeholders::_2));
@@ -97,16 +102,62 @@ namespace rhea::client {
 		if (!item) return true;
 
 		auto* rc = item->getComponent<RenderComponent>();
-		if (rc) {
+		if (!rc) return true;
 
-			if (rc->ctx)
-				rc->ctx->removeRenderChild(item);
-
-			if (rc->entity)
-				delete rc->entity;
-
-			rc->entity = nullptr;
+		if (rc->ctx) {
+			if (rc->ctx->get_camera() && rc->ctx->getCameraHandle() == rc->camera) {
+				rc->ctx->setCameraHandle(poseidon::InvalidCamera);				
+			}
 		}
+
+		if (rc->hasCamera()) {
+			m_service->getEngine()->getRenderWorld()->destroyCamera(rc->camera);
+
+			rc->camera = poseidon::InvalidCamera;
+		}
+
 		return false;
+	}
+
+	void GraphicsCameraManager::syncCameraTransform(
+		poseidon::Core* core,
+		poseidon::CameraHandle handle,
+		rhea::Transform* transform)
+	{
+		if (!core || handle == poseidon::InvalidCamera || !transform)
+			return;
+
+		poseidon::Camera* cam = core->getRenderWorld()->resolveCamera(handle);
+		if (!cam)
+			return;
+
+		cam->setTransform(transform);
+	}
+
+	void GraphicsCameraManager::syncCameraProjection(
+		poseidon::Core* core,
+		poseidon::CameraHandle handle,
+		rhea::Camera* sourceCamera,
+		float viewportWidth,
+		float viewportHeight)
+	{
+		if (!core || handle == poseidon::InvalidCamera)
+			return;
+
+		poseidon::Camera* cam = core->getRenderWorld()->resolveCamera(handle);
+		if (!cam)
+			return;
+
+		if (viewportWidth <= 0.0f)  viewportWidth = 800.0f;
+		if (viewportHeight <= 0.0f) viewportHeight = 600.0f;
+
+		cam->setAspectRatio(viewportWidth / viewportHeight);
+
+		// Optional later if your Rhea camera exposes these:
+		// cam->setOrthographic(sourceCamera->isOrthographic());
+		// cam->setOrthographicSize(sourceCamera->getOrthographicSize());
+		// cam->setNearClip(sourceCamera->getNearClip());
+		// cam->setFarClip(sourceCamera->getFarClip());
+		// cam->setFov(sourceCamera->getFov());
 	}
 }

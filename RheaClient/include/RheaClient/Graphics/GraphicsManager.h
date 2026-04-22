@@ -37,11 +37,13 @@ namespace rhea::client {
 		// renderables utility functions
 
 		// create a renderable mesh
-		poseidon::Node* createRenderable(RenderComponent* rc, poseidon::Core* core, rhea::Unit* item, poseidon::Mesh* mesh, std::string render_context_name);
+		poseidon::RenderableHandle createRenderable(RenderComponent* rc, poseidon::Core* core, rhea::Unit* item, poseidon::Mesh* mesh, std::string render_context_name);
+		poseidon::CameraHandle createCamera(poseidon::Core* core);
+		poseidon::LightHandle createLight(poseidon::Core* core);
 		
-		// create an entity
-		poseidon::Node* createEntity(RenderComponent* rc, poseidon::Core* core, rhea::Unit* item, std::string render_context_name, bool dynamic_usage);
-
+		// helper to find render context by name
+		poseidon::RenderContext* getRenderContext(poseidon::Core* core, std::string render_context_name);
+		
 		// set position from values to transform t
 		void setPosition(rhea::Unit* u, rhea::Transform* t);	
 	

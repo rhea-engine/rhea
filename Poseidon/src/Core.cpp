@@ -5,6 +5,7 @@
 #include "Poseidon/Shader.h"
 #include "Poseidon/Entity.h"
 #include "Poseidon/SceneManager.h"
+#include "Poseidon/RenderWorld.h"
 #include "Poseidon/Window.h"
 #include "Poseidon/Cubemap.h"
 
@@ -50,8 +51,9 @@ namespace poseidon
 			createDefaultSamplers();
 		}
 
-		// 4. Create scene manager
-		m_scene_manager = new SceneManager();		
+		// 4. Create scene manager and the render world
+		m_frame_renderer = std::make_unique<SceneManager>();
+		m_render_world = std::make_unique<RenderWorld>(this);		
 	}
 
 	Window* Core::createWindow(const std::string& title, int width, int height, const std::string& name)
@@ -61,8 +63,8 @@ namespace poseidon
 
 		m_windows.push_back(window);
 
-		if (m_scene_manager)
-			m_scene_manager->registerWindow(window);
+		if (m_frame_renderer)
+			m_frame_renderer->registerWindow(window);
 
 		return window;
 	}
@@ -180,11 +182,11 @@ namespace poseidon
 			
 			// update passes
 			
-			if (m_scene_manager->update())
+			if (m_frame_renderer->update())
 				quit = true;
 
 			// main pass: render frame
-			if (m_scene_manager->render())
+			if (m_frame_renderer->render(m_render_world.get()))
 				quit = true;
 
 			// present pass for all windows
@@ -202,11 +204,11 @@ namespace poseidon
 
 		// update passes
 
-		if (m_scene_manager->update())
+		if (m_frame_renderer->update())
 			quit = true;
 
 		// main pass: render frame
-		if (m_scene_manager->render())
+		if (m_frame_renderer->render(m_render_world.get()))
 			quit = true;
 
 		if (!quit) {
@@ -289,12 +291,6 @@ namespace poseidon
 		return entity;
 	}
 
-	Camera* Core::createCamera()
-	{
-		Camera* camera = new poseidon::Camera(m_renderer.get());
-		return camera;
-	}
-
 	hippios::SamplerState* Core::getSamplerState(std::string name)
 	{
 		if (m_sampler_states.find(name) != m_sampler_states.end())
@@ -326,7 +322,7 @@ namespace poseidon
 
 	void Core::initializeRenderStates()
 	{
-		m_scene_manager->setRenderer(m_renderer.get());
+		m_frame_renderer->setRenderer(m_renderer.get());
 
 		if (m_renderer->getRendererBackend() == hippios::RendererBackend::OpenGL) {
 			createDefaultStencilStates();

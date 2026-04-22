@@ -24,6 +24,7 @@ namespace poseidon
 	class Window;
 	class SceneManager;
 	class Camera;
+	class RenderWorld;
 
 	/** The holder of the scenen tree
 		Acts as a gateway to the grahpics engine system
@@ -34,7 +35,7 @@ namespace poseidon
 		Core();
 		~Core();
 		void init(psio::Engine* psio, std::string backend);
-		SceneManager* get_scene_manager() { return m_scene_manager; }
+		SceneManager* get_scene_manager() { return m_frame_renderer.get(); }
 		// handle one frame
 		int iterate();
 		// loop with onFrameCallback
@@ -63,7 +64,6 @@ namespace poseidon
 		Shader* createShader(std::string name);
 
 		Entity* createEntity(Mesh* mesh);
-		Camera* createCamera();		
 
 		// get sampler state by name
 		hippios::SamplerState* getSamplerState(std::string name);
@@ -80,16 +80,21 @@ namespace poseidon
 		Window* createWindow(const std::string& title, int width, int height, const std::string& name = "");
 
 		void initializeRenderStates();
+
+		RenderWorld* getRenderWorld() { return m_render_world.get(); }
+		SceneManager* getFrameRenderer() { return m_frame_renderer.get(); }
 	
 	private:
+		std::unique_ptr<RenderWorld> m_render_world;
+		std::unique_ptr<SceneManager> m_frame_renderer;
+
 		void createDefaultStencilStates();
 		void createDefaultSamplers();
 		hippios::WindowBackend determineWindowBackend(const std::string& backend_name);
 		hippios::RendererBackend determineRendererBackend(const std::string& backend);
 	
 		std::unique_ptr<hippios::Renderer> m_renderer;
-		int quit = 0;				
-		SceneManager* m_scene_manager = 0;
+		int quit = 0;						
 		std::string m_appname;
 		std::string m_renderer_backend;		
 

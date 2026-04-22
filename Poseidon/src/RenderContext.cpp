@@ -31,6 +31,17 @@ namespace poseidon
 		}
 	}
 
+	void RenderContext::addLight(LightHandle handle)
+	{
+		m_lights.push_back(handle);
+	}
+
+	void RenderContext::removeLight(LightHandle handle)
+	{
+		// remove light from light-list
+		m_lights.erase(std::remove(m_lights.begin(), m_lights.end(), handle), m_lights.end());
+	}
+
 	void RenderContext::cullObjects(RenderQueue* queue)
 	{
 		if (m_render_order_mode == RenderOrderMode::TreeOrdered) {
@@ -150,6 +161,11 @@ namespace poseidon
 			});
 	}
 
+	void RenderContext::AddRenderable(RenderableHandle handle)
+	{
+		m_renderables.push_back(handle);
+	}
+
 	void RenderContext::removeRenderChild(Item* child)
 	{
 		if (!child)
@@ -176,6 +192,11 @@ namespace poseidon
 
 			return true;
 		});
+	}
+
+	void RenderContext::RemoveRenderable(RenderableHandle handle)
+	{
+		m_renderables.erase(std::remove(m_renderables.begin(), m_renderables.end(), handle), m_renderables.end());
 	}
 
 	void RenderContext::rebuildRoots()

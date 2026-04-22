@@ -8,6 +8,7 @@
 #include <Rhea/Core/Item.h>
 #include <Rhea/Core/Light.h>
 #include <Hippios/BaseTypes.h>
+#include "RenderTypes.h"
 
 using rhea::Item;
 
@@ -40,7 +41,12 @@ namespace poseidon
 		bool isName(std::string& name) { return m_name == name; }
 
 		// get lights
-		void getLights(std::vector<rhea::Light*>& lights);
+		void getLights(std::vector<rhea::Light*>& lights);		
+
+		// add a light
+		void addLight(LightHandle handle);
+		// remove a light
+		void removeLight(LightHandle handle);
 
 		// cull the visible objects
 		void cullObjects(RenderQueue* queue);
@@ -49,6 +55,7 @@ namespace poseidon
 
 		// add render child
 		void addRenderChild(Item* child);
+		void AddRenderable(RenderableHandle handle);
 
 		// check if render child is already added
 		bool containsRenderChild(Item* item) const;
@@ -61,9 +68,13 @@ namespace poseidon
 
 		// remove render element
 		void removeRenderChild(Item* child);
+		void RemoveRenderable(RenderableHandle handle);		
 
-		Camera* get_camera() { return m_camera; };
-		void setCamera(Camera* camera);
+		Camera* get_camera() { return m_camera; }; // Legacy - use camera handle instead
+		void setCamera(Camera* camera); // Legacy - use camera handle instead
+
+		CameraHandle getCameraHandle() const { return m_camera_handle; }
+		void setCameraHandle(CameraHandle handle) { m_camera_handle = handle; }
 
 		// stencil state of the context
 		void setStencilState(int state_id) { m_stencil_state = state_id; }
@@ -85,7 +96,10 @@ namespace poseidon
 	protected:
 		std::string m_name;
 		Camera* m_camera;
+		CameraHandle m_camera_handle = InvalidCamera;
 		std::vector<Item*> m_render_children;
+		std::vector<RenderableHandle> m_renderables;
+		std::vector<LightHandle> m_lights;
 		int m_stencil_state;
 		math::Quaternion m_ambient;
 		hippios::ViewportDesc m_size;

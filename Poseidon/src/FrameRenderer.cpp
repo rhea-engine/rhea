@@ -1,5 +1,5 @@
 #define NOMINMAX
-#include "Poseidon/SceneManager.h"
+#include "Poseidon/FrameRenderer.h"
 #include "Poseidon/Node.h"
 #include "Poseidon/Viewport.h"
 #include "Poseidon/Renderable.h"
@@ -33,19 +33,19 @@ namespace poseidon
 		math::Matrix4 boneMatrices[100];
 	};
 
-	SceneManager::SceneManager() :
+	FrameRenderer::FrameRenderer() :
 		m_renderer(nullptr),
 		m_current_material(nullptr)
 	{
 		m_rend_queue = new RenderQueue();
 	}
 
-	SceneManager::~SceneManager()
+	FrameRenderer::~FrameRenderer()
 	{
 		// unique_ptrs handle cleanup of graphics buffers automatically
 	}
 
-	Node* SceneManager::get_root()
+	Node* FrameRenderer::get_root()
 	{
 		if (!m_tree) {
 			m_tree = createNode();
@@ -53,7 +53,7 @@ namespace poseidon
 		return m_tree;
 	}
 
-	void SceneManager::setRenderer(hippios::Renderer* renderer)
+	void FrameRenderer::setRenderer(hippios::Renderer* renderer)
 	{
 		m_renderer = renderer;
 
@@ -67,18 +67,18 @@ namespace poseidon
 		m_bone_buffer = m_renderer->createGraphicsBuffer(sizeof(BoneBuffer));
 	}
 
-	Node* SceneManager::createNode()
+	Node* FrameRenderer::createNode()
 	{
 		Node* node = new Node();
 		return node;
 	}
 
-	bool SceneManager::update()
+	bool FrameRenderer::update()
 	{
 		return false;
 	}
 
-	bool SceneManager::render(RenderWorld* world)
+	bool FrameRenderer::render(RenderWorld* world)
 	{
 		for (Window* window : m_windows) {
 			if (!window)
@@ -89,7 +89,7 @@ namespace poseidon
 		return true;
 	}
 
-	bool SceneManager::renderWindow(Window* window, RenderWorld* world)
+	bool FrameRenderer::renderWindow(Window* window, RenderWorld* world)
 	{
 		if (!window)
 			return false;
@@ -116,7 +116,7 @@ namespace poseidon
 		return true;
 	}
 
-	bool SceneManager::renderViewport(Viewport* viewport, hippios::RenderTarget* target, RenderWorld* world)
+	bool FrameRenderer::renderViewport(Viewport* viewport, hippios::RenderTarget* target, RenderWorld* world)
 	{
 		if (!viewport)
 			return false;
@@ -141,7 +141,7 @@ namespace poseidon
 		return true;
 	}
 
-	bool SceneManager::renderContext(RenderContext* context, hippios::RenderTarget* target, RenderWorld* world)
+	bool FrameRenderer::renderContext(RenderContext* context, hippios::RenderTarget* target, RenderWorld* world)
 	{
 		target->setViewport(context->getSize());
 
@@ -311,7 +311,7 @@ namespace poseidon
 				Material* mat = submesh->material;
 
 				if (!mat) {
-					DLOG(LOG_DEBUG) << "SceneManager::render: submesh " << i << " has no material - SKIPPING";
+					DLOG(LOG_DEBUG) << "FrameRenderer::render: submesh " << i << " has no material - SKIPPING";
 					continue;
 				}
 
@@ -320,7 +320,7 @@ namespace poseidon
 					mat->activate(3, 5);
 				}
 				if (!m_current_material) {
-					printf("SceneManager::render: No shader found\n");
+					printf("FrameRenderer::render: No shader found\n");
 					return true;
 				}
 
@@ -343,7 +343,7 @@ namespace poseidon
 				mesh->getRenderInput(i, &vb, &ib, num_indices);
 
 				if (!vb) {
-					DLOG(LOG_DEBUG) << "SceneManager::render: submesh " << i << " has no vertex buffer";
+					DLOG(LOG_DEBUG) << "FrameRenderer::render: submesh " << i << " has no vertex buffer";
 					continue;
 				}
 
@@ -359,7 +359,7 @@ namespace poseidon
 						m_renderer->drawIndexed(num_indices, 0, 0);
 					}
 					else {
-						DLOG(LOG_DEBUG) << "SceneManager::render: indexed mesh but num_indices=0 or no vb";
+						DLOG(LOG_DEBUG) << "FrameRenderer::render: indexed mesh but num_indices=0 or no vb";
 					}
 				}
 			}
@@ -367,7 +367,7 @@ namespace poseidon
 		return false;
 	}
 
-	Window* SceneManager::getWindow(psio::Window* win)
+	Window* FrameRenderer::getWindow(psio::Window* win)
 	{
 		for (std::vector<Window*>::iterator it = m_windows.begin(); it != m_windows.end(); ++it) {
 			Window* window = *it;

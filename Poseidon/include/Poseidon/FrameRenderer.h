@@ -1,5 +1,5 @@
-#ifndef POSEIDON_SCENEMANAGER_H
-#define POSEIDON_SCENEMANAGER_H
+#ifndef POSEIDON_FRAMERENDERER_H
+#define POSEIDON_FRAMERENDERER_H
 
 #include <vector>
 #include <memory>
@@ -31,11 +31,11 @@ namespace poseidon
 
 	/** The scene that holds and organises the objects in the world
 	*/
-	class SceneManager
+	class FrameRenderer
 	{
 	public:
-		SceneManager();
-		~SceneManager();
+		FrameRenderer();
+		~FrameRenderer();
 
 		Node* createNode();
 		Node* get_root();
@@ -145,4 +145,4 @@ namespace poseidon
 		std::unique_ptr<hippios::GraphicsBuffer> m_bone_buffer;
 	};
 }
-#endif // !POSEIDON_SCENEMANAGER_H
+#endif // !POSEIDON_FRAMERENDERER_H

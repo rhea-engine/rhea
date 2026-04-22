@@ -1,5 +1,5 @@
 #include <Poseidon/Core.h>
-#include <Poseidon/SceneManager.h>
+#include <Poseidon/FrameRenderer.h>
 #include <Poseidon/Entity.h>
 #include <Poseidon/Mesh.h>
 #include <Poseidon/RenderContext.h>
@@ -40,12 +40,12 @@ namespace rhea::client {
 
 	poseidon::RenderContext* GraphicsManager::getRenderContext(poseidon::Core* core, std::string render_context_name)
 	{
-		poseidon::SceneManager* scene_mgr = core->get_scene_manager();
-		if (!scene_mgr) {
-			LOG(LOG_ERROR) << "GraphicsManager::getRenderContext: no scene manager";
+		poseidon::FrameRenderer* frame_renderer = core->getFrameRenderer();
+		if (!frame_renderer) {
+			LOG(LOG_ERROR) << "GraphicsManager::getRenderContext: no frame renderer";
 			return nullptr;
 		}
-		poseidon::Viewport* viewport = scene_mgr->getViewport();
+		poseidon::Viewport* viewport = frame_renderer->getViewport();
 		if (!viewport) {
 			LOG(LOG_ERROR) << "No root viewport found - cannot get render context";
 			return nullptr;

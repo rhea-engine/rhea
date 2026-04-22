@@ -1,5 +1,5 @@
 #include <Poseidon/Entity.h>
-#include <Poseidon/SceneManager.h>
+#include <Poseidon/FrameRenderer.h>
 #include <Poseidon/Material.h>
 #include <Poseidon/Shader.h>
 #include <Poseidon/RenderContext.h>

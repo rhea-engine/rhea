@@ -22,7 +22,7 @@ namespace poseidon
 	class Entity;
 	class Mesh;
 	class Window;
-	class SceneManager;
+	class FrameRenderer;
 	class Camera;
 	class RenderWorld;
 
@@ -35,7 +35,7 @@ namespace poseidon
 		Core();
 		~Core();
 		void init(psio::Engine* psio, std::string backend);
-		SceneManager* get_scene_manager() { return m_frame_renderer.get(); }
+
 		// handle one frame
 		int iterate();
 		// loop with onFrameCallback
@@ -82,11 +82,11 @@ namespace poseidon
 		void initializeRenderStates();
 
 		RenderWorld* getRenderWorld() { return m_render_world.get(); }
-		SceneManager* getFrameRenderer() { return m_frame_renderer.get(); }
+		FrameRenderer* getFrameRenderer() { return m_frame_renderer.get(); }
 	
 	private:
 		std::unique_ptr<RenderWorld> m_render_world;
-		std::unique_ptr<SceneManager> m_frame_renderer;
+		std::unique_ptr<FrameRenderer> m_frame_renderer;
 
 		void createDefaultStencilStates();
 		void createDefaultSamplers();

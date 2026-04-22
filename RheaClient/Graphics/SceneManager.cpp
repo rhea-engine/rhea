@@ -1,4 +1,4 @@
-#include <Poseidon/SceneManager.h>
+#include <Poseidon/FrameRenderer.h>
 #include <Poseidon/Material.h>
 #include <Poseidon/Shader.h>
 #include <Math/Matrix3x4.h>
@@ -38,10 +38,10 @@ namespace rhea::client {
 			mgr->Ensure(m_core, item);
 		}
 		else if (doCast<rhea::Lighting>(item)) {
-			poseidon::SceneManager* scene_mgr = m_core->get_scene_manager();
-			if (scene_mgr) {
+			poseidon::FrameRenderer* frame_renderer = m_core->getFrameRenderer();
+			if (frame_renderer) {
 				std::string render_context = "default";
-				scene_mgr->getViewport()->getRenderContext(render_context)->setAmbient(doCast<rhea::Lighting>(item)->getAmbient());
+				frame_renderer->getViewport()->getRenderContext(render_context)->setAmbient(doCast<rhea::Lighting>(item)->getAmbient());
 			}		
 		}
 	}

@@ -41,7 +41,7 @@ void CubeApp::setup()
 
 	rhea::Application::setup();
 
-	m_scene = core->get_scene_manager();
+	m_scene = core->getFrameRenderer();
 	m_material = core->createMaterial();
 	poseidon::Shader* shader = core->createShader("uvshader_vp");
 #ifdef USE_WVP
@@ -59,7 +59,7 @@ void CubeApp::setup()
 
 void CubeApp::initialize()
 {
-	Viewport* viewport = core->get_scene_manager()->getViewport();
+	Viewport* viewport = core->getFrameRenderer()->getViewport();
 	
 	rhea::Scene* scene = new rhea::Scene("cubescene");
 	static_cast<rhea::GraphicsService*>(m_services["graphics"])->setScene(scene);

@@ -10,7 +10,7 @@
 
 #include "Poseidon/Core.h"
 #include "Poseidon/Viewport.h"
-#include "Poseidon/SceneManager.h"
+#include "Poseidon/FrameRenderer.h"
 #include "Poseidon/RenderContext.h"
 #include "Poseidon/Camera.h"
 #include "Poseidon/Window.h"
@@ -314,8 +314,8 @@ namespace rhea::client {
 			return;
 		}
 
-		poseidon::SceneManager* scene_mgr = m_core->get_scene_manager();
-		if (!scene_mgr) {
+		poseidon::FrameRenderer* frame_renderer = m_core->getFrameRenderer();
+		if (!frame_renderer) {
 			LOG(LOG_ERROR) << "GraphicsService::showScene: no scene manager";
 			return;
 		}
@@ -366,7 +366,7 @@ namespace rhea::client {
 		}, false); // false = non-recursive, only direct children
 
 		// Handle any nested items with explicit rendercontext attribute
-		scene->traverse([scene, scene_mgr, this](std::string& name, rhea::Component* unit)->bool {
+		scene->traverse([scene, frame_renderer, this](std::string& name, rhea::Component* unit)->bool {
 			if (scene == unit)
 				return true;
 				
@@ -504,8 +504,8 @@ namespace rhea::client {
 		rhea::PhysicsService* phys = mgr->getPhysicsService();
 		if (!phys) return nullptr;
 		std::string def = "default";
-		poseidon::Viewport* viewport = m_core->get_scene_manager()->getViewport();
-		poseidon::Camera* camera = m_core->get_scene_manager()->getViewport()->getRenderContext(def)->get_camera();
+		poseidon::Viewport* viewport = m_core->getFrameRenderer()->getViewport();
+		poseidon::Camera* camera = m_core->getFrameRenderer()->getViewport()->getRenderContext(def)->get_camera();
 		if (!camera) return nullptr;
 			
 		// compute the ray
@@ -524,7 +524,7 @@ namespace rhea::client {
 				// prepare debug item
 
 				m_mesh = new poseidon::Mesh();
-				m_mesh->setViewport(m_app->get_core()->get_scene_manager()->getViewport());
+				m_mesh->setViewport(m_app->get_core()->getFrameRenderer()->getViewport());
 				poseidon::Entity* entity = m_core->createEntity(m_mesh);
 				entity->setName("ray_test");
 				poseidon::Material* material = m_app->get_core()->getMaterial("color");

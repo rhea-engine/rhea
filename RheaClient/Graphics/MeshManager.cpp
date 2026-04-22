@@ -2,7 +2,7 @@
 #include <Rhea/Core/Item.h>
 #include <Rhea/Core/Mesh.h>
 #include <Poseidon/Mesh.h>
-#include <Poseidon/SceneManager.h>
+#include <Poseidon/FrameRenderer.h>
 #include <Psio/Log.h>
 #include <Rhea/Core/Material.h>
 #include <RheaClient/Graphics/GraphicsService.h>

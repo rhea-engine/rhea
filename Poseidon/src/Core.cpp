@@ -4,7 +4,7 @@
 #include "Poseidon/Material.h"
 #include "Poseidon/Shader.h"
 #include "Poseidon/Entity.h"
-#include "Poseidon/SceneManager.h"
+#include "Poseidon/FrameRenderer.h"
 #include "Poseidon/RenderWorld.h"
 #include "Poseidon/Window.h"
 #include "Poseidon/Cubemap.h"
@@ -52,7 +52,7 @@ namespace poseidon
 		}
 
 		// 4. Create scene manager and the render world
-		m_frame_renderer = std::make_unique<SceneManager>();
+		m_frame_renderer = std::make_unique<FrameRenderer>();
 		m_render_world = std::make_unique<RenderWorld>(this);		
 	}
 

@@ -1,7 +1,7 @@
 #include <Poseidon/Viewport.h>
 #include <Poseidon/Camera.h>
 #include <Poseidon/Core.h>
-#include <Poseidon/SceneManager.h>
+#include <Poseidon/FrameRenderer.h>
 #include <Poseidon/RenderContext.h>
 #include <Poseidon/RenderWorld.h>
 
@@ -29,9 +29,9 @@ namespace rhea::client {
 
 		// create
 
-		poseidon::SceneManager* m_scene_mgr = core->get_scene_manager();
+		poseidon::FrameRenderer* frame_renderer = core->getFrameRenderer();
 		// get dimensions from viewport
-		poseidon::Viewport* viewport = m_scene_mgr->getViewport();
+		poseidon::Viewport* viewport = frame_renderer->getViewport();
 		if (!viewport) {
 			LOG(LOG_ERROR) << "No root viewport found - cannot set camera";
 			return false;
@@ -51,7 +51,7 @@ namespace rhea::client {
 
 		// get default viewport
 		std::string render_context = "default";
-		m_scene_mgr->getViewport()->getRenderContext(render_context)->setCameraHandle(rc->camera);
+		frame_renderer->getViewport()->getRenderContext(render_context)->setCameraHandle(rc->camera);
 		
 		math::Vector3 m_position;
 		Variant pos_sit = unit->getValue("position");

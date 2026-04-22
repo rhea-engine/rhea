@@ -1,5 +1,5 @@
 #include <RheaClient/Graphics/MeshGpuCache.h>
-#include <Poseidon/SceneManager.h>
+#include <Poseidon/FrameRenderer.h>
 
 namespace rhea::client
 {
@@ -12,7 +12,7 @@ namespace rhea::client
         if (it != m_cache.end()) return it->second.get();
 
         auto poseMesh = std::make_unique<poseidon::Mesh>(dynamic_usage);
-        poseMesh->setViewport(core->get_scene_manager()->getViewport());
+        poseMesh->setViewport(core->getFrameRenderer()->getViewport());
 
         if (builder) {
             if (!builder(core, meshUnit, poseMesh.get())) {

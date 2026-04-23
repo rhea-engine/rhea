@@ -5,7 +5,6 @@
 #include "RenderTypes.h"
 #include <Math/Quaternion.h>
 #include <Math/Vector3.h>
-#include <Rhea/Core/Light.h>
 
 namespace poseidon
 {

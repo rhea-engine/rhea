@@ -24,6 +24,7 @@
 #include "MeshManager.h"
 #include <Rhea/Components/MeshComponent.h>
 #include <Poseidon/RenderWorld.h>
+#include "TransformListener.h"
 
 namespace rhea::client {
 	GraphicsItemManager::~GraphicsItemManager()
@@ -64,6 +65,12 @@ namespace rhea::client {
 
 		if (rc->hasRenderable())
 			return true;
+
+		auto* tl = item->getComponent<TransformListener>();
+		if (!tl) {
+			tl = item->addComponentUnique<TransformListener>("transform_listener");
+			tl->setGraphicsManager(this);
+		}
 
 		// Mesh handling
 		rhea::MeshComponent* mc = item->getComponent<rhea::MeshComponent>();
@@ -119,6 +126,11 @@ namespace rhea::client {
 		if (!rc) {
 			// Newly renderable - create RenderComponent
 			rc = item->addComponentUnique<RenderComponent>("renderer");
+		}
+		auto* tl = item->getComponent<TransformListener>();
+		if (!tl) {
+			tl = item->addComponentUnique<TransformListener>("transform_listener");
+			tl->setGraphicsManager(this);
 		}
 
 		rhea::MeshComponent* mc = item->getComponent<rhea::MeshComponent>();
@@ -178,7 +190,17 @@ namespace rhea::client {
 			}
 		}
 
+		syncRenderable(core, item, rc);
 		return false;
+	}
+
+	void GraphicsItemManager::onTransformUpdate(rhea::Unit* unit)
+	{
+		rhea::Item* item = doCast<rhea::Item>(unit);
+		if (!item) return;
+		auto* rc = item->getComponent<RenderComponent>();
+		if (!rc || !rc->hasRenderable()) return;
+		syncRenderable(m_service->getEngine(), item, rc);
 	}
 
 	bool GraphicsItemManager::onItemDelete(rhea::Event* ev, rhea::Unit* unit)
@@ -267,8 +289,65 @@ namespace rhea::client {
 				               << item->getPathName() << "'";
 				return false;
 			}
+
+			if (!syncRenderable(core, item, rc)) {
+				LOG(LOG_ERROR) << "GraphicsItemManager::createGPUResources: syncRenderable failed for '"
+					<< item->getPathName() << "'";
+				return false;
+			}
 		}
 
+		return true;
+	}
+
+	bool GraphicsItemManager::syncRenderable(poseidon::Core* core, rhea::Item* item, RenderComponent* rc)
+	{
+		if (!core || !item || !rc || !rc->hasRenderable())
+			return false;
+
+		poseidon::Renderable* renderable = core->getRenderWorld()->resolveRenderable(rc->renderable);
+		if (!renderable)
+			return false;
+
+		// mesh
+		renderable->mesh = rc->gpuMesh;
+
+		auto* vis = item->getComponent<rhea::VisualComponent>();
+		if (vis) {
+			renderable->visible = vis->isVisible();
+		//	renderable->castsShadow = vis->castsShadow();
+		//	renderable->receivesShadow = vis->receivesShadow();
+		//	renderable->renderLayers = vis->getRenderLayers();
+		}
+
+		// optional migration/debug reference
+
+		// skeleton
+		renderable->skeleton = rc->skeleton;
+
+		return syncTransform(core, item, rc);
+	}
+
+	bool GraphicsItemManager::syncTransform(poseidon::Core* core, rhea::Item* item, RenderComponent* rc)
+	{
+		poseidon::Renderable* renderable = core->getRenderWorld()->resolveRenderable(rc->renderable);
+		if (!renderable)
+			return false;
+
+		// transform copy
+		rhea::Transform* transform = item->getTransform();
+		if (transform) {
+			Position* position = transform->get_derived_position();
+			if (position) {
+				math::Matrix3x4 model_wtm = position->getWorldTransform();
+
+				math::Matrix4 world = model_wtm;
+				math::Matrix4 inverse = world.inverse().transpose();
+
+				renderable->worldTransform = world;
+				renderable->inverseTranspose = inverse;
+			}
+		}
 		return true;
 	}
 }

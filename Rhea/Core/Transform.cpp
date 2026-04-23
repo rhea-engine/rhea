@@ -1,5 +1,6 @@
 #include "Rhea/Core/Transform.h"
 #include "Rhea/Core/Item.h"
+#include <Psio/Log.h>
 
 namespace rhea
 {

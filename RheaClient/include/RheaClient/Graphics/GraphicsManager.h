@@ -34,6 +34,9 @@ namespace rhea::client {
 		// handle frame update
 		virtual void onFrame() = 0;
 
+		// handle transform update
+		virtual void onTransformUpdate(rhea::Unit* unit) {};
+
 		// renderables utility functions
 
 		// create a renderable mesh

@@ -15,13 +15,7 @@
 
 #include <Hippios/Renderer.h>
 #include <Hippios/GraphicsBuffer.h>
-#include <Rhea/Core/Material.h>
-#include <Rhea/Core/Shader.h>
-#include <RheaClient/Graphics/MaterialManager.h>
-#include <Rhea/Core/Mesh.h>
-#include <Rhea/Animation/Skeleton.h>
-#include <Rhea/Components/VisualComponent.h>
-#include <RheaClient/Components/RenderComponent.h>
+
 #include <Psio/Log.h>
 #include <algorithm>
 
@@ -230,7 +224,7 @@ namespace poseidon
 
 				math::Vector3 attenuation = light->getAttenuation();
 				dst.ConstantAttenuation = attenuation.x;
-				dst.LinearAttenuation = attenuation.y;
+				dst.LinearAttenuation = attenuation.y;	
 				dst.QuadraticAttenuation = attenuation.z;
 				dst.ConeAngle = light->getConeAngle();
 				break;
@@ -244,50 +238,42 @@ namespace poseidon
 		m_light_buffer->update((void*)&light_buf);
 		m_renderer->bindGPUBuffer(m_light_buffer.get(), 2, hippios::ShaderStage::Fragment);
 
-		Item* renderable = m_rend_queue->first();
-		for (Item* renderable = m_rend_queue->first(); renderable != NULL; renderable = m_rend_queue->next()) {
-
-			auto* vis = renderable->getComponent<rhea::VisualComponent>();
-			if (!vis || !vis->isVisible()) continue;
-
-			// get render information
-			rhea::client::RenderComponent* r_comp = renderable->getComponent<rhea::client::RenderComponent>();
-			if (!r_comp)
+		for (RenderableHandle handle = m_rend_queue->first(); handle != InvalidRenderable; handle = m_rend_queue->next())
+		{
+			poseidon::Renderable* renderable = world->resolveRenderable(handle);
+			if (!renderable)
 				continue;
 
-			// fill per object buffer
-			rhea::Transform* transform = renderable->getTransform();
-			Position* position = nullptr;
-			if (transform)
-				position = transform->get_derived_position();
-			// check if renderable has a position
-			if (position) {// model world transform matrix (also called world matrix)
-				math::Matrix4 objectSrc[2];
+			if (!renderable->visible)
+				continue;
 
-				math::Matrix3x4 model_wtm = position->getWorldTransform();
-				objectSrc[0] = model_wtm;
-				objectSrc[1] = objectSrc[0].inverse().transpose();
+			// fill per object buffer 
+			
+			// transform preparation for shader (e.g. convert to column-major if needed)
+			math::Matrix4 objectSrc[2];
 
-				math::Matrix4 objectDst[2];
-				m_renderer->prepareMatricesForShader(objectDst, objectSrc, 2);
+			objectSrc[0] = renderable->worldTransform;
+			objectSrc[1] = renderable->inverseTranspose;
 
-				per_obj_buf.world_matrix = objectDst[0];
-				// used for lighting							
-				per_obj_buf.inverse = objectDst[1];
+			math::Matrix4 objectDst[2];
+			m_renderer->prepareMatricesForShader(objectDst, objectSrc, 2);
 
-				m_object_buffer->update((void*)&per_obj_buf);
-				m_renderer->bindGPUBuffer(m_object_buffer.get(), 1, hippios::ShaderStage::Vertex);
-			}
+			per_obj_buf.world_matrix = objectDst[0];
+			// used for lighting							
+			per_obj_buf.inverse = objectDst[1];
 
+			m_object_buffer->update((void*)&per_obj_buf);
+			m_renderer->bindGPUBuffer(m_object_buffer.get(), 1, hippios::ShaderStage::Vertex);
+			
 			// get render mesh
 			// Ensure GPU mesh is available
-			poseidon::Mesh* mesh = r_comp->gpuMesh;
+			poseidon::Mesh* mesh = renderable->mesh;
 			if (!mesh) {
 				continue;
 			}
 
 			// skeleton handling if any
-			rhea::Skeleton* skeleton = r_comp->skeleton;
+			rhea::Skeleton* skeleton = renderable->skeleton;
 			if (skeleton) {
 				// Fill the bone buffer
 				BoneBuffer boneBuffer{};

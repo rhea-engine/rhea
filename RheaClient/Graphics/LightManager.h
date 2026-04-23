@@ -2,6 +2,7 @@
 #define RHEACLIENT_GRAPHICS_LIGHTMANAGER_H
 
 #include <RheaClient/Graphics/GraphicsManager.h>
+#include <Rhea/Core/Light.h>
 
 namespace rhea::client
 {

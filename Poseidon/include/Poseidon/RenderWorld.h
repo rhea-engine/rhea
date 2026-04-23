@@ -26,6 +26,7 @@ namespace poseidon
 
 		RenderableHandle createRenderable(Mesh* mesh);
 		void destroyRenderable(RenderableHandle handle);
+		Renderable* resolveRenderable(RenderableHandle handle);
 
 		Camera* createCameraLegacy();
 		CameraHandle createCamera();

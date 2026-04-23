@@ -29,6 +29,9 @@ namespace rhea::client {
 		// handle update event
 		bool onUpdate(rhea::Event* ev, rhea::Unit* unit);
 
+		// handle transform update
+		void onTransformUpdate(rhea::Unit* unit) override;
+
 		// handle frame update
 		void onFrame() {};
 
@@ -40,6 +43,8 @@ namespace rhea::client {
 		                        rhea::Item* item,
 		                        RenderComponent* rc, 
 		                        rhea::Mesh* mesh);
+		bool syncRenderable(poseidon::Core* core, rhea::Item* item, RenderComponent* rc);
+		bool syncTransform(poseidon::Core* core, rhea::Item* item, RenderComponent* rc);
 	};
 }
 

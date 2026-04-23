@@ -5,7 +5,6 @@
 
 #include "Node.h"
 #include "RenderTypes.h"
-#include <Rhea/Core/Transform.h>
 #include <Rhea/Animation/Skeleton.h>
 
 namespace hippios
@@ -42,10 +41,7 @@ namespace poseidon
 
         uint32_t renderLayers = 0xFFFFFFFF;
 
-        rhea::Skeleton* skeleton = nullptr;
-
-        // optional back-reference for debugging only
-        rhea::Item* sourceItem = nullptr;
+        rhea::Skeleton* skeleton = nullptr;        
     };
 }
 

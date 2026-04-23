@@ -20,6 +20,16 @@ namespace poseidon
 		return h;
 	}
 
+	Renderable* RenderWorld::resolveRenderable(RenderableHandle handle)
+	{
+		auto it = m_renderables.find(handle);
+		if (it != m_renderables.end()) {		
+			return it->second.ptr;
+		}
+		else
+			return nullptr;
+	}
+
 	void RenderWorld::destroyRenderable(RenderableHandle handle)
 	{
 		auto it = m_renderables.find(handle);

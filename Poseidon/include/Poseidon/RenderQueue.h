@@ -2,22 +2,23 @@
 #define POSEIDON_RENDERQUEUE_H
 
 #include <vector>
-#include <Rhea/Core/Item.h>
 
-using rhea::Item;
+#include "RenderTypes.h"
 
 namespace poseidon
 {
 	class RenderQueue
 	{
-	public:
-		void addRenderable(Item* renderable);
-		void clear();
-		Item* first();
-		Item* next();
-	protected:
-		std::vector<Item*> m_render_items;
-		std::vector<Item*>::iterator it;
+    public:
+        void addRenderable(RenderableHandle h);
+        void clear();
+
+        RenderableHandle first();
+        RenderableHandle next();
+
+    private:
+        std::vector<RenderableHandle> m_renderables;
+        int m_idx = -1;
 	};
 }
 

@@ -3,6 +3,7 @@
 #include "Poseidon/RenderQueue.h"
 #include "Poseidon/Camera.h"
 #include <Rhea/Components/MeshComponent.h>
+#include <RheaClient/Components/RenderComponent.h>
 
 namespace poseidon
 {
@@ -51,8 +52,9 @@ namespace poseidon
 							if (!renderer->isVisible())
 								return false;
 							rhea::MeshComponent* mc = item->getComponent<rhea::MeshComponent>();
-							if (mc && mc->getMesh())
-								queue->addRenderable(item);
+							auto* rc = item->getComponent<rhea::client::RenderComponent>();
+							if (mc && mc->getMesh() && rc && rc->hasRenderable())
+								queue->addRenderable(rc->renderable);
 						}
 						return true;
 					}
@@ -75,8 +77,9 @@ namespace poseidon
 			return;
 
 		rhea::MeshComponent* mc = item->getComponent<rhea::MeshComponent>();
-		if (mc && mc->getMesh())
-			queue->addRenderable(item);
+		auto* rc = item->getComponent<rhea::client::RenderComponent>();
+		if (mc && mc->getMesh() && rc && rc->hasRenderable())
+			queue->addRenderable(rc->renderable);
 
 		item->children([&](std::string name, rhea::Component* c)->bool {
 			Item* child = doCast<Item>(c);
@@ -97,9 +100,9 @@ namespace poseidon
 	}
 
 	bool RenderContext::containsRenderChild(Item* item) const
-{
-    return std::find(m_render_children.begin(), m_render_children.end(), item) != m_render_children.end();
-}
+	{
+		return std::find(m_render_children.begin(), m_render_children.end(), item) != m_render_children.end();
+	}
 
 
 	bool RenderContext::isRootInContext(Item* item) const

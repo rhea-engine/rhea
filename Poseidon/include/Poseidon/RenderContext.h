@@ -6,7 +6,6 @@
 
 #include "Node.h"
 #include <Rhea/Core/Item.h>
-#include <Rhea/Core/Light.h>
 #include <Hippios/BaseTypes.h>
 #include "RenderTypes.h"
 

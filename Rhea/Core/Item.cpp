@@ -21,6 +21,7 @@ namespace rhea
 				z = pos_sit[2];
 			}
 			m_transform.get_position()->setPosition(x, y, z);
+			m_transform.update();
 		}
 		Variant rot_sit = getValue("rotation");
 		if (rot_sit != Variant() && rot_sit.size()==3) {
@@ -35,6 +36,7 @@ namespace rhea
 			if (z != 0.0f)
 				rot.fromAngleAxis(z * math::M_DEGTORAD, math::Vector3(0.0f, 0.0f, 1.0f));
 			m_transform.get_position()->setOrientation(rot);
+			m_transform.update();
 		}
 	}
 
@@ -122,21 +124,30 @@ namespace rhea
 	}
 
 	void Item::setPosition(rhea::Position& position)
-	{
+	{		
 		m_transform.get_position()->setPosition(position);
 		m_transform.update();
+		for (auto* l : m_movement_listeners) {
+			l->onPositionChanged();
+		}
 	}
 	
 	void Item::setPosition(math::Vector3 position)
 	{
 		m_transform.get_position()->setPosition(position);
 		m_transform.update();
+		for (auto* l : m_movement_listeners) {
+			l->onPositionChanged();
+		}
 	}
 
 	void Item::setLookAt(math::Vector3 look_at)
 	{
 		m_transform.get_position()->lookAt(look_at);
 		m_transform.update();
+		for (auto* l : m_movement_listeners) {
+			l->onPositionChanged();
+		}
 	}
 		
 	void Item::setMovement(math::Vector3 move)

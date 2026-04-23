@@ -8,7 +8,7 @@ target_sources(RheaClient PRIVATE
   "Fabrics/PoseidonGraphics/src/PoseidonGraphicsFabric.cpp" 
  "Graphics/MeshGpuCache.cpp" "Graphics/TextureGpuCache.cpp" 
  "Graphics/MaterialGpuCache.cpp" 
- "Input/PsioInputAdapter.cpp" "Input/PsioInputService.cpp" "include/RheaClient/Window/WindowService.h" "Window/WindowService.cpp" "Graphics/LightManager.h" "Graphics/LightManager.cpp")
+ "Input/PsioInputAdapter.cpp" "Input/PsioInputService.cpp" "include/RheaClient/Window/WindowService.h" "Window/WindowService.cpp" "Graphics/LightManager.h" "Graphics/LightManager.cpp" "Graphics/TransformListener.h")
 
 target_include_directories(RheaClient PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}       # so includes like <Graphics/...> still work temporarily

@@ -6,8 +6,6 @@
 #include <string>
 
 #include <Rhea/Core/Position.h>
-#include <Rhea/Element.h>
-#include <Rhea/Unit.h>
 #include <Rhea/Core/Transform.h>
 
 using rhea::Position;
@@ -16,7 +14,7 @@ namespace poseidon
 {
 	/** A node is an item in the scene tree	 
 	*/
-	class Node : public rhea::Element
+	class Node 
 	{
 	public:
 		Node() 

@@ -1,6 +1,5 @@
 #include "Math/Math.h"
 #include "Poseidon/Camera.h"
-#include "Poseidon/Node.h"
 
 namespace poseidon
 {
@@ -9,10 +8,10 @@ namespace poseidon
 		fov_(DEFAULT_CAMERA_FOV),
 		m_ortho_size(DEFAULT_ORTHOSIZE),
 		aspectRatio_(1.0f),
-		m_projection_offset(Vector3::ZERO)
+		m_projection_offset(math::Vector3::ZERO)
 	{}
 
-	const Matrix4& Camera::getProjectionMatrixRS(void) const
+	const math::Matrix4& Camera::getProjectionMatrixRS(void) const
 	{
 		updateProjection();
 
@@ -37,7 +36,7 @@ namespace poseidon
 		return m_projection_rs;
 	}
 	//-----------------------------------------------------------------------
-	const Matrix4& Camera::getViewMatrix(void) const
+	const math::Matrix4& Camera::getViewMatrix(void) const
 	{
 		updateView();
 
@@ -47,7 +46,7 @@ namespace poseidon
 	void Camera::updateProjection() const
 	{
 		// Start from a zero matrix in case it was custom previously
-		m_projection = Matrix4::ZERO;
+		m_projection = math::Matrix4::ZERO;
 
 		if (!m_orthographic)
 		{
@@ -92,8 +91,7 @@ namespace poseidon
 
 	}
 
-	Matrix4 Camera::makeViewMatrix(const Vector3& position, const Quaternion& orientation,
-		const Matrix4* reflectMatrix)
+	math::Matrix4 Camera::makeViewMatrix(const math::Vector3& position, const math::Quaternion& orientation, const math::Matrix4* reflectMatrix)
 	{
 		// This is most efficiently done using 3x3 Matrices
 		math::Matrix3 rot;
@@ -101,10 +99,10 @@ namespace poseidon
 
 		// Make the translation relative to new axes
 		math::Matrix3 rotT = rot.Transpose();
-		Vector3 trans = -rotT * position;
+		math::Vector3 trans = -rotT * position;
 
 		// Make final matrix
-		Matrix4 viewMatrix = Matrix4::IDENTITY;
+		math::Matrix4 viewMatrix = math::Matrix4::IDENTITY;
 		viewMatrix = rotT; // fills upper 3x3
 		viewMatrix[0][3] = trans.x;
 		viewMatrix[1][3] = trans.y;
@@ -120,27 +118,55 @@ namespace poseidon
 
 	}
 
-	void Camera::updateView(void) const
+	void Camera::updateView() const
 	{
 		// ----------------------
 		// Update the view matrix
 		// ----------------------
 
-		// Get orientation from quaternion
-
-		//if (!mCustom_view_matrix)
-		{
-			math::Matrix3 rot;
-			if (m_transform) {
-				const Quaternion& orientation = m_transform->get_derived_position()->get_rotation();  //getOrientationForViewUpdate();
-				const Vector3& position = m_transform->get_derived_position()->get_worldspace();  //getPositionForViewUpdate();
-
-				m_view_matrix = makeViewMatrix(position, orientation, m_reflect ? &m_reflect_matrix : 0);
-			}
-		}
+		m_view_matrix = makeViewMatrix(
+			m_position,
+			m_orientation,
+			m_reflect ? &m_reflect_matrix : nullptr
+		);		
 	}
 
-	void Camera::setProjectionOffset(Vector3 offset)
+	void Camera::setPosition(const math::Vector3& pos)
+	{
+		m_position = pos;
+	}
+
+	const math::Vector3& Camera::getPosition() const
+	{
+		return m_position;
+	}
+
+	void Camera::setOrientation(const math::Quaternion& rot)
+	{
+		m_orientation = rot;
+	}
+
+	const math::Quaternion& Camera::getOrientation() const
+	{
+		return m_orientation;
+	}
+
+	void Camera::setNearClip(float value)
+	{
+		nearClip_ = value;
+	}
+
+	void Camera::setFarClip(float value)
+	{
+		farClip_ = value;
+	}
+
+	void Camera::setFov(float value)
+	{
+		fov_ = value;
+	}
+
+	void Camera::setProjectionOffset(math::Vector3 offset)
 	{
 		m_projection_offset = offset;
 	}
@@ -155,14 +181,14 @@ namespace poseidon
 		m_ortho_size = size;
 	}
 
-	Ray Camera::getPickingRay(float scr_x, float scr_y, int viewport_width, int viewport_height)
+	math::Ray Camera::getPickingRay(float scr_x, float scr_y, int viewport_width, int viewport_height)
 	{
-		Vector3	origin;
-		Vector3 direction;
+		math::Vector3	origin;
+		math::Vector3 direction;
 
 		// Get the inverse of the view matrix.
-		Matrix4 _vp = (getProjectionMatrixRS() * getViewMatrix());
-		Matrix4 _vp_inv = _vp.inverse();		
+		math::Matrix4 _vp = (getProjectionMatrixRS() * getViewMatrix());
+		math::Matrix4 _vp_inv = _vp.inverse();		
 		 
 		// Move the screen cursor coordinates into the -1 to +1 range.
 		direction.x = ((2.0f * (float)scr_x) / (float)viewport_width) - 1.0f;
@@ -170,15 +196,15 @@ namespace poseidon
 		direction.z = 1.0f;
 
 		// ogre: near=-1,mid=0
-		Vector3 nearPoint(direction.x, direction.y, 0.0f);
-		Vector3 midPoint(direction.x, direction.y, 1.0f);
-		Vector3 rayOrigin, rayTarget;
+		math::Vector3 nearPoint(direction.x, direction.y, 0.0f);
+		math::Vector3 midPoint(direction.x, direction.y, 1.0f);
+		math::Vector3 rayOrigin, rayTarget;
 
 		rayOrigin = _vp_inv * nearPoint;
 		rayTarget = _vp_inv * midPoint;
-		Vector3 rayDirection = rayTarget - rayOrigin;
+		math::Vector3 rayDirection = rayTarget - rayOrigin;
 		rayDirection.normalize();
 
-		return Ray(rayOrigin, rayDirection);
+		return math::Ray(rayOrigin, rayDirection);
 	}
 }

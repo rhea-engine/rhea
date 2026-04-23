@@ -13,7 +13,6 @@ using rhea::Item;
 
 namespace poseidon
 {
-	class Camera;
 //	class Renderable;
 	class RenderQueue;
 
@@ -69,9 +68,6 @@ namespace poseidon
 		void removeRenderChild(Item* child);
 		void RemoveRenderable(RenderableHandle handle);		
 
-		Camera* get_camera() { return m_camera; }; // Legacy - use camera handle instead
-		void setCamera(Camera* camera); // Legacy - use camera handle instead
-
 		CameraHandle getCameraHandle() const { return m_camera_handle; }
 		void setCameraHandle(CameraHandle handle) { m_camera_handle = handle; }
 
@@ -94,7 +90,6 @@ namespace poseidon
 
 	protected:
 		std::string m_name;
-		Camera* m_camera;
 		CameraHandle m_camera_handle = InvalidCamera;
 		std::vector<Item*> m_render_children;
 		std::vector<RenderableHandle> m_renderables;

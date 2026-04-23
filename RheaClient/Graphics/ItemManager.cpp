@@ -228,7 +228,6 @@ namespace rhea::client {
 		if (rc->hasCamera()) {
 			if (rc->ctx) {
 				rc->ctx->setCameraHandle(poseidon::InvalidCamera);
-				rc->ctx->setCamera(nullptr);
 			}
 			m_service->getEngine()->getRenderWorld()->destroyCamera(rc->camera);
 			rc->camera = poseidon::InvalidCamera;

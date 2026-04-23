@@ -12,6 +12,7 @@
 #include <RheaClient/Components/RenderComponent.h>
 
 #include <RheaClient/Graphics/GraphicsService.h>
+#include "TransformListener.h"
 
 namespace rhea::client {
 	bool GraphicsCameraManager::Ensure(poseidon::Core* core, rhea::Unit* unit)
@@ -26,6 +27,12 @@ namespace rhea::client {
 
 		if (rc->hasCamera())
 			return true;
+
+		auto* tl = camera->getComponent<TransformListener>();
+		if (!tl) {
+			tl = camera->addComponentUnique<TransformListener>("transform_listener");
+			tl->setGraphicsManager(this);
+		}
 
 		// create
 
@@ -81,15 +88,44 @@ namespace rhea::client {
 
 		// register handlers
 		unit->registerEventHandler("delete", this, std::bind(&GraphicsCameraManager::onItemDelete, this, std::placeholders::_1, std::placeholders::_2));
+		unit->registerEventHandler("update", this, std::bind(&GraphicsCameraManager::onUpdate, this, std::placeholders::_1, std::placeholders::_2));
 
 		return true;
 	}
 
 	bool GraphicsCameraManager::onUpdate(rhea::Event* ev, rhea::Unit* unit)
 	{
-		// TODO (?) what could be an update?
+		rhea::Camera* camera = doCast<rhea::Camera>(unit);
+		if (!camera)
+			return false;
+
+		auto* rc = camera->getComponent<RenderComponent>();
+		if (!rc || !rc->hasCamera()) {
+			return Ensure(m_service->getEngine(), unit);
+		}
+
+		poseidon::FrameRenderer* frame_renderer = m_service->getEngine()->getFrameRenderer();
+		poseidon::Viewport* viewport = frame_renderer ? frame_renderer->getViewport() : nullptr;
+
+		float width = viewport ? (float)viewport->getWidth() : 800.0f;
+		float height = viewport ? (float)viewport->getHeight() : 600.0f;
+		if (!width) width = 800.0f;
+		if (!height) height = 600.0f;
+
+		syncCameraTransform(m_service->getEngine(), rc->camera, camera->getTransform());
+		syncCameraProjection(m_service->getEngine(), rc->camera, camera, width, height);
 
 		return false;
+	}
+
+	void GraphicsCameraManager::onTransformUpdate(rhea::Unit* unit)
+	{
+		rhea::Camera* camera = doCast<rhea::Camera>(unit);
+		if (!camera)
+			return;
+		auto rc = camera->getComponent<RenderComponent>();
+		if (!rc) return;
+		syncCameraTransform(m_service->getEngine(), rc->camera, camera->getTransform());
 	}
 
 	void GraphicsCameraManager::onFrame()
@@ -105,7 +141,7 @@ namespace rhea::client {
 		if (!rc) return true;
 
 		if (rc->ctx) {
-			if (rc->ctx->get_camera() && rc->ctx->getCameraHandle() == rc->camera) {
+			if (rc->ctx->getCameraHandle() == rc->camera) {
 				rc->ctx->setCameraHandle(poseidon::InvalidCamera);				
 			}
 		}
@@ -119,10 +155,7 @@ namespace rhea::client {
 		return false;
 	}
 
-	void GraphicsCameraManager::syncCameraTransform(
-		poseidon::Core* core,
-		poseidon::CameraHandle handle,
-		rhea::Transform* transform)
+	void GraphicsCameraManager::syncCameraTransform(poseidon::Core* core, poseidon::CameraHandle handle, rhea::Transform* transform)
 	{
 		if (!core || handle == poseidon::InvalidCamera || !transform)
 			return;
@@ -131,15 +164,23 @@ namespace rhea::client {
 		if (!cam)
 			return;
 
-		cam->setTransform(transform);
+		auto* derived = transform->get_derived_position();
+		if (!derived)
+			return;
+
+		const math::Vector3& pos = derived->get_worldspace();
+		const math::Quaternion& rot = derived->get_rotation();
+
+		cam->setPosition(pos);
+		cam->setOrientation(rot);		
 	}
 
 	void GraphicsCameraManager::syncCameraProjection(
 		poseidon::Core* core,
 		poseidon::CameraHandle handle,
 		rhea::Camera* sourceCamera,
-		float viewportWidth,
-		float viewportHeight)
+		float viewport_width,
+		float viewport_height)
 	{
 		if (!core || handle == poseidon::InvalidCamera)
 			return;
@@ -148,16 +189,19 @@ namespace rhea::client {
 		if (!cam)
 			return;
 
-		if (viewportWidth <= 0.0f)  viewportWidth = 800.0f;
-		if (viewportHeight <= 0.0f) viewportHeight = 600.0f;
+		if (viewport_width <= 0.0f)  viewport_width = 800.0f;
+		if (viewport_height <= 0.0f) viewport_height = 600.0f;
 
-		cam->setAspectRatio(viewportWidth / viewportHeight);
+		cam->setAspectRatio(viewport_width / viewport_height);
+		cam->setOrthographicSize(viewport_height);
 
-		// Optional later if your Rhea camera exposes these:
+		// add these once Rhea camera exposes them cleanly
+		// if (sourceCamera) {
 		// cam->setOrthographic(sourceCamera->isOrthographic());
 		// cam->setOrthographicSize(sourceCamera->getOrthographicSize());
 		// cam->setNearClip(sourceCamera->getNearClip());
 		// cam->setFarClip(sourceCamera->getFarClip());
 		// cam->setFov(sourceCamera->getFov());
+		// }
 	}
 }

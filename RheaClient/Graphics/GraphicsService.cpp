@@ -235,22 +235,25 @@ namespace rhea::client {
 		context->setRenderOrderMode(poseidon::RenderContext::RenderOrderMode::TreeOrdered);
 		context->setStencilState(1);
 		// add a camera for this context
-		poseidon::CameraHandle cam_handle = m_core->getRenderWorld()->createCamera();
-		poseidon::Camera* cam = m_core->getRenderWorld()->resolveCamera(cam_handle);
-		context->setCameraHandle(cam_handle);
+		
 		int viewport_width = viewport->getWidth();
 		int viewport_height = viewport->getHeight();
 		if (!viewport_width)
 			viewport_width = 800;
 		if (!viewport_height)
 			viewport_height = 600;
+
+		poseidon::CameraHandle cam_handle = m_core->getRenderWorld()->createCamera();
+		auto* gfx_cam_mgr = static_cast<rhea::client::GraphicsCameraManager*>(getManager<rhea::Camera>());
+		if (gfx_cam_mgr) {
+			gfx_cam_mgr->syncCameraProjection(m_core.get(), cam_handle, nullptr, (float)viewport_width, (float)viewport_height);
+		}
+		context->setCameraHandle(cam_handle);
 		context->setSize((float)viewport_width, (float)viewport_height);
-		cam->setAspectRatio((float)viewport_width / (float)viewport_height);
-		cam->setOrthographicSize((float)viewport_height);
+		// since we have no rhea Camera for this camera, we need to set orthographic mode and projection offset manually
+		poseidon::Camera* cam = m_core->getRenderWorld()->resolveCamera(cam_handle);
 		cam->setOrthographic(true);
 		cam->setProjectionOffset(math::Vector3(-0.5f, -0.5f, 0.0f));
-		cam->updateProjection();
-		cam->updateView();
 
 		// register input handler
 		m_app->getUnitTree()->registerEventHandler("scene_input", this, std::bind(&GraphicsService::onInput, this, std::placeholders::_1, std::placeholders::_2));
@@ -473,12 +476,9 @@ namespace rhea::client {
 						float aspect_ratio = (float)viewport_width / (float)viewport_height;
 						for (const auto& context : vp->getRenderContextList()) {
 							context->setSize((float)viewport_width, (float)viewport_height);
-							poseidon::Camera* cam = context->get_camera();
-							if (cam) {
-								cam->setAspectRatio(aspect_ratio);
-								cam->setOrthographicSize((float)viewport_height);
-								cam->updateProjection();
-								cam->updateView();
+							auto* gfxCamMgr = static_cast<rhea::client::GraphicsCameraManager*>(getManager<rhea::Camera>());
+							if (gfxCamMgr && context->getCameraHandle() != poseidon::InvalidCamera) {
+								gfxCamMgr->syncCameraProjection(getEngine(), context->getCameraHandle(), nullptr, (float)viewport_width, (float)viewport_height);
 							}
 							// send resize event to all render children - they may need to update render targets or similar
 							rhea::SizeEvent size_ev(nullptr, viewport_width, viewport_height);
@@ -507,7 +507,8 @@ namespace rhea::client {
 		if (!phys) return nullptr;
 		std::string def = "default";
 		poseidon::Viewport* viewport = m_core->getFrameRenderer()->getViewport();
-		poseidon::Camera* camera = m_core->getFrameRenderer()->getViewport()->getRenderContext(def)->get_camera();
+		poseidon::Camera* camera = m_core->getFrameRenderer()->getViewport()->getRenderContext(def)->getCameraHandle() != poseidon::InvalidCamera ?
+			m_core->getRenderWorld()->resolveCamera(m_core->getFrameRenderer()->getViewport()->getRenderContext(def)->getCameraHandle()) : nullptr;
 		if (!camera) return nullptr;
 			
 		// compute the ray

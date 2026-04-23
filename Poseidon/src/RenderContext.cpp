@@ -7,8 +7,7 @@
 
 namespace poseidon
 {
-	RenderContext::RenderContext(std::string name) :
-		m_camera(nullptr),
+	RenderContext::RenderContext(std::string name) :		
 		m_name(name),
 		m_stencil_state(0)
 	{
@@ -92,18 +91,12 @@ namespace poseidon
 				return true;
 			}
 		}, true);
-	}
-
-	void RenderContext::setCamera(Camera* camera)
-	{
-		m_camera = camera;
-	}
+	}	
 
 	bool RenderContext::containsRenderChild(Item* item) const
 	{
 		return std::find(m_render_children.begin(), m_render_children.end(), item) != m_render_children.end();
 	}
-
 
 	bool RenderContext::isRootInContext(Item* item) const
 	{

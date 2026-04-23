@@ -164,9 +164,8 @@ namespace poseidon
 		per_frame_buf.v = frameDst[0];
 		per_frame_buf.p = frameDst[1];
 		per_frame_buf.vp = frameDst[2];
-
-		if (camera->get_position())
-			per_frame_buf.cameraPos = camera->get_position()->get_worldspace();
+		
+		per_frame_buf.cameraPos = camera->getPosition();
 
 		m_frame_buffer->update((void*)&per_frame_buf);
 		m_renderer->bindGPUBuffer(m_frame_buffer.get(), 0, hippios::ShaderStage::Vertex);

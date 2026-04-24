@@ -16,7 +16,10 @@
 #include <Rhea/GUI/Widget.h>
 
 namespace rhea::client {
-	poseidon::RenderableHandle GraphicsManager::createRenderable(RenderComponent* rc, poseidon::Core* core, rhea::Unit* item, poseidon::Mesh* mesh, std::string render_context_name)
+
+	uint64_t GraphicsManager::m_next_id = 1;
+
+	poseidon::RenderableHandle GraphicsManager::createRenderable(RenderComponent* rc, poseidon::Core* core, rhea::Unit* item, poseidon::Mesh* mesh)
 	{
 		if (!mesh) {
 			LOG(LOG_ERROR) << "GraphicsManager::createRenderable: mesh is null";
@@ -27,13 +30,8 @@ namespace rhea::client {
 			return poseidon::InvalidRenderable;
 		}
 
-		poseidon::RenderContext* render_context = getRenderContext(core, render_context_name);
-		if (!render_context)
-			return poseidon::InvalidRenderable;
-
-		// create a renderabke using the shared mesh
+		// create a renderable using the shared mesh
 		rc->renderable = core->getRenderWorld()->createRenderable(mesh);
-		rc->ctx = render_context;		
 
 		return rc->renderable;
 	}

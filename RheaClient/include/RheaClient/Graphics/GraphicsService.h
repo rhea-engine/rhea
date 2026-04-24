@@ -13,6 +13,7 @@
 namespace poseidon
 {
 	class Core;
+	class RenderContext;
 }
 
 namespace rhea
@@ -81,6 +82,9 @@ namespace rhea::client {
 		TextureGpuCache& textureCache() { return m_textureCache; }
 		MaterialGpuCache& materialCache() { return m_materialCache; }
 
+		// Helper method for cleanup
+		void unregisterItemFromContext(rhea::Item* item, poseidon::RenderContext* context);
+
 	protected:
 		std::unique_ptr<poseidon::Core> m_core;
 		poseidon::Window* m_main_window;
@@ -107,6 +111,12 @@ namespace rhea::client {
 		MeshGpuCache m_meshCache; 
 		TextureGpuCache m_textureCache;
 		MaterialGpuCache m_materialCache;
+
+		void registerItemToContext(rhea::Item* item, poseidon::RenderContext* context);
+		void registerItemToContextRecursive(rhea::Item* item, poseidon::RenderContext* context);		
+
+		// Map context -> items for efficient lookup and cleanup
+		std::unordered_map<poseidon::RenderContext*, std::vector<rhea::Item*>> m_context_items;
 	};
 }
 

@@ -352,7 +352,9 @@ namespace rhea
 		if (it != m_ordered_children.end()) {
 			m_ordered_children.erase(it);
 			m_ordered_children.push_back(w);
-			invalidateRender();
+
+			Event ev("child_order_changed", this);
+			sendEvent("child_order_changed", &ev);
 		}
 	}
 

@@ -801,6 +801,7 @@ namespace rhea
 	void Widget::hide()
 	{
 		Item::hide();
+		m_needs_update = true;
 		Event e("hide", this);
 		bubbleEvent("hide", &e);
 		clearTransientInputState();
@@ -895,7 +896,7 @@ namespace rhea
 
 	void Widget::clearLayoutDirtyRecursive()
 	{
-		m_layout_dirty = false;
+		m_layout_dirty = false;		
 
 		for (auto it = m_children.begin(); it != m_children.end(); ++it) {
 			Widget* w = doCast<Widget>(it->second);

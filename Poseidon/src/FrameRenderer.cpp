@@ -139,7 +139,7 @@ namespace poseidon
 
 		// cull pass	
 		m_rend_queue->clear();
-		context->cullObjects(m_rend_queue);
+		context->cullObjects(m_rend_queue, world);
 
 		// render pass
 		

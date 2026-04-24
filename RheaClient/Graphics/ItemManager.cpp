@@ -45,12 +45,16 @@ namespace rhea::client {
 		// register event handlers for delete and update - these will be called even if the item is not renderable, so we can catch changes to renderable state and mesh assignment
 		static auto deleteHandler = std::bind(&GraphicsItemManager::onItemDelete, this, std::placeholders::_1, std::placeholders::_2);
 		static auto updateHandler = std::bind(&GraphicsItemManager::onUpdate, this, std::placeholders::_1, std::placeholders::_2);
+		static auto childorderHandler = std::bind(&GraphicsItemManager::onChildOrderChanged, this, std::placeholders::_1, std::placeholders::_2);
 		
 		if (!unit->hasEventHandler("delete", this)) {
 			unit->registerEventHandler("delete", this, deleteHandler);
 		}
 		if (!unit->hasEventHandler("update", this)) {
 			unit->registerEventHandler("update", this, updateHandler);
+		}
+		if (!unit->hasEventHandler("child_order_changed", this)) {
+			unit->registerEventHandler("child_order_changed", this, childorderHandler);
 		}
 
 		// Early exit: nicht renderable - Handler sind trotzdem registriert
@@ -61,7 +65,7 @@ namespace rhea::client {
 		// Check if already exists
 		auto* rc = item->getComponent<RenderComponent>();
 
-		if (!rc) rc = item->addComponentUnique<RenderComponent>("renderer");
+		if (!rc) rc = item->addComponentUnique<RenderComponent>("renderer", m_next_id++);
 
 		if (rc->hasRenderable())
 			return true;
@@ -108,13 +112,13 @@ namespace rhea::client {
 	{
 		rhea::Item* item = doCast<rhea::Item>(unit);
 		if (!item) return false;
-
+		
 		// Not renderable - clean up GPU resources if present
 		if (!item->isRenderable()) {
 			auto* rc = item->getComponent<RenderComponent>();
 			if (rc && rc->hasRenderable()) {
 				if (rc->ctx)
-					rc->ctx->removeRenderChild(item);
+					rc->ctx->detachRenderable(rc->ctx->findNodeForSource(rc->gfx_node_id));
 				m_service->getEngine()->getRenderWorld()->destroyRenderable(rc->renderable);
 				rc->renderable = poseidon::InvalidRenderable;				
 				rc->gpuMesh = nullptr;
@@ -125,7 +129,7 @@ namespace rhea::client {
 		auto* rc = item->getComponent<RenderComponent>();
 		if (!rc) {
 			// Newly renderable - create RenderComponent
-			rc = item->addComponentUnique<RenderComponent>("renderer");
+			rc = item->addComponentUnique<RenderComponent>("renderer", m_next_id++);
 		}
 		auto* tl = item->getComponent<TransformListener>();
 		if (!tl) {
@@ -194,6 +198,14 @@ namespace rhea::client {
 		return false;
 	}
 
+	bool GraphicsItemManager::onChildOrderChanged(rhea::Event* ev, rhea::Unit* unit)
+	{
+		rhea::Item* item = doCast<rhea::Item>(ev->getTarget());
+		if (!item) return false;
+		syncChildOrder(item);
+		return false;
+	}
+
 	void GraphicsItemManager::onTransformUpdate(rhea::Unit* unit)
 	{
 		rhea::Item* item = doCast<rhea::Item>(unit);
@@ -211,17 +223,18 @@ namespace rhea::client {
 		auto* rc = item->getComponent<RenderComponent>();
 		if (!rc) return true;
 
+		// Unregister from GraphicsService
+		if (rc->ctx) {
+			// Use the service's unregister method
+			m_service->unregisterItemFromContext(item, rc->ctx);
+		}
+
+		// Destroy GPU resources
 		if (rc->hasRenderable()) {
-
-			if (rc->ctx)
-				rc->ctx->removeRenderChild(item);
-
 			m_service->getEngine()->getRenderWorld()->destroyRenderable(rc->renderable);
 			rc->renderable = poseidon::InvalidRenderable;
 		}
 		if (rc->hasLight()) {
-			if (rc->ctx)
-				rc->ctx->removeLight(rc->light);
 			m_service->getEngine()->getRenderWorld()->destroyLight(rc->light);
 			rc->light = poseidon::InvalidLight;
 		}
@@ -257,8 +270,7 @@ namespace rhea::client {
 			m_service->getManager<rhea::Mesh>());
 		
 		if (!meshMgr->Ensure(core, mesh)) {
-			LOG(LOG_ERROR) << "GraphicsItemManager::createGPUResources: MeshManager::Ensure failed for mesh '" 
-			               << mesh->getPathName() << "'";
+			LOG(LOG_ERROR) << "GraphicsItemManager::createGPUResources: MeshManager::Ensure failed for mesh '" << mesh->getPathName() << "'";
 			return false;
 		}
 
@@ -266,8 +278,7 @@ namespace rhea::client {
 		poseidon::Mesh* shared = m_service->meshCache().find(mesh);
 		
 		if (!shared) {
-			LOG(LOG_ERROR) << "  -> FAILED: GPU mesh not in cache after Ensure for '" 
-			               << item->getPathName() << "'";
+			LOG(LOG_ERROR) << "  -> FAILED: GPU mesh not in cache after Ensure for '" << item->getPathName() << "'";
 			return false;
 		}
 		
@@ -281,20 +292,17 @@ namespace rhea::client {
 
 		// Create render entity if missing
 		if (!rc->hasRenderable()) {
-			rc->renderable = createRenderable(rc, core, item, shared, "default");
-			
-			if (rc->renderable == poseidon::InvalidRenderable) {
-				LOG(LOG_ERROR) << "  -> FAILED: createRenderable returned invalid handle for '" 
-				               << item->getPathName() << "'";
-				return false;
-			}
+			rc->renderable = createRenderable(rc, core, item, shared);
 
-			if (!syncRenderable(core, item, rc)) {
-				LOG(LOG_ERROR) << "GraphicsItemManager::createGPUResources: syncRenderable failed for '"
-					<< item->getPathName() << "'";
+			if (rc->renderable == poseidon::InvalidRenderable) {
+				LOG(LOG_ERROR) << "  -> FAILED: createRenderable returned invalid handle for '"	<< item->getPathName() << "'";
 				return false;
 			}
 		}
+		if (!syncRenderable(core, item, rc)) {
+			LOG(LOG_ERROR) << "GraphicsItemManager::createGPUResources: syncRenderable failed for '" << item->getPathName() << "'";
+			return false;
+		}			
 
 		return true;
 	}
@@ -318,6 +326,17 @@ namespace rhea::client {
 		//	renderable->receivesShadow = vis->receivesShadow();
 		//	renderable->renderLayers = vis->getRenderLayers();
 		}
+		else {
+			renderable->visible = false;
+		}		
+		if (rc->ctx) {
+			// set visibility in context as well
+			poseidon::RenderNodeId node_id = rc->ctx->findNodeForSource(rc->gfx_node_id);
+			if (node_id != poseidon::InvalidRenderNode) {
+				rc->ctx->setVisibility(node_id, renderable->visible);
+				rc->ctx->attachRenderable(node_id, rc->renderable);
+			}
+		}				
 
 		// optional migration/debug reference
 
@@ -348,5 +367,39 @@ namespace rhea::client {
 			}
 		}
 		return true;
+	}
+
+	void GraphicsItemManager::syncChildOrder(rhea::Item* parent_item)
+	{
+		poseidon::GraphicsNodeId parent_node_id = poseidon::InvalidGraphicsNode;
+		auto* rc = parent_item->getComponent<rhea::client::RenderComponent>();
+		if (rc) {
+			parent_node_id = rc->gfx_node_id;
+		}
+		if (parent_node_id == poseidon::InvalidGraphicsNode)
+			return;
+
+		//		for (auto& reg : parent_node->contextRegistrations) {
+		if (rc->ctx) {
+			std::vector<poseidon::RenderNodeId> ordered;
+
+			parent_item->children([&](std::string&, rhea::Component* c) {
+				auto* child = doCast<rhea::Item>(c);
+				if (!child)
+					return true;
+
+				auto* child_rc = child->getComponent<rhea::client::RenderComponent>();
+				if (!child_rc)
+					return true; // if child has no render component, we skip it 
+
+				auto child_render_node = rc->ctx->findNodeForSource(child_rc->gfx_node_id);
+
+				if (child_render_node != poseidon::InvalidRenderNode)
+					ordered.push_back(child_render_node);
+				return true;
+				}, true);
+
+			rc->ctx->setChildOrder(rc->ctx->findNodeForSource(rc->gfx_node_id), ordered);
+		}
 	}
 }

@@ -3,18 +3,23 @@
 
 #include <string>
 #include <vector>
+#include <unordered_set>
 
 #include "Node.h"
-#include <Rhea/Core/Item.h>
 #include <Hippios/BaseTypes.h>
 #include "RenderTypes.h"
-
-using rhea::Item;
 
 namespace poseidon
 {
 //	class Renderable;
 	class RenderQueue;
+	class RenderWorld;
+
+	using RenderNodeId = uint64_t;
+	constexpr RenderNodeId InvalidRenderNode = 0;
+
+	using GraphicsNodeId = uint64_t;
+	constexpr GraphicsNodeId InvalidGraphicsNode = 0;
 
 	/** a class that holds a render context.
 	*   a render context has its render queue and its own camera
@@ -33,6 +38,17 @@ namespace poseidon
 			TreeOrdered     // sort by tree order
 		};
 
+		struct RenderOrderNode
+		{
+			RenderNodeId id = InvalidRenderNode;
+			RenderNodeId parent = InvalidRenderNode;
+			std::vector<RenderNodeId> children;
+			bool visible = true;
+			int sort_index = 0;
+
+			RenderableHandle renderable = InvalidRenderable;
+		};		
+
 		// name handling
 		void setName(std::string& name) { m_name = name; }
 		std::string getName() { return m_name; }
@@ -47,26 +63,21 @@ namespace poseidon
 		void removeLight(LightHandle handle);
 
 		// cull the visible objects
-		void cullObjects(RenderQueue* queue);
+		void cullObjects(RenderQueue* queue, RenderWorld* world);
+		void collectOrderedRecursive(RenderNodeId node_id, RenderQueue* queue, RenderWorld* world);		
 
-		void cullOrderedRecursive(Item* item, RenderQueue* queue);
+		RenderNodeId registerOrderNode(GraphicsNodeId sourceId, RenderNodeId parent);
+		void unregisterOrderNode(RenderNodeId nodeId);
 
-		// add render child
-		void addRenderChild(Item* child);
-		void AddRenderable(RenderableHandle handle);
+		RenderNodeId findNodeForSource(GraphicsNodeId sourceId) const;
 
-		// check if render child is already added
-		bool containsRenderChild(Item* item) const;
+		void attachRenderable(RenderNodeId nodeId, RenderableHandle renderable);
+		void detachRenderable(RenderNodeId nodeId);
 
-		// check if item is a root in this context
-		bool isRootInContext(Item* item) const;
+		void rebuildHierarchy();
 
-		// get all render children
-		std::vector<Item*>& getRenderChildren() { return m_render_children; }
-
-		// remove render element
-		void removeRenderChild(Item* child);
-		void RemoveRenderable(RenderableHandle handle);		
+		void setChildOrder(RenderNodeId parent_node_id, const std::vector<RenderNodeId>& ordered_children);
+		void setVisibility(RenderNodeId nodeId, bool mode);
 
 		CameraHandle getCameraHandle() const { return m_camera_handle; }
 		void setCameraHandle(CameraHandle handle) { m_camera_handle = handle; }
@@ -84,21 +95,39 @@ namespace poseidon
 
 		// render order mode
 		void setRenderOrderMode(RenderOrderMode mode) { m_render_order_mode = mode; }
-		RenderOrderMode getRenderOrderMode() { return m_render_order_mode; }
+		RenderOrderMode getRenderOrderMode() { return m_render_order_mode; }	
 
-		void rebuildRoots();
+		const std::vector<RenderableHandle>& getRenderables() const { return m_ordered_renderables; }
+	
+		// debugging
+		std::vector<RenderableHandle> debugCollectOrder(RenderWorld* world);
+		void debugCollectOrderRecursive(RenderNodeId node_id, std::vector<RenderableHandle>& result, RenderWorld* world);
+		bool validateTree();
+		bool validateTreeRecursive(RenderNodeId node_id, std::unordered_set<RenderNodeId>& visited);
+
+	private:	
+		void sortNodes(std::vector<RenderNodeId>& nodes);
 
 	protected:
 		std::string m_name;
 		CameraHandle m_camera_handle = InvalidCamera;
-		std::vector<Item*> m_render_children;
-		std::vector<RenderableHandle> m_renderables;
+		
 		std::vector<LightHandle> m_lights;
 		int m_stencil_state;
 		math::Quaternion m_ambient;
 		hippios::ViewportDesc m_size;
 		RenderOrderMode m_render_order_mode = RenderOrderMode::Insertion;
-		std::vector<Item*> m_render_roots;
+		
+
+		bool m_hierarchy_dirty = false;
+
+		std::unordered_map<GraphicsNodeId, RenderNodeId> m_source_to_node;
+
+		std::unordered_map<RenderNodeId, RenderOrderNode> m_order_nodes;
+		std::vector<RenderNodeId> m_root_nodes;
+		std::vector<RenderableHandle> m_ordered_renderables;
+
+		RenderNodeId m_next_node_id = 1;
 	};
 }
 

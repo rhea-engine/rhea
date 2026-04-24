@@ -1,9 +1,10 @@
 #include "Poseidon/RenderContext.h"
-//#include "Poseidon/Renderable.h"
+#include "Poseidon/Renderable.h"
 #include "Poseidon/RenderQueue.h"
 #include "Poseidon/Camera.h"
-#include <Rhea/Components/MeshComponent.h>
-#include <RheaClient/Components/RenderComponent.h>
+#include <Poseidon/RenderWorld.h>
+#include <algorithm>
+#include <unordered_set>
 
 namespace poseidon
 {
@@ -26,166 +27,288 @@ namespace poseidon
 		m_lights.erase(std::remove(m_lights.begin(), m_lights.end(), handle), m_lights.end());
 	}
 
-	void RenderContext::cullObjects(RenderQueue* queue)
+	void RenderContext::cullObjects(RenderQueue* queue, RenderWorld* world)
 	{
+		if (!queue)
+			return;
+
+		if (m_hierarchy_dirty)
+			rebuildHierarchy();
+
 		if (m_render_order_mode == RenderOrderMode::TreeOrdered) {
-			for(auto root : m_render_roots) {
-				cullOrderedRecursive(root, queue);
-			}
+			for(auto root_id : m_root_nodes) {
+				collectOrderedRecursive(root_id, queue, world);
+			}			
 		}
 		else {
-			for (std::vector<Item*>::iterator it = m_render_children.begin(); it != m_render_children.end(); ++it)
-			{
-				Item* robj = (Item*)*it;
-				
-				if (!robj)
-					continue;
-
-				// cull phase for top item robj
-				robj->traverse([&](std::string name, rhea::Component* uitem)->bool {
-					Item* item = doCast<Item>(uitem);
-					if (item) {
-							
-						rhea::VisualComponent* renderer = item->getComponent<rhea::VisualComponent>();
-						if (renderer) {
-							if (!renderer->isVisible())
-								return false;
-							rhea::MeshComponent* mc = item->getComponent<rhea::MeshComponent>();
-							auto* rc = item->getComponent<rhea::client::RenderComponent>();
-							if (mc && mc->getMesh() && rc && rc->hasRenderable())
-								queue->addRenderable(rc->renderable);
-						}
-						return true;
-					}
-					else {
-						// not an item - try children
-						return true;
-					}
-				});
-			}
+			for (auto handle : m_ordered_renderables)
+				queue->addRenderable(handle);
 		}
 	}
 
-	void RenderContext::cullOrderedRecursive(Item* item, RenderQueue* queue)
+	void RenderContext::collectOrderedRecursive(RenderNodeId node_id, RenderQueue* queue, RenderWorld* world)	
 	{
-		if (!item)
+		auto it = m_order_nodes.find(node_id);
+		if (it == m_order_nodes.end())
 			return;
 
-		rhea::VisualComponent* renderer = item->getComponent<rhea::VisualComponent>();
-		if (renderer && !renderer->isVisible())
+		const auto& node = it->second;
+
+		// check visibility of the renderable
+		//poseidon::Renderable* renderable = world->resolveRenderable(node.renderable);
+		//if (renderable && !renderable->visible)
+		if (!node.visible)
 			return;
 
-		rhea::MeshComponent* mc = item->getComponent<rhea::MeshComponent>();
-		auto* rc = item->getComponent<rhea::client::RenderComponent>();
-		if (mc && mc->getMesh() && rc && rc->hasRenderable())
-			queue->addRenderable(rc->renderable);
+		if (node.renderable != InvalidRenderable)
+			queue->addRenderable(node.renderable);
 
-		item->children([&](std::string name, rhea::Component* c)->bool {
-			Item* child = doCast<Item>(c);
-			if (child) {
-				cullOrderedRecursive(child, queue);
-				return true;
+		for (RenderNodeId child : node.children)
+			collectOrderedRecursive(child, queue, world);
+	}
+
+	void RenderContext::rebuildHierarchy()
+	{
+		// Clear existing children relationships
+		for (auto& [nodeId, node] : m_order_nodes)
+			node.children.clear();
+
+		m_root_nodes.clear();
+
+		// Rebuild parent-child relationships
+		for (auto& [nodeId, node] : m_order_nodes) {
+			if (node.parent == InvalidRenderNode) {
+				// No parent -> this is a root node
+				m_root_nodes.push_back(nodeId);
 			}
 			else {
-				// not an item - try children
-				return true;
+				// Has parent -> add to parent's children list
+				auto parentIt = m_order_nodes.find(node.parent);
+				if (parentIt != m_order_nodes.end()) {
+					parentIt->second.children.push_back(nodeId);
+				}
+				else {
+					// Parent not found -> treat as root
+					m_root_nodes.push_back(nodeId);
+				}
 			}
-		}, true);
-	}	
+		}
 
-	bool RenderContext::containsRenderChild(Item* item) const
-	{
-		return std::find(m_render_children.begin(), m_render_children.end(), item) != m_render_children.end();
+		// sort roots
+		sortNodes(m_root_nodes);
+
+		// sort each sibling list
+		for (auto& [id, node] : m_order_nodes)
+			sortNodes(node.children);
+
+		m_hierarchy_dirty = false;
 	}
 
-	bool RenderContext::isRootInContext(Item* item) const
+	void RenderContext::sortNodes(std::vector<RenderNodeId>& nodes)
 	{
-		if (!item)
-			return false;
-
-		Item* parent = doCast<Item>(item->getParent());
-		if (!parent)
-			return true;
-
-		return !containsRenderChild(parent);
-	}
-
-	void RenderContext::addRenderChild(Item* child)
-	{
-		if (!child)
-			return;
-
-		// Avoid adding the same child multiple times
-		if (containsRenderChild(child))
-			return;
-
-		// Add child to render children
-		m_render_children.push_back(child);
-
-		if (m_render_order_mode == RenderOrderMode::Insertion)
-			return;
-
-		// If parent is not in context, this is a root
-		if (isRootInContext(child))
-			m_render_roots.push_back(child);
-		// Any existing descendants that were roots are no longer roots
-		child->traverse([&](std::string name, rhea::Component* c)->bool {
-			Item* childitem = doCast<Item>(c);
-			if (!childitem || childitem == child)
-				return true;
-
-			if (containsRenderChild(childitem))
-				m_render_roots.erase(std::remove(m_render_roots.begin(), m_render_roots.end(), childitem), m_render_roots.end());
-
-			return true;
+		std::stable_sort(nodes.begin(), nodes.end(),
+			[this](RenderNodeId a, RenderNodeId b) {
+				const auto& na = m_order_nodes.at(a);
+				const auto& nb = m_order_nodes.at(b);
+				return na.sort_index < nb.sort_index;
 			});
 	}
 
-	void RenderContext::AddRenderable(RenderableHandle handle)
+	void RenderContext::setVisibility(RenderNodeId nodeId, bool mode)
 	{
-		m_renderables.push_back(handle);
+		auto it = m_order_nodes.find(nodeId);
+		if (it == m_order_nodes.end())
+			return;
+
+		it->second.visible = mode;
 	}
 
-	void RenderContext::removeRenderChild(Item* child)
+	RenderNodeId RenderContext::registerOrderNode(GraphicsNodeId sourceId, RenderNodeId parent)
 	{
-		if (!child)
-			return;
-
-		auto it = std::find(m_render_children.begin(), m_render_children.end(), child);
-		if (it != m_render_children.end())
-			m_render_children.erase(it);
-
-		// Only update roots in TreeOrdered mode
-		if (m_render_order_mode == RenderOrderMode::Insertion)
-			return;
-
-		// Descendants still in context may become roots now
-		child->traverse([&](std::string name, rhea::Component* c)->bool {
-			Item* childItem = doCast<Item>(c);
-			if (!childItem || childItem == child)
-				return true;
-
-			if (containsRenderChild(childItem) && isRootInContext(childItem)) {
-				if (std::find(m_render_roots.begin(), m_render_roots.end(), childItem) == m_render_roots.end())
-					m_render_roots.push_back(childItem);
+		auto existing = m_source_to_node.find(sourceId);
+		if (existing != m_source_to_node.end()) {
+			RenderNodeId id = existing->second;
+			auto it = m_order_nodes.find(id);
+			if (it != m_order_nodes.end()) {
+				it->second.parent = parent;
+				m_hierarchy_dirty = true;
+				return id;
 			}
-
-			return true;
-		});
-	}
-
-	void RenderContext::RemoveRenderable(RenderableHandle handle)
-	{
-		m_renderables.erase(std::remove(m_renderables.begin(), m_renderables.end(), handle), m_renderables.end());
-	}
-
-	void RenderContext::rebuildRoots()
-	{
-		m_render_roots.clear();
-
-		for (Item* item : m_render_children) {
-			if (isRootInContext(item))
-				m_render_roots.push_back(item);
 		}
+
+		RenderNodeId new_id = m_next_node_id++;
+		RenderOrderNode node;
+		node.id = new_id;
+		node.parent = parent;
+
+		m_order_nodes.emplace(new_id, node);		
+		m_source_to_node[sourceId] = new_id;
+		m_hierarchy_dirty = true;
+		return new_id;
+	}
+
+	void RenderContext::unregisterOrderNode(RenderNodeId nodeId)
+	{
+		if (nodeId == InvalidRenderNode)
+			return;
+
+		auto it = m_order_nodes.find(nodeId);
+		if (it == m_order_nodes.end())
+			return;
+
+		RenderOrderNode& node = it->second;
+
+		// remove from parent's children
+		if (node.parent != InvalidRenderNode) {
+			auto parentIt = m_order_nodes.find(node.parent);
+			if (parentIt != m_order_nodes.end()) {
+				auto& siblings = parentIt->second.children;
+				siblings.erase(std::remove(siblings.begin(), siblings.end(), nodeId), siblings.end());
+			}
+		}
+
+		// remove from root nodes if necessary
+		if (node.parent == InvalidRenderNode) {
+			m_root_nodes.erase(std::remove(m_root_nodes.begin(), m_root_nodes.end(), nodeId), m_root_nodes.end());
+		}
+
+		m_order_nodes.erase(it);
+		
+		// remove from source_to_node map
+		for (auto mapIt = m_source_to_node.begin(); mapIt != m_source_to_node.end(); ) {
+			if (mapIt->second == nodeId)
+				mapIt = m_source_to_node.erase(mapIt);
+			else
+				++mapIt;
+		}
+	}
+
+	RenderNodeId RenderContext::findNodeForSource(GraphicsNodeId sourceId) const
+	{
+		// find the render node associated with the given graphics node ID
+		auto it = m_source_to_node.find(sourceId);
+		if (it != m_source_to_node.end())
+			return it->second;
+		return InvalidRenderNode;
+	}
+
+	void RenderContext::attachRenderable(RenderNodeId nodeId, RenderableHandle renderable)
+	{
+		if (nodeId == InvalidRenderNode || renderable == InvalidRenderable)
+			return;
+
+		auto it = m_order_nodes.find(nodeId);
+		if (it == m_order_nodes.end())
+			return;
+
+		RenderOrderNode& node = it->second;
+
+		// remove old insertion-order entry if this node already had a different renderable
+		if (node.renderable != InvalidRenderable && node.renderable != renderable) {
+			auto oldIt = std::find(m_ordered_renderables.begin(), m_ordered_renderables.end(), node.renderable);
+			if (oldIt != m_ordered_renderables.end())
+				m_ordered_renderables.erase(oldIt);
+		}
+
+		node.renderable = renderable;
+
+		// insertion mode still needs a flat list
+		if (std::find(m_ordered_renderables.begin(), m_ordered_renderables.end(), renderable) == m_ordered_renderables.end())
+			m_ordered_renderables.push_back(renderable);
+
+		m_hierarchy_dirty = true;
+	}
+
+	void RenderContext::detachRenderable(RenderNodeId nodeId)
+	{
+		if (nodeId == InvalidRenderNode)
+			return;
+
+		auto it = m_order_nodes.find(nodeId);
+		if (it == m_order_nodes.end())
+			return;
+
+		RenderableHandle renderable = it->second.renderable;
+		if (renderable != InvalidRenderable) {
+			auto rendIt = std::find(m_ordered_renderables.begin(), m_ordered_renderables.end(), renderable);
+			if (rendIt != m_ordered_renderables.end())
+				m_ordered_renderables.erase(rendIt);
+		}
+
+		it->second.renderable = InvalidRenderable;
+
+		m_hierarchy_dirty = true;
+	}
+
+	void RenderContext::setChildOrder(RenderNodeId parent_node_id, const std::vector<RenderNodeId>& ordered_children)
+	{
+		for (int i = 0; i < ordered_children.size(); ++i) {
+			auto it = m_order_nodes.find(ordered_children[i]);
+			if (it != m_order_nodes.end())
+				it->second.sort_index = i;
+		}
+
+		m_hierarchy_dirty = true;		
+	}
+
+	std::vector<RenderableHandle> RenderContext::debugCollectOrder(RenderWorld* world)
+	{
+		std::vector<RenderableHandle> result;
+		for (auto root_id : m_root_nodes) {
+			debugCollectOrderRecursive(root_id, result, world);
+		}
+		return result;
+	}
+
+	// Helper function for debugCollectOrder to recursively collect renderables
+	void RenderContext::debugCollectOrderRecursive(RenderNodeId node_id, std::vector<RenderableHandle>& result, RenderWorld* world)
+	{
+		auto it = m_order_nodes.find(node_id);
+		if (it == m_order_nodes.end())
+			return;
+
+		const auto& node = it->second;
+
+		if (!node.visible)
+			return;
+
+		if (node.renderable != InvalidRenderable)
+			result.push_back(node.renderable);
+
+		for (RenderNodeId child : node.children)
+			debugCollectOrderRecursive(child, result, world);
+	}
+
+	bool RenderContext::validateTree()
+	{
+		std::unordered_set<RenderNodeId> visited;
+		for (auto root_id : m_root_nodes) {
+			if (!validateTreeRecursive(root_id, visited))
+				return false;
+		}
+		return true;
+	}
+
+	// helper function for recursive tree validation
+	bool RenderContext::validateTreeRecursive(RenderNodeId node_id, std::unordered_set<RenderNodeId>& visited)
+	{
+		// cycle detection
+		if (visited.find(node_id) != visited.end())
+			return false;
+		visited.insert(node_id);
+
+		auto it = m_order_nodes.find(node_id);
+		if (it == m_order_nodes.end())
+			return false;
+
+		const auto& node = it->second;
+
+		// check if all child nodes are valid
+		for (RenderNodeId child : node.children)
+		{
+			if (!validateTreeRecursive(child, visited))
+				return false;
+		}
+		return true;
 	}
 }

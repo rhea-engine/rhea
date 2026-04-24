@@ -211,7 +211,7 @@ namespace rhea
 	{
 		if (m_templating) {
 			std::string t = getText();
-			if (t.compare(m_label_item->getText())) {
+			if (m_label_item && t.compare(m_label_item->getText())) {
 				m_label_item->setText(t);
 			}
 		}

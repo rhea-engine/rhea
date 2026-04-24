@@ -29,6 +29,9 @@ namespace rhea::client {
 		// handle update event
 		bool onUpdate(rhea::Event* ev, rhea::Unit* unit);
 
+		// handle child order changed
+		bool onChildOrderChanged(rhea::Event* ev, rhea::Unit* unit);
+
 		// handle transform update
 		void onTransformUpdate(rhea::Unit* unit) override;
 
@@ -45,6 +48,7 @@ namespace rhea::client {
 		                        rhea::Mesh* mesh);
 		bool syncRenderable(poseidon::Core* core, rhea::Item* item, RenderComponent* rc);
 		bool syncTransform(poseidon::Core* core, rhea::Item* item, RenderComponent* rc);
+		void syncChildOrder(rhea::Item* parent);
 	};
 }
 

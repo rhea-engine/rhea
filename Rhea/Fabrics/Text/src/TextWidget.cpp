@@ -85,12 +85,18 @@ namespace rhea
 	
 	void TextWidget::syncRender()
 	{
+		bool changed = false;		
+
 		if (m_text_dirty || m_render_dirty) {
 			//LOG(LOG_INFO) << "TextWidget::syncRender() for " << m_pathname << ", is dirty: " << m_text_dirty;
 
 			computeMesh();
 			m_text_dirty = false;
 			m_render_dirty = false;
+			changed = true;
+		}
+
+		if (changed) {
 			Event e("update", this);
 			sendEvent("update", &e);
 		}

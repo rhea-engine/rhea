@@ -23,7 +23,7 @@ namespace rhea::client {
 		// check if already exists
 		auto* rc = camera->getComponent<RenderComponent>();
 
-		if (!rc) rc = camera->addComponentUnique<RenderComponent>("renderer");
+		if (!rc) rc = camera->addComponentUnique<RenderComponent>("renderer", m_next_id++);
 
 		if (rc->hasCamera())
 			return true;

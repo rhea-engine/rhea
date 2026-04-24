@@ -40,7 +40,7 @@ namespace rhea::client {
 		// renderables utility functions
 
 		// create a renderable mesh
-		poseidon::RenderableHandle createRenderable(RenderComponent* rc, poseidon::Core* core, rhea::Unit* item, poseidon::Mesh* mesh, std::string render_context_name);
+		poseidon::RenderableHandle createRenderable(RenderComponent* rc, poseidon::Core* core, rhea::Unit* item, poseidon::Mesh* mesh);
 		poseidon::CameraHandle createCamera(poseidon::Core* core);
 		poseidon::LightHandle createLight(poseidon::Core* core);
 		
@@ -50,8 +50,12 @@ namespace rhea::client {
 		// set position from values to transform t
 		void setPosition(rhea::Unit* u, rhea::Transform* t);	
 	
+		static uint64_t allocateNextId() { return m_next_id++; }
+
 	protected:
 		GraphicsService* m_service;
+
+		static uint64_t m_next_id;
 	};
 }
 

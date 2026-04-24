@@ -15,6 +15,7 @@ namespace rhea {
 
 #include <Poseidon/RenderTypes.h>
 #include <Poseidon/RenderContext.h>
+#include <Rhea/Component.h>
 
 namespace rhea::client {
 
@@ -33,6 +34,9 @@ namespace rhea::client {
 			skeleton(nullptr),
 			rhea::Component(name, type_name)
 		{}
+		RenderComponent(std::string name, poseidon::GraphicsNodeId id) :			
+			RenderComponent(name, "//meworla/rendercomponent")
+		{ gfx_node_id = id; }
 
 		//poseidon::Node* entity = nullptr;        // non-owning (Poseidon owns)		
 		poseidon::RenderContext* ctx = nullptr;  // non-owning (Poseidon owns)
@@ -40,10 +44,7 @@ namespace rhea::client {
 		// Poseidon registrations (non-owning)
 		poseidon::RenderableHandle renderable;
 		poseidon::LightHandle light;
-		poseidon::CameraHandle camera;
-
-		// current target view (non-owning)
-		//poseidon::RenderView* view = nullptr;
+		poseidon::CameraHandle camera;		
 
 		// cached GPU resources (non-owning, owned by caches / source systems)
 		poseidon::Mesh* gpuMesh = nullptr;
@@ -60,6 +61,8 @@ namespace rhea::client {
 			camera = poseidon::InvalidCamera;
 			ctx = nullptr;
 		}
+
+		poseidon::GraphicsNodeId gfx_node_id = poseidon::InvalidGraphicsNode;
 	};
 }
 

@@ -57,7 +57,12 @@ namespace rhea::client {
 
 		// Remove from render context if present
 		if (rc->ctx) {
-			rc->ctx->removeRenderChild(ritem);
+			if (rc->hasRenderable()) {
+				rc->ctx->detachRenderable(rc->ctx->findNodeForSource(rc->gfx_node_id));
+			}
+			if (rc->hasLight()) {
+				rc->ctx->removeLight(rc->light);
+			}
 			rc->ctx = nullptr;
 		}
 

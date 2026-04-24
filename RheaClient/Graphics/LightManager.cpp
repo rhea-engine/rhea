@@ -30,7 +30,7 @@ namespace rhea::client
 		}
 
 		auto* rc = light->getComponent<RenderComponent>();
-		if (!rc) rc = light->addComponentUnique<RenderComponent>("renderer");
+		if (!rc) rc = light->addComponentUnique<RenderComponent>("renderer", m_next_id++);
 
 		if (rc->hasLight())
 			return true;

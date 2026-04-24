@@ -27,6 +27,7 @@ namespace rhea
 			m_viewport_width(0),
 			m_viewport_height(0),
 			m_render_dirty(true),			
+			m_needs_update(false),
 			Item(name, type_name)
 		{}
 
@@ -91,7 +92,8 @@ namespace rhea
 		std::unique_ptr<Material> m_material;
 
 		// flag if dirty and needs update
-		bool m_render_dirty;		
+		bool m_render_dirty;
+		bool m_needs_update;
 
 		int m_viewport_width;
 		int m_viewport_height;

@@ -13,6 +13,7 @@ namespace rhea
     protected:
         Unit* m_parent = nullptr;  // Pointer to the parent Unit
         std::string m_pathname;
+		bool m_destroying = false; // Flag to indicate if the component is being destroyed
 
     public:
         Component(std::string name, std::string type_name) :
@@ -29,6 +30,9 @@ namespace rhea
             m_pathname(other.m_pathname)
         {} 
         virtual ~Component() = default;
+
+        void destroy();
+        virtual void onDestroy() {}
 
         // Set and get parent
         void setParent(Unit* parent) { m_parent = parent; }

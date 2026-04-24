@@ -10,6 +10,16 @@ namespace rhea
 		return ret;
 	}
 
+	void Component::destroy()
+	{
+		if (m_destroying)
+			return;
+
+		m_destroying = true;
+		onDestroy();
+		delete this;
+	}
+
 	void Component::initializeType(simpleparser::Type* type)
 	{
 		type->registerMethod("setName", &Component::setName);

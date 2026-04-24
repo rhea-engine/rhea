@@ -1,5 +1,6 @@
 #include "Rhea/Unit.h"
 #include "SimpleParser/Method.h"
+#include <unordered_set>
 
 using simpleparser::Type;
 using simpleparser::Method;
@@ -44,6 +45,8 @@ namespace rhea
 
 	void Unit::removeChild(Component* child)
 	{		
+		if (!child)
+			return;
 		m_children.erase(child->getPathName());
 		m_ordered_children.erase(std::remove(m_ordered_children.begin(), m_ordered_children.end(), child));
 		child->setParent(nullptr);
@@ -406,12 +409,46 @@ namespace rhea
 	}
 
 
+	void Unit::onDestroy()
+	{		
+	    // internal cleanup first
+		Event e("delete", this);
+		sendEvent("delete", &e);
+
+	    // destroy children
+		auto children = m_ordered_children;
+
+		for (auto it = children.rbegin(); it != children.rend(); ++it) {
+			if (*it)
+				(*it)->destroy();
+		}
+
+		detachFromParent();
+	    
+	    // empty containers
+	    m_children.clear();
+	    m_ordered_children.clear();	    
+	    m_eventhandlers.clear();
+		m_unique_components.clear();
+	    
+	    // cleanup basis
+	    Component::onDestroy();
+	}
+
+	void Unit::detachFromParent()
+	{
+		if (m_parent) {
+			m_parent->removeChild(this);
+			m_parent = nullptr;
+		}
+	}
+
 	Unit::~Unit()
 	{
-		// iterate over children and delete them
-		for (auto it = m_children.begin(); it != m_children.end(); ++it) {
-			delete it->second;
-		}
+	    // Nur Absicherung falls destroy() nicht aufgerufen wurde
+	    for (auto it = m_children.begin(); it != m_children.end(); ++it) {
+	        delete it->second;
+	    }
 	}
 
 	void Unit::logMe()

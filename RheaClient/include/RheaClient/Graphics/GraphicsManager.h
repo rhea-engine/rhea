@@ -32,7 +32,7 @@ namespace rhea::client {
 		virtual bool Ensure(poseidon::Core* core, rhea::Unit* unit) = 0;
 
 		// handle frame update
-		virtual void onFrame() = 0;
+		virtual void onFrame(float delta) = 0;
 
 		// handle transform update
 		virtual void onTransformUpdate(rhea::Unit* unit) {};

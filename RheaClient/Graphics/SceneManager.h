@@ -61,7 +61,7 @@ namespace rhea::client {
 
 		bool Ensure(poseidon::Core* core, rhea::Unit* unit);	
 
-		void onFrame() {}
+		void onFrame(float delta) override {}
 	
 	protected:
 		poseidon::Core* m_core;

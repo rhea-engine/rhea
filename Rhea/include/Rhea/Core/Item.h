@@ -3,7 +3,7 @@
 
 #include <memory>
 
-#include <Rhea/Unit.h>
+#include <Rhea/Core/ActiveUnit.h>
 
 #include <Rhea/Core/Position.h>
 #include <Math/Vector3.h>
@@ -23,9 +23,9 @@ namespace rhea
 	* Item is the base class for all units that can be placed in the scene with a location.
 	* For adding behahviour or visual representation add components as childs
 	*/
-	class Item : public Unit
+	class Item : public ActiveUnit
 	{
-		MECLASS(Item, Unit)
+		MECLASS(Item, ActiveUnit)
 
 	public:
 		Item(std::string name) :
@@ -36,7 +36,7 @@ namespace rhea
 			m_turn(0.0f),			
 			m_transform(this),
 			m_is_renderable(true),
-			Unit(name, type_name)
+			ActiveUnit(name, type_name)
 		{}
 		
 		// setup from strings
@@ -63,7 +63,7 @@ namespace rhea
 		Transform* getTransform() { return &m_transform; }
 
 		// update on frame
-		virtual void onFrame(float delta);
+		void onFrame(float delta) override;
 
 		virtual void setPosition(rhea::Position& position);
 		virtual void setPosition(math::Vector3 position);

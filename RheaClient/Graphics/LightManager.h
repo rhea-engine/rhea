@@ -22,7 +22,7 @@ namespace rhea::client
 		bool onUpdate(rhea::Event* ev, rhea::Unit* unit);
 
 		// handle frame update
-		void onFrame() override {};
+		void onFrame(float delta) override {};
 
 		// handle deletion event
 		bool onLightDelete(rhea::Event* ev, rhea::Unit* unit);

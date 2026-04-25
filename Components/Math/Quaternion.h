@@ -1,6 +1,8 @@
 #ifndef MATH_QUATERNION_H
 #define MATH_QUATERNION_H
 
+#include <cmath>
+
 namespace math
 {
 	class Vector3;
@@ -103,6 +105,15 @@ namespace math
 
 		// get as vector axes
 		void toAxes(Vector3& x_axis, Vector3& y_axis, Vector3& z_axis) const;
+
+		// comüpare with another quaternion, with epsilon tolerance for floating point errors
+		bool equals(const Quaternion& q, float epsilon = (float)1e-06) const
+		{
+			return (fabs(w - q.w) < epsilon) &&
+				   (fabs(x - q.x) < epsilon) &&
+				   (fabs(y - q.y) < epsilon) &&
+				   (fabs(z - q.z) < epsilon);
+		}
 	};
 
 	// Non-member function to handle float * Quaternion

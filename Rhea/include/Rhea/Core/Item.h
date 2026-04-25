@@ -69,7 +69,7 @@ namespace rhea
 		virtual void setPosition(math::Vector3 position);
 
 		// set direction
-		virtual void setLookAt(math::Vector3 look_at);
+		virtual void setLookAt(math::Vector3 look_at, const math::Vector3& localDirectionVector);
 
 		// movement
 		virtual void setMovement(math::Vector3 move);

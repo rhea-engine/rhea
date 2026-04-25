@@ -1,17 +1,11 @@
 #include "D3D11ShaderProgram.h"
-#include "D3D11ShaderProgram.h"
-#include "D3D11ShaderProgram.h"
-#include "D3D11ShaderProgram.h"
-#include "D3D11ShaderProgram.h"
-#include "D3D11ShaderProgram.h"
-#include "D3D11ShaderProgram.h"
 #include <iostream>
 #include <comdef.h>
 
 #include <d3d11shader.h>
 #include <d3dcompiler.h>
 
-#include "D3D11ShaderProgram.h"
+#include <Psio/Log.h>
 
 #pragma comment(lib,"d3dcompiler.lib")
 
@@ -119,7 +113,7 @@ namespace hippios
 			nullptr,
 			&m_vertexShader);
 
-		return SUCCEEDED(hr);
+		return true;
 	}
 
 	bool D3D11ShaderProgram::compilePixelShaderFromFile(const std::string& filename, const std::string& entryPoint)
@@ -170,7 +164,7 @@ namespace hippios
 			nullptr,
 			&m_pixelShader);
 
-		return SUCCEEDED(hr);
+		return true;
 	}
 
 	bool D3D11ShaderProgram::compileVertexShaderFromSource(const unsigned char* buf, size_t buflen, const std::string& entryPoint)
@@ -199,7 +193,7 @@ namespace hippios
 			if (errorBlob)
 			{
 				const char* errorMsg = (const char*)errorBlob->GetBufferPointer();
-				printf("%s\n", errorMsg);
+				LOG(LOG_ERROR) << errorMsg;
 				OutputDebugStringA((char*)errorBlob->GetBufferPointer());
 				errorBlob->Release();
 			}
@@ -209,7 +203,7 @@ namespace hippios
 				m_vertexBlob = nullptr;
 			}
 
-			return hr;
+			return false;
 		}
 		else if (errorBlob)
 		{
@@ -217,9 +211,9 @@ namespace hippios
 		}
 		hr = m_device->CreateVertexShader(m_vertexBlob->GetBufferPointer(), m_vertexBlob->GetBufferSize(), NULL, &m_vertexShader);
 		if (FAILED(hr)) {
-			printf("could not load vertex shader");
+			LOG(LOG_ERROR) << "could not load vertex shader";
 		}
-		return SUCCEEDED(hr);
+		return false;
 	}
 
 	bool D3D11ShaderProgram::compilePixelShaderFromSource(const unsigned char* buf, size_t buflen, const std::string& entryPoint)
@@ -230,13 +224,6 @@ namespace hippios
 #if defined( DEBUG ) || defined( _DEBUG )
 		compileFlags |= D3DCOMPILE_DEBUG;
 #endif
-		// Prefer higher CS shader profile when possible as CS 5.0 provides better performance on 11-class hardware.
-		//LPCSTR profile = (m_device->GetFeatureLevel() >= D3D_FEATURE_LEVEL_11_0) ? "cs_5_0" : "cs_4_0";
-		const D3D_SHADER_MACRO defines[] =
-		{
-			"EXAMPLE_DEFINE", "1",
-			NULL, NULL
-		};
 
 		HRESULT hr = D3DCompile(buf,
 			buflen,
@@ -248,7 +235,7 @@ namespace hippios
 			if (errorBlob)
 			{
 				const char* errorMsg = (const char*)errorBlob->GetBufferPointer();
-				printf("%s\n", errorMsg);
+				LOG(LOG_ERROR) << errorMsg;
 				OutputDebugStringA((char*)errorBlob->GetBufferPointer());
 				errorBlob->Release();
 			}
@@ -258,18 +245,88 @@ namespace hippios
 				m_pixelBlob = nullptr;
 			}
 
-			return hr;
+			return false;
 		}
 		else if (errorBlob)
 		{
 			errorBlob->Release();
 		}
+#ifdef DEBUG_SHADER_REFLECTION
+		else
+		{
+			LOG(LOG_DEBUG) << "Pixel shader compiled successfully, size: " << m_pixelBlob->GetBufferSize() << " bytes";
+		}
+		// Shader Reflection
+		ID3D11ShaderReflection* reflection = nullptr;
+		HRESULT reflectHr = D3DReflect(
+			m_pixelBlob->GetBufferPointer(),
+			m_pixelBlob->GetBufferSize(),
+			__uuidof(ID3D11ShaderReflection),
+			reinterpret_cast<void**>(&reflection)
+		);
+
+		if (SUCCEEDED(reflectHr) && reflection) {
+			D3D11_SHADER_DESC shaderDesc;
+			reflection->GetDesc(&shaderDesc);
+			
+			LOG(LOG_DEBUG) << "Pixel Shader Reflection: " << shaderDesc.BoundResources << " bound resources";
+			
+			// Alle Resource-Bindings durchlaufen
+			for (UINT i = 0; i < shaderDesc.BoundResources; ++i) {
+				D3D11_SHADER_INPUT_BIND_DESC bindDesc;
+				if (SUCCEEDED(reflection->GetResourceBindingDesc(i, &bindDesc))) {
+					const char* typeStr = "UNKNOWN";
+					switch (bindDesc.Type) {
+						case D3D_SIT_CBUFFER: typeStr = "CBUFFER"; break;
+						case D3D_SIT_TBUFFER: typeStr = "TBUFFER"; break;
+						case D3D_SIT_TEXTURE: typeStr = "TEXTURE"; break;
+						case D3D_SIT_SAMPLER: typeStr = "SAMPLER"; break;
+						case D3D_SIT_UAV_RWTYPED: typeStr = "UAV_RWTYPED"; break;
+						case D3D_SIT_STRUCTURED: typeStr = "STRUCTURED"; break;
+						case D3D_SIT_UAV_RWSTRUCTURED: typeStr = "UAV_RWSTRUCTURED"; break;
+						case D3D_SIT_BYTEADDRESS: typeStr = "BYTEADDRESS"; break;
+						case D3D_SIT_UAV_RWBYTEADDRESS: typeStr = "UAV_RWBYTEADDRESS"; break;
+						case D3D_SIT_UAV_APPEND_STRUCTURED: typeStr = "UAV_APPEND_STRUCTURED"; break;
+						case D3D_SIT_UAV_CONSUME_STRUCTURED: typeStr = "UAV_CONSUME_STRUCTURED"; break;
+						case D3D_SIT_UAV_RWSTRUCTURED_WITH_COUNTER: typeStr = "UAV_RWSTRUCTURED_WITH_COUNTER"; break;
+					}
+					
+					const char* dimStr = "UNKNOWN";
+					switch (bindDesc.Dimension) {
+						case D3D_SRV_DIMENSION_UNKNOWN: dimStr = "UNKNOWN"; break;
+						case D3D_SRV_DIMENSION_BUFFER: dimStr = "BUFFER"; break;
+						case D3D_SRV_DIMENSION_TEXTURE1D: dimStr = "TEXTURE1D"; break;
+						case D3D_SRV_DIMENSION_TEXTURE1DARRAY: dimStr = "TEXTURE1DARRAY"; break;
+						case D3D_SRV_DIMENSION_TEXTURE2D: dimStr = "TEXTURE2D"; break;
+						case D3D_SRV_DIMENSION_TEXTURE2DARRAY: dimStr = "TEXTURE2DARRAY"; break;
+						case D3D_SRV_DIMENSION_TEXTURE2DMS: dimStr = "TEXTURE2DMS"; break;
+						case D3D_SRV_DIMENSION_TEXTURE2DMSARRAY: dimStr = "TEXTURE2DMSARRAY"; break;
+						case D3D_SRV_DIMENSION_TEXTURE3D: dimStr = "TEXTURE3D"; break;
+						case D3D_SRV_DIMENSION_TEXTURECUBE: dimStr = "TEXTURECUBE"; break;
+						case D3D_SRV_DIMENSION_TEXTURECUBEARRAY: dimStr = "TEXTURECUBEARRAY"; break;
+						case D3D_SRV_DIMENSION_BUFFEREX: dimStr = "BUFFEREX"; break;
+					}
+					
+					LOG(LOG_DEBUG) << "  [" << i << "] " << bindDesc.Name 
+								   << " bindPoint=" << bindDesc.BindPoint 
+								   << " type=" << typeStr
+								   << " dimension=" << dimStr
+								   << " numSamples=" << bindDesc.NumSamples;
+				}
+			}
+			reflection->Release();
+		}
+		else {
+			LOG(LOG_WARNING) << "D3D11ShaderProgram: Shader reflection failed for pixel shader";
+		}
+#endif
+
 		hr = m_device->CreatePixelShader(m_pixelBlob->GetBufferPointer(), m_pixelBlob->GetBufferSize(), NULL, &m_pixelShader);
 		if (FAILED(hr)) {
-			printf("could not load vertex shader");
+			LOG(LOG_ERROR) << "D3D11ShaderProgram: Could not create pixel shader";
+			return false;
 		}
-		return SUCCEEDED(hr);
-
+		return true;
 	}
 
 	void D3D11ShaderProgram::releaseResources()

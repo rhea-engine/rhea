@@ -32,7 +32,7 @@ namespace rhea::client {
 		void onTransformUpdate(rhea::Unit* unit) override;
 
 		// handle frame update
-		void onFrame();
+		void onFrame(float delta) override;
 
 		// handle events
 		bool onItemDelete(rhea::Event* ev, rhea::Unit* unit);

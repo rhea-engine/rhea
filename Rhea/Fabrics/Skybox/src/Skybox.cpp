@@ -120,11 +120,7 @@ namespace rhea
 			Vector3 old_pos = m_transform.get_derived_position()->get_worldspace();
 			// check wheter we need to update the position
 			if (position != old_pos) {
-				m_transform.get_position()->setPosition(position);
-				m_transform.update();
-				for (auto* l : m_movement_listeners) {
-					l->onPositionChanged();
-				}
+				setPosition(position);
 			}
 		}
 	}

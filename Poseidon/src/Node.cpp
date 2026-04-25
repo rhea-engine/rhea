@@ -9,7 +9,7 @@ namespace poseidon
 	Position* Node::get_position()
 	{
 		if (m_transform)
-			return m_transform->get_position();
+			return const_cast<Position*>(m_transform->get_position());
 		else
 			return nullptr;
 	}
@@ -17,7 +17,7 @@ namespace poseidon
 	Position* Node::get_derived_position()
 	{
 		if (m_transform)
-			return m_transform->get_derived_position();
+			return const_cast<Position*>(m_transform->get_derived_position());
 		else
 			return nullptr;
 	}

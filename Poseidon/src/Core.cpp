@@ -276,7 +276,7 @@ namespace poseidon
 
 	Shader* Core::createShader(std::string name)
 	{
-		Shader* shader = new Shader(this);
+		Shader* shader = new Shader(this, name);
 		m_shaders[name] = shader;
 		return shader;
 	}

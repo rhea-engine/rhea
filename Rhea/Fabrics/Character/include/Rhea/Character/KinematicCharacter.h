@@ -26,7 +26,6 @@ namespace rhea
 
 		KinematicCharacter(std::string path_name, std::string type_name) :
 			m_move_state(MoveState::GROUND),
-			m_position(nullptr),
 			m_gravity(0.0f),
 			m_upwards(0.0f),
 			m_air_timer(0.0f),
@@ -53,8 +52,7 @@ namespace rhea
 
 	protected:
 		MoveState m_move_state;
-		math::Vector3 m_forced_movement;
-		Position* m_position;
+		math::Vector3 m_forced_movement;		
 		float m_gravity;
 		float m_upwards;
 		float m_jump_start_y;

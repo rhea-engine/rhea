@@ -4,8 +4,9 @@
 
 namespace poseidon
 {
-	Shader::Shader(Core* core) :
+	Shader::Shader(Core* core, std::string name) :
 		m_grahpics_core(core),
+		m_name(name),
 		m_shader(nullptr),		
 		m_alpha_blending(false),
 		m_pso(nullptr),

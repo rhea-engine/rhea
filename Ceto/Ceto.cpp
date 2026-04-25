@@ -447,7 +447,8 @@ void Ceto::showScene(rhea::Scene* scene)
 		}		
 	}
 
-	// search for a camera			
+	// search for a camera		
+	/*	
 	m_view = scene->findByType<rhea::Camera>();
 	if (!m_view) {
 		// no camera found - create a default cam
@@ -467,6 +468,7 @@ void Ceto::showScene(rhea::Scene* scene)
 			m_view->setPosition(math::Vector3(0, 1.7f, 0.0f));
 		}
 	}
+	*/
 
 	// search for a controller
 	m_focused_controller = m_unit_tree->findByType<rhea::Controller>();

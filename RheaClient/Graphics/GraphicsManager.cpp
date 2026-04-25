@@ -77,9 +77,14 @@ namespace rhea::client {
 				z = pos_sit[2];
 			}
 
-			t->get_position()->setPosition(x, y, z);
+			rhea::Position position = *t->get_position();
+			position.setPosition(x, y, z);
+			t->setPosition(position);
 		}
-		else
-			t->get_position()->setPosition(0.0f, 0.0f, 0.0f);
+		else {
+			rhea::Position position = *t->get_position();
+			position.setPosition(0.0f, 0.0f, 0.0f);
+			t->setPosition(position);
+		}
 	}	
 }

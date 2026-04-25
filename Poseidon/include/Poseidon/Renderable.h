@@ -5,7 +5,7 @@
 
 #include "Node.h"
 #include "RenderTypes.h"
-#include <Rhea/Animation/Skeleton.h>
+#include "SkeletonPose.h"
 
 namespace hippios
 {
@@ -28,6 +28,7 @@ namespace poseidon
 		virtual Material* getMaterial() = 0;
 	
         RenderableHandle handle = InvalidRenderable;
+		SkeletonPoseHandle skeleton_pose = InvalidSkeletonPoseHandle;
 
         Mesh* mesh = nullptr;
         Material* overrideMaterial = nullptr;
@@ -39,9 +40,7 @@ namespace poseidon
         bool castsShadow = true;
         bool receivesShadow = true;
 
-        uint32_t renderLayers = 0xFFFFFFFF;
-
-        rhea::Skeleton* skeleton = nullptr;        
+        uint32_t renderLayers = 0xFFFFFFFF;                
     };
 }
 

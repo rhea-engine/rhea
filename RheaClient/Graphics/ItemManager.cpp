@@ -64,7 +64,7 @@ namespace rhea::client {
 
 		// Check if already exists
 		auto* rc = item->getComponent<RenderComponent>();
-
+		
 		if (!rc) rc = item->addComponentUnique<RenderComponent>("renderer", m_next_id++);
 
 		if (rc->hasRenderable())
@@ -253,6 +253,17 @@ namespace rhea::client {
 		return false;
 	}
 
+	void GraphicsItemManager::onFrame(float delta)
+	{
+		poseidon::Core* core = m_service->getEngine();
+		for (rhea::Item* item : m_animated_items) {
+			auto* rc = item->getComponent<RenderComponent>();
+			if (rc && rc->hasRenderable()) {
+				syncSkeletonPose(core, item, rc);
+			}
+		}
+	}
+
 	// New helper method for GPU resource creation
 	bool GraphicsItemManager::createGPUResources(poseidon::Core* core, 
                                                   rhea::Item* item,
@@ -288,6 +299,7 @@ namespace rhea::client {
 		rhea::Skeleton* skeleton = mesh->getComponent<rhea::Skeleton>();
 		if (skeleton) {
 			rc->skeleton = skeleton;
+			m_animated_items.push_back(item); // Track animated items for pose updates
 		}
 
 		// Create render entity if missing
@@ -336,12 +348,10 @@ namespace rhea::client {
 				rc->ctx->setVisibility(node_id, renderable->visible);
 				rc->ctx->attachRenderable(node_id, rc->renderable);
 			}
-		}				
-
-		// optional migration/debug reference
+		}
 
 		// skeleton
-		renderable->skeleton = rc->skeleton;
+		syncSkeletonPose(core, item, rc);
 
 		return syncTransform(core, item, rc);
 	}
@@ -351,13 +361,13 @@ namespace rhea::client {
 		poseidon::Renderable* renderable = core->getRenderWorld()->resolveRenderable(rc->renderable);
 		if (!renderable)
 			return false;
-
+		
 		// transform copy
 		rhea::Transform* transform = item->getTransform();
 		if (transform) {
-			Position* position = transform->get_derived_position();
+			const Position* position = transform->get_derived_position();
 			if (position) {
-				math::Matrix3x4 model_wtm = position->getWorldTransform();
+				math::Matrix3x4 model_wtm = const_cast<Position*>(position)->getWorldTransform();
 
 				math::Matrix4 world = model_wtm;
 				math::Matrix4 inverse = world.inverse().transpose();
@@ -400,6 +410,30 @@ namespace rhea::client {
 				}, true);
 
 			rc->ctx->setChildOrder(rc->ctx->findNodeForSource(rc->gfx_node_id), ordered);
+		}
+	}
+
+	void GraphicsItemManager::syncSkeletonPose(poseidon::Core* core, rhea::Item* item, RenderComponent* rc)
+	{
+		poseidon::Renderable* renderable = core->getRenderWorld()->resolveRenderable(rc->renderable);
+		if (!renderable)
+			return;
+
+		if (rc->skeleton) {
+			if (!rc->skeleton_pose)
+			{
+				rc->skeleton_pose = core->getRenderWorld()->createSkeletonPose(rc->skeleton->getBones().size());
+			}
+
+			poseidon::SkeletonPose* pose = core->getRenderWorld()->getSkeletonPose(rc->skeleton_pose);
+			auto& dst = pose->accessBoneMatrices();
+			const auto& src = rc->skeleton->getFinalBoneMatrices();
+
+			for (size_t i = 0; i < src.size(); ++i)
+			{
+				dst[i] = src[i];
+			}
+			renderable->skeleton_pose = rc->skeleton_pose;
 		}
 	}
 }

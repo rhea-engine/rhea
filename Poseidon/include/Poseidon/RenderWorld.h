@@ -6,6 +6,7 @@
 #include <unordered_map>
 
 #include "RenderTypes.h"
+#include "SkeletonPose.h"
 
 namespace poseidon
 {
@@ -36,6 +37,11 @@ namespace poseidon
 		LightHandle createLight();
 		void destroyLight(LightHandle handle);
 		Light* resolveLight(LightHandle handle);
+
+		SkeletonPoseHandle createSkeletonPose(size_t boneCount);
+		void destroySkeletonPose(SkeletonPoseHandle handle);
+
+		SkeletonPose* getSkeletonPose(SkeletonPoseHandle handle);
 	
 	private:
 		Core* m_core; // for resource creation, maybe not needed if you pass renderer directly to the world
@@ -65,7 +71,10 @@ namespace poseidon
 
 		std::unordered_map<RenderableHandle, RenderableRecord> m_renderables;
 		std::unordered_map<CameraHandle, CameraRecord> m_cameras;
-		std::unordered_map<LightHandle, LightRecord> m_lights;		
+		std::unordered_map<LightHandle, LightRecord> m_lights;
+
+		uint32_t m_nextSkeletonPose = 1;
+		std::unordered_map<SkeletonPoseHandle, SkeletonPose> m_skeletons;
 	};
 }
 #endif // !POSEIDON_RENDERWORLD_H

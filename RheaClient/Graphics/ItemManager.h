@@ -36,7 +36,7 @@ namespace rhea::client {
 		void onTransformUpdate(rhea::Unit* unit) override;
 
 		// handle frame update
-		void onFrame() {};
+		void onFrame(float delta) override;
 
 		// handle deletion event
 		bool onItemDelete(rhea::Event* ev, rhea::Unit* unit);
@@ -49,6 +49,8 @@ namespace rhea::client {
 		bool syncRenderable(poseidon::Core* core, rhea::Item* item, RenderComponent* rc);
 		bool syncTransform(poseidon::Core* core, rhea::Item* item, RenderComponent* rc);
 		void syncChildOrder(rhea::Item* parent);
+		void syncSkeletonPose(poseidon::Core* core, rhea::Item* item, RenderComponent* rc);
+		std::vector<rhea::Item*> m_animated_items;
 	};
 }
 

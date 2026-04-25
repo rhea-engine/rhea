@@ -16,6 +16,7 @@ namespace rhea {
 #include <Poseidon/RenderTypes.h>
 #include <Poseidon/RenderContext.h>
 #include <Rhea/Component.h>
+#include <Poseidon/SkeletonPose.h>
 
 namespace rhea::client {
 
@@ -49,6 +50,7 @@ namespace rhea::client {
 		// cached GPU resources (non-owning, owned by caches / source systems)
 		poseidon::Mesh* gpuMesh = nullptr;
 		rhea::Skeleton* skeleton = nullptr;
+		poseidon::SkeletonPoseHandle skeleton_pose = poseidon::InvalidSkeletonPoseHandle;
 
 		bool hasRenderable() const { return renderable != poseidon::InvalidRenderable; }
 		bool hasLight() const { return light != poseidon::InvalidLight; }

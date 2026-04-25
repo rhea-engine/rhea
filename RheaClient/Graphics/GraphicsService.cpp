@@ -258,6 +258,11 @@ namespace rhea::client {
 
 	bool GraphicsService::onFrameFinal(float delta)
 	{
+		// update bridges
+		auto* item_mgr = getManager<rhea::Item>();
+		if (item_mgr) {
+			item_mgr->onFrame(delta);
+		}
 		return m_core->iterate();
 	}
 

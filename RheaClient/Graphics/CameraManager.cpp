@@ -60,28 +60,11 @@ namespace rhea::client {
 		std::string render_context = "default";
 		frame_renderer->getViewport()->getRenderContext(render_context)->setCameraHandle(rc->camera);
 		
-		math::Vector3 m_position;
-		Variant pos_sit = unit->getValue("position");
-		if (pos_sit != Variant()) {
-			float x = pos_sit[0];
-			float y = pos_sit[1];
-			float z = pos_sit[2];
-			m_position = math::Vector3(x, y, z);
-		}
-		else
-			m_position = math::Vector3(0.0f, 0.0f, 0.0f);
+		const Position* derived = camera->getTransform()->get_derived_position();
+		const math::Vector3& pos = derived->get_worldspace();
+		const math::Quaternion& rot = derived->get_rotation();
 
-		// set a default position
-		camera->getTransform()->get_position()->setPosition(m_position);
-		camera->getTransform()->get_position()->lookAt(math::Vector3(0.0f, 0.0f, 0.0f), math::Vector3::UNIT_Z);
-
-		math::Quaternion rot_after = camera->getTransform()->get_position()->get_rotation();
-
-		// Check if rotation is valid (not NaN)
-		if (std::isnan(rot_after.w) || std::isnan(rot_after.x) || std::isnan(rot_after.y) || std::isnan(rot_after.z)) {
-			LOG(LOG_ERROR) << "Camera rotation is NaN! Setting identity quaternion.";
-			camera->getTransform()->get_position()->setOrientation(math::Quaternion(1.0f, 0.0f, 0.0f, 0.0f));
-		}
+//		LOG(LOG_DEBUG) << "creating camera transform: position(" << pos.x << ", " << pos.y << ", " << pos.z << ") rotation(" << rot.w << ", " << rot.x << ", " << rot.y << ", " << rot.z << ")";
 
 		syncCameraTransform(core, rc->camera, camera->getTransform());
 		syncCameraProjection(core, rc->camera, camera, Width, Height);
@@ -125,10 +108,12 @@ namespace rhea::client {
 			return;
 		auto rc = camera->getComponent<RenderComponent>();
 		if (!rc) return;
+		Vector3 position;
+		position = camera->getTransform()->get_position()->get_worldspace();
 		syncCameraTransform(m_service->getEngine(), rc->camera, camera->getTransform());
 	}
 
-	void GraphicsCameraManager::onFrame()
+	void GraphicsCameraManager::onFrame(float delta)
 	{
 	}
 
@@ -170,6 +155,8 @@ namespace rhea::client {
 
 		const math::Vector3& pos = derived->get_worldspace();
 		const math::Quaternion& rot = derived->get_rotation();
+
+		//LOG(LOG_DEBUG) << "Syncing camera transform: position(" << pos.x << ", " << pos.y << ", " << pos.z << ") rotation(" << rot.w << ", " << rot.x << ", " << rot.y << ", " << rot.z << ") for camera handle: " << handle;
 
 		cam->setPosition(pos);
 		cam->setOrientation(rot);		

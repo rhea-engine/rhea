@@ -1,6 +1,7 @@
 #ifndef RHEA_SKELETON_H
 #define RHEA_SKELETON_H
 
+#include <Math/Matrix4.h>
 #include <Rhea/Component.h>
 #include "Bone.h"
 
@@ -23,9 +24,11 @@ namespace rhea
 		std::vector<Bone>& getBones() {	return m_bones;	}
 
 		const std::vector<math::Matrix4>& getBoneMatrices() const;
+		const std::vector<math::Matrix4>& getFinalBoneMatrices() const;
 
 	protected:
-		std::vector<Bone> m_bones;		
+		std::vector<Bone> m_bones;	
+		mutable std::vector<math::Matrix4> m_finalBoneMatrices;
 	};
 }
 

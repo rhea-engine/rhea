@@ -91,4 +91,28 @@ namespace poseidon
 			m_cameras.erase(it);
 		}
 	}
+
+	SkeletonPoseHandle RenderWorld::createSkeletonPose(size_t boneCount)
+	{
+		SkeletonPoseHandle h = m_nextSkeletonPose++;
+
+		SkeletonPose pose;
+		pose.setBoneCount(boneCount);
+
+		m_skeletons.emplace(h, std::move(pose));
+		return h;
+	}
+
+	SkeletonPose* RenderWorld::getSkeletonPose(SkeletonPoseHandle handle)
+	{
+		auto it = m_skeletons.find(handle);
+		if (it == m_skeletons.end())
+			return nullptr;
+
+		return &it->second;
+	}
+	void RenderWorld::destroySkeletonPose(SkeletonPoseHandle handle)
+	{
+		m_skeletons.erase(handle);
+	}
 }

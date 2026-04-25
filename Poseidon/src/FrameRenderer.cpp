@@ -164,7 +164,7 @@ namespace poseidon
 		per_frame_buf.v = frameDst[0];
 		per_frame_buf.p = frameDst[1];
 		per_frame_buf.vp = frameDst[2];
-		
+
 		per_frame_buf.cameraPos = camera->getPosition();
 
 		m_frame_buffer->update((void*)&per_frame_buf);
@@ -271,24 +271,28 @@ namespace poseidon
 				continue;
 			}
 
-			// skeleton handling if any
-			rhea::Skeleton* skeleton = renderable->skeleton;
-			if (skeleton) {
-				// Fill the bone buffer
-				BoneBuffer boneBuffer{};
-				for (int i = 0; i < 100; ++i)
-				{
-					boneBuffer.boneMatrices[i] = math::Matrix4::IDENTITY;
-				}
-				const auto& boneMatrices = skeleton->getBoneMatrices();
-				size_t max_bones = std::min(boneMatrices.size(), static_cast<size_t>(100)); // Ensure we do not exceed buffer capacity.
-				for (size_t i = 0; i < max_bones; ++i)
-					boneBuffer.boneMatrices[i] = boneMatrices[i];
+			if (renderable->skeleton_pose != InvalidSkeletonPoseHandle)
+			{
+				auto* pose = world->getSkeletonPose(renderable->skeleton_pose);
 
-				// Update the bone matrix buffer
-				m_bone_buffer->update((void*)&boneBuffer);
-				m_renderer->bindGPUBuffer(m_bone_buffer.get(), 4, hippios::ShaderStage::Vertex); // Bind bone buffer to slot 4 for vertex shader
-			}
+				if (pose)
+				{
+					// Fill the bone buffer
+					BoneBuffer boneBuffer{};
+					for (int i = 0; i < 100; ++i)
+					{
+						boneBuffer.boneMatrices[i] = math::Matrix4::IDENTITY;
+					}
+					const auto& boneMatrices = pose->getBoneMatrices();
+					size_t max_bones = std::min(boneMatrices.size(), static_cast<size_t>(100)); // Ensure we do not exceed buffer capacity.
+					for (size_t i = 0; i < max_bones; ++i)
+						boneBuffer.boneMatrices[i] = boneMatrices[i];
+
+					// Update the bone matrix buffer
+					m_bone_buffer->update((void*)&boneBuffer);
+					m_renderer->bindGPUBuffer(m_bone_buffer.get(), 4, hippios::ShaderStage::Vertex); // Bind bone buffer to slot 4 for vertex shader
+				}
+			}			
 
 			// iterate over submeshes
 			for (size_t i = 0; i < mesh->getMeshCount(); ++i) {
@@ -303,7 +307,7 @@ namespace poseidon
 					DLOG(LOG_DEBUG) << "FrameRenderer::render: submesh " << i << " has no material - SKIPPING";
 					continue;
 				}
-
+				std::vector<poseidon::Texture*> texsi = mat->getTextures();
 				if (mat != m_current_material && mat) {
 					m_current_material = mat;
 					mat->activate(3, 5);

@@ -1,7 +1,7 @@
 ﻿# define the main library
 add_library (Poseidon STATIC "src/Core.cpp" "src/Node.cpp" "src/Mesh.cpp" "src/Viewport.cpp" 
 "src/Texture.cpp" "src/Material.cpp" "src/Camera.cpp" "src/Entity.cpp" "src/RenderQueue.cpp" "src/FrameRenderer.cpp"
-"src/Window.cpp" "src/Shader.cpp" "src/RenderContext.cpp" "src/Poseidon.cpp" "src/Cubemap.cpp" "src/RenderWorld.cpp")
+"src/Window.cpp" "src/Shader.cpp" "src/RenderContext.cpp" "src/Poseidon.cpp" "src/Cubemap.cpp" "src/RenderWorld.cpp" "include/Poseidon/SkeletonPose.h")
 add_library(Meworla::Poseidon ALIAS Poseidon)
 
 target_include_directories(Poseidon PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)

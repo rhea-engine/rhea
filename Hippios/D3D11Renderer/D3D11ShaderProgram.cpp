@@ -213,7 +213,7 @@ namespace hippios
 		if (FAILED(hr)) {
 			LOG(LOG_ERROR) << "could not load vertex shader";
 		}
-		return false;
+		return true;
 	}
 
 	bool D3D11ShaderProgram::compilePixelShaderFromSource(const unsigned char* buf, size_t buflen, const std::string& entryPoint)

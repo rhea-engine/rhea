@@ -3,7 +3,7 @@
 
 #include <string>
 
-#include <Poseidon/Poseidon.h>
+#include <Rhea/Application.h>
 #include <Rhea/Core/Camera.h>
 #include <Rhea/GUI/Label.h>
 #include <Rhea/GUI/GUIController.h>
@@ -12,7 +12,7 @@
 
 using std::string;
 
-class Ceto : public poseidon::Application
+class Ceto : public rhea::Application
 {
 public:
 	Ceto() :
@@ -34,6 +34,7 @@ public:
 	void loadMainGUI();
 	void setHomeScene(string scene);
 	bool onFrameEnd();
+	void onScene(rhea::Scene* scene) override;
 
 protected:
 	string m_home_scene;

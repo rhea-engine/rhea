@@ -199,6 +199,10 @@ namespace rhea
 		m_input_map = new InputMap();
 		m_input_map->loadDefaultMap();
 		m_dispatcher = new Dispatcher();
+
+		// create a representation for the engine
+		rhea::Unit* engine = m_unit_tree->createUnit("engine", "//core/types/unit", {}, {});
+		m_unit_tree->addChild(engine);
 	}
 
 	Service* Application::getService(std::string name)

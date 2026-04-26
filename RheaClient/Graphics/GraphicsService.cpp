@@ -40,6 +40,8 @@
 #include <RheaClient/Window/WindowService.h>
 #include "LightManager.h"
 #include <RheaClient/Components/GraphicsComponent.h>
+#include <Rhea/Resources/ResourceList.h>
+#include <Rhea/Resources/ResourceService.h>
 
 namespace rhea::client {
 	GraphicsService::GraphicsService(std::string name, std::string type_name) :
@@ -253,6 +255,28 @@ namespace rhea::client {
 			onSceneDeactivate(doCast<rhea::Scene>(ev->getTarget()));
 			return false;
 			});
+
+		// load core resources
+		rhea::ResourceList res_list(m_app);
+
+		// load shaders
+		res_list.push("standard_shader", "//rhea/shaders/standard.shader", "//meworla/shader");
+		res_list.push("widget_shader", "//rhea/shaders/widget.shader", "//meworla/shader");
+		res_list.push("text_shader", "//rhea/shaders/text.shader", "//meworla/shader");
+		res_list.push("terrain_shader", "//rhea/shaders/terrain.shader", "//meworla/shader");
+		res_list.push("skeletal_shader", "//rhea/shaders/skeletal.shader", "//meworla/shader");
+
+		// skybox		
+		hippios::DepthStencilStateDesc dss;
+		std::memset(&dss, 0, sizeof(dss));
+		dss.depth_enable = true;
+		dss.depth_write_mask = hippios::DepthWriteMask::DEPTH_WRITE_ALL;
+		dss.depth_func = hippios::ComparisonFunction::COMPARE_LESS_EQUAL;
+		doCast<GraphicsService>(m_app->getService("graphics"))->getEngine()->get_renderer()->createStencilState("skybox", dss);
+		res_list.push("skybox_shader", "//rhea/shaders/skybox.shader", "//meworla/shader");
+
+		// note: for locally installed resources this is actually synchronous
+		static_cast<rhea::ResourceService*>(m_app->getService("resources"))->loadAsync(res_list, nullptr);
 	}
 
 	bool GraphicsService::onFrameFinal(float delta)

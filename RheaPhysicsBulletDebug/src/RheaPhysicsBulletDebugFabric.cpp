@@ -5,6 +5,7 @@
 #include <Rhea/Application.h>
 #include <Poseidon/Poseidon.h>
 #include <Rhea/UnitTree.h>
+#include <RheaClient/Graphics/GraphicsService.h>
 
 namespace rhea::physics::bullet::debug
 {
@@ -21,9 +22,15 @@ namespace rhea::physics::bullet::debug
             auto* bullet_svc = doCast<BulletPhysicsService>(svc);
             if (!bullet_svc) return;            
             bullet_svc->setDrawerFactory([app, bullet_svc]() -> rhea::IPhysicsDebugDraw* {
-                poseidon::Application* p_app = (poseidon::Application*)app;
-                auto* dbg = new BulletDebugDraw(app, bullet_svc->getWorld(), p_app->get_core());
-                return (rhea::IPhysicsDebugDraw*)dbg;
+                auto* graphics = doCast<rhea::client::GraphicsService>(
+                    app->getService("graphics")
+                );
+                if (!graphics) return nullptr;
+
+                auto* core = graphics->getEngine();
+                if (!core) return nullptr;
+
+                return new BulletDebugDraw(app, bullet_svc->getWorld(), core);
             });
         });
     }

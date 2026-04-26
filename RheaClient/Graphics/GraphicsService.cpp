@@ -30,7 +30,6 @@
 #include <Rhea/Core/Item.h>
 #include <Rhea/Core/Mesh.h>
 #include "Poseidon/Renderable.h"
-#include "Poseidon/Entity.h"
 
 #include <Rhea/Core/Material.h>
 #include <Rhea/Core/Camera.h>

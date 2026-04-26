@@ -22,8 +22,7 @@ namespace hippios
 }
 
 namespace poseidon
-{
-	class Node;
+{	
 	class Viewport;
 	class RenderQueue;
 	class Material;
@@ -37,9 +36,6 @@ namespace poseidon
 		FrameRenderer();
 		~FrameRenderer();
 
-		Node* createNode();
-		Node* get_root();
-
 		// set the render system
 		void setRenderer(hippios::Renderer* renderer);
 
@@ -52,9 +48,6 @@ namespace poseidon
 		bool renderViewport(Viewport* viewport, hippios::RenderTarget* target, RenderWorld* world);
 		bool renderContext(RenderContext* context, hippios::RenderTarget* target, RenderWorld* world);
 
-		// set up the root node
-		void setRoot(Node* node) { m_tree = node; }		
-		
 		// window helper
 		Window* getWindow(psio::Window* win);
 		void registerWindow(Window* win) { m_windows.push_back(win); }
@@ -67,7 +60,6 @@ namespace poseidon
 		}
 
 	protected:
-		Node* m_tree = 0;
 		hippios::Renderer* m_renderer;		
 		std::vector<Window*> m_windows;
 		RenderQueue* m_rend_queue = NULL;

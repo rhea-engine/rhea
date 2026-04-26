@@ -1,7 +1,6 @@
 #ifndef POSEIDON_MESH_H
 #define POSEIDON_MESH_H
 
-#include "Node.h"
 #include "Camera.h"
 #include "Viewport.h"
 #include "Hippios/Renderer.h"

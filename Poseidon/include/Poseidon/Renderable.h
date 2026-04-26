@@ -3,7 +3,6 @@
 
 #include <vector>
 
-#include "Node.h"
 #include "RenderTypes.h"
 #include "SkeletonPose.h"
 
@@ -20,13 +19,13 @@ namespace poseidon
 	class Camera;
 	class Material;
 
-	class Renderable : public Node
+	class Renderable
 	{
 	public:
-		virtual void cullPhase(RenderQueue* queue, Camera* camera) = 0;
-		virtual void getRenderInput(size_t mesh_idx, hippios::VertexBuffer** pvb, hippios::IndexBuffer** pib, size_t& num_indices) = 0;
-		virtual Material* getMaterial() = 0;
-	
+		Renderable(Mesh* mesh) :
+			mesh(mesh)
+		{}
+				
         RenderableHandle handle = InvalidRenderable;
 		SkeletonPoseHandle skeleton_pose = InvalidSkeletonPoseHandle;
 

@@ -7,7 +7,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ ${CMAKE_SOURCE_DIR} ${CMAKE_SOU
 add_executable (Cube "Cube.cpp")
 
 # add the renderer engine
-target_link_libraries(Cube Rhea)
+target_link_libraries(Cube Rhea::Core Rhea::Client)
 
 ## add render engine assets
 add_custom_command(TARGET Cube POST_BUILD

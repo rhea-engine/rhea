@@ -1,6 +1,5 @@
 #define NOMINMAX
 #include "Poseidon/FrameRenderer.h"
-#include "Poseidon/Node.h"
 #include "Poseidon/Viewport.h"
 #include "Poseidon/Renderable.h"
 #include "Poseidon/RenderQueue.h"
@@ -37,14 +36,6 @@ namespace poseidon
 		// unique_ptrs handle cleanup of graphics buffers automatically
 	}
 
-	Node* FrameRenderer::get_root()
-	{
-		if (!m_tree) {
-			m_tree = createNode();
-		}
-		return m_tree;
-	}
-
 	void FrameRenderer::setRenderer(hippios::Renderer* renderer)
 	{
 		m_renderer = renderer;
@@ -57,12 +48,6 @@ namespace poseidon
 		m_light_buffer = m_renderer->createGraphicsBuffer(sizeof(cbLight));
 		m_renderer->bindGPUBuffer(m_light_buffer.get(), 2, hippios::ShaderStage::Fragment);		
 		m_bone_buffer = m_renderer->createGraphicsBuffer(sizeof(BoneBuffer));
-	}
-
-	Node* FrameRenderer::createNode()
-	{
-		Node* node = new Node();
-		return node;
 	}
 
 	bool FrameRenderer::update()

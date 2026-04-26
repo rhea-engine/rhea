@@ -1,4 +1,4 @@
-#include <Poseidon/Entity.h>
+#include <Poseidon/Renderable.h>
 #include <Poseidon/FrameRenderer.h>
 #include <Poseidon/Material.h>
 #include <Poseidon/Shader.h>

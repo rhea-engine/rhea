@@ -12,19 +12,17 @@
 
 namespace hippios { class Renderer; class GraphicsBuffer; class SamplerState; }
 
-#include "Node.h"
-
 namespace poseidon
 {
 	class Material;
 	class Shader;
-	class Texture;
-	class Entity;
+	class Texture;	
 	class Mesh;
 	class Window;
 	class FrameRenderer;
 	class Camera;
 	class RenderWorld;
+	class Renderable;
 
 	/** The holder of the scenen tree
 		Acts as a gateway to the grahpics engine system
@@ -62,8 +60,8 @@ namespace poseidon
 		Shader* getShader(std::string name);
 		// create a new shader and add it with name
 		Shader* createShader(std::string name);
-
-		Entity* createEntity(Mesh* mesh);
+		
+		Renderable* createRenderable(Mesh* mesh);
 
 		// get sampler state by name
 		hippios::SamplerState* getSamplerState(std::string name);

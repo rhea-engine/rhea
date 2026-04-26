@@ -1,6 +1,6 @@
 #include <Poseidon/Core.h>
 #include <Poseidon/FrameRenderer.h>
-#include <Poseidon/Entity.h>
+#include <Poseidon/Renderable.h>
 #include <Poseidon/Mesh.h>
 #include <Poseidon/RenderContext.h>
 #include <Poseidon/RenderWorld.h>

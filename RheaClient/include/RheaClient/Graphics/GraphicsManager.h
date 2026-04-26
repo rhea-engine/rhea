@@ -2,8 +2,8 @@
 #define RHEA_GRAPHICS_MANAGER_H
 
 #include <Poseidon/Core.h>
-#include <Poseidon/Node.h>
 #include <RheaClient/Components/RenderComponent.h>
+#include <Rhea/Core/Transform.h>
 
 namespace rhea
 {

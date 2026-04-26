@@ -1,5 +1,4 @@
 #include "Rhea/Application.h"
-#include "Poseidon/Entity.h"
 #include "Hippios/VertexBuffer.h"
 #include "Poseidon/FrameRenderer.h"
 #include "Rhea/InputMap.h"

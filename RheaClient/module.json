@@ -6,6 +6,7 @@
   "includePrefix": "Rhea",
   "dependencies": {
     "rhea/core": "0.9.0",
+    "rhea/animation": "0.9.0",
     "meworla/poseidon": "0.9.0"
   }
 }

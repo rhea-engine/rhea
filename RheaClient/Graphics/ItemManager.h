@@ -2,7 +2,6 @@
 #define RHEA_GRAPHICS_ITEM_H
 
 #include <Poseidon/Core.h>
-#include <Poseidon/Node.h>
 #include <Poseidon/RenderContext.h>
 
 #include <Rhea/Element.h>

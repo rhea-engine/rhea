@@ -3,11 +3,11 @@
 #include "Poseidon/Texture.h"
 #include "Poseidon/Material.h"
 #include "Poseidon/Shader.h"
-#include "Poseidon/Entity.h"
 #include "Poseidon/FrameRenderer.h"
 #include "Poseidon/RenderWorld.h"
 #include "Poseidon/Window.h"
 #include "Poseidon/Cubemap.h"
+#include "Poseidon/Renderable.h"
 
 #include "Poseidon/Core.h"
 #include <Psio/Log.h>
@@ -281,14 +281,11 @@ namespace poseidon
 		return shader;
 	}
 
-	Entity* Core::createEntity(Mesh* mesh)
+	Renderable* Core::createRenderable(Mesh* mesh)
 	{
-		Entity* entity;
-		entity = new Entity();
-		if (mesh)
-			entity->set_mesh(mesh);
-		entity->setMaterial(m_default_material);
-		return entity;
+		Renderable* renderable = new Renderable(mesh);
+		//renderable->setMaterial(m_default_material);
+		return renderable;
 	}
 
 	hippios::SamplerState* Core::getSamplerState(std::string name)

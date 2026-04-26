@@ -1,7 +1,6 @@
 #include "Poseidon/RenderWorld.h"
 #include <Poseidon/Mesh.h>
 #include <Poseidon/Core.h>
-#include <Poseidon/Entity.h>
 #include <Poseidon/Camera.h>
 #include <Poseidon/Renderable.h>
 #include <Poseidon/Light.h>
@@ -14,7 +13,7 @@ namespace poseidon
 
 	RenderableHandle RenderWorld::createRenderable(Mesh* mesh)
 	{
-		auto* legacy = static_cast<Renderable*>(m_core->createEntity(mesh)); // old path, temporary
+		auto* legacy = m_core->createRenderable(mesh);
 		RenderableHandle h = ++m_nextRenderableId;
 		m_renderables[h] = { h, legacy };
 		return h;

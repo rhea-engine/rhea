@@ -3,9 +3,10 @@
 
 #include <string>
 #include <vector>
+#include <unordered_map>
 #include <unordered_set>
 
-#include "Node.h"
+#include <Math/Quaternion.h>
 #include <Hippios/BaseTypes.h>
 #include "RenderTypes.h"
 
@@ -25,7 +26,7 @@ namespace poseidon
 	*   a render context has its render queue and its own camera
 	*   render contexts belong to one viewport and are rendered in the sequence in which they are added to the viewport
 	*/
-	class RenderContext : public Node
+	class RenderContext
 	{
 	public:
 		RenderContext() :

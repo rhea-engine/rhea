@@ -22,3 +22,8 @@ target_include_directories(Poseidon PRIVATE
   $<TARGET_PROPERTY:Meworla::HippiosHeaders,INTERFACE_INCLUDE_DIRECTORIES>
 )
 
+# Samples (optional)
+if(POSEIDON_BUILD_SAMPLES)
+    add_subdirectory(Samples)
+endif()
+

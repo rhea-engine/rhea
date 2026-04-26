@@ -1,0 +1,5 @@
+if(RHEA_BUILD_SAMPLES)
+    add_subdirectory(01_BasicApp)
+ #   add_subdirectory(02_SceneLoading)
+ #   add_subdirectory(03_InputHandling)
+endif()

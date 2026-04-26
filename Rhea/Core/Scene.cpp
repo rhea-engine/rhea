@@ -103,6 +103,11 @@ namespace rhea
 
 	void Scene::show()
 	{
+		if (!m_app) {
+			LOG(LOG_ERROR) << "Scene: No app pointer set, did you forget to call setup?";
+			return;
+		}
+
 		// the scene needs to be active
 		if (!m_is_active)
 			activate();

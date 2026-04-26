@@ -25,10 +25,14 @@ namespace rhea
 			m_is_enabled = enabled;
 		}
 
-		// get properties
+		// properties
+		void setAmbient(math::Quaternion ambient) { m_ambient = ambient; }
 		math::Quaternion getAmbient() { return m_ambient; }
+		void setDiffuse(math::Quaternion diffuse) { m_diffuse = diffuse; }
 		math::Quaternion getDiffuse() { return m_diffuse; }
+		void setSpecular(math::Quaternion specular) { m_specular = specular; }
 		math::Quaternion getSpecular() { return m_specular; }
+		void setColor(math::Vector3 color) { m_color = color; }
 		math::Vector3 getColor() { return m_color; }
 
 	protected:

@@ -48,6 +48,7 @@
 #include <Rhea/Component.h>
 #include <Rhea/Core/Geometry.h>
 #include <Rhea/ConfigFile.h>
+#include <Rhea/Components/MeshComponent.h>
 //#include <Physics/PhysicsComponent.h>
 
 #undef min
@@ -81,6 +82,10 @@ namespace rhea
 		simpleparser::Type::registerType<UnitTree>("//core/unittree");
 		simpleparser::Type::registerType<Collection>("//core/collection");
 		simpleparser::Type::registerType<ConfigFile>("//core/types/configfile");
+
+		// register core components
+		VisualComponent::_register_VisualComponent();
+		MeshComponent::_register_MeshComponent();
 
 		// register services
 		simpleparser::Type::registerType<Service>("//meworla/service");

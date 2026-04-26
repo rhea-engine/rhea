@@ -1,296 +1,251 @@
-#include "Poseidon/Core.h"
-#include "Poseidon/Mesh.h"
-#include "Poseidon/Texture.h"
-#include "Poseidon/Material.h"
-#include "Poseidon/Shader.h"
-#include "Poseidon/Node.h"
-#include "Poseidon/Entity.h"
-#include "Rhea/Dispatcher.h"
-#include "Rhea/Scene.h"
-#include "Rhea/Graphics/GraphicsService.h"
-#include "Rhea/Physics/PhysicsService.h"
-#include "Rhea/Physics/PhysicsManager.h"
+#include "../PoseidonApp.h"
+#include <Poseidon/Mesh.h>
+#include <Poseidon/Material.h>
+#include <Poseidon/Shader.h>
+#include <Poseidon/Camera.h>
+#include <Poseidon/RenderContext.h>
+#include <Poseidon/RenderWorld.h>
+#include <Poseidon/FrameRenderer.h>
+#include <Poseidon/Renderable.h>
+#include <Hippios/VertexBuffer.h>
+#include <Psio/Log.h>
 
-#include <windows.h>
-#include <stdint.h>
+using namespace poseidon::samples;
 
-#include "Components/Psio/Keyboard.h"
-#include "Poseidon/Viewport.h"
-#include "Poseidon/Math/Matrix3x4.h"
-#include "Poseidon/Math/Matrix4.h"
-#include "Poseidon/Texture.h"
-
-#define USE_WVP0
-
-#include "Cube.h"
-
-using hippios::vertex_uv;
-
-using poseidon::Viewport;
-
-D3D11_INPUT_ELEMENT_DESC layout[] =
+/**
+ * @brief Rotating 3D Cube Sample
+ *
+ * Zeigt:
+ * - 3D Mesh mit Indices
+ * - Camera Setup
+ * - RenderContext und Renderable
+ * - Transform Updates
+ * - Animation (Rotation)
+ * - Camera-Steuerung (Arrow Keys)
+ */
+class CubeSample : public PoseidonApp
 {
-	{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-	{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+private:
+    poseidon::RenderContext* m_context = nullptr;
+    poseidon::RenderableHandle m_renderable = poseidon::InvalidRenderable;
+    poseidon::CameraHandle m_camera = poseidon::InvalidCamera;
+    float m_rotation = 0.0f;
+    math::Vector3 m_cameraPos;
+
+public:
+    void setup() override
+    {
+        LOG(LOG_INFO) << "Setting up Cube sample...";
+        
+        auto* renderWorld = getCore()->getRenderWorld();
+
+        // Create render context
+        m_context = new poseidon::RenderContext();
+        
+        // Create shader
+        poseidon::Shader* shader = getCore()->createShader("uvshader");
+        if (!shader->loadFromFile("rhea/shaders/uvshader_vp.hlsl", "VShader", "PShader"))
+        {
+            LOG(LOG_ERROR) << "Failed to load shader!";
+            m_running = false;
+            return;
+        }
+
+        // Create material
+        poseidon::Material* material = getCore()->createMaterial();
+        material->setShader(shader);
+
+        // Create cube mesh
+        poseidon::Mesh* mesh = createCubeMesh(material);
+
+        // Create Renderable
+        m_renderable = renderWorld->createRenderable();
+        poseidon::Renderable* renderable = renderWorld->resolveRenderable(m_renderable);
+        if (renderable)
+        {
+            renderable->mesh = mesh;
+            renderable->visible = true;
+            
+            // Set initial transform
+            renderable->worldTransform = math::Matrix4::IDENTITY;
+            renderable->worldTransform.setTranslation(math::Vector3(0.0f, 0.0f, 4.0f));
+        }
+
+        // Add to context
+        poseidon::RenderNodeId rootNode = m_context->getRootNode();
+        m_context->attachRenderable(rootNode, m_renderable);
+
+        // Create camera
+        m_camera = renderWorld->createCamera();
+        poseidon::Camera* camera = renderWorld->resolveCamera(m_camera);
+        if (camera)
+        {
+            m_cameraPos = math::Vector3(0.0f, 3.0f, -8.0f);
+            camera->setPosition(m_cameraPos);
+            camera->lookAt(
+                math::Vector3(0.0f, 0.0f, 0.0f), 
+                math::Vector3::UNIT_Z
+            );
+            camera->setAspectRatio((float)getWidth() / (float)getHeight());
+        }
+
+        m_context->setCameraHandle(m_camera);
+
+        // Register context with frame renderer
+        getCore()->getFrameRenderer()->addContext(m_context);
+        
+        LOG(LOG_INFO) << "Cube setup complete. Use Arrow Keys to move camera.";
+    }
+
+    void update(float deltaTime) override
+    {
+        // Rotate cube
+        m_rotation += deltaTime * 0.5f;
+        if (m_rotation > 6.28f)
+            m_rotation -= 6.28f;
+
+        poseidon::Renderable* renderable = getCore()->getRenderWorld()->resolveRenderable(m_renderable);
+        if (renderable)
+        {
+            // Create rotation quaternion
+            math::Quaternion rot(m_rotation, math::Vector3(0.0f, 1.0f, 0.0f));
+            
+            // Calculate position with rotation
+            math::Vector3 offset(4.0f, 0.0f, 0.0f);
+            math::Vector3 rotatedOffset = rot * offset;
+            
+            // Build transform matrix
+            math::Matrix4 transform = math::Matrix4::IDENTITY;
+            transform.setRotation(rot);
+            transform.setTranslation(rotatedOffset);
+            
+            renderable->worldTransform = transform;
+            renderable->inverseTranspose = transform.inverse().transpose();
+        }
+    }
+
+    void render() override
+    {
+        getCore()->iterate();
+    }
+
+    bool onInput(const psio::InputEvent& evt) override
+    {
+        // Camera movement with arrow keys
+        bool cameraChanged = false;
+        
+        if (evt.isKeyPressed(psio::Key::CODE_LEFT))
+        {
+            m_cameraPos.x -= 0.1f;
+            cameraChanged = true;
+        }
+        if (evt.isKeyPressed(psio::Key::CODE_RIGHT))
+        {
+            m_cameraPos.x += 0.1f;
+            cameraChanged = true;
+        }
+        if (evt.isKeyPressed(psio::Key::CODE_UP))
+        {
+            m_cameraPos.z += 0.5f;
+            cameraChanged = true;
+        }
+        if (evt.isKeyPressed(psio::Key::CODE_DOWN))
+        {
+            m_cameraPos.z -= 0.5f;
+            cameraChanged = true;
+        }
+        if (evt.isKeyPressed(psio::Key::CODE_HOME))
+        {
+            m_cameraPos.y += 0.5f;
+            cameraChanged = true;
+        }
+        if (evt.isKeyPressed(psio::Key::CODE_END))
+        {
+            m_cameraPos.y -= 0.5f;
+            cameraChanged = true;
+        }
+        
+        if (cameraChanged)
+        {
+            updateCamera();
+            return true;
+        }
+        
+        return false;
+    }
+
+    ~CubeSample()
+    {
+        if (m_renderable != poseidon::InvalidRenderable)
+        {
+            getCore()->getRenderWorld()->destroyRenderable(m_renderable);
+        }
+        if (m_camera != poseidon::InvalidCamera)
+        {
+            getCore()->getRenderWorld()->destroyCamera(m_camera);
+        }
+        if (m_context)
+        {
+            delete m_context;
+        }
+    }
+
+private:
+    void updateCamera()
+    {
+        poseidon::Camera* camera = getCore()->getRenderWorld()->resolveCamera(m_camera);
+        if (camera)
+        {
+            camera->get_position()->setPosition(m_cameraPos);
+            camera->get_position()->lookAt(
+                math::Vector3(0.0f, 0.0f, 0.0f), 
+                math::Vector3::UNIT_Z
+            );
+        }
+    }
+
+    poseidon::Mesh* createCubeMesh(poseidon::Material* material)
+    {
+        const int num_vertices = 24;
+        const int num_faces = 12;
+
+        hippios::vertex_uv vertices[num_vertices] = {
+            // Front Face
+            {-1.0f, -1.0f, -1.0f, 0.0f, 1.0f}, {-1.0f,  1.0f, -1.0f, 0.0f, 0.0f},
+            { 1.0f,  1.0f, -1.0f, 1.0f, 0.0f}, { 1.0f, -1.0f, -1.0f, 1.0f, 1.0f},
+            // Back Face
+            {-1.0f, -1.0f,  1.0f, 1.0f, 1.0f}, { 1.0f, -1.0f,  1.0f, 0.0f, 1.0f},
+            { 1.0f,  1.0f,  1.0f, 0.0f, 0.0f}, {-1.0f,  1.0f,  1.0f, 1.0f, 0.0f},
+            // Top Face
+            {-1.0f,  1.0f, -1.0f, 0.0f, 1.0f}, {-1.0f,  1.0f,  1.0f, 0.0f, 0.0f},
+            { 1.0f,  1.0f,  1.0f, 1.0f, 0.0f}, { 1.0f,  1.0f, -1.0f, 1.0f, 1.0f},
+            // Bottom Face
+            {-1.0f, -1.0f, -1.0f, 1.0f, 1.0f}, { 1.0f, -1.0f, -1.0f, 0.0f, 1.0f},
+            { 1.0f, -1.0f,  1.0f, 0.0f, 0.0f}, {-1.0f, -1.0f,  1.0f, 1.0f, 0.0f},
+            // Left Face
+            {-1.0f, -1.0f,  1.0f, 0.0f, 1.0f}, {-1.0f,  1.0f,  1.0f, 0.0f, 0.0f},
+            {-1.0f,  1.0f, -1.0f, 1.0f, 0.0f}, {-1.0f, -1.0f, -1.0f, 1.0f, 1.0f},
+            // Right Face
+            { 1.0f, -1.0f, -1.0f, 0.0f, 1.0f}, { 1.0f,  1.0f, -1.0f, 0.0f, 0.0f},
+            { 1.0f,  1.0f,  1.0f, 1.0f, 0.0f}, { 1.0f, -1.0f,  1.0f, 1.0f, 1.0f}
+        };
+
+        unsigned long indices[] = {
+            0,1,2, 0,2,3,    4,5,6, 4,6,7,    8,9,10, 8,10,11,
+            12,13,14, 12,14,15,  16,17,18, 16,18,19,  20,21,22, 20,22,23
+        };
+
+        poseidon::Mesh* mesh = new poseidon::Mesh();
+        mesh->setVertices(sizeof(hippios::vertex_uv), num_vertices, vertices);
+        mesh->setMesh(0, sizeof(unsigned long), num_faces, indices, material);
+        
+        return mesh;
+    }
 };
-UINT numElements = ARRAYSIZE(layout);
-
-void CubeApp::setup()
-{		
-	m_services["physics"] = new rhea::PhysicsService(this);
-
-	rhea::Application::setup();
-
-	m_scene = core->getFrameRenderer();
-	m_material = core->createMaterial();
-	poseidon::Shader* shader = core->createShader("uvshader_vp");
-#ifdef USE_WVP
-	if (shader->loadFromFile("rhea\\shaders\\uvshader.hlsl", "VShader", "PShader"))
-		exit(-1);
-#else
-	if (!shader->loadFromFile("rhea\\shaders\\uvshader_vp.hlsl", "VShader", "PShader"))
-		exit(-1);
-#endif
-	m_material->setShader(shader);
-	core->registerMaterial("default", m_material);
-
-	initialize();
-}
-
-void CubeApp::initialize()
-{
-	Viewport* viewport = core->getFrameRenderer()->getViewport();
-	
-	rhea::Scene* scene = new rhea::Scene("cubescene");
-	static_cast<rhea::GraphicsService*>(m_services["graphics"])->setScene(scene);
-	static_cast<rhea::PhysicsService*>(m_services["physics"])->setScene(scene);
-
-	const int num_faces = 12;
-	const int num_vertices = 24;
-
-	hippios::vertex_uv OurVertices[num_vertices] = {
-		// Front Face
-		vertex_uv(-1.0f, -1.0f, -1.0f, 0.0f, 1.0f),
-		vertex_uv(-1.0f,  1.0f, -1.0f, 0.0f, 0.0f),
-		vertex_uv(1.0f,  1.0f, -1.0f, 1.0f, 0.0f),
-		vertex_uv(1.0f, -1.0f, -1.0f, 1.0f, 1.0f),
-
-		// Back Face
-		vertex_uv(-1.0f, -1.0f, 1.0f, 1.0f, 1.0f),
-		vertex_uv(1.0f, -1.0f, 1.0f, 0.0f, 1.0f),
-		vertex_uv(1.0f,  1.0f, 1.0f, 0.0f, 0.0f),
-		vertex_uv(-1.0f,  1.0f, 1.0f, 1.0f, 0.0f),
-
-		// Top Face
-		vertex_uv(-1.0f, 1.0f, -1.0f, 0.0f, 1.0f),
-		vertex_uv(-1.0f, 1.0f,  1.0f, 0.0f, 0.0f),
-		vertex_uv(1.0f, 1.0f,  1.0f, 1.0f, 0.0f),
-		vertex_uv(1.0f, 1.0f, -1.0f, 1.0f, 1.0f),
-
-		// Bottom Face
-		vertex_uv(-1.0f, -1.0f, -1.0f, 1.0f, 1.0f),
-		vertex_uv(1.0f, -1.0f, -1.0f, 0.0f, 1.0f),
-		vertex_uv(1.0f, -1.0f,  1.0f, 0.0f, 0.0f),
-		vertex_uv(-1.0f, -1.0f,  1.0f, 1.0f, 0.0f),
-
-		// Left Face
-		vertex_uv(-1.0f, -1.0f,  1.0f, 0.0f, 1.0f),
-		vertex_uv(-1.0f,  1.0f,  1.0f, 0.0f, 0.0f),
-		vertex_uv(-1.0f,  1.0f, -1.0f, 1.0f, 0.0f),
-		vertex_uv(-1.0f, -1.0f, -1.0f, 1.0f, 1.0f),
-
-		// Right Face
-		vertex_uv(1.0f, -1.0f, -1.0f, 0.0f, 1.0f),
-		vertex_uv(1.0f,  1.0f, -1.0f, 0.0f, 0.0f),
-		vertex_uv(1.0f,  1.0f,  1.0f, 1.0f, 0.0f),
-		vertex_uv(1.0f, -1.0f,  1.0f, 1.0f, 1.0f),
-	};
-/*	int i = 0;
-	for (int i = 0; i < num_vertices; i++)
-	{
-		vertices.push_back(OurVertices[i++]);
-	}
-	*/
-
-	mesh = new poseidon::Mesh();
-	mesh->setViewport(viewport);
-	mesh->setVertices(sizeof(hippios::vertex_uv), num_vertices, OurVertices);
-
-	unsigned long indices[] = {
-		// Front Face
-		0, 1, 2,
-		0, 2, 3,
-
-		// Back Face
-		4, 5, 6,
-		4, 6, 7,
-
-		// Top Face
-		8, 9, 10,
-		8, 10, 11,
-
-		// Bottom Face
-		12, 13, 14,
-		12, 14, 15,
-
-		// Left Face
-		16, 17, 18,
-		16, 18, 19,
-
-		// Right Face
-		20, 21, 22,
-		20, 22, 23
-	};
-
-	mesh->setIndices(sizeof(unsigned long), num_faces, indices);
-
-	// load texture
-	poseidon::Texture* tex;
-	tex = core->createTexture("Samples\\assets\\images\\kies.png");
-	if (!tex) {
-		printf("Loading of texture failed\n");
-		exit(-1);
-	}
-	m_material->addTexture(tex);
-
-	//renderer = engine->getRenderer();
-	//SwapChain = renderer->get_swapchain();
-
-	//renderTargetView = renderer->get_backbuffer();
-	//depthStencilView = renderer->get_depth_buffer()->get_view();
-
-	// add entities
-	cube1 = core->createEntity(mesh);
-	m_scene->getViewport()->addRenderChild(cube1);
-	
-	poseidon::Position* pos = cube1->get_position();
-	pos->setPosition(0.0f, 0.0f, 4.0f);
-
-	cube1->setMaterial(m_material);
-
-	cube2 = core->createEntity(mesh);
-	m_scene->getViewport()->addRenderChild(cube2);
-	pos = cube2->get_position();
-	pos->setPosition(0.0f, 1.0f, 0.0f);
-	cube2->setMaterial(m_material);
-
-	// add a camera
-	m_camera = core->createCamera();
-	m_scene->getViewport()->addChild(m_camera);
-	m_scene->getViewport()->setCamera(m_camera);
-
-	m_position = poseidon::Vector3(0.0f, 3.0f, -100.0f);
-
-	// set a default position
-	m_camera->get_position()->setPosition(m_position);
-	m_camera->get_position()->lookAt(poseidon::Vector3(0.0f, 0.0f, 0.0f), poseidon::Vector3::UNIT_Z);
-
-	m_camera->setAspectRatio((float)Width / (float)Height);
-
-	// setup event handlers
-	e_left = new psio::KeyInputEvent(psio::InputEventId::KEY_PRESSED);
-	e_left->set(psio::Key::CODE_LEFT, 0, 0);
-	e_right = new psio::KeyInputEvent(psio::InputEventId::KEY_PRESSED);
-	e_right->set(psio::Key::CODE_RIGHT, 0, 0);
-	e_up = new psio::KeyInputEvent(psio::InputEventId::KEY_PRESSED);
-	e_up->set(psio::Key::CODE_UP, 0, 0);
-	e_down = new psio::KeyInputEvent(psio::InputEventId::KEY_PRESSED);
-	e_down->set(psio::Key::CODE_DOWN, 0, 0);
-	e_home = new psio::KeyInputEvent(psio::InputEventId::KEY_PRESSED);
-	e_home->set(psio::Key::CODE_HOME, 0, 0);
-	e_end = new psio::KeyInputEvent(psio::InputEventId::KEY_PRESSED);
-	e_end->set(psio::Key::CODE_END, 0, 0);
-
-	std::shared_ptr<psio::InputEvent> evt = std::make_shared<psio::MouseInputEvent>(psio::InputEventId::MOUSE_BTN_PRESSED);
-	std::static_pointer_cast<psio::MouseInputEvent>(evt)->setBtn(true, false, false);
-	m_input_map.setAction(evt, "left_mouse");
-	m_input_map.setAction(evt, "left mouse - really");
-
-	getDispatcher()->subscribeEvent("move_right", [&](std::string act, std::shared_ptr<psio::InputEvent> evt) -> bool {
-		log("move right");
-		return false;
-		});
-}
 
 int main()
 {
-	CubeApp* app = new CubeApp();
-
-	app->init();
-	app->setup();
-
-	// start the loop
-	int ret = app->loop();
-
-	app->close();
-
-	return ret;
-}
-
-bool CubeApp::onFrameBegin()
-{
-	// run game code            
-	UpdateScene();
-	core->iterate();
-
-	return false;
-}
-
-bool CubeApp::onInput(std::shared_ptr<psio::InputEvent> evt)
-{
-	if (evt->isEvent(e_left)) {
-		m_position.x -= 0.1f;
-		m_camera->get_position()->setPosition(m_position);
-		m_camera->get_position()->lookAt(poseidon::Vector3(0.0f, 0.0f, 0.0f), poseidon::Vector3::UNIT_Z);
-	}
-	else if (evt->isEvent(e_right)) {
-		m_position.x += 0.1f;
-		m_camera->get_position()->setPosition(m_position);
-		m_camera->get_position()->lookAt(poseidon::Vector3(0.0f, 0.0f, 0.0f), poseidon::Vector3::UNIT_Z);
-	}
-	else if (evt->isEvent(e_up)) {
-		m_position.z += 0.5f;
-		m_camera->get_position()->setPosition(m_position);
-		m_camera->get_position()->lookAt(poseidon::Vector3(0.0f, 0.0f, 0.0f), poseidon::Vector3::UNIT_Z);
-	}
-	else if (evt->isEvent(e_down)) {
-		m_position.z -= 0.5f;
-		m_camera->get_position()->setPosition(m_position);
-		m_camera->get_position()->lookAt(poseidon::Vector3(0.0f, 0.0f, 0.0f), poseidon::Vector3::UNIT_Z);
-	}
-	else if (evt->isEvent(e_home)) {
-		m_position.y += 0.5f;
-		m_camera->get_position()->setPosition(m_position);
-		m_camera->get_position()->lookAt(poseidon::Vector3(0.0f, 0.0f, 0.0f), poseidon::Vector3::UNIT_Z);
-	}
-	else if (evt->isEvent(e_end)) {
-		m_position.y -= 0.5f;
-		m_camera->get_position()->setPosition(m_position);
-		m_camera->get_position()->lookAt(poseidon::Vector3(0.0f, 0.0f, 0.0f), poseidon::Vector3::UNIT_Z);
-	}
-	else {
-		rhea::ievt_actions iea = m_input_map.getActions(evt);
-		for (auto it = iea.actions.begin(); it < iea.actions.end(); ++it)
-			log(*it);
-		
-		return Application::onInput(evt);		
-	}
-	return false;
-}
-
-void CubeApp::UpdateScene()
-{
-	//Keep the cubes rotating
-	rot += .0005f;
-	if (rot > 6.26f)
-		rot = 0.0f;
-
-	poseidon::Position* pos = cube1->get_position();
-	pos->setPosition(0, 0, 0);
-	pos->setOrientation(poseidon::Quaternion(rot, poseidon::Vector3(0.0f, 1.0f, 0.0f)));
-	pos->moveRelative(poseidon::Vector3(4.0f,0.0f,0.0f));
-
-	pos = cube2->get_position();
-	pos->setPosition(0, 0, 0);
-	pos->setOrientation(poseidon::Quaternion(-rot, poseidon::Vector3(0.0f, 1.0f, 0.0f)));
+    CubeSample app;
+    app.init("Poseidon Sample 02: Rotating Cube");
+    return app.run();
 }

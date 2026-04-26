@@ -1,87 +1,77 @@
-#include "Poseidon/Core.h"
-#include "Poseidon/Mesh.h"
-#include <Psio/Image/Image.h>
-#include "Poseidon/Material.h"
-#include "Poseidon/Viewport.h"
+#include "../PoseidonApp.h"
+#include <Poseidon/Mesh.h>
+#include <Poseidon/Material.h>
+#include <Poseidon/Shader.h>
+#include <Poseidon/Viewport.h>
+#include <Poseidon/FrameRenderer.h>
+#include <Hippios/VertexBuffer.h>
+#include <Psio/Log.h>
 
-#define USE_INDICES 1
+using namespace poseidon::samples;
 
-#include "Triangle.h"
-
-using poseidon::Viewport;
-
-void TriangleApp::setup()
+/**
+ * @brief Minimal Triangle Sample
+ *
+ * Zeigt:
+ * - Einfachste Poseidon-Geometrie (3 Vertices)
+ * - Shader laden
+ * - Material erstellen
+ * - Mesh mit Vertex-Farben
+ */
+class TriangleSample : public PoseidonApp
 {
-	rhea::Application::setup();
+private:
+    poseidon::Mesh* m_mesh = nullptr;
+    poseidon::Material* m_material = nullptr;
 
-	m_scene = core->getFrameRenderer();	
-	poseidon::Material* material = core->createMaterial();
-	material->loadFromFile("Data\\Rhea\\shaders\\shader.hlsl", "vs", "VShader");
-	material->loadFromFile("Data\\Rhea\\shaders\\shader.hlsl", "ps", "PShader");
-	
-	initialize();
-}
+public:
+    void setup() override
+    {
+        LOG(LOG_INFO) << "Setting up Triangle sample...";
 
-/** initalie app
-*	Draw two colorized triangles making a quad
-*/
+        // Erstelle Shader
+        poseidon::Shader* shader = getCore()->createShader("basic");
+        if (!shader->loadFromFile("Data/Rhea/shaders/shader.hlsl", "VShader", "PShader"))
+        {
+            LOG(LOG_ERROR) << "Failed to load shader!";
+            m_running = false;
+            return;
+        }
 
-void TriangleApp::initialize()
-{
-	poseidon::Mesh* mesh;
-	unsigned long* indices;
-	Viewport* viewport = m_scene->getViewport();
+        // Erstelle Material
+        m_material = getCore()->createMaterial();
+        m_material->setShader(shader);
 
-	//vertices.resize(10);
-	float colorA[4] = { 1.0f, 0.0f, 0.0f, 1.0f };
-	float colorB[4] = { 0.0f, 1.0f, 0.0f, 1.0f };
-	float colorC[4] = { 0.0f, 0.0f, 1.0f, 1.0f };
+        // Erstelle Mesh
+        m_mesh = new poseidon::Mesh();
+        m_mesh->setViewport(getCore()->getFrameRenderer()->getViewport());
 
-	const int num_vertices = 4;
-	const int num_faces = 2;
+        // Triangle vertices (Position + Color)
+        hippios::vertex vertices[] = {
+            { 0.0f,  0.5f, 0.0f, {1.0f, 0.0f, 0.0f, 1.0f} },   // Top (Red)
+            { 0.45f, -0.5f, 0.0f, {0.0f, 1.0f, 0.0f, 1.0f} },  // Right (Green)
+            {-0.45f, -0.5f, 0.0f, {0.0f, 0.0f, 1.0f, 1.0f} }   // Left (Blue)
+        };
 
-	hippios::vertex OurVertices[num_vertices] = {
-/*{0.0f, 0.5f, 0.0f, { 1.0f, 0.0f, 0.0f, 1.0f }},
-{0.45f, -0.5, 0.0f, { 0.0f, 1.0f, 0.0f, 1.0f }},
-{-0.45f, -0.5f, 0.0f, { 0.0f, 0.0f, 1.0f, 1.0f }}*/
-		{-0.5f, -0.5f, 0.5f, { 1.0f, 0.0f, 0.0f, 1.0f }},
-		{-0.5f, 0.5f, 0.5f, { 0.0f, 1.0f, 0.0f, 1.0f }},
-		{0.5f, 0.5f, 0.5f, { 0.0f, 1.0f, 0.0f, 1.0f }},
-		{0.75f, -0.75f, 0.0f, { 0.0f, 0.0f, 1.0f, 1.0f }}
-	};
+        m_mesh->setVertices(sizeof(hippios::vertex), 3, vertices);
+		unsigned long indices[] = { 0, 1, 2 };
+		m_mesh->setMesh(0, sizeof(unsigned long), 3, indices, m_material);
 
-	for (int i = 0; i < num_vertices; i++)
-		vertices.push_back(OurVertices[i]);
+        // Add to scene
+        getCore()->getFrameRenderer()->getViewport()->getRenderContext("default")->addRenderChild(m_mesh);
 
-	mesh = new poseidon::Mesh();
-	mesh->setViewport(viewport);
-	mesh->setVertices(sizeof(hippios::vertex), num_vertices, vertices.data());
+        LOG(LOG_INFO) << "Triangle setup complete";
+    }
 
-#ifdef USE_INDICES
-	// Load the index array with data.
-		indices = new unsigned long[num_faces * 3]; // 3: a triangle has three points
-	indices[0] = 0;  // Bottom left.
-	indices[1] = 2;  // Top middle.
-	indices[2] = 3;  // Bottom right.
-
-	indices[3] = 0;  
-	indices[4] = 1; 
-	indices[5] = 2; 
-
-	mesh->setIndices(sizeof(unsigned long), num_faces, indices);
-#endif // USE_INDICES	
-}
+    void render() override
+    {
+        getCore()->iterate();
+    }
+};
 
 int main()
 {
-	TriangleApp* app = new TriangleApp();
-
-	app->init();	
-
-	// start the loop
-	int ret = app->loop();
-	
-	app->close();
-
-	return ret;
+    TriangleSample app;
+    app.init("Poseidon Sample 01: Colored Triangle");
+    return app.run();
 }

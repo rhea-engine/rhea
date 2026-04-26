@@ -28,14 +28,28 @@ namespace rhea
 
 		// Controller functions
 
+		void onFrame(float delta) override;
+
 		// input event handler
 		bool onInput(Event* ev, Unit* unit);
 
 	protected:
 		Camera* m_view;
 
+		math::Vector3 m_follow_offset;
+
 		// register event handler
 		void _registerEvent(Unit* unittree);
+
+		void updateCamera(float delta);
+
+		// should the camera follow the rotation of the target?
+		bool m_follow_rotation = true;
+
+		// m_camera_slide < 0  // slide left
+		// m_camera_slide > 0  // slide right
+		float m_camera_slide = 0.0f;
+
 	};
 }
 

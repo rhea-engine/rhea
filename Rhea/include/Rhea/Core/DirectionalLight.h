@@ -15,6 +15,7 @@ namespace rhea
 		
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
 
+		void setDirection(math::Vector3 direction) { m_direction = direction; }
 		math::Vector3 getDirection() { return m_direction; }
 
 	protected:

@@ -157,13 +157,13 @@ namespace rhea::physics::bullet
 				{
 					trans = obj->getWorldTransform();
 				}
-				rhea::Position* position = item->getTransform()->get_position();
+				rhea::Position position = *item->getTransform()->get_position();
 
-				position->setPosition(math::Vector3(float(trans.getOrigin().getX()), float(trans.getOrigin().getY()), float(trans.getOrigin().getZ())));
+				position.setPosition(math::Vector3(float(trans.getOrigin().getX()), float(trans.getOrigin().getY()), float(trans.getOrigin().getZ())));
 				btQuaternion rot = trans.getRotation();
-				position->setOrientation(math::Quaternion(rot.getW(), rot.getX(), rot.getY(), rot.getZ()));
+				position.setOrientation(math::Quaternion(rot.getW(), rot.getX(), rot.getY(), rot.getZ()));
 
-				item->setPosition(*position);				
+				item->setPosition(position);				
 			}
 		}
 	}
@@ -235,7 +235,7 @@ namespace rhea::physics::bullet
 
 	void BulletPhysicsService::initializeItem(rhea::Item* item)
 	{
-		auto* mgr = doCast<rhea::PhysicsManagerService>(m_app->getService("physics_mgr"));
+		auto* mgr = doCast<rhea::PhysicsManagerService>(m_app->getService("physics_mgr"));		
 		const auto* desc = mgr->getBodyDescFor(item);
 		if (!desc || desc->kind.empty()) return;
 
@@ -246,6 +246,9 @@ namespace rhea::physics::bullet
 			if (bt->getBody())
 				m_world->addRigidBody(bt->getBody());
 			pc->setBody(std::move(body));
+		}
+		else if (bt) {
+			LOG(LOG_ERROR) << "BulletPhysicsService::initializeItem: failed to initialize body for item " + item->getPathName();			
 		}
 		return;
 	}

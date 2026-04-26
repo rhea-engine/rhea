@@ -3,7 +3,7 @@
 #include <Rhea/Application.h>
 #include <Poseidon/Mesh.h>
 #include <Poseidon/RenderQueue.h>
-#include <Poseidon/SceneManager.h>
+#include <Poseidon/FrameRenderer.h>
 #include <Hippios/VertexBuffer.h>
 #include <Poseidon/Shader.h>
 #include <Poseidon/RenderContext.h>
@@ -55,7 +55,7 @@ namespace rhea
 		{
 			m_mesh = new poseidon::Mesh();
 
-			m_mesh->setViewport(core->get_scene_manager()->getViewport());			
+			m_mesh->setViewport(core->getFrameRenderer()->getViewport());			
 			m_num_faces = 0;
 			m_enabled = true;
 
@@ -75,7 +75,7 @@ namespace rhea
 				core->registerMaterial("color", material);
 			}
 
-			core->get_scene_manager()->getViewport()->getRenderContext(std::string("default"))->addRenderChild(m_owner);
+			core->getFrameRenderer()->getViewport()->getRenderContext(std::string("default"))->addRenderChild(m_owner);
 			int mode = DebugDraw::DBG_DrawText |
 				DebugDraw::DBG_DrawFeaturesText |
 				DebugDraw::DBG_DrawContactPoints;

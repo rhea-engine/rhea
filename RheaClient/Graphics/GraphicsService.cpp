@@ -10,10 +10,11 @@
 
 #include "Poseidon/Core.h"
 #include "Poseidon/Viewport.h"
-#include "Poseidon/SceneManager.h"
+#include "Poseidon/FrameRenderer.h"
 #include "Poseidon/RenderContext.h"
 #include "Poseidon/Camera.h"
 #include "Poseidon/Window.h"
+#include "Poseidon/RenderWorld.h"
 
 #include <Rhea/Element.h>
 #include <RheaClient/Graphics/Texture.h>
@@ -29,7 +30,6 @@
 #include <Rhea/Core/Item.h>
 #include <Rhea/Core/Mesh.h>
 #include "Poseidon/Renderable.h"
-#include "Poseidon/Entity.h"
 
 #include <Rhea/Core/Material.h>
 #include <Rhea/Core/Camera.h>
@@ -38,6 +38,10 @@
 #include <Rhea/Physics/PhysicsManagerService.h>
 #include <Rhea/ConfigFile.h>
 #include <RheaClient/Window/WindowService.h>
+#include "LightManager.h"
+#include <RheaClient/Components/GraphicsComponent.h>
+#include <Rhea/Resources/ResourceList.h>
+#include <Rhea/Resources/ResourceService.h>
 
 namespace rhea::client {
 	GraphicsService::GraphicsService(std::string name, std::string type_name) :
@@ -46,11 +50,12 @@ namespace rhea::client {
 		m_my(0),
 		m_fullscreen(false),
 		m_main_window(nullptr),
-		rhea::IGraphicsService(name, type_name)	
+		rhea::IGraphicsService(name, type_name)
 	{
 		m_core = std::make_unique<poseidon::Core>();
 
 		addManager<rhea::Scene>(std::make_unique<GraphicsSceneManager>(this));
+		addManager<rhea::Light>(std::make_unique<GraphicsLightManager>(this));
 		addManager<rhea::Item>(std::make_unique<GraphicsItemManager>(this));
 		addManager<rhea::Mesh>(std::make_unique<GraphicsMeshManager>(this));
 		addManager<rhea::Material>(std::make_unique<GraphicsMaterialManager>(this));
@@ -58,7 +63,7 @@ namespace rhea::client {
 	}
 
 	GraphicsService::~GraphicsService()
-	{		
+	{
 	}
 
 	void GraphicsService::ToggleFullscreen()
@@ -77,8 +82,8 @@ namespace rhea::client {
 		if (it != m_managers.end()) {
 			GraphicsManager* mgr = it->second.get();
 			return mgr;
-		}		
-		
+		}
+
 		return nullptr;
 	}
 
@@ -108,6 +113,38 @@ namespace rhea::client {
 
 			if (rhea::Item* item = doCast<rhea::Item>(c)) {
 				getManager<rhea::Item>()->Ensure(m_core.get(), item);
+
+				// add to render context if parented to scene
+				rhea::Scene* scene = doCast<rhea::Scene>(item->getParent());
+				if (scene) {
+					std::string render_context_name = scene->getValueString("rendercontext", "default");
+					if (!m_main_window) {
+						LOG(LOG_ERROR) << "GraphicsService::showScene: main window not initialized";
+						return false;
+					}
+					poseidon::RenderContext* render_context = m_main_window->getDefaultViewport()->getRenderContext(render_context_name);
+					if (!render_context) {
+						LOG(LOG_ERROR) << "GraphicsService::showScene: render context '" << render_context_name << "' not found";
+						return false;
+					}
+					// Check if item has specific render context
+					std::string item_ctx_name = item->getValueString("rendercontext", "");
+					poseidon::RenderContext* target_ctx = render_context;
+
+					if (!item_ctx_name.empty()) {
+						target_ctx = m_main_window->getDefaultViewport()->getRenderContext(item_ctx_name);
+						if (!target_ctx) {
+							LOG(LOG_ERROR) << "GraphicsService::showScene: render context '"
+								<< item_ctx_name << "' not found for item '"
+								<< item->getPathName() << "'";
+							return true; // Continue with other items
+						}
+					}
+
+					// Add item to appropriate context
+					registerItemToContext(item, target_ctx);
+				}
+
 				return true;
 			}
 
@@ -143,21 +180,15 @@ namespace rhea::client {
 			return;
 		}
 
-		context->addRenderChild(item);
-
-		// Store context reference in RenderComponent
-		auto* rc = item->getComponent<rhea::client::RenderComponent>();
-		if (rc) {
-			rc->ctx = context;
-		}
-
 		// Create instance elements for all items in subtree
 		item->traverse([&](std::string name, rhea::Component* c)->bool {
-			if (rhea::Item* it = doCast<rhea::Item>(c)) {
-				getManager<rhea::Item>()->Ensure(m_core.get(), it);
+			if (rhea::Item* child_item = doCast<rhea::Item>(c)) {
+				getManager<rhea::Item>()->Ensure(m_core.get(), child_item);
 			}
 			return true;
 			});
+
+		registerItemToContextRecursive(item, context);
 	}
 
 	void GraphicsService::onInit()
@@ -169,17 +200,17 @@ namespace rhea::client {
 		else {
 			// get backend config from application config
 			std::string backend = "auto";
-			rhea::ConfigFile* config = m_app->getConfig();			
+			rhea::ConfigFile* config = m_app->getConfig();
 			if (config)
 				backend = config->getValueString("renderer.backend", "auto");
-			
+
 			m_core->init(static_cast<rhea::PlatformService*>(m_platform)->getEngine(), backend);
 			poseidon::Window* window = m_core->createWindow(m_app->getAppname(), 1152, 864, "root");
-			
+
 			// For OpenGL we nned to call is after window creation, for D3D12 it can be called before -
 			// but it needs to be called after backend initialization and before any render context creation
 			m_core->initializeRenderStates();
-			
+
 			WindowRegistryService* window_registry = doCast<WindowRegistryService>(m_app->getService("window_registry"));
 			if (window && window_registry) {
 				window_registry->registerWindow(window);
@@ -194,21 +225,25 @@ namespace rhea::client {
 		context->setRenderOrderMode(poseidon::RenderContext::RenderOrderMode::TreeOrdered);
 		context->setStencilState(1);
 		// add a camera for this context
-		poseidon::Camera* cam = m_core->createCamera();
-		context->setCamera(cam);
+
 		int viewport_width = viewport->getWidth();
 		int viewport_height = viewport->getHeight();
 		if (!viewport_width)
 			viewport_width = 800;
 		if (!viewport_height)
 			viewport_height = 600;
+
+		poseidon::CameraHandle cam_handle = m_core->getRenderWorld()->createCamera();
+		auto* gfx_cam_mgr = static_cast<rhea::client::GraphicsCameraManager*>(getManager<rhea::Camera>());
+		if (gfx_cam_mgr) {
+			gfx_cam_mgr->syncCameraProjection(m_core.get(), cam_handle, nullptr, (float)viewport_width, (float)viewport_height);
+		}
+		context->setCameraHandle(cam_handle);
 		context->setSize((float)viewport_width, (float)viewport_height);
-		cam->setAspectRatio((float)viewport_width / (float)viewport_height);
-		cam->setOrthographicSize((float)viewport_height);
+		// since we have no rhea Camera for this camera, we need to set orthographic mode and projection offset manually
+		poseidon::Camera* cam = m_core->getRenderWorld()->resolveCamera(cam_handle);
 		cam->setOrthographic(true);
 		cam->setProjectionOffset(math::Vector3(-0.5f, -0.5f, 0.0f));
-		cam->updateProjection();
-		cam->updateView();
 
 		// register input handler
 		m_app->getUnitTree()->registerEventHandler("scene_input", this, std::bind(&GraphicsService::onInput, this, std::placeholders::_1, std::placeholders::_2));
@@ -220,13 +255,40 @@ namespace rhea::client {
 			onSceneDeactivate(doCast<rhea::Scene>(ev->getTarget()));
 			return false;
 			});
+
+		// load core resources
+		rhea::ResourceList res_list(m_app);
+
+		// load shaders
+		res_list.push("standard_shader", "//rhea/shaders/standard.shader", "//meworla/shader");
+		res_list.push("widget_shader", "//rhea/shaders/widget.shader", "//meworla/shader");
+		res_list.push("text_shader", "//rhea/shaders/text.shader", "//meworla/shader");
+		res_list.push("terrain_shader", "//rhea/shaders/terrain.shader", "//meworla/shader");
+		res_list.push("skeletal_shader", "//rhea/shaders/skeletal.shader", "//meworla/shader");
+
+		// skybox		
+		hippios::DepthStencilStateDesc dss;
+		std::memset(&dss, 0, sizeof(dss));
+		dss.depth_enable = true;
+		dss.depth_write_mask = hippios::DepthWriteMask::DEPTH_WRITE_ALL;
+		dss.depth_func = hippios::ComparisonFunction::COMPARE_LESS_EQUAL;
+		doCast<GraphicsService>(m_app->getService("graphics"))->getEngine()->get_renderer()->createStencilState("skybox", dss);
+		res_list.push("skybox_shader", "//rhea/shaders/skybox.shader", "//meworla/shader");
+
+		// note: for locally installed resources this is actually synchronous
+		static_cast<rhea::ResourceService*>(m_app->getService("resources"))->loadAsync(res_list, nullptr);
 	}
-	
+
 	bool GraphicsService::onFrameFinal(float delta)
 	{
+		// update bridges
+		auto* item_mgr = getManager<rhea::Item>();
+		if (item_mgr) {
+			item_mgr->onFrame(delta);
+		}
 		return m_core->iterate();
 	}
-	
+
 	void GraphicsService::onSceneActivate(rhea::Scene* scene)
 	{
 		if (!scene) {
@@ -237,7 +299,7 @@ namespace rhea::client {
 		m_scenes.push_back(scene);
 
 		// try manager
-		GraphicsManager* mgr = getManager(scene->getType());		
+		GraphicsManager* mgr = getManager(scene->getType());
 		if (mgr) {
 			mgr->Ensure(m_core.get(), scene);
 		}
@@ -274,12 +336,12 @@ namespace rhea::client {
 			return;
 		}
 
-		poseidon::SceneManager* scene_mgr = m_core->get_scene_manager();
-		if (!scene_mgr) {
+		poseidon::FrameRenderer* frame_renderer = m_core->getFrameRenderer();
+		if (!frame_renderer) {
 			LOG(LOG_ERROR) << "GraphicsService::showScene: no scene manager";
 			return;
 		}
-		
+
 		std::string render_context_name = scene->getValueString("rendercontext", "default");
 		if (!m_main_window) {
 			LOG(LOG_ERROR) << "GraphicsService::showScene: main window not initialized";
@@ -291,75 +353,53 @@ namespace rhea::client {
 			return;
 		}
 
-		// DON'T cast Scene to Item - instead add all Item children directly
-		
-		// Add direct Item children to the render context
+		// Add all children and their subtree to the render context
 		scene->children([&](std::string& name, rhea::Component* c)->bool {
 			rhea::Item* item = doCast<rhea::Item>(c);
 			if (!item)
 				return true;
 
-			// Check if item has specific render context
-			std::string item_ctx_name = item->getValueString("rendercontext", "");
-			poseidon::RenderContext* target_ctx = render_context;
-
-			if (!item_ctx_name.empty()) {
-				target_ctx = m_main_window->getDefaultViewport()->getRenderContext(item_ctx_name);
-				if (!target_ctx) {
-					LOG(LOG_ERROR) << "GraphicsService::showScene: render context '" 
-								<< item_ctx_name << "' not found for item '" 
-								<< item->getPathName() << "'";
-					return true; // Continue with other items
-				}
-			}
-
 			// Add item to appropriate context
-			target_ctx->addRenderChild(item);
-			
-			// Store context reference
-			auto* rc = item->getComponent<rhea::client::RenderComponent>();
-			if (rc) {
-				rc->ctx = target_ctx;
-			}
+			registerItemToContextRecursive(item, render_context);
 
 			return true;
-		}, false); // false = non-recursive, only direct children
-
-		// Handle any nested items with explicit rendercontext attribute
-		scene->traverse([scene, scene_mgr, this](std::string& name, rhea::Component* unit)->bool {
-			if (scene == unit)
-				return true;
-				
-			rhea::Item* item = doCast<rhea::Item>(unit);
-			if (!item)
-				return true;
-
-			// Only process items with explicit rendercontext
-			// (direct children already handled above)
-			if (item->getParent() == scene)
-				return true;
-				
-			std::string item_ctx_name = item->getValueString("rendercontext", "");
-			if (!item_ctx_name.empty()) {
-				poseidon::RenderContext* target_ctx = this->m_main_window->getDefaultViewport()->getRenderContext(item_ctx_name);
-				if (!target_ctx) {
-					LOG(LOG_ERROR) << "GraphicsService::showScene: render context '" 
-								<< item_ctx_name << "' not found for nested item '" 
-								<< item->getPathName() << "'";
-					return false;
-				}
-				
-				target_ctx->addRenderChild(item);
-				
-				auto* rc = item->getComponent<rhea::client::RenderComponent>();
-				if (rc) {
-					rc->ctx = target_ctx;
-				}
-			}
-			return true;
-		});
+			}, true); // add ordered
 	}
 
+	void GraphicsService::registerItemToContextRecursive(rhea::Item* item, poseidon::RenderContext* render_context)
+	{
+		if (!item || !render_context) {
+			LOG(LOG_ERROR) << "GraphicsService::registerItemToContextRecursive: item or context is null";
+			return;
+		}
+
+		// Check if item has specific render context
+		std::string item_ctx_name = item->getValueString("rendercontext", "");
+		poseidon::RenderContext* target_ctx = render_context;
+
+		if (!item_ctx_name.empty()) {
+			target_ctx = m_main_window->getDefaultViewport()->getRenderContext(item_ctx_name);
+			if (!target_ctx) {
+				LOG(LOG_ERROR) << "GraphicsService::registerItemToContextRecursive: render context '"
+					<< item_ctx_name << "' not found for item '"
+					<< item->getPathName() << "'";
+				return; // ignore this item but continue with children - they may have their own render context
+			}
+		}
+
+		registerItemToContext(item, target_ctx);
+		item->children([&](std::string name, rhea::Component* c)->bool {
+			rhea::Item* child = doCast<rhea::Item>(c);
+			if (child) {
+				registerItemToContextRecursive(child, target_ctx);
+				return true;
+			}
+			else {
+				// not an item - try children
+				return true;
+			}
+			}, true);
+	}
 	void GraphicsService::hideScene(rhea::Scene* scene)
 	{
 		if (!scene) {
@@ -367,22 +407,21 @@ namespace rhea::client {
 			return;
 		}
 
-		// Remove all items from their render contexts using stored context reference
-		scene->traverse([scene](std::string& name, rhea::Component* unit)->bool {
+		// Remove all items from their render contexts
+		scene->traverse([this, scene](std::string& name, rhea::Component* unit)->bool {
 			if (scene == unit)
 				return true;
-				
+
 			rhea::Item* item = doCast<rhea::Item>(unit);
 			if (!item)
 				return true;
-			
+
 			auto* rc = item->getComponent<rhea::client::RenderComponent>();
 			if (rc && rc->ctx) {
-				rc->ctx->removeRenderChild(item);
-				rc->ctx = nullptr;
+				unregisterItemFromContext(item, rc->ctx);
 			}
 			return true;
-		});
+			});
 	}
 
 	bool GraphicsService::onInput(rhea::Event* ev, rhea::Unit* unit)
@@ -408,7 +447,7 @@ namespace rhea::client {
 
 			case InputEventType::WindowResized:
 				// resize window
-								
+
 				viewport_width = me.width;
 				viewport_height = me.height;
 				if (viewport_width > 0 && viewport_height > 0)
@@ -417,7 +456,7 @@ namespace rhea::client {
 					poseidon::Window* window = nullptr;
 					if (window_registry) {
 						window = window_registry->getRenderWindow(me.window);
-					}					
+					}
 					if (!window) {
 						LOG(LOG_ERROR) << "Resize event for unknown window";
 						break;
@@ -429,25 +468,26 @@ namespace rhea::client {
 					for (auto& vp : window->getViewports()) {
 						// iterate over contexts and their cameras and set new values
 						float aspect_ratio = (float)viewport_width / (float)viewport_height;
-						for (const auto& context : vp->getRenderContextList()) {
+						for (const auto& contextPtr : vp->getRenderContextList()) {
+							poseidon::RenderContext* context = contextPtr.get();
 							context->setSize((float)viewport_width, (float)viewport_height);
-							poseidon::Camera* cam = context->get_camera();
-							if (cam) {
-								cam->setAspectRatio(aspect_ratio);
-								cam->setOrthographicSize((float)viewport_height);
-								cam->updateProjection();
-								cam->updateView();
+							auto* gfxCamMgr = static_cast<rhea::client::GraphicsCameraManager*>(getManager<rhea::Camera>());
+							if (gfxCamMgr && context->getCameraHandle() != poseidon::InvalidCamera) {
+								gfxCamMgr->syncCameraProjection(getEngine(), context->getCameraHandle(), nullptr, (float)viewport_width, (float)viewport_height);
 							}
-							// send resize event to all render children - they may need to update render targets or similar
+							// send resize event to all items of this context - they may need to update render targets or similar
 							rhea::SizeEvent size_ev(nullptr, viewport_width, viewport_height);
-							for (auto& child : context->getRenderChildren()) {
-								child->sendEvent("viewport_size", &size_ev);
+							auto it = m_context_items.find(context);
+							if (it != m_context_items.end()) {
+								for (auto& item : it->second) {
+									item->sendEvent("viewport_size", &size_ev);
+								}
 							}
 						}
 					}
 					sendEvent("resize", nullptr);
 				}
-				
+
 				break;
 			}
 		}
@@ -464,10 +504,11 @@ namespace rhea::client {
 		rhea::PhysicsService* phys = mgr->getPhysicsService();
 		if (!phys) return nullptr;
 		std::string def = "default";
-		poseidon::Viewport* viewport = m_core->get_scene_manager()->getViewport();
-		poseidon::Camera* camera = m_core->get_scene_manager()->getViewport()->getRenderContext(def)->get_camera();
+		poseidon::Viewport* viewport = m_core->getFrameRenderer()->getViewport();
+		poseidon::Camera* camera = m_core->getFrameRenderer()->getViewport()->getRenderContext(def)->getCameraHandle() != poseidon::InvalidCamera ?
+			m_core->getRenderWorld()->resolveCamera(m_core->getFrameRenderer()->getViewport()->getRenderContext(def)->getCameraHandle()) : nullptr;
 		if (!camera) return nullptr;
-			
+
 		// compute the ray
 		math::Ray ray = camera->getPickingRay((float)m_mx, (float)m_my, viewport->getWidth(), viewport->getHeight());
 
@@ -480,36 +521,125 @@ namespace rhea::client {
 		return phys->ray(ray_from, ray_to);
 
 #ifdef PICK3D_DEBUG
-			if (!m_mesh) {
-				// prepare debug item
+		if (!m_mesh) {
+			// prepare debug item
 
-				m_mesh = new poseidon::Mesh();
-				m_mesh->setViewport(m_app->get_core()->get_scene_manager()->getViewport());
-				poseidon::Entity* entity = m_core->createEntity(m_mesh);
-				entity->setName("ray_test");
-				poseidon::Material* material = m_app->get_core()->getMaterial("color");
-				entity->setMaterial(material);
-				m_app->get_core()->get_scene_manager()->getViewport()->getRenderContext(std::string("default"))->addRenderChild(entity);
-			}
+			m_mesh = new poseidon::Mesh();
+			m_mesh->setViewport(m_app->get_core()->getFrameRenderer()->getViewport());
+			poseidon::Entity* entity = m_core->createEntity(m_mesh);
+			entity->setName("ray_test");
+			poseidon::Material* material = m_app->get_core()->getMaterial("color");
+			entity->setMaterial(material);
+			m_app->get_core()->get_scene_manager()->getViewport()->getRenderContext(std::string("default"))->addRenderChild(entity);
+		}
 
-			std::vector<hippios::vertex> l_vertices;		
-			math::Vector3 pos = ray.getOrigin();
-			math::Vector3 dir = ray_to;
+		std::vector<hippios::vertex> l_vertices;
+		math::Vector3 pos = ray.getOrigin();
+		math::Vector3 dir = ray_to;
 
-			//dir *= 1000.0f;
+		//dir *= 1000.0f;
 
-			l_vertices.push_back({ pos.x, pos.y, pos.z, 0.0f, 1.0f, 0.0f, 1.0f });
-			l_vertices.push_back({ dir.x, dir.y, dir.z, 0.0f, 1.0f, 0.0f, 1.0f });
-			m_mesh->setVertices(sizeof(hippios::vertex), l_vertices.size(), l_vertices.data());
+		l_vertices.push_back({ pos.x, pos.y, pos.z, 0.0f, 1.0f, 0.0f, 1.0f });
+		l_vertices.push_back({ dir.x, dir.y, dir.z, 0.0f, 1.0f, 0.0f, 1.0f });
+		m_mesh->setVertices(sizeof(hippios::vertex), l_vertices.size(), l_vertices.data());
 
-			DLOG(LOG_DEBUG) << "pos: " << std::to_string(pos.x) << "/" + std::to_string(pos.y) << "/" << std::to_string(pos.z);
-			DLOG(LOG_DEBUG) << "ray: " << std::to_string(dir.x) << "/" + std::to_string(dir.y) << "/" + std::to_string(dir.z);
+		DLOG(LOG_DEBUG) << "pos: " << std::to_string(pos.x) << "/" + std::to_string(pos.y) << "/" << std::to_string(pos.z);
+		DLOG(LOG_DEBUG) << "ray: " << std::to_string(dir.x) << "/" + std::to_string(dir.y) << "/" + std::to_string(dir.z);
 
-			math::Vector3 deb1 = camera->getProjectionMatrixRS() * camera->getViewMatrix() * pos;
-			math::Vector3 deb2 = camera->getProjectionMatrixRS() * camera->getViewMatrix() * dir;
+		math::Vector3 deb1 = camera->getProjectionMatrixRS() * camera->getViewMatrix() * pos;
+		math::Vector3 deb2 = camera->getProjectionMatrixRS() * camera->getViewMatrix() * dir;
 
-			DLOG(LOG_DEBUG) << "deb1: " << std::to_string(deb1.x) << "/" + std::to_string(deb1.y) << "/" + std::to_string(deb1.z);
-			DLOG(LOG_DEBUG) << "deb2: " << std::to_string(deb2.x) << "/" + std::to_string(deb2.y) << "/" + std::to_string(deb2.z);
+		DLOG(LOG_DEBUG) << "deb1: " << std::to_string(deb1.x) << "/" + std::to_string(deb1.y) << "/" + std::to_string(deb1.z);
+		DLOG(LOG_DEBUG) << "deb2: " << std::to_string(deb2.x) << "/" + std::to_string(deb2.y) << "/" + std::to_string(deb2.z);
 #endif
+	}
+
+	void GraphicsService::registerItemToContext(rhea::Item* item, poseidon::RenderContext* context)
+	{
+		if (!item || !context) return;
+
+		poseidon::RenderNodeId parent_id = poseidon::InvalidRenderNode;
+		rhea::Item* parent_item = doCast<rhea::Item>(item->getParent());
+		if (parent_item) {
+			auto* parent_rc = parent_item->getComponent<rhea::client::RenderComponent>();
+			if (parent_rc && parent_rc->gfx_node_id != poseidon::InvalidGraphicsNode) {
+				parent_id = context->findNodeForSource(parent_rc->gfx_node_id);
+			}
+			else {
+				auto* parent_gc = parent_item->getComponent<rhea::client::GraphicsComponent>();
+				if (parent_gc && parent_gc->gfx_node_id != poseidon::InvalidGraphicsNode) {
+					parent_id = context->findNodeForSource(parent_gc->gfx_node_id);
+				}
+			}
+		}
+		poseidon::RenderNodeId render_node_id = poseidon::InvalidRenderNode;
+		auto* rc = item->getComponent<rhea::client::RenderComponent>();
+		if (rc) {
+			render_node_id = context->registerOrderNode(rc->gfx_node_id, parent_id);
+
+			rc->ctx = context;
+			if (rc->hasRenderable())
+				context->attachRenderable(render_node_id, rc->renderable);
+			if (rc->hasLight())
+				context->addLight(rc->light);
+			
+			// Track items in this context - avoid duplicates
+			auto& items = m_context_items[context];
+			if (std::find(items.begin(), items.end(), item) == items.end()) {
+				items.push_back(item);
+			}
+			//LOG(LOG_DEBUG) << "Registered item '" << item->getPath() << "' to render context '" << context->getName() << "', rc-node id: " << rc->gfx_node_id << ", rendernode id: " << render_node_id << ", parent id: " << parent_id;
+		}
+		else {
+			auto gc = item->getComponent<rhea::client::GraphicsComponent>();
+			if (!gc) {
+				item->addComponentUnique<rhea::client::GraphicsComponent>("graphics", rhea::client::GraphicsManager::allocateNextId());
+				gc = item->getComponent<rhea::client::GraphicsComponent>();
+			}
+			render_node_id = context->registerOrderNode(gc->gfx_node_id, parent_id);
+			gc->ctx = context;			
+			//LOG(LOG_DEBUG) << "Registered item '" << item->getPath() << "' to render context '" << context->getName() << "', gc-node id: " << gc->gfx_node_id << ", rendernode id: " << render_node_id << ", parent id: " << parent_id;
+		}
+		if (render_node_id != poseidon::InvalidRenderNode) {
+			// set visibility
+			auto* vis = item->getComponent<rhea::VisualComponent>();
+			if (vis) {
+				context->setVisibility(render_node_id, vis->isVisible());
+			}
+		}
+	}
+
+	void GraphicsService::unregisterItemFromContext(rhea::Item* item, poseidon::RenderContext* context)
+	{
+		if (!item || !context) return;
+
+		auto* rc = item->getComponent<rhea::client::RenderComponent>();
+		if (rc) {
+			// Detach renderable from context
+			if (rc->ctx == context) {
+				poseidon::RenderNodeId node_id = context->findNodeForSource(rc->gfx_node_id);
+				if (node_id != poseidon::InvalidRenderNode) {
+					context->unregisterOrderNode(node_id);
+				}
+
+				if (rc->hasLight()) {
+					context->removeLight(rc->light);
+				}
+
+				rc->ctx = nullptr;
+			}
+		}
+
+		// Remove from registry
+		auto it = m_context_items.find(context);
+		if (it != m_context_items.end()) {
+			auto& items = it->second;
+			items.erase(std::remove(items.begin(), items.end(), item), items.end());
+
+			// Clean up empty entries
+			if (items.empty()) {
+				m_context_items.erase(it);
+			}
+		}
 	}
 }

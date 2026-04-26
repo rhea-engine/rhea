@@ -1,7 +1,6 @@
 #ifndef POSEIDON_VIEWPORT_H
 #define POSEIDON_VIEWPORT_H
 
-#include "Node.h"
 #include <memory>
 #include <vector>
 #include <string>
@@ -17,7 +16,7 @@ namespace poseidon
 	/// Not to confuse with a renderer viewport which is simply a rectangle of the the render target
 	/// The Viewport has a list of render contexts.
 	/// </summary>
-	class Viewport : public Node
+	class Viewport
 	{
 	public: 		
 		Viewport() :
@@ -65,9 +64,6 @@ namespace poseidon
 		int m_height;
 
 		std::vector<std::unique_ptr<RenderContext>> m_render_contexts;		
-
-		virtual void registerNode();
-		virtual void registerGroup(std::string group_name, Node* node);
 	};
 
 }

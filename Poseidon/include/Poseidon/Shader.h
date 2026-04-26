@@ -47,7 +47,7 @@ namespace poseidon
 	class Shader
 	{
 	public:
-		Shader(Core* core);
+		Shader(Core* core, std::string name="");
 		~Shader();
 
 		// set the vertex input layout for this shader, with a single input slot and given stride
@@ -134,8 +134,11 @@ namespace poseidon
 		size_t getMatBufSizeVS() const { return m_matbuf_size_vs; }
 		int getMatBufLayoutMapVS(std::string name) { if (m_matbuf_layout_map_vs.find(name) != m_matbuf_layout_map_vs.end()) return m_matbuf_layout_map_vs[name]; else return -1; }
 
+		std::string getName() { return m_name; }
+
 	protected:
 		Core* m_grahpics_core;
+		std::string m_name;
 
 		std::vector<VertexInputAttribute> m_input_layout;
 		std::vector<hippios::InputBindingDesc> m_input_bindings;

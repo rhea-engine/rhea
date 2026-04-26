@@ -21,7 +21,7 @@ namespace rhea::client {
 		bool Ensure(poseidon::Core* core, rhea::Unit* unit);
 
 		// handle frame update
-		void onFrame() {}
+		void onFrame(float delta) override {}
 
 		// handle events
 		bool onUpdate(rhea::Event* ev, rhea::Unit* unit);

@@ -20,21 +20,28 @@ namespace rhea
 			if (pos_sit.size() > 2) {
 				z = pos_sit[2];
 			}
-			m_transform.get_position()->setPosition(x, y, z);
+			Position position;			
+			position.setPosition(x, y, z);
+			m_transform.setPosition(position);
 		}
-		Variant rot_sit = getValue("rotation");
-		if (rot_sit != Variant() && rot_sit.size()==3) {
-			float x = rot_sit[0];
-			float y = rot_sit[1];
-			float z = rot_sit[2];
-			math::Quaternion rot;
-			if (x != 0.0f)
-				rot.fromAngleAxis(x * math::M_DEGTORAD, math::Vector3(1.0f, 0.0f, 0.0f));
-			if (y != 0.0f)
-				rot.fromAngleAxis(y * math::M_DEGTORAD, math::Vector3(0.0f, 1.0f, 0.0f));
-			if (z != 0.0f)
-				rot.fromAngleAxis(z * math::M_DEGTORAD, math::Vector3(0.0f, 0.0f, 1.0f));
-			m_transform.get_position()->setOrientation(rot);
+		if (m_values.find("rotation") != m_values.end())
+		{
+			Variant rot_sit = getValue("rotation");
+			if (rot_sit != Variant() && rot_sit.size() == 3) {
+				float x = rot_sit[0];
+				float y = rot_sit[1];
+				float z = rot_sit[2];
+				math::Quaternion rot;
+				if (x != 0.0f)
+					rot.fromAngleAxis(x * math::M_DEGTORAD, math::Vector3(1.0f, 0.0f, 0.0f));
+				if (y != 0.0f)
+					rot.fromAngleAxis(y * math::M_DEGTORAD, math::Vector3(0.0f, 1.0f, 0.0f));
+				if (z != 0.0f)
+					rot.fromAngleAxis(z * math::M_DEGTORAD, math::Vector3(0.0f, 0.0f, 1.0f));
+				Position position = *m_transform.get_position();
+				position.setOrientation(rot);
+				m_transform.setPosition(position);
+			}
 		}
 	}
 
@@ -77,6 +84,13 @@ namespace rhea
 		bubbleEvent("attached_item", &add_event);
 	}
 
+	void Item::onRemoved()
+	{
+		Unit::onRemoved();
+		Event add_event("detached_item", this);
+		bubbleEvent("detached_item", &add_event);
+	}
+
 	Item* Item::instance(std::string name)
 	{
 		Item* new_item = (rhea::Item*)simpleparser::Type::create(name, getTypeName());
@@ -115,21 +129,35 @@ namespace rhea
 	}
 
 	void Item::setPosition(rhea::Position& position)
-	{
-		m_transform.get_position()->setPosition(position);
-		m_transform.update();
+	{		
+		// check if position updated
+		Position t_position = *m_transform.get_position();
+		if (position.nearlyEquals(t_position))
+			return;		
+		m_transform.setPosition(position);		
+		for (auto* l : m_movement_listeners) {
+			l->onPositionChanged();
+		}
 	}
 	
 	void Item::setPosition(math::Vector3 position)
 	{
-		m_transform.get_position()->setPosition(position);
-		m_transform.update();
+		Position t_position = *m_transform.get_position();
+		t_position.setPosition(position);
+		m_transform.setPosition(t_position);		
+		for (auto* l : m_movement_listeners) {
+			l->onPositionChanged();
+		}
 	}
 
-	void Item::setLookAt(math::Vector3 look_at)
+	void Item::setLookAt(math::Vector3 look_at, const math::Vector3& localDirectionVector)
 	{
-		m_transform.get_position()->lookAt(look_at);
-		m_transform.update();
+		Position t_position = *m_transform.get_position();
+		t_position.lookAt(look_at, localDirectionVector);
+		m_transform.setPosition(t_position);		
+		for (auto* l : m_movement_listeners) {
+			l->onPositionChanged();
+		}
 	}
 		
 	void Item::setMovement(math::Vector3 move)

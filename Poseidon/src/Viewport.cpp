@@ -2,10 +2,7 @@
 
 #include "Poseidon/Viewport.h"
 #include "Poseidon/Mesh.h"
-#include "Poseidon/Animatable.h"
 #include "Poseidon/RenderContext.h"
-
-#include "Poseidon/Entity.h"
 
 namespace poseidon
 {	
@@ -16,8 +13,6 @@ namespace poseidon
 		m_width(0),
 		m_height(0)
 	{
-		m_groups.emplace("renderable", std::vector<Node*>());
-
 		// default context
 		std::string ctx_name = "default";
 		createRenderContext(ctx_name);
@@ -63,19 +58,4 @@ namespace poseidon
 
 		// TODO: Trigger callback/event to GraphicsService ?
 	}
-
-	void Viewport::registerNode()
-	{
-		registerGroup("viewport", this);
-	}
-
-	void Viewport::registerGroup(std::string group_name, Node* node)
-	{
-		if (group_name == "renderable") {
-			m_groups[group_name].push_back(node);
-			return; // dont register above this viewport
-		}
-
-		Node::registerGroup(group_name, node);
-	}	
 }

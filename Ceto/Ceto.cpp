@@ -296,7 +296,7 @@ void Ceto::openScene(std::string scene_name)
 
 void Ceto::setup()
 {
-	poseidon::Application::setup();
+	rhea::Application::setup();
 
 	// check for config file
 
@@ -447,7 +447,8 @@ void Ceto::showScene(rhea::Scene* scene)
 		}		
 	}
 
-	// search for a camera			
+	// search for a camera		
+	/*	
 	m_view = scene->findByType<rhea::Camera>();
 	if (!m_view) {
 		// no camera found - create a default cam
@@ -467,6 +468,7 @@ void Ceto::showScene(rhea::Scene* scene)
 			m_view->setPosition(math::Vector3(0, 1.7f, 0.0f));
 		}
 	}
+	*/
 
 	// search for a controller
 	m_focused_controller = m_unit_tree->findByType<rhea::Controller>();
@@ -589,6 +591,23 @@ bool Ceto::onFrameEnd()
 	}
 
 	return m_exiting;
+}
+
+void Ceto::onScene(rhea::Scene* scene)
+{
+	log("scene displayed");
+	std::unique_ptr<rhea::Event> ev_r = std::make_unique<rhea::Event>("ready", scene);
+	scene->sendEvent(std::string("ready"), ev_r.get());
+
+	bool m_phys_debug = scene->getValue("debug_physics");
+
+	if (m_phys_debug) {
+
+		auto* mgr = doCast<rhea::PhysicsManagerService>(getService("physics_mgr"));
+		auto* ps = mgr ? mgr->getPhysicsService() : nullptr;
+
+		auto* m_debug_draw = ps ? ps->debugDraw() : nullptr;
+	}
 }
 
 int main(int argc, char* argv[])

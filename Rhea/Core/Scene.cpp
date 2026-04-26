@@ -42,6 +42,7 @@ namespace rhea
 		}
 		registerEventHandler("scene_enter", this, std::bind(&Scene::onSceneEnter, this, std::placeholders::_1, std::placeholders::_2));
 		registerEventHandler("attached_item", this, std::bind(&Scene::onItemAttached, this, std::placeholders::_1, std::placeholders::_2));
+		registerEventHandler("detached_item", this, std::bind(&Scene::onItemDetached, this, std::placeholders::_1, std::placeholders::_2));
 	}
 
 	bool Scene::onSceneEnter(Event* ev, Unit* unit)
@@ -77,8 +78,36 @@ namespace rhea
 		return true;
 	}
 
+	bool Scene::onItemDetached(Event* ev, Unit* unit)
+	{
+		// we capture this event
+		ev->stopPropagation();
+
+		if (m_is_active) {
+			// send add item for subtree
+			Item* item = doCast<Item>(ev->getTarget());
+			Event e("remove_item", item);
+			sendEvent("remove_item", &e);
+
+			item->children([&](std::string evname, Component* child)->bool {
+				Item* child_item = doCast<Item>(child);
+				if (child_item) {
+					Event e("remove_item", child_item);
+					sendEvent("remove_item", &e);
+				}
+				return true;
+				});
+		}
+		return true;
+	}
+
 	void Scene::show()
 	{
+		if (!m_app) {
+			LOG(LOG_ERROR) << "Scene: No app pointer set, did you forget to call setup?";
+			return;
+		}
+
 		// the scene needs to be active
 		if (!m_is_active)
 			activate();

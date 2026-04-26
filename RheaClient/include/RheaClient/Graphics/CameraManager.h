@@ -2,6 +2,7 @@
 #define RHEA_GRAPHICS_CAMERA_H
 
 #include <Rhea/Event.h>
+#include <Rhea/Core/Camera.h>
 #include "GraphicsManager.h"
 
 namespace poseidon
@@ -27,13 +28,17 @@ namespace rhea::client {
 		// handle update event
 		bool onUpdate(rhea::Event* ev, rhea::Unit* unit);
 
+		// handle transform update
+		void onTransformUpdate(rhea::Unit* unit) override;
+
 		// handle frame update
-		void onFrame();
+		void onFrame(float delta) override;
 
 		// handle events
 		bool onItemDelete(rhea::Event* ev, rhea::Unit* unit);
-
-	protected:		
+	
+		void syncCameraTransform(poseidon::Core* core, poseidon::CameraHandle handle, rhea::Transform* transform);
+		void syncCameraProjection(poseidon::Core* core, poseidon::CameraHandle handle, rhea::Camera* sourceCamera, float viewportWidth, float viewportHeight);
 	};
 }
 #endif // !RHEA_GRAPHICS_CAMERA_H

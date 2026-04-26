@@ -1,5 +1,5 @@
-#ifndef POSEIDON_SCENEMANAGER_H
-#define POSEIDON_SCENEMANAGER_H
+#ifndef POSEIDON_FRAMERENDERER_H
+#define POSEIDON_FRAMERENDERER_H
 
 #include <vector>
 #include <memory>
@@ -18,25 +18,23 @@ namespace hippios
 {
 	class Renderer;
 	class GraphicsBuffer;
+	class RenderTarget;
 }
 
 namespace poseidon
-{
-	class Node;
+{	
 	class Viewport;
 	class RenderQueue;
 	class Material;
+	class RenderWorld;	
 
 	/** The scene that holds and organises the objects in the world
 	*/
-	class SceneManager
+	class FrameRenderer
 	{
 	public:
-		SceneManager();
-		~SceneManager();
-
-		Node* createNode();
-		Node* get_root();
+		FrameRenderer();
+		~FrameRenderer();
 
 		// set the render system
 		void setRenderer(hippios::Renderer* renderer);
@@ -45,11 +43,11 @@ namespace poseidon
 		bool update();
 
 		// render all viewports
-		bool render();
+		bool render(RenderWorld* world);
+		bool renderWindow(Window* window, RenderWorld* world);
+		bool renderViewport(Viewport* viewport, hippios::RenderTarget* target, RenderWorld* world);
+		bool renderContext(RenderContext* context, hippios::RenderTarget* target, RenderWorld* world);
 
-		// set up the root node
-		void setRoot(Node* node) { m_tree = node; }		
-		
 		// window helper
 		Window* getWindow(psio::Window* win);
 		void registerWindow(Window* win) { m_windows.push_back(win); }
@@ -62,7 +60,6 @@ namespace poseidon
 		}
 
 	protected:
-		Node* m_tree = 0;
 		hippios::Renderer* m_renderer;		
 		std::vector<Window*> m_windows;
 		RenderQueue* m_rend_queue = NULL;
@@ -140,4 +137,4 @@ namespace poseidon
 		std::unique_ptr<hippios::GraphicsBuffer> m_bone_buffer;
 	};
 }
-#endif // !POSEIDON_SCENEMANAGER_H
+#endif // !POSEIDON_FRAMERENDERER_H

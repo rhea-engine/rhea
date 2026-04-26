@@ -32,6 +32,8 @@ namespace rhea
 		// input event handler
 		bool onInput(Event* ev, Unit* unit);
 
+		void onFrame(float delta) override {};
+
 		void connect(Item* target);
 
 		void logMe();

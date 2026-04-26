@@ -50,13 +50,18 @@ namespace rhea::client {
 		
 		// add one item to the scene (creating the corresponding rhea::element)
 		void addItem(rhea::Unit* item);
+		
+		// remove one item from the scene (removing from render context)
+		void removeItem(rhea::Unit* item);
 
 		// handle add item event
 		bool onItemAdd(rhea::Event* ev, rhea::Unit* unit);
+		// handle remove item event
+		bool onItemRemove(rhea::Event* ev, rhea::Unit* unit);
 
 		bool Ensure(poseidon::Core* core, rhea::Unit* unit);	
 
-		void onFrame() {}
+		void onFrame(float delta) override {}
 	
 	protected:
 		poseidon::Core* m_core;

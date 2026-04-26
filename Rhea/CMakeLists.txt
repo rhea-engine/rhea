@@ -33,3 +33,7 @@ target_link_libraries(RheaRuntime INTERFACE
   Rhea::Core
 )
 
+if(RHEA_BUILD_SAMPLES)
+    add_subdirectory(Samples)
+endif()
+

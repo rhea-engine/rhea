@@ -7,8 +7,8 @@ target_sources(RheaClient PRIVATE
 	"Graphics/GraphicsManager.cpp" "Graphics/MeshManager.cpp" 
   "Fabrics/PoseidonGraphics/src/PoseidonGraphicsFabric.cpp" 
  "Graphics/MeshGpuCache.cpp" "Graphics/TextureGpuCache.cpp" 
- "Graphics/MaterialGpuCache.cpp" 
- "Input/PsioInputAdapter.cpp" "Input/PsioInputService.cpp" "include/RheaClient/Window/WindowService.h" "Window/WindowService.cpp")
+ "Graphics/MaterialGpuCache.cpp"  "Graphics/LightManager.cpp"
+ "Input/PsioInputAdapter.cpp" "Input/PsioInputService.cpp" "Window/WindowService.cpp")
 
 target_include_directories(RheaClient PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}       # so includes like <Graphics/...> still work temporarily
@@ -19,6 +19,7 @@ target_include_directories(RheaClient PUBLIC
 target_link_libraries(RheaClient PUBLIC
   Rhea::Core
   Rhea::GUI
+  Rhea::Animation
   Meworla::Poseidon
 )
 
@@ -34,6 +35,7 @@ add_library(Rhea::ClientRuntime ALIAS RheaClientRuntime)
 target_link_libraries(RheaClientRuntime INTERFACE
   Rhea::Runtime
   Rhea::Client
+  Rhea::Animation
 )
 
 # Register this fabric for GeneratedFabrics.cpp generation

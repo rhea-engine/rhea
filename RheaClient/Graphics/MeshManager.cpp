@@ -2,7 +2,7 @@
 #include <Rhea/Core/Item.h>
 #include <Rhea/Core/Mesh.h>
 #include <Poseidon/Mesh.h>
-#include <Poseidon/SceneManager.h>
+#include <Poseidon/FrameRenderer.h>
 #include <Psio/Log.h>
 #include <Rhea/Core/Material.h>
 #include <RheaClient/Graphics/GraphicsService.h>
@@ -169,8 +169,8 @@ namespace rhea::client {
 					core,
 					mat0,
 					[&](poseidon::Core* c, rhea::Material* m, poseidon::Material* outMat, bool fresh) -> bool {
-						auto* meshMgr = static_cast<GraphicsMaterialManager*>(m_service->getManager<rhea::Material>());
-						return meshMgr->FillPoseidonMaterial(c, m, outMat, fresh);
+						auto* materialMgr = static_cast<GraphicsMaterialManager*>(m_service->getManager<rhea::Material>());
+						return materialMgr->FillPoseidonMaterial(c, m, outMat, fresh);
 					}
 				);
 			if (!gpuMat0) {

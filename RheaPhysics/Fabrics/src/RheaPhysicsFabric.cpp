@@ -4,6 +4,8 @@
 #include <RheaPhysics/PhysicsComponent.h>
 
 #include <Rhea/Core/Item2D.h>
+#include <Rhea/Core/Camera.h>
+#include <Rhea/Core/Light.h>
 
 namespace rhea::physics
 {
@@ -33,5 +35,7 @@ namespace rhea::physics
         rhea::PhysicsBodyDesc none;
         none.kind = ""; // means disabled
         mgr->registerBodyForType(rhea::Item2D::staticType(), none);
+        mgr->registerBodyForType(rhea::Camera::staticType(), none);
+        mgr->registerBodyForType(rhea::Light::staticType(), none);
 	}
 }

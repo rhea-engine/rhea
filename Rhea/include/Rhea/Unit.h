@@ -31,6 +31,10 @@ namespace rhea
 			Component(path_name, type_name)
 		{}		
 		virtual ~Unit();
+
+		void onDestroy() override;
+		void detachFromParent();
+
 		virtual void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
 		virtual void setup(Application* app) { m_app = app; }
 
@@ -228,7 +232,7 @@ namespace rhea
 
 		// event handlers for this unit
 		std::unordered_map < std::string, std::unordered_map<void*, Event::EventHandler >> m_eventhandlers;
-		int m_refcount;
+		int m_refcount;		
 
 		// copy constructor
 		Unit(const Unit&);

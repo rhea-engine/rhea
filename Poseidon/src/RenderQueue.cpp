@@ -2,30 +2,30 @@
 
 namespace poseidon
 {
-	void RenderQueue::addRenderable(Item* renderable)
+	void RenderQueue::addRenderable(RenderableHandle h)
 	{
-		m_render_items.push_back(renderable);
+		m_renderables.push_back(h);
 	}
 
 	void RenderQueue::clear()
 	{
-		m_render_items.clear();
+		m_renderables.clear();
+		m_idx = -1;
 	}
 
-	Item* RenderQueue::first()
+	RenderableHandle RenderQueue::first()
 	{
-		it = m_render_items.begin();
-		if (it != m_render_items.end())
-			return *it;
-		return nullptr;
+		m_idx = 0;
+		if (m_idx < static_cast<int>(m_renderables.size()))
+			return m_renderables[m_idx];
+		return InvalidRenderable;
 	}
 
-	Item* RenderQueue::next()
+	RenderableHandle RenderQueue::next()
 	{
-		++it;
-		if (it != m_render_items.end())
-			return *it;
-		else
-			return NULL;
+		++m_idx;
+		if (m_idx < static_cast<int>(m_renderables.size()))
+			return m_renderables[m_idx];
+		return InvalidRenderable;
 	}
 }

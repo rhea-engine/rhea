@@ -1,8 +1,9 @@
 #include <Poseidon/Core.h>
-#include <Poseidon/SceneManager.h>
-#include <Poseidon/Entity.h>
+#include <Poseidon/FrameRenderer.h>
+#include <Poseidon/Renderable.h>
 #include <Poseidon/Mesh.h>
 #include <Poseidon/RenderContext.h>
+#include <Poseidon/RenderWorld.h>
 
 #include <Rhea/Application.h>
 #include <Rhea/Unit.h>
@@ -15,52 +16,54 @@
 #include <Rhea/GUI/Widget.h>
 
 namespace rhea::client {
-	poseidon::Node* GraphicsManager::createRenderable(RenderComponent* rc, poseidon::Core* core, rhea::Unit* item, poseidon::Mesh* mesh, std::string render_context_name)
-	{
-		poseidon::SceneManager* scene_mgr = core->get_scene_manager();
-		
-		// create an entity using the shared mesh
-		poseidon::Node* entity = core->createEntity(mesh);	
-		rc->entity = entity;
-		
-		poseidon::Viewport* viewport = scene_mgr->getViewport();
-		if (!viewport) {
-			LOG(LOG_ERROR) << "No root viewport found - cannot create element";
-			return nullptr;
-		}
-		poseidon::RenderContext* render_context = viewport->getRenderContext(render_context_name);
-		if (!render_context) {
-			LOG(LOG_ERROR) << "GraphicsText::createText: render context '" << render_context_name << "' not found";
-			return nullptr;
-		}
-		rc->ctx = render_context;
-		//render_context->addRenderChild(static_cast<poseidon::Entity*>(entity));
-		//render_context->addRenderChild((rhea::Item* )item);
 
-		return entity;
+	uint64_t GraphicsManager::m_next_id = 1;
+
+	poseidon::RenderableHandle GraphicsManager::createRenderable(RenderComponent* rc, poseidon::Core* core, rhea::Unit* item, poseidon::Mesh* mesh)
+	{
+		if (!mesh) {
+			LOG(LOG_ERROR) << "GraphicsManager::createRenderable: mesh is null";
+			return poseidon::InvalidRenderable;
+		}
+		if (!rc) {
+			LOG(LOG_ERROR) << "GraphicsManager::createRenderable: render component is null";
+			return poseidon::InvalidRenderable;
+		}
+
+		// create a renderable using the shared mesh
+		rc->renderable = core->getRenderWorld()->createRenderable(mesh);
+
+		return rc->renderable;
 	}
 
-	poseidon::Node* GraphicsManager::createEntity(RenderComponent* rc, poseidon::Core* core, rhea::Unit* item, std::string render_context_name, bool dynamic_usage)
+	poseidon::RenderContext* GraphicsManager::getRenderContext(poseidon::Core* core, std::string render_context_name)
 	{
-		poseidon::SceneManager* scene_mgr = core->get_scene_manager();
-
-		// create an entity
-		poseidon::Node* entity = core->createEntity(nullptr);
-		rc->entity = entity;
-
-		poseidon::Viewport* viewport = scene_mgr->getViewport();
+		poseidon::FrameRenderer* frame_renderer = core->getFrameRenderer();
+		if (!frame_renderer) {
+			LOG(LOG_ERROR) << "GraphicsManager::getRenderContext: no frame renderer";
+			return nullptr;
+		}
+		poseidon::Viewport* viewport = frame_renderer->getViewport();
 		if (!viewport) {
-			LOG(LOG_ERROR) << "No root viewport found - cannot create element";
+			LOG(LOG_ERROR) << "No root viewport found - cannot get render context";
 			return nullptr;
 		}
 		poseidon::RenderContext* render_context = viewport->getRenderContext(render_context_name);
 		if (!render_context) {
-			LOG(LOG_ERROR) << "GraphicsText::createText: render context '" << render_context_name << "' not found";
+			LOG(LOG_ERROR) << "GraphicsManager::getRenderContext: render context '" << render_context_name << "' not found";
 			return nullptr;
 		}
-		rc->ctx = render_context;
+		return render_context;
+	}	
 
-		return entity;
+	poseidon::CameraHandle GraphicsManager::createCamera(poseidon::Core* core)
+	{
+		return core->getRenderWorld()->createCamera();
+	}
+
+	poseidon::LightHandle GraphicsManager::createLight(poseidon::Core* core)
+	{		
+		return core->getRenderWorld()->createLight();
 	}
 
 	void GraphicsManager::setPosition(rhea::Unit* u, rhea::Transform* t)
@@ -74,9 +77,14 @@ namespace rhea::client {
 				z = pos_sit[2];
 			}
 
-			t->get_position()->setPosition(x, y, z);
+			rhea::Position position = *t->get_position();
+			position.setPosition(x, y, z);
+			t->setPosition(position);
 		}
-		else
-			t->get_position()->setPosition(0.0f, 0.0f, 0.0f);
+		else {
+			rhea::Position position = *t->get_position();
+			position.setPosition(0.0f, 0.0f, 0.0f);
+			t->setPosition(position);
+		}
 	}	
 }

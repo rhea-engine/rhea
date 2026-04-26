@@ -27,8 +27,7 @@ namespace rhea
 		if (!m_physics_body)
 			return false;
 		
-		if (!m_position)
-			m_position = getTransform()->get_position();
+		rhea::Position position = *getTransform()->get_position();
 
 		float delta = static_cast<PhysicsEvent*>(ev)->getDelta();		
 
@@ -53,7 +52,7 @@ namespace rhea
 			move *= delta;
 
 			// use physics for movement
-			math::Quaternion rot = m_position->get_rotation();
+			math::Quaternion rot = position.get_rotation();
 			m_physics_body->applyImpulse(rot * move);
 
 		}
@@ -66,7 +65,7 @@ namespace rhea
 			float turn_step = m_turn * delta;
 			math::Quaternion q;
 			q.fromAngleAxis(turn_step, math::Vector3(0, 1, 0));
-			math::Quaternion m_orientation = q * m_position->get_rotation(); //* m_orientation;
+			math::Quaternion m_orientation = q * position.get_rotation(); //* m_orientation;
 			m_orientation.normalize();
 			//m_position->setOrientation(m_orientation);
 

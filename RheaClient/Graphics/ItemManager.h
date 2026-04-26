@@ -2,7 +2,6 @@
 #define RHEA_GRAPHICS_ITEM_H
 
 #include <Poseidon/Core.h>
-#include <Poseidon/Node.h>
 #include <Poseidon/RenderContext.h>
 
 #include <Rhea/Element.h>
@@ -29,8 +28,14 @@ namespace rhea::client {
 		// handle update event
 		bool onUpdate(rhea::Event* ev, rhea::Unit* unit);
 
+		// handle child order changed
+		bool onChildOrderChanged(rhea::Event* ev, rhea::Unit* unit);
+
+		// handle transform update
+		void onTransformUpdate(rhea::Unit* unit) override;
+
 		// handle frame update
-		void onFrame() {};
+		void onFrame(float delta) override;
 
 		// handle deletion event
 		bool onItemDelete(rhea::Event* ev, rhea::Unit* unit);
@@ -40,6 +45,11 @@ namespace rhea::client {
 		                        rhea::Item* item,
 		                        RenderComponent* rc, 
 		                        rhea::Mesh* mesh);
+		bool syncRenderable(poseidon::Core* core, rhea::Item* item, RenderComponent* rc);
+		bool syncTransform(poseidon::Core* core, rhea::Item* item, RenderComponent* rc);
+		void syncChildOrder(rhea::Item* parent);
+		void syncSkeletonPose(poseidon::Core* core, rhea::Item* item, RenderComponent* rc);
+		std::vector<rhea::Item*> m_animated_items;
 	};
 }
 

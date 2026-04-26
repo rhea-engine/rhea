@@ -57,7 +57,7 @@ namespace rhea::physics::bullet
 				if (!ExtractTrianglesFromScene(app, m_item, tri) || tri.indices.empty()) {
 					LOG(LOG_ERROR) << "BtBody: no collision triangles for item " << m_item->getPath();
 					colShape = new btBoxShape(btVector3(1, 1, 1));
-					//return true;
+					return false;
 				}
 				else {
 					btTriangleMesh* triMesh = new btTriangleMesh();

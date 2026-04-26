@@ -3,6 +3,7 @@
 #include <Rhea/Application.h>
 #include <Rhea/UnitTree.h>
 #include <Rhea/Core/Item.h>
+#include <Rhea/Core/ActiveUnit.h>
 
 namespace rhea
 {
@@ -23,9 +24,12 @@ namespace rhea
 		// update items
 		for (auto it = m_scenes.begin(); it < m_scenes.end(); ++it) {
 			(*it)->traverse([delta](std::string& name, Component* unit)->bool {
+				ActiveUnit* active_unit = doCast<ActiveUnit>(unit);
+				if (active_unit) {
+					active_unit->onFrame(delta);
+				}
 				Item* item = doCast<Item>(unit);
-				if (item) {
-					item->onFrame(delta);
+				if (item) {					
 					// TODO: Check if this is necessary
 					if (item->getTransform())
 						item->getTransform()->update();

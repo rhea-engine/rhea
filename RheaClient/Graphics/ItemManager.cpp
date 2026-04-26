@@ -1,5 +1,5 @@
-#include <Poseidon/Entity.h>
-#include <Poseidon/SceneManager.h>
+#include <Poseidon/Renderable.h>
+#include <Poseidon/FrameRenderer.h>
 #include <Poseidon/Material.h>
 #include <Poseidon/Shader.h>
 #include <Poseidon/RenderContext.h>
@@ -23,6 +23,8 @@
 #include <RheaClient/Components/RenderComponent.h>
 #include "MeshManager.h"
 #include <Rhea/Components/MeshComponent.h>
+#include <Poseidon/RenderWorld.h>
+#include "TransformListener.h"
 
 namespace rhea::client {
 	GraphicsItemManager::~GraphicsItemManager()
@@ -35,15 +37,24 @@ namespace rhea::client {
 		rhea::Item* item = doCast<rhea::Item>(unit);
 		if (!item) return false;
 
+		rhea::Light* light = doCast<rhea::Light>(item);
+		if (light) {
+			return m_service->getManager<rhea::Light>()->Ensure(core, light);
+		}
+
 		// register event handlers for delete and update - these will be called even if the item is not renderable, so we can catch changes to renderable state and mesh assignment
 		static auto deleteHandler = std::bind(&GraphicsItemManager::onItemDelete, this, std::placeholders::_1, std::placeholders::_2);
 		static auto updateHandler = std::bind(&GraphicsItemManager::onUpdate, this, std::placeholders::_1, std::placeholders::_2);
+		static auto childorderHandler = std::bind(&GraphicsItemManager::onChildOrderChanged, this, std::placeholders::_1, std::placeholders::_2);
 		
 		if (!unit->hasEventHandler("delete", this)) {
 			unit->registerEventHandler("delete", this, deleteHandler);
 		}
 		if (!unit->hasEventHandler("update", this)) {
 			unit->registerEventHandler("update", this, updateHandler);
+		}
+		if (!unit->hasEventHandler("child_order_changed", this)) {
+			unit->registerEventHandler("child_order_changed", this, childorderHandler);
 		}
 
 		// Early exit: nicht renderable - Handler sind trotzdem registriert
@@ -53,18 +64,16 @@ namespace rhea::client {
 
 		// Check if already exists
 		auto* rc = item->getComponent<RenderComponent>();
-		if (rc && rc->entity)
+		
+		if (!rc) rc = item->addComponentUnique<RenderComponent>("renderer", m_next_id++);
+
+		if (rc->hasRenderable())
 			return true;
 
-		if (!rc) rc = item->addComponentUnique<RenderComponent>("renderer");
-		
-		// Special handling for light
-		rhea::Light* light = doCast<rhea::Light>(item);
-		if (light) {
-			DLOG(LOG_DEBUG) << "GraphicsItemManager::Ensure: light";			
-			poseidon::Renderable* light_entity = static_cast<poseidon::Renderable*>(
-				createEntity(rc, core, unit, "default", false));
-			return true;
+		auto* tl = item->getComponent<TransformListener>();
+		if (!tl) {
+			tl = item->addComponentUnique<TransformListener>("transform_listener");
+			tl->setGraphicsManager(this);
 		}
 
 		// Mesh handling
@@ -103,15 +112,15 @@ namespace rhea::client {
 	{
 		rhea::Item* item = doCast<rhea::Item>(unit);
 		if (!item) return false;
-
+		
 		// Not renderable - clean up GPU resources if present
 		if (!item->isRenderable()) {
 			auto* rc = item->getComponent<RenderComponent>();
-			if (rc && rc->entity) {
+			if (rc && rc->hasRenderable()) {
 				if (rc->ctx)
-					rc->ctx->removeRenderChild(item);
-				delete rc->entity;
-				rc->entity = nullptr;
+					rc->ctx->detachRenderable(rc->ctx->findNodeForSource(rc->gfx_node_id));
+				m_service->getEngine()->getRenderWorld()->destroyRenderable(rc->renderable);
+				rc->renderable = poseidon::InvalidRenderable;				
 				rc->gpuMesh = nullptr;
 			}
 			return true;
@@ -120,7 +129,12 @@ namespace rhea::client {
 		auto* rc = item->getComponent<RenderComponent>();
 		if (!rc) {
 			// Newly renderable - create RenderComponent
-			rc = item->addComponentUnique<RenderComponent>("renderer");
+			rc = item->addComponentUnique<RenderComponent>("renderer", m_next_id++);
+		}
+		auto* tl = item->getComponent<TransformListener>();
+		if (!tl) {
+			tl = item->addComponentUnique<TransformListener>("transform_listener");
+			tl->setGraphicsManager(this);
 		}
 
 		rhea::MeshComponent* mc = item->getComponent<rhea::MeshComponent>();
@@ -180,7 +194,25 @@ namespace rhea::client {
 			}
 		}
 
+		syncRenderable(core, item, rc);
 		return false;
+	}
+
+	bool GraphicsItemManager::onChildOrderChanged(rhea::Event* ev, rhea::Unit* unit)
+	{
+		rhea::Item* item = doCast<rhea::Item>(ev->getTarget());
+		if (!item) return false;
+		syncChildOrder(item);
+		return false;
+	}
+
+	void GraphicsItemManager::onTransformUpdate(rhea::Unit* unit)
+	{
+		rhea::Item* item = doCast<rhea::Item>(unit);
+		if (!item) return;
+		auto* rc = item->getComponent<RenderComponent>();
+		if (!rc || !rc->hasRenderable()) return;
+		syncRenderable(m_service->getEngine(), item, rc);
 	}
 
 	bool GraphicsItemManager::onItemDelete(rhea::Event* ev, rhea::Unit* unit)
@@ -189,17 +221,47 @@ namespace rhea::client {
 		if (!item) return true;
 
 		auto* rc = item->getComponent<RenderComponent>();
-		if (rc) {
+		if (!rc) return true;
 
-			if (rc->ctx)
-				rc->ctx->removeRenderChild(item);
-
-			if (rc->entity)
-				delete rc->entity;
-
-			rc->entity = nullptr;			
+		// Unregister from GraphicsService
+		if (rc->ctx) {
+			// Use the service's unregister method
+			m_service->unregisterItemFromContext(item, rc->ctx);
 		}
+
+		// Destroy GPU resources
+		if (rc->hasRenderable()) {
+			m_service->getEngine()->getRenderWorld()->destroyRenderable(rc->renderable);
+			rc->renderable = poseidon::InvalidRenderable;
+		}
+		if (rc->hasLight()) {
+			m_service->getEngine()->getRenderWorld()->destroyLight(rc->light);
+			rc->light = poseidon::InvalidLight;
+		}
+		if (rc->hasCamera()) {
+			if (rc->ctx) {
+				rc->ctx->setCameraHandle(poseidon::InvalidCamera);
+			}
+			m_service->getEngine()->getRenderWorld()->destroyCamera(rc->camera);
+			rc->camera = poseidon::InvalidCamera;
+		}
+
+		rc->ctx = nullptr;
+		rc->gpuMesh = nullptr;
+		rc->skeleton = nullptr;
+
 		return false;
+	}
+
+	void GraphicsItemManager::onFrame(float delta)
+	{
+		poseidon::Core* core = m_service->getEngine();
+		for (rhea::Item* item : m_animated_items) {
+			auto* rc = item->getComponent<RenderComponent>();
+			if (rc && rc->hasRenderable()) {
+				syncSkeletonPose(core, item, rc);
+			}
+		}
 	}
 
 	// New helper method for GPU resource creation
@@ -219,8 +281,7 @@ namespace rhea::client {
 			m_service->getManager<rhea::Mesh>());
 		
 		if (!meshMgr->Ensure(core, mesh)) {
-			LOG(LOG_ERROR) << "GraphicsItemManager::createGPUResources: MeshManager::Ensure failed for mesh '" 
-			               << mesh->getPathName() << "'";
+			LOG(LOG_ERROR) << "GraphicsItemManager::createGPUResources: MeshManager::Ensure failed for mesh '" << mesh->getPathName() << "'";
 			return false;
 		}
 
@@ -228,8 +289,7 @@ namespace rhea::client {
 		poseidon::Mesh* shared = m_service->meshCache().find(mesh);
 		
 		if (!shared) {
-			LOG(LOG_ERROR) << "  -> FAILED: GPU mesh not in cache after Ensure for '" 
-			               << item->getPathName() << "'";
+			LOG(LOG_ERROR) << "  -> FAILED: GPU mesh not in cache after Ensure for '" << item->getPathName() << "'";
 			return false;
 		}
 		
@@ -239,20 +299,141 @@ namespace rhea::client {
 		rhea::Skeleton* skeleton = mesh->getComponent<rhea::Skeleton>();
 		if (skeleton) {
 			rc->skeleton = skeleton;
+			m_animated_items.push_back(item); // Track animated items for pose updates
 		}
 
 		// Create render entity if missing
-		if (!rc->entity) {
-			rc->entity = static_cast<poseidon::Renderable*>(
-				createRenderable(rc, core, item, shared, "default"));
-			
-			if (!rc->entity) {
-				LOG(LOG_ERROR) << "  -> FAILED: createRenderable returned null for '" 
-				               << item->getPathName() << "'";
+		if (!rc->hasRenderable()) {
+			rc->renderable = createRenderable(rc, core, item, shared);
+
+			if (rc->renderable == poseidon::InvalidRenderable) {
+				LOG(LOG_ERROR) << "  -> FAILED: createRenderable returned invalid handle for '"	<< item->getPathName() << "'";
 				return false;
 			}
 		}
+		if (!syncRenderable(core, item, rc)) {
+			LOG(LOG_ERROR) << "GraphicsItemManager::createGPUResources: syncRenderable failed for '" << item->getPathName() << "'";
+			return false;
+		}			
 
 		return true;
+	}
+
+	bool GraphicsItemManager::syncRenderable(poseidon::Core* core, rhea::Item* item, RenderComponent* rc)
+	{
+		if (!core || !item || !rc || !rc->hasRenderable())
+			return false;
+
+		poseidon::Renderable* renderable = core->getRenderWorld()->resolveRenderable(rc->renderable);
+		if (!renderable)
+			return false;
+
+		// mesh
+		renderable->mesh = rc->gpuMesh;
+
+		auto* vis = item->getComponent<rhea::VisualComponent>();
+		if (vis) {
+			renderable->visible = vis->isVisible();
+		//	renderable->castsShadow = vis->castsShadow();
+		//	renderable->receivesShadow = vis->receivesShadow();
+		//	renderable->renderLayers = vis->getRenderLayers();
+		}
+		else {
+			renderable->visible = false;
+		}		
+		if (rc->ctx) {
+			// set visibility in context as well
+			poseidon::RenderNodeId node_id = rc->ctx->findNodeForSource(rc->gfx_node_id);
+			if (node_id != poseidon::InvalidRenderNode) {
+				rc->ctx->setVisibility(node_id, renderable->visible);
+				rc->ctx->attachRenderable(node_id, rc->renderable);
+			}
+		}
+
+		// skeleton
+		syncSkeletonPose(core, item, rc);
+
+		return syncTransform(core, item, rc);
+	}
+
+	bool GraphicsItemManager::syncTransform(poseidon::Core* core, rhea::Item* item, RenderComponent* rc)
+	{
+		poseidon::Renderable* renderable = core->getRenderWorld()->resolveRenderable(rc->renderable);
+		if (!renderable)
+			return false;
+		
+		// transform copy
+		rhea::Transform* transform = item->getTransform();
+		if (transform) {
+			const Position* position = transform->get_derived_position();
+			if (position) {
+				math::Matrix3x4 model_wtm = const_cast<Position*>(position)->getWorldTransform();
+
+				math::Matrix4 world = model_wtm;
+				math::Matrix4 inverse = world.inverse().transpose();
+
+				renderable->worldTransform = world;
+				renderable->inverseTranspose = inverse;
+			}
+		}
+		return true;
+	}
+
+	void GraphicsItemManager::syncChildOrder(rhea::Item* parent_item)
+	{
+		poseidon::GraphicsNodeId parent_node_id = poseidon::InvalidGraphicsNode;
+		auto* rc = parent_item->getComponent<rhea::client::RenderComponent>();
+		if (rc) {
+			parent_node_id = rc->gfx_node_id;
+		}
+		if (parent_node_id == poseidon::InvalidGraphicsNode)
+			return;
+
+		//		for (auto& reg : parent_node->contextRegistrations) {
+		if (rc->ctx) {
+			std::vector<poseidon::RenderNodeId> ordered;
+
+			parent_item->children([&](std::string&, rhea::Component* c) {
+				auto* child = doCast<rhea::Item>(c);
+				if (!child)
+					return true;
+
+				auto* child_rc = child->getComponent<rhea::client::RenderComponent>();
+				if (!child_rc)
+					return true; // if child has no render component, we skip it 
+
+				auto child_render_node = rc->ctx->findNodeForSource(child_rc->gfx_node_id);
+
+				if (child_render_node != poseidon::InvalidRenderNode)
+					ordered.push_back(child_render_node);
+				return true;
+				}, true);
+
+			rc->ctx->setChildOrder(rc->ctx->findNodeForSource(rc->gfx_node_id), ordered);
+		}
+	}
+
+	void GraphicsItemManager::syncSkeletonPose(poseidon::Core* core, rhea::Item* item, RenderComponent* rc)
+	{
+		poseidon::Renderable* renderable = core->getRenderWorld()->resolveRenderable(rc->renderable);
+		if (!renderable)
+			return;
+
+		if (rc->skeleton) {
+			if (!rc->skeleton_pose)
+			{
+				rc->skeleton_pose = core->getRenderWorld()->createSkeletonPose(rc->skeleton->getBones().size());
+			}
+
+			poseidon::SkeletonPose* pose = core->getRenderWorld()->getSkeletonPose(rc->skeleton_pose);
+			auto& dst = pose->accessBoneMatrices();
+			const auto& src = rc->skeleton->getFinalBoneMatrices();
+
+			for (size_t i = 0; i < src.size(); ++i)
+			{
+				dst[i] = src[i];
+			}
+			renderable->skeleton_pose = rc->skeleton_pose;
+		}
 	}
 }

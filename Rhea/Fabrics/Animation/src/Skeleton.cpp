@@ -64,13 +64,19 @@ namespace rhea
 		return true;
 	}	
 
+	const std::vector<math::Matrix4>& Skeleton::getFinalBoneMatrices() const
+	{
+		return getBoneMatrices();
+	}
+
 	const std::vector<math::Matrix4>& Skeleton::getBoneMatrices() const
 	{
-		static std::vector<math::Matrix4> boneMatrices;
-		boneMatrices.clear();
+		m_finalBoneMatrices.clear();
+		m_finalBoneMatrices.reserve(m_bones.size());
+
 		for (const auto& bone : m_bones) {
-			boneMatrices.push_back(bone.final_transform.transpose());
+			m_finalBoneMatrices.push_back(bone.final_transform.transpose());
 		}
-		return boneMatrices;
+		return m_finalBoneMatrices;
 	}
 }

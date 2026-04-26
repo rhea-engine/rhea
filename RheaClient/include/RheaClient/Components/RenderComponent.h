@@ -3,8 +3,7 @@
 
 namespace poseidon
 {
-	class Node;
-	class RenderContext;
+	class RenderView;
 	class Mesh;
 }
 
@@ -13,6 +12,11 @@ namespace rhea {
 	class Material;
 	class Skeleton;
 }
+
+#include <Poseidon/RenderTypes.h>
+#include <Poseidon/RenderContext.h>
+#include <Rhea/Component.h>
+#include <Poseidon/SkeletonPose.h>
 
 namespace rhea::client {
 
@@ -23,21 +27,44 @@ namespace rhea::client {
 		RECLASS(RenderComponent, rhea::Component, "//meworla/rendercomponent")
 	public:
 		RenderComponent(std::string name, std::string type_name) :			
-			entity(nullptr),
+			renderable(poseidon::InvalidRenderable),
+			light(poseidon::InvalidLight),
+			camera(poseidon::InvalidCamera),
 			ctx(nullptr),
 			gpuMesh(nullptr),
 			skeleton(nullptr),
 			rhea::Component(name, type_name)
 		{}
+		RenderComponent(std::string name, poseidon::GraphicsNodeId id) :			
+			RenderComponent(name, "//meworla/rendercomponent")
+		{ gfx_node_id = id; }
 
-		poseidon::Node* entity = nullptr;        // non-owning (Poseidon owns)		
+		//poseidon::Node* entity = nullptr;        // non-owning (Poseidon owns)		
 		poseidon::RenderContext* ctx = nullptr;  // non-owning (Poseidon owns)
 
-		// Cached asset GPU resources (non-owning, owned by caches)
-		poseidon::Mesh* gpuMesh = nullptr;       // Optional (nullptr für Lights)
-		rhea::Skeleton* skeleton = nullptr;            // Optional (nur für skeletal meshes)
+		// Poseidon registrations (non-owning)
+		poseidon::RenderableHandle renderable;
+		poseidon::LightHandle light;
+		poseidon::CameraHandle camera;		
 
+		// cached GPU resources (non-owning, owned by caches / source systems)
+		poseidon::Mesh* gpuMesh = nullptr;
+		rhea::Skeleton* skeleton = nullptr;
+		poseidon::SkeletonPoseHandle skeleton_pose = poseidon::InvalidSkeletonPoseHandle;
 
+		bool hasRenderable() const { return renderable != poseidon::InvalidRenderable; }
+		bool hasLight() const { return light != poseidon::InvalidLight; }
+		bool hasCamera() const { return camera != poseidon::InvalidCamera; }
+
+		void clearRegistrations()
+		{
+			renderable = poseidon::InvalidRenderable;
+			light = poseidon::InvalidLight;
+			camera = poseidon::InvalidCamera;
+			ctx = nullptr;
+		}
+
+		poseidon::GraphicsNodeId gfx_node_id = poseidon::InvalidGraphicsNode;
 	};
 }
 

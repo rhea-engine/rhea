@@ -140,22 +140,21 @@ namespace rhea
 
 	void Item2D::syncRender()
 	{
-		bool changed = false;
-
 		if (m_material_dirty) {
 			UpdateMaterial();
 			m_material_dirty = false;
-			changed = true;
+			m_needs_update = true;
 		}
 
 		if (m_render_dirty) {
 			computeMesh();
 			m_render_dirty = false;
-			changed = true;
+			m_needs_update = true;
 		}
 
-		if (changed) {
+		if (m_needs_update) {
 			sendEvent("update", nullptr);
+			m_needs_update = false;
 		}
 	}
 

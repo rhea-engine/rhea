@@ -16,6 +16,8 @@ namespace rhea
 		Camera(std::string name, std::string type_name) :			
 			Item(name, type_name)
 		{}
+
+		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values) override;
 	};
 }
 

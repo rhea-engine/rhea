@@ -16,6 +16,8 @@
 
 #include <RheaClient/Input/PsioInputService.h>
 #include <RheaClient/Window/WindowService.h>
+#include <Rhea/Resources/ResourceList.h>
+#include <Rhea/Resources/ResourceService.h>
 
 namespace rhea::client {
     void PoseidonGraphicsFabric::Register(rhea::Application* app)
@@ -46,6 +48,6 @@ namespace rhea::client {
 		app->registerService("window_registry", window_service);
 		
 		input_service->setPsioInput(psio->getEngine()->getInput());
-        input_service->setWindowRegistryService(window_service);
+        input_service->setWindowRegistryService(window_service);		
     }
 }

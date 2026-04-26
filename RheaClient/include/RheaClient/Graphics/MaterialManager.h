@@ -23,7 +23,7 @@ namespace rhea::client {
 		bool FillPoseidonMaterial(poseidon::Core* core, rhea::Material* material_res, poseidon::Material* out_mat, bool fresh_build);
 
 		// handle frame update
-		void onFrame() {}
+		void onFrame(float delta) override {}
 
 		// handle events
 		bool onItemDelete(rhea::Event* ev, rhea::Unit* unit);	

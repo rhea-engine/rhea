@@ -1,7 +1,6 @@
 #include "Rhea/Application.h"
-#include "Poseidon/Entity.h"
 #include "Hippios/VertexBuffer.h"
-#include "Poseidon/SceneManager.h"
+#include "Poseidon/FrameRenderer.h"
 #include "Rhea/InputMap.h"
 
 namespace poseidon
@@ -12,7 +11,7 @@ namespace poseidon
 class CubeApp : public rhea::Application
 {
 protected:
-	poseidon::SceneManager* m_scene = 0;
+	poseidon::FrameRenderer* m_scene = 0;
 
 	hippios::vertexUVVec vertices;
 

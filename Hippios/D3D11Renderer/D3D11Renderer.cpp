@@ -588,9 +588,16 @@ namespace hippios {
 
 	void D3D11Renderer::setTexture(Texture* texture, int slot)
 	{
-		assert(texture);
 		if (!texture)
+		{
+			// Unbind the texture slot
+			ID3D11ShaderResourceView* nullView = nullptr;
+			m_device_context->PSSetShaderResources(slot, 1, &nullView);
+			if (slot == 0)
+				m_current_texture = nullptr;
 			return;
+		}
+
 		if (!slot) {
 			if (m_current_texture != texture)
 			{

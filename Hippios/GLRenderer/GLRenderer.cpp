@@ -262,8 +262,15 @@ namespace hippios
 
 	void GLRenderer::setTexture(Texture* texture, int slot)
 	{
-		assert(texture);
-		if (!texture) return;
+		if (!texture)
+		{
+			// Unbind the texture slot
+			glActiveTexture(GL_TEXTURE0 + slot);
+			glBindTexture(GL_TEXTURE_2D, 0);
+			if (slot == 0)
+				m_current_texture = nullptr;
+			return;
+		}
 
 		GLTexture* gl_tex = static_cast<GLTexture*>(texture);
 

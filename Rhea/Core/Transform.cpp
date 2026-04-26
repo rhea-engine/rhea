@@ -26,8 +26,8 @@ namespace rhea
 			}
 
 			// Update orientation
-			const math::Quaternion& parent_rot = parent->getTransform()->get_position()->get_rotation();
-			const Position* src = get_position();
+			const math::Quaternion& parent_rot = parent->getTransform()->get_derived_position()->get_rotation();
+			const Position* src = &m_position;
 			Position* derived = &m_derived_position; // get_derived_position();
 			if (m_coord_space == 1)
 			{
@@ -35,7 +35,7 @@ namespace rhea
 				derived->setOrientation(parent_rot * src->get_rotation());
 			}
 			else {
-				derived->setOrientation(get_position()->get_rotation());
+				derived->setOrientation(m_position.get_rotation());
 			}
 
 			// Change position vector based on parent's orientation & scale

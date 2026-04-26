@@ -291,8 +291,7 @@ namespace poseidon
 				if (!mat) {
 					DLOG(LOG_DEBUG) << "FrameRenderer::render: submesh " << i << " has no material - SKIPPING";
 					continue;
-				}
-				std::vector<poseidon::Texture*> texsi = mat->getTextures();
+				}				
 				if (mat != m_current_material && mat) {
 					m_current_material = mat;
 					mat->activate(3, 5);
@@ -308,6 +307,11 @@ namespace poseidon
 				if (texs.size()) {
 					for (int i = 0; i < texs.size(); i++) {
 						m_renderer->setTexture(texs[i]->get_texture(), i);
+					}
+				} else {
+					// if no textures, unbind any previously bound textures
+					for (int i = 0; i < 16; i++) {
+						m_renderer->setTexture(nullptr, i);
 					}
 				}
 

@@ -18,6 +18,8 @@ namespace rhea::audio
         AudioLoadMode getLoadMode() const override {
             return DECODE_FULLY;
         }
+
+        void ready() override;
     };
 }
 

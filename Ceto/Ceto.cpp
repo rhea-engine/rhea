@@ -29,6 +29,7 @@
 #include <Rhea/ConfigFile.h>
 #include <Rhea/GUI/Button.h>
 #include <Rhea/GUI/Dialog.h>
+#include <RheaAudio/AudioService.h>
 
 bool Ceto::onQuit(rhea::Event* ev, rhea::Unit* unit)
 {
@@ -136,6 +137,17 @@ bool Ceto::handleDevShortcuts(const rhea::InputEvent& evt)
 
 	if (evt.isKeyPressed(rhea::Key::I)) {
 		devAddTestDialog();
+		return true;
+	}
+
+	if (evt.isKeyPressed(rhea::Key::L)) {
+		rhea::audio::AudioService* audio_srv = doCast<rhea::audio::AudioService>(getService("audio"));
+		if (audio_srv) {
+			rhea::audio::AudioResource* res = doCast<rhea::audio::AudioResource>(m_unit_tree->find("//local/scene1/impact"));
+			if (res) {
+				audio_srv->play(res);
+			}
+		}
 		return true;
 	}
 

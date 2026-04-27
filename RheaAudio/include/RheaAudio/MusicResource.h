@@ -18,6 +18,8 @@ namespace rhea::audio
         AudioLoadMode getLoadMode() const override {
             return STREAM;
         }
+
+        std::vector<Unit::Export> getReferences();
     };
 }
 

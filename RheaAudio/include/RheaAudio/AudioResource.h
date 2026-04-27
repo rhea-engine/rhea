@@ -2,6 +2,7 @@
 #define RHEA_AUDIO_RESOURCE_H
 
 #include <Rhea/Resources/Resource.h>
+#include "Rhea/Resources/ResourceLoader.h"
 
 namespace rhea::audio
 {
@@ -35,11 +36,15 @@ namespace rhea::audio
 
         void ready();
 
+        static void load(std::string name, Application* app, orion::ResourceRequest* req, Resource::LoadedHandler);
+
         virtual AudioLoadMode getLoadMode() const { return DECODE_FULLY; }
 
         int channels = 0;
         int sampleRate = 0;
         float durationSeconds = 0.0f;
+
+		void* backend_data = nullptr; // opaque pointer for backend-specific data (e.g., decoded audio buffer or streaming handle)
     };
 }
 

@@ -58,6 +58,9 @@ namespace rhea
 		// check if resource finished loading
 		bool isLoaded() { return m_status == Status::LOADED; }
 
+		size_t getSize() { return m_buflen; }
+		char* getData() { return m_buf; }
+
 	protected:
 		Status m_status;
 		char* m_buf;

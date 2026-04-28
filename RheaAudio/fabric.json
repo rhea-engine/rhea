@@ -1,0 +1,9 @@
+{
+  "id": "rhea/audio",
+  "author": "Meworla",
+  "name": "AudioSystem",
+  "version": "0.9.0",
+  "class": "rhea::audio::AudioSystemFabric",
+  "include": "RheaAudio/AudioSystemFabric.h",
+  "cmake_target": "Rhea::Audio"
+}

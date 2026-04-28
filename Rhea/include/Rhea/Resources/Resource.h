@@ -58,6 +58,9 @@ namespace rhea
 		// check if resource finished loading
 		bool isLoaded() { return m_status == Status::LOADED; }
 
+		size_t getSize() { if (m_proxy_resource) return m_proxy_resource->getSize(); return m_buflen; }
+		char* getData() { if (m_proxy_resource) return m_proxy_resource->getData(); return m_buf; }
+
 	protected:
 		Status m_status;
 		char* m_buf;
@@ -67,6 +70,7 @@ namespace rhea
 			std::string type;
 		};
 		bool m_prepared;
+		Resource* m_proxy_resource = nullptr; // if this resource is a proxy for another resource, this points to the real resource
 	};
 }
 

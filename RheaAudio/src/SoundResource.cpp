@@ -1,0 +1,32 @@
+#include <RheaAudio/SoundResource.h>
+#include <Psio/Log.h>
+#include <Rhea/Application.h>
+#include <Rhea/UnitTree.h>
+#include <RheaAudio/AudioService.h>
+
+namespace rhea::audio
+{
+	void SoundResource::ready()
+	{
+		AudioResource::ready();
+
+		if (m_status >= Status::READY)
+			return;
+		m_status = Status::READY;
+		Unit::ready();
+
+		auto path_it = m_values.find("path");
+		if (!m_buf && path_it != m_values.end()) {
+			m_proxy_resource = doCast<Resource>(m_app->getUnitTree()->find(path_it->second.toString(), m_attributes["basepath"], false));
+			if (m_proxy_resource && m_proxy_resource->getSize()) {
+				m_status = Status::LOADED;
+			}
+			else if (m_buf && m_buflen) {
+				m_status = Status::LOADED;
+			}
+			
+			if (m_status != Status::LOADED)
+				LOG(LOG_ERROR) << "SoundResource::ready: Failed to load sound " << getPathName() << " sound not found or not valid";			
+		}
+	}
+}

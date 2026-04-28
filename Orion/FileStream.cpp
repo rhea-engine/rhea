@@ -14,6 +14,7 @@
 #define STAT stat
 #define FSTAT_STRUCT struct stat
 #endif
+#include <Psio/Log.h>
 
 namespace orion
 {
@@ -172,10 +173,7 @@ namespace orion
 	// was 8192
 
 	void FileResourceStream::ReadAsync(psio::IOBuffer* buf)
-	{
-		char* temp;
-		size_t buflen;
-		size_t tmplen;
+	{		
 		size_t bytes_read;
 		size_t size = 0;
 
@@ -193,41 +191,44 @@ namespace orion
 		// read in the iobuffer
 		// start with the remaining free buffer
 		// grow the buffer by CHUNK_LEN bytes for further reads
-		// repeat until we read fewer bytes than free buf len which indicates file end
+		// repeat until we reach eof file or an error occurs
 		// this is synchronous!
 		// TODO add asynchronmous file access
 
-		buflen = buf->FreeBufSize();
-		bytes_read = Read(buf->writer(), buflen);
-		if (bytes_read > 0) {
-			if (m_data_handler)
-				m_data_handler(bytes_read);
-			buf->Produce(bytes_read);
-			size += bytes_read;
-		}
-		while (bytes_read == buflen) {
+		do {
+			size_t buflen = buf->FreeBufSize();
 
-			buf->Grow(CHUNK_LEN);
-			buflen = buf->FreeBufSize();
+			// Ensure we have enough buffer space
+			if (buflen < CHUNK_LEN) {
+				buf->Grow(CHUNK_LEN);
+				buflen = buf->FreeBufSize();
+			}
 
 			bytes_read = Read(buf->writer(), buflen);
+
 			if (bytes_read > 0) {
 				if (m_data_handler)
 					m_data_handler(bytes_read);
 				buf->Produce(bytes_read);
 				size += bytes_read;
 			}
-		}
-		if (f && bytes_read == 0) {
-			if (!feof(f)) {
-				printf("Error reading stream\n");
-				status = -1;
-				if (m_error_handler)
-					m_error_handler(status);
-				return;
+
+			// Check for errors
+			if (bytes_read == 0) {
+				if (ferror(f)) {
+					LOG(LOG_ERROR) << "Error reading stream\n";
+					status = -1;
+					if (m_error_handler)
+						m_error_handler(status);
+					return;
+				}
+				// EOF reached
+				break;
 			}
-		}
-		m_end_handler(size);
+		} while (!feof(f));
+
+		if (m_end_handler)
+			m_end_handler(size);
 		Close();
 	}
 

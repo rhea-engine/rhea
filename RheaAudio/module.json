@@ -1,0 +1,10 @@
+{
+  "id": "rhea/audio",
+  "displayName": "Rhea Audio",
+  "author": "Meworla",
+  "version": "0.9.0",
+  "includePrefix": "Rhea",
+  "dependencies": {
+    "rhea/core": "0.9.0"
+  }
+}

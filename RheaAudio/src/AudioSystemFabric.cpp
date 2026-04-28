@@ -22,6 +22,8 @@ namespace rhea::audio
 
 		auto* resource_loader = app->getResourceLoader();
 		resource_loader->registerLoader<AudioResource>("audio-x/wav");
+		resource_loader->registerLoader<AudioResource>("audio-x/ogg");
+		resource_loader->registerLoader<AudioResource>("audio/mpeg");
 
 		// register audio service
 		auto* audio_service = simpleparser::Type::create<AudioService>("AudioService");

@@ -52,6 +52,13 @@ namespace rhea::audio
 		}
 	}
 
+	void AudioService::stop(AudioResource* resource)
+	{
+		if (m_backend) {
+			m_backend->stop(resource);
+		}
+	}
+
 	void AudioService::setMasterVolume(float volume)
 	{
 		if (m_backend) {

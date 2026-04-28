@@ -20,6 +20,7 @@ namespace rhea::audio
         void play(AudioResource* resource);
         void play(AudioResource* resource, float volume, bool loop);
         void stopAll();
+		void stop(AudioResource* resource);
 
         void setMasterVolume(float volume);
         void setMusicVolume(float volume);

@@ -1,6 +1,8 @@
 #define MINIAUDIO_IMPLEMENTATION
 #include "miniaudio/miniaudio.h"
 
+#include "miniaudio/extras/decoders/libvorbis/miniaudio_libvorbis.h"
+
 #include <RheaAudio/MiniaudioBackend.h>
 #include <RheaAudio/AudioResource.h>
 
@@ -95,11 +97,18 @@ namespace rhea::audio
 
         if (resource->getData())
         {      
+            ma_decoding_backend_vtable* customBackends[] =
+            {
+                ma_decoding_backend_libvorbis
+            };
+
             ma_decoder_config decoderConfig = ma_decoder_config_init(
                 ma_format_f32,
                 0,
                 0
             );
+            decoderConfig.ppCustomBackendVTables = customBackends;
+			decoderConfig.customBackendCount = sizeof(customBackends) / sizeof(customBackends[0]);
 
             ma_result result = ma_decoder_init_memory(
 				resource->getData(),

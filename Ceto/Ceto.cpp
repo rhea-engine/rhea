@@ -150,6 +150,24 @@ bool Ceto::handleDevShortcuts(const rhea::InputEvent& evt)
 		}
 		return true;
 	}
+	if (evt.isKeyPressed(rhea::Key::K)) {
+		rhea::audio::AudioService* audio_srv = doCast<rhea::audio::AudioService>(getService("audio"));
+		if (audio_srv) {
+			rhea::audio::AudioResource* res = doCast<rhea::audio::AudioResource>(m_unit_tree->find("//local/scene1/snowfall"));
+			if (res) {
+				static bool snd_running = false;
+				if (!snd_running) {
+					audio_srv->play(res,1.0f,true);
+					snd_running = true;
+				}
+				else {
+					audio_srv->stop(res);
+					snd_running = false;
+				}
+			}
+		}
+		return true;
+	}
 
 	return false;
 }

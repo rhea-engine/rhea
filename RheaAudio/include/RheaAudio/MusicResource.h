@@ -19,7 +19,7 @@ namespace rhea::audio
             return STREAM;
         }
 
-        std::vector<Unit::Export> getReferences();
+        void ready() override;   
     };
 }
 

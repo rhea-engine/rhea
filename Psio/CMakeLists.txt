@@ -35,7 +35,7 @@ if(PSIO_ENABLE_SDL)
 		find_package(SDL3 CONFIG QUIET)
 	endif()
 
-	if(NOT TARGET SDL3::SDL3)
+	if(NOT TARGET SDL3::SDL3-static)
 		include(FetchContent)
 
 		# Build SDL3 as static

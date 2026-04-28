@@ -23,6 +23,12 @@ namespace rhea::audio
         void stop(AudioSoundHandle sound) override;
         void stopAll() override;
 
+        void pause(AudioSoundHandle sound) override;
+        void resume(AudioSoundHandle sound) override;
+
+        void pauseBus(AudioBusHandle bus) override;
+        void resumeBus(AudioBusHandle bus) override;
+
         void setMasterVolume(float volume) override;
         void setBusVolume(AudioBusHandle bus, float volume);
 

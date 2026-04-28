@@ -3,6 +3,8 @@
 #include <Psio/Fs/Fs.h>
 #include <RheaAudio/MusicResource.h>
 #include <RheaAudio/SoundResource.h>
+#include <RheaAudio/AudioService.h>
+#include <Rhea/Application.h>
 
 #include <fstream>
 #include <vector>
@@ -14,6 +16,16 @@ namespace rhea::audio
 {
 	AudioResource::~AudioResource()
 	{
+	}
+
+	void AudioResource::onDestroy()
+	{
+		// get audio service reference and tell it to unload this resource from the backend
+		AudioService* audio_service = doCast<AudioService>(m_app->getService("audio"));
+		if (audio_service)
+		{
+			audio_service->unload(this);
+		}
 	}
 
 	void AudioResource::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)

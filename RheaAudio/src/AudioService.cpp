@@ -67,6 +67,13 @@ namespace rhea::audio
 		}
 	}
 
+	void AudioService::unload(AudioResource* resource)
+	{
+		if (m_backend) {
+			m_backend->unload(resource);
+		}
+	}
+
 	AudioSoundHandle AudioService::play(AudioResource* resource, AudioBusHandle bus, bool loop)
 	{
 		if (m_backend) {
@@ -106,6 +113,34 @@ namespace rhea::audio
 	{
 		if (m_backend) {
 			m_backend->stop(handle);
+		}
+	}
+
+	void AudioService::pause(AudioSoundHandle sound)
+	{
+		if (m_backend) {
+			m_backend->pause(sound);
+		}
+	}
+
+	void AudioService::resume(AudioSoundHandle sound)
+	{
+		if (m_backend) {
+			m_backend->resume(sound);
+		}
+	}
+
+	void AudioService::pauseBus(AudioBusHandle bus)
+	{
+		if (m_backend) {
+			m_backend->pauseBus(bus);
+		}
+	}
+
+	void AudioService::resumeBus(AudioBusHandle bus)
+	{
+		if (m_backend) {
+			m_backend->resumeBus(bus);
 		}
 	}
 

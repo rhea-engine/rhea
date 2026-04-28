@@ -18,6 +18,8 @@ namespace rhea::audio
 
         ~AudioResource();
 
+        void onDestroy() override;
+
         enum AudioLoadMode
         {
             DECODE_FULLY = 0,

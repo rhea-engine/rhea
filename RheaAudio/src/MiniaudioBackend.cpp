@@ -373,6 +373,42 @@ namespace rhea::audio
         }
     }
 
+    void MiniaudioBackend::pause(AudioSoundHandle sound)
+    {
+        auto it = impl->sounds.find(sound);
+        if (it == impl->sounds.end())
+            return;
+
+        ma_sound_stop(&it->second->sound);
+    }
+
+    void MiniaudioBackend::resume(AudioSoundHandle sound)
+    {
+        auto it = impl->sounds.find(sound);
+        if (it == impl->sounds.end())
+            return;
+
+        ma_sound_start(&it->second->sound);
+    }
+
+    void MiniaudioBackend::pauseBus(AudioBusHandle bus)
+    {
+        for (auto& [id, sound] : impl->sounds)
+        {
+            if (sound->bus.id == bus.id && sound->initialized)
+                ma_sound_stop(&sound->sound);
+        }
+    }
+
+    void MiniaudioBackend::resumeBus(AudioBusHandle bus)
+    {
+        for (auto& [id, sound] : impl->sounds)
+        {
+            if (sound->bus.id == bus.id && sound->initialized)
+                ma_sound_start(&sound->sound);
+		}
+    }
+
     void MiniaudioBackend::setMasterVolume(float volume)
     {
         if (!impl->initialized)

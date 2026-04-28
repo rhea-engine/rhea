@@ -24,6 +24,12 @@ namespace rhea::audio
 		virtual void stop(AudioSoundHandle sound) = 0;
         virtual void stopAll() = 0;
 
+        virtual void pause(AudioSoundHandle sound) = 0;
+		virtual void resume(AudioSoundHandle sound) = 0;
+
+        virtual void pauseBus(AudioBusHandle bus) = 0;
+        virtual void resumeBus(AudioBusHandle bus) = 0;
+
         virtual void setMasterVolume(float volume) = 0;
         virtual void setBusVolume(AudioBusHandle bus, float volume) = 0;
     };

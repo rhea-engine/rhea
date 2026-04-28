@@ -13,17 +13,21 @@ namespace rhea::audio
         bool initialize() override;
         void shutdown() override;
 
-        bool load(AudioResource* resource) override;
+        AudioBusHandle createBus(AudioBusHandle parent);
+        void destroyBus(AudioBusHandle bus);        
+
+        AudioSoundHandle load(AudioResource* resource, AudioBusHandle bus) override;
         void unload(AudioResource* resource) override;
 
-        void play(AudioResource* resource, float volume, bool loop) override;
-        void stop(AudioResource* resource) override;
+        AudioSoundHandle play(AudioResource* resource, AudioBusHandle bus, float volume, bool loop) override;
+        void stop(AudioSoundHandle sound) override;
         void stopAll() override;
 
         void setMasterVolume(float volume) override;
+        void setBusVolume(AudioBusHandle bus, float volume);
 
     private:
         class Impl;
-        Impl* impl = nullptr;
+        Impl* impl = nullptr;       
     };
 }

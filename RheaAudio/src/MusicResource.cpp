@@ -26,17 +26,8 @@ namespace rhea::audio
 				m_status = Status::LOADED;
 			}
 
-			if (m_status == Status::LOADED) {
-
-				AudioService* audio_srv = doCast<AudioService>(m_app->getService("audio"));
-
-				if (!audio_srv->load(this))
-				{
-					LOG(LOG_ERROR) << "MusicResource::ready: Failed to load music " << getPathName() << " audio service failed to load resource.";
-					return;
-				}
-			}
-			else {
+			if (m_status != Status::LOADED)
+			{
 				LOG(LOG_ERROR) << "MusicResource::ready: Failed to load music " << getPathName() << " music not found or not valid";
 			}
 		}

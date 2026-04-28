@@ -12,6 +12,9 @@ namespace rhea::audio
 		if (!m_backend->initialize()) {
 			return false;
 		}
+
+		// create a Master bus
+		createBus("Master", "");
 		return true;
 	}
 
@@ -23,26 +26,73 @@ namespace rhea::audio
 		}
 	}
 
-	bool AudioService::load(AudioResource* resource)
+	AudioBusHandle AudioService::createBus(const std::string& name, const std::string& parent)
 	{
-		if (m_backend) {
-			return m_backend->load(resource);
+		if (!m_backend) {
+			return AudioBusHandle();
 		}
-		return false;
+
+		// if there is no parent or the bus is "Master", parent handle is 0
+		AudioBusHandle parent_handle;
+		if (name != "Master" && !parent.empty()) {
+			parent_handle = getBus(parent);
+		}
+
+		AudioBusHandle handle = m_backend->createBus(parent_handle);
+		
+		// store the mapping from name to handle
+		m_busNameToHandle[name] = handle;
+		
+		return handle;
 	}
 
-	void AudioService::play(AudioResource* resource)
+	AudioBusHandle AudioService::getBus(const std::string& name) const
 	{
-		if (m_backend) {
-			m_backend->play(resource, 1.0f, false);
+		auto it = m_busNameToHandle.find(name);
+		if (it != m_busNameToHandle.end()) {
+			return it->second;
+		}
+		return AudioBusHandle();
+	}
+
+	void AudioService::setBusVolume(const std::string& name, float volume)
+	{
+		if (!m_backend) {
+			return;
+		}
+
+		AudioBusHandle handle = getBus(name);
+		if (handle.id != 0) {
+			m_backend->setBusVolume(handle, volume);
 		}
 	}
 
-	void AudioService::play(AudioResource* resource, float volume, bool loop)
+	AudioSoundHandle AudioService::play(AudioResource* resource, AudioBusHandle bus, bool loop)
 	{
 		if (m_backend) {
-			m_backend->play(resource, volume, loop);
+			return m_backend->play(resource, bus, 1.0f, loop);
 		}
+		return {};
+	}
+
+	AudioSoundHandle AudioService::play(AudioResource* resource, AudioBusHandle bus, bool loop, float volume)
+	{
+		if (m_backend) {
+			return m_backend->play(resource, bus, volume, loop);
+		}
+		return {};
+	}
+
+	AudioSoundHandle AudioService::play(AudioResource* resource, const std::string& bus_name, bool loop)
+	{
+		AudioBusHandle bus = getBus(bus_name);
+		return play(resource, bus, loop);
+	}
+
+	AudioSoundHandle AudioService::play(AudioResource* resource, const std::string& bus_name, bool loop, float volume)
+	{
+		AudioBusHandle bus = getBus(bus_name);
+		return play(resource, bus, loop, volume);
 	}
 
 	void AudioService::stopAll()
@@ -52,10 +102,10 @@ namespace rhea::audio
 		}
 	}
 
-	void AudioService::stop(AudioResource* resource)
+	void AudioService::stop(AudioSoundHandle handle)
 	{
 		if (m_backend) {
-			m_backend->stop(resource);
+			m_backend->stop(handle);
 		}
 	}
 
@@ -65,14 +115,4 @@ namespace rhea::audio
 			m_backend->setMasterVolume(volume);
 		}
 	}
-
-	void AudioService::setMusicVolume(float volume)
-	{
-	}
-
-	void AudioService::setSfxVolume(float volume)
-	{
-	}
-
-
 }

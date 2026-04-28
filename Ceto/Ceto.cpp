@@ -140,12 +140,15 @@ bool Ceto::handleDevShortcuts(const rhea::InputEvent& evt)
 		return true;
 	}
 
+	static rhea::audio::AudioSoundHandle snd_handle;
+	static rhea::audio::AudioSoundHandle music_handle;
+
 	if (evt.isKeyPressed(rhea::Key::L)) {
 		rhea::audio::AudioService* audio_srv = doCast<rhea::audio::AudioService>(getService("audio"));
 		if (audio_srv) {
 			rhea::audio::AudioResource* res = doCast<rhea::audio::AudioResource>(m_unit_tree->find("//local/scene1/impact"));
 			if (res) {
-				audio_srv->play(res);
+				snd_handle = audio_srv->play(res, "Master", false, 1.0f);
 			}
 		}
 		return true;
@@ -157,11 +160,11 @@ bool Ceto::handleDevShortcuts(const rhea::InputEvent& evt)
 			if (res) {
 				static bool snd_running = false;
 				if (!snd_running) {
-					audio_srv->play(res,1.0f,true);
+					music_handle = audio_srv->play(res, "Master", true, 1.0f);
 					snd_running = true;
 				}
 				else {
-					audio_srv->stop(res);
+					audio_srv->stop(music_handle);
 					snd_running = false;
 				}
 			}

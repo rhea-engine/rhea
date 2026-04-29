@@ -5,7 +5,7 @@
  * See LICENSE file in the project root for full license information.
  */
 
-﻿#include "Interpolation.h"
+#include "Interpolation.h"
 
 namespace math
 {

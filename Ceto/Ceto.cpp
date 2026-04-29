@@ -28,7 +28,7 @@
 #include <Orion/FileStream.h>
 #include <Rhea/Core/Avatar.h>
 #include <Rhea/Resources/Collection.h>
-#include <Components/Math/Math.h>
+#include <Math/Math.h>
 #include <Rhea/Animation/Animation.h>
 #include <Rhea/Animation/Animator.h>
 #include <Rhea/GUI/GUIController.h>

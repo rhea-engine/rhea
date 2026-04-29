@@ -1,3 +1,7 @@
+cmake_minimum_required (VERSION 3.10)
+
+project("Orion")
+
 if(NOT TARGET nlohmann_json::nlohmann_json)
   include(FetchContent)
 
@@ -23,12 +27,12 @@ if(NOT TARGET Meworla::Components)
         include(FetchContent)
 
         FetchContent_Declare(
-            Components
-            GIT_REPOSITORY https://github.com/rhea-engine/components.git
+            RheaCommon
+            GIT_REPOSITORY https://github.com/rhea-engine/rhea-common.git
             GIT_TAG v0.9.0
         )
     
-        FetchContent_MakeAvailable(Components)
+        FetchContent_MakeAvailable(RheaCommon)
     endif()
 endif()
 

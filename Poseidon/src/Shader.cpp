@@ -5,7 +5,7 @@
  * See LICENSE file in the project root for full license information.
  */
 
-﻿#include "Poseidon/Shader.h"
+#include "Poseidon/Shader.h"
 #include <cassert>
 #include <Psio/Log.h>
 

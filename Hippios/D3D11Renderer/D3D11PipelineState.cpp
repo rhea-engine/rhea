@@ -5,7 +5,7 @@
  * See LICENSE file in the project root for full license information.
  */
 
-﻿#include "D3D11PipelineState.h"
+#include "D3D11PipelineState.h"
 #include "D3D11Renderer.h"
 #include "D3D11ShaderProgram.h"
 #include <cassert>

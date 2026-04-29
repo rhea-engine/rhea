@@ -1,3 +1,9 @@
+cmake_minimum_required(VERSION 3.13)
+
+if(TARGET Psio)
+    return()
+endif()
+
 add_library(Psio STATIC "src/Psio.cpp"  "src/Window/Window.cpp" "src/Util.cpp" "src/Log.cpp" 
 "src/Input/InputEvent.cpp" 
  "src/Net/UrlRequest/UrlRequest.cpp" "src/Net/Http/HttpNetworkTransaction.cpp" "src/Net/Socket/SocketAddress.cpp" "src/Net/Socket/IPAddress.cpp"

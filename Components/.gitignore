@@ -1,0 +1,47 @@
+# Prerequisites
+*.d
+
+# admin
+build
+Build
+*.opendb
+.vs
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+#*.obj
+bin
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+/out/install/x64-Debug
+/Samples/XPlain
+/html/doxygen_crawl.html
+
+# Modules
+MwpkgModules
+mwpkg.cmake
+/Ceto/mwpkg.cmake

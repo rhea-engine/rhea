@@ -1,4 +1,11 @@
-﻿#include "D3D11PipelineState.h"
+/*
+ * Copyright (c) 2019-2026 Meworla
+ *
+ * Licensed under the MIT License.
+ * See LICENSE file in the project root for full license information.
+ */
+
+#include "D3D11PipelineState.h"
 #include "D3D11Renderer.h"
 #include "D3D11ShaderProgram.h"
 #include <cassert>

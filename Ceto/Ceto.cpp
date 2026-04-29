@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2019-2026 Meworla
+ *
+ * Licensed under the MIT License.
+ * See LICENSE file in the project root for full license information.
+ */
+
 #include "Ceto.h"
 #include "Rhea/Core/Scene.h"
 #include "Rhea/Unit.h"
@@ -21,7 +28,7 @@
 #include <Orion/FileStream.h>
 #include <Rhea/Core/Avatar.h>
 #include <Rhea/Resources/Collection.h>
-#include <Components/Math/Math.h>
+#include <Math/Math.h>
 #include <Rhea/Animation/Animation.h>
 #include <Rhea/Animation/Animator.h>
 #include <Rhea/GUI/GUIController.h>

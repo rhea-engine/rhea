@@ -1,4 +1,11 @@
-﻿#include "Poseidon/Shader.h"
+/*
+ * Copyright (c) 2019-2026 Meworla
+ *
+ * Licensed under the MIT License.
+ * See LICENSE file in the project root for full license information.
+ */
+
+#include "Poseidon/Shader.h"
 #include <cassert>
 #include <Psio/Log.h>
 

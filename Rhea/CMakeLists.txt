@@ -1,6 +1,51 @@
+cmake_minimum_required(VERSION 3.13)
+
+project(Rhea VERSION 0.1.0 LANGUAGES C CXX)
+
+# Require C++17 standard
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+if(NOT COMMAND rhea_register_fabric)
+    include(${CMAKE_CURRENT_LIST_DIR}/cmake/rhea_fabrics.cmake)
+    rhea_fabrics_begin()
+    set(RHEA_OWNS_FABRIC_REGISTRY TRUE)
+else()
+    set(RHEA_OWNS_FABRIC_REGISTRY FALSE)
+endif()
+
+include(${CMAKE_CURRENT_LIST_DIR}/cmake/rhea_dependencies.cmake)
+rhea_resolve_dependencies()
+
 add_subdirectory(ThirdParty)
 add_subdirectory(Resources)
 add_subdirectory(Fabrics)
+
+option(RHEA_BUILD_AUDIO "Build RheaAudio" ON)
+option(RHEA_BUILD_CLIENT "Build RheaClient" ON)
+option(RHEA_BUILD_SAMPLES "Build Rhea samples" ${PROJECT_IS_TOP_LEVEL})
+option(RHEA_WITH_GRAPHICS "Enable graphics support for Rhea" ON)
+option(RHEA_BUILD_PHYSICS "Enable physics support for Rhea" ON)
+option(RHEA_BUILD_BULLET "Enable bullet physics support for Rhea" ON)
+
+if(RHEA_BUILD_AUDIO AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/RheaAudio/CMakeLists.txt")
+    add_subdirectory(RheaAudio)
+endif()
+
+if(RHEA_BUILD_CLIENT AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/RheaClient/CMakeLists.txt")
+    add_subdirectory(RheaClient)
+endif()
+
+if(RHEA_BUILD_PHYSICS AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/RheaPhysics/CMakeLists.txt")
+    add_subdirectory(RheaPhysics)
+endif()
+
+if(RHEA_BUILD_BULLET AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/RheaPhysicsBullet/CMakeLists.txt")
+    add_subdirectory(RheaPhysicsBullet)
+    add_subdirectory(RheaPhysicsBulletDebug)
+endif()
+
 
 
 option(RHEA_WITH_GRAPHICS "Enable graphics support for Rhea" ON)
@@ -37,3 +82,6 @@ if(RHEA_BUILD_SAMPLES)
     add_subdirectory(Samples)
 endif()
 
+if(RHEA_OWNS_FABRIC_REGISTRY)
+    rhea_fabrics_end()
+endif()

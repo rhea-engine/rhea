@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2019-2026 Meworla
+ *
+ * Licensed under the MIT License.
+ * See LICENSE file in the project root for full license information.
+ */
+
 #include <Rhea/Resources/Resource.h>
 #include <Rhea/Resources/ResourceList.h>
 #include <Psio/Log.h>

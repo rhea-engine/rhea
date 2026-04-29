@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2019-2026 Meworla
+ *
+ * Licensed under the MIT License.
+ * See LICENSE file in the project root for full license information.
+ */
+
 #ifndef RHEA_MUSIC_RESOURCE_H
 #define RHEA_MUSIC_RESOURCE_H
 

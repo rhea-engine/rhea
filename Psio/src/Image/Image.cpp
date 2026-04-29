@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2019-2026 Meworla
+ *
+ * Licensed under the MIT License.
+ * See LICENSE file in the project root for full license information.
+ */
+
 #include <Psio/Image/Image.h>
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>

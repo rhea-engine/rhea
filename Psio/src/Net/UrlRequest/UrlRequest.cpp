@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2019-2026 Meworla
+ *
+ * Licensed under the MIT License.
+ * See LICENSE file in the project root for full license information.
+ */
+
 #include <Psio/Net/UrlRequest/UrlRequest.h>
 #include <Psio/Net/Http/HttpNetworkTransaction.h>
 #include <Psio/Log.h>

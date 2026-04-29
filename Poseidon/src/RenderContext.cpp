@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2019-2026 Meworla
+ *
+ * Licensed under the MIT License.
+ * See LICENSE file in the project root for full license information.
+ */
+
 #include "Poseidon/RenderContext.h"
 #include "Poseidon/Renderable.h"
 #include "Poseidon/RenderQueue.h"

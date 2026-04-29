@@ -4,6 +4,9 @@ Virtual and global filesystem framework for modern C++ applications and games.
 
 Orion is part of the Rhea ecosystem and provides a flexible abstraction layer for working with filesystems, mounted resources, archives, and virtualized file access.
 
+Note: This repository is a filtered public export of the main Rhea development workspace.
+Some shared infrastructure may live outside this repository.
+
 ---
 
 ## Features

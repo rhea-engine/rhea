@@ -4,6 +4,9 @@ Shared foundational libraries and utilities used throughout the Rhea ecosystem.
 
 Rhea Common contains reusable low-level modules that support rendering, filesystem, engine, and tooling projects across the ecosystem.
 
+Note: This repository is a filtered public export of the main Rhea development workspace.
+Some shared infrastructure may live outside this repository.
+
 ---
 
 ## Features

@@ -2,6 +2,9 @@
 
 C++ rendering framework used by the Rhea ecosystem.
 
+Note: This repository is a filtered public export of the main Rhea development workspace.
+Some shared infrastructure may live outside this repository.
+
 ---
 
 ## Features

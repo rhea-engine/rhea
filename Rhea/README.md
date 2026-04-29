@@ -4,6 +4,9 @@ Modern C++ game framework built around modular systems, rendering, and tooling.
 
 Rhea is part of the broader Meworla ecosystem and is designed for building games and interactive applications with a flexible, component-oriented architecture.
 
+Note: This repository is a filtered public export of the main Rhea development workspace.
+Some shared infrastructure may live outside this repository.
+
 ---
 
 ## Features

@@ -27,7 +27,7 @@ if (WIN32)
     target_sources(GLRenderer PRIVATE "GLSwapChainWin32.cpp" "WglContext.cpp")
 endif()
 
-
+cmake_policy(SET CMP0072 NEW)
 find_package(OpenGL REQUIRED)
 
 target_include_directories(GLRenderer PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

@@ -13,7 +13,7 @@ target_include_directories(RheaAudio PUBLIC
 target_include_directories(RheaAudio PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty
   ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/stb
-  ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/libvorbis
+  ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/libvorbis  
   ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/libogg
 )
 
@@ -24,6 +24,10 @@ if(RHEA_AUDIO_ENABLE_VORBIS)
     if(RHEA_AUDIO_USE_BUNDLED_VORBIS)
         add_subdirectory(thirdparty/libogg EXCLUDE_FROM_ALL)
         add_subdirectory(thirdparty/libvorbis EXCLUDE_FROM_ALL)
+
+        target_include_directories(vorbis PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/libvorbis/lib"
+        )
 
         target_link_libraries(RheaAudio PRIVATE
             ogg

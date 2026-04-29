@@ -1,4 +1,4 @@
-﻿cmake_minimum_required(VERSION 3.24)
+﻿cmake_minimum_required(VERSION 3.22)
 
 project(Poseidon VERSION 0.9.0 LANGUAGES C CXX)
 

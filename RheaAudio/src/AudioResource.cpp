@@ -18,6 +18,7 @@
 #include <thread>
 #include <chrono>
 #include <iostream>
+#include <cstring>
 
 namespace rhea::audio
 {

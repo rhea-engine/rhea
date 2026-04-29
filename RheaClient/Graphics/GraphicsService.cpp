@@ -7,6 +7,7 @@
 
 #include <RheaClient/Graphics/GraphicsService.h>
 #include <functional>
+#include <cstring>
 
 #include <Rhea/Platform/PlatformService.h>
 #include <Rhea/Application.h>

@@ -1,6 +1,6 @@
-﻿cmake_minimum_required(VERSION 3.22)
+﻿cmake_minimum_required(VERSION 3.21)
 
-project(Poseidon VERSION 0.9.0 LANGUAGES C CXX)
+project(Poseidon VERSION 0.1.0 LANGUAGES C CXX)
 
 option(POSEIDON_BUILD_SAMPLES "Build Poseidon samples" ${PROJECT_IS_TOP_LEVEL})
 
@@ -20,22 +20,26 @@ add_library (Poseidon STATIC "src/Core.cpp" "src/Mesh.cpp" "src/Viewport.cpp"
 
 add_library(Meworla::Poseidon ALIAS Poseidon)
 
-target_include_directories(Poseidon PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(Poseidon
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+)
 
 if(NOT TARGET Meworla::Components)
-    find_package(Components CONFIG QUIET)
+    find_package(MeworlaComponents CONFIG QUIET)
 endif()
 
 if(NOT TARGET Meworla::Components)  
     include(FetchContent)
 
     FetchContent_Declare(
-        Components
+        MeworlaComponents
         GIT_REPOSITORY https://github.com/rhea-engine/components.git
-        GIT_TAG v0.9.0
+        GIT_TAG v0.1.0
     )
     
-    FetchContent_MakeAvailable(Components)
+    FetchContent_MakeAvailable(MeworlaComponents)
 endif()
 
 # Link Poseidon’s real dependencies as targets

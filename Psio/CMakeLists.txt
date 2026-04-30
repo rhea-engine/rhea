@@ -56,7 +56,7 @@ if(PSIO_ENABLE_SDL)
 		FetchContent_MakeAvailable(SDL3)
 	endif()
 	
-    target_link_libraries(Psio PRIVATE SDL3::SDL3)
+    target_link_libraries(Psio PRIVATE SDL3::SDL3-static)
     target_compile_definitions(Psio PRIVATE PSIO_HAS_SDL=1)
 
     target_sources(Psio PRIVATE

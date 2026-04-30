@@ -1,8 +1,8 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.21)
 
-project(RheaCommon VERSION 0.9.0 LANGUAGES C CXX)
+project(MeworlaComponents VERSION 0.1.0 LANGUAGES C CXX)
 
-if (TARGET Components)
+if (TARGET Meworla::Components)
     return()
 endif()
 
@@ -15,8 +15,12 @@ if (NOT TARGET Meworla::Psio AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Psio/CMakeL
     add_subdirectory(Psio)
 endif()
 
-add_library(Components INTERFACE)
-add_library(Meworla::Components ALIAS Components)
-target_include_directories(Components INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+add_library(MeworlaComponents INTERFACE)
+add_library(Meworla::Components ALIAS MeworlaComponents)
+target_include_directories(MeworlaComponents
+    INTERFACE
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<INSTALL_INTERFACE:include>
+)
 
-target_link_libraries(Components INTERFACE Meworla::Psio Meworla::SimpleParser Meworla::Math)
+target_link_libraries(MeworlaComponents INTERFACE Meworla::Psio Meworla::SimpleParser Meworla::Math)

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.13)
+cmake_minimum_required(VERSION 3.21)
 
 project(Rhea VERSION 0.1.0 LANGUAGES C CXX)
 
@@ -45,8 +45,6 @@ if(RHEA_BUILD_BULLET AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/RheaPhysicsBullet/C
     add_subdirectory(RheaPhysicsBullet)
     add_subdirectory(RheaPhysicsBulletDebug)
 endif()
-
-
 
 option(RHEA_WITH_GRAPHICS "Enable graphics support for Rhea" ON)
 

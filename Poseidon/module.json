@@ -1,9 +1,9 @@
 { 
   "id": "meworla/poseidon",
   "displayName": "Meworla Renderer (Poseidon)",
-  "version": "0.9.0",
+  "version": "0.1.0",
   "dependencies": {
-    "meworla/components": "0.9.0",
-    "meworla/hippios": "0.9.0"
+    "meworla/components": "0.1.0",
+    "meworla/hippios": "0.1.0"
   }
 }

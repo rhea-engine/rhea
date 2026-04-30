@@ -2,10 +2,10 @@
   "id": "rhea/core",
   "displayName": "Rhea Core",
   "author": "Meworla",
-  "version": "0.9.0",
+  "version": "0.1.0",
   "includePrefix": "Rhea",
   "dependencies": {
-    "meworla/components": "0.9.0",
-    "meworla/orion": "0.9.0"
+    "meworla/components": "0.1.0",
+    "meworla/orion": "0.1.0"
   }
 }

@@ -115,5 +115,5 @@ if (HIPPIOS_USE_SDL)
 		endif()
 	endif()
 	# use static version of SDL3 to avoid forcing users to have SDL3 dlls in their system. Also, we don't need dynamic features of SDL3, and static linking is simpler for distribution.
-	target_link_libraries(Hippios PUBLIC SDL3::SDL3)
+	target_link_libraries(Hippios PUBLIC SDL3::SDL3-static)
 endif()

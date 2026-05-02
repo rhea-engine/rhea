@@ -23,6 +23,7 @@
 #include "Rhea/Core/DirectionalLight.h"
 #include <Rhea/Core/Lighting.h>
 #include <Rhea/Resources/ImageResource.h>
+#include <Rhea/Geometry/CubeMesh.h>
 
 class BasicApp : public rhea::Application
 {
@@ -39,7 +40,7 @@ public:
         rhea::ResourceList res_list(this);
 
         // load shaders
-        res_list.push("standard_shader", "//rhea/shaders/standard.shader", "//meworla/shader");       
+        res_list.push("standard_shader", "//rhea/shaders/standard.shader", "//meworla/shader");        
 
         // note: for locally installed resources this is actually synchronous
         static_cast<rhea::ResourceService*>(getService("resources"))->loadAsync(res_list, nullptr);
@@ -70,32 +71,31 @@ public:
 
         
         rhea::DirectionalLight* light = simpleparser::Type::create<rhea::DirectionalLight>("MainLight");
-        light->setDirection(math::Vector3(-0.5f, -1.0f, -0.5f));
+        //light->setDirection(math::Vector3(-0.5f, -1.0f, -0.5f));
+        light->setDirection(math::Vector3(0.5f, 1.0f, 0.5f));
         light->setColor(math::Vector3(1.0f, 1.0f, 1.0f));
         light->setDiffuse(math::Quaternion(1.0f, 1.0f, 1.0f, 1.0f));
         m_scene->addChild(light);
-        
+                
         rhea::Lighting* lighting = simpleparser::Type::create<rhea::Lighting>("MainLighting");
         lighting->setAmbient(math::Quaternion(0.8f, 0.8f, 0.8f, 1.0f));
         lighting->setup(this, {}, {});
         m_scene->addChild(lighting);
-
+        
         // Create cube
         //rhea::Item* cube = m_scene->createUnit<rhea::Item>("Cube");
         rhea::Item* cube = simpleparser::Type::create<rhea::Item>("Cube01");
-        
+
         // Add visual component (for rendering)
         cube->addComponentUnique<rhea::VisualComponent>("visual");
-        
+
         // Add mesh component
         rhea::MeshComponent* meshComp = cube->addComponentUnique<rhea::MeshComponent>("mesh");
-        
-        // If you have a simple mesh, load it:
-        // meshComp->setMesh("//assets/cube.obj");
-        
-        // Or create a simple procedural mesh
-        rhea::Mesh* cubeMesh = createSimpleCube();
+
+        // Create a simple procedural mesh
+        rhea::CubeMesh* cubeMesh = simpleparser::Type::create<rhea::CubeMesh>("cube_mesh");
         cube->addChild(cubeMesh);
+        cubeMesh->createMesh();
         meshComp->setMesh(cubeMesh);
         m_scene->addChild(cube);
 
@@ -121,7 +121,7 @@ public:
         m_scene->ready();
         m_scene->show();
     }
-    
+
     bool onInput(rhea::EventInput* e, rhea::Unit* unit) override
     {
         rhea::InputEvent evt = e->getEvent();
@@ -131,19 +131,19 @@ public:
             m_exiting = true;
             return true;
         }
-        
+
         return Application::onInput(e, unit);
     }
 
     void onScene(rhea::Scene* scene) override
-    {        
-		// do nothing, we set the scene in setup
-	}
+    {
+        // do nothing, we set the scene in setup
+    }
 
     bool onFrameBegin() override
-	{
-		return false;
-	}
+    {
+        return false;
+    }
 
     bool onFrameEnd() override
     {
@@ -151,73 +151,9 @@ public:
     }
 
 private:
-	bool m_exiting = false;
-
-    rhea::Mesh* createSimpleCube()
-    {
-        rhea::Mesh* mesh = simpleparser::Type::create<rhea::Mesh>("cube_mesh");
-        mesh->setup(this, {}, {});
-
-        // Einfache Würfel-Vertices (Position + Texcoord)
-        std::vector<rhea::Mesh::vertex> vertices = {
-            // Front Face
-            { -1.0f, -1.0f, -1.0f, 0.0f, 1.0f },
-            { -1.0f,  1.0f, -1.0f, 0.0f, 0.0f },
-            {  1.0f,  1.0f, -1.0f, 1.0f, 0.0f },
-            {  1.0f, -1.0f, -1.0f, 1.0f, 1.0f },
-
-            // Back Face
-            { -1.0f, -1.0f,  1.0f, 1.0f, 1.0f },
-            {  1.0f, -1.0f,  1.0f, 0.0f, 1.0f },
-            {  1.0f,  1.0f,  1.0f, 0.0f, 0.0f },
-            { -1.0f,  1.0f,  1.0f, 1.0f, 0.0f },
-
-            // Top Face
-            { -1.0f,  1.0f, -1.0f, 0.0f, 1.0f },
-            { -1.0f,  1.0f,  1.0f, 0.0f, 0.0f },
-            {  1.0f,  1.0f,  1.0f, 1.0f, 0.0f },
-            {  1.0f,  1.0f, -1.0f, 1.0f, 1.0f },
-
-            // Bottom Face
-            { -1.0f, -1.0f, -1.0f, 1.0f, 1.0f },
-            {  1.0f, -1.0f, -1.0f, 0.0f, 1.0f },
-            {  1.0f, -1.0f,  1.0f, 0.0f, 0.0f },
-            { -1.0f, -1.0f,  1.0f, 1.0f, 0.0f },
-
-            // Left Face
-            { -1.0f, -1.0f,  1.0f, 0.0f, 1.0f },
-            { -1.0f,  1.0f,  1.0f, 0.0f, 0.0f },
-            { -1.0f,  1.0f, -1.0f, 1.0f, 0.0f },
-            { -1.0f, -1.0f, -1.0f, 1.0f, 1.0f },
-
-            // Right Face
-            {  1.0f, -1.0f, -1.0f, 0.0f, 1.0f },
-            {  1.0f,  1.0f, -1.0f, 0.0f, 0.0f },
-            {  1.0f,  1.0f,  1.0f, 1.0f, 0.0f },
-            {  1.0f, -1.0f,  1.0f, 1.0f, 1.0f }
-        };
-
-        // Indices für Dreiecke
-        std::vector<uint32_t> indices = {
-            // Front
-            0, 1, 2,    0, 2, 3,
-            // Back
-            4, 5, 6,    4, 6, 7,
-            // Top
-            8, 9, 10,   8, 10, 11,
-            // Bottom
-            12, 13, 14, 12, 14, 15,
-            // Left
-            16, 17, 18, 16, 18, 19,
-            // Right
-            20, 21, 22, 20, 22, 23
-        };
-
-        mesh->setBuffers(vertices, indices);
-        
-        return mesh;
-    }
+    bool m_exiting = false;
 };
+    
 
 int main(int argc, char** argv)
 {

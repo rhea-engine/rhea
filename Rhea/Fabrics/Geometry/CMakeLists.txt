@@ -3,6 +3,7 @@ add_library (RheaGeometry STATIC
     "src/CubeMesh.cpp"
     "src/PlaneMesh.cpp"
     "src/SphereMesh.cpp"
+    "src/CylinderMesh.cpp"
     "src/MeshBuilder.cpp"
 )
 add_library(rhea::Geometry ALIAS RheaGeometry)

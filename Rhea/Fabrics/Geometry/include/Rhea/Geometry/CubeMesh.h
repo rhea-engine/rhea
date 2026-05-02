@@ -18,10 +18,16 @@ namespace rhea
 	public:
 		CubeMesh(std::string name, std::string type_name) : Mesh(name, type_name) {}
 
-		void createMesh();
+		void setSize(float size) { m_size = size; markDirty(); }
+		float getSize() const { return m_size; }
+
+		void rebuild();
+
+		void markDirty() { m_dirty = true; }
 
 	protected:
 		float m_size = 1.0f;
+		bool m_dirty = true;
 	};
 }
 #endif // !RHEA_GEOMETRY_CUBEMESH_H

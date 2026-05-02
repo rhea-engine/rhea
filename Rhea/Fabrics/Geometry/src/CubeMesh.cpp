@@ -10,7 +10,7 @@
 
 namespace rhea
 {
-	void CubeMesh::createMesh()
+	void CubeMesh::rebuild()
 	{
         MeshBuilder b;
 

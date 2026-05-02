@@ -1,6 +1,7 @@
 add_library (RheaGeometry STATIC    
     "src/GeometryFabric.cpp"
     "src/CubeMesh.cpp"
+    "src/PlaneMesh.cpp"
     "src/MeshBuilder.cpp"
 )
 add_library(rhea::Geometry ALIAS RheaGeometry)

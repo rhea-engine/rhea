@@ -9,11 +9,13 @@
 
 #include <Rhea/Geometry/GeometryFabric.h>
 #include <Rhea/Geometry/CubeMesh.h>
+#include <Rhea/Geometry/PlaneMesh.h>
 
 namespace rhea
 {
 	void GeometryFabric::Register(Application* app)
 	{
 		CubeMesh::_register_CubeMesh();
+		PlaneMesh::_register_PlaneMesh();
 	}
 }

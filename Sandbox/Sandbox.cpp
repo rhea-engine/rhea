@@ -26,6 +26,7 @@
 #include <Rhea/Geometry/CubeMesh.h>
 #include <Rhea/Geometry/PlaneMesh.h>
 #include <Rhea/Geometry/SphereMesh.h>
+#include <Rhea/Geometry/CylinderMesh.h>
 #include <chrono>
 #include <Rhea/ObjFile/ObjLoader.h>
 #include <Psio/Log.h>
@@ -124,6 +125,7 @@ public:
 		addCube(m_scene);
 		addPlane(m_scene);
         addSphere(m_scene);
+        addCylinder(m_scene);
 
         m_scene->ready();
         m_scene->show();
@@ -241,6 +243,41 @@ public:
         material->setTexture(0, image_res); // Add texture
         scene->addChild(material);
         sphereMesh->setMaterial(material);
+    }
+
+    void addCylinder(rhea::Scene* scene)
+    {
+        // Create cylinder
+        rhea::Item* cylinder = simpleparser::Type::create<rhea::Item>("Cylinder");
+        cylinder->addComponentUnique<rhea::VisualComponent>("visual");
+        rhea::MeshComponent* meshComp = cylinder->addComponentUnique<rhea::MeshComponent>("mesh");
+        // Create a simple procedural cylinder mesh
+        rhea::CylinderMesh* cylinderMesh = simpleparser::Type::create<rhea::CylinderMesh>("cylinder_mesh");
+        cylinderMesh->setRadius(0.5f);
+        cylinderMesh->setHeight(2.0f);
+        cylinderMesh->setSegments(16);
+        cylinderMesh->createMesh();
+        meshComp->setMesh(cylinderMesh);
+        scene->addChild(cylinder);
+        cylinder->setPosition(math::Vector3(2.0f, 1.0f, 2.0f));
+
+        // add material
+        rhea::Material* material = simpleparser::Type::create<rhea::Material>("cylinder_material");
+        material->setup(this);
+        rhea::Shader* shader_res = doCast<rhea::Shader>(getUnitTree()->find("//rhea/shaders/standard", "", false));
+        material->setValue("shader", "standard");
+        if (shader_res) {
+            material->setShaderRes(shader_res);
+        }
+        // Material with gray color
+        material->setColor(0, math::Vector4(0.5f, 0.5f, 0.5f, 1.0f)); // Diffuse: Gray
+        material->setColor(1, math::Vector4(0.2f, 0.2f, 0.2f, 1.0f)); // Ambient: Dark gray
+        material->setColor(2, math::Vector4(0.8f, 0.8f, 0.8f, 1.0f)); // Specular: Light gray
+        material->setFloat(0, 16.0f); // Shininess for highlights
+        rhea::ImageResource* image_res = doCast<rhea::ImageResource>(m_unit_tree->find("//sandbox/brick256.png", "", false));
+        material->setTexture(0, image_res); // Add texture
+        scene->addChild(material);
+        cylinderMesh->setMaterial(material);
     }
 
     bool onInput(rhea::EventInput* e, rhea::Unit* unit) override

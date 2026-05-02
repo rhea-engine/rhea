@@ -28,6 +28,7 @@
 #include <Rhea/Geometry/SphereMesh.h>
 #include <Rhea/Geometry/CylinderMesh.h>
 #include <Rhea/Geometry/ConeMesh.h>
+#include <Rhea/Geometry/CapsuleMesh.h>
 #include <chrono>
 #include <Rhea/ObjFile/ObjLoader.h>
 #include <Psio/Log.h>
@@ -128,6 +129,7 @@ public:
         addSphere(m_scene);
         addCylinder(m_scene);
 		addCone(m_scene);
+		addCapsule(m_scene);
 
         m_scene->ready();
         m_scene->show();
@@ -318,6 +320,41 @@ public:
         scene->addChild(material);
         coneMesh->setMaterial(material);
 
+	}
+
+    void addCapsule(rhea::Scene* scene)
+    {
+        // Create capsule
+        rhea::Item* capsule = simpleparser::Type::create<rhea::Item>("Capsule");
+        capsule->addComponentUnique<rhea::VisualComponent>("visual");
+        rhea::MeshComponent* meshComp = capsule->addComponentUnique<rhea::MeshComponent>("mesh");
+        // Create a simple procedural capsule mesh
+        rhea::CapsuleMesh* capsuleMesh = simpleparser::Type::create<rhea::CapsuleMesh>("capsule_mesh");
+        capsuleMesh->setRadius(0.5f);
+        capsuleMesh->setHeight(2.0f);
+        capsuleMesh->setSegments(16);
+        capsuleMesh->createMesh();
+        meshComp->setMesh(capsuleMesh);
+        scene->addChild(capsule);
+        capsule->setPosition(math::Vector3(1.0f, 1.0f, 2.0f));
+
+        // add material
+        rhea::Material* material = simpleparser::Type::create<rhea::Material>("capsule_material");
+        material->setup(this);
+        rhea::Shader* shader_res = doCast<rhea::Shader>(getUnitTree()->find("//rhea/shaders/standard", "", false));
+        material->setValue("shader", "standard");
+        if (shader_res) {
+            material->setShaderRes(shader_res);
+        }
+        // Material with gray color
+        material->setColor(0, math::Vector4(0.5f, 0.5f, 0.5f, 1.0f)); // Diffuse: Gray
+        material->setColor(1, math::Vector4(0.2f, 0.2f, 0.2f, 1.0f)); // Ambient: Dark gray
+        material->setColor(2, math::Vector4(0.8f, 0.8f, 0.8f, 1.0f)); // Specular: Light gray
+        material->setFloat(0, 16.0f); // Shininess for highlights
+        rhea::ImageResource* image_res = doCast<rhea::ImageResource>(m_unit_tree->find("//sandbox/brick256.png", "", false));
+        material->setTexture(0, image_res); // Add texture
+        scene->addChild(material);
+        capsuleMesh->setMaterial(material);
 	}
 
     bool onInput(rhea::EventInput* e, rhea::Unit* unit) override

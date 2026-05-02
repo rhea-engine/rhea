@@ -29,6 +29,7 @@
 #include <Rhea/Geometry/CylinderMesh.h>
 #include <Rhea/Geometry/ConeMesh.h>
 #include <Rhea/Geometry/CapsuleMesh.h>
+#include <Rhea/Geometry/TorusMesh.h>
 #include <chrono>
 #include <Rhea/ObjFile/ObjLoader.h>
 #include <Psio/Log.h>
@@ -130,6 +131,7 @@ public:
         addCylinder(m_scene);
 		addCone(m_scene);
 		addCapsule(m_scene);
+		addTorus(m_scene);
 
         m_scene->ready();
         m_scene->show();
@@ -355,6 +357,41 @@ public:
         material->setTexture(0, image_res); // Add texture
         scene->addChild(material);
         capsuleMesh->setMaterial(material);
+	}
+
+    void addTorus(rhea::Scene* scene)
+    {
+        // Create torus
+        rhea::Item* torus = simpleparser::Type::create<rhea::Item>("Torus");
+        torus->addComponentUnique<rhea::VisualComponent>("visual");
+        rhea::MeshComponent* meshComp = torus->addComponentUnique<rhea::MeshComponent>("mesh");
+        // Create a simple procedural torus mesh
+        rhea::TorusMesh* torusMesh = simpleparser::Type::create<rhea::TorusMesh>("torus_mesh");
+        torusMesh->setMajorRadius(0.5f);
+        torusMesh->setMinorRadius(0.2f);
+        torusMesh->setResolution(16, 8);
+        torusMesh->createMesh();
+        meshComp->setMesh(torusMesh);
+        scene->addChild(torus);
+        torus->setPosition(math::Vector3(1.0f, 1.0f, -1.5f));
+        
+        // add material
+        rhea::Material* material = simpleparser::Type::create<rhea::Material>("torus_material");
+        material->setup(this);
+        rhea::Shader* shader_res = doCast<rhea::Shader>(getUnitTree()->find("//rhea/shaders/standard", "", false));
+        material->setValue("shader", "standard");
+        if (shader_res) {
+            material->setShaderRes(shader_res);
+        }
+        // Material with gray color
+        material->setColor(0, math::Vector4(0.5f, 0.5f, 0.5f, 1.0f)); // Diffuse: Gray
+        material->setColor(1, math::Vector4(0.2f, 0.2f, 0.2f, 1.0f)); // Ambient: Dark gray
+        material->setColor(2, math::Vector4(0.8f, 0.8f, 0.8f, 1.0f)); // Specular: Light gray
+        material->setFloat(0, 16.0f); // Shininess for highlights
+        rhea::ImageResource* image_res = doCast<rhea::ImageResource>(m_unit_tree->find("//sandbox/brick256.png", "", false));
+        material->setTexture(0, image_res); // Add texture
+        scene->addChild(material);
+        torusMesh->setMaterial(material);
 	}
 
     bool onInput(rhea::EventInput* e, rhea::Unit* unit) override

@@ -118,6 +118,8 @@ namespace rhea
 			return m_submeshes[mesh_idx].indices;
 		}
 
+		void setVertexBuffer(VertexBuffer& vertex) { m_vertex = std::move(vertex); }
+
 	protected:
 		// default material if submesh does not define one
 		Material* m_material;

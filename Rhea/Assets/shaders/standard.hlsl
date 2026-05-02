@@ -114,7 +114,9 @@ LightingResult DoDirectionalLight(Light light, float3 View, float4 P, float3 N)
 {
     LightingResult result;
  
-    float3 L = -light.Direction.xyz;
+    float3 L = normalize(-light.Direction.xyz);
+    N = normalize(N);
+    View = normalize(View);
  
     result.Diffuse = DoDiffuse(light, L, N);
     result.Specular = DoSpecularPhong(light, View, L, N);
@@ -159,7 +161,10 @@ LightingResult DoSpotLight(Light light, float3 V, float4 P, float3 N)
 {
     LightingResult result;
  
-    float3 L = normalize(light.Position - P).xyz;
+    //float3 L = normalize(light.Position - P).xyz;
+    //float distance = length(L);
+    //L = L / distance;
+    float3 L = (light.Position.xyz - P.xyz);
     float distance = length(L);
     L = L / distance;
  
@@ -225,7 +230,11 @@ float4 PShader(VS_OUTPUT input) : SV_TARGET
     
     LightingResult lit = ComputeLighting(input.positionWS, finalNormal);   
     
-    float3 finalColor = (mat_emissive.rgb + mat_ambient.rgb * ambient.rgb + mat_diffuse.rgb * lit.Diffuse.rgb + mat_specular.rgb * lit.Specular.rgb) * diffuseSample.rgb;
-    
+    float3 finalColor = (
+        mat_emissive.rgb +
+        mat_ambient.rgb * ambient.rgb * diffuseSample.rgb +
+        mat_diffuse.rgb * lit.Diffuse.rgb * diffuseSample.rgb +
+        mat_specular.rgb * lit.Specular.rgb);
+
     return float4(finalColor, diffuseSample.a);
 }

@@ -207,6 +207,12 @@ namespace math
 			hash = hash * 31 + std::hash<float>{}(v.w);
 			return hash;
 		}
+
+		// return first 3 components as Vector3
+		Vector3 xyz() const noexcept
+		{
+			return Vector3(x, y, z);
+		}
 	};
 }
 #endif // !MATH_VECTOR4_H

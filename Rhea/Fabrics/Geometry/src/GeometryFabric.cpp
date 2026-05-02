@@ -10,6 +10,7 @@
 #include <Rhea/Geometry/GeometryFabric.h>
 #include <Rhea/Geometry/CubeMesh.h>
 #include <Rhea/Geometry/PlaneMesh.h>
+#include <Rhea/Geometry/SphereMesh.h>
 
 namespace rhea
 {
@@ -17,5 +18,6 @@ namespace rhea
 	{
 		CubeMesh::_register_CubeMesh();
 		PlaneMesh::_register_PlaneMesh();
+		SphereMesh::_register_SphereMesh();
 	}
 }

@@ -8,26 +8,22 @@
 #ifndef RHEA_GEOMETRY_CUBEMESH_H
 #define RHEA_GEOMETRY_CUBEMESH_H
 
-#include <Rhea/Core/Mesh.h>
+#include <Rhea/Geometry/GeometryMesh.h>
 
 namespace rhea
 {
-	class CubeMesh : public Mesh
+	class CubeMesh : public GeometryMesh
 	{
-		RECLASS(CubeMesh, Mesh, "//meworla/cubemesh")
+		RECLASS(CubeMesh, GeometryMesh, "//meworla/cubemesh")
 	public:
-		CubeMesh(std::string name, std::string type_name) : Mesh(name, type_name) {}
-
+		CubeMesh(std::string name, std::string type_name) : GeometryMesh(name, type_name) {}
 		void setSize(float size) { m_size = size; markDirty(); }
 		float getSize() const { return m_size; }
 
-		void rebuild();
-
-		void markDirty() { m_dirty = true; }
+		void createMesh() override;
 
 	protected:
 		float m_size = 1.0f;
-		bool m_dirty = true;
 	};
 }
 #endif // !RHEA_GEOMETRY_CUBEMESH_H

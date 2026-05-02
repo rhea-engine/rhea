@@ -8,17 +8,16 @@
 #ifndef RHEA_GEOMETRY_PLANEMESH_H
 #define RHEA_GEOMETRY_PLANEMESH_H
 
-#include <Rhea/Core/Mesh.h>
+#include <Rhea/Geometry/GeometryMesh.h>
 #include <Math/Vector2.h>
 
 namespace rhea
 {
-	class PlaneMesh : public Mesh
+	class PlaneMesh : public GeometryMesh
 	{
-		RECLASS(PlaneMesh, Mesh, "//meworla/planemesh")
+		RECLASS(PlaneMesh, GeometryMesh, "//meworla/planemesh")
 	public:
-		PlaneMesh(std::string name, std::string type_name) : Mesh(name, type_name) {}
-
+		PlaneMesh(std::string name, std::string type_name) : GeometryMesh(name, type_name) {}
 		void setSize(float width, float height) { m_width = width; m_height = height; markDirty(); }
 		void setWidth(float width) { m_width = width; markDirty(); }
 		void setHeight(float height) { m_height = height; markDirty(); }
@@ -36,9 +35,7 @@ namespace rhea
 		uint32_t segmentsY() const { return m_segmentsY; }
 		bool centered() const { return m_centered; }
 
-		void rebuild();
-
-		void markDirty() { m_dirty = true; }
+		void createMesh() override;
 
 	protected:
 		float m_width = 1.0f;
@@ -47,7 +44,6 @@ namespace rhea
 		uint32_t m_segmentsY = 1;
 		bool m_centered = true;  // centered at origin or starting at (0,0)
 		math::Vector2 m_uvScale = { 1.0f, 1.0f }; 
-		bool m_dirty = true;
 	};
 }
 #endif // !RHEA_GEOMETRY_PLANEMESH_H

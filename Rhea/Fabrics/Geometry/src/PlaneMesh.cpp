@@ -10,14 +10,9 @@
 
 namespace rhea
 {
-    void PlaneMesh::rebuild()
+    void PlaneMesh::createMesh()
     {
         MeshBuilder b;
-
-        if (!m_dirty)
-			return;
-
-		m_dirty = false;
 
         const float halfW = m_width * 0.5f;
         const float halfH = m_height * 0.5f;

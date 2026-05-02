@@ -27,6 +27,7 @@
 #include <Rhea/Geometry/PlaneMesh.h>
 #include <Rhea/Geometry/SphereMesh.h>
 #include <Rhea/Geometry/CylinderMesh.h>
+#include <Rhea/Geometry/ConeMesh.h>
 #include <chrono>
 #include <Rhea/ObjFile/ObjLoader.h>
 #include <Psio/Log.h>
@@ -126,6 +127,7 @@ public:
 		addPlane(m_scene);
         addSphere(m_scene);
         addCylinder(m_scene);
+		addCone(m_scene);
 
         m_scene->ready();
         m_scene->show();
@@ -279,6 +281,44 @@ public:
         scene->addChild(material);
         cylinderMesh->setMaterial(material);
     }
+
+    void addCone(rhea::Scene* scene)
+    {
+        // Create cone
+        rhea::Item* cone = simpleparser::Type::create<rhea::Item>("Cone");
+        cone->addComponentUnique<rhea::VisualComponent>("visual");
+        rhea::MeshComponent* meshComp = cone->addComponentUnique<rhea::MeshComponent>("mesh");
+        // Create a simple procedural cone mesh
+        rhea::ConeMesh* coneMesh = simpleparser::Type::create<rhea::ConeMesh>("cone_mesh");
+        coneMesh->setRadius(0.5f);
+        coneMesh->setHeight(2.0f);
+        coneMesh->setSegments(16);
+        coneMesh->setCap(true);
+        coneMesh->createMesh();
+        meshComp->setMesh(coneMesh);
+        scene->addChild(cone);
+        cone->setPosition(math::Vector3(-1.25f, 1.0f, 2.0f));
+        // add material (similar to previous examples)
+
+        // add material
+        rhea::Material* material = simpleparser::Type::create<rhea::Material>("cone_material");
+        material->setup(this);
+        rhea::Shader* shader_res = doCast<rhea::Shader>(getUnitTree()->find("//rhea/shaders/standard", "", false));
+        material->setValue("shader", "standard");
+        if (shader_res) {
+            material->setShaderRes(shader_res);
+        }
+        // Material with gray color
+        material->setColor(0, math::Vector4(0.5f, 0.5f, 0.5f, 1.0f)); // Diffuse: Gray
+        material->setColor(1, math::Vector4(0.2f, 0.2f, 0.2f, 1.0f)); // Ambient: Dark gray
+        material->setColor(2, math::Vector4(0.8f, 0.8f, 0.8f, 1.0f)); // Specular: Light gray
+        material->setFloat(0, 16.0f); // Shininess for highlights
+        rhea::ImageResource* image_res = doCast<rhea::ImageResource>(m_unit_tree->find("//sandbox/brick256.png", "", false));
+        material->setTexture(0, image_res); // Add texture
+        scene->addChild(material);
+        coneMesh->setMaterial(material);
+
+	}
 
     bool onInput(rhea::EventInput* e, rhea::Unit* unit) override
     {

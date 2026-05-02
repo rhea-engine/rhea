@@ -11,7 +11,8 @@
 #include <Rhea/Geometry/CubeMesh.h>
 #include <Rhea/Geometry/PlaneMesh.h>
 #include <Rhea/Geometry/SphereMesh.h>
-#include<Rhea/Geometry/CylinderMesh.h>
+#include <Rhea/Geometry/CylinderMesh.h>
+#include <Rhea/Geometry/ConeMesh.h>
 
 namespace rhea
 {
@@ -21,5 +22,6 @@ namespace rhea
 		PlaneMesh::_register_PlaneMesh();
 		SphereMesh::_register_SphereMesh();
 		CylinderMesh::_register_CylinderMesh();
+		ConeMesh::_register_ConeMesh();
 	}
 }

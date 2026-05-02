@@ -1,0 +1,40 @@
+[scene]
+name="scene1"
+start=(0.0f, 1.7f, -1.0f)
+physics="none"
+ground=true
+debug_physics=false
+startscene="//sandbox/scene1"
+linear_gravity=-3.0f
+
+[environment]
+type="//meworla/lighting"
+ambient=(0.8f, 0.8f, 0.8f, 1.0f)
+
+[maincamera]
+type="//meworla/camera"
+#position=(-2.0f, 10.0f, -5.0f)
+position=(2.0f, 2.0f, -10.0f)
+
+[uv_d]
+type="//meworla/texture"
+path="//sandbox/uv_debug.png"
+
+[brick]
+type="//meworla/texture"
+path="//sandbox/brick256.png"
+
+[cube1]
+type="//meworla/item"
+position=(3.0f, 0.5f, 0.0f)
+mesh="cube1_mesh"
+mass=0.0f
+
+[cube1_mesh]
+type="//meworla/mesh"
+geometry="cube1/cube1_obj"
+[cube1/cube1_obj]
+type="//meworla/wavefront"
+path="//sandbox/cube1.obj"
+material="//sandbox/cube1.mtl"
+diffuse_tex=("brick")

@@ -91,7 +91,7 @@ set(targetdirs FortyTwo)
     list(APPEND engine_targets Meworla::Psio Hermes Meworla::Hippios Meworla::Orion Meworla::Poseidon Rhea::Core Rhea::Client Meworla::RheaPhysics
     Meworla::RheaPhysicsBullet Meworla::RheaPhysicsBulletDebug Rhea::Network Rhea::Audio)
   #  if(DEV_BUILD_CETO)
-        list(APPEND targetdirs Ceto)
+        list(APPEND targetdirs Ceto Sandbox)
     #endif()
 #    list(APPEND targetdirs Iris)    
 #endif()

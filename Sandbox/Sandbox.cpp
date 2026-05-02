@@ -24,6 +24,8 @@
 #include <Rhea/Core/Lighting.h>
 #include <Rhea/Resources/ImageResource.h>
 #include <Rhea/Geometry/CubeMesh.h>
+#include <Rhea/Geometry/PlaneMesh.h>
+#include <Rhea/Geometry/SphereMesh.h>
 #include <chrono>
 #include <Rhea/ObjFile/ObjLoader.h>
 #include <Psio/Log.h>
@@ -120,10 +122,11 @@ public:
         m_scene->addChild(cube2);
 
 		addCube(m_scene);
+		addPlane(m_scene);
+        addSphere(m_scene);
 
         m_scene->ready();
         m_scene->show();
-
         m_last_time = std::chrono::steady_clock::now();
     }
 
@@ -142,11 +145,13 @@ public:
         // Or create a simple procedural mesh
         rhea::CubeMesh* cubeMesh = simpleparser::Type::create<rhea::CubeMesh>("cube_mesh");
         cube->addChild(cubeMesh);
+        cubeMesh->setSize(0.75f);
         cubeMesh->createMesh();
         meshComp->setMesh(cubeMesh);
         cube->setLookAt(math::Vector3(5.0f, 5.0f, 0), math::Vector3::UNIT_Z);
         scene->addChild(cube);
         m_cube = cube; // Store reference to m_cube
+        m_cube->setPosition(math::Vector3(0.0f, 1.0f, 0.0f));
 
         rhea::Material* material = simpleparser::Type::create<rhea::Material>("cube_material");
         material->setup(this);
@@ -168,6 +173,74 @@ public:
 
         scene->addChild(material);
         cubeMesh->setMaterial(material);    
+    }
+
+    void addPlane(rhea::Scene* scene)
+    {
+        // Create plane
+        rhea::Item* plane = simpleparser::Type::create<rhea::Item>("Plane");
+        plane->addComponentUnique<rhea::VisualComponent>("visual");
+        rhea::MeshComponent* meshComp = plane->addComponentUnique<rhea::MeshComponent>("mesh");
+        // Create a simple procedural plane mesh
+        rhea::PlaneMesh* planeMesh = simpleparser::Type::create<rhea::PlaneMesh>("plane_mesh");
+        planeMesh->setSize(4.0f, 4.0f);
+        planeMesh->setSegments(4, 4);
+		planeMesh->setUVScale(2.0f, 2.0f); // Repeat texture
+        planeMesh->createMesh();
+        meshComp->setMesh(planeMesh);
+        scene->addChild(plane);
+
+		// add material
+        rhea::Material* material = simpleparser::Type::create<rhea::Material>("plane_material");
+        material->setup(this);
+        rhea::Shader* shader_res = doCast<rhea::Shader>(getUnitTree()->find("//rhea/shaders/standard", "", false));
+        material->setValue("shader", "standard");
+        if (shader_res) {
+            material->setShaderRes(shader_res);
+        }
+        // Material with gray color
+        material->setColor(0, math::Vector4(0.5f, 0.5f, 0.5f, 1.0f)); // Diffuse: Gray
+        material->setColor(1, math::Vector4(0.2f, 0.2f, 0.2f, 1.0f)); // Ambient: Dark gray
+        material->setColor(2, math::Vector4(0.8f, 0.8f, 0.8f, 1.0f)); // Specular: Light gray
+        material->setFloat(0, 16.0f); // Shininess for highlights
+        rhea::ImageResource* image_res = doCast<rhea::ImageResource>(m_unit_tree->find("//sandbox/brick256.png", "", false));
+        material->setTexture(0, image_res); // Add texture
+        scene->addChild(material);
+		planeMesh->setMaterial(material);
+	}
+
+    void addSphere(rhea::Scene* scene)
+    {
+        // Create sphere
+        rhea::Item* sphere = simpleparser::Type::create<rhea::Item>("Sphere");
+        sphere->addComponentUnique<rhea::VisualComponent>("visual");
+        rhea::MeshComponent* meshComp = sphere->addComponentUnique<rhea::MeshComponent>("mesh");
+        // Create a simple procedural sphere mesh
+        rhea::SphereMesh* sphereMesh = simpleparser::Type::create<rhea::SphereMesh>("sphere_mesh");
+        sphereMesh->setRadius(1.0f);
+        sphereMesh->setSegments(16);
+        sphereMesh->createMesh();
+        meshComp->setMesh(sphereMesh);
+        scene->addChild(sphere);
+		sphere->setPosition(math::Vector3(-2.0f, 1.0f, 2.0f));
+
+        // add material
+        rhea::Material* material = simpleparser::Type::create<rhea::Material>("sphere_material");
+        material->setup(this);
+        rhea::Shader* shader_res = doCast<rhea::Shader>(getUnitTree()->find("//rhea/shaders/standard", "", false));
+        material->setValue("shader", "standard");
+        if (shader_res) {
+            material->setShaderRes(shader_res);
+        }
+        // Material with gray color
+        material->setColor(0, math::Vector4(0.5f, 0.5f, 0.5f, 1.0f)); // Diffuse: Gray
+        material->setColor(1, math::Vector4(0.2f, 0.2f, 0.2f, 1.0f)); // Ambient: Dark gray
+        material->setColor(2, math::Vector4(0.8f, 0.8f, 0.8f, 1.0f)); // Specular: Light gray
+        material->setFloat(0, 16.0f); // Shininess for highlights
+        rhea::ImageResource* image_res = doCast<rhea::ImageResource>(m_unit_tree->find("//sandbox/brick256.png", "", false));
+        material->setTexture(0, image_res); // Add texture
+        scene->addChild(material);
+        sphereMesh->setMaterial(material);
     }
 
     bool onInput(rhea::EventInput* e, rhea::Unit* unit) override
@@ -196,7 +269,6 @@ public:
     {
 		m_cube2 = doCast<rhea::Item>(scene->find("cube1"));
 		addCube(scene);
-		//m_cube->setPosition(math::Vector3(3.0f, 0, 0));
         scene->show();
     }
 
@@ -223,8 +295,10 @@ public:
             radius * std::cos(m_rotation_angle)
         );
 
-        m_cube->setLookAt(target, math::Vector3::UNIT_Y);
-        m_cube2->setLookAt(target, math::Vector3::UNIT_Y);
+        if (m_cube)
+            m_cube->setLookAt(target, math::Vector3::UNIT_Y);
+        if (m_cube2)
+            m_cube2->setLookAt(target, math::Vector3::UNIT_Y);        
 
         return false;
     }
@@ -246,7 +320,7 @@ int main(int argc, char** argv)
     app.setup();
 
     std::string home_scene = "//sandbox/world.scene";
-    if (0) {
+    if (1) {
         app.setupScene();
     }
     else {

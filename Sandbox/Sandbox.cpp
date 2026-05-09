@@ -33,6 +33,8 @@
 #include <chrono>
 #include <Rhea/ObjFile/ObjLoader.h>
 #include <Psio/Log.h>
+#include <Rhea/DebugDraw/LineBatchMesh.h>
+#include <Math/Matrix3x4.h>
 
 
 class Sandbox : public rhea::Application
@@ -41,6 +43,7 @@ private:
     rhea::Scene* m_scene = nullptr;
     rhea::Item* m_cube = nullptr;
     rhea::Item* m_cube2 = nullptr;
+    rhea::Item* m_gizmo = nullptr;
     float m_rotation_angle = 0.0f;
     std::chrono::steady_clock::time_point m_last_time;
 
@@ -103,7 +106,7 @@ public:
         m_scene->addChild(lighting);
 
 
-
+/*
         // Add mesh component        
         rhea::Item* cube2 = simpleparser::Type::create<rhea::Item>("Cube02");
         cube2->setup(this, {}, {});
@@ -124,6 +127,7 @@ public:
         loadedMeshComp->setMesh(loadedMesh);
         cube2->setPosition(math::Vector3(3, 1, 0));
         m_scene->addChild(cube2);
+        */
 
 		addCube(m_scene);
 		addPlane(m_scene);
@@ -132,6 +136,8 @@ public:
 		addCone(m_scene);
 		addCapsule(m_scene);
 		addTorus(m_scene);
+        
+		addGizmo(m_scene);
 
         m_scene->ready();
         m_scene->show();
@@ -156,7 +162,7 @@ public:
         cubeMesh->setSize(0.75f);
         cubeMesh->createMesh();
         meshComp->setMesh(cubeMesh);
-        cube->setLookAt(math::Vector3(5.0f, 5.0f, 0), math::Vector3::UNIT_Z);
+        cube->setLookAt(math::Vector3(0.0f, 0.0f, 0), math::Vector3::UNIT_Z);
         scene->addChild(cube);
         m_cube = cube; // Store reference to m_cube
         m_cube->setPosition(math::Vector3(0.0f, 1.0f, 0.0f));
@@ -394,6 +400,54 @@ public:
         torusMesh->setMaterial(material);
 	}
 
+    void addGizmo(rhea::Scene* scene)
+    {
+		// Create a simple gizmo (e.g., three lines) to visualize the target point of the cube's look-at
+        m_gizmo = simpleparser::Type::create<rhea::Item>("Gizmo");
+        m_gizmo->addComponentUnique<rhea::VisualComponent>("visual");
+        rhea::MeshComponent* meshComp = m_gizmo->addComponentUnique<rhea::MeshComponent>("mesh");
+        rhea::LineBatchMesh *lineMesh = simpleparser::Type::create<rhea::LineBatchMesh>("gizmo_mesh");
+        lineMesh->setup(this, {}, {});
+        lineMesh->ready();
+        
+        rhea::Position pos = *m_cube->getTransform()->get_derived_position();
+        math::Matrix3x4 m = pos.getWorldTransform();
+        lineMesh->addAxis(m, 1.0f);
+        lineMesh->update();
+        meshComp->setMesh(lineMesh);
+        scene->addChild(m_gizmo);
+        
+		rhea::Item* cubeLineItem = simpleparser::Type::create<rhea::Item>("CubeLineItem");
+		cubeLineItem->addComponentUnique<rhea::VisualComponent>("visual");
+		rhea::MeshComponent* cubeLineMeshComp = cubeLineItem->addComponentUnique<rhea::MeshComponent>("mesh");
+		rhea::LineBatchMesh* cubeLineMesh = simpleparser::Type::create<rhea::LineBatchMesh>("cube_line_mesh");
+		cubeLineMesh->setup(this, {}, {});
+		cubeLineMesh->ready();
+		cubeLineMesh->addCube(math::Vector3(0.1f, 0.1f, 0.1f), math::Vector3(0.9f, 0.9f, 0.9f), math::Vector4(1, 1, 1, 1));
+		cubeLineMesh->update();
+		cubeLineMeshComp->setMesh(cubeLineMesh);
+		cubeLineItem->setPosition(math::Vector3(-2.0f, 0.2f, -1.0f));
+		scene->addChild(cubeLineItem);
+
+        // add some lines 
+		rhea::Item* linesItem = simpleparser::Type::create<rhea::Item>("LineItem");  
+		linesItem->addComponentUnique<rhea::VisualComponent>("visual");
+		rhea::MeshComponent* linesMeshComp = linesItem->addComponentUnique<rhea::MeshComponent>("mesh");
+		rhea::LineBatchMesh* linesMesh = simpleparser::Type::create<rhea::LineBatchMesh>("lines_mesh"); 
+        linesMesh->setup(this, {}, {});
+        linesMesh->ready();
+        linesMesh->addLine({ 0,0,0 }, { 1,0,0 }, { 1,0,0,1 });
+        linesMesh->addLine({ 0,0,0 }, { 0,1,0 }, { 0,1,0,1 });
+        linesMesh->addLine({ 0,0,0 }, { 1,0,1 }, { 0,0,1,1 });
+        linesMesh->addCube(math::Vector3(1.1f, 0.5f, -1.0f), math::Vector3(2.0f, 1.4f, -0.1f), math::Vector4(1, 1, 1, 1));
+        linesMesh->addAxis(math::Vector3(-1.0f, 1.0f, 0.0f), 0.5);
+        rhea::Position pos_grid;
+        linesMesh->addGrid(pos_grid.getWorldTransform(), 5, 50, math::Vector4(1, 0, 0, 1));
+        linesMesh->update();
+        linesMeshComp->setMesh(linesMesh);
+        scene->addChild(linesItem);
+	}
+
     bool onInput(rhea::EventInput* e, rhea::Unit* unit) override
     {
         rhea::InputEvent evt = e->getEvent();
@@ -445,11 +499,20 @@ public:
             radius * std::cos(m_rotation_angle) * 0.5f, // Leichte Z-Komponente
             radius * std::cos(m_rotation_angle)
         );
-
+        
         if (m_cube)
             m_cube->setLookAt(target, math::Vector3::UNIT_Y);
         if (m_cube2)
-            m_cube2->setLookAt(target, math::Vector3::UNIT_Y);        
+            m_cube2->setLookAt(target, math::Vector3::UNIT_Y);   
+
+        if (m_gizmo && m_cube) {
+            rhea::Position pos = *m_cube->getTransform()->get_derived_position();
+            math::Matrix3x4 m = pos.getWorldTransform();
+            rhea::LineBatchMesh* lineMesh = doCast<rhea::LineBatchMesh>(m_gizmo->getComponent<rhea::MeshComponent>()->getMesh());
+            lineMesh->clearLines();
+            lineMesh->addAxis(m, 1.0f);
+            lineMesh->update();
+        }
 
         return false;
     }

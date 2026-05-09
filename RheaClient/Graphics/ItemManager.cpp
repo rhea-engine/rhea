@@ -64,7 +64,7 @@ namespace rhea::client {
 			unit->registerEventHandler("child_order_changed", this, childorderHandler);
 		}
 
-		// Early exit: nicht renderable - Handler sind trotzdem registriert
+		// Early exit: not renderable - Handlers are still registered
 		if (!item->isRenderable()) {
 			return true;
 		}

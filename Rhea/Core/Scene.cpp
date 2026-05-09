@@ -24,18 +24,29 @@ namespace rhea
 		ready(); 
 	}
 
+	void Scene::onRemoved()
+	{
+		if (m_is_shown)
+			hide();
+
+		if (m_is_active)
+			deactivate();
+
+		unregisterEventHandler("scene_enter", this);
+		unregisterEventHandler("attached_item", this);
+		unregisterEventHandler("detached_item", this);
+	}
+
 	void Scene::addItem(Item* item)
 	{
-		m_items.push_back(item);
-		Event e("add_item", item);
-		sendEvent("add_item", &e);
+		if (!item->getParent() || item->getParent() == this) {
+			addChild(item);
+		}
 	}	
 
 	void Scene::removeItem(Item* item)
 	{
-		m_items.erase(std::remove(m_items.begin(), m_items.end(), item), m_items.end());
-		Event e("remove_item", item);
-		sendEvent("remove_item", &e);
+		removeChild(item);
 	}
 
 	void Scene::ready()
@@ -57,8 +68,8 @@ namespace rhea
 		// we capture this event
 		ev->stopPropagation();
 		// send add item
-		Event e("add_item", ev->getTarget());
-		sendEvent("add_item", &e);
+		Event e("scene_item_added", ev->getTarget());
+		sendEvent("scene_item_added", &e);
 		return true;
 	}
 
@@ -67,22 +78,21 @@ namespace rhea
 		// we capture this event
 		ev->stopPropagation();
 
-		if (m_is_active) {
-			// send add item for subtree
-			Item* item = doCast<Item>(ev->getTarget());
-			Event e("add_item", item);
-			sendEvent("add_item", &e);
-
-			item->children([&](std::string evname, Component* child)->bool {
-				Item* child_item = doCast<Item>(child);
-				if (child_item) {
-					Event e("add_item", child_item);
-					sendEvent("add_item", &e);
-				}
-				return true;
-				});
+		Item* item = doCast<Item>(ev->getTarget());
+		if (!item) {
+			LOG(LOG_ERROR) << "Scene::onItemAttached: attached item is not of type Item";
+			return true;
 		}
-		return true;
+
+		item->traverse([&](std::string&, Component* c) {
+			if (auto* child_item = doCast<Item>(c)) {				
+					m_items.push_back(child_item);
+					Event ev("scene_item_added", child_item);
+					sendEvent("scene_item_added", &ev);
+			}
+			return true;
+			});		
+		return false;
 	}
 
 	bool Scene::onItemDetached(Event* ev, Unit* unit)
@@ -90,22 +100,25 @@ namespace rhea
 		// we capture this event
 		ev->stopPropagation();
 
-		if (m_is_active) {
-			// send add item for subtree
-			Item* item = doCast<Item>(ev->getTarget());
-			Event e("remove_item", item);
-			sendEvent("remove_item", &e);
-
-			item->children([&](std::string evname, Component* child)->bool {
-				Item* child_item = doCast<Item>(child);
-				if (child_item) {
-					Event e("remove_item", child_item);
-					sendEvent("remove_item", &e);
-				}
-				return true;
-				});
+		Item* item = doCast<Item>(ev->getTarget());
+		if (!item) {
+			LOG(LOG_ERROR) << "Scene::onItemDetached: detached item is not of type Item";
+			return true;
 		}
-		return true;
+
+		item->traverse([&](std::string&, Component* c) {
+			if (auto* childItem = doCast<Item>(c)) {
+				m_items.erase(
+					std::remove(m_items.begin(), m_items.end(), childItem),
+					m_items.end()
+				);
+
+				Event e("scene_item_removed", item);
+				sendEvent("scene_item_removed", &e);
+			}
+			return true;
+			});
+		return false;
 	}
 
 	void Scene::show()
@@ -119,29 +132,43 @@ namespace rhea
 		if (!m_is_active)
 			activate();
 
-		rhea::Event ev("scene_show", this);
-		sendEventChildren(std::string("scene_show"), &ev);
-		broadcast("show");
-		m_app->onScene(this);
+		if (!m_is_shown) {
+			m_is_shown = true;
+
+			rhea::Event ev("scene_show", this);
+			sendEventChildren(std::string("scene_show"), &ev);
+			broadcast("show");
+			m_app->onScene(this);
+		}
 	}
 
 	void Scene::hide()
 	{
-		rhea::Event ev("scene_hide", this);
-		sendEventChildren("scene_hide", &ev);
+		if (m_is_shown) {
+			m_is_shown = false;
+			rhea::Event ev("scene_hide", this);
+			sendEventChildren("scene_hide", &ev);
+		}
 	}
 
 	void Scene::activate()
 	{
-		Event e("scene_activate", this);
-		m_app->getUnitTree()->sendEvent("scene_activate", &e);
-		m_is_active = true;
+		if (!m_is_active) {
+			Event e("scene_activate", this);
+			m_app->getUnitTree()->sendEvent("scene_activate", &e);
+			m_is_active = true;
+		}
 	}
 
-	void Scene::deactive()
+	void Scene::deactivate()
 	{
-		Event e("scene_deactivate", this);
-		m_app->getUnitTree()->sendEvent("scene_deactivate", &e);
-		m_is_active = false;
+		if (m_is_active) {
+			if (m_is_shown)
+				hide();
+
+			Event e("scene_deactivate", this);
+			m_app->getUnitTree()->sendEvent("scene_deactivate", &e);
+			m_is_active = false;
+		}
 	}
 }

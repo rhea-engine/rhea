@@ -45,8 +45,7 @@ namespace rhea::client {
 		RenderComponent(std::string name, poseidon::GraphicsNodeId id) :			
 			RenderComponent(name, "//meworla/rendercomponent")
 		{ gfx_node_id = id; }
-
-		//poseidon::Node* entity = nullptr;        // non-owning (Poseidon owns)		
+	
 		poseidon::RenderContext* ctx = nullptr;  // non-owning (Poseidon owns)
 
 		// Poseidon registrations (non-owning)

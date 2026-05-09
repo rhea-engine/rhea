@@ -122,11 +122,11 @@ namespace rhea::client {
 			});
 
 		scene->registerEventHandler(
-			"add_item", this,
+			"scene_item_added", this,
 			std::bind(&GraphicsSceneManager::onItemAdd, this, std::placeholders::_1, std::placeholders::_2)
 		);
 		scene->registerEventHandler(
-			"remove_item", this,
+			"scene_item_removed", this,
 			std::bind(&GraphicsSceneManager::onItemRemove, this, std::placeholders::_1, std::placeholders::_2)
 		);
 

@@ -207,10 +207,10 @@ namespace rhea::physics::bullet
 			//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
 			btDefaultMotionState* myMotionState = new btDefaultMotionState(groundTransform);
 			btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, groundShape, localInertia);
-			btRigidBody* body = new btRigidBody(rbInfo);
+			m_ground = new btRigidBody(rbInfo);
 
 			//add the body to the dynamics world
-			m_world->addRigidBody(body);
+			m_world->addRigidBody(m_ground);
 		}
 
 		// get items of scene
@@ -226,9 +226,43 @@ namespace rhea::physics::bullet
 		}
 
 		scene->registerEventHandler(
-			"add_item", this,
+			"scene_item_added", this,
 			std::bind(&BulletPhysicsService::onItemAdd, this, std::placeholders::_1, std::placeholders::_2)
 		);
+		scene->registerEventHandler(
+			"scene_item_removed", this,
+			std::bind(&BulletPhysicsService::onItemRemove, this, std::placeholders::_1, std::placeholders::_2)
+		);
+	}
+
+	void BulletPhysicsService::clearScene(rhea::Scene* scene)
+	{
+		if (!scene) {
+			LOG(LOG_ERROR) << "BulletPhysicsService::clearScene: no scene";
+			return;
+		}
+		if (m_ground)
+		{
+			m_world->removeRigidBody(m_ground);
+
+			delete m_ground->getMotionState();
+			delete m_ground;
+
+			m_ground = nullptr;
+		}
+
+		std::vector<rhea::Item*> items = m_scene->getItems();
+
+		for (auto it = items.begin(); it != items.end(); ++it) {
+			rhea::Item* item = *it;
+			auto* pc = item->getComponent<PhysicsComponent>();
+			if (!pc)
+				continue;
+			pc->deleteBody();
+		}
+
+		scene->unregisterEventHandler("scene_item_added", this);
+		scene->unregisterEventHandler("scene_item_removed", this);
 	}
 
 	bool BulletPhysicsService::onItemAdd(rhea::Event* ev, rhea::Unit* unit)
@@ -237,6 +271,18 @@ namespace rhea::physics::bullet
 		if (item)
 			initializeItem(item);
 
+		return false;
+	}
+
+	bool BulletPhysicsService::onItemRemove(rhea::Event* ev, rhea::Unit* unit)
+	{
+		rhea::Item* item = doCast<rhea::Item>(ev->getTarget());
+		if (!item) return false;
+
+		if (auto* pc = item->getComponent<PhysicsComponent>()) {			
+			pc->deleteBody();
+			item->deleteComponent<PhysicsComponent>();
+		}
 		return false;
 	}
 
@@ -287,6 +333,11 @@ namespace rhea::physics::bullet
 			setScene(doCast<rhea::Scene>(ev->getTarget()));
 			return false;
 			});
+		m_app->getUnitTree()->registerEventHandler("scene_deactivate", this, [&](rhea::Event* ev, rhea::Unit* tree)->bool {
+			clearScene(doCast<rhea::Scene>(ev->getTarget()));
+			return false;
+			});
+
 	}
 	
 	rhea::Unit* BulletPhysicsService::ray(math::Vector3 origin, math::Vector3 direction)
@@ -322,11 +373,5 @@ namespace rhea::physics::bullet
 			return std::make_unique<BulletPhysicsBody>(m_world, item, desc);
 
 		return nullptr;
-	}
-
-	void BulletPhysicsService::setDebugDrawer(btIDebugDraw* drawer)
-	{
-		if (drawer)
-			m_world->setDebugDrawer(drawer);
 	}
 }

@@ -199,6 +199,26 @@ namespace rhea::client {
 		registerItemToContextRecursive(item, context);
 	}
 
+	bool GraphicsService::onRemoveItem(rhea::Event* ev, rhea::Unit* unit)
+	{
+		rhea::Unit* root = doCast<rhea::Unit>(ev->getTarget());
+		if (!root) return false;
+
+		root->traverse([&](std::string& name, rhea::Component* c)->bool {
+			if (rhea::Item* item = doCast<rhea::Item>(c)) {
+				//getManager<rhea::Item>()->Release(m_core.get(), item);
+				// remove from render context if set
+				auto* rc = item->getComponent<RenderComponent>();
+				if (rc && rc->ctx) {
+					unregisterItemFromContext(item, rc->ctx);
+				}
+				return true;
+			}
+			return true;
+			});
+		return false;
+	}
+
 	void GraphicsService::onInit()
 	{
 		if (!m_platform) {
@@ -317,7 +337,8 @@ namespace rhea::client {
 			return;
 		}
 
-		scene->registerEventHandler("add_item", this, std::bind(&GraphicsService::onAddItem, this, std::placeholders::_1, std::placeholders::_2));
+		scene->registerEventHandler("scene_item_added", this, std::bind(&GraphicsService::onAddItem, this, std::placeholders::_1, std::placeholders::_2));
+		scene->registerEventHandler("scene_item_removed", this, std::bind(&GraphicsService::onRemoveItem, this, std::placeholders::_1, std::placeholders::_2));
 		scene->registerEventHandler("scene_show", this, [&](rhea::Event* ev, rhea::Unit* unit)->bool {
 			showScene(doCast<rhea::Scene>(ev->getTarget()));
 			return false;
@@ -416,21 +437,12 @@ namespace rhea::client {
 			return;
 		}
 
-		// Remove all items from their render contexts
-		scene->traverse([this, scene](std::string& name, rhea::Component* unit)->bool {
-			if (scene == unit)
-				return true;
-
-			rhea::Item* item = doCast<rhea::Item>(unit);
-			if (!item)
-				return true;
-
+		for (auto* item : scene->getItems()) {
 			auto* rc = item->getComponent<rhea::client::RenderComponent>();
 			if (rc && rc->ctx) {
 				unregisterItemFromContext(item, rc->ctx);
 			}
-			return true;
-			});
+		}
 	}
 
 	bool GraphicsService::onInput(rhea::Event* ev, rhea::Unit* unit)
@@ -623,20 +635,22 @@ namespace rhea::client {
 		if (!item || !context) return;
 
 		auto* rc = item->getComponent<rhea::client::RenderComponent>();
-		if (rc) {
-			// Detach renderable from context
-			if (rc->ctx == context) {
+		// Detach renderable from context
+		if (rc && rc->ctx == context) {
+			
 				poseidon::RenderNodeId node_id = context->findNodeForSource(rc->gfx_node_id);
 				if (node_id != poseidon::InvalidRenderNode) {
+
+					if (rc->hasRenderable())
+						context->detachRenderable(node_id);
+
+					if (rc->hasLight()) {
+						context->removeLight(rc->light);
+					}
 					context->unregisterOrderNode(node_id);
 				}
 
-				if (rc->hasLight()) {
-					context->removeLight(rc->light);
-				}
-
-				rc->ctx = nullptr;
-			}
+				rc->ctx = nullptr;			
 		}
 
 		// Remove from registry

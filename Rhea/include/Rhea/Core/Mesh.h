@@ -85,6 +85,10 @@ namespace rhea
 		void setDynamic(bool is_dynamic) { m_isDynamic = is_dynamic; }
 		bool isDynamic() { return m_isDynamic; }	
 
+		// do we use indices?
+		void setIndexed(bool is_indexed) { m_is_indexed = is_indexed; }
+		bool isIndexed() { return m_is_indexed; }
+
 		// return the buffers - short hand for meshes without submeshes
 		void getBuffers(std::vector<vertex>& vertices, std::vector<uint32_t>& indices);
 		void setBuffers(std::vector<vertex>& vertices, std::vector<uint32_t>& indices);
@@ -105,6 +109,10 @@ namespace rhea
 		Material* getDefaultMaterial() { return m_material; }
 
 		// return pointers to the buffers
+		template<typename VertexBufferType>
+		VertexBufferType* getVertexBufferAs() {
+			return static_cast<VertexBufferType*>(&m_vertex);
+		}
 		VertexBuffer* getVertexBuffer() { return &m_vertex; }
 		VertexBuffer& getVertexBufferRef() { return m_vertex; }
 		const std::vector<uint32_t>& getIndices(size_t mesh_idx) const {			
@@ -131,6 +139,8 @@ namespace rhea
 		VertexBuffer m_vertex;
 
 		int m_state;
+
+		bool m_is_indexed = true;
 
 		// Copy Constructor 
 		Mesh(const Mesh& m);

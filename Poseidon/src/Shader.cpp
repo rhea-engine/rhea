@@ -18,7 +18,7 @@ namespace poseidon
 		m_alpha_blending(false),
 		m_pso(nullptr),
 		m_depth_stencil_state("default"),
-		m_topology_type(0),
+		m_topology_type(TopologyType::TRIANGLE_LIST),
 		m_cull_mode(true),
 		m_matbuf_size(0),
 		m_matbuf_size_vs(0),
@@ -153,6 +153,19 @@ namespace poseidon
 			// cull mode in raster state
 			if (!m_cull_mode)
 				pso_desc.rasterizerState.cull_mode = hippios::CullMode::NONE;
+
+			// topology
+			switch (m_topology_type) {
+			case TopologyType::TRIANGLE_LIST:
+				pso_desc.primitiveTopology = hippios::PrimitiveTopology::TriangleList;
+				break;
+			case TopologyType::LINE_LIST:
+				pso_desc.primitiveTopology = hippios::PrimitiveTopology::LineList;
+				break;
+			case TopologyType::POINT_LIST:
+				pso_desc.primitiveTopology = hippios::PrimitiveTopology::PointList;
+				break;
+			}
 
 			// shader programs
 			pso_desc.shaderProgram = getShaderProgram();			

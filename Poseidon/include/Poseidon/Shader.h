@@ -107,6 +107,13 @@ namespace poseidon
 			INT = 5,
 		};
 
+		enum class TopologyType
+		{
+			TRIANGLE_LIST = 0,
+			LINE_LIST = 1,
+			POINT_LIST = 2,
+		};
+
 		struct MatBufferLayoutElement
 		{
 			MatBufferLayoutElementType type;
@@ -141,6 +148,9 @@ namespace poseidon
 		size_t getMatBufSizeVS() const { return m_matbuf_size_vs; }
 		int getMatBufLayoutMapVS(std::string name) { if (m_matbuf_layout_map_vs.find(name) != m_matbuf_layout_map_vs.end()) return m_matbuf_layout_map_vs[name]; else return -1; }
 
+		void setTopologyType(TopologyType topology_type) { m_topology_type = topology_type; }
+		TopologyType getTopologyType() const { return m_topology_type; }
+
 		std::string getName() { return m_name; }
 
 	protected:
@@ -156,7 +166,7 @@ namespace poseidon
 		bool m_alpha_blending;
 		std::unique_ptr<hippios::PipelineStateObject> m_pso;
 		std::string m_depth_stencil_state;
-		int m_topology_type;
+		TopologyType m_topology_type;
 		bool m_cull_mode;
 		hippios::SamplerState* m_sampler_state;
 		bool m_depth_test = true;

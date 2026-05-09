@@ -57,18 +57,20 @@ namespace poseidon
 			m_num_meshes = mesh_idx + 1;
 		}
 
-		if (m_submeshes[mesh_idx].ibuffer) {
-			if (m_submeshes[mesh_idx].ibuffer->getLength() < index_stride * num_faces * 3) {
+		if (m_indexed) {
+			if (m_submeshes[mesh_idx].ibuffer) {
+				if (m_submeshes[mesh_idx].ibuffer->getLength() < index_stride * num_faces * 3) {
+					m_submeshes[mesh_idx].ibuffer = m_renderer->createIndexBuffer(index_stride, num_faces, m_dynamic_buffer);
+					m_submeshes[mesh_idx].num_indices = num_faces * 3;
+				}
+			}
+			else {
 				m_submeshes[mesh_idx].ibuffer = m_renderer->createIndexBuffer(index_stride, num_faces, m_dynamic_buffer);
 				m_submeshes[mesh_idx].num_indices = num_faces * 3;
 			}
+			m_submeshes[mesh_idx].ibuffer->WriteData(0, index_stride * num_faces * 3, source, false);
 		}
-		else {
-			m_submeshes[mesh_idx].ibuffer = m_renderer->createIndexBuffer(index_stride, num_faces, m_dynamic_buffer);
-			m_submeshes[mesh_idx].num_indices = num_faces * 3;
-		}	
 		m_submeshes[mesh_idx].material = material;
-		m_submeshes[mesh_idx].ibuffer->WriteData(0, index_stride * num_faces * 3, source, false);
 	}
 
 	void Mesh::addVertexBuffer(std::unique_ptr<hippios::VertexBuffer> vertex_buffer)

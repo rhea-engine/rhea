@@ -66,7 +66,7 @@ namespace rhea
 		}
 		else if (vertex_layout_name == "color") {
 			m_vertex_layout.push_back({ "POSITION", VertexAttributeType::POSITION, 4, 3, 12, 0, 0 });
-			m_vertex_layout.push_back({ "COLOR", VertexAttributeType::COLOR, 4, 4, 16, 12, 6 });
+			m_vertex_layout.push_back({ "COLOR", VertexAttributeType::COLOR, 4, 4, 16, 12, 1 });
 		}
 		else /* if (vertex_layout_name == "default") */ {
 			m_vertex_layout.push_back({ "POSITION", VertexAttributeType::POSITION, 4, 3, 12, 0, 0 });

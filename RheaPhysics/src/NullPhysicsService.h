@@ -46,9 +46,6 @@ namespace rhea::physics
 		// Service functions
 		void onInit();	
 
-		// toggle debug draw
-		void toggleDebug() override {}
-
 		// ray trace
 		Unit* ray(math::Vector3 origin, math::Vector3 direction) override { return nullptr; };
 	};

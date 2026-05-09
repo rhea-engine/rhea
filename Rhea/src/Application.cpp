@@ -260,12 +260,6 @@ namespace rhea
 		if (e->isKeyPressed(rhea::Key::Escape) || e->isAction("cancel")) {
 			return true;
 		}
-
-		// toggle physics service
-		if (e->isKeyPressed(rhea::Key::F9)) {
-			PhysicsManagerService* mgr = static_cast<PhysicsManagerService*>(m_services["physics_mgr"]);
-			if (mgr && mgr->getPhysicsService()) mgr->getPhysicsService()->toggleDebug();
-		}
 		return false;
 	}
 

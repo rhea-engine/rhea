@@ -82,6 +82,7 @@ protected:
 
 	// cache of ceto gui scene
 	rhea::Scene* m_gui;
+	rhea::Scene* m_current_scene = nullptr;
 	// cache of gui controller
 	rhea::GUIController* m_gui_controller;
 

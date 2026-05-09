@@ -6,13 +6,11 @@
  */
 
 #include <RheaPhysicsBulletDebug/RheaPhysicsBulletDebugFabric.h>
+#include <RheaPhysicsBulletDebug/BtDebugDraw.h>
 #include <Rhea/Physics/PhysicsManagerService.h>
 #include <RheaPhysicsBullet/RheaPhysicsBulletService.h>
-#include "BtDebugDraw.h"
 #include <Rhea/Application.h>
-#include <Poseidon/Poseidon.h>
 #include <Rhea/UnitTree.h>
-#include <RheaClient/Graphics/GraphicsService.h>
 
 namespace rhea::physics::bullet::debug
 {
@@ -21,24 +19,16 @@ namespace rhea::physics::bullet::debug
         auto* mgr = doCast<rhea::PhysicsManagerService>(app->getService("physics_mgr"));
         if (!mgr) return;
 
-        auto* svc = mgr->getPhysicsService();
-        auto* bullet_svc = doCast<BulletPhysicsService>(svc);
-        if (!bullet_svc) return; // bullet backend not active
-
+        BulletDebugDraw::_register_BulletDebugDraw();
+       
         mgr->addBackendHook([app](rhea::PhysicsService* svc) {
             auto* bullet_svc = doCast<BulletPhysicsService>(svc);
-            if (!bullet_svc) return;            
+            if (!bullet_svc) return;
             bullet_svc->setDrawerFactory([app, bullet_svc]() -> rhea::IPhysicsDebugDraw* {
-                auto* graphics = doCast<rhea::client::GraphicsService>(
-                    app->getService("graphics")
-                );
-                if (!graphics) return nullptr;
-
-                auto* core = graphics->getEngine();
-                if (!core) return nullptr;
-
-                return new BulletDebugDraw(app, bullet_svc->getWorld(), core);
+                BulletDebugDraw* drawer = new BulletDebugDraw("btDebugDrawer");
+                drawer->setup(app, bullet_svc);
+                return drawer;
+                });
             });
-        });
     }
 }

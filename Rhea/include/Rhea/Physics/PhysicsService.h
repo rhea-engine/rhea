@@ -37,7 +37,6 @@ namespace rhea
 
         void onInit() = 0;
 
-        virtual void toggleDebug() {}
         virtual Unit* ray(math::Vector3 origin, math::Vector3 direction) { return nullptr; }
 
         using CreatorFunc = std::function<std::unique_ptr<PhysicsBody>(PhysicsService*, Item*)>;
@@ -47,7 +46,7 @@ namespace rhea
             return nullptr;
         }
 
-        virtual IPhysicsDebugDraw* debugDraw() { return nullptr; }
+        virtual IPhysicsDebugDraw* getDebugDrawer() { return nullptr; }
 
     protected:
         std::unordered_map<std::string, CreatorFunc> m_physics_component_registry;

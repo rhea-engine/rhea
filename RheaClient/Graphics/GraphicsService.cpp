@@ -665,4 +665,19 @@ namespace rhea::client {
 			}
 		}
 	}
+
+	void GraphicsService::dumpStats() const
+	{
+		LOG(LOG_INFO) << "GraphicsService Stats:";
+		LOG(LOG_INFO) << "Scenes: " << m_scenes.size();
+		for (auto* scene : m_scenes) {
+			LOG(LOG_INFO) << "Scene '" << scene->getPath() << "' items: " << scene->getItems().size();
+		}
+		LOG(LOG_INFO) << "Render contexts: " << m_context_items.size();
+		for (const auto& pair : m_context_items) {
+			const auto* context = pair.first;
+			const auto& items = pair.second;
+			LOG(LOG_INFO) << "Context '" << context->getName() << "' has " << items.size() << " items.";
+		}
+	}
 }

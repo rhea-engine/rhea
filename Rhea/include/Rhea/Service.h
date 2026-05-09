@@ -94,6 +94,8 @@ namespace rhea
 		 */
 		virtual bool onFrameFinal(float delta) { return false; };
 
+		virtual void dumpStats() const {};
+
 	protected:
 		
 	};

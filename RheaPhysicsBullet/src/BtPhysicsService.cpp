@@ -374,4 +374,15 @@ namespace rhea::physics::bullet
 
 		return nullptr;
 	}
+
+	void BulletPhysicsService::dumpStats() const
+	{
+		LOG(LOG_INFO) << "BulletPhysicsService Stats:";
+		if (m_world) {
+			LOG(LOG_INFO) << "World exists";
+		} else {
+			LOG(LOG_INFO) << "World does not exist";
+		}
+		LOG(LOG_INFO) << "Number of collision objects: " << (m_world ? m_world->getNumCollisionObjects() : 0);
+	}
 }

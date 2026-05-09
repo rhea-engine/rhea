@@ -93,6 +93,8 @@ namespace rhea::client {
 		// Helper method for cleanup
 		void unregisterItemFromContext(rhea::Item* item, poseidon::RenderContext* context);
 
+		void dumpStats() const override;
+
 	protected:
 		std::unique_ptr<poseidon::Core> m_core;
 		poseidon::Window* m_main_window;

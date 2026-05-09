@@ -63,6 +63,8 @@ namespace rhea::physics::bullet
 		bool onItemAdd(rhea::Event* ev, rhea::Unit* unit);
 		bool onItemRemove(rhea::Event* ev, rhea::Unit* unit);
 
+		void dumpStats() const override;
+
 	protected:
 		btDynamicsWorld* m_world;
 		rhea::Scene* m_scene;

@@ -14,6 +14,7 @@ target_link_libraries(RheaPhysicsBulletDebug PUBLIC
   Meworla::Poseidon
   Meworla::RheaPhysics
   Meworla::RheaPhysicsBullet
+  RheaFabrics
 )
 
 # Bullet libs private if not exposed in headers

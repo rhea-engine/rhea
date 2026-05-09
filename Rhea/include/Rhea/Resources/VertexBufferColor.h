@@ -10,7 +10,8 @@
 
 #include "VertexBuffer.h"
 
-#include <Components/Math/Vector3.h>
+#include <Math/Vector3.h>
+#include <Math/Vector4.h>
 
 namespace rhea
 {
@@ -20,7 +21,7 @@ namespace rhea
 		struct VertexColor
 		{
 			math::Vector3 position;
-			math::Vector3 color;
+			math::Vector4 color;
 		};
 
 		VertexBufferColor() : VertexBuffer(sizeof(VertexColor)) {}
@@ -34,6 +35,14 @@ namespace rhea
 			reserve(m_vertex_count + 1);
 			memcpy(m_data + m_vertex_count * m_vertex_size, &vertex, m_vertex_size);
 			m_vertex_count++;
+		}
+
+		// update alle Vertices im Buffer
+		void updateVertices(const VertexColor* vertices, size_t count)
+		{
+			reserve(count);
+			memcpy(m_data, vertices, count * sizeof(VertexColor));
+			m_vertex_count = count;
 		}
 	};
 }

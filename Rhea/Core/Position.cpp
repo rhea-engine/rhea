@@ -83,8 +83,8 @@ namespace rhea
 			targetOrientation = Quaternion(right, up, -forward);
 		}
 
-		LOG(LOG_DEBUG) << "setDirection result quat: " << targetOrientation.w << "," 
-		               << targetOrientation.x << "," << targetOrientation.y << "," << targetOrientation.z;
+		//LOG(LOG_DEBUG) << "setDirection result quat: " << targetOrientation.w << "," 
+		//               << targetOrientation.x << "," << targetOrientation.y << "," << targetOrientation.z;
 
 		setOrientation(targetOrientation);
 	}

@@ -8,11 +8,19 @@
 #ifndef RHEA_PHYSICSDEBUGDRAW_H
 #define RHEA_PHYSICSDEBUGDRAW_H
 
+#include <Rhea/Core/Item.h>
+
 namespace rhea 
 {
-    class IPhysicsDebugDraw
+    class IPhysicsDebugDraw : public Item
     {
+        RECLASS_VIRTUAL(IPhysicsDebugDraw, Item, "//meworla/if_physicsdebugdraw")
     public:
+        IPhysicsDebugDraw(std::string name, std::string type_name) :
+            Item(name, type_name)
+		{
+		}
+
         virtual ~IPhysicsDebugDraw() = default;
         
         virtual void setEnabled(bool on) = 0;      // toggle

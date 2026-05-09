@@ -179,6 +179,20 @@ bool Ceto::handleDevShortcuts(const rhea::InputEvent& evt)
 		return true;
 	}
 
+	if (evt.isKeyPressed(rhea::Key::Num0)) {
+		auto* mgr = doCast<rhea::PhysicsManagerService>(getService("physics_mgr"));
+		auto* physics_srv = mgr ? mgr->getPhysicsService() : nullptr;
+		static rhea::IPhysicsDebugDraw* debug_draw = nullptr;
+		if (!debug_draw) {
+			debug_draw = physics_srv->getDebugDrawer();
+			if (m_current_scene) {
+				m_current_scene->addChild(debug_draw);
+				debug_draw->setEnabled(true);
+			}
+		}
+		else
+			debug_draw->toggle();
+	}
 	return false;
 }
 
@@ -639,15 +653,7 @@ void Ceto::onScene(rhea::Scene* scene)
 	std::unique_ptr<rhea::Event> ev_r = std::make_unique<rhea::Event>("ready", scene);
 	scene->sendEvent(std::string("ready"), ev_r.get());
 
-	bool m_phys_debug = scene->getValue("debug_physics");
-
-	if (m_phys_debug) {
-
-		auto* mgr = doCast<rhea::PhysicsManagerService>(getService("physics_mgr"));
-		auto* ps = mgr ? mgr->getPhysicsService() : nullptr;
-
-		auto* m_debug_draw = ps ? ps->debugDraw() : nullptr;
-	}
+	m_current_scene = scene;
 }
 
 int main(int argc, char* argv[])

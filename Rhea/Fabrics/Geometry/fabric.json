@@ -1,0 +1,10 @@
+{
+  "id": "rhea/geometry",
+  "name": "Obj",
+  "version": "0.1.0",
+  "author": "Meworla",
+  "description": "Rhea Basic Geometries",
+  "class": "rhea::GeometryFabric",
+  "include": "Rhea/Geometry/GeometryFabric.h",
+  "cmake_target": "rhea::Geometry"
+}

@@ -117,6 +117,29 @@ namespace rhea::client {
 		rhea::VertexBuffer* vbuf = mesh->getVertexBuffer();
 		if (vbuf && vbuf->size()) {
 			out->setVertices(vbuf->getVertexSize(), vbuf->size(), vbuf->data());
+			if (!mesh->isIndexed()) {
+				out->setIndexed(false);
+				rhea::Material* mat = mesh->getDefaultMaterial();
+				if (!mat) {
+					LOG(LOG_ERROR) << "GraphicsMeshManager::FillPoseidonMesh: No material for mesh " << mesh->getPathName();
+					return false;
+				}
+				poseidon::Material* gpuMat =
+					m_service->materialCache().getOrCreate(
+						core,
+						mat,
+						[&](poseidon::Core* c, rhea::Material* m, poseidon::Material* outMat, bool fresh) -> bool {
+							auto* materialMgr = static_cast<GraphicsMaterialManager*>(m_service->getManager<rhea::Material>());
+							return materialMgr->FillPoseidonMaterial(c, m, outMat, fresh);
+						}
+					);
+				if (!gpuMat) {
+					LOG(LOG_ERROR) << "GraphicsMeshManager::FillPoseidonMesh: Failed to build GPU material for " << mat->getPathName();
+					return false;
+				}				
+				out->setMesh(0, sizeof(unsigned long), 0, 0, gpuMat);
+				return true;
+			}
 			for (size_t idx = 0; idx < mesh->getNumSubmeshes(); idx++) {
 				std::vector<uint32_t> v_indices = mesh->getIndices(idx);
 				// Check if v_indices is valid and has a multiple of 3 elements
@@ -135,8 +158,8 @@ namespace rhea::client {
 						core,
 						mat,
 						[&](poseidon::Core* c, rhea::Material* m, poseidon::Material* outMat, bool fresh) -> bool {							
-							auto* meshMgr = static_cast<GraphicsMaterialManager*>(m_service->getManager<rhea::Material>());
-							return meshMgr->FillPoseidonMaterial(c, m, outMat, fresh);
+							auto* materialMgr = static_cast<GraphicsMaterialManager*>(m_service->getManager<rhea::Material>());
+							return materialMgr->FillPoseidonMaterial(c, m, outMat, fresh);
 						}
 					);
 				if (!gpuMat) {

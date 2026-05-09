@@ -5,6 +5,12 @@ cbuffer cbPerFrame
 	float4x4 VP;	
 };
 
+cbuffer cbPerObject : register(b1)
+{
+    float4x4 worldMatrix;
+    float4x4 invModel;
+};
+
 struct VS_OUTPUT
 {
 	float4 Pos : SV_POSITION;
@@ -15,7 +21,10 @@ VS_OUTPUT VShader(float4 inPos : POSITION, float4 inColor : COLOR)
 {
 	VS_OUTPUT output;
 
-	output.Pos = mul(inPos, VP);
+    float3 worldPos = mul(inPos, worldMatrix);
+    output.Pos = mul(float4(worldPos, 1.0), VP);
+	
+//	output.Pos = mul(inPos, VP);
 	output.Color = inColor;
 
 	return output;

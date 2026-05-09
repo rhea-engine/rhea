@@ -1,0 +1,11 @@
+{
+  "id": "rhea/physicsbulletdebug",
+  "name": "BulletPhysicsDebug",
+  "displayName": "Rhea Bullet Physics Debug Fabric",
+  "author": "Meworla",
+  "description": "Rhea Bullet Physics Debug Fabric",
+  "version": "0.9.0",
+  "class": "rhea::physics::bullet::debug::RheaPhysicsBulletDebugFabric",
+  "include": "RheaPhysicsBulletDebug/RheaPhysicsBulletDebugFabric.h",
+  "cmake_target": "Meworla::RheaPhysicsBulletDebug"
+}

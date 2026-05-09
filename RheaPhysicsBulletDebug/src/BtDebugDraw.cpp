@@ -5,7 +5,7 @@
  * See LICENSE file in the project root for full license information.
  */
 
-#include "BtDebugDraw.h"
+#include <RheaPhysicsBulletDebug/BtDebugDraw.h>
 #include <bullet/src/btBulletDynamicsCommon.h>
 #include <Rhea/Application.h>
 #include <Poseidon/Mesh.h>
@@ -15,10 +15,13 @@
 #include <Poseidon/Shader.h>
 #include <Poseidon/RenderContext.h>
 #include <Poseidon/Material.h>
+#include <Rhea/Components/MeshComponent.h>
+#include <Rhea/DebugDraw/LineBatchMesh.h>
+#include <Psio/Log.h>
+#include <RheaPhysicsBullet/RheaPhysicsBulletService.h>
 
-namespace rhea
+namespace rhea::physics::bullet::debug
 {
-
 	struct BulletDebugDraw::Impl
 	{
 		class DebugDraw : public btIDebugDraw {
@@ -55,11 +58,20 @@ namespace rhea
 			int m_mode;
 		};
 
-		Impl(Application* a, btDynamicsWorld* w, Item* owner, poseidon::Core* core)
+		Impl(Application* a, btDynamicsWorld* w, Item* owner)
 			: m_app(a),
 			m_world(w),
 			m_owner(owner)
 		{
+			auto* vis = owner->addComponentUnique<rhea::VisualComponent>("visual");
+			rhea::MeshComponent* ownerLineMeshComp = owner->addComponentUnique<rhea::MeshComponent>("mesh");
+			ownerLineMesh = simpleparser::Type::create<rhea::LineBatchMesh>("cube_line_mesh");
+			ownerLineMesh->setup(m_app, {}, {});
+			ownerLineMesh->ready();
+			ownerLineMesh->update();
+			ownerLineMeshComp->setMesh(ownerLineMesh);
+
+			/*
 			m_mesh = new poseidon::Mesh();
 
 			m_mesh->setViewport(core->getFrameRenderer()->getViewport());			
@@ -73,8 +85,7 @@ namespace rhea
 				material->setTopology(2);
 				poseidon::Shader* shader = core->getShader("shader_vp");
 				if (!shader) {
-					shader = core->createShader("shader_vp");
-					shader->setVertexType(0);
+					shader = core->createShader("shader_vp");					
 					if (!shader->loadFromFile("Data\\Rhea\\shaders\\shader_vp.hlsl", "VShader", "PShader"))
 						exit(-1);
 				}
@@ -83,6 +94,7 @@ namespace rhea
 			}
 
 			core->getFrameRenderer()->getViewport()->getRenderContext(std::string("default"))->addRenderChild(m_owner);
+			*/
 			int mode = DebugDraw::DBG_DrawText |
 				DebugDraw::DBG_DrawFeaturesText |
 				DebugDraw::DBG_DrawContactPoints;
@@ -90,6 +102,8 @@ namespace rhea
 			mode |= DebugDraw::DBG_DrawAabb;
 			mode |= DebugDraw::DBG_DrawNormals;
 			m_drawer.setDebugMode(mode);
+
+			m_world->setDebugDrawer(&m_drawer);
 		}
 
 		~Impl()
@@ -103,13 +117,9 @@ namespace rhea
 		Item* m_owner;
 
 		DebugDraw m_drawer;
+		bool m_enabled = true;
 
-		poseidon::Mesh* m_mesh = nullptr;
-		poseidon::Material* material = nullptr;
-		std::vector<poseidon::Texture*> m_textures;
-
-		int m_num_faces = 0;
-		bool m_enabled = false;
+		rhea::LineBatchMesh* ownerLineMesh = nullptr;
 
 		// Debug geometry buffers
 		std::vector<Line> lines;
@@ -123,10 +133,20 @@ namespace rhea
 		}	
 	};
 
-	BulletDebugDraw::BulletDebugDraw(Application* app, btDynamicsWorld* world, poseidon::Core* core) :
-		Item("DebugDraw")
+	BulletDebugDraw::BulletDebugDraw(std::string name, std::string type_name) :
+		m_impl(nullptr),
+		IPhysicsDebugDraw(name, type_name)
 	{
-		m_impl = new Impl(app, world, this, core);
+	}
+
+	void BulletDebugDraw::setup(rhea::Application* app, rhea::PhysicsService* physics_service)
+	{
+		Item::setup(app, {}, {});
+		if (doCast<BulletPhysicsService>(physics_service) == nullptr) {
+			LOG(LOG_ERROR) << "BulletDebugDraw requires a BulletPhysicsService.";
+			return;
+		}
+		m_impl = new Impl(app, doCast<BulletPhysicsService>(physics_service)->getWorld(), this);
 	}
 
 	BulletDebugDraw::~BulletDebugDraw()
@@ -135,14 +155,9 @@ namespace rhea
 		m_impl = nullptr;
 	}
 
-	void BulletDebugDraw::cullPhase(poseidon::RenderQueue* queue, poseidon::Camera* camera)
+	void BulletDebugDraw::onFrame(float delta)
 	{
-		if (!m_impl)
-			return;
-		if (m_impl->m_enabled)
-
-			queue->addRenderable(this);
-		else
+		if (getComponent<VisualComponent>()->isVisible() == false)
 			return;
 
 		// Collect debug geometry data
@@ -159,23 +174,16 @@ namespace rhea
 		nums = (int)m_impl->m_drawer.m_lines.size();
 
 		// draw to the mesh
+		m_impl->ownerLineMesh->clearLines();
 
 		// Render lines		
-		std::vector<hippios::vertex> l_vertices;
 		float fact = 1;
 		for (auto lit = m_impl->m_drawer.m_lines.begin(); lit != m_impl->m_drawer.m_lines.end(); lit++) {
 			Line& line = *lit;	
-			//line.p0.normalize();
-			//line.p1.normalize();
-			/*line.color.x = 1.0f;
-			line.color.y = 1.0f;
-			line.color.z = 1.0f;*/
-			l_vertices.push_back({ line.p0.x, line.p0.y, line.p0.z, line.color.x, line.color.y, line.color.z, 1.0f });
-			l_vertices.push_back({ line.p1.x, line.p1.y, line.p1.z, line.color.x, line.color.y, line.color.z, 1.0f });
+			math::Vector4 color = math::Vector4(line.color.x, line.color.y, line.color.z, 1.0f) * fact;
+			m_impl->ownerLineMesh->addLine(line.p0, line.p1, color);
 		}
-
-		m_impl->m_mesh->setVertices(sizeof(hippios::vertex), l_vertices.size(), l_vertices.data());
-		m_impl->m_num_faces = (int)l_vertices.size();
+		m_impl->ownerLineMesh->update();
 
 		// render triangles
 		/*
@@ -199,33 +207,22 @@ namespace rhea
 
 	}
 
-	void BulletDebugDraw::getRenderInput(hippios::VertexBuffer** pvb, hippios::IndexBuffer** pib, int& num_indices)
-	{
-		*pvb = m_impl->m_mesh->get_vbuffer();
-		//*pib = m_mesh->get_ibuffer();
-		//num_indices = m_num_faces * 3;
-		*pib = nullptr;
-		num_indices = m_impl->m_num_faces;
-	}
-
-	poseidon::Material* BulletDebugDraw::getMaterial()
-	{
-		return m_impl->material;
-	}
-
-	poseidon::Texture* BulletDebugDraw::getTexture()
-	{
-		return nullptr;
-	}
-
 	void BulletDebugDraw::toggle()
 	{
-		m_impl->m_enabled = !m_impl->m_enabled;
+		auto* m_vis = getComponent<VisualComponent>();
+		m_vis->setVisible(!m_vis->isVisible());
+		m_impl->m_enabled = m_vis->isVisible();
+		Event e("update", this);
+		sendEvent("update", &e);
 	}
 
 	void BulletDebugDraw::setEnabled(bool on)
 	{
-		m_impl->m_enabled = on;
+		auto* m_vis = getComponent<VisualComponent>();
+		m_vis->setVisible(on);
+		m_impl->m_enabled = m_vis->isVisible();
+		Event e("update", this);
+		sendEvent("update", &e);
 	}
 
 	bool BulletDebugDraw::isEnabled() const
@@ -245,7 +242,7 @@ namespace rhea
 
 	void BulletDebugDraw::Impl::DebugDraw::reportErrorWarning(const char* warning)
 	{
-		printf("btDbgWarn: %s\n", warning);
+		LOG(LOG_DEBUG) << "btDbgWarn: " << warning;
 	}
 
 	void BulletDebugDraw::Impl::DebugDraw::drawLine(const btVector3& from, const btVector3& to, const btVector3& color)

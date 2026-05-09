@@ -1,0 +1,10 @@
+{
+  "id": "rhea/debugdraw",
+  "name": "Obj",
+  "version": "0.1.0",
+  "author": "Meworla",
+  "description": "Rhea Debug Draw",
+  "class": "rhea::DebugDrawFabric",
+  "include": "Rhea/DebugDraw/DebugDrawFabric.h",
+  "cmake_target": "rhea::DebugDraw"
+}

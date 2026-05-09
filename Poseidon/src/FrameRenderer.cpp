@@ -322,34 +322,47 @@ namespace poseidon
 					}
 				}
 
-				// draw the entity
+				// draw the submesh - check if mesh is indexed
 
-				// bind the vertex and index buffer
-				hippios::VertexBuffer* vb;
-				hippios::IndexBuffer* ib;
-				int num_indices;
+				if (mesh->isIndexed()) {
+					// Indexed mesh: use index buffer
+					// bind the vertex and index buffer
+					hippios::VertexBuffer* vb;
+					hippios::IndexBuffer* ib;
+					int num_indices;
 
-				mesh->getRenderInput(i, &vb, &ib, num_indices);
+					mesh->getRenderInput(i, &vb, &ib, num_indices);
 
-				if (!vb) {
-					DLOG(LOG_DEBUG) << "FrameRenderer::render: submesh " << i << " has no vertex buffer";
-					continue;
-				}
-
-				if (!mesh->isIndexed()) {
-					if (vb) {
-						m_renderer->bindBuffers(vb, ib);
-						m_renderer->draw(num_indices, 0);
+					if (!vb) {
+						DLOG(LOG_DEBUG) << "FrameRenderer::render: submesh " << i << " has no vertex buffer";
+						continue;
 					}
-				}
-				else {
-					if (vb && num_indices) {
+
+
+					if (vb && ib && num_indices > 0) {
 						m_renderer->bindBuffers(vb, ib);
 						m_renderer->drawIndexed(num_indices, 0, 0);
 					}
 					else {
 						DLOG(LOG_DEBUG) << "FrameRenderer::render: indexed mesh but num_indices=0 or no vb";
 					}
+				}
+				else {
+					// Non-indexed mesh: draw vertices directly
+					hippios::VertexBuffer* vb = mesh->get_vbuffer();
+
+					if (!vb) {
+						DLOG(LOG_DEBUG) << "FrameRenderer::render: submesh " << i << " has no vertex buffer";
+						continue;
+					}
+
+					// For non-indexed meshes, we need to calculate how many vertices to draw
+					// This could be all vertices or a subset depending on the submesh
+					// For now, draw all vertices (we would need to add vertex offset/count to SubMesh)
+					int num_vertices = static_cast<int>(mesh->getNumVertices());
+
+					m_renderer->bindBuffers(vb, nullptr);
+					m_renderer->draw(num_vertices, 0);
 				}
 			}
 		}

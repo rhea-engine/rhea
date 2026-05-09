@@ -132,6 +132,22 @@ namespace rhea::client {
 		hippios::SamplerState* sampler = core->getSamplerState(sampler_name);
 		shader->setSamplerState(sampler);
 
+		// set topology
+		std::string topology = shader_res->getValueString("topology", "triangle_list");
+		if (topology == "triangle_list") {
+			shader->setTopologyType(poseidon::Shader::TopologyType::TRIANGLE_LIST);
+		}
+		else if (topology == "line_list") {
+			shader->setTopologyType(poseidon::Shader::TopologyType::LINE_LIST);
+		}
+		else if (topology == "point_list") {
+			shader->setTopologyType(poseidon::Shader::TopologyType::POINT_LIST);
+		}
+		else {
+			LOG(LOG_WARNING) << "EnsurePoseidonShader: Unknown topology type '" << topology << "' for shader '" << shader_name << "', defaulting to triangle list";
+			shader->setTopologyType(poseidon::Shader::TopologyType::TRIANGLE_LIST);
+		}
+
 		// input layout
 		std::vector<poseidon::VertexInputAttribute> input_elements;
 		const auto& src_layout = shader_res->getVertexLayout();

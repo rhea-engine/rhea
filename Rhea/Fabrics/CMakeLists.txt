@@ -2,6 +2,7 @@
 add_subdirectory(Animation EXCLUDE_FROM_ALL)
 add_subdirectory(Character EXCLUDE_FROM_ALL)
 add_subdirectory(Controller EXCLUDE_FROM_ALL)
+add_subdirectory(DebugDraw EXCLUDE_FROM_ALL)
 add_subdirectory(Geometry EXCLUDE_FROM_ALL)
 add_subdirectory(Gltf EXCLUDE_FROM_ALL)
 add_subdirectory(GUI EXCLUDE_FROM_ALL)

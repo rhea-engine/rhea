@@ -26,6 +26,7 @@ namespace rhea
         void hide() { m_hidden = true; }
         void show() { m_hidden = false; }
         bool isVisible() const { return !m_hidden; }
+		void setVisible(bool visible) { m_hidden = !visible; }
 
     private:
         bool m_hidden;

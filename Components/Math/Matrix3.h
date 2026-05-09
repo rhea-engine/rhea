@@ -117,6 +117,25 @@ namespace math
 
 		// Invert the matrix
 		Matrix3 Inverse() const;
+
+
+		// Return the x-axis as Vector3
+		Vector3 getXAxis() const
+		{
+			return Vector3(m[0][0], m[1][0], m[2][0]);
+		}
+
+		// Return the y-axis as Vector3
+		Vector3 getYAxis() const
+		{
+			return Vector3(m[0][1], m[1][1], m[2][1]);
+		}
+
+		// Return the z-axis as Vector3
+		Vector3 getZAxis() const
+		{
+			return Vector3(m[0][2], m[1][2], m[2][2]);
+		}
 	};
 }
 

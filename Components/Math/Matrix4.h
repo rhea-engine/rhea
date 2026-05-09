@@ -196,6 +196,29 @@ namespace math
 			}
 			return true;
 		}		
+		
+		// returns the x-axis as Vector3
+		Vector3 getXAxis() const
+		{			
+			return Vector3(m[0][0], m[1][0], m[2][0]);
+		}
+
+		// returns the y-axis as Vector3
+		Vector3 getYAxis() const
+		{
+			return Vector3(m[0][1], m[1][1], m[2][1]);
+		}
+
+		// returns the z-axis as Vector3
+		Vector3 getZAxis() const
+		{
+			return Vector3(m[0][2], m[1][2], m[2][2]);
+		}
+
+		Vector3 getTranslation() const
+		{
+			return Vector3(m[0][3], m[1][3], m[2][3]);
+		}
 	};
 
 	inline Matrix4 Matrix4::transpose() const
@@ -302,7 +325,7 @@ namespace math
 		r.z = v.x * m[0][2] + v.y * m[1][2] + v.z * m[2][2] + v.w * m[3][2];
 		r.w = v.x * m[0][3] + v.y * m[1][3] + v.z * m[2][3] + v.w * m[3][3];
 		return r;
-	}
+	}	
 }
 
 #endif // !MATH_MATRIX4_H

@@ -266,12 +266,12 @@ public:
         // Create a simple procedural cylinder mesh
         rhea::CylinderMesh* cylinderMesh = simpleparser::Type::create<rhea::CylinderMesh>("cylinder_mesh");
         cylinderMesh->setRadius(0.5f);
-        cylinderMesh->setHeight(2.0f);
+        cylinderMesh->setHeight(1.0f);
         cylinderMesh->setSegments(16);
         cylinderMesh->createMesh();
         meshComp->setMesh(cylinderMesh);
         scene->addChild(cylinder);
-        cylinder->setPosition(math::Vector3(2.0f, 1.0f, 2.0f));
+        cylinder->setPosition(math::Vector3(1.0f, 1.0f, -2.0f));
 
         // add material
         rhea::Material* material = simpleparser::Type::create<rhea::Material>("cylinder_material");

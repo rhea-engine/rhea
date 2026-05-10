@@ -19,11 +19,11 @@
 
 namespace rhea::physics::bullet
 {
-	BulletHeightMap::BulletHeightMap(btDynamicsWorld* world, rhea::Item* item, const rhea::PhysicsBodyDesc& desc) :
+	BulletHeightMap::BulletHeightMap(btDynamicsWorld* world, rhea::Item* item) :
 		m_width(0),
 		m_height(0),
 		m_shape(nullptr),
-		BulletPhysicsBody(world, item, desc)
+		BulletPhysicsBody(world, item)
 	{
 		rhea::Unit* heightmap = static_cast<rhea::Terrain*>(item)->getHeightmap();
 		bool flipZ = true;

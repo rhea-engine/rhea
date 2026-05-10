@@ -18,6 +18,7 @@
 #include <Math/Vector2.h>
 #include <Rhea/Components/MeshComponent.h>
 #include <cmath>
+#include <Rhea/Components/PhysicsDataComponent.h>
 
 namespace rhea
 {
@@ -31,7 +32,23 @@ namespace rhea
 	{
 		Item::setup(app, attributes, values);
 
-		m_values["shader"] = "//rhea/shaders/terrain";		
+		m_values["shader"] = "//rhea/shaders/terrain";	
+
+		// find or create physics data component
+
+		// find by type from children
+		PhysicsDataComponent* pc = nullptr;
+		for (auto child : m_children) {
+			if (doCast<PhysicsDataComponent>(child.second)) {
+				pc = doCast<PhysicsDataComponent>(child.second);
+				break;
+			}
+		}
+		if (!pc)
+			pc = addComponentUnique<PhysicsDataComponent>("physics_data");
+		pc->rigid_body.motion = RigidBody::MotionType::Static;
+		pc->rigid_body.kind = "RheaPhysics:HeightMap";
+		pc->rigid_body.mass = 0.0f;
 	}
 
 	std::vector<Unit::Export> Terrain::getReferences()

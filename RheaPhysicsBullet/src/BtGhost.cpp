@@ -9,6 +9,7 @@
 
 #include "BtGhost.h"
 #include <Rhea/Core/Item.h>
+#include <Rhea/Components/PhysicsDataComponent.h>
 
 #include <bullet/src/btBulletDynamicsCommon.h>
 #include <bullet/src/BulletCollision/CollisionDispatch/btGhostObject.h>
@@ -17,10 +18,12 @@ using math::Vector3;
 
 namespace rhea::physics::bullet {
 
-	BulletPhysicsGhost::BulletPhysicsGhost(btDynamicsWorld* world, rhea::Item* item, const rhea::PhysicsBodyDesc& desc) :
-		m_offset_y(0.0f),
+	BulletPhysicsGhost::BulletPhysicsGhost(btDynamicsWorld* world, rhea::Item* item, float radius, float height, float offset_y) :
+		m_offset_y(offset_y),
+		m_radius(radius),
+		m_height(height),
 		m_ghost_object(nullptr),
-		BulletPhysicsBody(world, item, desc)
+		BulletPhysicsBody(world, item)
 	{
 	}
 
@@ -37,7 +40,6 @@ namespace rhea::physics::bullet {
 		// get position and rotation from m_item
 		math::Vector3 pos = m_item->getTransform()->get_position()->get_worldspace();
 		math::Quaternion rot = m_item->getTransform()->get_position()->get_rotation();
-		m_offset_y = m_item->getValue("collision_shape_offset_y");
 		if (m_offset_y)
 			pos.y += m_offset_y;
 
@@ -46,11 +48,9 @@ namespace rhea::physics::bullet {
 		startTransform.setOrigin(btVector3(pos.x, pos.y, pos.z));
 		startTransform.setRotation(btQuaternion(rot.x, rot.y, rot.z, rot.w));
 
-		float radius = m_item->getValue("collision_shape_radius", 0.7f);
-		float height = m_item->getValue("collision_shape_height", 1.8f);
+		// create a capsule shape for the ghost object - radius is the radius of the capsule, height is the total height of the capsule (including the hemispherical ends)
+        btCollisionShape* capsule = createCollisionShape(m_item->getComponent<PhysicsDataComponent>());
 
-        btConvexShape* capsule = new btCapsuleShape(radius, height - radius);
-        
         m_ghost_object = new btPairCachingGhostObject();
         m_ghost_object->setWorldTransform(startTransform);
         m_world->getBroadphase()->getOverlappingPairCache()->setInternalGhostPairCallback(new btGhostPairCallback());

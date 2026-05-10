@@ -12,15 +12,19 @@
 
 #include <bullet/src/btBulletDynamicsCommon.h>
 #include "ObjTriangleLoader.h"
+#include <Rhea/Components/PhysicsDataComponent.h>
+#include <Rhea/Components/ColliderComponent.h>
 
 
 using math::Vector3;
 
 namespace rhea::physics::bullet
 {
-	BulletPhysicsBody::BulletPhysicsBody(btDynamicsWorld* world, rhea::Item* item, const rhea::PhysicsBodyDesc& desc) :
-		m_world(world),
-		m_comound_shape(nullptr),		
+	static inline btVector3 toBt(const math::Vector3& v);
+	static inline btQuaternion toBt(const math::Quaternion& q);
+
+	BulletPhysicsBody::BulletPhysicsBody(btDynamicsWorld* world, rhea::Item* item) :
+		m_world(world),				
 		m_mass(0.0f),
 		m_upwards(0.0f),
 		m_body(nullptr),
@@ -29,36 +33,125 @@ namespace rhea::physics::bullet
 	{}
 	
 	bool BulletPhysicsBody::init()
-	{	
+	{
 		//create a rigidbody
+		auto* pdc = m_item->getComponent<PhysicsDataComponent>();
+		if (!pdc) {
+			LOG(LOG_ERROR) << "BtBody: no PhysicsDataComponent for item " << m_item->getPath();
+			return false;
+		}
 
-		m_mass = m_item->getValue("mass");
-		m_isKinematic = m_item->getValue("kinematic");
-		//rigidbody is dynamic if and only if mass is non zero, otherwise static
-		bool isDynamic = (m_mass != 0.f);
+		m_mass = pdc->rigid_body.mass;
+		m_isKinematic = pdc->rigid_body.motion == RigidBody::MotionType::Kinematic;
+		m_isStatic = pdc->rigid_body.motion == RigidBody::MotionType::Static;
 
-		// get the info from item 
-		std::string shape_type = m_item->getValueString("collision_shape");
+		// collider		
+		btCollisionShape* colShape = createCollisionShape(pdc);
+		if (!colShape) {
+			LOG(LOG_ERROR) << "BtBody: no collision shape for item " << m_item->getPath();
+			return false;
+		}		
+
+		// Create Dynamic Objects
+		btTransform startTransform;
+		startTransform.setIdentity();
+
+		m_upwards = 0.0f;
+
+		btVector3 localInertia(0, 0, 0);
+		if (isDynamic() && !m_isKinematic)
+			colShape->calculateLocalInertia(m_mass, localInertia);
+
+		// get position and rotation from m_item
+		rhea::Transform* transform = m_item->getTransform();
+		math::Vector3 pos = transform->get_position()->get_worldspace();
+		math::Quaternion rot = transform->get_position()->get_rotation();		
+		startTransform.setOrigin(btVector3(pos.x, pos.y, pos.z));
+		startTransform.setRotation(btQuaternion(rot.x, rot.y, rot.z, rot.w));
+
+		//using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
+		btDefaultMotionState* myMotionState = new btDefaultMotionState(startTransform);
+		btRigidBody::btRigidBodyConstructionInfo rbInfo(m_mass, myMotionState, colShape, localInertia);
+		m_body = new btRigidBody(rbInfo);
+
+		if (m_isKinematic) {
+			m_body->setCollisionFlags(m_body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
+			m_body->setActivationState(DISABLE_DEACTIVATION);
+		}
+		m_body->setUserPointer((void*)m_item);
+
+		return true;
+	}
+
+	btCollisionShape* BulletPhysicsBody::createCollisionShape(PhysicsDataComponent* pdc)
+	{
+		if (!pdc || pdc->colliders.empty()) {
+			return nullptr;
+		}
+
+		if (pdc->colliders.size() == 1 && pdc->colliders[0]->offset==Vector3::ZERO) {
+			return createColliderShape(pdc->colliders[0]->shape);
+		}
+
+		auto* compound = new btCompoundShape();
+
+		for (const auto& collider : pdc->colliders) {
+			auto* childShape = createColliderShape(collider->shape);
+			if (!childShape)
+				continue;
+
+			btTransform localTransform;
+			localTransform.setIdentity();			
+			localTransform.setOrigin(toBt(collider->offset));
+			// TODO
+			//localTransform.setRotation(toBt(collider->localRotation));
+
+			compound->addChildShape(localTransform, childShape);
+		}
+
+		return compound;
+	}
+
+	btCollisionShape* BulletPhysicsBody::createColliderShape(ColliderShape* shape)
+	{
+		std::string shape_type = shape->getShapeType();
+
+		// get the info from items physicsdatacomponent		
 		btCollisionShape* colShape;
 		if (shape_type == "Capsule") {
-			float radius = m_item->getValue("collision_shape.radius");
-			if (!radius)
+			rhea::CapsuleColliderShape* capsuleShape = static_cast<rhea::CapsuleColliderShape*>(shape);
+			float radius = capsuleShape->radius;
+			if (radius < 0.0005f)
 				radius = 0.7f;
-			float height = m_item->getValue("collision_shape.height");
-			if (!height)
+			// total height of the capsule is height + 2 * radius, so we need to make sure height is not too small
+			float height = capsuleShape->height;
+			if (height - radius * 2.0f < 0.0005f)
 				height = 1.8f;
-			colShape = new btCapsuleShape(radius, height);
+			colShape = new btCapsuleShape(radius, height - radius * 2.0f);
 		}
 		else if (shape_type == "Sphere") {
-			float radius = m_item->getValue("collision_shape.radius");
-			if (!radius)
+			rhea::SphereColliderShape* sphereShape = static_cast<rhea::SphereColliderShape*>(shape);
+			float radius = sphereShape->radius;
+			if (radius < 0.0005f)
 				radius = 1.0f;
 			colShape = new btSphereShape(btScalar(radius));
 		}
-		else {
-			// default
+		else if (shape_type == "Box") {
+			rhea::BoxColliderShape* boxShape = static_cast<rhea::BoxColliderShape*>(shape);
+			float hx = boxShape->half_extents.x;
+			float hy = boxShape->half_extents.y;
+			float hz = boxShape->half_extents.z;
 
-			if (!isDynamic && !m_isKinematic) {
+			if (hx < 0.0005f) hx = 1.0f;
+			if (hy < 0.0005f) hy = 1.0f;
+			if (hz < 0.0005f) hz = 1.0f;
+
+			colShape = new btBoxShape(btVector3(hx, hy, hz));
+		}
+		else {
+			// assume mesh collider, for static object we use the triangles, for dynamic objects we handle it not correctly...
+
+			if (!isDynamic() && !m_isKinematic) {
 				TriangleSoup tri;
 				rhea::Application* app = m_item->getApplication();
 				if (!ExtractTrianglesFromScene(app, m_item, tri) || tri.indices.empty()) {
@@ -144,45 +237,9 @@ namespace rhea::physics::bullet
 				colShape = new btBoxShape(btVector3(1, 1, 1));
 			}
 		}
-	
-//TODO (for cleanup and reuse)		collisionShapes.push_back(colShape);
 
-		/// Create Dynamic Objects
-		btTransform startTransform;
-		startTransform.setIdentity();
-		
-		m_upwards = 0.0f;
-
-		btVector3 localInertia(0, 0, 0);
-		if (isDynamic&& !m_isKinematic)
-			colShape->calculateLocalInertia(m_mass, localInertia);
-
-		// get position and rotation from m_item
-		rhea::Transform* transform = m_item->getTransform();
-		math::Vector3 pos = transform->get_position()->get_worldspace();
-		math::Quaternion rot = transform->get_position()->get_rotation();
-		float offset_y = m_item->getValue("collision_shape_offset_y");
-		if (offset_y)
-			pos.y += offset_y;
-		startTransform.setOrigin(btVector3(pos.x, pos.y, pos.z));
-		startTransform.setRotation(btQuaternion(rot.x, rot.y, rot.z, rot.w));
-
-		//using motionstate is recommended, it provides interpolation capabilities, and only synchronizes 'active' objects
-		btDefaultMotionState* myMotionState = new btDefaultMotionState(startTransform);
-		btRigidBody::btRigidBodyConstructionInfo rbInfo(m_mass, myMotionState, colShape, localInertia);
-		m_body = new btRigidBody(rbInfo);
-
-		if (m_isKinematic) {
-			m_body->setCollisionFlags(m_body->getCollisionFlags() | btCollisionObject::CF_KINEMATIC_OBJECT);
-			m_body->setActivationState(DISABLE_DEACTIVATION);
-		}
-		m_body->setUserPointer((void*)m_item);
-
-		if (m_item->getValue("character")) {
-			setAngularVelocity(Vector3(0.0, 0.0, 0.0));
-			setFriction(0.0f);
-		}
-		return true;
+		//TODO (for cleanup and reuse)		collisionShapes.push_back(colShape);
+		return colShape;
 	}
 	
 	BulletPhysicsBody::~BulletPhysicsBody()
@@ -293,5 +350,15 @@ namespace rhea::physics::bullet
 		}
 	}
 
+	// helper functions for converting math::Vector3 and math::Quaternion to Bullet types
+	static inline btVector3 toBt(const math::Vector3& v)
+	{
+		return btVector3(v.x, v.y, v.z);
+	}
 
+	static inline btQuaternion toBt(const math::Quaternion& q)
+	{
+		return btQuaternion(q.x, q.y, q.z, q.w);
+	}
 }
+

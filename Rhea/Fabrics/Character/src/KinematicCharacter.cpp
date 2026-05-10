@@ -19,6 +19,7 @@
 
 #include <algorithm>
 #include <Psio/Log.h>
+#include <Rhea/Components/PhysicsDataComponent.h>
 
 using math::Quaternion;
 using math::Vector3;
@@ -32,6 +33,28 @@ namespace rhea
 		PhysicsService* phy_srv = mgr->getPhysicsService();		
 		if (phy_srv)
 			phy_srv->unregisterEventHandler("pre_physics", this);
+	}
+
+	void KinematicCharacter::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
+	{
+		Item::setup(app, attributes, values);
+
+		// find or create physics data component
+		
+		// find by type from children
+		PhysicsDataComponent* pc = nullptr;
+		for (auto child : m_children) {
+			if (doCast<PhysicsDataComponent>(child.second)) {
+				pc = doCast<PhysicsDataComponent>(child.second);
+				break;
+			}
+		}
+		if (!pc)
+			pc = addComponentUnique<PhysicsDataComponent>("physics_data");
+		pc->rigid_body.motion = RigidBody::MotionType::Kinematic;
+		pc->rigid_body.velocity = { 0,0,0 };
+		pc->rigid_body.friction = 0.0f;
+		pc->rigid_body.kind = "RheaPhysics:Character";
 	}
 
 	bool KinematicCharacter::doPhysics(Event* ev, Unit* unit)

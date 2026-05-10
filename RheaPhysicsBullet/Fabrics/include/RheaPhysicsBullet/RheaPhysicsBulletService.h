@@ -20,7 +20,7 @@ namespace rhea
 {
 	class Controller;
 	class Scene;
-
+	class PhysicsDataComponent;
 }
 
 namespace rhea::physics::bullet
@@ -54,7 +54,7 @@ namespace rhea::physics::bullet
 		// ray trace
 		Unit* ray(math::Vector3 origin, math::Vector3 direction);
 
-		std::unique_ptr<rhea::PhysicsBody> createBody(const rhea::PhysicsBodyDesc& desc, rhea::Item* item);
+		std::unique_ptr<rhea::PhysicsBody> createBody(const rhea::PhysicsDataComponent* pdc, rhea::Item* item);
 
 		using BulletDrawerFactory = std::function<rhea::IPhysicsDebugDraw* ()>;
 		void setDrawerFactory(BulletDrawerFactory f) { m_drawer_factory = f; }

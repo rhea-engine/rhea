@@ -16,10 +16,14 @@
 class btRigidBody;
 class btDynamicsWorld;
 class btCompoundShape;
+class btCollisionShape;
 
 namespace rhea
 {
 	class Item;
+	class PhysicsDataComponent;
+	class ColliderComponent;
+	class ColliderShape;
 }
 
 namespace rhea::physics::bullet
@@ -28,10 +32,12 @@ namespace rhea::physics::bullet
 	class BulletPhysicsBody : public rhea::PhysicsBody
 	{
 	public:
-		BulletPhysicsBody(btDynamicsWorld* world, rhea::Item* item, const rhea::PhysicsBodyDesc& desc);
+		BulletPhysicsBody(btDynamicsWorld* world, rhea::Item* item);
 		~BulletPhysicsBody();
 
 		virtual bool init();
+		btCollisionShape* BulletPhysicsBody::createCollisionShape(PhysicsDataComponent* pdc);
+		btCollisionShape* createColliderShape(ColliderShape* shape);
 
 		// move by vector
 		void move(math::Vector3 move) override;
@@ -63,8 +69,7 @@ namespace rhea::physics::bullet
 	protected:
 		math::Vector3 m_movement;
 		float m_turn;
-		btRigidBody* m_body;
-		btCompoundShape* m_comound_shape;
+		btRigidBody* m_body;		
 		float m_upwards;
 		btDynamicsWorld* m_world;
 		float m_mass;

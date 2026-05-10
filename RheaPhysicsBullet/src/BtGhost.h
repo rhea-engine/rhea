@@ -17,7 +17,7 @@ namespace rhea::physics::bullet
 	class BulletPhysicsGhost : public BulletPhysicsBody
 	{
 	public:
-		BulletPhysicsGhost(btDynamicsWorld* world, rhea::Item* item, const rhea::PhysicsBodyDesc& desc);
+		BulletPhysicsGhost(btDynamicsWorld* world, rhea::Item* item, float radius, float height, float offset_y);
 		~BulletPhysicsGhost();
 
 		bool init();
@@ -36,6 +36,8 @@ namespace rhea::physics::bullet
 	protected:
 		btPairCachingGhostObject* m_ghost_object;
 		float m_offset_y;
+		float m_radius;
+		float m_height;
 	};
 }
 

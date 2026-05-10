@@ -50,6 +50,11 @@ namespace simpleparser
 
 		// get english error message
 		char* getErrMsg(Error err);
+
+		// helper definitions
+		using AttributeMap = std::unordered_map<std::string, std::string>;
+		using ValueMap = std::unordered_map<std::string, Variant>;
+
 	protected:
 		Error parseSection(char* buf, size_t& reader, size_t buflen, int& line, Section &section);
 		Error parseHeader(char* buf, size_t& reader, size_t buflen, int& line, std::string& path);

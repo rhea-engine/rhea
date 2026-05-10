@@ -19,6 +19,18 @@
 
 namespace rhea
 {	
+	struct PendingUnitConfig
+	{
+		Unit* unit = nullptr;
+		Unit* parent = nullptr;
+		std::string section_name;
+
+		simpleparser::IniFileParser::AttributeMap attributes;
+		simpleparser::IniFileParser::ValueMap values;
+
+		bool isSceneRoot = false;
+	};
+
 	void SceneLoader::load(std::string name, Application* app, orion::ResourceRequest* req, Resource::LoadedHandler handler)
 	{
 		std::unique_ptr<simpleparser::IniFileParser> parser = std::make_unique<simpleparser::IniFileParser>();
@@ -70,7 +82,9 @@ namespace rhea
 				}
 			}
 
-			// setup all resources
+			std::vector<PendingUnitConfig> pending_configs;
+
+			// instantiate all resources
 			for (std::vector<simpleparser::IniFileParser::Section>::iterator it = sections.begin(); it != sections.end(); ++it) {
 				simpleparser::IniFileParser::Section section = *it;
 				if (section.section_name == "scene")
@@ -102,19 +116,43 @@ namespace rhea
 					// create the unit and set config params
 					ppath = path.substr(0, rpos);
 					path = path.substr(rpos + 1);
-					unit = tree->createUnit(path, type_name, section.attributes, section.values);
+					//unit = tree->createUnit(path, type_name, section.attributes, section.values);
+					unit = doCast<Unit>(simpleparser::Type::create(path, type_name));
 
 					// find parent relative to top parent			
 					child_parent = doCast<Unit>(scene->find(ppath, true));
 				}
 				else {
 					// create the unit and set config params
-					unit = tree->createUnit(path, type_name, section.attributes, section.values);
+					//unit = tree->createUnit(path, type_name, section.attributes, section.values);
+					unit = doCast<Unit>(simpleparser::Type::create(path, type_name));
 
 					// find parent relative to top parent			
 					child_parent = scene;
 				}
+				if (!unit) {
+					LOG(LOG_ERROR) << "Failed to create unit of type " << type_name;
+					continue;
+				}
 				child_parent->addChild(unit);
+
+				// store config params
+				PendingUnitConfig config;
+				config.unit = unit;
+				config.parent = child_parent;
+				config.section_name = section.section_name;
+				config.attributes = section.attributes;
+				config.values = section.values;
+				pending_configs.push_back(config);
+			}
+
+			for (std::vector<PendingUnitConfig>::iterator it = pending_configs.begin(); it != pending_configs.end(); ++it) {
+				PendingUnitConfig config = *it;
+
+				Unit* unit = config.unit;
+
+				// setup unit with config params
+				unit->setup(app, config.attributes, config.values);
 
 				static int i = 0;
 				i++;
@@ -126,9 +164,9 @@ namespace rhea
 					// if absolute path or base path it is a resource not satified by this scene file
 					if (id.size() > 1 && id[0] == '/') {
 						if (id[1] == '/')
-							res_list.push(section.section_name + '_' + id, id, ref_it->type);
+							res_list.push(config.section_name + '_' + id, id, ref_it->type);
 						else
-							res_list.push(section.section_name + '_' + id, scene_root + id, ref_it->type);
+							res_list.push(config.section_name + '_' + id, scene_root + id, ref_it->type);
 					}
 				}
 			}

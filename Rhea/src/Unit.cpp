@@ -52,14 +52,14 @@ namespace rhea
 
 	void Unit::removeChild(Component* child)
 	{		
-		if (!child)
+		if (!child || child->getParent() != this)
 			return;
-		m_children.erase(child->getPathName());
-		m_ordered_children.erase(std::remove(m_ordered_children.begin(), m_ordered_children.end(), child));
-		child->setParent(nullptr);
 		Unit* u_child = doCast<Unit>(child);
 		if (u_child)
 			u_child->onRemoved();
+		m_children.erase(child->getPathName());
+		m_ordered_children.erase(std::remove(m_ordered_children.begin(), m_ordered_children.end(), child));
+		child->setParent(nullptr);
 	}
 
 	void Unit::addComponent(Component* component)

@@ -26,11 +26,14 @@ namespace rhea
 		{}
 		Scene(std::string name, std::string type_name) :
 			m_is_active(false),
+			m_is_shown(false),
 			Unit(name, type_name)
 		{}
 
 		// implement onParented
-		void onParented();
+		void onParented() override;
+		// implement onRemoved
+		void onRemoved() override;
 
 		// add an item to the scene
 		void addItem(Item* item);
@@ -39,10 +42,20 @@ namespace rhea
 		void removeItem(Item* item);
 
 		// get the items
-		std::vector<Item*> getItems() { return m_items; }
+		std::vector<Item*>& getItems() const { return const_cast<std::vector<Item*>&>(m_items); }
 
 		// ready event handler
 		void ready();
+
+		// handle scene show/hide
+		void show();
+		void hide();
+
+		// handle scene active state
+		void activate();
+		void deactivate();
+
+	private:
 
 		// handle new items in scene
 		bool onSceneEnter(Event* ev, Unit* unit);
@@ -52,17 +65,10 @@ namespace rhea
 		// handle remove of items in scene
 		bool onItemDetached(Event* ev, Unit* unit);
 
-		// handle scene show/hide
-		void show();
-		void hide();
-
-		// handle scene active state
-		void activate();
-		void deactive();
-		
 	protected:
-		std::vector<Item*> m_items;		
+		std::vector<Item*> m_items;	
 		bool m_is_active;
+		bool m_is_shown;
 	};
 }
 

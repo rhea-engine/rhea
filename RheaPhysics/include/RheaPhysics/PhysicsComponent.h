@@ -42,6 +42,7 @@ namespace rhea::physics
 			}
 		}
 		rhea::PhysicsBody* getBody() { return m_body.get(); }
+		void deleteBody() { m_body.reset(); }
 
 		// movement listener functions
 		void onMovementChanged(const math::Vector3& move) override {

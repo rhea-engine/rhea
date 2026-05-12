@@ -59,7 +59,7 @@ namespace poseidon
 
 		// name handling
 		void setName(std::string& name) { m_name = name; }
-		std::string getName() { return m_name; }
+		std::string getName() const { return m_name; }
 		bool isName(std::string& name) { return m_name == name; }
 
 		// get lights

@@ -11,10 +11,12 @@
 
 void rhea::physics::bullet::RheaPhysicsBulletFabric::Register(rhea::Application* app)
 {
+    BulletPhysicsService::_register_BulletPhysicsService();
+
     auto* mgr = static_cast<rhea::PhysicsManagerService*>(app->getService("physics_mgr"));
     if (!mgr) return; // or create it, but better to require RheaPhysics fabric
 
     mgr->registerBackend("world", [](rhea::Application* app) {
-        return std::make_unique<rhea::physics::bullet::BulletPhysicsService>("BulletPhysicsService", "//meworla/service");
+        return std::make_unique<rhea::physics::bullet::BulletPhysicsService>("BulletPhysicsService");
         });
 }

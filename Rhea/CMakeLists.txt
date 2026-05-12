@@ -57,7 +57,9 @@ add_library(RheaBase "src/Unit.cpp" "src/UnitTree.cpp" "src/Realm.cpp" "src/Disp
 "Core/Light.cpp" "Core/DirectionalLight.cpp" "Core/PointLight.cpp" 
 "Core/SpotLight.cpp"
 "Physics/PhysicsManagerService.cpp" "include/Rhea/Graphics/SizeEvent.h" "include/Rhea/ConfigFile.h" "src/ConfigFile.cpp" 
-"src/Input/InputMap.cpp" "include/Rhea/Graphics/Window.h")
+"src/Input/InputMap.cpp" "include/Rhea/Graphics/Window.h" 
+"include/Rhea/Components/PhysicsDataComponent.h" "Components/PhysicsDataComponent.cpp"
+"include/Rhea/Components/ColliderComponent.h" "Components/ColliderComponent.cpp")
 add_library(Rhea::Core ALIAS RheaBase)
 
 target_link_libraries(RheaBase PUBLIC Meworla::Math Meworla::Orion SimpleParser RheaResources Psio)

@@ -43,6 +43,8 @@ namespace rhea
 		{}
 		virtual ~KinematicCharacter();
 
+		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values) override;
+
 		// handle physics update
 		bool doPhysics(Event* ev, Unit* unit);
 

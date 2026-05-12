@@ -66,6 +66,7 @@ namespace rhea::client {
 		
 		bool onInput(rhea::Event* ev, rhea::Unit* unit);
 		bool onAddItem(rhea::Event* ev, rhea::Unit* unit);
+		bool onRemoveItem(rhea::Event* ev, rhea::Unit* unit);
 		
 		// request fullscreen
 		void ToggleFullscreen();
@@ -91,6 +92,8 @@ namespace rhea::client {
 
 		// Helper method for cleanup
 		void unregisterItemFromContext(rhea::Item* item, poseidon::RenderContext* context);
+
+		void dumpStats() const override;
 
 	protected:
 		std::unique_ptr<poseidon::Core> m_core;

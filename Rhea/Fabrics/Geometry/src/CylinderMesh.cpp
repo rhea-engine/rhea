@@ -94,7 +94,7 @@ namespace rhea
             }
 
             for (uint32_t i = 0; i < segments; ++i) {
-                b.addTriangle(topCenter, topStart + i, topStart + i + 1);
+                b.addTriangle(topCenter, topStart + i + 1, topStart + i);
             }
         }
 

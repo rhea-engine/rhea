@@ -56,7 +56,7 @@
 #include <Rhea/Core/Geometry.h>
 #include <Rhea/ConfigFile.h>
 #include <Rhea/Components/MeshComponent.h>
-//#include <Physics/PhysicsComponent.h>
+#include <Rhea/Components/PhysicsDataComponent.h>
 
 #undef min
 
@@ -93,6 +93,8 @@ namespace rhea
 		// register core components
 		VisualComponent::_register_VisualComponent();
 		MeshComponent::_register_MeshComponent();
+		PhysicsDataComponent::_register_PhysicsDataComponent();
+		ColliderComponent::_register_ColliderComponent();
 
 		// register services
 		simpleparser::Type::registerType<Service>("//meworla/service");
@@ -208,7 +210,7 @@ namespace rhea
 		m_dispatcher = new Dispatcher();
 
 		// create a representation for the engine
-		rhea::Unit* engine = m_unit_tree->createUnit("engine", "//core/types/unit", {}, {});
+		rhea::Unit* engine = doCast<Unit>(m_unit_tree->createUnit("engine", "//core/types/unit", {}, {}));
 		m_unit_tree->addChild(engine);
 	}
 

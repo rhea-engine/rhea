@@ -37,7 +37,7 @@ namespace rhea::physics::bullet
 	class BulletPhysicsCharacter : public BulletPhysicsBody, public rhea::IPhysicsCharacter
 	{
 	public:
-		BulletPhysicsCharacter(btDynamicsWorld *world, rhea::Item* item, const rhea::PhysicsBodyDesc& desc);
+		BulletPhysicsCharacter(btDynamicsWorld *world, rhea::Item* item);
 		~BulletPhysicsCharacter();
 
 		bool init() override;
@@ -95,20 +95,24 @@ namespace rhea::physics::bullet
 			JUMP,
 		};
 		
-		float m_gravity;
+		float m_gravity = 0.0f;
 		moveState m_move_state;
 		math::Vector3 m_forced_movement;
 		rhea::Position* m_position;
 
 		btDynamicsWorld* m_world;
-		BulletPhysicsGhost* m_ghost;
+		BulletPhysicsGhost* m_ghost = nullptr;
 		btPairCachingGhostObject* m_ghost_object;
+		float m_ghost_offset_y = 0.0f;
 
-		float m_capsule_offset;
-		float m_step_height;
-		float m_height;
-		float m_radius;
-		float m_levitation;
+		float m_capsule_offset = 0.0f;
+		float m_step_height = 0.0f;
+		float m_height = 0.0f;
+		float m_radius = 0.0f;
+		float m_levitation = 0.0f;
+		btVector3 m_up = btVector3(0.0f, 1.0f, 0.0f);
+		btScalar m_min_slope_dot = 0.707f;
+		btScalar m_added_margin = 0.05f;
 
 		bool m_foot_contact;
 		bool m_head_contact;
@@ -118,10 +122,10 @@ namespace rhea::physics::bullet
 		btVector3 m_gravity_v;
 		btVector3 m_last_position;
 
-		bool m_check_ground;
-		float m_minimal_ground;
+		bool m_check_ground = false;
+		float m_minimal_ground = 0.0f;
 
-		bool m_hitting_wall;
+		bool m_hitting_wall = false;
 		std::vector<math::Vector3> m_surface_hits_normals;
 
 		//some internal variables

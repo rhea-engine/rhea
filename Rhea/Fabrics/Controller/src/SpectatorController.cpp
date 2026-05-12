@@ -157,5 +157,10 @@ namespace rhea
 	void SpectatorController::_registerEvent(Unit* unittree)
 	{
 		unittree->registerEventHandler("unhandled_input", this, std::bind(&SpectatorController::onInput, this, std::placeholders::_1, std::placeholders::_2));
+		unittree->registerEventHandler("scene_deactivate", this, [this, unittree](Event* ev, Unit* tree) -> bool {
+			unittree->unregisterEventHandler("unhandled_input", this);
+			unittree->unregisterEventHandler("scene_deactivate", this);
+			return false;
+			});
 	}
 }

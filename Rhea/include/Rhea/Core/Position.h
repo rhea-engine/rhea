@@ -42,6 +42,24 @@ namespace rhea
 
 		void markDirty() { m_dirty = true; }
 
+		math::Vector3 Position::getForward() const
+		{
+			return math::Vector3(
+				m_wtm[2][0],  // Z.x
+				m_wtm[2][1],  // Z.y
+				m_wtm[2][2]   // Z.z
+			).normalizedCopy();
+		}
+
+		math::Vector3 Position::getRight() const
+		{
+			return math::Vector3(
+				m_wtm[0][0],  // X.x
+				m_wtm[0][1],  // X.y
+				m_wtm[0][2]   // X.z
+			).normalizedCopy();
+		}
+
 	protected:
 		math::Vector3 m_position;
 		math::Quaternion m_rotation;

@@ -28,7 +28,7 @@ namespace rhea::physics::bullet
 	class BulletHeightMap : public BulletPhysicsBody
 	{
 	public:
-		BulletHeightMap(btDynamicsWorld* world, rhea::Item* item, const rhea::PhysicsBodyDesc& desc);
+		BulletHeightMap(btDynamicsWorld* world, rhea::Item* item);
 		~BulletHeightMap();
 
 		bool init() override { return true; }

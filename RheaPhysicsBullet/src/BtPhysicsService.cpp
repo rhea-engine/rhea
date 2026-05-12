@@ -26,6 +26,7 @@
 #include <Rhea/Physics/PhysicsManagerService.h>
 #include <Rhea/Physics/PhysicsEvent.h>
 #include <Rhea/Physics/CollisionEvent.h>
+#include <Rhea/Components/PhysicsDataComponent.h>
 
 namespace rhea::physics::bullet
 {
@@ -37,6 +38,29 @@ namespace rhea::physics::bullet
 	{
 	}
 
+	struct GhostContactResult : public btCollisionWorld::ContactResultCallback
+	{
+		bool hasContact = false;
+
+		btScalar addSingleResult(
+			btManifoldPoint& cp,
+			const btCollisionObjectWrapper* colObj0Wrap,
+			int partId0,
+			int index0,
+			const btCollisionObjectWrapper* colObj1Wrap,
+			int partId1,
+			int index1
+		) override
+		{
+			if (cp.getDistance() <= 0.06f)
+			{
+				hasContact = true;
+			}
+
+			return 0;
+		}
+	};
+
 	void BulletPhysicsService::onPhysicsStep(float delta)
 	{
 		if (!m_world || !m_scene) {		
@@ -44,22 +68,11 @@ namespace rhea::physics::bullet
 			return;
 		}
 		std::unique_ptr<rhea::PhysicsEvent> ev = std::make_unique<rhea::PhysicsEvent>("physics_pre", delta);
-		sendEvent(std::string("pre_physics"), ev.get());
-
-		std::vector<rhea::Item*> items = m_scene->getItems();
-
-		/*
-		for (auto it = items.begin(); it != items.end(); ++it) {
-			Item* item = *it;
-			BulletPhysicsBody* body = static_cast<BulletPhysicsBody*>(item->getPhysicsBody());
-			if (body)
-				body->doPhysics(delta, m_terrain);
-		}
-		*/
+		sendEvent(std::string("pre_physics"), ev.get());		
 
 		m_world->stepSimulation(delta, 1);
 
-		// Collision Detection durchführen
+		// do collision detection
 		int numManifolds = m_world->getDispatcher()->getNumManifolds();
 		for (int i = 0; i < numManifolds; i++)
 		{
@@ -94,12 +107,15 @@ namespace rhea::physics::bullet
 			}
 		}
 
-		// HINZUGEFÜGT: Ghost Object Kollisionen für Kinematic Bodies
-		for (int j = m_world->getNumCollisionObjects() - 1; j >= 0; j--)
+		// ghost object collision for Kinematic Bodies
+		int numObjects = m_world->getNumCollisionObjects();
+		for (int j = numObjects - 1; j >= 0; j--)
 		{
+			if (j >= m_world->getNumCollisionObjects())
+				continue; // Object has been removed during collision processing, skip it
 			btCollisionObject* obj = m_world->getCollisionObjectArray()[j];
 			
-			// Prüfen ob es ein Ghost Object ist
+			// Check if it is a Ghost Object
 			if (obj->getInternalType() == btCollisionObject::CO_GHOST_OBJECT)
 			{
 				btGhostObject* ghost = static_cast<btGhostObject*>(obj);
@@ -111,12 +127,20 @@ namespace rhea::physics::bullet
 					{
 						btCollisionObject* overlappingObj = ghost->getOverlappingObject(k);
 						rhea::Item* itemB = doCast<rhea::Item>((simpleparser::Variant*)overlappingObj->getUserPointer());
-						
-						if (itemB) {
-							// Collision Event senden (ohne genaue Kontaktpunkte)
-							auto evA = std::make_unique<rhea::CollisionEvent>(itemA, itemB, math::Vector3(0,0,0), math::Vector3(0,1,0));
-							itemA->sendEvent("collision", evA.get());
-						}
+
+						if (!itemB)
+							continue;
+
+						GhostContactResult result;
+						m_world->contactPairTest(ghost, overlappingObj, result);
+
+						if (!result.hasContact)
+							continue;
+
+						// send collision event (without precise contact points)
+						auto evA = std::make_unique<rhea::CollisionEvent>(itemA, itemB, math::Vector3(0, 0, 0), math::Vector3(0, 1, 0));
+						itemA->sendEvent("collision", evA.get());
+
 					}
 				}
 			}
@@ -207,10 +231,10 @@ namespace rhea::physics::bullet
 			//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
 			btDefaultMotionState* myMotionState = new btDefaultMotionState(groundTransform);
 			btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, groundShape, localInertia);
-			btRigidBody* body = new btRigidBody(rbInfo);
+			m_ground = new btRigidBody(rbInfo);
 
 			//add the body to the dynamics world
-			m_world->addRigidBody(body);
+			m_world->addRigidBody(m_ground);
 		}
 
 		// get items of scene
@@ -226,9 +250,43 @@ namespace rhea::physics::bullet
 		}
 
 		scene->registerEventHandler(
-			"add_item", this,
+			"scene_item_added", this,
 			std::bind(&BulletPhysicsService::onItemAdd, this, std::placeholders::_1, std::placeholders::_2)
 		);
+		scene->registerEventHandler(
+			"scene_item_removed", this,
+			std::bind(&BulletPhysicsService::onItemRemove, this, std::placeholders::_1, std::placeholders::_2)
+		);
+	}
+
+	void BulletPhysicsService::clearScene(rhea::Scene* scene)
+	{
+		if (!scene) {
+			LOG(LOG_ERROR) << "BulletPhysicsService::clearScene: no scene";
+			return;
+		}
+		if (m_ground)
+		{
+			m_world->removeRigidBody(m_ground);
+
+			delete m_ground->getMotionState();
+			delete m_ground;
+
+			m_ground = nullptr;
+		}
+
+		std::vector<rhea::Item*> items = m_scene->getItems();
+
+		for (auto it = items.begin(); it != items.end(); ++it) {
+			rhea::Item* item = *it;
+			auto* pc = item->getComponent<PhysicsComponent>();
+			if (!pc)
+				continue;
+			pc->deleteBody();
+		}
+
+		scene->unregisterEventHandler("scene_item_added", this);
+		scene->unregisterEventHandler("scene_item_removed", this);
 	}
 
 	bool BulletPhysicsService::onItemAdd(rhea::Event* ev, rhea::Unit* unit)
@@ -240,13 +298,27 @@ namespace rhea::physics::bullet
 		return false;
 	}
 
+	bool BulletPhysicsService::onItemRemove(rhea::Event* ev, rhea::Unit* unit)
+	{
+		rhea::Item* item = doCast<rhea::Item>(ev->getTarget());
+		if (!item) return false;
+
+		if (auto* pc = item->getComponent<PhysicsComponent>()) {			
+			pc->deleteBody();
+			item->deleteComponent<PhysicsComponent>();
+		}
+		return false;
+	}
+
 	void BulletPhysicsService::initializeItem(rhea::Item* item)
 	{
-		auto* mgr = doCast<rhea::PhysicsManagerService>(m_app->getService("physics_mgr"));		
-		const auto* desc = mgr->getBodyDescFor(item);
-		if (!desc || desc->kind.empty()) return;
+	//	auto* mgr = doCast<rhea::PhysicsManagerService>(m_app->getService("physics_mgr"));		
+	//	const auto* desc = mgr->getBodyDescFor(item);
+	//	if (!desc || desc->kind.empty()) return;
+		auto* pdc = item->getComponent<rhea::PhysicsDataComponent>();
+		if (!pdc) return;
 
-		auto body = createBody(*desc, item); // bullet decides by desc.kind
+		auto body = createBody(pdc, item); // bullet decides by desc.kind
 		auto* bt = static_cast<BulletPhysicsBody*>(body.get()); // safe in this backend
 		if (bt && bt->init()) {
 			auto* pc = item->addComponentUnique<PhysicsComponent>();
@@ -287,6 +359,11 @@ namespace rhea::physics::bullet
 			setScene(doCast<rhea::Scene>(ev->getTarget()));
 			return false;
 			});
+		m_app->getUnitTree()->registerEventHandler("scene_deactivate", this, [&](rhea::Event* ev, rhea::Unit* tree)->bool {
+			clearScene(doCast<rhea::Scene>(ev->getTarget()));
+			return false;
+			});
+
 	}
 	
 	rhea::Unit* BulletPhysicsService::ray(math::Vector3 origin, math::Vector3 direction)
@@ -310,23 +387,28 @@ namespace rhea::physics::bullet
 	}
 
 	std::unique_ptr<rhea::PhysicsBody>
-		BulletPhysicsService::createBody(const rhea::PhysicsBodyDesc& desc, rhea::Item* item)
+		BulletPhysicsService::createBody(const rhea::PhysicsDataComponent* pdc, rhea::Item* item)
 	{
-		if (desc.kind == "Meworla/RheaPhysics:Character")
-			return std::make_unique<BulletPhysicsCharacter>(m_world, item, desc);
+		if (pdc->rigid_body.kind == "RheaPhysics:Character")
+			return std::make_unique<BulletPhysicsCharacter>(m_world, item);
 
-		if (desc.kind == "Meworla/RheaPhysics:HeightMap")
-			return std::make_unique<BulletHeightMap>(m_world, item, desc);
+		if (pdc->rigid_body.kind == "RheaPhysics:HeightMap")
+			return std::make_unique<BulletHeightMap>(m_world, item);
 
-		if (desc.kind == "Meworla/RheaPhysics:RigidBody")
-			return std::make_unique<BulletPhysicsBody>(m_world, item, desc);
+		if (pdc->rigid_body.kind == "RheaPhysics:RigidBody")
+			return std::make_unique<BulletPhysicsBody>(m_world, item);
 
 		return nullptr;
 	}
 
-	void BulletPhysicsService::setDebugDrawer(btIDebugDraw* drawer)
+	void BulletPhysicsService::dumpStats() const
 	{
-		if (drawer)
-			m_world->setDebugDrawer(drawer);
+		LOG(LOG_INFO) << "BulletPhysicsService Stats:";
+		if (m_world) {
+			LOG(LOG_INFO) << "World exists";
+		} else {
+			LOG(LOG_INFO) << "World does not exist";
+		}
+		LOG(LOG_INFO) << "Number of collision objects: " << (m_world ? m_world->getNumCollisionObjects() : 0);
 	}
 }

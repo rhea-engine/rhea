@@ -23,6 +23,7 @@ namespace rhea::client {
         poseidon::Mesh* getOrCreate(poseidon::Core* core, rhea::Mesh* meshUnit, bool dynamic_usage, const Builder& builder);
         poseidon::Mesh* find(rhea::Mesh* mesh);
         poseidon::Mesh* find(std::string key);
+		void invalidate(rhea::Mesh* mesh);
 
     private:
         std::unordered_map<std::string, std::unique_ptr<poseidon::Mesh>> m_cache;

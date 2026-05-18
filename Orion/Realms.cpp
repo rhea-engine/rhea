@@ -29,44 +29,10 @@ namespace orion
 			return r;
 		}
 
-		// get from realms.conf
-		std::string path = m_orion->getFs()->getInstallDataDir();
-		path += std::string("/Meworla/Core/realms.conf");
-		if (psio::Fs::fileExists(path))
-		{
-			FileResourceStream* res = new FileResourceStream(path);
-			res->Open();
-			if (m_realms_lastmod < res->getLastmod())
-			{
-				m_realms_lastmod = res->getLastmod();
-				for (auto it = m_realms.begin(); it != m_realms.end(); ++it)
-					delete* it;
-				m_file_realms.clear();
-
-				while (!res->eof()) {
-					std::string s = res->getLine();
-
-					// remove leading whitespace
-					s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
-						return !std::isspace(ch);
-						}));
-
-					// skip empty and comment lines
-					if (s.length() == 0 || (s.at(0) == '#'))
-						continue;
-
-					// parse the line
-					size_t pos = s.find_first_of(" \t");
-					if (pos != std::string::npos) {
-						// parse successful, store it to file realms list
-						std::string realmname = s.substr(0, pos);
-						std::string url = s.substr(pos + 1, std::string::npos);
-						Realm* realm = new Realm(realmname, url, 0);						
-						m_file_realms.push_back(realm);
-					}
-				}
-			}
-			delete res;
+		// Only load file_realms once on the first call
+		if (!m_file_realms_loaded) {
+			LoadFileRealms();
+			m_file_realms_loaded = true;
 		}
 
 		// get from file realm list
@@ -92,6 +58,58 @@ namespace orion
 		}
 		// not found in cache
 		return NULL;
+	}
+
+	void Realms::LoadFileRealms()
+	{
+		std::string path = m_orion->getFs()->getInstallDataDir();
+		path += std::string("/Meworla/Core/realms.conf");
+		
+		if (!psio::Fs::fileExists(path))
+			return;
+
+		FileResourceStream* res = new FileResourceStream(path);
+		res->Open();
+		m_realms_lastmod = res->getLastmod();
+
+		while (!res->eof()) {
+			std::string s = res->getLine();
+
+			// remove leading whitespace
+			s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
+				return !std::isspace(ch);
+			}));
+
+			// skip empty and comment lines
+			if (s.length() == 0 || (s.at(0) == '#'))
+				continue;
+
+			// parse the line
+			size_t pos = s.find_first_of(" \t");
+			if (pos != std::string::npos) {
+				std::string realmname = s.substr(0, pos);
+				std::string url = s.substr(pos + 1, std::string::npos);
+				
+				Realm* realm = nullptr;
+				if (url.find("file://") == 0) {
+					// Entferne file:// Prefix
+					std::string localPath = url.substr(7);
+					realm = new Realm(realmname, localPath, Realm::RealmType::LocalPath);
+				}
+				else if (url.length() > 0 && (url[0] == '/' || url[0] == '\\' || 
+						(url.length() > 2 && url[1] == ':'))) {
+					// Absoluter Pfad
+					realm = new Realm(realmname, url, Realm::RealmType::LocalPath);
+				}
+				else {
+					// Standard URL
+					realm = new Realm(realmname, url, Realm::RealmType::URL);
+				}
+				
+				m_file_realms.push_back(realm);
+			}
+		}
+		delete res;
 	}
 
 	int Realms::getRealm(std::string name, ResolveHandler handler)
@@ -164,5 +182,34 @@ namespace orion
 				m_iris_services.push_back(s);
 			}
 		}
+	}
+
+	void Realms::reloadFileRealms()
+	{
+	    std::string path = m_orion->getFs()->getInstallDataDir();
+	    path += std::string("/Meworla/Core/realms.conf");
+	    
+	    if (!psio::Fs::fileExists(path))
+	        return;
+
+	    FileResourceStream* res = new FileResourceStream(path);
+	    res->Open();
+	    
+	    // Only reload if the file has changed
+	    if (m_realms_lastmod >= res->getLastmod()) {
+	        delete res;
+	        return;
+	    }
+	    
+	    m_realms_lastmod = res->getLastmod();
+	    
+	    // Clear old file realms
+	    for (auto it = m_file_realms.begin(); it != m_file_realms.end(); ++it)
+	        delete *it;
+	    m_file_realms.clear();
+	    
+	    // Re-parse...
+	    delete res;
+		LoadFileRealms();
 	}
 }

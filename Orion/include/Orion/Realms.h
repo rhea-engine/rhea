@@ -36,14 +36,18 @@ namespace orion
 		int getRealm(std::string name, ResolveHandler handler);
 		// add realm to realm list
 		void addRealm(Realm* realm);
+		// Reload realms.conf if it has changed
+		void reloadFileRealms();
 
 	protected:
 		Orion* m_orion;
 		std::vector<Realm*> m_realms;
 		std::vector<Realm*> m_file_realms;
 		std::time_t m_realms_lastmod = 0;
+		bool m_file_realms_loaded = false; 
 
 		void LoadIrisServers();
+		void LoadFileRealms();
 
 		struct resolving {
 			RealmRequest* request;

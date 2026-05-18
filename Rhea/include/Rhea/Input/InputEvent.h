@@ -23,6 +23,7 @@ namespace rhea
         MouseButtonPressed,
         MouseButtonReleased,
         MouseButtonDoubleClicked,
+        MouseWheel,
         WindowQuit,
         WindowResized
     };

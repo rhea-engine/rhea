@@ -42,4 +42,14 @@ namespace psio
         bool shift,
         bool alt,
         bool ctrl);
+
+    std::shared_ptr<MouseWheelEvent> BuildMouseWheelEvent(
+        InputEventId id,
+        int wheelY,
+        int wheelX,
+        int x,
+        int y,
+        bool shift,
+        bool alt,
+        bool ctrl);
 }

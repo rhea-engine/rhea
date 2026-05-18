@@ -213,7 +213,8 @@ namespace rhea
 		/**
 		 * @brief Sets the justify mode of the widget.
 		 * @param mode The justify mode (0 for no justification, 1 for space evenly).
-		 */void setJustifyMode(int mode) { m_justify_mode = mode; }
+		 */
+		void setJustifyMode(int mode) { m_justify_mode = mode; }
 
 		 /**
 		  * @brief Sets the styles of the widget.
@@ -483,6 +484,7 @@ namespace rhea
 		virtual bool onMousePressed(Event* ev, Unit* u) { return false; }
 		virtual bool onMouseReleased(Event* ev, Unit* u) { return false; }
 		virtual bool onMouseClicked(Event* ev, Unit* u) { return false; }
+		virtual bool onMouseWheel(Event* ev, Unit* u) { return false; }
 		virtual bool onFocusGained(Event* ev, Unit* u) { return false; }
 		virtual bool onFocusLost(Event* ev, Unit* u) { return false; }
 		virtual bool onKeyPressed(Event* ev, Unit* u) { return false; }
@@ -494,7 +496,8 @@ namespace rhea
 		bool handleMouseLeave(Event* ev, Unit* sender);
 		bool handleMouseMove(Event* ev, Unit* sender);
 		bool handleMousePressed(Event* ev, Unit* sender);
-		bool handleMouseReleased(Event* ev, Unit* sender);		
+		bool handleMouseReleased(Event* ev, Unit* sender);	
+		bool handleMouseWheel(Event* ev, Unit* sender);
 		bool handleFocusGained(Event* ev, Unit* sender);
 		bool handleFocusLost(Event* ev, Unit* sender);
 		bool handleKeyPressed(Event* ev, Unit* sender);

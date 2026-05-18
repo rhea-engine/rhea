@@ -23,6 +23,7 @@ namespace psio
 		MOUSE_BTN_PRESSED,
 		MOUSE_BTN_RELEASED,
 		MOUSE_BTN_DBLCLICK,
+		MOUSE_WHEEL,
 		WMGR_QUIT,
 		WIN_SIZE
 	};
@@ -152,6 +153,36 @@ namespace psio
 		bool m_middle;
 		int m_x;
 		int m_y;
+	};
+
+	class MouseWheelEvent : public InputEvent
+	{
+	public:
+		MouseWheelEvent() :
+			m_x(0),
+			m_y(0),
+			m_wheelY(0),
+			m_wheelX(0),
+			InputEvent(InputEventId::MOUSE_WHEEL)
+		{
+		}
+
+		bool isEvent(InputEvent* evt) override;
+		void updateHash(int raw) override;
+
+		void setPos(int x, int y);
+		void setDelta(int wheelY, int wheelX);
+
+		int getX() const { return m_x; }
+		int getY() const { return m_y; }
+		int getWheelY() const { return m_wheelY; }
+		int getWheelX() const { return m_wheelX; }
+
+	protected:
+		int m_x;
+		int m_y;
+		int m_wheelY;  // positive = up, negative = down
+		int m_wheelX;  // positive = right, negative = left
 	};
 
 	class WinSizeEvent : public InputEvent

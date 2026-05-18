@@ -170,6 +170,18 @@ namespace rhea::client
             return true;
         }
 
+        case psio::InputEventId::MOUSE_WHEEL: {
+            auto* e = dynamic_cast<const psio::MouseWheelEvent*>(&src);
+            if (!e) return false;
+            dst.type = InputEventType::MouseWheel;
+            dst.x = e->getX();
+            dst.y = e->getY();
+            dst.wheelY = e->getWheelY();
+            dst.wheelX = e->getWheelX();
+            return true;
+        }
+
+
         case psio::InputEventId::WMGR_QUIT:
             dst.type = InputEventType::WindowQuit;
             return true;

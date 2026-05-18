@@ -153,6 +153,36 @@ namespace psio
 
 			break;
 		}
+		case WM_MOUSEWHEEL:
+		case WM_MOUSEHWHEEL:
+		{
+			const bool shift = (GetKeyState(VK_SHIFT) & 0x8000) != 0;
+			const bool alt = (GetKeyState(VK_MENU) & 0x8000) != 0;
+			const bool ctrl = (GetKeyState(VK_CONTROL) & 0x8000) != 0;
+			
+			int wheelX = 0;
+			int wheelY = 0;
+			if (uMsg == WM_MOUSEHWHEEL)
+				wheelX = GET_WHEEL_DELTA_WPARAM(wParam);
+			else
+				wheelY = GET_WHEEL_DELTA_WPARAM(wParam);
+
+			// convert screen coordinates to client coordinates
+			POINT pt = { GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam) };
+			ScreenToClient(hWnd, &pt);
+
+			evt = BuildMouseWheelEvent(
+				InputEventId::MOUSE_WHEEL,
+				wheelY,
+				wheelX,
+				pt.x,
+				pt.y,
+				shift,
+				alt,
+				ctrl);
+			win->addInputEvent(evt);
+			break;
+		}
 		}
 
 		return DefWindowProc(hWnd, uMsg, wParam, lParam);

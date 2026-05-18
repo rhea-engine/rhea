@@ -32,6 +32,8 @@ namespace psio
 		case InputEventId::MOUSE_BTN_DBLCLICK:
 			return std::make_shared<MouseInputEvent>(id);
 			break;
+		case InputEventId::MOUSE_WHEEL:
+			return std::make_shared<MouseWheelEvent>();
 		case InputEventId::WMGR_QUIT:
 		case InputEventId::WIN_SIZE:
 		default:
@@ -146,5 +148,38 @@ namespace psio
 		m_x = x;
 		m_y = y;
 		m_hash = 0;
+	}
+
+	void MouseWheelEvent::setPos(int x, int y)
+	{
+		m_x = x;
+		m_y = y;
+		m_hash = 0;
+	}
+
+	void MouseWheelEvent::setDelta(int wheelY, int wheelX)
+	{
+		m_wheelY = wheelY;
+		m_wheelX = wheelX;
+		m_hash = 0;
+	}
+
+	bool MouseWheelEvent::isEvent(InputEvent* evt)
+	{
+		// make sure we have the matching id
+		if (!evt || evt->getId() != m_id)
+			return false;
+		auto* e = dynamic_cast<MouseWheelEvent*>(evt);
+		if (!e)
+			return false;
+		return e->m_wheelY == m_wheelY && e->m_wheelX == m_wheelX
+			&& e->m_alt == m_alt && e->m_shift == m_shift && e->m_ctrl == m_ctrl;
+	}
+
+	void MouseWheelEvent::updateHash(int raw)
+	{
+		raw |= static_cast<int>(m_wheelY << 16);
+		raw |= static_cast<int>(m_wheelX << 24);
+		InputEvent::updateHash(raw);
 	}
 }

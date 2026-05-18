@@ -58,4 +58,21 @@ namespace psio
         evt->setModifiers(shift, alt, ctrl);
         return evt;
     }
+
+    std::shared_ptr<MouseWheelEvent> BuildMouseWheelEvent(
+        InputEventId id,
+        int wheelY,
+        int wheelX,
+        int x,
+        int y,
+        bool shift,
+        bool alt,
+        bool ctrl)
+    {
+        auto evt = std::static_pointer_cast<MouseWheelEvent>(InputEvent::createEvent(id));
+        evt->setPos(x, y);
+        evt->setDelta(wheelY, wheelX);
+        evt->setModifiers(shift, alt, ctrl);
+        return evt;
+    }
 }

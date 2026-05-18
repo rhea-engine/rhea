@@ -57,15 +57,17 @@ namespace rhea
 				to_del.push_back(w);
 			}
 		}
+
+		// clear cache
+		m_list_items.clear();
+		m_selected_item = nullptr;
+
 		for (ListWidgetItem* w : to_del) {
 			removeChild(w);
 			Event e("scene_leave", w);
 			bubbleEvent("scene_leave", &e);
-			delete w;
+			w->destroy();
 		}
-		// clear list
-		m_list_items.clear();
-		m_selected_item = nullptr;
 	}
 
 	void ListWidget::ready()

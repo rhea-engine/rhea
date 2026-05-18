@@ -17,6 +17,13 @@ namespace rhea
 	{
 		Widget::setup(app, attributes, values);
 
+
+	}
+
+	void ListWidgetItem::ready()
+	{
+		Widget::ready();
+
 		std::unordered_map<std::string, std::string> attr;
 		std::unordered_map<std::string, Variant> val;
 
@@ -29,11 +36,6 @@ namespace rhea
 		// add a label
 		m_label = (Label*)m_app->getUnitTree()->createUnit(m_path + "/label", "//meworla/gui/label", attr, val);
 		addChild(m_label);
-	}
-
-	void ListWidgetItem::ready()
-	{
-		Widget::ready();
 
 		if (m_label)
 			m_label->ready();

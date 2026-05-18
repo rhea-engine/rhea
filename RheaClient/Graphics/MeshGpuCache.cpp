@@ -46,4 +46,10 @@ namespace rhea::client
         }
         return nullptr;
     }
+
+    void MeshGpuCache::invalidate(rhea::Mesh* mesh)
+    {
+        auto key = mesh->getPath();
+        m_cache.erase(key);
+	}
 }

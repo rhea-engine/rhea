@@ -41,9 +41,10 @@ namespace rhea::client {
 			return false;
 		}
 
-		if (!unit->hasEventHandler("update", this))
+		if (!unit->hasEventHandler("update", this)) {
 			unit->registerEventHandler("update", this, std::bind(&GraphicsMeshManager::onUpdate, this, std::placeholders::_1, std::placeholders::_2));
-		//unit->registerEventHandler("delete", this, std::bind(&GraphicsMeshManager::onDelete, this, std::placeholders::_1, std::placeholders::_2));
+			unit->registerEventHandler("delete", this, std::bind(&GraphicsMeshManager::onDelete, this, std::placeholders::_1, std::placeholders::_2));
+		}
 
 		return true;
 	}
@@ -214,9 +215,12 @@ namespace rhea::client {
 
 	bool GraphicsMeshManager::onDelete(rhea::Event* ev, rhea::Unit* unit)
 	{
-		// On deletion, also remove from negative cache
 		if (rhea::Mesh* meshUnit = doCast<rhea::Mesh>(unit)) {
-			m_failed_meshes.erase(meshUnit->getPath());
+			std::string key = meshUnit->getPath();
+
+			m_service->meshCache().invalidate(meshUnit);
+			// On deletion, also remove from negative cache
+			m_failed_meshes.erase(key);
 		}
 		return false;
 	}

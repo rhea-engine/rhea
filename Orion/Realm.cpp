@@ -14,14 +14,24 @@ namespace orion
 {
 	Realm::Realm(std::string name)
 		: m_name(std::move(name))
-		, m_ttl(std::time(nullptr))
+		, m_ttl(std::time(nullptr)),
+		m_realm_type(RealmType::URL)
 	{
 	}
 
 	Realm::Realm(std::string name, std::string resource_url, std::time_t ttl)
 		: m_name(std::move(name))
 		, m_resource_url(std::move(resource_url))
-		, m_ttl(std::time(NULL) + ttl)
+		, m_ttl(std::time(NULL) + ttl),
+		m_realm_type(RealmType::URL)
+	{
+	}
+
+	Realm::Realm(std::string name, std::string path, RealmType type)
+		: m_name(std::move(name))
+		, m_resource_url(std::move(path))
+		, m_ttl(0)
+		, m_realm_type(type)
 	{
 	}
 

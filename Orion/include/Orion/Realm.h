@@ -16,9 +16,15 @@ namespace orion
 	class Realm
 	{
 	public:
-		Realm(): m_ttl(time(NULL)) {}		
+		enum class RealmType {
+			URL,        // HTTP/HTTPS URLs
+			LocalPath   // locla path mappings
+		};
+
+		Realm(): m_ttl(time(NULL)), m_realm_type(RealmType::URL) {}		
 		Realm(std::string name);
 		Realm(std::string name, std::string resource_url, time_t ttl);
+		Realm(std::string name, std::string local_path, RealmType type);  // Neuer Konstruktor
 
 		// default copy/assign is fine
 		Realm(const Realm&) = default;
@@ -27,6 +33,7 @@ namespace orion
 		void setResourceUrl(std::string url);
 		void setContentType(std::string contentType);
 		void setTTL(std::time_t ttl);
+		void setType(RealmType type) { m_realm_type = type; }
 
 		// return wheter ttl is expired
 		bool isExpired() const;
@@ -37,13 +44,15 @@ namespace orion
 		const std::string& getName() const { return m_name; }
 		const std::string& getContentType() const { return m_content_type; }
 		std::time_t getTTL() const { return m_ttl; }
-
+		RealmType getType() const { return m_realm_type; }
+		bool isLocalPath() const { return m_realm_type == RealmType::LocalPath; }
 
 	private:
 		std::string m_name;
 		std::string m_resource_url;
 		std::string m_content_type;
 		std::time_t m_ttl{};
+		RealmType m_realm_type;
 	};
 }
 

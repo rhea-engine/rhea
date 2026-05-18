@@ -64,15 +64,16 @@ namespace rhea::client {
 			unit->registerEventHandler("child_order_changed", this, childorderHandler);
 		}
 
-		// Early exit: not renderable - Handlers are still registered
-		if (!item->isRenderable()) {
-			return true;
-		}
-
+		
 		// Check if already exists
 		auto* rc = item->getComponent<RenderComponent>();
 		
 		if (!rc) rc = item->addComponentUnique<RenderComponent>("renderer", m_next_id++);
+		
+		// Early exit: not renderable - Handlers are still registered
+		if (!item->isRenderable()) {
+			return true;
+		}
 
 		if (rc->hasRenderable())
 			return true;
@@ -119,7 +120,7 @@ namespace rhea::client {
 	{
 		rhea::Item* item = doCast<rhea::Item>(unit);
 		if (!item) return false;
-		
+
 		// Not renderable - clean up GPU resources if present
 		if (!item->isRenderable()) {
 			auto* rc = item->getComponent<RenderComponent>();
@@ -137,6 +138,24 @@ namespace rhea::client {
 		if (!rc) {
 			// Newly renderable - create RenderComponent
 			rc = item->addComponentUnique<RenderComponent>("renderer", m_next_id++);
+			// get context from parent if possible
+			if (item->getParent()) {
+				auto* parent_rc = item->getParent()->getComponent<RenderComponent>();
+				if (parent_rc && parent_rc->ctx) {
+					rc->ctx = parent_rc->ctx;
+					m_service->registerItemToContext(item, rc->ctx);
+				}
+			}
+		}
+		else if (!rc->ctx) {
+			// Try to get context from parent if possible
+			if (item->getParent()) {
+				auto* parent_rc = item->getParent()->getComponent<RenderComponent>();
+				if (parent_rc && parent_rc->ctx) {
+					rc->ctx = parent_rc->ctx;
+					m_service->registerItemToContext(item, rc->ctx);
+				}
+			}
 		}
 		auto* tl = item->getComponent<TransformListener>();
 		if (!tl) {
@@ -354,6 +373,9 @@ namespace rhea::client {
 			if (node_id != poseidon::InvalidRenderNode) {
 				rc->ctx->setVisibility(node_id, renderable->visible);
 				rc->ctx->attachRenderable(node_id, rc->renderable);
+			}
+			else {
+				LOG(LOG_ERROR) << "GraphicsItemManager::syncRenderable: RenderContext has no node for item '" << item->getPathName() << "'";
 			}
 		}
 

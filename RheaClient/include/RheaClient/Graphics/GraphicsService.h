@@ -90,6 +90,8 @@ namespace rhea::client {
 		TextureGpuCache& textureCache() { return m_textureCache; }
 		MaterialGpuCache& materialCache() { return m_materialCache; }
 
+		// register an item to the context
+		void registerItemToContext(rhea::Item* item, poseidon::RenderContext* context);
 		// Helper method for cleanup
 		void unregisterItemFromContext(rhea::Item* item, poseidon::RenderContext* context);
 
@@ -121,8 +123,7 @@ namespace rhea::client {
 		MeshGpuCache m_meshCache; 
 		TextureGpuCache m_textureCache;
 		MaterialGpuCache m_materialCache;
-
-		void registerItemToContext(rhea::Item* item, poseidon::RenderContext* context);
+	
 		void registerItemToContextRecursive(rhea::Item* item, poseidon::RenderContext* context);		
 
 		// Map context -> items for efficient lookup and cleanup

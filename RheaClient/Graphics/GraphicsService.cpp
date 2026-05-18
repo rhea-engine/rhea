@@ -114,7 +114,7 @@ namespace rhea::client {
 
 	bool GraphicsService::onAddItem(rhea::Event* ev, rhea::Unit* unit)
 	{
-		rhea::Unit* root = doCast<rhea::Unit>(ev->getTarget());
+		rhea::Unit* root = doCast<rhea::Unit>(ev->getTarget());	
 		if (!root) return false;
 
 		root->traverse([&](std::string& name, rhea::Component* c)->bool {
@@ -151,6 +151,16 @@ namespace rhea::client {
 
 					// Add item to appropriate context
 					registerItemToContext(item, target_ctx);
+				}
+				else {
+					// item is not parented to a scene - get context of parent item if available
+					rhea::Item* parent_item = doCast<rhea::Item>(item->getParent());
+					if (parent_item) {
+						auto* parent_rc = parent_item->getComponent<rhea::client::RenderComponent>();
+						if (parent_rc && parent_rc->ctx) {
+							registerItemToContext(item, parent_rc->ctx);
+						}
+					}
 				}
 
 				return true;

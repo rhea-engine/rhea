@@ -29,6 +29,7 @@ namespace orion
 				entry = new Entry();
 				entry->name = attributes.name;
 				entry->length = attributes.size;
+				entry->is_dir = attributes.is_dir;
 				if (!psio::Fs::nextEntry(m_handle.get())) {
 					m_end = true;
 					m_handle.reset();

@@ -24,6 +24,7 @@ namespace orion
 			std::string name;
 			std::string mime;
 			size_t length;
+			bool is_dir;
 		};
 
 		bool IsDir() { return true; }

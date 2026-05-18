@@ -23,6 +23,7 @@
 #include <Rhea/Physics/PhysicsManagerService.h>
 #include <Rhea/Text/TextWidget.h>
 #include <Rhea/GUI/Spacer.h>
+#include <Rhea/GUI/ScrollView.h>
 
 namespace rhea
 {
@@ -36,6 +37,7 @@ namespace rhea
 		simpleparser::Type::registerType<ColumnWidget>("//meworla/gui/column");
 		simpleparser::Type::registerType<RowWidget>("//meworla/gui/row");
 		simpleparser::Type::registerType<SpacerWidget>("//meworla/gui/spacer");
+		ScrollView::_register_ScrollView();
 
 		// basic widgets
 		simpleparser::Type::registerType<Label>("//meworla/gui/label");

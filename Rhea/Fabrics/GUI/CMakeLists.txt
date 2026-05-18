@@ -20,7 +20,7 @@ target_sources(GUI PRIVATE
     src/Styles/Property.cpp
     src/Styles/StyleEngine.cpp
     src/Styles/StyleSheet.cpp
- "include/Rhea/GUI/Spacer.h")
+    "src/ScrollView.cpp")
 add_library(Rhea::GUI ALIAS GUI)
 
 # Scoped includes are under include/Rhea/GUI/**

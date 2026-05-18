@@ -14,11 +14,11 @@ std::unique_ptr<orion::ResourceStream> orion::ResolveLocal::getResource(std::str
 	std::unique_ptr<ResourceStream> stream;
 	std::string path;
 
-	if (!m_is_local)
+	if (!m_is_local || (!realm_name.empty() && realm_name != "local"))
 		path = m_path + "/" + realm_name + resource_path;
 	else
 		path = m_path + resource_path;
-
+	
 	if (psio::Fs::fileExists(path))
 	{
 		// file exists
@@ -34,7 +34,7 @@ bool orion::ResolveLocal::checkResourceExists(std::string realm_name, std::strin
 {
 	std::string path;
 
-	if (!m_is_local)
+	if (!m_is_local || (!realm_name.empty() && realm_name != "local"))
 		path = m_path + "/" + realm_name + resource_path;
 	else
 		path = m_path + resource_path;

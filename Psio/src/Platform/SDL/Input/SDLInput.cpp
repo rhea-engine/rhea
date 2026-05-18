@@ -103,6 +103,20 @@ namespace psio
 					false));
                 break;
             }
+            case SDL_EVENT_MOUSE_WHEEL:
+            {
+                SDL_Keymod mods = SDL_GetModState();
+                addEvent(BuildMouseWheelEvent(
+                    InputEventId::MOUSE_WHEEL,
+                    static_cast<int>(evt.wheel.y),  // wheelY (positive = up, negative = down)
+                    static_cast<int>(evt.wheel.x),  // wheelX (positive = right, negative left)
+                    evt.wheel.mouse_x,               // mouse position X
+                    evt.wheel.mouse_y,               // moouse position Y
+                    (mods & SDL_KMOD_SHIFT) != 0,
+                    (mods & SDL_KMOD_ALT) != 0,
+                    (mods & SDL_KMOD_CTRL) != 0));
+                break;
+            }
             case SDL_EVENT_WINDOW_RESIZED:
             case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
             {

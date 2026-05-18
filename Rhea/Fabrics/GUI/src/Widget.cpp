@@ -245,7 +245,7 @@ namespace rhea
 
 		// content size 
 		// is the resulting inner size (TODO handle overflow?)
-		m_content_size = inner_size;
+		m_content_size = content_size;
 
 		// box size
 		// if m_size is set it is the size of the box
@@ -937,6 +937,10 @@ namespace rhea
 			return onMouseClicked(e, u);
 			});
 
+		registerEventHandler("mouse_wheel", this, [this](Event* e, Unit* u)->bool {
+			return onMouseWheel(e, u);
+			});
+
 		// Focus/Blur for :focus
 
 		registerEventHandler("focus", this, [this](Event* e, Unit* u)->bool {
@@ -1008,6 +1012,11 @@ namespace rhea
 	{
 		setWidgetState(WidgetState::kActive, false);
 		return onMouseReleased(ev, sender);
+	}
+
+	bool Widget::handleMouseWheel(Event* ev, Unit* sender)
+	{
+		return onMouseWheel(ev, sender);
 	}
 
 	bool Widget::handleFocusGained(Event* ev, Unit* sender)

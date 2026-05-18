@@ -205,6 +205,7 @@ namespace rhea
 		case InputEventType::MouseButtonReleased:
 		case InputEventType::MouseButtonDoubleClicked:
 		case InputEventType::MouseMoved:
+		case InputEventType::MouseWheel:
 			// always check if the mouse moved			
 			int mx = e->getEvent().x;
 			int my = e->getEvent().y;
@@ -272,6 +273,13 @@ namespace rhea
 					auto e_click = e->cloneUnique();
 					m_pressed->bubbleEvent("mouse_click", e_click.get());
 				}
+			}
+			break;
+
+		case InputEventType::MouseWheel:
+			if (m_captured) {
+				e->setTarget(m_captured);
+				m_captured->bubbleEvent("mouse_wheel", e);
 			}
 			break;
 
@@ -403,13 +411,13 @@ namespace rhea
 		if (old) {
 			Event focus_lost("focus_lost", old);
 			old->sendEvent("focus_lost", &focus_lost);
-			LOG(LOG_DEBUG) << "Focus lost: " << old->getPath();
+			//LOG(LOG_DEBUG) << "Focus lost: " << old->getPath();
 		}
 
 		if (w) {
 			Event focus("focus", w);
 			w->sendEvent("focus", &focus);
-			LOG(LOG_DEBUG) << "Focus gained: " << w->getPath();
+			//LOG(LOG_DEBUG) << "Focus gained: " << w->getPath();
 		}
 
 		return true;
@@ -601,7 +609,7 @@ namespace rhea
 			// at least the controller is always a common ancestor
 			if (captured) {
 
-				DLOG(LOG_DEBUG) << "Mouse captured by " << captured->getPath();
+				//DLOG(LOG_DEBUG) << "Mouse captured by " << captured->getPath();
 
 				// inform all about leave and enter that are not common ancestors				
 				Widget* ancestor = nullptr;

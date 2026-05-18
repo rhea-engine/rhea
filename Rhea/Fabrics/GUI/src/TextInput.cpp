@@ -99,6 +99,14 @@ namespace rhea
 	void TextInput::onSetPosition()
 	{
 		m_label_item->setPosition(m_position + m_content_position);		
+		float offset_x = m_textwidget->W() - m_textwidget->getTextWidth(m_pos);
+		offset_x = (offset_x < 0.0f) ? offset_x : 0.0f;
+		if (offset_x != m_offset_x) {
+			m_textwidget->setOffset(offset_x);
+			m_offset_x = offset_x;
+			// mark for redraw
+			m_textwidget->markTextDirty();
+		}
 		m_cursor_item->setPosition(m_cursor_position);
 	}
 

@@ -21,18 +21,26 @@ namespace orion
 		m_fs = engine->getFs();
 		m_fs->setAppName(appname);
 		m_engine = engine;
+		m_realms = std::make_unique<Realms>(this);
 
 		std::string search_dir;
 
 		search_dir = m_fs->getInstallDataDir();
-		if (search_dir != "")
+		if (search_dir != "") {
 			m_caches.push_back(std::make_unique<ResolveLocal>(search_dir));
+			m_realms->addRealm(new Realm("system", search_dir, Realm::RealmType::LocalPath));
+		}
 		search_dir = m_fs->getAppDataDir();
-		if (search_dir != "")
+		if (search_dir != "") {
 			m_caches.push_back(std::make_unique<ResolveLocal>(search_dir));
+			m_realms->addRealm(new Realm("appdata", search_dir, Realm::RealmType::LocalPath));
+		}
 		search_dir = m_fs->getHomeDir();		
-		if (search_dir != "")
+		if (search_dir != "") {
 			m_caches.push_back(std::make_unique<ResolveLocal>(search_dir));
+			m_realms->addRealm(new Realm("user", search_dir, Realm::RealmType::LocalPath));
+		}
+		m_realms->addRealm(new Realm("localhost", "", Realm::RealmType::LocalPath)); // special realm for local system
 	}
 
 	bool Orion::poll()

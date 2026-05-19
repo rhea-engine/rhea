@@ -322,6 +322,19 @@ namespace poseidon
 					}
 				}
 
+				// get scissor information for renderable and set scissor rect if needed
+				ClipRect scissor = renderable->scissorRect;
+				if (m_clip_enabled != renderable->scissorEnabled || 
+					m_scissor_rect != scissor) {
+					m_clip_enabled = renderable->scissorEnabled;
+					if (m_clip_enabled) {
+						m_renderer->setScissor(scissor.x, scissor.y, scissor.width, scissor.height);
+					}
+					else {
+						m_renderer->setScissor(0, 0, 0, 0); // disable scissor
+					}
+				}
+
 				// draw the submesh - check if mesh is indexed
 
 				if (mesh->isIndexed()) {
@@ -378,5 +391,4 @@ namespace poseidon
 		}
 		return nullptr;
 	}
-
 }

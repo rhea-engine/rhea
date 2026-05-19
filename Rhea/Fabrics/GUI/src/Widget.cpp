@@ -194,6 +194,9 @@ namespace rhea
 		// default final position = anchor + authored offset
 		m_position = m_anchor_position + m_base_position;
 
+		// compute clipping based on new position
+		computeClipping();
+
 		// allow subclasses to adjust m_position further
 		onSetPosition();
 
@@ -202,6 +205,62 @@ namespace rhea
 		}
 	}
 
+	void Widget::computeClipping()
+	{
+		// get clipping from parents visual component
+		auto* vis = getComponent<VisualComponent>();
+		if (!vis)
+			return;
+
+		bool old_clip = vis->hasClipping();
+		ClipRect old_rect = vis->getClipping();
+
+		ClipRect rect{};
+		bool enabled = false;
+		Item* p = doCast<Item>(m_parent);
+		if (p) {
+			auto* p_vis = p->getComponent<VisualComponent>();
+			if (p_vis) {
+				enabled = p_vis->hasClipping();
+				if (enabled)
+					rect = p_vis->getClipping();
+			}
+		}
+		// apply local clipping
+		if (m_clip) {
+			ClipRect local_rect = m_clipping_rect;
+			if (enabled) {
+				// intersect with parent
+				float x1 = std::max(rect.x, local_rect.x);
+				float y1 = std::max(rect.y, local_rect.y);
+				float x2 = std::min(rect.x + rect.w, local_rect.x + local_rect.w);
+				float y2 = std::min(rect.y + rect.h, local_rect.y + local_rect.h);
+				if (x2 > x1 && y2 > y1) {
+					rect.x = x1;
+					rect.y = y1;
+					rect.w = x2 - x1;
+					rect.h = y2 - y1;
+				}
+				else {
+					// no intersection
+					enabled = false;
+				}
+			}
+			else {
+				enabled = true;
+				rect = local_rect;
+			}
+		}
+
+		vis->enableClipping(enabled);
+		if (enabled)
+			vis->setClipping(rect);
+
+		if (old_clip != enabled || old_rect.x != rect.x || old_rect.y != rect.y || old_rect.w != rect.w || old_rect.h != rect.h) {
+			invalidateRender();
+		}
+	}
+	
 	void Widget::onSetPosition()
 	{
 		for (auto it = m_children.begin(); it != m_children.end(); ++it) {
@@ -484,6 +543,23 @@ namespace rhea
 				if (prev_font_size != m_font_size)
 					layout_changed = true;
 				break;
+			case StylePropertyId::kOverflow:
+			{
+				bool old_clip = m_clip;
+				ClipRect old_rect = m_clipping_rect;
+				if (values[0].value == "hidden") {
+					m_clip = true;
+					m_clipping_rect = { 0.0f, 0.0f, m_size.x, m_size.y };
+				}
+				else {
+					m_clip = false;
+				}
+				if (old_clip != m_clip || old_rect.x != m_clipping_rect.x || old_rect.y != m_clipping_rect.y || old_rect.w != m_clipping_rect.w || old_rect.h != m_clipping_rect.h) {
+					render_changed = true;
+					layout_changed = true;
+				}
+				break;
+			}
 			}
 		}
 

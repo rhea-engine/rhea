@@ -109,6 +109,8 @@ namespace hippios
 
 		// current texture 
 		void setTexture(Texture* texture, int slot = 0) override;
+		void setScissor(int x, int y, int width, int height) override;
+		void setViewportSize(float width, float height) { m_viewport_width = width; m_viewport_height = height; }
 
 		void draw(int size, int start_vtx) override;
 		void drawIndexed(int size, int start_idx, int start_vtx) override;
@@ -146,6 +148,8 @@ namespace hippios
 		std::vector<ID3D11InputLayout*> m_input_layouts;
 		std::vector<ID3D11SamplerState*> m_sampler_states;
 		std::unordered_map<std::string, D3D11GPUHandle> m_samplers;
+		float m_viewport_width = 0.0f;
+		float m_viewport_height = 0.0f;
 	};
 }
 #endif // !HIPPIOS_D3D11RENDERER_H

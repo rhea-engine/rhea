@@ -515,4 +515,17 @@ namespace hippios
 			<< " - DSA: " << (m_caps.hasDSA ? "Yes" : "No")
 			<< ", Debug Output: " << (m_caps.hasDebugOutput ? "Yes" : "No");		
 	}
+
+	void GLRenderer::setScissor(int x, int y, int width, int height)
+	{
+		if (width > 0 && height > 0)
+		{
+			glEnable(GL_SCISSOR_TEST);
+			glScissor(x, y, width, height);
+		}
+		else
+		{
+			glDisable(GL_SCISSOR_TEST);
+		}
+	}
 }

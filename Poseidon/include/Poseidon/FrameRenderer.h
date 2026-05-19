@@ -15,6 +15,8 @@
 #include "Window.h"
 #include <Math/Vector4.h>
 
+#include <Poseidon/RenderTypes.h>
+
 namespace psio
 {
 	class Engine;
@@ -136,6 +138,9 @@ namespace poseidon
 		cbPerObject per_obj_buf;
 		cbPerObjectTerrain cbPerObjTerrain;
 		cbLight light_buf;
+
+		bool m_clip_enabled = false;
+		ClipRect m_scissor_rect{};
 
 		std::unique_ptr<hippios::GraphicsBuffer> m_frame_buffer;
 		std::unique_ptr<hippios::GraphicsBuffer> m_object_buffer;

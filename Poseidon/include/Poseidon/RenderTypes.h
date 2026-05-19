@@ -19,6 +19,18 @@ namespace poseidon
     constexpr RenderableHandle InvalidRenderable = 0;
     constexpr LightHandle InvalidLight = 0;
     constexpr CameraHandle InvalidCamera = 0;
+
+    struct ClipRect
+    {
+        float x;
+        float y;
+        float width;
+        float height;
+    };
+
+    inline bool operator!=(const ClipRect& a, const ClipRect& b) {
+        return a.x != b.x || a.y != b.y || a.width != b.width || a.height != b.height;
+    }
 }
 
 #endif // !POSEIDON_RENDERTYPES_H

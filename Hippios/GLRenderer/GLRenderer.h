@@ -50,6 +50,8 @@ namespace hippios
 		StencilState* getStencilState(const std::string& name) override;
 		StencilState* createStencilState(const std::string& name, const DepthStencilStateDesc& desc) override;
 		void setStencilState(StencilState* state, int stencil_ref) override;
+		
+		void setScissor(int x, int y, int width, int height) override;
 
 		SamplerState* createSampler(const SamplerDesc& desc) override;
 		void setSampler(int slot, SamplerState* sampler, ShaderStage stage) override;

@@ -217,6 +217,15 @@ namespace hippios
 		virtual StencilState* createStencilState(const std::string& name, const DepthStencilStateDesc& desc) = 0;
 
 		/**
+		 * @brief Sets the scissor rectangle for clipping.
+		 * @param x The x coordinate of the scissor rectangle (default 0).
+		 * @param y The y coordinate of the scissor rectangle (default 0).
+		 * @param width The width of the scissor rectangle (default 0 = disabled).
+		 * @param height The height of the scissor rectangle (default 0 = disabled).
+		 */
+		virtual void setScissor(int x, int y, int width, int height) = 0;
+
+		/**
 		 * @brief Creates a new sampler state.
 		 * @param desc The descriptor defining the sampler properties.
 		 * @return A pointer to the created SamplerState.

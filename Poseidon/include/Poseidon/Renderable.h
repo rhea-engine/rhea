@@ -42,6 +42,9 @@ namespace poseidon
         math::Matrix4 worldTransform;
         math::Matrix4 inverseTranspose;
 
+		bool scissorEnabled = false;
+		ClipRect scissorRect{};
+
         bool visible = true;
         bool castsShadow = true;
         bool receivesShadow = true;

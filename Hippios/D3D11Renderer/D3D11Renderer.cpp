@@ -677,4 +677,22 @@ namespace hippios {
 		HRESULT hr = createDevice(mDriverType, mMinRequestedFeatureLevel, mMaxRequestedFeatureLevel, &mFeatureLevel);
 		return SUCCEEDED(hr);
 	}
+
+	void D3D11Renderer::setScissor(int x, int y, int width, int height)
+	{
+		if (width > 0 && height > 0)
+		{
+			D3D11_RECT rect;
+			rect.left = static_cast<LONG>(x);
+			rect.top = static_cast<LONG>(y);
+			rect.right = static_cast<LONG>(x + width);
+			rect.bottom = static_cast<LONG>(y + height);
+			m_device_context->RSSetScissorRects(1, &rect);
+		}
+		else 		{
+			// Disable scissor test by setting a full rectangle
+			D3D11_RECT rect = { 0, 0, static_cast<LONG>(m_viewport_width), static_cast<LONG>(m_viewport_height) };
+			m_device_context->RSSetScissorRects(1, &rect);
+		}
+	}
 }

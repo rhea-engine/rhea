@@ -543,6 +543,23 @@ namespace rhea
 				if (prev_font_size != m_font_size)
 					layout_changed = true;
 				break;
+			case StylePropertyId::kOverflow:
+			{
+				bool old_clip = m_clip;
+				ClipRect old_rect = m_clipping_rect;
+				if (values[0].value == "hidden") {
+					m_clip = true;
+					m_clipping_rect = { 0.0f, 0.0f, m_size.x, m_size.y };
+				}
+				else {
+					m_clip = false;
+				}
+				if (old_clip != m_clip || old_rect.x != m_clipping_rect.x || old_rect.y != m_clipping_rect.y || old_rect.w != m_clipping_rect.w || old_rect.h != m_clipping_rect.h) {
+					render_changed = true;
+					layout_changed = true;
+				}
+				break;
+			}
 			}
 		}
 

@@ -144,6 +144,9 @@ namespace hippios
 		viewport.MinDepth = desc->min_depth;
 		viewport.MaxDepth = desc->max_depth;
 
+		// set current viewport size to renderer for easy access
+		m_renderer->setViewportSize(viewport.Width, viewport.Height);
+
 		d3_device_context->RSSetViewports(1, &viewport);
 	}
 }

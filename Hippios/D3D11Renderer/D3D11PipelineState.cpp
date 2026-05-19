@@ -123,6 +123,10 @@ namespace hippios
 			cmdesc.FillMode = D3D11_FILL_WIREFRAME;
 			set_raster = true;
 		}
+
+		// always enable scissor test for now, as it's needed for UI rendering and doesn't have a significant performance impact when not used
+		cmdesc.ScissorEnable = TRUE;
+
 		if (set_raster) {
 			m_renderer->get_device()->CreateRasterizerState(&cmdesc, &m_raster_state);
 		}

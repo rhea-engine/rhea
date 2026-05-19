@@ -366,7 +366,19 @@ namespace rhea::client {
 		}
 		else {
 			renderable->visible = false;
-		}		
+		}
+		if (vis->hasClipping())
+		{
+			renderable->scissorEnabled = true;
+			ClipRect rect = vis->getClipping();
+			renderable->scissorRect.x = rect.x;
+			renderable->scissorRect.y = rect.y;
+			renderable->scissorRect.width = rect.w;
+			renderable->scissorRect.height = rect.h;
+		}
+		else {
+			renderable->scissorEnabled = false;
+		}
 		if (rc->ctx) {
 			// set visibility in context as well
 			poseidon::RenderNodeId node_id = rc->ctx->findNodeForSource(rc->gfx_node_id);

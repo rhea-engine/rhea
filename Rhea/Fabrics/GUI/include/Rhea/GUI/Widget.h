@@ -183,6 +183,14 @@ namespace rhea
 		 */
 		void setContentPosition(Vector2 pos) { m_content_position = pos; }
 
+		/**
+		* @brief compute clipping
+		*/
+		void computeClipping();
+		virtual void applyClipping(bool& enabled, ClipRect& rect) {}
+		void enableClipping(bool enable) { m_clip = enable; }
+		void setClipping(ClipRect rect) { m_clipping_rect = rect; }
+
 		// Invalidate the layout, causing it to be recalculated on the next render.
 		virtual void invalidateLayout();
 
@@ -417,6 +425,10 @@ namespace rhea
 
 		// Outer size of element including margin
 		Vector2 m_outer_size;
+
+		// clipping
+		bool m_clip = false;
+		ClipRect m_clipping_rect{};
 
 		// Cached font size
 		float m_font_size;

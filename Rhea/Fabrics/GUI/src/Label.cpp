@@ -99,7 +99,17 @@ namespace rhea
 		if (!m_label_item)
 			return;
 
-		float pos_x = floor(m_position.x + m_content_position.x + 0.5f);
+		// set clipping area for text widget
+		auto* vis = getComponent<VisualComponent>();
+		auto* t_vis = m_label_item->getComponent<VisualComponent>();
+		if (vis && t_vis) {
+			t_vis->enableClipping(vis->hasClipping());
+			if (vis->hasClipping()) {
+				t_vis->setClipping(vis->getClipping());
+			}
+		}
+			
+			float pos_x = floor(m_position.x + m_content_position.x + 0.5f);
 		float pos_y = floor(m_position.y + m_content_position.y + 0.5f);
 
 		bool size_changed = (m_label_item->W() != m_size.x || m_label_item->H() != m_size.y);

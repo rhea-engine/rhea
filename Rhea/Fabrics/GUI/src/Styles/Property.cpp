@@ -25,6 +25,8 @@ namespace rhea
         const CssProperty font{ StylePropertyId::kFont, "font", true, false };
         const CssProperty fontSize{ StylePropertyId::kFont, "font-size", true, false };
 		const CssProperty overflow{ StylePropertyId::kOverflow, "overflow", false, false };
+		const CssProperty alignItems{ StylePropertyId::kAlignItems, "align-items", false, false };
+		const CssProperty justifyContent{ StylePropertyId::kJustifyContent, "justify-content", false, false };
         const CssProperty paddingTop{ StylePropertyId::kPaddingTop, "padding-top", false, false };
         const CssProperty paddingLeft{ StylePropertyId::kPaddingLeft, "padding-left", false, false };
         const CssProperty paddingBottom{ StylePropertyId::kPaddingBottom, "padding-bottom", false, false };
@@ -43,6 +45,8 @@ namespace rhea
         &font,
         &fontSize,
         &overflow,
+        &alignItems,
+        &justifyContent,
         &padding,
         &paddingTop,
         &paddingLeft,
@@ -61,6 +65,8 @@ namespace rhea
         {CssValueId::kIdentifier, "auto"},  // kWidth default.
         {CssValueId::kIdentifier,"auto"},   // kHeight default.
 		{CssValueId::kString, "visible"}, // kOverflow default
+		{CssValueId::kIdentifier, "normal"}, // kAlignItems default
+		{CssValueId::kIdentifier, "normal"}, // kJustifyItems default
         {CssValueId::kString, ""}, // font default
         {CssValueId::kNumeric, "16"}, // font-size default
         {CssValueId::kNumeric, "0"}, // padding-top default

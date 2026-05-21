@@ -49,7 +49,7 @@ namespace rhea
 		if (m_values.find("font") != m_values.end())
 			val["font"] = getValue("font");
 
-		m_label_item = (Label*)m_app->getUnitTree()->createUnit(m_path + "_label", "//meworla/gui/label", attr, val);
+		m_label_item = (Label*)m_app->getUnitTree()->createUnit(getPathName() + "_label", "//meworla/gui/label", attr, val);
 		addChild(m_label_item);
 		// store reference to textwidget
 		m_textwidget = m_label_item->getTextWidget();
@@ -59,7 +59,7 @@ namespace rhea
 		val["y"] = -2.0f;
 		val["w"] = 20;
 		val["h"] = 20;
-		m_cursor_item = (Label*)m_app->getUnitTree()->createUnit(m_path + "_cursor", "//meworla/gui/label", attr, val);
+		m_cursor_item = (Label*)m_app->getUnitTree()->createUnit(getPathName() + "_cursor", "//meworla/gui/label", attr, val);
 		addChild(m_cursor_item);
 		m_cursor_item->setText("|");
 		m_cursor_item->hide();
@@ -99,6 +99,14 @@ namespace rhea
 	void TextInput::onSetPosition()
 	{
 		m_label_item->setPosition(m_position + m_content_position);		
+		float offset_x = m_textwidget->W() - m_textwidget->getTextWidth(m_pos);
+		offset_x = (offset_x < 0.0f) ? offset_x : 0.0f;
+		if (offset_x != m_offset_x) {
+			m_textwidget->setOffset(offset_x);
+			m_offset_x = offset_x;
+			// mark for redraw
+			m_textwidget->markTextDirty();
+		}
 		m_cursor_item->setPosition(m_cursor_position);
 	}
 

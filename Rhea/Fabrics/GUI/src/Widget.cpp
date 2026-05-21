@@ -560,6 +560,84 @@ namespace rhea
 				}
 				break;
 			}
+			case StylePropertyId::kAlignItems:
+				{
+				std::string align_items = values[0].value.toString();
+				if (!m_alignment)
+					m_alignment = std::make_unique<LayoutAlignment>(LayoutAlignment::JustifyContent::START, Alignment::AlignItems::START);
+				if (align_items == "start") {
+					if (m_alignment->getAlignItems() != Alignment::AlignItems::START) {
+						m_alignment->setAlignItems(Alignment::AlignItems::START);
+						layout_changed = true;
+					}
+				}
+				else if (align_items == "center") {
+					if (m_alignment->getAlignItems() != Alignment::AlignItems::CENTER) {
+						m_alignment->setAlignItems(Alignment::AlignItems::CENTER);
+						layout_changed = true;
+					}
+				}
+				else if (align_items == "end") {
+					if (m_alignment->getAlignItems() != Alignment::AlignItems::END) {
+						m_alignment->setAlignItems(Alignment::AlignItems::END);
+						layout_changed = true;
+					}
+				}
+				else if (align_items == "stretch") {
+					// Handle stretch case if needed
+					if (m_alignment->getAlignItems() != Alignment::AlignItems::STRETCH) {
+						m_alignment->setAlignItems(Alignment::AlignItems::STRETCH);
+						layout_changed = true;
+					}
+				}
+				break;
+			}
+			case StylePropertyId::kJustifyContent:
+			{
+				std::string justify_items = values[0].value.toString();
+				if (!m_alignment)
+					m_alignment = std::make_unique<LayoutAlignment>(LayoutAlignment::JustifyContent::START, Alignment::AlignItems::START);
+				if (justify_items == "start") {
+					if (m_alignment->getJustifyContent() != LayoutAlignment::JustifyContent::START) {
+						m_alignment->setJustifyContent(LayoutAlignment::JustifyContent::START);
+						layout_changed = true;
+					}
+				}
+				else if (justify_items == "center") {
+					if (m_alignment->getJustifyContent() != LayoutAlignment::JustifyContent::CENTER) {
+						m_alignment->setJustifyContent(LayoutAlignment::JustifyContent::CENTER);
+						layout_changed = true;
+					}
+				}
+				else if (justify_items == "end") {
+					if (m_alignment->getJustifyContent() != LayoutAlignment::JustifyContent::END) {
+						m_alignment->setJustifyContent(LayoutAlignment::JustifyContent::END);
+						layout_changed = true;
+					}
+				}
+				else if (justify_items == "space-around") {
+					// Handle space-around case if needed
+					if (m_alignment->getJustifyContent() != LayoutAlignment::JustifyContent::SPACEAROUND) {
+						m_alignment->setJustifyContent(LayoutAlignment::JustifyContent::SPACEAROUND);
+						layout_changed = true;
+					}
+				}
+				else if (justify_items == "stretch") {
+					// Handle stretch case if needed
+					if (m_alignment->getJustifyContent() != LayoutAlignment::JustifyContent::SPACEBETWEEN) {
+						m_alignment->setJustifyContent(LayoutAlignment::JustifyContent::SPACEBETWEEN);
+						layout_changed = true;
+					}
+				}
+				else if (justify_items == "stretch") {
+					// Handle stretch case if needed
+					if (m_alignment->getJustifyContent() != LayoutAlignment::JustifyContent::SPACEEVENLY) {
+						m_alignment->setJustifyContent(LayoutAlignment::JustifyContent::SPACEEVENLY);
+						layout_changed = true;
+					}
+				}
+				break;
+			}
 			}
 		}
 
@@ -716,24 +794,23 @@ namespace rhea
 	}
 	void Widget::setAlignment(std::string horizontal, std::string vertical)
 	{
-		Alignment::Horizontal h_align = Alignment::Horizontal::START;
-		Alignment::Vertical v_align = Alignment::Vertical::TOP;
+		LayoutAlignment::JustifyContent h_align = LayoutAlignment::JustifyContent::START;
+		Alignment::AlignItems v_align = Alignment::AlignItems::START;
 
 		if (horizontal == "start")
-			h_align = Alignment::Horizontal::START;
+			h_align = LayoutAlignment::JustifyContent::START;
 		else if (horizontal == "end")
-			h_align = Alignment::Horizontal::END;
+			h_align = LayoutAlignment::JustifyContent::END;
 		else if (horizontal == "center")
-			h_align = Alignment::Horizontal::CENTER;
-
+			h_align = LayoutAlignment::JustifyContent::CENTER;
 		if (vertical == "top")
-			v_align = Alignment::Vertical::TOP;
+			v_align = Alignment::AlignItems::START;
 		else if (vertical == "bottom")
-			v_align = Alignment::Vertical::BOTTOM;
+			v_align = Alignment::AlignItems::END;
 		else if (vertical == "center")
-			v_align = Alignment::Vertical::CENTER;
+			v_align = Alignment::AlignItems::CENTER;
 
-		m_alignment = std::make_unique<Alignment>(h_align, v_align);
+		m_alignment = std::make_unique<LayoutAlignment>(LayoutAlignment::JustifyContent::START, v_align);
 	}
 
 	void Widget::ApplyTextureSizing() {
@@ -1112,4 +1189,60 @@ namespace rhea
 		setWidgetState(WidgetState::kHover, false);
 		setWidgetState(WidgetState::kActive, false);
 	}
+
+	void Widget::dumpDebugInfo(int indent)
+	{
+		std::string indent_str(indent, ' ');
+		LOG(LOG_DEBUG) << indent_str << "Widget: " << getPathName() << " (" << getPath() << ")";
+		LOG(LOG_DEBUG) << indent_str << "  pos=" << m_position.x << "/" << m_position.y << " size=" << m_size.x << "/" << m_size.y;
+		for (const auto& modifier : m_modifiers) {
+			LOG(LOG_DEBUG) << indent_str << "  Modifier: " << modifier->name();
+		}
+		if (m_alignment) {
+			std::string h_align;
+			std::string v_align;
+			switch (m_alignment->getJustifyContent()) {
+			case LayoutAlignment::JustifyContent::START:
+				h_align = "start";
+				break;
+			case LayoutAlignment::JustifyContent::CENTER:
+				h_align = "center";
+				break;
+			case LayoutAlignment::JustifyContent::END:
+				h_align = "end";
+				break;
+			case LayoutAlignment::JustifyContent::SPACEBETWEEN:
+				h_align = "space-between";
+				break;
+			case LayoutAlignment::JustifyContent::SPACEAROUND:
+				h_align = "space-around";
+				break;
+			case LayoutAlignment::JustifyContent::SPACEEVENLY:
+				h_align = "space-evenly";
+				break;
+			}
+			switch (m_alignment->getAlignItems()) {
+			case Alignment::AlignItems::START:
+				v_align = "start";
+				break;
+			case Alignment::AlignItems::CENTER:
+				v_align = "center";
+				break;
+			case Alignment::AlignItems::END:
+				v_align = "end";
+				break;
+			case Alignment::AlignItems::STRETCH:
+				v_align = "stretch";
+				break;
+			}
+			LOG(LOG_DEBUG) << indent_str << "  Alignment: (" << h_align << "," << v_align << ")";
+		}
+		for (auto it = m_children.begin(); it != m_children.end(); ++it) {
+			Widget* w = doCast<Widget>(it->second);
+			if (w) {
+				w->dumpDebugInfo();
+			}
+		}			
+	}
+
 }

@@ -43,7 +43,7 @@ namespace rhea
 			val["text"] = getText();
 		}
 
-		m_label_item = (TextWidget*)m_app->getUnitTree()->createUnit(m_path + "_label", "//meworla/textwidget", attr, val);
+		m_label_item = (TextWidget*)m_app->getUnitTree()->createUnit(getPathName() + "_label", "//meworla/textwidget", attr, val);
 		addChild(m_label_item);
 	}
 

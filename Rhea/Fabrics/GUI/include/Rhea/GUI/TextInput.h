@@ -43,6 +43,9 @@ namespace rhea
 		// update the text
 		void setText(std::string text);
 
+		// get the current text
+		std::string getText() { return m_text; }
+
 		// frame handler
 		void onFrame(float delta);
 

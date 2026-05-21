@@ -14,6 +14,7 @@
 #include <SimpleParser/CssParser.h>
 #include "Modifier/Modifier.h"
 #include "Layout/Alignment.h"
+#include "Layout/LayoutAlignment.h"
 #include "Styles/Property.h"
 #include "Styles/StyleEngine.h"
 
@@ -58,7 +59,6 @@ namespace rhea
 			m_screen_position_valid(false),
 			m_style_dirty(true),
 			m_layout_dirty(true),
-			m_justify_mode(0),
 			m_is_rtl(false),
 			m_essential_size_valid(false),
 			m_widget_states(0)
@@ -216,13 +216,7 @@ namespace rhea
 		 * @param horizontal The horizontal alignment.
 		 * @param vertical The vertical alignment.
 		 */
-		void setAlignment(std::string horizontal, std::string vertical);
-
-		/**
-		 * @brief Sets the justify mode of the widget.
-		 * @param mode The justify mode (0 for no justification, 1 for space evenly).
-		 */
-		void setJustifyMode(int mode) { m_justify_mode = mode; }
+		void setAlignment(std::string justify_content, std::string align_items);
 
 		 /**
 		  * @brief Sets the styles of the widget.
@@ -388,6 +382,7 @@ namespace rhea
 			 return !hasWidgetState(WidgetState::kDisabled); 
 		 }
 
+		 virtual void dumpDebugInfo(int indent = 0);
 
 	protected:
 
@@ -454,9 +449,6 @@ namespace rhea
 
 		std::vector<std::unique_ptr<Modifier>> m_modifiers;
 
-		// Justify mode
-		int m_justify_mode;
-
 		// Current coordinates
 
 		// Current screen position in pixel
@@ -466,7 +458,8 @@ namespace rhea
 		bool m_screen_position_valid;
 
 		// Layout
-		std::unique_ptr<Alignment> m_alignment;
+		std::unique_ptr<LayoutAlignment> m_alignment;
+		std::unique_ptr<Alignment> m_child_alignment;
 
 		// A user pointer
 		void* m_user_ptr;

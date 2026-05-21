@@ -12,7 +12,7 @@ void rhea::RowWidget::ready()
 	Widget::ready();
 
 	if (!m_alignment)
-		m_alignment = std::make_unique<Alignment>(Alignment::Horizontal::CENTER, Alignment::Vertical::CENTER);
+		m_alignment = std::make_unique<LayoutAlignment>(LayoutAlignment::JustifyContent::START, Alignment::AlignItems::START);
 }
 
 void rhea::RowWidget::onSetPosition()
@@ -30,14 +30,12 @@ void rhea::RowWidget::onSetPosition()
 		}
 	}
 
-	switch (m_justify_mode) {
-	case 0:
-		slot_padding = 0.0f;
-		break;
-	case 1:
-		slot_padding = (m_content_size.x - m_children_size) / widgets.size();
-		break;
-	}
+	AxisLayout layout = m_alignment->justify(m_size.x, m_children_size, widgets.size());
+	
+	slot_padding = layout.spacing;
+	cur_position.x += layout.offset;
+
+	// set fallback slot size to content height
 	Vector2 slot_size = Vector2(0.0f, m_content_size.y);
 
 	for (auto it = widgets.begin(); it != widgets.end(); ++it) {
@@ -54,8 +52,8 @@ void rhea::RowWidget::onSetPosition()
 			// apply alignment
 			Vector2 child_position = cur_position;
 
-			if (m_alignment)
-				m_alignment->apply(slot_size, child_outer_size, child_position);
+			if (m_child_alignment)
+				m_child_alignment->apply(slot_size, child_outer_size, child_position);
 
 			w->setPosition(child_position);
 

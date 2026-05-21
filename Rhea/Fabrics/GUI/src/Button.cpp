@@ -27,11 +27,11 @@ namespace rhea
 			val["font"] = getValue("font");
 
 		// add a label
-		m_label = (Label*)m_app->getUnitTree()->createUnit(m_path + "_label", "//meworla/gui/label", attr, val);
+		m_label = (Label*)m_app->getUnitTree()->createUnit(getPathName() + "_label", "//meworla/gui/label", attr, val);
 		addChild(m_label);
 
 		if (!m_alignment)
-			m_alignment = std::make_unique<Alignment>(Alignment::Horizontal::CENTER, Alignment::Vertical::CENTER);
+			m_alignment = std::make_unique<LayoutAlignment>(LayoutAlignment::JustifyContent::CENTER, Alignment::AlignItems::CENTER);
 	}
 
 	void Button::setText(std::string text)
@@ -107,11 +107,21 @@ namespace rhea
 		// This is the top-left of the content area
 		Vector2 label_anchor = m_position + m_content_position;
 		
+		if (m_child_alignment)
+		{
+			// Apply alignment to calculate offset within content area
+			Vector2 labelOuterSize = m_label->getOuterSize();
+			m_child_alignment->apply(m_size, labelOuterSize, label_anchor);
+		}
+
 		if (m_alignment)
 		{
 			// Apply alignment to calculate offset within content area
 			Vector2 labelOuterSize = m_label->getOuterSize();
-			m_alignment->apply(m_content_size, labelOuterSize, label_anchor);
+			AxisLayout layout = m_alignment->justify(m_size.x, labelOuterSize.x, 1);
+			label_anchor.x += layout.offset;
+			float align_layout = m_alignment->align(m_size.y, labelOuterSize.y);
+			label_anchor.y += align_layout;
 		}
 
 		// setPosition expects an anchor position

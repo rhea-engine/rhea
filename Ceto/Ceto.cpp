@@ -193,6 +193,12 @@ bool Ceto::handleDevShortcuts(const rhea::InputEvent& evt)
 		else
 			debug_draw->toggle();
 	}
+
+	if (evt.isKeyPressed(rhea::Key::N)) {
+		if (m_gui_controller) {
+			m_gui_controller->dumpDebugInfo();
+		}
+	}
 	return false;
 }
 

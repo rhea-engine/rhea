@@ -34,7 +34,7 @@ namespace rhea
 			val["font"] = getValue("font");
 
 		// add a label
-		m_label = (Label*)m_app->getUnitTree()->createUnit(m_path + "/label", "//meworla/gui/label", attr, val);
+		m_label = (Label*)m_app->getUnitTree()->createUnit(getPathName() + "_label", "//meworla/gui/label", attr, val);
 		addChild(m_label);
 
 		if (m_label)

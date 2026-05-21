@@ -21,7 +21,6 @@ namespace rhea {
 			m_children_size(0),
 			Widget(name, type_name)
 		{
-			m_justify_mode = 1;
 			m_is_renderable = false;
 		}
 

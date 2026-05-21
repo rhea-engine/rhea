@@ -31,6 +31,7 @@ namespace simpleparser
 
 		bool ws_relevant = false;
 
+		id_chars = "-_";
 		while (reader < buflen) {
 			err = nextToken(buf, reader, buflen, line, token, ws_relevant);
 			if (err >= SimpleParser::Error::PARSE_ERR)

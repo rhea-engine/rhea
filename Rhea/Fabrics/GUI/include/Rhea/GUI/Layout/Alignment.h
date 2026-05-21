@@ -9,25 +9,21 @@
 #define RHEA_GUI_ALIGNMENT_H
 
 #include <Math/Vector2.h>
+#include <string>
 
 namespace rhea {
 
 	class Alignment
 	{
 	public:
-		enum class Horizontal {
+		enum class AlignItems {
 			START,
 			END,
-			CENTER
+			CENTER,
+			STRETCH
 		};
 
-		enum class Vertical {
-			TOP,
-			BOTTOM,
-			CENTER
-		};
-
-		Alignment(Horizontal horizontal, Vertical vertical) :
+		Alignment(AlignItems horizontal, AlignItems vertical) :
 			m_h_alignment(horizontal),
 			m_v_alignment(vertical)
 		{}
@@ -36,32 +32,38 @@ namespace rhea {
 			// Note: if the size was set to fill this makes no sense
 			Vector2 padding = size_constraints - childSize;
 			switch (m_h_alignment) {
-			case Horizontal::START:
+			case AlignItems::START:
 				break;
-			case Horizontal::END:
+			case AlignItems::END:
 				position.x = padding.x;
 				break;
-			case Horizontal::CENTER:
+			case AlignItems::CENTER:
 				position.x += (padding.x / 2);
 				break;
 			}
 			switch (m_v_alignment) {
-			case Vertical::TOP:
+			case AlignItems::START:
 				break;
-			case Vertical::BOTTOM:
+			case AlignItems::END:
 				position.y = padding.y;
 				break;
-			case Vertical::CENTER:
+			case AlignItems::CENTER:
 				position.y += (padding.y / 2);
 				break;
 			}
 		};
 
+		void setHorizontal(AlignItems horizontal) { m_h_alignment = horizontal; }
+		void setVertical(AlignItems vertical) { m_v_alignment = vertical; }
+
+		AlignItems getHorizontal() const { return m_h_alignment; }
+		AlignItems getVertical() const { return m_v_alignment; }
+
 		std::string name() { return "alignment"; }
 
 	protected:
-		Horizontal m_h_alignment;
-		Vertical m_v_alignment;
+		AlignItems m_h_alignment;
+		AlignItems m_v_alignment;
 	};
 }
 #endif // !RHEA_GUI_ALIGNMENT_H

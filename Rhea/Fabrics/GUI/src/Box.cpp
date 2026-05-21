@@ -14,7 +14,7 @@ namespace rhea
 		Widget::ready();
 
 		if (!m_alignment)
-			m_alignment = std::make_unique<Alignment>(Alignment::Horizontal::CENTER, Alignment::Vertical::CENTER);
+			m_alignment = std::make_unique<LayoutAlignment>(LayoutAlignment::JustifyContent::CENTER, Alignment::AlignItems::CENTER);
 	}
 
 	void BoxWidget::onSetPosition()
@@ -27,10 +27,10 @@ namespace rhea
 			Widget* w = doCast<Widget>(it->second);
 			if (w) {
 				Vector2 child_position = m_position;
-				if (m_alignment)
+				if (m_child_alignment)
 				{					
 					Vector2 outer_size = w->getOuterSize();
-					m_alignment->apply(m_size, outer_size, child_position);
+					m_child_alignment->apply(m_size, outer_size, child_position);
 				}
 				w->setPosition(child_position);
 			}

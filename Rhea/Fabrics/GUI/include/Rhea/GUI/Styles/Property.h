@@ -28,6 +28,8 @@ namespace rhea
 		kFont,
 		kFontSize,
 		kOverflow,
+		kAlignItems,
+		kJustifyContent,
 		kPaddingTop,
 		kPaddingLeft,
 		kPaddingBottom,

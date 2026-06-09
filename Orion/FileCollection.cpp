@@ -21,7 +21,7 @@ namespace orion
 
 	Collection::Entry* FileCollection::nextEntry()
 	{
-		if (m_handle && !m_end) {
+		while (m_handle && !m_end) {
 			Entry* entry = nullptr;
 			psio::Fs::FileAttributes attributes;
 			int ret = psio::Fs::readEntry(m_handle.get(), &attributes);
@@ -34,8 +34,16 @@ namespace orion
 					m_end = true;
 					m_handle.reset();
 				}
+				if (m_filter) {
+					if (!m_filter(*entry)) {
+						delete entry;
+						continue;
+					}
+				}
 				return entry;
 			}
+			else
+				return nullptr;
 		}
 		return nullptr;
 	}

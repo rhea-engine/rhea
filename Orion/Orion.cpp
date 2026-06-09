@@ -43,6 +43,11 @@ namespace orion
 		m_realms->addRealm(new Realm("localhost", "", Realm::RealmType::LocalPath)); // special realm for local system
 	}
 
+	void Orion::addLocalRealm(std::string name, std::string path)
+	{
+		m_realms->addRealm(new Realm(name, path, Realm::RealmType::LocalPath));
+	}
+
 	bool Orion::poll()
 	{
 		for (auto it = m_requests.begin(); it != m_requests.end(); ++it)

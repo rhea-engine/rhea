@@ -64,6 +64,9 @@ namespace orion
 		// set a local dir manually
 		void setLocalDir(std::string dirname);
 
+		// set a custom realm
+		void addLocalRealm(std::string name, std::string path);
+
 		static const int ERR_NOTFOUND = -1;
 		static const int ERR_NOTIMPLEMENTED = -2;
 

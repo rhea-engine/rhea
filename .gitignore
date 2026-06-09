@@ -45,3 +45,8 @@ bin
 MwpkgModules
 mwpkg.cmake
 /Ceto/mwpkg.cmake
+
+#generated files
+.rhea
+__pycache__
+type_registry.json	

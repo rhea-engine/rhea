@@ -109,4 +109,14 @@ namespace rhea::client
 		
 		return ids;
 	}
+
+	poseidon::Window* WindowRegistryService::getRenderWindowByName(const std::string& name) const
+	{
+		for (const auto& pair : m_windows) {
+			if (pair.second.name == name) {
+				return pair.second.renderWindow;
+			}
+		}
+		return nullptr;
+	}
 }

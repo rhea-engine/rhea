@@ -232,8 +232,35 @@ namespace rhea
 		m_services.erase(name);
 	}
 
+	void rhea::Application::addDefaultWindow()
+	{
+		Window default_window;
+		default_window.name = "main";
+		default_window.title = m_appname;
+		if (!default_window.title.size())
+			default_window.title = "Rhea Application";
+		auto* config = getConfig();
+		if (config) {
+			default_window.width = config->getValue("window.width", 1152);
+			default_window.height = config->getValue("window.height", 864);
+		}
+		else {
+			LOG(LOG_WARNING) << "No window defined and no config file found, using default window size 800x600";
+			default_window.width = 800;
+			default_window.height = 600;
+		}
+		m_windows.push_back(default_window);
+		m_windows[0].views.push_back({ "default", 0,0,default_window.width,default_window.height });
+		m_windows[0].views[0].layers.push_back({ "default", 0,0,default_window.width,default_window.height });	
+	}
+
 	void Application::setup()
-	{		
+	{	
+		// if no window and no view was defined we create a default one
+		if (!m_windows.size()) {
+			addDefaultWindow();
+		}
+
 		for (auto it = m_services.begin(); it != m_services.end(); ++it)
 		{
 			Service* s = it->second;
@@ -492,6 +519,11 @@ namespace rhea
 			else
 				handler(NULL, static_cast<ReqError>(err));
 			});
+	}
+
+	void Application::onResizeWindow(int width, int height)
+	{
+
 	}
 
 	void Application::log(std::string message)

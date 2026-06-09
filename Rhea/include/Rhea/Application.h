@@ -13,6 +13,7 @@
 #include <Orion/ResourceRequest.h>
 #include "Resources/ResourceLoader.h"
 #include "FabricSystem.h"
+#include "Graphics/Window.h"
 
 #include <string>
 #include <unordered_map>
@@ -148,6 +149,13 @@ namespace rhea
 
 		ConfigFile* getConfig();
 
+		const std::vector<Window>& getWindows() const { return m_windows; }
+		void addWindow(Window win) { m_windows.push_back(win); }
+		// helper add default window
+		void addDefaultWindow();
+
+		virtual void onResizeWindow(int width, int height);
+
 	protected:
 		orion::Orion* m_fs = 0;
 		std::string m_appname = "";
@@ -159,6 +167,9 @@ namespace rhea
 		PhysicsService* m_physics = nullptr;
 		Service* m_wold_service = nullptr;
 		IInputService* m_input_service = nullptr;
+
+		// Windows
+		std::vector<Window> m_windows;
 
 		ResourceLoader m_resource_loader;
 

@@ -356,6 +356,9 @@ void Ceto::openScene(std::string scene_name)
 
 void Ceto::setup()
 {
+	addDefaultWindow();
+	m_windows[0].views[0].layers.push_back({"HUD",0,0,m_windows[0].width, m_windows[0].height});
+
 	rhea::Application::setup();
 
 	// check for config file

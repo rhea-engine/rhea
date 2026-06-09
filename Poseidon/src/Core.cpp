@@ -76,6 +76,15 @@ namespace poseidon
 		return window;
 	}
 
+	Window* Core::getWindow(const std::string& name)
+	{
+		for (auto& win : m_windows) {
+			if (win->getName() == name)
+				return win;
+		}
+		return nullptr;
+	}
+
 	void Core::createDefaultStencilStates()
 	{
 		hippios::DepthStencilStateDesc desc;

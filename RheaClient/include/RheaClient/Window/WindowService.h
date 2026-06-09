@@ -84,6 +84,12 @@ namespace rhea::client
 		 */
 		std::vector<WindowId> getAllWindowIds() const;
 
+		/**
+		* @brief get render window by name
+		* * @param name The window name
+		*/
+		poseidon::Window* getRenderWindowByName(const std::string& name) const;
+
 	private:
 		struct WindowEntry
 		{

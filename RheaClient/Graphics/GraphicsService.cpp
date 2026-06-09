@@ -235,53 +235,88 @@ namespace rhea::client {
 			LOG(LOG_ERROR) << "GraphicsService::onInit: platform not set";
 			return;
 		}
-		else {
-			// get backend config from application config
-			std::string backend = "auto";
-			rhea::ConfigFile* config = m_app->getConfig();
-			if (config)
-				backend = config->getValueString("renderer.backend", "auto");
 
-			m_core->init(static_cast<rhea::PlatformService*>(m_platform)->getEngine(), backend);
-			poseidon::Window* window = m_core->createWindow(m_app->getAppname(), 1152, 864, "root");
+		// get backend config from application config
+		std::string backend = "auto";
+		rhea::ConfigFile* config = m_app->getConfig();
+		if (config)
+			backend = config->getValueString("renderer.backend", "auto");
 
-			// For OpenGL we nned to call is after window creation, for D3D12 it can be called before -
-			// but it needs to be called after backend initialization and before any render context creation
-			m_core->initializeRenderStates();
-
-			WindowRegistryService* window_registry = doCast<WindowRegistryService>(m_app->getService("window_registry"));
-			if (window && window_registry) {
-				window_registry->registerWindow(window);
+		m_core->init(static_cast<rhea::PlatformService*>(m_platform)->getEngine(), backend);
+		WindowRegistryService* window_registry = doCast<WindowRegistryService>(m_app->getService("window_registry"));
+		for (auto window : m_app->getWindows()) {
+			poseidon::Window* win = m_core->createWindow(window.title, window.width, window.height, window.name);
+			if (win) {
+				
+				if (window_registry) {
+					window_registry->registerWindow(win, window.name);
+				}
 			}
-			m_main_window = window;
+			if (!m_main_window) {
+				m_main_window = win;
+			}
 		}
 
-		// create a render context for HUD / GUI
-		poseidon::Viewport* viewport = m_main_window->getDefaultViewport();
-		std::string hud_context_name = "HUD";
-		poseidon::RenderContext* context = viewport->createRenderContext(hud_context_name);
-		context->setRenderOrderMode(poseidon::RenderContext::RenderOrderMode::TreeOrdered);
-		context->setStencilState(1);
-		// add a camera for this context
+		// For OpenGL we need to call this after window creation, for D3D12 it can be called before -
+		// but it needs to be called after backend initialization and before any render context creation
+		m_core->initializeRenderStates();
 
-		int viewport_width = viewport->getWidth();
-		int viewport_height = viewport->getHeight();
-		if (!viewport_width)
-			viewport_width = 800;
-		if (!viewport_height)
-			viewport_height = 600;
-
-		poseidon::CameraHandle cam_handle = m_core->getRenderWorld()->createCamera();
-		auto* gfx_cam_mgr = static_cast<rhea::client::GraphicsCameraManager*>(getManager<rhea::Camera>());
-		if (gfx_cam_mgr) {
-			gfx_cam_mgr->syncCameraProjection(m_core.get(), cam_handle, nullptr, (float)viewport_width, (float)viewport_height);
+		if (!m_main_window) {
+			LOG(LOG_ERROR) << "GraphicsService::onInit: no window created";
+			return;
 		}
-		context->setCameraHandle(cam_handle);
-		context->setSize((float)viewport_width, (float)viewport_height);
-		// since we have no rhea Camera for this camera, we need to set orthographic mode and projection offset manually
-		poseidon::Camera* cam = m_core->getRenderWorld()->resolveCamera(cam_handle);
-		cam->setOrthographic(true);
-		cam->setProjectionOffset(math::Vector3(-0.5f, -0.5f, 0.0f));
+
+		// create the render contexts for all windows
+		if (window_registry) {
+			for (auto window : m_app->getWindows()) {
+				poseidon::Window* win = window_registry->getRenderWindowByName(window.name);
+				if (!win)
+					continue;
+
+				// iterate over the windows viewports and create render contexts for its layers
+				poseidon::Viewport* viewport = nullptr;
+				for (auto& vp : window.views) {
+					if (vp.name == "default") {
+						viewport = win->getDefaultViewport();
+					}
+					else {
+						viewport = win->createViewport(vp.name, vp.x, vp.y, vp.width, vp.height);
+					}
+					for (auto& layer : vp.layers) {
+						// create context for viewport if not exists
+						poseidon::RenderContext* context = viewport->getRenderContext(layer.name);
+						if (!context) {
+							context = viewport->createRenderContext(layer.name);
+							if (layer.name == "HUD") {
+								context->setRenderOrderMode(poseidon::RenderContext::RenderOrderMode::TreeOrdered);
+								context->setStencilState(1);
+
+								// add a camera for this context
+
+								int viewport_width = viewport->getWidth();
+								int viewport_height = viewport->getHeight();
+								if (!viewport_width)
+									viewport_width = 800;
+								if (!viewport_height)
+									viewport_height = 600;
+
+								poseidon::CameraHandle cam_handle = m_core->getRenderWorld()->createCamera();
+								auto* gfx_cam_mgr = static_cast<rhea::client::GraphicsCameraManager*>(getManager<rhea::Camera>());
+								if (gfx_cam_mgr) {
+									gfx_cam_mgr->syncCameraProjection(m_core.get(), cam_handle, nullptr, (float)viewport_width, (float)viewport_height);
+								}
+								context->setCameraHandle(cam_handle);
+								context->setSize((float)viewport_width, (float)viewport_height);
+								// since we have no rhea Camera for this camera, we need to set orthographic mode and projection offset manually
+								poseidon::Camera* cam = m_core->getRenderWorld()->resolveCamera(cam_handle);
+								cam->setOrthographic(true);
+								cam->setProjectionOffset(math::Vector3(-0.5f, -0.5f, 0.0f));
+							}
+						}
+					}
+				}
+			}
+		}		
 
 		// register input handler
 		m_app->getUnitTree()->registerEventHandler("scene_input", this, std::bind(&GraphicsService::onInput, this, std::placeholders::_1, std::placeholders::_2));

@@ -83,6 +83,7 @@ namespace poseidon
 
 		// Create additional windows (uses same renderer & states)
 		Window* createWindow(const std::string& title, int width, int height, const std::string& name = "");
+		Window* getWindow(const std::string& name);
 
 		void initializeRenderStates();
 

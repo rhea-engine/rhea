@@ -215,4 +215,6 @@ static void _register_ ## _MeClass() { _MeClass::staticType(); } \
  \
 private: \
 
+#define REPROPERTY(...)
+
 #endif // !SIMPLEPARSER_TYPE_H

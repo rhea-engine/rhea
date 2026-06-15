@@ -16,11 +16,9 @@ namespace rhea
 {
 	class Lighting : public Unit
 	{
-		MECLASS(Lighting, Unit)
+		RECLASS(Lighting, Unit, "//meworla/lighting");
+		REPROPERTY(math::Quaternion, "ambient", Label("Ambient"), Edit, Read);
 	public:
-		Lighting(std::string name) :
-			Lighting(name, "//meworla/lighting")
-		{}
 		Lighting(std::string name, std::string type_name) :
 			Unit(name, type_name)
 		{}

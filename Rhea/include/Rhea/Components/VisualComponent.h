@@ -22,7 +22,10 @@ namespace rhea
     /** Manages visibility state only */
     class VisualComponent : public Component
     {
-        RECLASS(VisualComponent, Component, "//meworla/visualcomponent")
+        RECLASS(VisualComponent, Component, "//meworla/visualcomponent");
+        REPROPERTY(bool, "hidden", Label("Hidden"), Edit, Read);
+        REPROPERTY(bool, "has_clipping", Label("Has Clipping"), Edit, Read);
+        REPROPERTY(ClipRect, "clip_rect", Label("Clip Rect"), Edit, Read);
     public:
         VisualComponent(std::string name, std::string type_name) :
             Component(name, type_name),
@@ -41,8 +44,11 @@ namespace rhea
         void setClipping(ClipRect rect) { m_clip_rect = rect; }
 
     private:
+       
         bool m_hidden;
+       
         bool m_has_clipping = false;
+		
         ClipRect m_clip_rect{};
     };
 }

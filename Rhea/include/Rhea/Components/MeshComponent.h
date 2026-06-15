@@ -9,6 +9,7 @@
 #define RHEA_MESHCOMPONENT_H
 
 #include <Rhea/Component.h>
+#include <Rhea/Ref.h>
 #include <string>
 
 namespace rhea
@@ -26,11 +27,9 @@ namespace rhea
         {}
 
         // Asset reference (unresolved)
-        const std::string& meshRef() const { return m_meshRef; }
-        const std::string& basepathRef() const { return m_basePath; }
-        void setMeshRef(std::string ref, std::string basepath) { 
-            m_meshRef = std::move(ref); 
-            m_basePath = std::move(basepath); 
+        const Ref<Mesh>& meshRef() const { return m_meshRef; }
+        void setMeshRef(Ref<Mesh> ref) { 
+            m_meshRef = std::move(ref);
         }
 
         // Resolved asset
@@ -39,8 +38,8 @@ namespace rhea
 
     private:
         // Unresolved reference
-        std::string m_meshRef;
-        std::string m_basePath;
+		REPROPERTY(Ref<Mesh>, "meshRef", Label("Mesh Reference"), Edit, Read);
+        Ref<Mesh> m_meshRef;
         
         // Resolved instance
         Mesh* m_mesh = nullptr;

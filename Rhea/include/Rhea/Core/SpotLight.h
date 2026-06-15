@@ -14,7 +14,8 @@ namespace rhea
 {
 	class SpotLight : public PointLight
 	{
-		MECLASS(SpotLight, PointLight)
+		RECLASS(SpotLight, PointLight, "//meworla/spotlight");
+		REPROPERTY(float, "cone_angle", Label("Cone Angle"), Edit, Read);
 	public:
 		SpotLight(std::string name, std::string type) :
 			PointLight(name, type)

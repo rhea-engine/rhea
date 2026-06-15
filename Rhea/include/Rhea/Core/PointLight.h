@@ -14,7 +14,8 @@ namespace rhea
 {
 	class PointLight : public Light
 	{
-		MECLASS(PointLight, Light)
+		RECLASS(PointLight, Light, "//meworla/point_light");
+		REPROPERTY(math::Vector3, "attenuation", Label("Attenuation"), Edit, Read);
 	public:
 		PointLight(std::string name, std::string type) :
 			Light(name, type)

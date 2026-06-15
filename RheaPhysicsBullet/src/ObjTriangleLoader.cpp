@@ -14,6 +14,7 @@
 #include <Rhea/Resources/TextResource.h>
 #include <tiny_obj_loader/tiny_obj_loader.h>
 #include <Rhea/Components/MeshComponent.h>
+#include <Rhea/Core/Mesh.h>
 
 bool ExtractTrianglesFromScene(rhea::Application* app, rhea::Item* item, TriangleSoup& out)
 {
@@ -26,26 +27,22 @@ bool ExtractTrianglesFromScene(rhea::Application* app, rhea::Item* item, Triangl
     }
 
     // get mesh ref
-    // 1) Get mesh reference from VisualComponent (preferred)
-    std::string meshRef;
-    std::string basepathRef;
-    if (auto* vis = item->getComponent<rhea::MeshComponent>()) {
-        meshRef = vis->meshRef();  // rename to your getter
-        basepathRef = vis->basepathRef();
-    }
-    else {
-        // no mesh component
+    // 1) Get mesh reference from MeshComponent (preferred)
+    auto* mc = item->getComponent<rhea::MeshComponent>();
+    if (!mc) {
+        LOG(LOG_ERROR) << "ExtractTrianglesFromScene: item has no MeshComponent";
+        return false;
     }
     
-    if (meshRef.empty()) {
+    if (mc->meshRef().empty()) {
         LOG(LOG_ERROR) << "ExtractTrianglesFromScene: item has no mesh ref (MeshComponent.meshRef is empty)";
         return false;
     }
 
-    // 2) Resolve mesh unit (this is your ini block [cube2/mesh])
-    rhea::Unit* meshUnit = doCast<rhea::Unit>(app->getUnitTree()->find(meshRef, basepathRef, false));
+    // 2) Resolve mesh unit
+    rhea::Mesh* meshUnit = mc->meshRef().resolve(app->getUnitTree());
     if (!meshUnit) {
-        LOG(LOG_ERROR) << "ExtractTrianglesFromScene: mesh unit not found: " << meshRef;
+        LOG(LOG_ERROR) << "ExtractTrianglesFromScene: mesh unit not found: " << mc->meshRef().id();
         return false;
     }
 
@@ -53,9 +50,9 @@ bool ExtractTrianglesFromScene(rhea::Application* app, rhea::Item* item, Triangl
     std::string geoRef;
     std::string geoBasepathRef;
     geoRef = meshUnit->getValueString("geometry");
-    geoBasepathRef = basepathRef;
+    geoBasepathRef = mc->meshRef().basePath();
     if (geoRef.empty()) {
-        LOG(LOG_ERROR) << "ExtractTrianglesFromScene: mesh unit missing 'geometry' ref: " << meshRef;
+        LOG(LOG_ERROR) << "ExtractTrianglesFromScene: mesh unit missing 'geometry' ref: " << mc->meshRef().id();
         return false;
     }
 
@@ -75,7 +72,7 @@ bool ExtractTrianglesFromScene(rhea::Application* app, rhea::Item* item, Triangl
     }
 
     // 6) Load triangle soup from OBJ (physics-safe parser)
-    rhea::TextResource* obj = (rhea::TextResource*)app->getUnitTree()->find(objPathRef, basepathRef, false);
+    rhea::TextResource* obj = (rhea::TextResource*)app->getUnitTree()->find(objPathRef, geoBasepathRef, false);
     if (!obj) {
         DLOG(LOG_DEBUG) << "Obj not found in objloader. Path was: " << (std::string)objPathRef;
         return false;

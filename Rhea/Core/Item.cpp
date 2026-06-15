@@ -77,7 +77,7 @@ namespace rhea
 				mesh_component = addComponentUnique<MeshComponent>("mesh_component");
 			}
 			// only set ref
-			mesh_component->setMeshRef(mesh_it->second.toString(), m_attributes["basepath"]);
+			mesh_component->setMeshRef(Ref<Mesh>(mesh_it->second.toString(), m_attributes["basepath"]));
 		}			
 
 		if (visual_component && m_values.find("fabric") != m_values.end())
@@ -116,16 +116,14 @@ namespace rhea
 		// copy item values and components
 		if (getComponent<VisualComponent>()) {
 
-			// TODO: copy all components using their own copy function?
-			// 			RenderComponent* render_component = new_item->addComponentUnique<RenderComponent>("renderer");
-			// 			render_component->setMesh(render_component->getMesh());
+			// TODO: copy all components using their own copy function?			
 			VisualComponent* v_c = getComponent<VisualComponent>();
 			VisualComponent* visual_component = new_item->addComponentUnique<VisualComponent>("visual_component");
 		}
 		if (getComponent<MeshComponent>()) {
 			MeshComponent* m_c = getComponent<MeshComponent>();
 			MeshComponent* mesh_component = new_item->addComponentUnique<MeshComponent>("mesh_component");
-			mesh_component->setMeshRef(m_c->meshRef(), m_c->basepathRef());
+			mesh_component->setMeshRef(m_c->meshRef());
 		}
 
 		return new_item;

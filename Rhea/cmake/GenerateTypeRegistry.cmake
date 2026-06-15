@@ -1,10 +1,10 @@
-# Type Registry - Build-Time Generation für Rhea Engine
+# Type Registry - Build-Time Generation for Rhea Engine
 # 
-# Dieses CMake-Script generiert die Type-Registry während des Builds
+# This CMake script generates the type Rrgistry during build
 
 cmake_minimum_required(VERSION 3.21)
 
-# Funktion: Sammle alle Header-Dateien eines Targets
+# Function: Gather alll header files of a target
 function(collect_target_headers target_name output_var)
 	get_target_property(sources ${target_name} SOURCES)
 	get_target_property(source_dir ${target_name} SOURCE_DIR)
@@ -24,7 +24,7 @@ function(collect_target_headers target_name output_var)
 	set(${output_var} ${headers} PARENT_SCOPE)
 endfunction()
 
-# Funktion: Generiere Type-Registry für ein Target
+# Function: generate type registry for a target
 function(generate_type_registry target_name)
 	set(options "")
 	set(oneValueArgs OUTPUT_FILE PYTHON_SCRIPT)
@@ -40,19 +40,17 @@ function(generate_type_registry target_name)
 		set(ARG_PYTHON_SCRIPT "${CMAKE_SOURCE_DIR}/scripts/scan_types.py")
 	endif()
 
-	# Sammle alle Header des Targets
 	collect_target_headers(${target_name} target_headers)
 
-	# Füge zusätzliche Headers hinzu
+	# Add additional headers
 	if(ARG_ADDITIONAL_HEADERS)
 		list(APPEND target_headers ${ARG_ADDITIONAL_HEADERS})
 	endif()
 
-	# Erstelle Output-Verzeichnis
+	# cretae output folder
 	get_filename_component(output_dir ${ARG_OUTPUT_FILE} DIRECTORY)
 	file(MAKE_DIRECTORY ${output_dir})
 
-	# Option 1: Python-Script verwenden
 	if(Python3_FOUND OR Python_FOUND)
 		# Finde Python
 		if(NOT Python3_EXECUTABLE AND NOT Python_EXECUTABLE)
@@ -68,9 +66,8 @@ function(generate_type_registry target_name)
 		endif()
 
 		if(PYTHON_EXE)
-			# Erstelle Custom Command mit Python
-			add_custom_command(
-				OUTPUT ${ARG_OUTPUT_FILE}
+			# Custom target that always runs
+			add_custom_target(${target_name}_generate_types ALL
 				COMMAND ${PYTHON_EXE} ${ARG_PYTHON_SCRIPT} 
 						${CMAKE_CURRENT_SOURCE_DIR} 
 						${ARG_OUTPUT_FILE}
@@ -78,14 +75,10 @@ function(generate_type_registry target_name)
 				WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 				COMMENT "Generating type registry for ${target_name}..."
 				VERBATIM
+				BYPRODUCTS ${ARG_OUTPUT_FILE}
 			)
 
-			# Custom Target für manuelle Builds
-			add_custom_target(${target_name}_generate_types
-				DEPENDS ${ARG_OUTPUT_FILE}
-			)
-
-			# Automatisch mit Target bauen
+			# Automatically build before target
 			add_dependencies(${target_name} ${target_name}_generate_types)
 
 			message(STATUS "Type registry generation enabled for ${target_name}")
@@ -98,14 +91,14 @@ function(generate_type_registry target_name)
 		message(STATUS "Skipping build-time type generation (Python not found)")
 	endif()
 
-	# Installiere generierte Registry
+	# install generated registry
 	install(FILES ${ARG_OUTPUT_FILE}
 			DESTINATION share/${target_name}/.rhea
 			COMPONENT runtime
 	)
 endfunction()
 
-# Beispiel-Verwendung:
+# Sample usage:
 # generate_type_registry(Rhea
 #     OUTPUT_FILE "${CMAKE_BINARY_DIR}/Rhea/.rhea/type_registry.json"
 #     PYTHON_SCRIPT "${CMAKE_SOURCE_DIR}/scripts/scan_types.py"

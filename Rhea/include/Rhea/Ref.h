@@ -18,6 +18,7 @@ namespace rhea
 	public:
 		Ref() = default;
 		explicit Ref(std::string id) : m_id(std::move(id)) {}
+		explicit Ref(std::string id, std::string base_path) : m_id(std::move(id)), m_base_path(std::move(base_path)) {}
 
 		bool empty() const { return m_id.empty(); }
 		explicit operator bool() const { return !empty(); }
@@ -25,7 +26,15 @@ namespace rhea
 		const std::string& id() const { return m_id; }
 		void setId(std::string id) { m_id = std::move(id); }
 
-		T* resolve(UnitTree* tree) const { return doCast<T>(tree->find(m_id)); }
+		const std::string& basePath() const { return m_base_path; }
+		void setBasePath(std::string base_path) { m_base_path = std::move(base_path); }
+
+		T* resolve(UnitTree* tree) const { 
+			if (m_base_path.empty())
+				return doCast<T>(tree->find(m_id)); 
+			else
+				return doCast<T>(tree->find(m_id, m_base_path, false));
+		}
 
 		std::string_view typeName() const {
 			if (auto type = simpleparser::Type::get(m_id))
@@ -34,6 +43,7 @@ namespace rhea
 		}
 	private:
 		std::string m_id;
+		std::string m_base_path;
 	};
 }
 

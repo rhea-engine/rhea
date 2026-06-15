@@ -78,23 +78,25 @@ target_link_libraries(RheaRuntime INTERFACE
   Rhea::Core
 )
 
-# Type Registry Build-Time Generation
+# Type registry build time generation
 option(RHEA_GENERATE_TYPE_REGISTRY "Generate type registry at build time" ON)
 
 if(RHEA_GENERATE_TYPE_REGISTRY)
-	# Lade CMake-Funktion
+	# Load cmake function
 	include(${CMAKE_CURRENT_LIST_DIR}/cmake/GenerateTypeRegistry.cmake)
 
-	# Finde Python (optional, aber empfohlen)
+	# Find Python (optional, but recommended)
 	find_package(Python3 COMPONENTS Interpreter QUIET)
 
-	# Generiere Type-Registry für Rhea
+	# Generate type registry for Rhea
 	generate_type_registry(RheaBase
 		OUTPUT_FILE "${CMAKE_BINARY_DIR}/Rhea/.rhea/type_registry.json"
 		PYTHON_SCRIPT "${CMAKE_CURRENT_LIST_DIR}/scripts/scan_types.py"
 	)
 
-	# Kopiere in Source-Tree für Development
+	target_sources(RheaBase PRIVATE ${ARG_OUTPUT_FILE})
+
+	# Copy to source tree for development
 	add_custom_command(
 		TARGET RheaBase POST_BUILD
 		COMMAND ${CMAKE_COMMAND} -E copy_if_different
@@ -104,7 +106,7 @@ if(RHEA_GENERATE_TYPE_REGISTRY)
 	)
 endif()
 
-# Export Registry-Pfad für andere Targets
+# Export registry path for other targets
 set(RHEA_TYPE_REGISTRY "${CMAKE_BINARY_DIR}/Rhea/.rhea/type_registry.json" 
 	CACHE FILEPATH "Path to Rhea type registry")
 

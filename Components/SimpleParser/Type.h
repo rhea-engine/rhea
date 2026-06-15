@@ -215,6 +215,10 @@ static void _register_ ## _MeClass() { _MeClass::staticType(); } \
  \
 private: \
 
-#define REPROPERTY(...)
+#define RE_JOIN2(a,b) a##b
+#define RE_JOIN(a,b) RE_JOIN2(a,b)
+
+#define REPROPERTY(...) \
+    [[maybe_unused]] static constexpr int RE_JOIN(__reproperty_, __LINE__) = 0
 
 #endif // !SIMPLEPARSER_TYPE_H

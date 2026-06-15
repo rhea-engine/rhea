@@ -14,7 +14,11 @@ namespace rhea
 {
 	class Light : public Item
 	{
-		MECLASS(Light, Item)
+		RECLASS(Light, Item, "//meworla/light");
+		REPROPERTY(math::Quaternion, "ambient", Label("Ambient"), Edit, Read);
+		REPROPERTY(math::Quaternion, "diffuse", Label("Diffuse"), Edit, Read);
+		REPROPERTY(math::Quaternion, "specular", Label("Specular"), Edit, Read);
+		REPROPERTY(math::Vector3, "color", Label("Color"), Edit, Read);
 	public:
 		Light(std::string name, std::string type) :
 			m_is_enabled(true),

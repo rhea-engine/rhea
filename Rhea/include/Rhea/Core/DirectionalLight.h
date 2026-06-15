@@ -14,7 +14,8 @@ namespace rhea
 {
 	class DirectionalLight : public Light
 	{
-		MECLASS(DirectionalLight, Light)
+		RECLASS(DirectionalLight, Light, "//meworla/directional_light");
+		REPROPERTY(math::Vector3, "direction", Label("Direction"), Edit, Read);
 	public:
 		DirectionalLight(std::string name, std::string type) :
 			Light(name, type)

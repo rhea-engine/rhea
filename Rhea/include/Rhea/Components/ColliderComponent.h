@@ -10,6 +10,7 @@
 
 #include <Rhea/Unit.h>
 #include <Math/Vector3.h>
+#include <Rhea/Ref.h>
 
 namespace rhea
 {
@@ -51,7 +52,7 @@ namespace rhea
 			TriangleMesh
 		};
 		MeshColliderMode mode = MeshColliderMode::Convex;
-		Mesh* mesh = nullptr;
+		Ref<Mesh> mesh;
 		std::string getShapeType() const override { return "Mesh"; }
 		MeshColliderShape* clone() const { return new MeshColliderShape(*this); }
 	};

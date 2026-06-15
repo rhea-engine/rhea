@@ -96,12 +96,12 @@ public:
 
         rhea::DirectionalLight* light = simpleparser::Type::create<rhea::DirectionalLight>("MainLight");
         light->setDirection(math::Vector3(-0.5f, -1.0f, -0.5f));
-        light->setColor(math::Vector3(1.0f, 1.0f, 1.0f));
-        light->setDiffuse(math::Quaternion(1.0f, 1.0f, 1.0f, 1.0f));
+        light->setColor(math::Color(1.0f, 1.0f, 1.0f));
+        light->setDiffuse(math::Color(1.0f, 1.0f, 1.0f, 1.0f));
         m_scene->addChild(light);
 
         rhea::Lighting* lighting = simpleparser::Type::create<rhea::Lighting>("MainLighting");
-        lighting->setAmbient(math::Quaternion(0.8f, 0.8f, 0.8f, 1.0f));
+        lighting->setAmbient(math::Color(0.8f, 0.8f, 0.8f, 1.0f));
         lighting->setup(this, {}, {});
         m_scene->addChild(lighting);
 
@@ -176,9 +176,9 @@ public:
         }
         // Material with red color
         // Set colors
-        material->setColor(0, math::Vector4(0.8f, 0.1f, 0.1f, 1.0f)); // Diffuse: Red
-        material->setColor(1, math::Vector4(0.2f, 0.0f, 0.0f, 1.0f)); // Ambient: Dark red
-        material->setColor(2, math::Vector4(1.0f, 0.5f, 0.5f, 1.0f)); // Specular: Light red/pink
+        material->setColor(0, math::Color(0.8f, 0.1f, 0.1f, 1.0f)); // Diffuse: Red
+        material->setColor(1, math::Color(0.2f, 0.0f, 0.0f, 1.0f)); // Ambient: Dark red
+        material->setColor(2, math::Color(1.0f, 0.5f, 0.5f, 1.0f)); // Specular: Light red/pink
         material->setFloat(0, 32.0f); // Shininess for highlights
         //rhea::ImageResource* image_res = doCast<rhea::ImageResource>(m_unit_tree->find("//sandbox/kies.png", "", false));
         //rhea::ImageResource* image_res = doCast<rhea::ImageResource>(m_unit_tree->find("//sandbox/uv_debug.png", "", false));
@@ -213,9 +213,9 @@ public:
             material->setShaderRes(shader_res);
         }
         // Material with gray color
-        material->setColor(0, math::Vector4(0.5f, 0.5f, 0.5f, 1.0f)); // Diffuse: Gray
-        material->setColor(1, math::Vector4(0.2f, 0.2f, 0.2f, 1.0f)); // Ambient: Dark gray
-        material->setColor(2, math::Vector4(0.8f, 0.8f, 0.8f, 1.0f)); // Specular: Light gray
+        material->setColor(0, math::Color(0.5f, 0.5f, 0.5f, 1.0f)); // Diffuse: Gray
+        material->setColor(1, math::Color(0.2f, 0.2f, 0.2f, 1.0f)); // Ambient: Dark gray
+        material->setColor(2, math::Color(0.8f, 0.8f, 0.8f, 1.0f)); // Specular: Light gray
         material->setFloat(0, 16.0f); // Shininess for highlights
         rhea::ImageResource* image_res = doCast<rhea::ImageResource>(m_unit_tree->find("//sandbox/brick256.png", "", false));
         material->setTexture(0, image_res); // Add texture
@@ -247,9 +247,9 @@ public:
             material->setShaderRes(shader_res);
         }
         // Material with gray color
-        material->setColor(0, math::Vector4(0.5f, 0.5f, 0.5f, 1.0f)); // Diffuse: Gray
-        material->setColor(1, math::Vector4(0.2f, 0.2f, 0.2f, 1.0f)); // Ambient: Dark gray
-        material->setColor(2, math::Vector4(0.8f, 0.8f, 0.8f, 1.0f)); // Specular: Light gray
+        material->setColor(0, math::Color(0.5f, 0.5f, 0.5f, 1.0f)); // Diffuse: Gray
+        material->setColor(1, math::Color(0.2f, 0.2f, 0.2f, 1.0f)); // Ambient: Dark gray
+        material->setColor(2, math::Color(0.8f, 0.8f, 0.8f, 1.0f)); // Specular: Light gray
         material->setFloat(0, 16.0f); // Shininess for highlights
         rhea::ImageResource* image_res = doCast<rhea::ImageResource>(m_unit_tree->find("//sandbox/brick256.png", "", false));
         material->setTexture(0, image_res); // Add texture
@@ -282,9 +282,9 @@ public:
             material->setShaderRes(shader_res);
         }
         // Material with gray color
-        material->setColor(0, math::Vector4(0.5f, 0.5f, 0.5f, 1.0f)); // Diffuse: Gray
-        material->setColor(1, math::Vector4(0.2f, 0.2f, 0.2f, 1.0f)); // Ambient: Dark gray
-        material->setColor(2, math::Vector4(0.8f, 0.8f, 0.8f, 1.0f)); // Specular: Light gray
+        material->setColor(0, math::Color(0.5f, 0.5f, 0.5f, 1.0f)); // Diffuse: Gray
+        material->setColor(1, math::Color(0.2f, 0.2f, 0.2f, 1.0f)); // Ambient: Dark gray
+        material->setColor(2, math::Color(0.8f, 0.8f, 0.8f, 1.0f)); // Specular: Light gray
         material->setFloat(0, 16.0f); // Shininess for highlights
         rhea::ImageResource* image_res = doCast<rhea::ImageResource>(m_unit_tree->find("//sandbox/brick256.png", "", false));
         material->setTexture(0, image_res); // Add texture
@@ -319,9 +319,9 @@ public:
             material->setShaderRes(shader_res);
         }
         // Material with gray color
-        material->setColor(0, math::Vector4(0.5f, 0.5f, 0.5f, 1.0f)); // Diffuse: Gray
-        material->setColor(1, math::Vector4(0.2f, 0.2f, 0.2f, 1.0f)); // Ambient: Dark gray
-        material->setColor(2, math::Vector4(0.8f, 0.8f, 0.8f, 1.0f)); // Specular: Light gray
+        material->setColor(0, math::Color(0.5f, 0.5f, 0.5f, 1.0f)); // Diffuse: Gray
+        material->setColor(1, math::Color(0.2f, 0.2f, 0.2f, 1.0f)); // Ambient: Dark gray
+        material->setColor(2, math::Color(0.8f, 0.8f, 0.8f, 1.0f)); // Specular: Light gray
         material->setFloat(0, 16.0f); // Shininess for highlights
         rhea::ImageResource* image_res = doCast<rhea::ImageResource>(m_unit_tree->find("//sandbox/brick256.png", "", false));
         material->setTexture(0, image_res); // Add texture
@@ -355,9 +355,9 @@ public:
             material->setShaderRes(shader_res);
         }
         // Material with gray color
-        material->setColor(0, math::Vector4(0.5f, 0.5f, 0.5f, 1.0f)); // Diffuse: Gray
-        material->setColor(1, math::Vector4(0.2f, 0.2f, 0.2f, 1.0f)); // Ambient: Dark gray
-        material->setColor(2, math::Vector4(0.8f, 0.8f, 0.8f, 1.0f)); // Specular: Light gray
+        material->setColor(0, math::Color(0.5f, 0.5f, 0.5f, 1.0f)); // Diffuse: Gray
+        material->setColor(1, math::Color(0.2f, 0.2f, 0.2f, 1.0f)); // Ambient: Dark gray
+        material->setColor(2, math::Color(0.8f, 0.8f, 0.8f, 1.0f)); // Specular: Light gray
         material->setFloat(0, 16.0f); // Shininess for highlights
         rhea::ImageResource* image_res = doCast<rhea::ImageResource>(m_unit_tree->find("//sandbox/brick256.png", "", false));
         material->setTexture(0, image_res); // Add texture
@@ -390,9 +390,9 @@ public:
             material->setShaderRes(shader_res);
         }
         // Material with gray color
-        material->setColor(0, math::Vector4(0.5f, 0.5f, 0.5f, 1.0f)); // Diffuse: Gray
-        material->setColor(1, math::Vector4(0.2f, 0.2f, 0.2f, 1.0f)); // Ambient: Dark gray
-        material->setColor(2, math::Vector4(0.8f, 0.8f, 0.8f, 1.0f)); // Specular: Light gray
+        material->setColor(0, math::Color(0.5f, 0.5f, 0.5f, 1.0f)); // Diffuse: Gray
+        material->setColor(1, math::Color(0.2f, 0.2f, 0.2f, 1.0f)); // Ambient: Dark gray
+        material->setColor(2, math::Color(0.8f, 0.8f, 0.8f, 1.0f)); // Specular: Light gray
         material->setFloat(0, 16.0f); // Shininess for highlights
         rhea::ImageResource* image_res = doCast<rhea::ImageResource>(m_unit_tree->find("//sandbox/brick256.png", "", false));
         material->setTexture(0, image_res); // Add texture

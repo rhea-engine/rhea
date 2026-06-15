@@ -141,10 +141,10 @@ namespace rhea
             mat->setValue("shader", getValue("shadername", "standard"));
             
             // set material values
-			mat->setColor(ambient_id, math::Vector3(materials[slot].ambient[0], materials[slot].ambient[1], materials[slot].ambient[2]));
-			mat->setColor(diffuse_id, math::Vector3(materials[slot].diffuse[0], materials[slot].diffuse[1], materials[slot].diffuse[2]));
-			mat->setColor(specular_id, math::Vector3(materials[slot].specular[0], materials[slot].specular[1], materials[slot].specular[2]));
-			mat->setColor(emmission_id, math::Vector3(materials[slot].emission[0], materials[slot].emission[1], materials[slot].emission[2]));
+			mat->setColor(ambient_id, math::Color(materials[slot].ambient[0], materials[slot].ambient[1], materials[slot].ambient[2], 1.0f));
+			mat->setColor(diffuse_id, math::Color(materials[slot].diffuse[0], materials[slot].diffuse[1], materials[slot].diffuse[2], 1.0f));
+			mat->setColor(specular_id, math::Color(materials[slot].specular[0], materials[slot].specular[1], materials[slot].specular[2], 1.0f));
+			mat->setColor(emmission_id, math::Color(materials[slot].emission[0], materials[slot].emission[1], materials[slot].emission[2], 1.0f));
 
             int shining_id = shader_res->getInputSlotId("SHININESS");
 			// set shininess - map for Phong [0..1000.0] -> [0...128.0]

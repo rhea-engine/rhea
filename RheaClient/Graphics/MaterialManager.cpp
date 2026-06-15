@@ -248,7 +248,7 @@ namespace rhea::client {
 		std::vector<std::string> props = shader_res->getInputSlotNames();
 		if (props.size()) {
 			for (auto it = props.begin(); it != props.end(); ++it) {
-				math::Vector4 color;
+				math::Color color;
 				int slot_res = shader_res->getInputSlotId(*it);
 				if (slot_res < 0)
 					continue;

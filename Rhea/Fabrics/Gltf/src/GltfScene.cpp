@@ -134,13 +134,13 @@ namespace rhea
 				//mat->setColor(ambient_id, math::Vector3(material.ambient[0], material.ambient[1], material.ambient[2]));
 				// pbr to traditional specular - not implemented
 				//mat->setColor(specular_id, math::Vector3(material.specular[0], material.specular[1], material.specular[2]));
-				math::Vector3 diffuse(
+				math::Color diffuse(
 					(float)material.pbrMetallicRoughness.baseColorFactor[0],
 					(float)material.pbrMetallicRoughness.baseColorFactor[1],
 					(float)material.pbrMetallicRoughness.baseColorFactor[2]
 				);
 				mat->setColor(diffuse_id, diffuse);
-				math::Vector3 emmissive(
+				math::Color emmissive(
 					(float)material.emissiveFactor[0],
 					(float)material.emissiveFactor[1],
 					(float)material.emissiveFactor[2]
@@ -188,8 +188,8 @@ namespace rhea
 			mat->setShaderRes(shader_res);
 			mat->setValue("shader", shader_name);
 
-			mat->setColor(diffuse_id, math::Vector3(0.8f, 0.8f, 0.8f));
-			mat->setColor(emmission_id, math::Vector3(0.0f, 0.0f, 0.0f));
+			mat->setColor(diffuse_id, math::Color(0.8f, 0.8f, 0.8f));
+			mat->setColor(emmission_id, math::Color(0.0f, 0.0f, 0.0f));
 
 			if (diffuse_maps.size() > 0)
 				mat->setTexture(basecolor_id, diffuse_maps[0]);

@@ -14,6 +14,7 @@
 #include <unordered_set>
 
 #include <Math/Quaternion.h>
+#include <Math/Color.h>
 #include <Hippios/BaseTypes.h>
 #include "RenderTypes.h"
 
@@ -98,8 +99,8 @@ namespace poseidon
 		hippios::ViewportDesc* getSize() { return &m_size; }
 
 		// ambient light
-		void setAmbient(math::Quaternion ambient) { m_ambient = ambient; }
-		math::Quaternion getAmbient() { return m_ambient; }
+		void setAmbient(math::Color ambient) { m_ambient = ambient; }
+		math::Color getAmbient() { return m_ambient; }
 
 		// render order mode
 		void setRenderOrderMode(RenderOrderMode mode) { m_render_order_mode = mode; }
@@ -122,7 +123,7 @@ namespace poseidon
 		
 		std::vector<LightHandle> m_lights;
 		int m_stencil_state;
-		math::Quaternion m_ambient;
+		math::Color m_ambient;
 		hippios::ViewportDesc m_size;
 		RenderOrderMode m_render_order_mode = RenderOrderMode::Insertion;
 		

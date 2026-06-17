@@ -19,11 +19,14 @@ namespace rhea
 {
 	class Item2D : public Item
 	{
-		MECLASS(Item2D, Item)
+		RECLASS(Item2D, Item, "//meworla/Item2D");
+		REPROPERTY(math::Vector2, "position", Label("Position"), Edit, Read);
+		REPROPERTY(math::Vector2, "size", Label("Size"), Edit, Read);
+		REPROPERTY(math::Vector2, "tiling", Label("Tiling"), Edit, Read);
+		REPROPERTY(math::Vector2, "scaling", Label("Scaling"), Edit, Read);
+		REPROPERTY(math::Color, "background_color", Label("Background Color"), Edit, Read);
+		REPROPERTY(Ref<rhea::ImageResource>, "background_image", Label("Background"), Edit, Read);
 	public:
-		Item2D(std::string name) :
-			Item2D(name, "//meworla/Item2D")
-		{}
 		Item2D(std::string name, std::string type_name) :
 			m_size(0.0f, 0.0f),
 			m_position(0.0f, 0.0f),
@@ -60,6 +63,7 @@ namespace rhea
 
 		void setBackgroundColor(int r, int g, int b, float opacity = 1.0f);
 		void setBackgroundImage(ImageResource* tex);
+		void setBackgroundImage(Ref<ImageResource> tex_ref);
 
 		// get dimensions
 		float X() { return m_position.x; }
@@ -88,10 +92,11 @@ namespace rhea
 		Vector2 m_scaling;
 
 		// background-color
-		math::Vector4 m_bg_color;
+		math::Color m_bg_color = math::Color(0.0f,0.0f,0.0f,0.0f);
 
 		// background image
 		ImageResource* m_bg_image;
+		Ref<ImageResource> m_bg_image_ref;
 
 		bool m_material_dirty;
 		// update (or create) the material if material is dirty

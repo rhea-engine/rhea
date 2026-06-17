@@ -56,7 +56,7 @@ namespace rhea
 
 		registerEventHandler("viewport_size", this, std::bind(&Item2D::onViewportSize, this, std::placeholders::_1, std::placeholders::_2));
 
-		if (m_bg_color.w > 0.0f || m_values.find("texture") != m_values.end()) {
+		if (m_bg_color.a > 0.0f || m_values.find("texture") != m_values.end()) {
 			// background color or image was set
 
 			if (m_values.find("texture") != m_values.end()) {
@@ -124,11 +124,11 @@ namespace rhea
 	
 	void rhea::Item2D::setBackgroundColor(int r, int g, int b, float opacity)
 	{
-		math::Vector4 bg_color;
-		bg_color.x = r / 255.0f;
-		bg_color.y = g / 255.0f;
-		bg_color.z = b / 255.0f;
-		bg_color.w = opacity;
+		math::Color bg_color;
+		bg_color.r = r / 255.0f;
+		bg_color.g = g / 255.0f;
+		bg_color.b = b / 255.0f;
+		bg_color.a = opacity;
 		if (bg_color != m_bg_color) {
 			m_bg_color = bg_color;
 			m_material_dirty = true;
@@ -143,6 +143,13 @@ namespace rhea
 			m_material_dirty = true;
 			invalidateRender();
 		}
+	}
+
+	void Item2D::setBackgroundImage(Ref<ImageResource> tex_ref)
+	{
+		m_bg_image_ref = tex_ref;
+		ImageResource* tex = tex_ref.resolve(m_app->getUnitTree());
+		setBackgroundImage(tex);
 	}
 
 	void Item2D::syncRender()

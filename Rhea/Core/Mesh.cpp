@@ -95,7 +95,7 @@ namespace rhea
 				if (shader_res) {
 					m_material->setShaderRes(shader_res);
 					int diffuse_id = shader_res->getInputSlotId("DIFFUSE");
-					m_material->setColor(diffuse_id, math::Vector3(1.0f,1.0f,1.0f));
+					m_material->setColor(diffuse_id, math::Color(1.0f,1.0f,1.0f,1.0f));
 				    int basecolor_id = shader_res->getTextureSlotId("BASECOLOR");
 					m_material->setTexture(basecolor_id, static_cast<ImageResource*>(tex));
 				}

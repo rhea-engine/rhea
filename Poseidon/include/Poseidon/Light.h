@@ -12,6 +12,7 @@
 #include "RenderTypes.h"
 #include <Math/Quaternion.h>
 #include <Math/Vector3.h>
+#include <Math/Color.h>
 
 namespace poseidon
 {
@@ -33,14 +34,14 @@ namespace poseidon
         void setVisible(bool v) { m_visible = v; }
         bool isVisible() const { return m_visible; }
 
-        void setColor(const math::Vector3& c) { m_color = c; }
-        const math::Vector3& getColor() const { return m_color; }
+        void setColor(const math::Color& c) { m_color = c; }
+        const math::Color& getColor() const { return m_color; }
 
-        void setDiffuse(const math::Quaternion& d) { m_diffuse = d; }
-        const math::Quaternion& getDiffuse() const { return m_diffuse; }
+        void setDiffuse(const math::Color& d) { m_diffuse = d; }
+        const math::Color& getDiffuse() const { return m_diffuse; }
 
-        void setSpecular(const math::Quaternion& s) { m_specular = s; }
-        const math::Quaternion& getSpecular() const { return m_specular; }
+        void setSpecular(const math::Color& s) { m_specular = s; }
+        const math::Color& getSpecular() const { return m_specular; }
 
         void setPosition(const math::Vector3& p) { m_position = p; }
         const math::Vector3& getPosition() const { return m_position; }
@@ -58,9 +59,9 @@ namespace poseidon
         LightType m_type = LightType::Point;
         bool m_visible = true;
 
-        math::Vector3 m_color = math::Vector3::UNIT_SCALE;
-        math::Quaternion m_diffuse;
-        math::Quaternion m_specular;
+        math::Color m_color = math::Color::WHITE;
+        math::Color m_diffuse = math::Color::WHITE;
+        math::Color m_specular = math::Color::WHITE;
 
         math::Vector3 m_position = math::Vector3::ZERO;
         math::Vector3 m_direction = math::Vector3::UNIT_Z;

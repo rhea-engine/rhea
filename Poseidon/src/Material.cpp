@@ -126,7 +126,7 @@ namespace poseidon
 		return m_shader->getShaderProgram();
 	}
 
-	void Material::SetColor(int slot, const math::Vector4& color)
+	void Material::SetColor(int slot, const math::Color& color)
 	{
 		switch (slot) {
 		case 0:
@@ -143,8 +143,8 @@ namespace poseidon
 			break;
 		}
 
-		//if (m_mat_buffer && (*m_layout).size() > slot && (*m_layout)[slot].offset + sizeof(math::Vector4) < m_mat_buffer_size)
-		//	memcpy(m_mat_buffer + (*m_layout)[slot].offset, &color, sizeof(math::Vector4));
+		//if (m_mat_buffer && (*m_layout).size() > slot && (*m_layout)[slot].offset + sizeof(math::Color) < m_mat_buffer_size)
+		//	memcpy(m_mat_buffer + (*m_layout)[slot].offset, &color, sizeof(math::Color));
 	}
 	
 	void Material::SetFloat(int slot, float value)

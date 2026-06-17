@@ -18,7 +18,7 @@ namespace rhea
 
 	class Camera : public Item
 	{
-		MECLASS(Camera, Item)
+		RECLASS(Camera, Item, "//meworla/camera")
 	public:
 		Camera(std::string name, std::string type_name) :			
 			Item(name, type_name)

@@ -9,12 +9,17 @@
 #define RHEA_LIGHT_H
 
 #include "Rhea/Core/Item.h"
+#include <Math/Color.h>
 
 namespace rhea
 {
 	class Light : public Item
 	{
-		MECLASS(Light, Item)
+		RECLASS(Light, Item, "//meworla/light");
+		REPROPERTY(math::Color, "ambient", Label("Ambient"), Edit, Read);
+		REPROPERTY(math::Color, "diffuse", Label("Diffuse"), Edit, Read);
+		REPROPERTY(math::Color, "specular", Label("Specular"), Edit, Read);
+		REPROPERTY(math::Color, "color", Label("Color"), Edit, Read);
 	public:
 		Light(std::string name, std::string type) :
 			m_is_enabled(true),
@@ -33,22 +38,22 @@ namespace rhea
 		}
 
 		// properties
-		void setAmbient(math::Quaternion ambient) { m_ambient = ambient; }
-		math::Quaternion getAmbient() { return m_ambient; }
-		void setDiffuse(math::Quaternion diffuse) { m_diffuse = diffuse; }
-		math::Quaternion getDiffuse() { return m_diffuse; }
-		void setSpecular(math::Quaternion specular) { m_specular = specular; }
-		math::Quaternion getSpecular() { return m_specular; }
-		void setColor(math::Vector3 color) { m_color = color; }
-		math::Vector3 getColor() { return m_color; }
+		void setAmbient(math::Color ambient) { m_ambient = ambient; }
+		math::Color getAmbient() { return m_ambient; }
+		void setDiffuse(math::Color diffuse) { m_diffuse = diffuse; }
+		math::Color getDiffuse() { return m_diffuse; }
+		void setSpecular(math::Color specular) { m_specular = specular; }
+		math::Color getSpecular() { return m_specular; }
+		void setColor(math::Color color) { m_color = color; }
+		math::Color getColor() { return m_color; }
 
 	protected:
 		bool m_is_enabled;
 
-		math::Quaternion m_ambient;
-		math::Quaternion m_diffuse;
-		math::Quaternion m_specular;
-		math::Vector3 m_color;
+		math::Color m_ambient;
+		math::Color m_diffuse;
+		math::Color m_specular;
+		math::Color m_color;
 	};
 }
 #endif // !RHEA_LIGHT_H

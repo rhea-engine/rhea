@@ -14,7 +14,7 @@
 #include "Camera.h"
 #include "Window.h"
 #include <Math/Vector4.h>
-
+#include <Math/Color.h>
 #include <Poseidon/RenderTypes.h>
 
 namespace psio
@@ -113,10 +113,9 @@ namespace poseidon
 			math::Vector3 direction;
 			float Type;
 			math::Quaternion position;
-			math::Vector3 lightColor;
-			float pad2;
-			math::Quaternion diffuse;
-			math::Quaternion specular;
+			math::Color lightColor;
+			math::Color diffuse;
+			math::Color specular;
 
 			float ConeAngle;
 			float ConstantAttenuation;
@@ -128,9 +127,9 @@ namespace poseidon
 
 		struct cbLight {		
 			Light lights[MAX_LIGHTS];
-			math::Quaternion ambient;
+			math::Color ambient;
 			float num_lights = 0.0f;
-			float pad2[3] = { 0.0f, 0.0f };
+			float pad2[3] = { 0.0f, 0.0f, 0.0f };
 		};
 
 	protected:

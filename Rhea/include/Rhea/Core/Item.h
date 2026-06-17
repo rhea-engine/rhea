@@ -18,6 +18,8 @@
 #include <Rhea/Components/VisualComponent.h>
 #include <Rhea/Components/MovementListenerComponent.h>
 
+#include <Rhea/Ref.h>
+
 namespace rhea
 {
 	class Application;
@@ -32,12 +34,9 @@ namespace rhea
 	*/
 	class Item : public ActiveUnit
 	{
-		MECLASS(Item, ActiveUnit)
-
+		RECLASS(Item, ActiveUnit, "//meworla/item");
+		REPROPERTY(rhea::Position, "position", Label("Position"), Edit, Read);
 	public:
-		Item(std::string name) :
-			Item(name, "//meworla/item")
-		{}
 		Item(std::string name, std::string type_name) :
 			m_physics_body(nullptr),
 			m_turn(0.0f),			
@@ -56,10 +55,7 @@ namespace rhea
 		void onParented() override;
 
 		// handle removing from tree
-		void onRemoved() override;
-
-		// get dependent data
-		//Mesh* getMesh() { if (getComponent<RenderComponent>()) return getComponent<RenderComponent>()->getMesh(); else return nullptr; }
+		void onRemoved() override;		
 
 		std::vector<Export> getReferences();
 

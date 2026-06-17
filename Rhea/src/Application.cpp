@@ -168,11 +168,11 @@ namespace rhea
 		m_resource_loader.registerLoader<SceneLoader>("application/vnd.meworla.scene");
 		simpleparser::Type::registerType<Resources>("//meworla/resources");
 		simpleparser::Type::registerType<Transform>("//meworla/transform");
-		simpleparser::Type::registerType<Item>("//meworla/item");
+		Item::_register_Item();
 		simpleparser::Type::registerType<Mesh>("//meworla/mesh");				
 		simpleparser::Type::registerType<Shader>("//meworla/shader");
 		simpleparser::Type::registerType<Lighting>("//meworla/lighting");
-		simpleparser::Type::registerType<Light>("//meworla/light");
+		Light::_register_Light();
 		simpleparser::Type::registerType<PointLight>("//meworla/pointlight");
 		simpleparser::Type::registerType<SpotLight>("//meworla/spotlight");
 		simpleparser::Type::registerType<DirectionalLight>("//meworla/directionallight");
@@ -184,7 +184,7 @@ namespace rhea
 		simpleparser::Type::registerType<ImageResource>("//meworla/texture");
 		CubeMap::_register_CubeMap();
 
-		simpleparser::Type::registerType<Camera>("//meworla/camera");
+		Camera::_register_Camera();
 		simpleparser::Type::registerType<Item2D>("//meworla/widget");
 		simpleparser::Type::registerType<TextResource>("//meworla/fontinfo");
 		//GUIController::Register(this);

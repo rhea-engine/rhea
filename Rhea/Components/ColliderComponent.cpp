@@ -67,7 +67,7 @@ namespace rhea
 				}
 				if (values.find("mesh") != values.end()) {
 					std::string mesh_path = values["mesh"].toString();
-					mesh_shape->mesh = doCast<Mesh>(app->getUnitTree()->find(mesh_path));
+					mesh_shape->mesh.setId(mesh_path);
 				}
 				shape = mesh_shape;
 			}

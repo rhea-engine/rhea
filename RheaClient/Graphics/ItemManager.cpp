@@ -100,8 +100,7 @@ namespace rhea::client {
 				return false; 
 			}
 
-			mesh = doCast<rhea::Mesh>(app->getUnitTree()->find(
-				mc->meshRef(), mc->basepathRef(), false));
+			mesh = mc->meshRef().resolve(app->getUnitTree());
 			
 			if (!mesh) {
 				// Mesh not found yet - Handlers are registered, wait for update
@@ -174,8 +173,7 @@ namespace rhea::client {
 			// Try to resolve the mesh again
 			rhea::Application* app = m_service->getApplication();
 			if (app) {
-				mesh = doCast<rhea::Mesh>(app->getUnitTree()->find(
-					mc->meshRef(), mc->basepathRef(), false));
+				mesh = mc->meshRef().resolve(app->getUnitTree());
 				if (mesh) {
 					mc->setMesh(mesh);
 					mesh->ready();

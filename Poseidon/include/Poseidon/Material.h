@@ -14,6 +14,7 @@
 #include <Math/Vector4.h>
 #include "Shader.h"
 #include <Math/Vector2.h>
+#include <Math/Color.h>
 
 namespace poseidon
 {
@@ -49,7 +50,7 @@ namespace poseidon
 
 		hippios::ShaderProgram* getShaderProgram();		
 		
-		void SetColor(int slot, const math::Vector4& color);
+		void SetColor(int slot, const math::Color& color);
 		void SetFloat(int slot, float value);
 		void SetInt(int slot, int value);
 
@@ -71,10 +72,10 @@ namespace poseidon
 		std::vector<Shader::MatBufferLayoutElement>* m_layout;
 		struct MatBuffer
 		{
-			math::Vector4 ambient;
-			math::Vector4 diffuse;
-			math::Vector4 specular;
-			math::Vector4 emissive;
+			math::Color ambient;
+			math::Color diffuse;
+			math::Color specular;
+			math::Color emissive;
 			float shininess;
 			float has_normal_map;
 			int num_textures;

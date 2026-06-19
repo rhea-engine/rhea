@@ -96,12 +96,16 @@ namespace orion
 		m_mode = mode;
 	}
 
-	void FileResourceStream::Open()
+	bool FileResourceStream::Open()
 	{
+		if (m_state == psio::Stream::StreamState::STREAM_OPEN)
+			return true;
 		status = psio::Fs::fileOpen(&f, m_path, m_mode);
-		if (!status)
-			m_isOpen = true;
-		// TODO: else?
+		if (!status) {
+			m_state = psio::Stream::StreamState::STREAM_OPEN;
+			return true;
+		}
+		return false;
 	}
 
 	FileResourceStream::~FileResourceStream()
@@ -111,9 +115,9 @@ namespace orion
 
 	void FileResourceStream::Close()
 	{
-		if (m_isOpen) {
-			fclose(f);
-			m_isOpen = false;
+		if (m_state == psio::Stream::StreamState::STREAM_OPEN) {
+			fclose(f);			
+			m_state = psio::Stream::StreamState::STREAM_CLOSED;
 		}
 	}
 
@@ -144,11 +148,14 @@ namespace orion
 	{
 		size_t size = 0;
 
-		if (!m_isOpen) {
+		if (m_state != psio::Stream::StreamState::STREAM_OPEN) {
 			// open for reading
 			m_mode |= psio::Fs::READ;
 			read = true;
-			Open();
+			if (!Open()) {
+				doError(-1);
+				return 0;
+			}
 		}
 
 		if (status || !read || !f)
@@ -185,11 +192,14 @@ namespace orion
 		size_t size = 0;
 
 		// check if file is open for reading
-		if (!m_isOpen) {
+		if (m_state != psio::Stream::StreamState::STREAM_OPEN) {
 			// open for reading
 			m_mode |= psio::Fs::READ;
 			read = true;
-			Open();
+			if (!Open()) {
+				doError(-1);
+				return;
+			}
 		}
 
 		if (status < 0)
@@ -224,9 +234,7 @@ namespace orion
 			if (bytes_read == 0) {
 				if (ferror(f)) {
 					LOG(LOG_ERROR) << "Error reading stream\n";
-					status = -1;
-					if (m_error_handler)
-						m_error_handler(status);
+					doError(-1);
 					return;
 				}
 				// EOF reached
@@ -234,9 +242,24 @@ namespace orion
 			}
 		} while (!feof(f));
 
+		doEnd(size);		
+	}
+
+	void FileResourceStream::doEnd(size_t size)
+	{
+		m_state = psio::Stream::StreamState::STREAM_CLOSED;
 		if (m_end_handler)
 			m_end_handler(size);
 		Close();
+	}
+
+	void FileResourceStream::doError(int status)
+	{
+		if (status < 0) {
+			m_state = psio::Stream::StreamState::STREAM_ERROR;
+			if (m_error_handler)
+				m_error_handler(status);
+		}
 	}
 
 	std::string FileResourceStream::getLine()

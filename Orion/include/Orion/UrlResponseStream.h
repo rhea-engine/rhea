@@ -48,7 +48,7 @@ namespace orion
 
 		int GetResponseCode() {
 			if (m_stream) return m_stream->GetResponseCode();
-			else return 502; // Bad Gatway
+			else return 502; // Bad Gateway
 		}
 
 		// response stream functions
@@ -58,9 +58,14 @@ namespace orion
 			else return 0;
 		}
 
+		psio::Stream::StreamState state() {
+			if (m_stream) return m_stream->state();
+			else return psio::Stream::StreamState::STREAM_PENDING;
+		}
+
 		// open for reading
 		// used internally for async functions or must be called before using sync functions
-		void Open() {} // non-op for UrlResponse
+		bool Open() { return true; } // non-op for UrlResponse
 
 		// write length bytes to resource
 		// returns actual bytes written

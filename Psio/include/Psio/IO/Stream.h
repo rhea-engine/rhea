@@ -16,11 +16,19 @@ namespace psio
 	class Stream
 	{
 	public:
+		enum class StreamState {
+			STREAM_PENDING,
+			STREAM_OPEN,
+			STREAM_CLOSED,
+			STREAM_ERROR
+		};
+
 		Stream() :
 			m_data_handler(nullptr),
 			m_end_handler(nullptr),
 			m_error_handler(nullptr),
-			m_error(0)
+			m_error(0),
+			m_state(StreamState::STREAM_PENDING)
 		{}
 		virtual ~Stream() {}
 
@@ -54,11 +62,15 @@ namespace psio
 		// return error of stream
 		virtual int error() { return m_error; }
 
+		// return state of stream
+		virtual StreamState state() { return m_state; }
+
 	protected:
 		DataHandler m_data_handler;
 		EventHandler m_end_handler;
 		ErrorHandler m_error_handler;
 		int m_error;
+		StreamState m_state;
 	};
 }
 

@@ -87,7 +87,7 @@ namespace orion
 		psio::Engine* m_engine;
 
 		// list of current read requests
-		std::vector<ResourceRequest*> m_requests;
+		std::vector<std::unique_ptr<ResourceRequest>> m_requests;
 	};
 }
 

@@ -25,11 +25,11 @@ namespace orion
 		~FileResourceStream();
 
 		void SetMode(int mode);
-		void Open();
-		void Close();
+		bool Open() override;
+		void Close() override;
 
-		size_t Write(const void* data, size_t length);
-		size_t Read(void* dest, size_t length);
+		size_t Write(const void* data, size_t length) override;
+		size_t Read(void* dest, size_t length) override;
 		size_t Read(psio::IOBuffer* buf);
 		void ReadAsync(psio::IOBuffer* buf);
 		std::string getLine();
@@ -53,6 +53,9 @@ namespace orion
 		std::string m_path;
 		time_t m_lastmod;
 		bool m_accessible;
+
+		void doEnd(size_t size);
+		void doError(int status);
 	};
 }
 

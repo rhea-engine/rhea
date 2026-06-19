@@ -37,6 +37,13 @@ namespace orion
 			delete m_request;
 	}
 
+	bool orion::ResourceRequest::isCompleted()
+	{
+		if (m_stream)
+			return m_stream->state() == psio::Stream::StreamState::STREAM_CLOSED || m_stream->state() == psio::Stream::StreamState::STREAM_ERROR;
+		else return false;
+	}
+
 	string ResourceRequest::getParentPath()
 	{
 		return m_container_path;

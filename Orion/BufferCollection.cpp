@@ -13,5 +13,6 @@ namespace orion
 	{
 		m_entries.size(10);
 		size = 10;
+		m_state = psio::Stream::State::OPEN;
 	}
 }

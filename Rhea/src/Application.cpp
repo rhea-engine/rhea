@@ -396,8 +396,9 @@ namespace rhea
 				}
 			}
 
-			// 3.2 Run network updates (e.g., sync data, process packets)
+			// 3.2 Run io and network updates (e.g., sync data, process packets)			
 			psio->RunNet();
+			m_fs->poll();
 			
 			// 4. Call pre-physics updates for all services (elapsed time is frame-based)
 			for (auto it = m_services.begin(); it != m_services.end(); ++it) {

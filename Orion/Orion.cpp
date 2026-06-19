@@ -52,13 +52,12 @@ namespace orion
 	{
 		for (auto it = m_requests.begin(); it != m_requests.end(); ++it)
 		{
-			ResourceRequest* req = *it;
-			if (req->isReading()) {
-				// read
-			}
-				
-			if (req->isWriting()) {
-
+			ResourceRequest* req = it->get();
+			if (req->isCompleted() || req->isFailed())
+			{
+				// remove request from list
+				m_requests.erase(it);
+				return true;
 			}
 		}
 
@@ -77,12 +76,12 @@ namespace orion
 
 	ResourceRequest* Orion::getResourceByRid(const std::string rid)
 	{
-		ResourceRequest* res_id;
+		std::unique_ptr<ResourceRequest> res_id;
 		
 		// parse the rid and try to resolve it
-		res_id = new ResourceRequest(rid, this);
-		m_requests.push_back(res_id);
-		return res_id;		
+		res_id = std::make_unique<ResourceRequest>(rid, this);
+		m_requests.push_back(std::move(res_id));
+		return m_requests.back().get();
 	}
 
 	std::unique_ptr<ResourceStream> Orion::getResourceFromCache(const std::string realm_name, const std::string resource_path)

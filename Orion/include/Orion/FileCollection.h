@@ -28,7 +28,7 @@ namespace orion
 
 		// open for reading
 		// used internally for async functions or must be called before using sync functions
-		void Open() {};
+		bool Open() { return true; };
 
 		// write length bytes to resource
 		// returns actual bytes written
@@ -43,7 +43,7 @@ namespace orion
 		std::string getLine() { return std::string(""); }
 
 		// return eof condition
-		bool eof() { return m_end; }
+		bool eof() { return m_state == StreamState::STREAM_CLOSED; }
 
 		// Close the stream
 		void Close();
@@ -56,7 +56,6 @@ namespace orion
 
 	protected:
 		std::unique_ptr<psio::Fs::DirectoryHandle> m_handle;
-		bool m_end;
 	};
 }
 

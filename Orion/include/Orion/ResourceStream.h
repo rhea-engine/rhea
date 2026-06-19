@@ -18,8 +18,8 @@ namespace orion
 	{
 	public:		
 		ResourceStream() :
-			m_isOpen(false),
-			m_mode(1)
+			m_mode(1),
+			psio::Stream()
 		{}
 		virtual ~ResourceStream() {}
 
@@ -30,7 +30,7 @@ namespace orion
 
 		// open for reading
 		// used internally for async functions or must be called before using sync functions
-		virtual void Open() = 0;
+		virtual bool Open() = 0;
 
 		// write length bytes to resource
 		// returns actual bytes written
@@ -50,8 +50,7 @@ namespace orion
 		// Close the stream
 		virtual void Close() = 0;
 
-	protected:
-		bool m_isOpen;
+	protected:		
 		int m_mode;
 		std::string m_mime;
 		std::string m_name;

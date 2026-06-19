@@ -23,7 +23,9 @@ namespace psio
 			m_buffer(nullptr),
 			m_response_code(response_code),
 			m_size(0)
-		{}
+		{
+			m_state = StreamState::STREAM_OPEN;
+		}
 		~UrlResponse();
 
 		// send chunk to listeners

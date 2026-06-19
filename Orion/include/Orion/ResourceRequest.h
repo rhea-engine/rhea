@@ -69,6 +69,8 @@ namespace orion
 		// status info functions
 		bool isReading();
 		bool isWriting();
+		bool isFailed() { return m_state == State::RESOLVE_FAILED; }
+		bool isCompleted();
 
 		// parse a resource identifier
 		// rid is //realm/container/node/subnode/...

@@ -27,6 +27,7 @@ namespace rhea
 		kHeight,
 		kFont,
 		kFontSize,
+		kColor,
 		kOverflow,
 		kAlignItems,
 		kJustifyContent,

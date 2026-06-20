@@ -37,6 +37,13 @@ namespace orion
 			delete m_request;
 	}
 
+	bool orion::ResourceRequest::isCompleted()
+	{
+		if (m_stream)
+			return m_stream->state() == psio::Stream::StreamState::STREAM_CLOSED || m_stream->state() == psio::Stream::StreamState::STREAM_ERROR;
+		else return false;
+	}
+
 	string ResourceRequest::getParentPath()
 	{
 		return m_container_path;
@@ -96,11 +103,12 @@ namespace orion
 		size_t pathpos;
 		size_t realmpos = 2;
 
-		// make sure the rid is in the correct form
-		if (rid.compare(0, 2, "//") && rid.compare(0, 2, "\\\\"))
+		// check if we have a realm part - if not we resolve it as local path
+		if (rid.size() < 2 || (rid.compare(0, 2, "//") && rid.compare(0, 2, "\\\\")))
 		{
-			// no - try to use full string as realm
-			realmpos = 0;
+			m_realm_name = "localhost";
+			m_path = rid;
+			return Error::OK;
 		}
 
 		// split the realm part
@@ -171,6 +179,7 @@ namespace orion
 				break;
 			case ResourceRequest::State::RESOLVE_FAILED:
 				result = doResolveResourceFailed(result);
+				break;
 			default:
 				break;
 			}
@@ -205,7 +214,7 @@ namespace orion
 		// if realm already resolved do nothing
 		if (m_realm_resolved) {
 			return Error::OK;
-		}
+		}		
 
 		// local realm is always resolved
 		if (!m_realm_name.compare("local")) {
@@ -292,6 +301,27 @@ namespace orion
 		// Resource from net
 		if (m_realm) {
 			string path;
+
+			if (m_realm->isLocalPath()) {
+				// build the full local path
+				std::string full_path = m_realm->getResourceUrl();
+				if (full_path.size() && full_path.back() != '/' && full_path.back() != '\\')
+					full_path += '/';
+				if (m_path.size() && m_path[0] == '/')
+					full_path += m_path.substr(1);
+				else
+					full_path += m_path;
+
+				// Open as local file
+				m_stream = FileResourceStream::getStream(full_path);
+				if (!m_stream) {
+					m_next_state = State::UNSET;
+					return Error::RESOURCE_NOT_FOUND;
+				}
+				m_next_state = State::RESOURCE_RESOLVE_COMPLETED;
+				onIOComplete(Error::OK);
+				return Error::IO_PENDING;
+			}
 
 			path = m_realm->getResourceUrl();
 			if (path == "") {

@@ -11,6 +11,11 @@
 #include <Rhea/Resources/Resource.h>
 #include <Rhea/Resources/ResourceLoader.h>
 
+namespace psio
+{
+	class IOBuffer;
+}
+
 namespace rhea
 {
 	class Application;
@@ -21,7 +26,7 @@ namespace rhea
 	{
 	public:
 		static void load(std::string name, Application* app, orion::ResourceRequest* req, Resource::LoadedHandler handler);
-		//void load(Scene* scene, orion::Resource* resource, Application* app);
+		static void parseIniFile(std::string name, Application* app, orion::ResourceRequest* req, Resource::LoadedHandler handler, psio::IOBuffer* buf, size_t buflen);
 	};
 }
 #endif // !RHEA_SCENELOADER_H

@@ -21,31 +21,43 @@ namespace orion
 		m_fs = engine->getFs();
 		m_fs->setAppName(appname);
 		m_engine = engine;
+		m_realms = std::make_unique<Realms>(this);
 
 		std::string search_dir;
 
 		search_dir = m_fs->getInstallDataDir();
-		if (search_dir != "")
+		if (search_dir != "") {
 			m_caches.push_back(std::make_unique<ResolveLocal>(search_dir));
+			m_realms->addRealm(new Realm("system", search_dir, Realm::RealmType::LocalPath));
+		}
 		search_dir = m_fs->getAppDataDir();
-		if (search_dir != "")
+		if (search_dir != "") {
 			m_caches.push_back(std::make_unique<ResolveLocal>(search_dir));
+			m_realms->addRealm(new Realm("appdata", search_dir, Realm::RealmType::LocalPath));
+		}
 		search_dir = m_fs->getHomeDir();		
-		if (search_dir != "")
+		if (search_dir != "") {
 			m_caches.push_back(std::make_unique<ResolveLocal>(search_dir));
+			m_realms->addRealm(new Realm("user", search_dir, Realm::RealmType::LocalPath));
+		}
+		m_realms->addRealm(new Realm("localhost", "", Realm::RealmType::LocalPath)); // special realm for local system
+	}
+
+	void Orion::addLocalRealm(std::string name, std::string path)
+	{
+		m_realms->addRealm(new Realm(name, path, Realm::RealmType::LocalPath));
 	}
 
 	bool Orion::poll()
 	{
 		for (auto it = m_requests.begin(); it != m_requests.end(); ++it)
 		{
-			ResourceRequest* req = *it;
-			if (req->isReading()) {
-				// read
-			}
-				
-			if (req->isWriting()) {
-
+			ResourceRequest* req = it->get();
+			if (req->isCompleted() || req->isFailed())
+			{
+				// remove request from list
+				m_requests.erase(it);
+				return true;
 			}
 		}
 
@@ -64,12 +76,12 @@ namespace orion
 
 	ResourceRequest* Orion::getResourceByRid(const std::string rid)
 	{
-		ResourceRequest* res_id;
+		std::unique_ptr<ResourceRequest> res_id;
 		
 		// parse the rid and try to resolve it
-		res_id = new ResourceRequest(rid, this);
-		m_requests.push_back(res_id);
-		return res_id;		
+		res_id = std::make_unique<ResourceRequest>(rid, this);
+		m_requests.push_back(std::move(res_id));
+		return m_requests.back().get();
 	}
 
 	std::unique_ptr<ResourceStream> Orion::getResourceFromCache(const std::string realm_name, const std::string resource_path)

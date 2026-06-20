@@ -64,6 +64,9 @@ namespace orion
 		// set a local dir manually
 		void setLocalDir(std::string dirname);
 
+		// set a custom realm
+		void addLocalRealm(std::string name, std::string path);
+
 		static const int ERR_NOTFOUND = -1;
 		static const int ERR_NOTIMPLEMENTED = -2;
 
@@ -84,7 +87,7 @@ namespace orion
 		psio::Engine* m_engine;
 
 		// list of current read requests
-		std::vector<ResourceRequest*> m_requests;
+		std::vector<std::unique_ptr<ResourceRequest>> m_requests;
 	};
 }
 

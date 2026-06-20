@@ -10,9 +10,11 @@
 namespace orion
 {
 	FileCollection::FileCollection(std::string path) :
-		m_end(false)
+		Collection(),
+		m_handle(nullptr)
 	{
 		m_handle.reset(psio::Fs::openDirectory(path));
+		m_state = m_handle ? StreamState::STREAM_OPEN : StreamState::STREAM_ERROR;
 	}
 
 	FileCollection::~FileCollection()
@@ -21,7 +23,7 @@ namespace orion
 
 	Collection::Entry* FileCollection::nextEntry()
 	{
-		if (m_handle && !m_end) {
+		while (m_handle && m_state == StreamState::STREAM_OPEN) {
 			Entry* entry = nullptr;
 			psio::Fs::FileAttributes attributes;
 			int ret = psio::Fs::readEntry(m_handle.get(), &attributes);
@@ -29,12 +31,20 @@ namespace orion
 				entry = new Entry();
 				entry->name = attributes.name;
 				entry->length = attributes.size;
+				entry->is_dir = attributes.is_dir;
 				if (!psio::Fs::nextEntry(m_handle.get())) {
-					m_end = true;
-					m_handle.reset();
+					Close();
+				}
+				if (m_filter) {
+					if (!m_filter(*entry)) {
+						delete entry;
+						continue;
+					}
 				}
 				return entry;
 			}
+			else
+				return nullptr;
 		}
 		return nullptr;
 	}
@@ -42,5 +52,6 @@ namespace orion
 	void FileCollection::Close()
 	{
 		m_handle.reset();
+		m_state = StreamState::STREAM_CLOSED;
 	}
 }

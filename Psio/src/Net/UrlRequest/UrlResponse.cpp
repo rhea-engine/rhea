@@ -65,13 +65,16 @@ namespace psio
 		else {			
 			// network error - call error handler
 			if (result < 0) {
+				m_state = StreamState::STREAM_ERROR;
 				if (m_error_handler)
 					m_error_handler(result);
 			}
-			
-			// EOF reach call end handler
-			else if (m_end_handler) {
-				m_end_handler(m_buffer->Remaining());
+			else {
+				// EOF reach call end handler
+				m_state = StreamState::STREAM_CLOSED;
+				if (m_end_handler) {
+					m_end_handler(m_buffer->Remaining());
+				}
 			}
 		}
 	}

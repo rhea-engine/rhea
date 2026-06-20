@@ -117,7 +117,7 @@ namespace psio
         if (m_home.length())
             return m_home;
 
-        char* home_env = getenv("HOMEPATH"); 
+        char* home_env = getenv("USERPROFILE"); 
         if (!home_env)
             home_env = getenv("APPDATA");
         if (home_env)

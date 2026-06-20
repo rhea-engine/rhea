@@ -304,7 +304,7 @@ namespace rhea
 	 * Steps:
 	 * 1. Calculate `elapsed_s` to determine the time since the last frame.
 	 * 2. Begin frame processing (e.g., resetting state, profiling hooks)
-	 * 3. Handle input events and network updates.
+	 * 3. Handle input events and io/network updates.
 	 * 4. Perform pre-physics updates (frame-based, using `elapsed_s`).
 	 * 5. Run physics simulation in fixed timesteps (`frame_slice`).
 	 * 6. Perform frame-based updates (animations, AI, etc., using `elapsed_s`).
@@ -455,7 +455,7 @@ namespace rhea
 	{
 		log("loading resource: " + resource_id);
 		orion::ResourceRequest* req = m_fs->getResourceByRid(resource_id);
-		req->resolve([&, handler, resource_id](orion::ResourceRequest* req, int err) {
+		req->resolve([this, handler, resource_id](orion::ResourceRequest* req, int err) {
 
 			if (err == orion::ResourceRequest::Error::OK) {
 
@@ -490,7 +490,7 @@ namespace rhea
 				// get from request
 				std::string mime = req->getMimeType();
 				if (mime.length()) {
-					if (m_resource_loader.load(req->getBasename(), this, mime, req, [&, handler, parent_unit](ReqError err, Unit* unit) {
+					if (m_resource_loader.load(req->getBasename(), this, mime, req, [this, handler, parent_unit](ReqError err, Unit* unit) {
 
 						// add it to tree
 						if (unit)

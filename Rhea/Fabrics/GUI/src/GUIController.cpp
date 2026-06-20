@@ -73,8 +73,11 @@ namespace rhea
 		*/
 		m_style_engine = std::make_unique<StyleEngine>();
 		if (m_values.find("stylesheet") != m_values.end()) {
-			StyleSheet* css = (StyleSheet*)m_app->getUnitTree()->find(m_values["stylesheet"].toString(), m_attributes["basepath"], false);
-			m_style_engine->AppendStylesheet(css);
+			StyleSheet* css = doCast<StyleSheet>(m_app->getUnitTree()->find(m_values["stylesheet"].toString(), m_attributes["basepath"], false));
+			if (css)
+				m_style_engine->AppendStylesheet(css);
+			else
+				LOG(LOG_ERROR) << "Failed to load stylesheet: " << m_values["stylesheet"].toString(); 
 		}
 		else {
 			LOG(LOG_ERROR) << "No stylesheet defined for GUI Controller";

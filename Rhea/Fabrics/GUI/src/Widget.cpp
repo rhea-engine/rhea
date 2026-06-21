@@ -1107,6 +1107,10 @@ namespace rhea
 			return onMouseWheel(e, u);
 			});
 
+		registerEventHandler("mouse_move", this, [this](Event* e, Unit* u)->bool {
+			return onMouseMove(e, u);
+			});
+
 		// Focus/Blur for :focus
 
 		registerEventHandler("focus", this, [this](Event* e, Unit* u)->bool {
@@ -1126,6 +1130,17 @@ namespace rhea
 			});
 		registerEventHandler("text_input", this, [this](Event* e, Unit* u)->bool {
 			return onTextInput(e, u);
+			});
+
+		// drag events
+		registerEventHandler("drag_start", this, [this](Event* e, Unit* u)->bool {
+			return onDragStart(e, u);
+			});
+		registerEventHandler("drag_move", this, [this](Event* e, Unit* u)->bool {
+			return onDragMove(e, u);
+			});
+		registerEventHandler("drag_end", this, [this](Event* e, Unit* u)->bool {
+			return onDragEnd(e, u);
 			});
 
 	}

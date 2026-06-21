@@ -201,7 +201,7 @@ namespace rhea
 			return false;
 		}
 
-		// Hovering
+		// Hovering		
 
 		switch (id) {
 		case InputEventType::MouseButtonPressed:
@@ -275,7 +275,16 @@ namespace rhea
 				if (m_pressed && m_pressed == m_captured) {
 					auto e_click = e->cloneUnique();
 					m_pressed->bubbleEvent("mouse_click", e_click.get());
-				}
+				}	
+
+				m_pressed = nullptr;
+			}
+			// stop dragging
+			if (m_dragging) {
+				m_dragging = false;				
+				e->setTarget(m_drag_widget);
+				m_drag_widget->bubbleEvent("drag_end", e);
+				m_drag_widget = nullptr;
 			}
 			break;
 
@@ -283,6 +292,29 @@ namespace rhea
 			if (m_captured) {
 				e->setTarget(m_captured);
 				m_captured->bubbleEvent("mouse_wheel", e);
+			}
+			break;
+
+		case InputEventType::MouseMoved:			
+			if (m_captured) {
+				e->setTarget(m_captured);
+				m_captured->bubbleEvent("mouse_move", e);
+			}
+			if (!m_dragging && m_pressed) {
+				// start dragging if mouse moved while pressed
+				m_dragging = true;
+				if (m_pressed) {
+					m_drag_widget = m_pressed;
+					e->setTarget(m_drag_widget);
+					m_drag_widget->bubbleEvent("drag_start", e);
+				}
+			}
+			else if (m_dragging) {
+				// continue dragging
+				if (m_drag_widget) {
+					e->setTarget(m_drag_widget);
+					m_drag_widget->bubbleEvent("drag_move", e);
+				}
 			}
 			break;
 

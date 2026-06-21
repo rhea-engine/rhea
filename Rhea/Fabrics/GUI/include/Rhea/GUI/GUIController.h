@@ -23,6 +23,8 @@ namespace rhea
 			m_target(nullptr),
 			m_captured(nullptr),
 			m_pressed(nullptr),
+			m_dragging(false),
+			m_drag_widget(nullptr),
 			m_mx(0),
 			m_my(0),
 			m_need_resize(false),
@@ -142,8 +144,12 @@ namespace rhea
 
 		// the current hover widget
 		Widget* m_captured;
-		// the last hover widget, used to detect changes in hover state
+		// the last widget mouse pressed
 		Widget* m_pressed;
+
+		// dragging state
+		Widget* m_drag_widget;
+		bool m_dragging;
 
 		// handle key press events for focus navigation and other global shortcuts
 		bool onKeyPressed(Event* ev, Unit* u) override;

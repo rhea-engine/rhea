@@ -495,6 +495,9 @@ namespace rhea
 		virtual bool onKeyPressed(Event* ev, Unit* u) { return false; }
 		virtual bool onKeyReleased(Event* ev, Unit* u) { return false; }
 		virtual bool onTextInput(Event* ev, Unit* u) { return false; }
+		virtual bool onDragStart(Event* ev, Unit* u) { return false; }
+		virtual bool onDragMove(Event* ev, Unit* u) { return false; }
+		virtual bool onDragEnd(Event* ev, Unit* u) { return false; }
 
 	private:
 		bool handleMouseEnter(Event* ev, Unit* sender);
@@ -508,6 +511,9 @@ namespace rhea
 		bool handleKeyPressed(Event* ev, Unit* sender);
 		bool handleKeyReleased(Event* ev, Unit* sender);
 		bool handleTextInput(Event* ev, Unit* sender);
+		bool handleDragStart(Event* ev, Unit* sender);
+		bool handleDragMove(Event* ev, Unit* sender);
+		bool handleDragEnd(Event* ev, Unit* sender);
 
 		void registerDefaultInputHandlers();
 

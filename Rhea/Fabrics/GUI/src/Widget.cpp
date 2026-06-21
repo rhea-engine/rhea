@@ -228,7 +228,11 @@ namespace rhea
 		}
 		// apply local clipping
 		if (m_clip) {
+			// Convert local clipping rect to world coordinates
 			ClipRect local_rect = m_clipping_rect;
+			local_rect.x += m_position.x;
+			local_rect.y += m_position.y;
+
 			if (enabled) {
 				// intersect with parent
 				float x1 = std::max(rect.x, local_rect.x);
@@ -342,6 +346,13 @@ namespace rhea
 			m_content_position != old_content_pos ||
 			m_content_size != old_content_size) {
 			invalidateRender();
+
+			// If size changed and clipping is active, update clipping rect
+			if (m_size != old_size && m_clip) {
+				// Update clipping rect to new size
+				m_clipping_rect = { 0.0f, 0.0f, m_size.x, m_size.y };
+				computeClipping();
+			}
 		}
 
 		return m_outer_size;
@@ -547,7 +558,7 @@ namespace rhea
 			{
 				bool old_clip = m_clip;
 				ClipRect old_rect = m_clipping_rect;
-				if (values[0].value == "hidden") {
+				if (values[0].value == "hidden" || values[0].value == "scroll") {
 					m_clip = true;
 					m_clipping_rect = { 0.0f, 0.0f, m_size.x, m_size.y };
 				}
@@ -557,6 +568,8 @@ namespace rhea
 				if (old_clip != m_clip || old_rect.x != m_clipping_rect.x || old_rect.y != m_clipping_rect.y || old_rect.w != m_clipping_rect.w || old_rect.h != m_clipping_rect.h) {
 					render_changed = true;
 					layout_changed = true;
+					// Update VisualComponent clipping when overflow style changes
+					computeClipping();
 				}
 				break;
 			}
@@ -1240,7 +1253,7 @@ namespace rhea
 		for (auto it = m_children.begin(); it != m_children.end(); ++it) {
 			Widget* w = doCast<Widget>(it->second);
 			if (w) {
-				w->dumpDebugInfo();
+				w->dumpDebugInfo(indent + 2);
 			}
 		}			
 	}

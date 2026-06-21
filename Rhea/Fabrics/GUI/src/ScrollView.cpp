@@ -9,7 +9,8 @@ namespace rhea
 	void ScrollView::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{
 		Widget::setup(app, attributes, values);
-		m_values["overflow"] = getValue("overflow", "hidden");
+		m_values["overflow"] = getValue("overflow", "scroll");
+		setStyle(StylePropertyId::kOverflow, m_values["overflow"].toString());
 		m_scroll_distance = getValue("scroll_distance", 20.0f); // should this be font - size ?
 	}
 
@@ -24,7 +25,7 @@ namespace rhea
 				m_content = widget_child;
 				break;
 			}
-		}
+		}		
 
 	}
 	void ScrollView::onSetPosition()

@@ -65,8 +65,10 @@ private:
 public:
     void setup() override
     {
-        Application::setup();
+        addDefaultWindow();
+        m_windows[0].views[0].layers.push_back({ "HUD",0,0,m_windows[0].width, m_windows[0].height });
 
+        Application::setup();
     }
 
     void setupScene()
@@ -531,7 +533,7 @@ public:
 		m_scrollview = simpleparser::Type::create<rhea::ScrollView>("testscrollview");
 		m_scrollview->setup(this, {}, {
 			{"overflow", Variant("scroll")},
-			{"scroll_distance", Variant(30.0f)}
+			{"scroll_distance", Variant(20.0f)}
 		});
 		scrollview_box->addChild(m_scrollview);
 
@@ -614,14 +616,9 @@ public:
 
 		// Ready the GUI
 		m_gui_controller->ready();
-		m_gui_controller->invalidateLayout();
-        m_gui_controller->UpdateStyle();
-
-		// Show the GUI controller (makes it visible)
-		m_gui_controller->show();
 
 		// Trigger viewport size event to layout GUI
-		rhea::SizeEvent size_event(m_gui_controller, 800, 600);
+		rhea::SizeEvent size_event(m_gui_controller, m_windows[0].width, m_windows[0].height);
 		m_gui_controller->sendEvent("viewport_size", &size_event);
 
 		LOG(LOG_INFO) << "ScrollView GUI test setup complete";

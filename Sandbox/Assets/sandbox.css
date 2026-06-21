@@ -16,11 +16,3 @@ List {
     height: 100%;
     background-color: rgb(0 255 33 0.7);
 }
-
-ScrollBarTrack {
-    background-color: rgb(107 99 99);
-}
-
-ScrollBarThumb{
-    background-color: rgb(198 191 191);
-}

@@ -31,6 +31,7 @@
 #include <Rhea/GUI/Row.h>
 #include <Rhea/Graphics/SizeEvent.h>
 #include <Psio/Input/Keyboard.h>
+#include <Rhea/GUI/Styles/DefaultStyleSheet.h>
 
 namespace rhea
 {
@@ -71,7 +72,27 @@ namespace rhea
 			return onGuiUpdate(ev, unit); 
 		});
 		*/
+
 		m_style_engine = std::make_unique<StyleEngine>();
+
+		StyleSheet* default_css = doCast<StyleSheet>(m_app->getUnitTree()->find("//rhea/default.css", "", false));
+		if (default_css) {			
+			m_style_engine->AppendStylesheet(default_css);
+		}
+		else {
+			std::unique_ptr<simpleparser::CssParser> parser = std::make_unique<simpleparser::CssParser>();
+			std::vector<simpleparser::CssParser::Entry> entries;
+
+			int nof_entries = parser->parse(DefaultWidgetsCss, strlen(DefaultWidgetsCss), entries);
+			default_css = simpleparser::Type::create<StyleSheet>("default.css");
+			default_css->setup(m_app, {}, {});
+			default_css->setStyle(entries);
+			m_style_engine->AppendStylesheet(default_css);
+			rhea::Unit* realm = doCast<rhea::Unit>(m_app->getUnitTree()->find("//rhea"));
+			if (realm)
+				realm->addChild(default_css);
+		}
+		
 		if (m_values.find("stylesheet") != m_values.end()) {
 			StyleSheet* css = doCast<StyleSheet>(m_app->getUnitTree()->find(m_values["stylesheet"].toString(), m_attributes["basepath"], false));
 			if (css)

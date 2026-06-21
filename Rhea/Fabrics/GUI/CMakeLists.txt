@@ -22,7 +22,7 @@ target_sources(GUI PRIVATE
     src/Styles/StyleSheet.cpp
     "src/ScrollView.cpp"
     "src/ScrollBar.cpp"
-)
+ "include/Rhea/GUI/Styles/DefaultStyleSheet.h")
 add_library(Rhea::GUI ALIAS GUI)
 
 # Scoped includes are under include/Rhea/GUI/**

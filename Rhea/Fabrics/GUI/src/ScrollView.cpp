@@ -10,8 +10,10 @@ namespace rhea
 	{
 		Widget::setup(app, attributes, values);
 		m_values["overflow"] = getValue("overflow", "scroll");
+		m_values["show_scrollbar"] = getValue("show_scrollbar", true);
 		setStyle(StylePropertyId::kOverflow, m_values["overflow"].toString());
 		m_scroll_distance = getValue("scroll_distance", 20.0f); // should this be font - size ?
+		m_scrollbar_width = getValue("scrollbar_width", m_scrollbar_width);
 	}
 
 	void ScrollView::ready()
@@ -25,7 +27,23 @@ namespace rhea
 				m_content = widget_child;
 				break;
 			}
-		}		
+		}	
+
+		// Create scrollbar if enabled
+		if (getValue("show_scrollbar", true)) {
+			m_scrollbar = simpleparser::Type::create<ScrollBar>(getPathName() + "_scrollbar");
+			m_scrollbar->setup(m_app, {}, {
+				{"orientation", "vertical"}
+				});
+			addChild(m_scrollbar);
+			m_scrollbar->ready();
+
+			// Connect scrollbar events to scroll position
+			m_scrollbar->setOnScroll([this](float position) {
+				float abs_position = position * m_max_scroll_y;
+				setScrollY(abs_position);
+				});
+		}
 
 	}
 	void ScrollView::onSetPosition()
@@ -34,6 +52,14 @@ namespace rhea
 		m_scroll_y = std::clamp(m_scroll_y, 0.0f, m_max_scroll_y);
 
 		m_content->setPosition(m_position + m_content_position + Vector2(0.0f, -m_scroll_y));
+
+		// Update scrollbar thumb position
+		if (m_scrollbar) {
+			float thumb_ratio = m_content_size.y / m_child_content_size.y;
+			float thumb_pos = (m_scroll_y / m_max_scroll_y) * (1.0f - thumb_ratio);
+			m_scrollbar->setThumbPosition(thumb_pos, thumb_ratio);
+			m_scrollbar->setPosition(Vector2(m_position.x + m_content_size.x - m_scrollbar_width, m_position.y));
+		}
 	}
 
 	Vector2 ScrollView::innerSize(Vector2 constraints)
@@ -41,12 +67,19 @@ namespace rhea
 		if (!m_content)
 			return Vector2(0, 0);
 
-		Vector2 content_size = m_content->size(Vector2(constraints.x, 999999.0f));
+		// Reserve space for scrollbar
+		float scrollbar_width = (m_scrollbar != nullptr) ? m_scrollbar_width : 0.0f;
+
+		Vector2 content_size = m_content->size(Vector2(constraints.x - scrollbar_width, 999999.0f));
 
 		m_child_content_size = content_size;
 
+		if (m_scrollbar) {
+			m_scrollbar->size(Vector2(m_scrollbar_width, constraints.y));
+		}
+
 		return Vector2(
-			content_size.x,
+			constraints.x,
 			std::min(content_size.y, constraints.y)
 		);
 	}

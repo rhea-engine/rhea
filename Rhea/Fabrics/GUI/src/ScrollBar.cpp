@@ -23,9 +23,11 @@ namespace rhea {
 		Widget::ready();
 		// Create track and thumb
         m_track = new Widget(getPathName() + "_track");
+		m_track->setSelector("ScrollBarTrack");
         m_track->setup(m_app, {}, {	
 			});		
         m_thumb = new Widget(getPathName() + "_thumb");
+		m_thumb->setSelector("ScrollBarThumb");
         m_thumb->setup(m_app, {}, {			
 			});
 		addChild(m_track);

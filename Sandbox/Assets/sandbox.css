@@ -17,10 +17,10 @@ List {
     background-color: rgb(0 255 33 0.7);
 }
 
-#testscrollview_scrollbar_track {
+ScrollBarTrack {
     background-color: rgb(107 99 99);
 }
 
-#testscrollview_scrollbar_thumb{
+ScrollBarThumb{
     background-color: rgb(198 191 191);
 }

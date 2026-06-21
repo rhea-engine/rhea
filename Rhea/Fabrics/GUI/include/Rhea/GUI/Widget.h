@@ -264,7 +264,8 @@ namespace rhea
 		  * @brief Gets the CSS selector for the widget.
 		  * @return The CSS selector.
 		  */
-		 virtual const std::string getSelector() { return "Widget"; }
+		 virtual const std::string getSelector() { return m_selector; }
+		 void setSelector(const std::string& selector) { m_selector = selector; }
 
 		 /**
 		  * @brief Gets the font size of the widget.
@@ -466,6 +467,7 @@ namespace rhea
 
 		// My styles
 		CssRuleSet m_properties;
+		std::string m_selector = "Widget";
 		// Holds the computed style properties for this widget.
 		CssRuleSet m_computed_properties;
 		// Store if style is changed

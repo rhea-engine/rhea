@@ -6,6 +6,7 @@ ground=true
 debug_physics=false
 startscene="//sandbox/scene1"
 linear_gravity=-3.0f
+##### Note: THIS FILE IS NOT USED!
 
 [environment]
 type="//meworla/lighting"
@@ -38,3 +39,9 @@ type="//meworla/wavefront"
 path="//sandbox/cube1.obj"
 material="//sandbox/cube1.mtl"
 diffuse_tex=("brick")
+
+[Arial20]
+type="//meworla/bitmapfont"
+texture="//sandbox/Arial20.bmp"
+font_size=22
+font_info="//sandbox/Arial20.csv"

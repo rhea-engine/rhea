@@ -4,7 +4,7 @@ add_executable(Sandbox
 )
 
 target_link_libraries(Sandbox PRIVATE
-    Rhea::Core Rhea::Client RheaFabrics rhea::Geometry
+    Rhea::Core Rhea::Client RheaFabrics rhea::Geometry Rhea::GUI
 )
 
 # Optional: Assets kopieren

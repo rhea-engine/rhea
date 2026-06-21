@@ -522,10 +522,9 @@ public:
 		// Create ScrollView container (Box for styling)
 		rhea::Widget* scrollview_box = simpleparser::Type::create<rhea::Widget>("scrollviewbox");
 		scrollview_box->setup(this, {}, {
-			{"x", Variant(50.0f)},
-			{"y", Variant(50.0f)},
-			{"w", Variant(300.0f)},
-			{"h", Variant(400.0f)},                    
+/*			{"y", Variant(50.0f)},
+			{"w", Variant(340.0f)},
+			{"h", Variant(400.0f)},                    */
 		});
 		m_gui_controller->addChild(scrollview_box);
 
@@ -541,6 +540,7 @@ public:
 		rhea::ColumnWidget* column = simpleparser::Type::create<rhea::ColumnWidget>("scroll_content");
 		column->setup(this, {}, {});
 		m_scrollview->addChild(column);
+		m_scrollview->setStyle(rhea::StylePropertyId::kOverflow, "hidden");
 
 		// Add test items to ScrollView
 		for (int i = 0; i < 20; ++i) {
@@ -548,19 +548,20 @@ public:
 			rhea::Widget* item_box = simpleparser::Type::create<rhea::Widget>("item_box_" + std::to_string(i));
 			if (i % 2 == 0) {				
                 item_box->setup(this, {}, {
-                {"w", Variant(280.0f)},
+                {"w", Variant(300.0f)},
                 {"h", Variant(60.0f)},
-                 {"texture", "//sandbox/brick256.png"},
+                // {"texture", "//sandbox/brick256.png"},
                     });
-                item_box->setStyle(rhea::StylePropertyId::kBackgroundColor, "rgb(0.2 0.2 0.3 1.0)");
+               // item_box->setStyle(rhea::StylePropertyId::kBackgroundColor, "rgb(0.2 0.2 0.3 1.0)");
+                item_box->setStyle(rhea::StylePropertyId::kBackgroundColor, { {rhea::CssValueId::kNumeric, 200}, {rhea::CssValueId::kNumeric, 200}, {rhea::CssValueId::kNumeric, 200}, {rhea::CssValueId::kNumeric, 1.0f} });
 			}
 			else {
                 item_box->setup(this, {}, {
-               {"w", Variant(280.0f)},
+               {"w", Variant(300.0f)},
                {"h", Variant(60.0f)},
-                {"texture", "//sandbox/grass256.png"},
+           //     {"texture", "//sandbox/grass256.png"},
                     });
-				item_box->setStyle(rhea::StylePropertyId::kBackgroundColor, "rgb(0.3 0.3 0.4 1.0)");
+				item_box->setStyle(rhea::StylePropertyId::kBackgroundColor, { {rhea::CssValueId::kNumeric, 100}, {rhea::CssValueId::kNumeric, 200}, {rhea::CssValueId::kNumeric, 100}, {rhea::CssValueId::kNumeric, 1.0f} });
 			}
 			
 			// Set different background colors for each item
@@ -577,12 +578,13 @@ public:
 					{"y", Variant(20.0f)},
 					{"w", Variant(260.0f)},
 					{"h", Variant(20.0f)},
-                    {"texture", "//sandbox/kies.png"},
+                //    {"texture", "//sandbox/kies.png"},
 				});
 				// Different color per item for identification
 				float r = (i % 5) * 0.2f;
 				std::string marker_color = "rgb(" + std::to_string(0.5f + r) + " 0.7 0.3 1.0)";
-				marker->setStyle(rhea::StylePropertyId::kBackgroundColor, marker_color);
+				//marker->setStyle(rhea::StylePropertyId::kBackgroundColor, marker_color);
+                marker->setStyle(rhea::StylePropertyId::kBackgroundColor, { {rhea::CssValueId::kNumeric, 255*(0.5f + r)}, {rhea::CssValueId::kNumeric, 78}, {rhea::CssValueId::kNumeric, 176}, {rhea::CssValueId::kNumeric, 1.0f} });
 				item_box->addChild(marker);
 
 				/* DISABLED TEXT UNTIL FONT IS PROPERLY LOADED

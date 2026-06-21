@@ -35,6 +35,19 @@
 #include <Psio/Log.h>
 #include <Rhea/DebugDraw/LineBatchMesh.h>
 #include <Math/Matrix3x4.h>
+#include <Rhea/Text/BitmapFont.h>
+
+// GUI includes
+#include <Rhea/GUI/GUIController.h>
+#include <Rhea/GUI/ScrollView.h>
+#include <Rhea/GUI/Column.h>
+#include <Rhea/GUI/Label.h>
+#include <Rhea/GUI/Button.h>
+#include <Rhea/GUI/Box.h>
+#include <Rhea/GUI/GuiService.h>
+#include <Rhea/GUI/Styles/StyleSheet.h>
+#include <Rhea/Graphics/SizeEvent.h>
+#include <SimpleParser/Variant.h>
 
 
 class Sandbox : public rhea::Application
@@ -44,14 +57,18 @@ private:
     rhea::Item* m_cube = nullptr;
     rhea::Item* m_cube2 = nullptr;
     rhea::Item* m_gizmo = nullptr;
+    rhea::GUIController* m_gui_controller = nullptr;
+    rhea::ScrollView* m_scrollview = nullptr;
     float m_rotation_angle = 0.0f;
     std::chrono::steady_clock::time_point m_last_time;
 
 public:
     void setup() override
     {
-        Application::setup();
+        addDefaultWindow();
+        m_windows[0].views[0].layers.push_back({ "HUD",0,0,m_windows[0].width, m_windows[0].height });
 
+        Application::setup();
     }
 
     void setupScene()
@@ -63,6 +80,7 @@ public:
 
         // load shaders
         res_list.push("standard_shader", "//rhea/shaders/standard.shader", "//meworla/shader");
+        res_list.push("text_shader", "//rhea/shaders/text.shader", "//meworla/shader");
 
         // note: for locally installed resources this is actually synchronous
         static_cast<rhea::ResourceService*>(getService("resources"))->loadAsync(res_list, nullptr);
@@ -78,11 +96,28 @@ public:
 
         realm_unit->addChild(m_scene);
 
+        // add fonts
+		rhea::BitmapFont* font = simpleparser::Type::create<rhea::BitmapFont>("Arial20");
+        font->setup(this, {}, {
+            { "texture", "//sandbox/Arial20.bmp" }, 
+            { "font-info", "//sandbox/Arial20.csv" },
+            { "font-size", "22"}
+            });
+
+
         rhea::ResourceList res_list2(this);
         res_list2.push("kies_texture", "//sandbox/kies.png", "//meworla/texture");
         res_list2.push("uv_debug_texture", "//sandbox/uv_debug.png", "//meworla/texture");
         res_list2.push("brick256", "//sandbox/brick256.png", "//meworla/texture");
+        res_list2.push("grass256", "//sandbox/grass256.png", "//meworla/texture");
+		auto refs = font->getReferences();
+        for (auto ref : refs) {
+            res_list2.push(ref.name, ref.value.toString(), ref.type);
+        }
         static_cast<rhea::ResourceService*>(getService("resources"))->loadAsync(res_list2, nullptr);
+
+        font->ready();
+        m_scene->addChild(font);
 
         // Create camera
         //rhea::Camera* camera = m_scene->createUnit<rhea::Camera>("MainCamera");
@@ -131,17 +166,21 @@ public:
 
 		addCube(m_scene);
 		addPlane(m_scene);
-        addSphere(m_scene);
-        addCylinder(m_scene);
+		addSphere(m_scene);
+		addCylinder(m_scene);
 		addCone(m_scene);
 		addCapsule(m_scene);
 		addTorus(m_scene);
-        
+
 		addGizmo(m_scene);
 
-        m_scene->ready();
-        m_scene->show();
-        m_last_time = std::chrono::steady_clock::now();
+		m_scene->ready();
+
+		// Setup GUI after scene is ready
+		setupGUI();
+
+		m_scene->show();
+		m_last_time = std::chrono::steady_clock::now();
     }
 
     void addCube(rhea::Scene* scene)
@@ -444,11 +483,150 @@ public:
         rhea::Position pos_grid;
         linesMesh->addGrid(pos_grid.getWorldTransform(), 5, 50, math::Vector4(1, 0, 0, 1));
         linesMesh->update();
-        linesMeshComp->setMesh(linesMesh);
-        scene->addChild(linesItem);
+		linesMeshComp->setMesh(linesMesh);
+		scene->addChild(linesItem);
 	}
 
-    bool onInput(rhea::EventInput* e, rhea::Unit* unit) override
+	void setupGUI()
+	{
+		loadResource("//sandbox/sandbox.css", "//meworla/stylesheet", [&](rhea::Unit* unit, ReqError error) {
+			// Handle the loaded resource
+			if (error == ReqError::OK) {
+				LOG(LOG_INFO) << "Stylesheet loaded successfully: " << unit->getPathName();
+			}
+			else {
+				LOG(LOG_ERROR) << "Failed to load stylesheet: " << unit->getPathName() << ", error: " << static_cast<int>(error);
+			}
+		});
+
+		// Create minimal stylesheet for GUI
+	/*	rhea::StyleSheet* stylesheet = simpleparser::Type::create<rhea::StyleSheet>("gui_stylesheet");
+		stylesheet->setup(this, {}, {});  
+		rhea::Unit* realm_unit = (rhea::Unit*)m_unit_tree->find("//sandbox", "", false);
+		if (realm_unit) {
+			realm_unit->addChild(stylesheet);
+		}
+		else
+			return;
+            */
+
+		// Create GUIController
+		m_gui_controller = simpleparser::Type::create<rhea::GUIController>("gui_controller");
+		m_gui_controller->setup(this, 
+			{{"basepath", "//sandbox"}}, 
+			{{"stylesheet", "//sandbox/sandbox.css"},
+			//{"texture", "//sandbox/kies.png"},       
+            {"font", "//sandbox/scene/Arial20"}});
+		m_scene->addChild(m_gui_controller);
+
+		// Create ScrollView container (Box for styling)
+		rhea::Widget* scrollview_box = simpleparser::Type::create<rhea::Widget>("scrollviewbox");
+		scrollview_box->setup(this, {}, {
+/*			{"y", Variant(50.0f)},
+			{"w", Variant(340.0f)},
+			{"h", Variant(400.0f)},                    */
+		});
+		m_gui_controller->addChild(scrollview_box);
+
+		// Create ScrollView
+		m_scrollview = simpleparser::Type::create<rhea::ScrollView>("testscrollview");
+		m_scrollview->setup(this, {}, {
+			{"overflow", Variant("scroll")},
+			{"scroll_distance", Variant(20.0f)}
+		});
+		scrollview_box->addChild(m_scrollview);
+
+		// Create Column as content container
+		rhea::ColumnWidget* column = simpleparser::Type::create<rhea::ColumnWidget>("scroll_content");
+		column->setup(this, {}, {});
+		m_scrollview->addChild(column);
+		m_scrollview->setStyle(rhea::StylePropertyId::kOverflow, "hidden");
+
+		// Add test items to ScrollView
+		for (int i = 0; i < 20; ++i) {
+			// Create Box for each item
+			rhea::Widget* item_box = simpleparser::Type::create<rhea::Widget>("item_box_" + std::to_string(i));
+			if (i % 2 == 0) {				
+                item_box->setup(this, {}, {
+                {"w", Variant(300.0f)},
+                {"h", Variant(60.0f)},
+                // {"texture", "//sandbox/brick256.png"},
+                    });
+               // item_box->setStyle(rhea::StylePropertyId::kBackgroundColor, "rgb(0.2 0.2 0.3 1.0)");
+                item_box->setStyle(rhea::StylePropertyId::kBackgroundColor, { {rhea::CssValueId::kNumeric, 200}, {rhea::CssValueId::kNumeric, 200}, {rhea::CssValueId::kNumeric, 200}, {rhea::CssValueId::kNumeric, 1.0f} });
+			}
+			else {
+                item_box->setup(this, {}, {
+               {"w", Variant(300.0f)},
+               {"h", Variant(60.0f)},
+           //     {"texture", "//sandbox/grass256.png"},
+                    });
+				item_box->setStyle(rhea::StylePropertyId::kBackgroundColor, { {rhea::CssValueId::kNumeric, 100}, {rhea::CssValueId::kNumeric, 200}, {rhea::CssValueId::kNumeric, 100}, {rhea::CssValueId::kNumeric, 1.0f} });
+			}
+			
+			// Set different background colors for each item
+			float hue = (i % 3) * 0.1f;
+			std::string bg_color = "rgb(" + std::to_string(0.3f + hue) + " 0.4 0.5 1.0)";
+		//	item_box->setStyle(rhea::StylePropertyId::kBackgroundColor, bg_color);
+			item_box->setStyle(rhea::StylePropertyId::kPadding, "5");
+				column->addChild(item_box);
+
+				// Optional: Add a colored marker box instead of text for now
+				rhea::Widget* marker = simpleparser::Type::create<rhea::Widget>("marker_" + std::to_string(i));
+				marker->setup(this, {}, {
+					{"x", Variant(10.0f)},
+					{"y", Variant(20.0f)},
+					{"w", Variant(260.0f)},
+					{"h", Variant(20.0f)},
+                //    {"texture", "//sandbox/kies.png"},
+				});
+				// Different color per item for identification
+				float r = (i % 5) * 0.2f;
+				std::string marker_color = "rgb(" + std::to_string(0.5f + r) + " 0.7 0.3 1.0)";
+				//marker->setStyle(rhea::StylePropertyId::kBackgroundColor, marker_color);
+                marker->setStyle(rhea::StylePropertyId::kBackgroundColor, { {rhea::CssValueId::kNumeric, 255*(0.5f + r)}, {rhea::CssValueId::kNumeric, 78}, {rhea::CssValueId::kNumeric, 176}, {rhea::CssValueId::kNumeric, 1.0f} });
+				item_box->addChild(marker);
+
+				/* DISABLED TEXT UNTIL FONT IS PROPERLY LOADED
+				// Create Label for item text
+				rhea::Label* label = simpleparser::Type::create<rhea::Label>("item_label_" + std::to_string(i));
+				label->setup(this, {}, {
+					{"text", Variant("ScrollView Test Item #" + std::to_string(i + 1))},
+					{"x", Variant(10.0f)},
+					{"y", Variant(10.0f)}
+				});
+				// Set text color and font size
+				label->setStyle(rhea::StylePropertyId::kColor, "rgb(1.0 1.0 1.0 1.0)");
+				label->setStyle(rhea::StylePropertyId::kFontSize, "16");
+				item_box->addChild(label);
+
+				// Add Button to test interaction
+				rhea::Button* button = simpleparser::Type::create<rhea::Button>("item_button_" + std::to_string(i));
+				button->setup(this, {}, {
+					{"x", Variant(10.0f)},
+					{"y", Variant(35.0f)},
+					{"width", Variant(100.0f)},
+					{"height", Variant(20.0f)}
+				});
+				button->setText("Button " + std::to_string(i + 1));
+				// Set button background, text color and font size
+				button->setStyle(rhea::StylePropertyId::kBackgroundColor, "rgb(0.5 0.5 0.6 1.0)");
+				button->setStyle(rhea::StylePropertyId::kFontSize, "14");
+				item_box->addChild(button);
+				*/
+			}
+
+		// Ready the GUI
+		m_gui_controller->ready();
+
+		// Trigger viewport size event to layout GUI
+		rhea::SizeEvent size_event(m_gui_controller, m_windows[0].width, m_windows[0].height);
+		m_gui_controller->sendEvent("viewport_size", &size_event);
+
+		LOG(LOG_INFO) << "ScrollView GUI test setup complete";
+	}
+
+	bool onInput(rhea::EventInput* e, rhea::Unit* unit) override
     {
         rhea::InputEvent evt = e->getEvent();
 

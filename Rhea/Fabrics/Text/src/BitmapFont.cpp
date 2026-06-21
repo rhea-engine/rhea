@@ -52,6 +52,9 @@ namespace rhea
 	{
 		Unit::ready();
 
+		if (m_material)
+			return;
+
 		// load and add textures
 		if (m_values.find("texture") != m_values.end())
 		{						

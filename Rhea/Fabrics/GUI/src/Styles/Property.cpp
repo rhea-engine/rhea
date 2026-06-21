@@ -24,6 +24,7 @@ namespace rhea
         const CssProperty height{ StylePropertyId::kHeight, "height", false, false };
         const CssProperty font{ StylePropertyId::kFont, "font", true, false };
         const CssProperty fontSize{ StylePropertyId::kFont, "font-size", true, false };
+        const CssProperty color{ StylePropertyId::kColor, "color", false, false };
 		const CssProperty overflow{ StylePropertyId::kOverflow, "overflow", false, false };
 		const CssProperty alignItems{ StylePropertyId::kAlignItems, "align-items", false, false };
 		const CssProperty justifyContent{ StylePropertyId::kJustifyContent, "justify-content", false, false };
@@ -44,6 +45,7 @@ namespace rhea
         &height,
         &font,
         &fontSize,
+        &color,
         &overflow,
         &alignItems,
         &justifyContent,
@@ -69,6 +71,7 @@ namespace rhea
 		{CssValueId::kIdentifier, "normal"}, // kJustifyItems default
         {CssValueId::kString, ""}, // font default
         {CssValueId::kNumeric, "16"}, // font-size default
+        {CssValueId::kIdentifier, "black"}, // color
         {CssValueId::kNumeric, "0"}, // padding-top default
         {CssValueId::kNumeric, "0"}, // padding-left default
         {CssValueId::kNumeric, "0"}, // padding-bottom default

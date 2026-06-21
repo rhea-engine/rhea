@@ -264,7 +264,8 @@ namespace rhea
 		  * @brief Gets the CSS selector for the widget.
 		  * @return The CSS selector.
 		  */
-		 virtual const std::string getSelector() { return "Widget"; }
+		 virtual const std::string getSelector() { return m_selector; }
+		 void setSelector(const std::string& selector) { m_selector = selector; }
 
 		 /**
 		  * @brief Gets the font size of the widget.
@@ -466,6 +467,7 @@ namespace rhea
 
 		// My styles
 		CssRuleSet m_properties;
+		std::string m_selector = "Widget";
 		// Holds the computed style properties for this widget.
 		CssRuleSet m_computed_properties;
 		// Store if style is changed
@@ -495,6 +497,9 @@ namespace rhea
 		virtual bool onKeyPressed(Event* ev, Unit* u) { return false; }
 		virtual bool onKeyReleased(Event* ev, Unit* u) { return false; }
 		virtual bool onTextInput(Event* ev, Unit* u) { return false; }
+		virtual bool onDragStart(Event* ev, Unit* u) { return false; }
+		virtual bool onDragMove(Event* ev, Unit* u) { return false; }
+		virtual bool onDragEnd(Event* ev, Unit* u) { return false; }
 
 	private:
 		bool handleMouseEnter(Event* ev, Unit* sender);
@@ -508,6 +513,9 @@ namespace rhea
 		bool handleKeyPressed(Event* ev, Unit* sender);
 		bool handleKeyReleased(Event* ev, Unit* sender);
 		bool handleTextInput(Event* ev, Unit* sender);
+		bool handleDragStart(Event* ev, Unit* sender);
+		bool handleDragMove(Event* ev, Unit* sender);
+		bool handleDragEnd(Event* ev, Unit* sender);
 
 		void registerDefaultInputHandlers();
 

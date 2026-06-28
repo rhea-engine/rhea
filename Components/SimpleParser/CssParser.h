@@ -95,10 +95,13 @@ namespace simpleparser
 		// get an error message
 		char* getErrMsg(Error);
 
+		bool ParsePropertyValue(const std::string& value, std::vector<Property>& properties);
+
 	protected:
 		Error parseEntry(char* buf, size_t& reader, size_t buflen, int& line, Entry& entry);
 		Error parseSelector(char* buf, size_t& reader, size_t buflen, int& line, Selector& name);
 		Error parseContent(char* buf, size_t& reader, size_t buflen, int& line, PropertyMap& property_map);
+		Error parseProperty(char* buf, size_t& reader, size_t buflen, int& line, std::vector<Property>& properties);
 
 		enum CSSPARSE_STATE {
 			PARSE_NONE,

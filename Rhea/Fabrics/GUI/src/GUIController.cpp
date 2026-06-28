@@ -32,6 +32,7 @@
 #include <Rhea/Graphics/SizeEvent.h>
 #include <Psio/Input/Keyboard.h>
 #include <Rhea/GUI/Styles/DefaultStyleSheet.h>
+#include <Psio/ScopedTimer.h>
 
 namespace rhea
 {
@@ -731,7 +732,11 @@ namespace rhea
 		if (m_style_engine) {
 			Widget* w = doCast<Widget>(ev->getTarget());
 			if (w) {
-				w->RecalculateStyle(m_style_engine.get());							
+#ifdef _DEBUG
+				ScopedTimer timer("RecalculateStyle:onSceneEnter");
+#endif
+				w->RecalculateStyleTree(m_style_engine.get());	
+
 			}
 		}
 		return onGuiUpdate(ev, unit);
@@ -754,8 +759,21 @@ namespace rhea
 
 	void GUIController::UpdateStyle()
 	{
+#ifdef _DEBUG
+		static bool in_calculating = false;
+		if (in_calculating) {
+			LOG(LOG_DEBUG) << "RecalculateStyle:UpdateStyle: already in calculating - skipping";
+			return;
+		}
+		in_calculating = true;
+		ScopedTimer timer("RecalculateStyle:UpdateStyle", 5000.0f);
+#endif
 		if (m_style_engine)
-			RecalculateStyle(m_style_engine.get());
+			RecalculateStyleTree(m_style_engine.get());
+#ifdef _DEBUG
+		in_calculating = false;
+#endif
+
 	}
 
 	bool GUIController::onKeyPressed(Event* ev, Unit* unit)

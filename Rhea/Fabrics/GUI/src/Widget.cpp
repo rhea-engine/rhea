@@ -33,6 +33,7 @@
 #include <Rhea/GUI/Modifier/FillHeight.h>
 #include <Rhea/GUI/Modifier/SizePercentageHeight.h>
 #include <Rhea/Components/MeshComponent.h>
+#include <Psio/ScopedTimer.h>
 
 namespace rhea
 {
@@ -168,6 +169,8 @@ namespace rhea
 		if (!visual_component->isVisible()) {
 			hide();
 		}
+
+		markDirtyStyleChildren();
 
 		registerDefaultInputHandlers();
 	}
@@ -435,9 +438,32 @@ namespace rhea
 		}
 	}
 
+	void Widget::RecalculateStyleTree(StyleEngine* style_engine)
+	{
+		RecalculateStyle(style_engine);
+		// Recursively recalculate style for all child widgets.
+		for (auto child : m_children) {
+			if (doCast<Unit>(child.second)) {
+				doCast<Unit>(child.second)->traverse([&](std::string name, rhea::Component* child)->bool {
+					if (doCast<Widget>(child)) {
+						doCast<Widget>(child)->RecalculateStyle(style_engine);
+					}
+					return true;
+					});
+			}
+		}
+	}
+
 	void Widget::RecalculateStyle(StyleEngine* style_engine)
 	{
+#ifdef _DEBUG
+		std::string  debug_msg = "RecalculateStyle() for " + getPath() + "/" + getPathName();
+		ScopedTimer timer(debug_msg.c_str(), 500.0f);
+#endif
+
 		if (m_style_dirty) {
+
+			m_style_dirty = false;
 
 			// Clear any previously computed styles.
 			m_computed_properties.clear();
@@ -479,19 +505,6 @@ namespace rhea
 			AppendStyles(m_properties);
 
 			ApplyStyles();
-
-			m_style_dirty = false;
-		}
-
-		// Recursively recalculate style for all child widgets.
-		for (auto child : m_children) {
-			if (doCast<Unit>(child.second)) {
-				doCast<Unit>(child.second)->traverse([&](std::string name, rhea::Component* child)->bool {
-					if (doCast<Widget>(child))
-						doCast<Widget>(child)->RecalculateStyle(style_engine);
-					return true;
-					});
-			}
 		}
 	}
 
@@ -843,7 +856,7 @@ namespace rhea
 		else if (vertical == "center")
 			v_align = Alignment::AlignItems::CENTER;
 
-		m_alignment = std::make_unique<LayoutAlignment>(LayoutAlignment::JustifyContent::START, v_align);
+		m_alignment = std::make_unique<LayoutAlignment>(h_align, v_align);
 	}
 
 	void Widget::ApplyTextureSizing() {
@@ -853,7 +866,7 @@ namespace rhea
 			// image and image size is set and content is not 1x1
 
 			// tiling
-			// assume background-reapat
+			// assume background-repeat
 			// if image is scaled to fit into the widget we can't also tile the image
 			math::Vector2 tiling(1.0f, 1.0f);;
 			if (m_sizing_mode_w == TextureSizingMode::kAuto)
@@ -918,12 +931,29 @@ namespace rhea
 			m_properties[style.first] = style.second;
 		}
 		m_style_dirty = true;
+		markDirtyStyleChildren();
+	}
+
+	void Widget::setStyleValue(StylePropertyId id, std::string css_string)
+	{
+		CssRuleSet styles;
+		simpleparser::CssParser parser;
+		std::vector<simpleparser::CssParser::Property> properties;
+		if (parser.ParsePropertyValue(css_string, properties)) {
+			std::vector<CssValue> styles;
+			if (StyleSheet::ParseValues(id, properties, styles)) {
+				m_properties[id] = styles;
+				m_style_dirty = true;
+				markDirtyStyleChildren();
+			}
+		}
 	}
 
 	void Widget::setStyle(StylePropertyId id, std::vector<CssValue> value)
 	{
 		m_properties[id] = value;
 		m_style_dirty = true;
+		markDirtyStyleChildren();
 	}
 
 	const std::vector<CssValue>& Widget::getStyle(StylePropertyId style) const
@@ -945,6 +975,7 @@ namespace rhea
 		if (StyleSheet::ParseValues(id, content, values)) {
 			m_properties[id] = values;
 			m_style_dirty = true;
+			markDirtyStyleChildren();
 		}
 	}
 
@@ -956,6 +987,7 @@ namespace rhea
 		if (StyleSheet::ParseValues(id, content, values)) {
 			m_properties[id] = values;
 			m_style_dirty = true;
+			markDirtyStyleChildren();
 		}
 	}
 
@@ -967,12 +999,19 @@ namespace rhea
 		if (StyleSheet::ParseValues(id, content, values)) {
 			m_properties[id] = values;
 			m_style_dirty = true;
+			markDirtyStyleChildren();
 		}
+	}
+
+	void Widget::onParented()
+	{
+		Item2D::onParented();
+		markDirtyStyleChildren();
 	}
 
 	void Widget::show()
 	{
-		Item::show();
+		Item2D::show();
 		invalidateRender();
 		invalidateLayout();
 		// recursively invalidate all children
@@ -1087,6 +1126,17 @@ namespace rhea
 			p->invalidateLayout();
 	}
 
+	void Widget::markDirtyStyleChildren()
+	{
+		//if (m_has_style_dirty_children)
+		//	return;
+
+		m_has_style_dirty_children = true;
+
+		if (auto* p = doCast<Widget>(m_parent))
+			p->markDirtyStyleChildren();
+	}
+
 	void Widget::clearLayoutDirtyRecursive()
 	{
 		m_layout_dirty = false;		
@@ -1180,6 +1230,7 @@ namespace rhea
 		// Wenn sich der Zustand geändert hat, Styles neu berechnen
 		if (old_states != m_widget_states) {
 			m_style_dirty = true;
+			markDirtyStyleChildren();
 			invalidateRender();
 		}
 	}

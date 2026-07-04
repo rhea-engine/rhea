@@ -45,10 +45,12 @@ namespace rhea {
 		if (m_orientation == Orientation::Vertical) {
 			m_thumb->resize(m_track->W(), m_track->H() * size_ratio);
 			m_thumb->setPosition(m_position + Vector2(0, m_track->H() * position));
+			m_thumb->invalidateRender();
 		}
 		else {
 			m_thumb->resize(m_track->W() * size_ratio, m_track->H());
 			m_thumb->setPosition(m_position + Vector2(m_track->W() * position, 0));
+			m_thumb->invalidateRender();
 		}
 	}
 
@@ -79,7 +81,27 @@ namespace rhea {
 		return constraints;
 	}
 
+	void ScrollBar::invalidateLayout() {
+		Widget::invalidateLayout();
+
+		static bool inInvalidateLayout = false;
+
+		if (inInvalidateLayout) {
+			return;
+		}
+
+		// Prevent recursive calls
+		inInvalidateLayout = true;
+
+		// also invalidate track and thumb
+		if (m_track) m_track->invalidateLayout();
+		if (m_thumb) m_thumb->invalidateLayout();
+
+		inInvalidateLayout = false;
+	}
+
     bool ScrollBar::onMouseClicked(Event* ev, Unit* sender) {
+		ev->stopPropagation();
         EventInput* input = static_cast<EventInput*>(ev);
 		float mouse_x = input->getEvent().x;
 		float mouse_y = input->getEvent().y;
@@ -89,10 +111,28 @@ namespace rhea {
 			return true;
         }
 
-        // Clicked on track - jump to position
-        float track_y = mouse_y - m_track->Y();
-        float position = track_y / m_track->H();
-        if (m_on_scroll) m_on_scroll(position);
+        // Clicked on track - page up/down
+		float movable = m_track->H() - m_thumb->H();
+		if (movable <= 0.0f) {
+			if (m_on_scroll) m_on_scroll(0.0f);
+			return true;
+		}
+
+		float page_step = m_thumb->H() / movable;
+		float position = m_thumb_position;
+
+		if (mouse_y < m_thumb->Y()) {
+			position -= page_step;
+		}
+		else if (mouse_y > m_thumb->Y() + m_thumb->H()) {
+			position += page_step;
+		}
+
+		if (m_on_scroll)
+			m_on_scroll(std::clamp(position, 0.0f, 1.0f));
+
+		// Note: could add callback to scrollview for correct page-size scrolling, but for now just call on_scroll with new position
+
         return true;
     }
 
@@ -103,6 +143,12 @@ namespace rhea {
 
 		// Check if dragging starts on thumb
 		if (m_thumb == capture(mouse_x, mouse_y)) {
+			// safety check if the thumb is not movable (e.g., content fits in view)
+			float movable = m_track->H() - m_thumb->H();
+			if (movable <= 0.0f) {
+				return false;
+			}
+			ev->stopPropagation();
 			m_dragging = true;
 			m_drag_offset = mouse_y - m_thumb->Y();
 			return true;
@@ -113,15 +159,23 @@ namespace rhea {
     bool ScrollBar::onDragMove(Event* ev, Unit* sender) {
         if (!m_dragging) return false;
 
+		ev->stopPropagation();
         EventInput* input = static_cast<EventInput*>(ev);
         float mouse_y = input->getEvent().y;
         float new_thumb_y = mouse_y - m_drag_offset;
 
+		// safety check if the thumb is not movable (e.g., content fits in view)
+		float movable = m_track->H() - m_thumb->H();
+		if (movable <= 0.0f) {
+			m_dragging = false;
+			return false;
+		}
+
 		// clamp inside of track
-		new_thumb_y = std::clamp(new_thumb_y, m_track->Y(), m_track->Y() + m_track->H() - m_thumb->H());
+		new_thumb_y = std::clamp(new_thumb_y, m_track->Y(), m_track->Y() + movable);
 
         // Convert to 0.0 - 1.0 position
-        float position = (new_thumb_y - m_track->Y()) / (m_track->H() - m_thumb->H());
+        float position = (new_thumb_y - m_track->Y()) / movable;
         position = std::clamp(position, 0.0f, 1.0f);
 
         if (m_on_scroll) m_on_scroll(position);
@@ -130,6 +184,7 @@ namespace rhea {
 
     bool ScrollBar::onDragEnd(Event* ev, Unit* sender) {
         if (m_dragging) {
+			ev->stopPropagation();
             m_dragging = false;
             return true;
         }

@@ -185,6 +185,11 @@ namespace rhea
 		void setContentPosition(Vector2 pos) { m_content_position = pos; }
 
 		/**
+		* @brief Clears the children of the widget.
+		*/
+		void clearWidgetChildren();
+
+		/**
 		* @brief compute clipping
 		*/
 		void computeClipping();
@@ -194,6 +199,7 @@ namespace rhea
 
 		// Invalidate the layout, causing it to be recalculated on the next render.
 		virtual void invalidateLayout();
+		bool isLayoutDirty() { return m_layout_dirty; }
 
 		// Mark parents as having dirty children.
 		virtual void markDirtyStyleChildren();

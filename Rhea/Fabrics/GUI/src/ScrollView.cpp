@@ -55,8 +55,13 @@ namespace rhea
 
 		// Update scrollbar thumb position
 		if (m_scrollbar) {
-			float thumb_ratio = m_content_size.y / m_child_content_size.y;
-			float thumb_pos = (m_scroll_y / m_max_scroll_y) * (1.0f - thumb_ratio);
+			float thumb_ratio = (m_child_content_size.y > 0.0f)
+				? std::clamp(m_content_size.y / m_child_content_size.y, 0.0f, 1.0f)
+				: 1.0f;
+
+			float thumb_pos = (m_max_scroll_y > 0.0f)
+				? (m_scroll_y / m_max_scroll_y) * (1.0f - thumb_ratio)
+				: 0.0f;
 			m_scrollbar->setThumbPosition(thumb_pos, thumb_ratio);
 			m_scrollbar->setPosition(Vector2(m_position.x + m_content_size.x - m_scrollbar_width, m_position.y));
 		}
@@ -69,8 +74,9 @@ namespace rhea
 
 		// Reserve space for scrollbar
 		float scrollbar_width = (m_scrollbar != nullptr) ? m_scrollbar_width : 0.0f;
-
+		
 		Vector2 content_size = m_content->size(Vector2(constraints.x - scrollbar_width, 999999.0f));
+		//Vector2 natural_size = m_content->innerSize(content_size);
 
 		m_child_content_size = content_size;
 
@@ -78,10 +84,35 @@ namespace rhea
 			m_scrollbar->size(Vector2(m_scrollbar_width, constraints.y));
 		}
 
+		return constraints;
 		return Vector2(
 			constraints.x,
 			std::min(content_size.y, constraints.y)
 		);
+	}
+
+	void ScrollView::invalidateLayout()
+	{
+		if (m_layout_dirty)
+			return;
+
+		m_layout_dirty = true;
+
+		static bool inInvalidateLayout = false;
+
+		if (inInvalidateLayout) {
+			return;
+		}
+		inInvalidateLayout = true;
+
+		// also invalidate scrollbar if present
+		if (m_scrollbar)
+			m_scrollbar->invalidateLayout();
+
+		if (auto* p = doCast<Widget>(m_parent))
+			p->invalidateLayout();
+
+		inInvalidateLayout = false;
 	}
 
 	bool ScrollView::onMouseWheel(Event* ev, Unit* unit)

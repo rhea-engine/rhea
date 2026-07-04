@@ -34,7 +34,7 @@ namespace rhea
 
 		// layout types
 		simpleparser::Type::registerType<BoxWidget>("//meworla/gui/box");
-		simpleparser::Type::registerType<ColumnWidget>("//meworla/gui/column");
+		ColumnWidget::_register_ColumnWidget();
 		simpleparser::Type::registerType<RowWidget>("//meworla/gui/row");
 		simpleparser::Type::registerType<SpacerWidget>("//meworla/gui/spacer");
 		ScrollView::_register_ScrollView();

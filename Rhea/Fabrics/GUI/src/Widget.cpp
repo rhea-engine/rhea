@@ -1117,13 +1117,14 @@ namespace rhea
 
 	void Widget::invalidateLayout()
 	{
-		if (m_layout_dirty)
-			return;
-
+		bool was_dirty = m_layout_dirty;
 		m_layout_dirty = true;
 
-		if (auto* p = doCast<Widget>(m_parent))
-			p->invalidateLayout();
+		if (auto* p = doCast<Widget>(m_parent)) {
+			if (!was_dirty || !p->isLayoutDirty()) {
+				p->invalidateLayout();
+			}
+		}
 	}
 
 	void Widget::markDirtyStyleChildren()

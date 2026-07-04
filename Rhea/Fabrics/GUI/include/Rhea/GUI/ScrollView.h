@@ -22,6 +22,8 @@ namespace rhea
 
 		bool onMouseWheel(Event* ev, Unit* unit) override;
 
+		void invalidateLayout() override;
+
 		void setScrollY(float y);
 		void ensureVisible(Widget* child);
 

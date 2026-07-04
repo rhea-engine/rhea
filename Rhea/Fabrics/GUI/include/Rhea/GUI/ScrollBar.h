@@ -32,6 +32,8 @@ namespace rhea
 		void onSetPosition() override;
         Vector2 innerSize(Vector2 constraints) override;
 
+		void invalidateLayout() override;
+
         const std::string getSelector() { return "ScrollBar"; }
 
     private:

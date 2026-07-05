@@ -58,7 +58,7 @@ namespace rhea
 		if (u_child)
 			u_child->onRemoved();
 		m_children.erase(child->getPathName());
-		m_ordered_children.erase(std::remove(m_ordered_children.begin(), m_ordered_children.end(), child));
+		m_ordered_children.erase(std::remove(m_ordered_children.begin(), m_ordered_children.end(), child), m_ordered_children.end());
 		child->setParent(nullptr);
 	}
 
@@ -72,8 +72,9 @@ namespace rhea
 			m_unique_components[type] = component;
 			type = type->getParent();
 		}
-		// add as child
-		addChild(component);
+		// if not already added as child, add as child
+		if (component->getParent() != this)
+			addChild(component);
 	}
 
 	void Unit::removeComponent(Component* component)

@@ -194,6 +194,8 @@ namespace rhea
 		// Invalidate the layout, causing it to be recalculated on the next render.
 		virtual void invalidateLayout();
 
+		void clearWidgetChildren();
+
 		/**
 		 * @brief Recalculates the style of the widget using the given style engine.
 		 * @param style_engine The style engine instance.

@@ -205,6 +205,23 @@ namespace rhea
 		}
 	}
 
+	void Widget::clearWidgetChildren()
+	{
+		std::vector<Widget*> children_to_remove;
+		for (auto it = m_children.begin(); it != m_children.end(); ++it) {
+			Widget* w = doCast<Widget>(it->second);
+			if (w) {
+				children_to_remove.push_back(w);
+			}
+		}
+		for (Widget* w : children_to_remove) {
+			if (w->getParent() == this) {
+				w->detachFromParent();
+				w->destroy();
+			}
+		}
+	}
+
 	void Widget::computeClipping()
 	{
 		// get clipping from parents visual component

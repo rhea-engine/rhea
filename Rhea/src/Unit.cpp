@@ -241,9 +241,9 @@ namespace rhea
 		// call ready for all children
 		for (auto it = m_children.begin(); it != m_children.end(); ++it)
 		{
-			Unit* unit = doCast<Unit>(it->second);
-			if (unit)
-				unit->ready();
+			Component* component = doCast<Component>(it->second);
+			if (component)
+				component->ready();
 		}
 	}
 

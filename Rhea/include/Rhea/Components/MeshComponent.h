@@ -20,11 +20,19 @@ namespace rhea
     class MeshComponent : public Component
     {
         RECLASS(MeshComponent, Component, "//meworla/meshcomponent")
+        REPROPERTY(Ref<Mesh>, "meshRef", Label("Mesh Reference"), Edit, Read);
     public:
         MeshComponent(std::string name, std::string type_name) :
             Component(name, type_name),
             m_mesh(nullptr)
         {}
+        void ready() override {
+			if (m_values.find("meshRef") != m_values.end())
+                m_meshRef = Ref<Mesh>(m_values["meshRef"].toString(), m_attributes["basepath"]);
+			if (m_parent && !m_parent->getComponent<MeshComponent>()) {
+				m_parent->addComponent(this);
+			}
+        }
 
         // Asset reference (unresolved)
         const Ref<Mesh>& meshRef() const { return m_meshRef; }
@@ -38,7 +46,6 @@ namespace rhea
 
     private:
         // Unresolved reference
-		REPROPERTY(Ref<Mesh>, "meshRef", Label("Mesh Reference"), Edit, Read);
         Ref<Mesh> m_meshRef;
         
         // Resolved instance

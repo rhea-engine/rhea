@@ -78,7 +78,14 @@ namespace rhea
 			}
 			// only set ref
 			mesh_component->setMeshRef(Ref<Mesh>(mesh_it->second.toString(), m_attributes["basepath"]));
-		}			
+		}		
+		else {
+			if (getComponent<MeshComponent>()) {
+				if (!visual_component) {
+					visual_component = addComponentUnique<VisualComponent>("visual_component");
+				}
+			}
+		}
 
 		if (visual_component && m_values.find("fabric") != m_values.end())
 			visual_component->hide();

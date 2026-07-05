@@ -451,7 +451,7 @@ namespace rhea
 		return ret;
 	}
 
-	void Application::loadResource(const std::string resource_id, std::string type_name, std::function<void(Unit*, ReqError error)> handler)
+	void Application::loadResource(const std::string resource_id, std::string type_name, std::function<void(Component*, ReqError error)> handler)
 	{
 		log("loading resource: " + resource_id);
 		orion::ResourceRequest* req = m_fs->getResourceByRid(resource_id);
@@ -466,7 +466,7 @@ namespace rhea
 				Component* realm_unit = m_unit_tree->find(realm_name, false);
 				if (!realm_unit) {
 					// add the realm
-					realm_unit = (Unit*)new Realm(req->getRealm(), realm_name);
+					realm_unit = (Component*)new Realm(req->getRealm(), realm_name);
 					m_unit_tree->addChild(realm_unit);
 				}
 
@@ -490,13 +490,13 @@ namespace rhea
 				// get from request
 				std::string mime = req->getMimeType();
 				if (mime.length()) {
-					if (m_resource_loader.load(req->getBasename(), this, mime, req, [this, handler, parent_unit](ReqError err, Unit* unit) {
+					if (m_resource_loader.load(req->getBasename(), this, mime, req, [this, handler, parent_unit](ReqError err, Component* component) {
 
 						// add it to tree
-						if (unit)
-							parent_unit->addChild(unit);
+						if (component)
+							parent_unit->addChild(component);
 
-						handler(unit, err);
+						handler(component, err);
 						}))
 						return;
 						log("No loader for mime type " + mime);
@@ -507,14 +507,14 @@ namespace rhea
 				// this is only called for unhandled or unknown mime types
 
 				// create a generic resource unit
-				Resource* unit = new Resource(req->getBasename(), "//meworla/resource");
+				Resource* component = new Resource(req->getBasename(), "//meworla/resource");
 
 				// add it to tree
-				parent_unit->addChild(unit);
+				parent_unit->addChild(component);
 
 				// call load of unit
-				unit->load(req, [&, handler](ReqError err) {
-					handler(unit, err);
+				component->load(req, [&, handler](ReqError err) {
+					handler(component, err);
 					});
 			}
 			else

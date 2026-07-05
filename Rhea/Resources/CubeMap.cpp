@@ -17,7 +17,7 @@ namespace rhea
 		ImageResource::setup(app, attributes, values);
 	}
 
-	std::vector<Unit::Export> CubeMap::getReferences()
+	std::vector<Component::Export> CubeMap::getReferences()
 	{
 		std::vector<Export> refs;
 		if (m_values.find("path") != m_values.end()) {

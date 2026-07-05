@@ -8,22 +8,24 @@
 #ifndef RHEA_COMPONENT_H
 #define RHEA_COMPONENT_H
 
+#include <string>
+#include <unordered_map>
+#include <vector>
+
 #include <SimpleParser/Type.h>
 #include <SimpleParser/Variant.h>
 
 namespace rhea
 {
+    class Application;
     class Unit;
 
-    class Component : public simpleparser::Variant {
-       
-    protected:
-        Unit* m_parent = nullptr;  // Pointer to the parent Unit
-        std::string m_pathname;
-		bool m_destroying = false; // Flag to indicate if the component is being destroyed
+    class Component : public simpleparser::Variant
+    {
 
     public:
         Component(std::string name, std::string type_name) :
+			m_app(nullptr),
             m_pathname(name),
             m_parent(nullptr),
             simpleparser::Variant(simpleparser::Type::get(type_name))
@@ -32,14 +34,23 @@ namespace rhea
             Component(name, "//core/types/component")
         {}
         // Copy constructor
-        Component(const Component& other) : 
+        Component(const Component& other) :
+            m_app(other.m_app),
             m_parent(nullptr),
-            m_pathname(other.m_pathname)
-        {} 
+            m_pathname(other.m_pathname),
+            m_attributes(other.m_attributes),
+            m_values(other.m_values)
+        {}
         virtual ~Component() = default;
 
         void destroy();
         virtual void onDestroy() {}
+
+        virtual void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, simpleparser::Variant> values);
+        virtual void setup(Application* app) { m_app = app; }
+
+        // ready signal - finalize the component for usage
+        virtual void ready() {}
 
         // Set and get parent
         void setParent(Unit* parent) { m_parent = parent; }
@@ -47,12 +58,30 @@ namespace rhea
 
         // get name
         std::string& getPathName() { return m_pathname; }
-        
+
         // rename this component
         // name: the new name
         // note: 
         // this removes the component from its parent and readds it under it new name
         virtual void setName(std::string name);
+
+        // get value
+        simpleparser::Variant getValue(std::string name) const;
+        // get value with default
+        simpleparser::Variant getValue(std::string name, simpleparser::Variant default_val) const;
+        // get a value as string
+        std::string getValueString(std::string name) const;
+        std::string getValueString(std::string name, std::string default_val) const;
+        // set a value
+        void setValue(std::string name, simpleparser::Variant val);
+        // get exported values
+        typedef struct {
+            std::string name;
+            std::string type;
+            simpleparser::Variant value;
+        } Export;
+        virtual std::vector<Export> getReferences();
+
 
         // Clone method, returns a pointer to a copy of the object
         virtual Component* Clone() const { return new Component(*this); }
@@ -88,6 +117,21 @@ namespace rhea
             }
             return _static_type;
         }
+
+        // set Application
+        void setApplication(Application* app) { m_app = app; }
+
+        // get Application
+        Application* getApplication() { return m_app; }
+
+    protected:
+        Application* m_app;
+        Unit* m_parent = nullptr;  // Pointer to the parent Unit
+        std::string m_pathname;
+        bool m_destroying = false; // Flag to indicate if the component is being destroyed
+
+        std::unordered_map<std::string, std::string> m_attributes;
+        std::unordered_map<std::string, simpleparser::Variant> m_values;
     };
 }
 #endif // !RHEA_COMPONENT_H

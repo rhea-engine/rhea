@@ -424,7 +424,7 @@ void Ceto::setScene(bool mark_preferrences)
 		stream->Close();
 	}
 
-	loadResource(m_home_scene, "//meworla/scene", [&](rhea::Unit* scene_unit, ReqError err) {
+	loadResource(m_home_scene, "//meworla/scene", [&](rhea::Component* scene_unit, ReqError err) {
 		rhea::Scene* scene = doCast<rhea::Scene>(scene_unit);
 		if (scene && err == ReqError::OK) {
 
@@ -581,7 +581,7 @@ void Ceto::loadMainGUI()
 {
 	// load the apps gui			
 	std::string app_gui = "//local/cetogui.scene";
-	loadResource(app_gui, "//meworla/scene", [&](rhea::Unit* res, ReqError r_err) {
+	loadResource(app_gui, "//meworla/scene", [&](rhea::Component* res, ReqError r_err) {
 		rhea::Scene* gui = doCast<rhea::Scene>(res);
 		if (gui && r_err == ReqError::OK) {
 			

@@ -32,7 +32,6 @@ namespace rhea
 		MECLASS(Unit, Component)
 	public:
 		Unit(std::string path_name, std::string type_name) :
-			m_app(NULL),
 			m_path(path_name),
 			m_refcount(0),
 			Component(path_name, type_name)
@@ -42,14 +41,11 @@ namespace rhea
 		void onDestroy() override;
 		void detachFromParent();
 
-		virtual void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
-		virtual void setup(Application* app) { m_app = app; }
-
 		// async prepare
 		typedef std::function<void(Error*)> ReadyHandler;
 
 		// ready signal - all dependant units are prepared and we now finalize for usage, recursive to children
-		virtual void ready();
+		void ready() override;
 
 		// add a child resource
 		void addChild(Component* child);
@@ -146,23 +142,6 @@ namespace rhea
 			return nullptr;
 		}
 
-		// get value
-		Variant getValue(std::string name) const;
-		// get value with default
-		Variant getValue(std::string name, Variant default_val) const;
-		// get a value as string
-		std::string getValueString(std::string name) const;
-		std::string getValueString(std::string name, std::string default_val) const;
-		// set a value
-		void setValue(std::string name, Variant val);
-		// get exported values
-		typedef struct {
-			std::string name;
-			std::string type;
-			Variant value;
-		} Export;
-		virtual std::vector<Export> getReferences();
-		
 		// messaging and events
 
 		// broadcast message
@@ -206,12 +185,6 @@ namespace rhea
 		// if the handler return false the traverse is stopped
 		void children(std::function<bool(std::string&, Component*)> handler, bool ordered = false);
 
-		// set Application
-		void setApplication(Application* app) { m_app = app; }
-
-		// get Application
-		Application* getApplication() { return m_app; }
-
 		// increment reference count
 		void incRef() { m_refcount++; }
 
@@ -224,11 +197,8 @@ namespace rhea
 		// print my info
 		virtual void logMe();
 		
-	protected:
-		Application* m_app;
-		std::string m_path;
-		std::unordered_map<std::string, std::string> m_attributes;
-		std::unordered_map<std::string, Variant> m_values;
+	protected:		
+		std::string m_path;		
 
 		// the children of the unit - this may be components
 		std::unordered_map<std::string, Component*> m_children;

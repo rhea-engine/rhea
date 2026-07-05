@@ -26,10 +26,10 @@ namespace rhea
 
 	void ImageResource::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{
-		Unit::setup(app, attributes, values);		
+		Resource::setup(app, attributes, values);		
 	}
 
-	std::vector<Unit::Export> ImageResource::getReferences()
+	std::vector<Component::Export> ImageResource::getReferences()
 	{
 		std::vector<Export> refs;
 		if (m_values.find("path") != m_values.end()) {
@@ -43,7 +43,7 @@ namespace rhea
 		if (m_status >= Status::READY)
 			return;
 		m_status = Status::READY;
-		Unit::ready();
+		Resource::ready();
 
 		auto path_it = m_values.find("path");
 		if (!m_buf && path_it != m_values.end()) {

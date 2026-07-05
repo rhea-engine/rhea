@@ -76,6 +76,9 @@ namespace rhea
 
 		// ready handler
 		void ready();
+
+		// on delete
+		void onDestroy() override;
 				
 		// get material
 		Material* getMaterial(size_t mesh_idx = 0) { if (mesh_idx < m_submeshes.size()) return m_submeshes[mesh_idx].material; else return nullptr; }

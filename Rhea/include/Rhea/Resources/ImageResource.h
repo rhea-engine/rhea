@@ -28,10 +28,10 @@ namespace rhea
 			TEXTURE_CUBE = 2
 		};
 
-		void setup(Application* app) { Unit::setup(app); }
+		void setup(Application* app) { Resource::setup(app); }
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
 
-		std::vector<Unit::Export> getReferences();
+		std::vector<Component::Export> getReferences();
 
 		// handle ready event
 		void ready();

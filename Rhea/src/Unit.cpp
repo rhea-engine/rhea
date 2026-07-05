@@ -14,13 +14,6 @@ using simpleparser::Method;
 
 namespace rhea
 {
-	void Unit::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
-	{
-		m_app = app;
-		m_attributes = attributes;
-		m_values = values;
-	}
-
 	Unit::Unit(const Unit& u) : Component(u)
 	{
 		m_path = u.m_pathname;
@@ -58,7 +51,7 @@ namespace rhea
 		if (u_child)
 			u_child->onRemoved();
 		m_children.erase(child->getPathName());
-		m_ordered_children.erase(std::remove(m_ordered_children.begin(), m_ordered_children.end(), child));
+		m_ordered_children.erase(std::remove(m_ordered_children.begin(), m_ordered_children.end(), child), m_ordered_children.end());
 		child->setParent(nullptr);
 	}
 
@@ -72,8 +65,9 @@ namespace rhea
 			m_unique_components[type] = component;
 			type = type->getParent();
 		}
-		// add as child
-		addChild(component);
+		// if not already added as child, add as child
+		if (component->getParent() != this)
+			addChild(component);
 	}
 
 	void Unit::removeComponent(Component* component)
@@ -242,64 +236,14 @@ namespace rhea
 		Component::setName(name);
 	}
 	
-	Variant Unit::getValue(std::string name) const
-	{
-		if (name != "") {
-			auto val = m_values.find(name);
-			if (val != m_values.end()) {
-				return val->second;
-			}
-		}
-		return Variant();
-	}
-
-	std::string Unit::getValueString(std::string name, std::string default_val) const
-	{
-		auto val = m_values.find(name);
-		if (val != m_values.end()) {
-			return val->second.toString();
-		}
-		return default_val;
-	}
-
-	std::string Unit::getValueString(std::string name) const
-	{
-		if (name != "") {
-			auto val = m_values.find(name);
-			if (val != m_values.end()) {
-				return val->second.toString();
-			}
-		}
-		return std::string("");
-	}
-
-	Variant Unit::getValue(std::string name, Variant default_val) const
-	{
-		auto val = m_values.find(name);
-		if (val != m_values.end()) {
-			return val->second;
-		}
-		return default_val;
-	}
-
-	void Unit::setValue(std::string name, Variant val)
-	{
-		m_values[name] = val;
-	}
-
-	std::vector<Unit::Export> Unit::getReferences()
-	{
-		return std::vector<Export>();
-	}
-
 	void Unit::ready()
 	{
 		// call ready for all children
 		for (auto it = m_children.begin(); it != m_children.end(); ++it)
 		{
-			Unit* unit = doCast<Unit>(it->second);
-			if (unit)
-				unit->ready();
+			Component* component = doCast<Component>(it->second);
+			if (component)
+				component->ready();
 		}
 	}
 

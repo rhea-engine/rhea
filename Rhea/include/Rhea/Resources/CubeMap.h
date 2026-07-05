@@ -23,7 +23,7 @@ namespace rhea
 
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values) override;
 
-		std::vector<Unit::Export> getReferences();
+		std::vector<Component::Export> getReferences();
 
 		void ready() override;
 

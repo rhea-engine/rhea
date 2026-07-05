@@ -57,12 +57,12 @@ namespace rhea
 		MeshColliderShape* clone() const { return new MeshColliderShape(*this); }
 	};
 
-	class ColliderComponent : public Unit
+	class ColliderComponent : public Component
 	{
-		RECLASS(ColliderComponent, Unit, "//meworla/collidercomponent")
+		RECLASS(ColliderComponent, Component, "//meworla/collidercomponent")
 	public:
 		ColliderComponent(std::string name, std::string type_name) :
-			Unit(name, type_name)
+			Component(name, type_name)
 		{
 		}
 
@@ -78,7 +78,7 @@ namespace rhea
 	protected:
 		// Copy constructor
 		ColliderComponent(const ColliderComponent& other) :
-			rhea::Unit(other),
+			rhea::Component(other),
 			enabled(other.enabled),
 			offset(other.offset)
 		{

@@ -14,7 +14,7 @@ namespace rhea
 {
 	void ColliderComponent::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{
-		Unit::setup(app, attributes, values);
+		Component::setup(app, attributes, values);
 
 		if (values.find("enabled") != values.end()) {
 			enabled = values["enabled"].toBool();

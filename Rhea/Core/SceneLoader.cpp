@@ -21,7 +21,7 @@ namespace rhea
 {	
 	struct PendingUnitConfig
 	{
-		Unit* unit = nullptr;
+		Component* component = nullptr;
 		Unit* parent = nullptr;
 		std::string section_name;
 
@@ -118,7 +118,7 @@ namespace rhea
 				rpos = path.find_last_of("/", 1);
 			}
 			std::string ppath;
-			Unit* unit;
+			Component* component;
 			Unit* child_parent;
 			// add basepath to attributes
 			section.attributes["basepath"] = basepath;
@@ -127,7 +127,7 @@ namespace rhea
 				ppath = path.substr(0, rpos);
 				path = path.substr(rpos + 1);
 				//unit = tree->createUnit(path, type_name, section.attributes, section.values);
-				unit = doCast<Unit>(simpleparser::Type::create(path, type_name));
+				component = doCast<Component>(simpleparser::Type::create(path, type_name));
 
 				// find parent relative to top parent			
 				child_parent = doCast<Unit>(scene->find(ppath, true));
@@ -135,20 +135,20 @@ namespace rhea
 			else {
 				// create the unit and set config params
 				//unit = tree->createUnit(path, type_name, section.attributes, section.values);
-				unit = doCast<Unit>(simpleparser::Type::create(path, type_name));
+				component = doCast<Component>(simpleparser::Type::create(path, type_name));
 
 				// find parent relative to top parent			
 				child_parent = scene;
 			}
-			if (!unit) {
-				LOG(LOG_ERROR) << "Failed to create unit of type " << type_name;
+			if (!component) {
+				LOG(LOG_ERROR) << "Failed to create component of type " << type_name;
 				continue;
 			}
-			child_parent->addChild(unit);
+			child_parent->addChild(component);
 
 			// store config params
 			PendingUnitConfig config;
-			config.unit = unit;
+			config.component = component;
 			config.parent = child_parent;
 			config.section_name = section.section_name;
 			config.attributes = section.attributes;
@@ -159,16 +159,16 @@ namespace rhea
 		for (std::vector<PendingUnitConfig>::iterator it = pending_configs.begin(); it != pending_configs.end(); ++it) {
 			PendingUnitConfig config = *it;
 
-			Unit* unit = config.unit;
+			Component* component = config.component;
 
-			// setup unit with config params
-			unit->setup(app, config.attributes, config.values);
+			// setup component with config params
+			component->setup(app, config.attributes, config.values);
 
 			static int i = 0;
 			i++;
 
 			// resource to load?
-			std::vector<Unit::Export> references = unit->getReferences();
+			std::vector<Component::Export> references = component->getReferences();
 			for (auto ref_it = references.begin(); ref_it != references.end(); ++ref_it) {
 				std::string id = ref_it->value.toString();
 				// if absolute path or base path it is a resource not satified by this scene file

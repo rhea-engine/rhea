@@ -125,7 +125,7 @@ namespace rhea
 		virtual void onResourceFailed(orion::ResourceRequest::Error reason);
 
 		// get a resource and load it as type
-		void loadResource(const std::string resource_id, std::string type_name, std::function<void(Unit*, ReqError error)> handler);
+		void loadResource(const std::string resource_id, std::string type_name, std::function<void(Component*, ReqError error)> handler);
 
 		// get the resource loader
 		ResourceLoader* getResourceLoader() { return &m_resource_loader; }

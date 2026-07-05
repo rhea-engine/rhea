@@ -17,6 +17,13 @@ namespace rhea
 		return ret;
 	}
 
+	void Component::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, simpleparser::Variant> values)
+	{
+		m_app = app;
+		m_attributes = attributes;
+		m_values = values;
+	}
+
 	void Component::destroy()
 	{
 		if (m_destroying)
@@ -47,6 +54,57 @@ namespace rhea
 		if (m_parent)
 			m_parent->addChild(this);
 	}
+
+	Variant Component::getValue(std::string name) const
+	{
+		if (name != "") {
+			auto val = m_values.find(name);
+			if (val != m_values.end()) {
+				return val->second;
+			}
+		}
+		return Variant();
+	}
+
+	std::string Component::getValueString(std::string name, std::string default_val) const
+	{
+		auto val = m_values.find(name);
+		if (val != m_values.end()) {
+			return val->second.toString();
+		}
+		return default_val;
+	}
+
+	std::string Component::getValueString(std::string name) const
+	{
+		if (name != "") {
+			auto val = m_values.find(name);
+			if (val != m_values.end()) {
+				return val->second.toString();
+			}
+		}
+		return std::string("");
+	}
+
+	Variant Component::getValue(std::string name, Variant default_val) const
+	{
+		auto val = m_values.find(name);
+		if (val != m_values.end()) {
+			return val->second;
+		}
+		return default_val;
+	}
+
+	void Component::setValue(std::string name, Variant val)
+	{
+		m_values[name] = val;
+	}
+
+	std::vector<Component::Export> Component::getReferences()
+	{
+		return std::vector<Export>();
+	}
+
 
 	Component* Component::getCommonAncestor(Component* u2)
 	{

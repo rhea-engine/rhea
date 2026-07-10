@@ -34,6 +34,8 @@ class TypeInfo:
     baseClass: str
     headerPath: str
     isVirtual: bool = False
+    kind: str = "Runtime"
+    enumValues: List[str] = field(default_factory=list)
     properties: List[PropertyInfo] = field(default_factory=list)
 
 class TypeScanner:
@@ -54,6 +56,13 @@ class TypeScanner:
     )
     MECLASS_VIRTUAL_PATTERN = re.compile(
         r'MECLASS_VIRTUAL\s*\(\s*(\w+)\s*,\s*([\w:]+)\s*\)'
+    )
+
+    RESTRUCT_PATTERN = re.compile(
+        r'RESTRUCT\s*\(\s*([\w:]+)\s*,\s*"([^"]+)"\s*\)'
+    )
+    REENUM_PATTERN = re.compile(
+        r'REENUM\s*\(\s*([\w:]+)\s*,\s*"([^"]+)"\s*(?:,\s*(.*?))?\s*\)'
     )
 
     # REPROPERTY: REPROPERTY(Type, "name", Label("UI Label"), Edit, Read);
@@ -78,6 +87,8 @@ class TypeScanner:
             # Scan für Type-Definitionen
             self._scan_reclass(content, file_path)
             self._scan_meclass(content, file_path)
+            self._scan_restruct(content, file_path)
+            self._scan_reenum(content, file_path)
 
         except Exception as e:
             print(f"Error scanning {file_path}: {e}", file=sys.stderr)
@@ -157,17 +168,73 @@ class TypeScanner:
             self.types.append(type_info)
             print(f"  Found (MECLASS_VIRTUAL): {class_name} -> {resource_id} ({len(type_info.properties)} properties)")
 
-    def _scan_properties_for_type(self, content: str, start_pos: int, type_info: TypeInfo):
-        """Scan REPROPERTY macros after the type definition"""
-        # Find the next "public:" or "private:" or "}" after start_pos
-        # Properties must be BEFORE the first "public:" (typically directly after RECLASS)
-        section_end = content.find('public:', start_pos)
-        if section_end == -1:
-            section_end = content.find('private:', start_pos)
-        if section_end == -1:
-            section_end = len(content)
+    def _scan_restruct(self, content: str, file_path: Path):
+        """Scan for RESTRUCT macros"""
+        for match in self.RESTRUCT_PATTERN.finditer(content):
+            struct_name = match.group(1)
+            resource_id = match.group(2)
 
-        property_section = content[start_pos:section_end]
+            type_info = TypeInfo(
+                typeId=resource_id,
+                cppClass=struct_name,
+                baseClass="",
+                headerPath=str(file_path),
+                kind="Struct"
+            )
+
+            self._scan_properties_for_type(content, match.start(), type_info)
+
+            self.types.append(type_info)
+            print(f"  Found (RESTRUCT): {struct_name} -> {resource_id} ({len(type_info.properties)} properties)")
+
+    def _scan_reenum(self, content: str, file_path: Path):
+        """Scan for REENUM macros"""
+        for match in self.REENUM_PATTERN.finditer(content):
+            enum_name = match.group(1)
+            resource_id = match.group(2)
+            enum_values = []
+
+            if match.group(3):
+                enum_values = [value.strip() for value in match.group(3).split(',') if value.strip()]
+
+            type_info = TypeInfo(
+                typeId=resource_id,
+                cppClass=enum_name,
+                baseClass="",
+                headerPath=str(file_path),
+                kind="Enum",
+                enumValues=enum_values
+            )
+
+            self.types.append(type_info)
+            print(f"  Found (REENUM): {enum_name} -> {resource_id} ({len(type_info.enumValues)} values)")
+
+    def _find_containing_scope_start(self, content: str, macro_pos: int) -> int:
+        return content.rfind('{', 0, macro_pos)
+
+    def _find_matching_scope_end(self, content: str, open_pos: int) -> int:
+        depth = 0
+        for i in range(open_pos, len(content)):
+            if content[i] == '{':
+                depth += 1
+            elif content[i] == '}':
+                depth -= 1
+            if depth == 0:
+                return i
+        return -1
+
+    def _scan_properties_for_type(self, content: str, macro_pos: int, type_info: TypeInfo):
+        """Scan REPROPERTY macros after the type definition"""
+        # Find the opening '{' of the class/struct definition
+        open_pos = self._find_containing_scope_start(content, macro_pos)
+        if open_pos == -1:
+            return
+        # Find the matching closing '}' of the class/struct definition
+        close_pos = self._find_matching_scope_end(content, open_pos)
+        if close_pos == -1:
+            return
+
+        property_section = content[open_pos:close_pos]
 
         for match in self.REPROPERTY_PATTERN.finditer(property_section):
             prop_type = match.group(1).strip()

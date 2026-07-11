@@ -86,6 +86,10 @@ namespace rhea
 		// the currently entered and displayed text
 		std::string m_text;
 		std::string m_placeholder;
+
+		// the text at focus gained time
+		std::string m_text_at_focus;
+		bool m_dirty = false;
 		
 		// position of cursor in text
 		size_t m_pos;

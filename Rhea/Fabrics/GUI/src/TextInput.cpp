@@ -142,6 +142,8 @@ namespace rhea
 		if (!m_text.size() && m_placeholder.size()) {
 			m_label_item->setText("");
 		}
+		m_text_at_focus = m_text;
+		m_dirty = false;
 		m_has_focus = true;
 		updateCursor(true);
 		return false;
@@ -154,6 +156,23 @@ namespace rhea
 			m_label_item->setText(m_placeholder);
 		}
 		m_cursor_item->hide();
+
+		if (m_text != m_text_at_focus) {
+			// send change event
+			Event commit_ev = Event("commit", this);
+			sendEvent("commit", &commit_ev);
+			// send to binding
+			if (!event_binding.target) {
+				// event binding?
+				if (m_values.find("onCommit") != m_values.end())
+					event_binding = m_app->getUnitTree()->getBinding(m_values["onCommit"].toString(), m_attributes["basepath"]);
+			}
+			if (event_binding.target) {
+				Event my_ev = Event("commit", this);
+				event_binding.target->sendEvent(event_binding.value, &my_ev);
+			}
+		}
+
 		return false;
 	}
 
@@ -183,6 +202,19 @@ namespace rhea
 			if (multiline)
 				ev->stopPropagation();
 			break;
+		case Key::Escape:
+		{
+			// revert to text at focus
+			m_text = m_text_at_focus;
+			m_pos = m_text.size();
+			m_length = m_pos;
+			updateText(false);
+			updateCursor(true);
+			Event cancel_ev = Event("cancel", this);
+			sendEvent("cancel", &cancel_ev);
+			ev->stopPropagation();
+			break;
+		}
 		default:
 			ev->stopPropagation();
 		}
@@ -194,7 +226,12 @@ namespace rhea
 	{
 		InputEvent e = static_cast<EventInput*>(ev)->getEvent();
 		std::string text = e.text;
-		switch (text[0]) {
+		if (text.empty()) {
+			ev->stopPropagation();
+			return false;
+		}
+
+		switch (static_cast<unsigned char>(text[0])) {
 		case '\b':
 			if (m_pos > 0) {
 				m_text = m_text.substr(0, m_pos - 1) + m_text.substr(m_pos);
@@ -213,6 +250,10 @@ namespace rhea
 				updateText(true);
 				updateCursor();
 			}
+			ev->stopPropagation();
+			break;
+		case 0x1B:
+			// ignore escape
 			ev->stopPropagation();
 			break;
 		default:
@@ -266,6 +307,7 @@ namespace rhea
 
 		m_label_item->setText(m_text);
 		m_values["text"] = m_text;
+		m_dirty = true;
 
 		float offset_x = m_textwidget->W() - m_textwidget->getTextWidth(m_pos);
 		offset_x = (offset_x < 0.0f) ? offset_x : 0.0f;
@@ -280,14 +322,20 @@ namespace rhea
 		{
 			if (!event_binding.target) {
 				// event binding?
-				if (m_values["onChange"] != Variant())
+				if (m_values.find("onChange") != m_values.end())
 					event_binding = m_app->getUnitTree()->getBinding(m_values["onChange"].toString(), m_attributes["basepath"]);
 			}
 			// send change event
+
+			// send to binding
 			if (event_binding.target) {
 				Event my_ev = Event("change", this);
 				event_binding.target->sendEvent(event_binding.value, &my_ev);
 			}
+
+			// send to my own listeners
+			Event change_ev = Event("change", this);
+			sendEvent("change", &change_ev);
 		}
 	}
 }

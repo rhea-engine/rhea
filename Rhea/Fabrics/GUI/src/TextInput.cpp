@@ -143,8 +143,7 @@ namespace rhea
 		if (!m_text.size() && m_placeholder.size()) {
 			m_label_item->setText("");
 		}
-		m_text_at_focus = m_text;
-		m_dirty = false;
+		m_text_at_focus = m_text;		
 		m_has_focus = true;
 		updateCursor(true);
 		return false;
@@ -163,14 +162,14 @@ namespace rhea
 			Event commit_ev = Event("commit", this);
 			sendEvent("commit", &commit_ev);
 			// send to binding
-			if (!event_binding.target) {
+			if (!m_commit_binding.target) {
 				// event binding?
 				if (m_values.find("onCommit") != m_values.end())
-					event_binding = m_app->getUnitTree()->getBinding(m_values["onCommit"].toString(), m_attributes["basepath"]);
+					m_commit_binding = m_app->getUnitTree()->getBinding(m_values["onCommit"].toString(), m_attributes["basepath"]);
 			}
-			if (event_binding.target) {
+			if (m_commit_binding.target) {
 				Event my_ev = Event("commit", this);
-				event_binding.target->sendEvent(event_binding.value, &my_ev);
+				m_commit_binding.target->sendEvent(m_commit_binding.value, &my_ev);
 			}
 		}
 
@@ -209,7 +208,7 @@ namespace rhea
 			m_text = m_text_at_focus;
 			m_pos = m_text.size();
 			m_length = m_pos;
-			updateText(false);
+			updateText(true);
 			updateCursor(true);
 			Event cancel_ev = Event("cancel", this);
 			sendEvent("cancel", &cancel_ev);
@@ -316,8 +315,7 @@ namespace rhea
 			return;
 
 		m_label_item->setText(m_text);
-		m_values["text"] = m_text;
-		m_dirty = true;
+		m_values["text"] = m_text;		
 
 		float offset_x = m_textwidget->W() - m_textwidget->getTextWidth(m_pos);
 		offset_x = (offset_x < 0.0f) ? offset_x : 0.0f;
@@ -330,17 +328,17 @@ namespace rhea
 		
 		if (isEvent)
 		{
-			if (!event_binding.target) {
+			if (!m_change_binding.target) {
 				// event binding?
 				if (m_values.find("onChange") != m_values.end())
-					event_binding = m_app->getUnitTree()->getBinding(m_values["onChange"].toString(), m_attributes["basepath"]);
+					m_change_binding = m_app->getUnitTree()->getBinding(m_values["onChange"].toString(), m_attributes["basepath"]);
 			}
 			// send change event
 
 			// send to binding
-			if (event_binding.target) {
+			if (m_change_binding.target) {
 				Event my_ev = Event("change", this);
-				event_binding.target->sendEvent(event_binding.value, &my_ev);
+				m_change_binding.target->sendEvent(m_change_binding.value, &my_ev);
 			}
 
 			// send to my own listeners

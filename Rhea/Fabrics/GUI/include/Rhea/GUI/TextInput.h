@@ -89,7 +89,6 @@ namespace rhea
 
 		// the text at focus gained time
 		std::string m_text_at_focus;
-		bool m_dirty = false;
 		
 		// position of cursor in text
 		size_t m_pos;
@@ -113,7 +112,8 @@ namespace rhea
 		bool m_has_focus;
 
 		// event handling
-		UnitTree::Binding event_binding;
+		UnitTree::Binding m_commit_binding;
+		UnitTree::Binding m_change_binding;
 	};
 }
 

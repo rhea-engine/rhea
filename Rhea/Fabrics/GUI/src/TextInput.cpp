@@ -55,11 +55,12 @@ namespace rhea
 		m_textwidget = m_label_item->getTextWidget();
 
 		// offset of "|" assumed to be 2/2
-		val["x"] = -2.0f;
-		val["y"] = -2.0f;
-		val["w"] = 20;
-		val["h"] = 20;
-		m_cursor_item = (Label*)m_app->getUnitTree()->createUnit(getPathName() + "_cursor", "//meworla/gui/label", attr, val);
+		std::unordered_map<std::string, Variant> cursor_val;
+		cursor_val["x"] = -2.0f;
+		cursor_val["y"] = -2.0f;
+		cursor_val["w"] = 20;
+		cursor_val["h"] = 20;
+		m_cursor_item = (Label*)m_app->getUnitTree()->createUnit(getPathName() + "_cursor", "//meworla/gui/label", attr, cursor_val);
 		addChild(m_cursor_item);
 		m_cursor_item->setText("|");
 		m_cursor_item->hide();

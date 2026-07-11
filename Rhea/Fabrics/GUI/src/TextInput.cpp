@@ -235,7 +235,7 @@ namespace rhea
 			ev->stopPropagation();
 			break;
 		default:
-			ev->stopPropagation();
+			break;
 		}
 
 		return false;
@@ -245,7 +245,19 @@ namespace rhea
 	{
 		InputEvent e = static_cast<EventInput*>(ev)->getEvent();
 		std::string text = e.text;
+
+		if (e.modifiers.ctrl || e.modifiers.alt) {
+			ev->stopPropagation();
+			return false;
+		}
+
 		if (text.empty()) {
+			ev->stopPropagation();
+			return false;
+		}
+
+		unsigned char ch = static_cast<unsigned char>(text[0]);
+		if (ch < 0x20 && ch != '\r' && ch != '\n' && ch != '\t' && ch != '\b') {
 			ev->stopPropagation();
 			return false;
 		}
@@ -265,10 +277,18 @@ namespace rhea
 			}
 			ev->stopPropagation();
 			break;
-		case 0x1B:
-			// ignore escape
+		case '\t':
+			if (multiline) {
+				m_text += '\t';
+				m_pos++;
+				m_length++;
+				updateText(true);
+				updateCursor();
+			}
 			ev->stopPropagation();
 			break;
+		case '\n':
+			// ignore, handled in onKeyPressed
 		default:
 			std::string new_text = m_text.substr(0, m_pos);
 			new_text += text;

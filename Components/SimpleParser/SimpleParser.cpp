@@ -138,23 +138,58 @@ namespace simpleparser
 				}
 				break;
 			case '"':
-				// string value
+			{
 				reader++;
-				if (reader == buflen) {
-					return Error::PARSE_UNTERMINATED_STRING;
-				}
-				s_start = &buf[reader];
-				while (reader < buflen && buf[reader] != '"') {
-					if (buf[reader] == '\n')
-						line++;
-					reader++;
-				}
 				if (reader == buflen)
-					return Error::PARSE_ERR;
-				token.value = std::string(s_start, &buf[reader] - s_start);
-				token.type = TokenType::TOKEN_STRING;
-				reader++;
-				return Error::PARSE_OK;
+					return Error::PARSE_UNTERMINATED_STRING;
+
+				std::string value;
+				while (reader < buflen) {
+					char c = buf[reader++];
+
+					if (c == '"') {
+						token.value = value;
+						token.type = TokenType::TOKEN_STRING;
+						return Error::PARSE_OK;
+					}
+
+					if (c == '\\') {
+						if (reader == buflen)
+							return Error::PARSE_UNTERMINATED_STRING;
+
+						char escaped = buf[reader++];
+						switch (escaped) {
+						case '"':
+							value += '"';
+							break;
+						case '\\':
+							value += '\\';
+							break;
+						case 'n':
+							value += '\n';
+							break;
+						case 'r':
+							value += '\r';
+							break;
+						case 't':
+							value += '\t';
+							break;
+						default:
+							// Keep unknown escapes lossless-ish: "\x" stays "x".
+							value += escaped;
+							break;
+						}
+						continue;
+					}
+
+					if (c == '\n')
+						line++;
+
+					value += c;
+				}
+
+				return Error::PARSE_UNTERMINATED_STRING;
+			}
 			case '/': // NOTE: must be the last one before default
 				// c-style comments
 				if (m_comment_type == 1) {

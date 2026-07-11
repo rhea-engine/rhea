@@ -215,6 +215,15 @@ namespace rhea
 			ev->stopPropagation();
 			break;
 		}
+		case Key::DeleteKey:
+			if (m_pos < m_length) {
+				m_text = m_text.substr(0, m_pos) + m_text.substr(m_pos + 1);
+				m_length--;
+				updateText(true);
+				updateCursor();
+			}
+			ev->stopPropagation();
+			break;
 		default:
 			ev->stopPropagation();
 		}

@@ -215,6 +215,16 @@ namespace rhea
 			ev->stopPropagation();
 			break;
 		}
+		case Key::Backspace:
+			if (m_pos > 0) {
+				m_text = m_text.substr(0, m_pos - 1) + m_text.substr(m_pos);
+				m_pos--;
+				m_length--;
+				updateText(true);
+				updateCursor();
+			}
+			ev->stopPropagation();
+			break;
 		case Key::DeleteKey:
 			if (m_pos < m_length) {
 				m_text = m_text.substr(0, m_pos) + m_text.substr(m_pos + 1);
@@ -242,13 +252,7 @@ namespace rhea
 
 		switch (static_cast<unsigned char>(text[0])) {
 		case '\b':
-			if (m_pos > 0) {
-				m_text = m_text.substr(0, m_pos - 1) + m_text.substr(m_pos);
-				m_pos--;
-				m_length--;
-				updateText(true);
-				updateCursor();
-			}
+			// ignore backspace, handled in onKeyPressed
 			ev->stopPropagation();
 			break;
 		case '\r':

@@ -35,7 +35,8 @@ namespace rhea
 			m_has_focus(false),
 			m_offset_x(0.0f)
 		{
-			event_binding.target = nullptr;
+			m_commit_binding.target = nullptr;
+			m_change_binding.target = nullptr;
 		}
 
 		virtual void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);

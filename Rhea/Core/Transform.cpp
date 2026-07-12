@@ -46,7 +46,7 @@ namespace rhea
 			}
 
 			// Change position vector based on parent's orientation & scale
-			math::Vector3 derived_pos = parent_rot * src->get_worldspace();
+			math::Vector3 derived_pos = parent_rot * (src->get_worldspace() * parent->getTransform()->getScale());
 
 			// Add altered position vector to parents
 			derived_pos += parent->getTransform()->get_derived_position()->get_worldspace();

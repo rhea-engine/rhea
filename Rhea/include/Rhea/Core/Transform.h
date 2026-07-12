@@ -22,7 +22,7 @@ namespace rhea
 		RECLASS(Transform, Component, "//meworla/transform");
 		REPROPERTY(math::Vector3, "position", Label("Position"), Edit, Read);
 		REPROPERTY(math::Vector3, "rotation", Label("Rotation"), Edit, Read);
-		REPROPERTY(float, "scale", Label("Scale"), Edit, Read);
+		REPROPERTY(math::Vector3, "scale", Label("Scale"), Edit, Read);
 	public:
 		Transform(std::string name, std::string type_name) :
 			m_position(),
@@ -30,6 +30,7 @@ namespace rhea
 			m_coord_space(1),
 			m_dirty(true),
 			m_in_updating(false),
+			m_scale(1.0f, 1.0f, 1.0f),
 			Component(type_name)
 		{}	
 
@@ -47,6 +48,13 @@ namespace rhea
 		// set the coord space 0: world, 1: parent
 		void setCoordSpace(int space) { m_coord_space = space; }
 
+		void setScale(const math::Vector3& scale)
+		{
+			m_scale = scale;
+			markWorldDirty();			
+		}
+		math::Vector3 getScale() const { return m_scale; }
+
 		// mark dirty
 		void markDirty();
 		void markWorldDirty();
@@ -55,6 +63,7 @@ namespace rhea
 		Position m_position;
 		Position m_derived_position;
 		int m_coord_space;
+		math::Vector3 m_scale;
 		
 		bool m_in_updating;
 		bool m_dirty;

@@ -38,25 +38,25 @@ namespace rhea
 		const Position* get_position() { return &m_local_position; }
 		const Position* get_derived_position() { if (m_dirty) updateWorldTransform(); return &m_world_position; }
 
-		const Position& worldPosition()
+		const Position& getWorldPosition()
 		{
 			updateWorldTransform();
 			return m_world_position;
 		}
 
-		const math::Vector3& worldScale()
+		const math::Vector3& getWorldScale()
 		{
 			updateWorldTransform();
 			return m_world_scale;
 		}
 
-		const math::Matrix3x4& worldMatrix()
+		const math::Matrix3x4& getWorldMatrix()
 		{
 			updateWorldTransform();
 			return m_world_matrix;
 		}
 
-		const Position& localPosition() const
+		const Position& getLocalPosition() const
 		{
 			return m_local_position;
 		}

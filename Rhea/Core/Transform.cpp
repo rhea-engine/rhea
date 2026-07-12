@@ -33,15 +33,15 @@ namespace rhea
 		if (parentItem) {
 			Transform* parentTransform = parentItem->getTransform();
 
-			const math::Matrix3x4& parentMatrix = parentTransform->worldMatrix();
+			const math::Matrix3x4& parentMatrix = parentTransform->getWorldMatrix();
 
 			m_world_matrix = parentMatrix * localMatrix;
 
 			m_world_position.setTranslation(m_world_matrix.Translation());
 
-			m_world_position.setOrientation(parentTransform->worldPosition().getRotation() * m_local_position.getRotation());
+			m_world_position.setOrientation(parentTransform->getWorldPosition().getRotation() * m_local_position.getRotation());
 
-			m_world_scale =	parentTransform->worldScale() * m_local_scale;
+			m_world_scale =	parentTransform->getWorldScale() * m_local_scale;
 		}
 		else {
 			m_world_matrix = localMatrix;

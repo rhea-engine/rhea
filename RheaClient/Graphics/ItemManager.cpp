@@ -404,7 +404,7 @@ namespace rhea::client {
 		// transform copy
 		rhea::Transform* transform = item->getTransform();
 		if (transform) {
-			math::Matrix3x4 model_wtm = transform->worldMatrix();
+			math::Matrix3x4 model_wtm = transform->getWorldMatrix();
 
 			math::Matrix4 world = model_wtm;
 			math::Matrix4 inverse = world.inverse().transpose();

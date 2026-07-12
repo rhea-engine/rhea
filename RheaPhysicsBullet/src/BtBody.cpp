@@ -64,8 +64,8 @@ namespace rhea::physics::bullet
 
 		// get position and rotation from m_item
 		rhea::Transform* transform = m_item->getTransform();
-		math::Vector3 pos = transform->get_position()->get_worldspace();
-		math::Quaternion rot = transform->get_position()->get_rotation();		
+		math::Vector3 pos = transform->getWorldPosition().getTranslation();
+		math::Quaternion rot = transform->getWorldPosition().getRotation();		
 		startTransform.setOrigin(btVector3(pos.x, pos.y, pos.z));
 		startTransform.setRotation(btQuaternion(rot.x, rot.y, rot.z, rot.w));
 

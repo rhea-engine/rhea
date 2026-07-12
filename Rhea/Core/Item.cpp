@@ -29,7 +29,7 @@ namespace rhea
 			}
 			Position position;			
 			position.setPosition(x, y, z);
-			m_transform.setPosition(position);
+			m_transform->setPosition(position);
 		}
 		if (m_values.find("rotation") != m_values.end())
 		{
@@ -45,9 +45,9 @@ namespace rhea
 					rot.fromAngleAxis(y * math::M_DEGTORAD, math::Vector3(0.0f, 1.0f, 0.0f));
 				if (z != 0.0f)
 					rot.fromAngleAxis(z * math::M_DEGTORAD, math::Vector3(0.0f, 0.0f, 1.0f));
-				Position position = *m_transform.get_position();
+				Position position = *m_transform->get_position();
 				position.setOrientation(rot);
-				m_transform.setPosition(position);
+				m_transform->setPosition(position);
 			}
 		}
 	}
@@ -102,7 +102,16 @@ namespace rhea
 	{
 		Unit::onRemoved();
 		Event add_event("detached_item", this);
-		bubbleEvent("detached_item", &add_event);
+		bubbleEvent("detached_item", &add_event);		
+	}
+
+	bool Item::canRemoveComponent(const	Component* component) const
+	{
+		if (component == m_transform) {
+			LOG(LOG_ERROR) << "cannot remove transform component from item";
+			return false;
+		}
+		return true;
 	}
 
 	Item* Item::instance(std::string name)
@@ -143,10 +152,10 @@ namespace rhea
 	void Item::setPosition(rhea::Position& position)
 	{		
 		// check if position updated
-		Position t_position = *m_transform.get_position();
+		Position t_position = *m_transform->get_position();
 		if (position.nearlyEquals(t_position))
 			return;		
-		m_transform.setPosition(position);		
+		m_transform->setPosition(position);		
 		for (auto* l : m_movement_listeners) {
 			l->onPositionChanged();
 		}
@@ -154,9 +163,9 @@ namespace rhea
 	
 	void Item::setPosition(math::Vector3 position)
 	{
-		Position t_position = *m_transform.get_position();
+		Position t_position = *m_transform->get_position();
 		t_position.setPosition(position);
-		m_transform.setPosition(t_position);		
+		m_transform->setPosition(t_position);		
 		for (auto* l : m_movement_listeners) {
 			l->onPositionChanged();
 		}
@@ -164,9 +173,9 @@ namespace rhea
 
 	void Item::setLookAt(math::Vector3 look_at, const math::Vector3& localDirectionVector)
 	{
-		Position t_position = *m_transform.get_position();
+		Position t_position = *m_transform->get_position();
 		t_position.lookAt(look_at, localDirectionVector);
-		m_transform.setPosition(t_position);		
+		m_transform->setPosition(t_position);		
 		for (auto* l : m_movement_listeners) {
 			l->onPositionChanged();
 		}

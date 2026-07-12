@@ -10,32 +10,28 @@
 
 #include <string>
 
-#include "SimpleParser/Variant.h"
-#include "SimpleParser/Type.h"
+#include <Rhea/Component.h>
 #include "Rhea/Core/Position.h"
 
 namespace rhea
 {
 	class Item;
 
-	class Transform : public simpleparser::Variant
+	class Transform : public Component
 	{
+		RECLASS(Transform, Component, "//meworla/transform");
+		REPROPERTY(math::Vector3, "position", Label("Position"), Edit, Read);
+		REPROPERTY(math::Vector3, "rotation", Label("Rotation"), Edit, Read);
+		REPROPERTY(float, "scale", Label("Scale"), Edit, Read);
 	public:
-		Transform(Item* parent, std::string type_name) :
-			m_parent(parent),
+		Transform(std::string name, std::string type_name) :
 			m_position(),
 			m_derived_position(),
 			m_coord_space(1),
 			m_dirty(true),
 			m_in_updating(false),
-			simpleparser::Variant(type_name)
-		{}
-		Transform(Item* parent) :
-			Transform(parent, "//meworla/transform")
-		{}
-
-		// update parent
-		void setParent(Item* parent) { m_parent = parent; m_dirty = false; }
+			Component(type_name)
+		{}	
 
 		// get position
 		const Position* get_position() { if (m_dirty) update(); return &m_position; }
@@ -52,18 +48,9 @@ namespace rhea
 		void setCoordSpace(int space) { m_coord_space = space; }
 
 		// mark dirty
-		void markDirty();
+		void markDirty();				
 
-		// type functions (for creation and initialization)
-
-		// create unit type
-		static Transform* createType(std::string name, std::string type_name);
-
-		// type initialization
-		static void initializeType(simpleparser::Type* type);
-
-	protected:
-		Item* m_parent;
+	protected:		
 		Position m_position;
 		Position m_derived_position;
 		int m_coord_space;

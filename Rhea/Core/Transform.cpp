@@ -85,13 +85,4 @@ namespace rhea
 		m_position.markDirty();
 		m_derived_position.markDirty();
 	}
-
-	Transform* Transform::createType(std::string name, std::string type_name)
-	{
-		return nullptr;
-	}
-
-	void Transform::initializeType(simpleparser::Type* type)
-	{
-	}
 }

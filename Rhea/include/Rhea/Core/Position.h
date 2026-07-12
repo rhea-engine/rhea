@@ -20,8 +20,7 @@ using math::Matrix3x4;
 namespace rhea
 {
 	class Position
-	{
-	
+	{		
 	public:
 		Position();
 		void setPosition(float x, float y, float z);
@@ -42,7 +41,7 @@ namespace rhea
 
 		void markDirty() { m_dirty = true; }
 
-		math::Vector3 Position::getForward() const
+		math::Vector3 getForward() const
 		{
 			return math::Vector3(
 				m_wtm[2][0],  // Z.x
@@ -51,7 +50,7 @@ namespace rhea
 			).normalizedCopy();
 		}
 
-		math::Vector3 Position::getRight() const
+		math::Vector3 getRight() const
 		{
 			return math::Vector3(
 				m_wtm[0][0],  // X.x

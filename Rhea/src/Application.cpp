@@ -95,6 +95,7 @@ namespace rhea
 		MeshComponent::_register_MeshComponent();
 		PhysicsDataComponent::_register_PhysicsDataComponent();
 		ColliderComponent::_register_ColliderComponent();
+		Transform::_register_Transform();
 
 		// register services
 		simpleparser::Type::registerType<Service>("//meworla/service");

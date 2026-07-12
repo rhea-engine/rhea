@@ -40,10 +40,12 @@ namespace rhea
 		Item(std::string name, std::string type_name) :
 			m_physics_body(nullptr),
 			m_turn(0.0f),			
-			m_transform(this),
+			m_transform(new Transform(name + "_transform", "//meworla/transform")),
 			m_is_renderable(true),
 			ActiveUnit(name, type_name)
-		{}
+		{
+			addChild(m_transform);
+		}
 		
 		// setup from strings
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
@@ -57,13 +59,16 @@ namespace rhea
 		// handle removing from tree
 		void onRemoved() override;		
 
+		// dont remove transform component
+		bool canRemoveComponent(const Component* component) const override;
+
 		std::vector<Export> getReferences();
 
 		// instancing
 		virtual Item* instance(std::string name);
 
 		// positioning
-		Transform* getTransform() { return &m_transform; }
+		Transform* getTransform() { return m_transform; }
 
 		// update on frame
 		void onFrame(float delta) override;
@@ -105,7 +110,7 @@ namespace rhea
 		std::vector<MovementListenerComponent*> m_movement_listeners;
 		bool m_is_renderable;
 
-		Transform m_transform;
+		Transform* m_transform;
 	};
 }
 #endif // !REHA_ITEM_H

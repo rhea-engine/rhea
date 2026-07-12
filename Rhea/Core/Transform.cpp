@@ -24,7 +24,7 @@ namespace rhea
 		math::Matrix3x4 localMatrix(
 			m_local_position.getTranslation(),
 			m_local_position.getRotation(),
-			1.0
+			m_local_scale
 		);
 
 		Item* owner = doCast<Item>(getParent());
@@ -37,7 +37,7 @@ namespace rhea
 
 			m_world_matrix = parentMatrix * localMatrix;
 
-			m_world_position.setTranslation(m_world_matrix.Translation());
+			m_world_position.setPosition(m_world_matrix.Translation());
 
 			m_world_position.setOrientation(parentTransform->getWorldPosition().getRotation() * m_local_position.getRotation());
 

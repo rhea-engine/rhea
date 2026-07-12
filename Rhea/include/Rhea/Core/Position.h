@@ -25,49 +25,30 @@ namespace rhea
 		Position();
 		void setPosition(float x, float y, float z);
 		void setPosition(const Vector3& vec);
-		void setPosition(const Position& position);
+		void setTranslation(const Vector3& vec);		
 		void setDirection(float x, float y, float z, const Vector3& localDirectionVector = Vector3::NEGATIVE_UNIT_Z);
 		void setDirection(const Vector3& vec, const Vector3& localDirectionVector = Vector3::NEGATIVE_UNIT_Z);
 		Vector3 moveRelative(const Vector3& vec);
-		void setOrientation(const math::Quaternion& q);
+		// legacy - use setRotation
+		void setOrientation(const math::Quaternion& q) { setRotation(q); }
+		void setRotation(const math::Quaternion& q);
 		void lookAt(const Vector3& targetPoint, const Vector3& localDirectionVector = Vector3::NEGATIVE_UNIT_Z);
-		math::Matrix3x4 getWorldTransform();
+		
 		Vector3 get_worldspace() const { return m_position; }
+		Vector3 getTranslation() const { return m_position; }		
 		math::Quaternion get_rotation() const { return m_rotation; }
+		math::Quaternion getRotation() const { return m_rotation; }
 
 		bool nearlyEquals(const Position& other, float epsilon = (float)1e-06) const {
 			return m_position.equals(other.m_position, epsilon) && m_rotation.equals(other.m_rotation, epsilon);
 		}
 
-		void markDirty() { m_dirty = true; }
-
-		math::Vector3 getForward() const
-		{
-			return math::Vector3(
-				m_wtm[2][0],  // Z.x
-				m_wtm[2][1],  // Z.y
-				m_wtm[2][2]   // Z.z
-			).normalizedCopy();
-		}
-
-		math::Vector3 getRight() const
-		{
-			return math::Vector3(
-				m_wtm[0][0],  // X.x
-				m_wtm[0][1],  // X.y
-				m_wtm[0][2]   // X.z
-			).normalizedCopy();
-		}
-
 	protected:
 		math::Vector3 m_position;
 		math::Quaternion m_rotation;
-		math::Matrix3x4 m_wtm;
 
 		/// Fixed axis to yaw around
 		math::Vector3 m_yaw_fixed_axis;
-
-		bool m_dirty;
 	};
 }
 #endif // !RHEA_POSITION_H

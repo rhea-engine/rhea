@@ -34,13 +34,7 @@ namespace rhea
 				ActiveUnit* active_unit = doCast<ActiveUnit>(unit);
 				if (active_unit) {
 					active_unit->onFrame(delta);
-				}
-				Item* item = doCast<Item>(unit);
-				if (item) {					
-					// TODO: Check if this is necessary
-					if (item->getTransform())
-						item->getTransform()->update();
-				}
+				}				
 				return true;
 				});
 		}

@@ -69,7 +69,7 @@ namespace rhea
 
 		m_position.setPosition(m_follow_offset);
 		m_view->setPosition(m_follow_offset);
-		m_view->getTransform()->markDirty();	
+		m_view->getTransform()->markWorldDirty();	
 		addChild(m_view);
 
 		// Fire scene_enter event to notify Scene to add graphics components to the view

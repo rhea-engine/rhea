@@ -78,13 +78,29 @@ namespace math
 			z *= s;
 			return *this;
 		}
-		
+
 		Vector3 operator*(float s)
 		{
 			Vector3 ret = *this;
 			ret.x *= s;
 			ret.y *= s;
 			ret.z *= s;
+			return ret;
+		}
+
+		// Component-wise multiplication (Hadamard product)
+		Vector3& operator*=(const Vector3& b)
+		{
+			x *= b.x;
+			y *= b.y;
+			z *= b.z;
+			return *this;
+		}
+
+		Vector3 operator*(const Vector3& b) const
+		{
+			Vector3 ret = *this;
+			ret *= b;
 			return ret;
 		}
 

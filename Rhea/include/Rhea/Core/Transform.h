@@ -10,39 +10,77 @@
 
 #include <string>
 
-#include "SimpleParser/Variant.h"
-#include "SimpleParser/Type.h"
+#include <Rhea/Component.h>
 #include "Rhea/Core/Position.h"
 
 namespace rhea
 {
 	class Item;
 
-	class Transform : public simpleparser::Variant
+	class Transform : public Component
 	{
+		RECLASS(Transform, Component, "//meworla/transform");
+		REPROPERTY(math::Vector3, "position", Label("Position"), Edit, Read);
+		REPROPERTY(math::Vector3, "rotation", Label("Rotation"), Edit, Read);
+		REPROPERTY(math::Vector3, "scale", Label("Scale"), Edit, Read);
 	public:
-		Transform(Item* parent, std::string type_name) :
-			m_parent(parent),
-			m_position(),
-			m_derived_position(),
+		Transform(std::string name, std::string type_name) :
+			m_local_position(),
+			m_world_position(),
 			m_coord_space(1),
 			m_dirty(true),
 			m_in_updating(false),
-			simpleparser::Variant(type_name)
-		{}
-		Transform(Item* parent) :
-			Transform(parent, "//meworla/transform")
-		{}
-
-		// update parent
-		void setParent(Item* parent) { m_parent = parent; m_dirty = false; }
+			m_local_scale(1.0f, 1.0f, 1.0f),
+			Component(name, type_name)
+		{}	
 
 		// get position
-		const Position* get_position() { if (m_dirty) update(); return &m_position; }
-		const Position* get_derived_position() { if (m_dirty) update(); return &m_derived_position; }
+		const Position* get_position() { return &m_local_position; }
+		const Position* get_derived_position() { if (m_dirty) updateWorldTransform(); return &m_world_position; }
+
+		const Position& getWorldPosition()
+		{
+			updateWorldTransform();
+			return m_world_position;
+		}
+
+		const math::Vector3& getWorldScale()
+		{
+			updateWorldTransform();
+			return m_world_scale;
+		}
+
+		const math::Matrix3x4& getWorldMatrix()
+		{
+			updateWorldTransform();
+			return m_world_matrix;
+		}
+
+		const Position& getLocalPosition() const
+		{
+			return m_local_position;
+		}
+
+		math::Vector3 getForward() const
+		{
+			return math::Vector3(
+				m_world_matrix[2][0],  // Z.x
+				m_world_matrix[2][1],  // Z.y
+				m_world_matrix[2][2]   // Z.z
+			).normalizedCopy();
+		}
+
+		math::Vector3 getRight() const
+		{
+			return math::Vector3(
+				m_world_matrix[0][0],  // X.x
+				m_world_matrix[0][1],  // X.y
+				m_world_matrix[0][2]   // X.z
+			).normalizedCopy();
+		}
 
 		// update the position
-		void update();
+		void updateWorldTransform();
 		void setPosition(const Position& position);
 
 		// create a position of the given type
@@ -51,23 +89,24 @@ namespace rhea
 		// set the coord space 0: world, 1: parent
 		void setCoordSpace(int space) { m_coord_space = space; }
 
+		void setScale(const math::Vector3& scale);
+		math::Vector3 getScale() const { return m_local_scale; }
+
 		// mark dirty
-		void markDirty();
+		void markWorldDirty();
 
-		// type functions (for creation and initialization)
+	protected:		
+		// local state
+		Position m_local_position;
+		math::Vector3 m_local_scale;
 
-		// create unit type
-		static Transform* createType(std::string name, std::string type_name);
-
-		// type initialization
-		static void initializeType(simpleparser::Type* type);
-
-	protected:
-		Item* m_parent;
-		Position m_position;
-		Position m_derived_position;
 		int m_coord_space;
 		
+		// cached world state
+		Position m_world_position;
+		math::Vector3 m_world_scale{ 1.0f, 1.0f, 1.0f };
+		math::Matrix3x4 m_world_matrix;
+
 		bool m_in_updating;
 		bool m_dirty;
 	};

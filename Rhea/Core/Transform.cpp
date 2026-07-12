@@ -11,87 +11,80 @@
 
 namespace rhea
 {
-	void Transform::update()
+	void Transform::updateWorldTransform()
 	{
+		if (!m_dirty)
+			return;
+
 		if (m_in_updating) {
 			LOG(LOG_ERROR) << "Transform: Circular dependency detected in update of " << m_parent->getPath();
 			return;
 		}
 
-		// update position
-		if (m_parent) {
+		math::Matrix3x4 localMatrix(
+			m_local_position.getTranslation(),
+			m_local_position.getRotation(),
+			m_local_scale
+		);
 
-			m_in_updating = true;
+		Item* owner = doCast<Item>(getParent());
+		Item* parentItem = owner ? doCast<Item>(owner->getParent()) : nullptr;
 
-			// TODO: Check if transform component is there
-			Item* parent = doCast<Item>(m_parent->getParent());
-			if (!parent) {
-				m_derived_position.setPosition(m_position);
-				m_dirty = false;
-				m_in_updating = false;
-				return;
-			}
+		if (parentItem) {
+			Transform* parentTransform = parentItem->getTransform();
 
-			// Update orientation
-			const math::Quaternion& parent_rot = parent->getTransform()->get_derived_position()->get_rotation();
-			const Position* src = &m_position;
-			Position* derived = &m_derived_position; // get_derived_position();
-			if (m_coord_space == 1)
-			{
-				// Combine orientation with that of parent
-				derived->setOrientation(parent_rot * src->get_rotation());
-			}
-			else {
-				derived->setOrientation(m_position.get_rotation());
-			}
+			const math::Matrix3x4& parentMatrix = parentTransform->getWorldMatrix();
 
-			// Change position vector based on parent's orientation & scale
-			math::Vector3 derived_pos = parent_rot * src->get_worldspace();
+			m_world_matrix = parentMatrix * localMatrix;
 
-			// Add altered position vector to parents
-			derived_pos += parent->getTransform()->get_derived_position()->get_worldspace();
-			derived->setPosition(derived_pos);
+			m_world_position.setPosition(m_world_matrix.Translation());
 
-			m_dirty = false;
-			m_in_updating = false;
+			m_world_position.setOrientation(parentTransform->getWorldPosition().getRotation() * m_local_position.getRotation());
 
-			//m_parent->update();
+			m_world_scale =	parentTransform->getWorldScale() * m_local_scale;
 		}
 		else {
-			// root node 
-			m_derived_position.setPosition(m_position);
-			m_dirty = false;
+			m_world_matrix = localMatrix;
+			m_world_position = m_local_position;
+			m_world_scale = m_local_scale;
 		}
+
+		m_dirty = false;
+		m_in_updating = false;		
 	}
 
 	void Transform::createPosition(int position_type)
 	{
 		m_coord_space = position_type;
-		m_dirty = true;
-		m_position.setPosition(math::Vector3(0.0f, 0.0f, 0.0f));
-		m_derived_position.setPosition(math::Vector3(0.0f, 0.0f, 0.0f));
+		markWorldDirty();
+		m_local_position.setPosition(math::Vector3(0.0f, 0.0f, 0.0f));
+		m_world_position.setPosition(math::Vector3(0.0f, 0.0f, 0.0f));
 	}
 
 	void Transform::setPosition(const Position& position)
 	{
-		m_position.setPosition(position);
+		m_local_position = position;
+		markWorldDirty();		
+	}
+
+	void Transform::setScale(const math::Vector3& scale)
+	{
+		if (scale.equals(m_local_scale))
+			return;
+
+		m_local_scale = scale;
+		markWorldDirty();
+	}
+
+	void Transform::markWorldDirty()
+	{
+		if (m_dirty)
+			return;
 		m_dirty = true;
-		update();
-	}
-
-	void Transform::markDirty()
-	{
-		m_dirty = true;
-		m_position.markDirty();
-		m_derived_position.markDirty();
-	}
-
-	Transform* Transform::createType(std::string name, std::string type_name)
-	{
-		return nullptr;
-	}
-
-	void Transform::initializeType(simpleparser::Type* type)
-	{
+		m_parent->children([](std::string&, Component* component) {
+			if (auto* child = doCast<Item>(component))
+				child->getTransform()->markWorldDirty();
+			return true;
+			});
 	}
 }

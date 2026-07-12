@@ -38,8 +38,8 @@ namespace rhea::physics::bullet {
 	bool BulletPhysicsGhost::init()
 	{
 		// get position and rotation from m_item
-		math::Vector3 pos = m_item->getTransform()->get_position()->get_worldspace();
-		math::Quaternion rot = m_item->getTransform()->get_position()->get_rotation();
+		math::Vector3 pos = m_item->getTransform()->getWorldPosition().getTranslation();
+		math::Quaternion rot = m_item->getTransform()->getWorldPosition().getRotation();
 		if (m_offset_y)
 			pos.y += m_offset_y;
 

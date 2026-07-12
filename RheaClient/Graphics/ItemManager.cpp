@@ -404,16 +404,13 @@ namespace rhea::client {
 		// transform copy
 		rhea::Transform* transform = item->getTransform();
 		if (transform) {
-			const Position* position = transform->get_derived_position();
-			if (position) {
-				math::Matrix3x4 model_wtm = const_cast<Position*>(position)->getWorldTransform();
+			math::Matrix3x4 model_wtm = transform->getWorldMatrix();
 
-				math::Matrix4 world = model_wtm;
-				math::Matrix4 inverse = world.inverse().transpose();
+			math::Matrix4 world = model_wtm;
+			math::Matrix4 inverse = world.inverse().transpose();
 
-				renderable->worldTransform = world;
-				renderable->inverseTranspose = inverse;
-			}
+			renderable->worldTransform = world;
+			renderable->inverseTranspose = inverse;
 		}
 		return true;
 	}

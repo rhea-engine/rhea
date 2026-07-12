@@ -51,10 +51,15 @@ namespace rhea
 		void addChild(Component* child);
 
 		// remove a child
-		void removeChild(Component* child);
+		// returns false if the child was not found or the child was not a child of this unit
+		bool removeChild(Component* child);
+
+		// check if a component can be removed
+		virtual bool canRemoveComponent(const Component* component) const { return true; }
 
 		// handle on parented
 		virtual void onParented() {}
+		// onRemove handler - called when the unit is removed from its parent
 		virtual void onRemoved() {}
 
 		// add component

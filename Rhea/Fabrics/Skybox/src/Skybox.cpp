@@ -124,7 +124,7 @@ namespace rhea
 		}
 		if (m_camera) {
 			Vector3 position = m_camera->getTransform()->get_derived_position()->get_worldspace();
-			Vector3 old_pos = m_transform.get_derived_position()->get_worldspace();
+			Vector3 old_pos = m_transform->get_derived_position()->get_worldspace();
 			// check wheter we need to update the position
 			if (position != old_pos) {
 				setPosition(position);

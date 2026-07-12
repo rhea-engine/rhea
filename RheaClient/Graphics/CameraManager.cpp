@@ -114,9 +114,8 @@ namespace rhea::client {
 		if (!camera)
 			return;
 		auto rc = camera->getComponent<RenderComponent>();
-		if (!rc) return;
-		Vector3 position;
-		position = camera->getTransform()->get_position()->get_worldspace();
+		if (!rc) return;		
+		if (!rc) return;		
 		syncCameraTransform(m_service->getEngine(), rc->camera, camera->getTransform());
 	}
 
@@ -156,12 +155,10 @@ namespace rhea::client {
 		if (!cam)
 			return;
 
-		auto* derived = transform->get_derived_position();
-		if (!derived)
-			return;
-
-		const math::Vector3& pos = derived->get_worldspace();
-		const math::Quaternion& rot = derived->get_rotation();
+		auto derived = transform->getWorldPosition();
+		
+		const math::Vector3& pos = derived.getTranslation();
+		const math::Quaternion& rot = derived.getRotation();
 
 		//LOG(LOG_DEBUG) << "Syncing camera transform: position(" << pos.x << ", " << pos.y << ", " << pos.z << ") rotation(" << rot.w << ", " << rot.x << ", " << rot.y << ", " << rot.z << ") for camera handle: " << handle;
 

@@ -43,16 +43,17 @@ namespace rhea
 			u_child->onParented();
 	}
 
-	void Unit::removeChild(Component* child)
+	bool Unit::removeChild(Component* child)
 	{		
 		if (!child || child->getParent() != this)
-			return;
+			return false;
 		Unit* u_child = doCast<Unit>(child);
 		if (u_child)
 			u_child->onRemoved();
 		m_children.erase(child->getPathName());
 		m_ordered_children.erase(std::remove(m_ordered_children.begin(), m_ordered_children.end(), child), m_ordered_children.end());
 		child->setParent(nullptr);
+		return true;
 	}
 
 	void Unit::addComponent(Component* component)

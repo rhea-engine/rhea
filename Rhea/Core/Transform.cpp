@@ -67,7 +67,7 @@ namespace rhea
 	void Transform::createPosition(int position_type)
 	{
 		m_coord_space = position_type;
-		m_dirty = true;
+		markWorldDirty();
 		m_position.setPosition(math::Vector3(0.0f, 0.0f, 0.0f));
 		m_derived_position.setPosition(math::Vector3(0.0f, 0.0f, 0.0f));
 	}
@@ -75,14 +75,35 @@ namespace rhea
 	void Transform::setPosition(const Position& position)
 	{
 		m_position.setPosition(position);
-		m_dirty = true;
+		markWorldDirty();
 		update();
 	}
 
 	void Transform::markDirty()
 	{
+		if (m_dirty)
+			return;
+
 		m_dirty = true;
 		m_position.markDirty();
 		m_derived_position.markDirty();
+		m_parent->children([](std::string&, Component* component) {
+			if (auto* child = doCast<Item>(component))
+				child->getTransform()->markDirty();
+			return true;
+			});
+	}
+
+	void Transform::markWorldDirty()
+	{
+		if (m_dirty)
+			return;
+		m_dirty = true;
+		m_derived_position.markDirty();
+		m_parent->children([](std::string&, Component* component) {
+			if (auto* child = doCast<Item>(component))
+				child->getTransform()->markWorldDirty();
+			return true;
+			});
 	}
 }

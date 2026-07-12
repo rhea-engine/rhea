@@ -48,7 +48,8 @@ namespace rhea
 		void setCoordSpace(int space) { m_coord_space = space; }
 
 		// mark dirty
-		void markDirty();				
+		void markDirty();
+		void markWorldDirty();
 
 	protected:		
 		Position m_position;

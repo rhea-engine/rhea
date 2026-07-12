@@ -94,6 +94,7 @@ namespace rhea
 	void Item::onParented()
 	{
 		Unit::onParented();
+		m_transform->markWorldDirty();
 		Event add_event("attached_item", this);
 		bubbleEvent("attached_item", &add_event);
 	}

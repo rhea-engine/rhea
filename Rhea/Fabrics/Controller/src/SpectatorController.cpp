@@ -58,7 +58,7 @@ namespace rhea
 		std::unordered_map<std::string, Variant> values;
 
 		// create the view		
-		m_view = m_app->getUnitTree()->createUnit<Camera>("scene_view", attr, values);	
+		m_view = m_app->getUnitTree()->createUnit<Camera>("scene_view", attr, values);		
 
 		// add relative position of view
 		auto it = m_values.find("position");
@@ -67,8 +67,7 @@ namespace rhea
 		else
 			m_follow_offset = math::Vector3(0.0f, 1.7f, -3.0f);
 
-		m_position.setPosition(m_follow_offset);
-		m_view->setPosition(m_follow_offset);
+		m_view->setWorldPosition(m_follow_offset);
 		m_view->getTransform()->markWorldDirty();	
 		addChild(m_view);
 
@@ -84,12 +83,12 @@ namespace rhea
 		if (!m_target || !m_view)
 			return;
 
-		auto* target_pos = m_target->getTransform()->get_derived_position();
+		const Position& target_pos = m_target->getTransform()->getWorldPosition();
 
-		math::Vector3 target_world = target_pos->get_worldspace();
-		math::Quaternion target_rot = target_pos->get_rotation();
+		math::Vector3 target_world = target_pos.getTranslation();
+		math::Quaternion target_rot = target_pos.getRotation();
 
-		Position camera_pos;
+		Position camera_world_pose;
 		math::Vector3 camera_world;
 
 		math::Vector3 local_offset = m_follow_offset;
@@ -98,17 +97,16 @@ namespace rhea
 		if (m_follow_rotation) {		
 			// Change position vector based on target's orientation & scale
 			camera_world = target_world + target_rot * local_offset;
-			camera_pos.setOrientation(target_rot);
-			camera_pos.setPosition(camera_world);
+			camera_world_pose.setOrientation(target_rot);
+			camera_world_pose.setPosition(camera_world);
 		}
 		else {			
 			// Just change position vector based on target's position, ignore rotation
-			camera_world = target_world + target_rot * local_offset;
-			camera_pos.setPosition(camera_world);
-			camera_pos.lookAt(target_world, math::Vector3::UNIT_Z);
+			camera_world = target_world + local_offset;
+			camera_world_pose.setPosition(camera_world);
+			camera_world_pose.lookAt(target_world, math::Vector3::UNIT_Z);
 		}
-		
-		m_view->setPosition(camera_pos);
+		m_view->setWorldPosition(camera_world_pose);
 	}
 
 	void SpectatorController::onFrame(float delta)
@@ -116,14 +114,12 @@ namespace rhea
 		BasicController::onFrame(delta);
 		updateCamera(delta);
 		return;
-		auto targetPos = m_target->getTransform()
-			->get_derived_position()
-			->get_worldspace();
+		auto targetPos = m_target->getTransform()->getWorldPosition().getTranslation();
 
 		Position camPos;
 		camPos.setPosition(targetPos + m_follow_offset);
 
-		m_view->setPosition(camPos);
+		m_view->setWorldPosition(camPos);
 	}
 
 	void SpectatorController::message(std::string method_name)
@@ -140,7 +136,7 @@ namespace rhea
 
 		Position pos;
 		pos.setPosition(position);
-		m_view->setPosition(pos);
+		m_view->setWorldPosition(pos);
 
 	}
 
@@ -151,7 +147,7 @@ namespace rhea
 
 		Position pos = *m_view->getTransform()->get_derived_position();
 		pos.lookAt(target, math::Vector3::UNIT_Z);
-		m_view->setPosition(pos);
+		m_view->setWorldPosition(pos);
 	}
 
 	void SpectatorController::_registerEvent(Unit* unittree)

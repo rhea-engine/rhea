@@ -123,11 +123,11 @@ namespace rhea
 			m_camera = m_app->getUnitTree()->findByType<Camera>();
 		}
 		if (m_camera) {
-			Vector3 position = m_camera->getTransform()->get_derived_position()->get_worldspace();
-			Vector3 old_pos = m_transform->get_derived_position()->get_worldspace();
+			Vector3 position = m_camera->getTransform()->getWorldPosition().getTranslation();
+			Vector3 old_pos = m_transform->getWorldPosition().getTranslation();
 			// check wheter we need to update the position
 			if (position != old_pos) {
-				setPosition(position);
+				setWorldPosition(position);
 			}
 		}
 	}

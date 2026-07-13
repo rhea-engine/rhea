@@ -70,8 +70,12 @@ namespace rhea
 		// update on frame
 		void onFrame(float delta) override;
 
-		virtual void setPosition(rhea::Position& position);
-		virtual void setPosition(math::Vector3 position);
+		void onTransformChanged();
+
+		virtual void setLocalPosition(rhea::Position& position);
+		virtual void setLocalPosition(math::Vector3 position);
+		virtual void setWorldPosition(rhea::Position& position);
+		virtual void setWorldPosition(math::Vector3 position);
 
 		// set direction
 		virtual void setLookAt(math::Vector3 look_at, const math::Vector3& localDirectionVector);

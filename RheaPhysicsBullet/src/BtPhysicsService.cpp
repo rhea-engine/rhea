@@ -194,7 +194,7 @@ namespace rhea::physics::bullet
 				btQuaternion rot = trans.getRotation();
 				position.setOrientation(math::Quaternion(rot.getW(), rot.getX(), rot.getY(), rot.getZ()));
 
-				item->setPosition(position);				
+				item->setLocalPosition(position);				
 			}
 		}
 	}

@@ -640,7 +640,7 @@ bool Ceto::onFrameEnd()
 		debug += "debugging: sec=" + std::to_string(elapsed_s) +"; fps = " + std::to_string(floor(fps*100)/100.0f);
 		m_focused_controller = doCast<rhea::BasicController>(m_unit_tree->find("//local/scene1/maincamera"));
 		if (m_focused_controller) {
-			math::Vector3 pos = static_cast<rhea::BasicController*>(m_focused_controller)->getPosition();
+			math::Vector3 pos = static_cast<rhea::BasicController*>(m_focused_controller)->getWorldPosition();
 			math::Quaternion rot = static_cast<rhea::BasicController*>(m_focused_controller)->getOrientation();
 			float angle;
 			math::Vector3 axis;

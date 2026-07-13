@@ -106,10 +106,14 @@ namespace rhea
 	
 	void BasicController::connect(Item* target)
 	{
-		m_position = *target->getTransform()->get_derived_position();
-		m_orientation = m_position.get_rotation();
-		if (!m_target)
-			m_target = target;
+		if (!target) {
+			LOG(LOG_ERROR) << "Controller " << m_pathname << ": connect() called with null target";
+			return;
+		}
+		if (m_target && m_target != target) {
+			LOG(LOG_WARNING) << "Controller " << m_pathname << ": connect() called with a different target, replacing previous target";
+		}
+		m_target = target;
 	}
 
 	void BasicController::show()
@@ -134,31 +138,58 @@ namespace rhea
 			show();
 	}
 
-	void BasicController::setPosition(math::Vector3 position)
+	void BasicController::setLocalPosition(const Position& position)
 	{
-		m_position.setPosition(position);
-		//m_position.setOrientation(math::Quaternion(m_rotation, math::Vector3(0.0f, 1.0f, 0.0f))); 
-		((Item*)m_target)->setPosition(m_position);
+		if (!m_target)
+			return;
+
+		Position pose = m_target->getTransform()->getWorldPosition();
+
+		pose = position;
+		m_target->getTransform()->setLocalPosition(pose);
+	}
+
+	void BasicController::setWorldPosition(const Position& position)
+	{		
+		if (!m_target)
+			return;
+
+		Position pose = m_target->getTransform()->getWorldPosition();
+
+		pose = position;
+
+		m_target->getTransform()->setWorldPosition(pose);
 	}
 
 	void BasicController::lookAt(math::Vector3& target)
 	{
-		m_position.lookAt(target, math::Vector3::UNIT_Z);
-		((Item*)m_target)->setPosition(m_position);
+		if (!m_target)
+			return;
+
+		Transform* transform = m_target->getTransform();
+
+		Position world_pose = transform->getWorldPosition();
+		world_pose.lookAt(target, math::Vector3::UNIT_Z);
+
+		transform->setWorldPosition(world_pose);		
 	}
 
-	math::Vector3 BasicController::getPosition()
+	math::Vector3 BasicController::getWorldPosition()
 	{
-		if (m_target)
-			return m_target->getTransform()->get_derived_position()->get_worldspace();
-		return m_position.get_worldspace();
+		if (!m_target)
+			return math::Vector3::ZERO;
+
+		return m_target->getTransform()->getWorldPosition().getTranslation();		
 	}
 
 	void BasicController::logMe()
 	{
 		Unit::logMe();
 		printf("Target: %s\n", (m_target) ? m_target->getPathName().c_str() : "(empty)");
-		printf("Position: (%f,%f,%f)\n", m_position.get_worldspace().x, m_position.get_worldspace().y, m_position.get_worldspace().z);
+		if (m_target) {
+			math::Vector3 pos = m_target->getTransform()->getWorldPosition().getTranslation();
+			printf("Position: (%f,%f,%f)\n", pos.x, pos.y, pos.z);
+		}
 	}
 
 	void BasicController::_registerEvent(Unit* unittree)

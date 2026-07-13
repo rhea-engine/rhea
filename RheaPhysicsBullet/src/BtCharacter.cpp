@@ -150,7 +150,7 @@ namespace rhea::physics::bullet
 	bool BulletPhysicsCharacter::init()
 	{
 		// init ghost object
-		if (m_ghost->init()) {
+		if (m_ghost && m_ghost->init()) {
 			m_ghost_object = m_ghost->getObject();
 			return true;
 		}

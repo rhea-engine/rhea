@@ -147,7 +147,7 @@ namespace rhea
 		}
 		if (dirty) {
 			for (auto* l : m_movement_listeners) {
-				l->onPositionChanged();
+				l->onTransformChanged();
 			}
 		}
 		return false;

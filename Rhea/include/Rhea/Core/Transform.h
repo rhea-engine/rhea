@@ -84,7 +84,13 @@ namespace rhea
 
 		// update the position
 		void updateWorldTransform();
-		void setPosition(const Position& position);
+		
+		// deprecated - use setLocalPosition or setWorldPosition
+		void setPosition(const Position& position) { setLocalPosition(position); }
+		
+		// set the local or world position
+		void setLocalPosition(const Position& position);
+		void setWorldPosition(const Position& position);
 
 		// create a position of the given type
 		void createPosition(int position_type);

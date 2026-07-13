@@ -78,7 +78,7 @@ namespace rhea
 			Position player_position = *player->getTransform()->get_position();
 			player_position.setPosition(position);
 			player_position.setOrientation(rot);
-			player->setPosition(player_position);
+			player->setWorldPosition(player_position);
 			rhea::NetworkComponent* net_comp = new rhea::NetworkComponent(player, msg->NUID, NET_ROLE_CLIENT);
 			net_comp->setDelegate(this);
 			player->addComponent(net_comp);
@@ -107,7 +107,7 @@ namespace rhea
 		pos.setOrientation(q);
 		auto it = m_net_items.find(move_msg->NUID);
 		if (it != m_net_items.end()) {
-			it->second->setPosition(pos);
+			it->second->setWorldPosition(pos);
 		}
 		else {
 			DLOG(LOG_DEBUG) << "Net item with id " << move_msg->NUID << " not set";

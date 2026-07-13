@@ -47,6 +47,8 @@ namespace rhea
 			return;
 		}
 
+		m_in_updating = true;
+
 		math::Matrix3x4 localMatrix(
 			m_local_position.getTranslation(),
 			m_local_position.getRotation(),
@@ -87,10 +89,54 @@ namespace rhea
 		m_world_position.setPosition(math::Vector3(0.0f, 0.0f, 0.0f));
 	}
 
-	void Transform::setPosition(const Position& position)
+	void Transform::setLocalPosition(const Position& position)
 	{
 		m_local_position = position;
-		markWorldDirty();		
+		markWorldDirty();
+		Item* owner = doCast<Item>(getParent());
+		if (owner) {
+			owner->onTransformChanged();
+		}
+	}
+
+	void Transform::setWorldPosition(const Position& position)
+	{
+		Item* owner = doCast<Item>(getParent());
+		Item* parentItem = owner ? doCast<Item>(owner->getParent()) : nullptr;
+
+		if (!parentItem) {
+			setLocalPosition(position);
+			return;
+		}
+
+		// Convert world position to local position based on parent's world transform
+		Transform* parentTransform = parentItem->getTransform();
+
+		// Get parent's world transform components
+		const math::Matrix3x4& parentWorld = parentTransform->getWorldMatrix();
+		const math::Quaternion& parentWorldRot = parentTransform->getWorldPosition().getRotation();
+
+		// Extract rotation part and invert it
+		math::Matrix3 rotPart = parentWorld.linear();
+		math::Matrix3 rotInverse = rotPart.Inverse();
+
+		// Calculate relative translation: (worldPos - parentWorldPos) * R^-1
+		math::Vector3 relativeTranslation = position.getTranslation() - parentWorld.Translation();
+		math::Vector3 localTranslation = rotInverse * relativeTranslation;
+
+		// Calculate local rotation: R_parent^-1 * R_world (conjugate for unit quaternions)
+		math::Quaternion parentRotInverse(parentWorldRot.w, -parentWorldRot.x, -parentWorldRot.y, -parentWorldRot.z);
+		math::Quaternion localRotation = parentRotInverse * position.getRotation();
+
+		// Set local position
+		m_local_position.setPosition(localTranslation);
+		m_local_position.setRotation(localRotation);
+
+		m_world_position = position;
+		markWorldDirty();
+		if (owner) {
+			owner->onTransformChanged();
+		}
 	}
 
 	void Transform::setScale(const math::Vector3& scale)

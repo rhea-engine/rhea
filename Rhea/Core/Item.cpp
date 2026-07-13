@@ -171,28 +171,46 @@ namespace rhea
 	{
 	}
 
-	void Item::setPosition(rhea::Position& position)
+	void Item::onTransformChanged()
+	{
+		for (MovementListenerComponent* listener : m_movement_listeners) {
+			listener->onTransformChanged();
+		}
+	}
+
+	void Item::setLocalPosition(rhea::Position& position)
 	{		
 		ensureTransform();
 		// check if position updated
 		Position t_position = *m_transform->get_position();
 		if (position.nearlyEquals(t_position))
 			return;		
-		m_transform->setPosition(position);		
-		for (auto* l : m_movement_listeners) {
-			l->onPositionChanged();
-		}
+		m_transform->setPosition(position);				
 	}
 	
-	void Item::setPosition(math::Vector3 position)
+	void Item::setLocalPosition(math::Vector3 position)
 	{
 		ensureTransform();
 		Position t_position = *m_transform->get_position();
 		t_position.setPosition(position);
 		m_transform->setPosition(t_position);		
-		for (auto* l : m_movement_listeners) {
-			l->onPositionChanged();
-		}
+	}
+
+	void Item::setWorldPosition(rhea::Position& position)
+	{
+		ensureTransform();
+		Position t_position = *m_transform->get_position();
+		if (position.nearlyEquals(t_position))
+			return;
+		m_transform->setWorldPosition(position);		
+	}
+
+	void Item::setWorldPosition(math::Vector3 position)
+	{
+		ensureTransform();
+		Position t_position = *m_transform->get_position();
+		t_position.setPosition(position);
+		m_transform->setWorldPosition(t_position);
 	}
 
 	void Item::setLookAt(math::Vector3 look_at, const math::Vector3& localDirectionVector)
@@ -200,10 +218,7 @@ namespace rhea
 		ensureTransform();
 		Position t_position = *m_transform->get_position();
 		t_position.lookAt(look_at, localDirectionVector);
-		m_transform->setPosition(t_position);		
-		for (auto* l : m_movement_listeners) {
-			l->onPositionChanged();
-		}
+		m_transform->setWorldPosition(t_position);
 	}
 		
 	void Item::setMovement(math::Vector3 move)

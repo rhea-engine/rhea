@@ -50,8 +50,8 @@ namespace rhea
 		// set the items position
 		void setPosition(Position& position);
 
-		// on Position change (used by server physics)
-		void onPositionChanged() override;
+		// on Transform change (used by server physics)
+		void onTransformChanged() override;
 
 		// update role
 		void setRole(int role) { m_role = role; }

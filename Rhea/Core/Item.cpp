@@ -36,7 +36,7 @@ namespace rhea
 				}
 				Position position;
 				position.setPosition(x, y, z);
-				m_transform->setPosition(position);
+				m_transform->setLocalPosition(position);
 			}
 			if (m_values.find("rotation") != m_values.end())
 			{
@@ -52,9 +52,9 @@ namespace rhea
 						rot.fromAngleAxis(y * math::M_DEGTORAD, math::Vector3(0.0f, 1.0f, 0.0f));
 					if (z != 0.0f)
 						rot.fromAngleAxis(z * math::M_DEGTORAD, math::Vector3(0.0f, 0.0f, 1.0f));
-					Position position = *m_transform->get_position();
+					Position position = m_transform->getLocalPosition();
 					position.setOrientation(rot);
-					m_transform->setPosition(position);
+					m_transform->setLocalPosition(position);
 				}
 			}
 		}
@@ -182,24 +182,24 @@ namespace rhea
 	{		
 		ensureTransform();
 		// check if position updated
-		Position t_position = *m_transform->get_position();
+		Position t_position = m_transform->getLocalPosition();
 		if (position.nearlyEquals(t_position))
 			return;		
-		m_transform->setPosition(position);				
+		m_transform->setLocalPosition(position);				
 	}
 	
 	void Item::setLocalPosition(math::Vector3 position)
 	{
 		ensureTransform();
-		Position t_position = *m_transform->get_position();
+		Position t_position = m_transform->getLocalPosition();
 		t_position.setPosition(position);
-		m_transform->setPosition(t_position);		
+		m_transform->setLocalPosition(t_position);		
 	}
 
 	void Item::setWorldPosition(rhea::Position& position)
 	{
 		ensureTransform();
-		Position t_position = *m_transform->get_position();
+		Position t_position = m_transform->getWorldPosition();
 		if (position.nearlyEquals(t_position))
 			return;
 		m_transform->setWorldPosition(position);		
@@ -208,7 +208,7 @@ namespace rhea
 	void Item::setWorldPosition(math::Vector3 position)
 	{
 		ensureTransform();
-		Position t_position = *m_transform->get_position();
+		Position t_position = m_transform->getWorldPosition();
 		t_position.setPosition(position);
 		m_transform->setWorldPosition(t_position);
 	}
@@ -216,7 +216,7 @@ namespace rhea
 	void Item::setLookAt(math::Vector3 look_at, const math::Vector3& localDirectionVector)
 	{
 		ensureTransform();
-		Position t_position = *m_transform->get_position();
+		Position t_position = m_transform->getWorldPosition();
 		t_position.lookAt(look_at, localDirectionVector);
 		m_transform->setWorldPosition(t_position);
 	}

@@ -145,7 +145,7 @@ namespace rhea
 		if (!m_view)
 			return;
 
-		Position pos = *m_view->getTransform()->get_derived_position();
+		Position pos = m_view->getTransform()->getWorldPosition();
 		pos.lookAt(target, math::Vector3::UNIT_Z);
 		m_view->setWorldPosition(pos);
 	}

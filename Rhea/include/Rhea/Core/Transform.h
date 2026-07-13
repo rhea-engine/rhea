@@ -38,9 +38,6 @@ namespace rhea
 		void onParented() override;
 
 		// get position
-		const Position* get_position() { return &m_local_position; }
-		const Position* get_derived_position() { if (m_dirty) updateWorldTransform(); return &m_world_position; }
-
 		const Position& getWorldPosition()
 		{
 			updateWorldTransform();

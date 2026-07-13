@@ -75,7 +75,7 @@ namespace rhea
 			m_scene->addChild(player);
 			math::Vector3 position = math::Vector3(msg->pos[0], msg->pos[1], msg->pos[2]);
 			math::Quaternion rot = math::Quaternion(msg->transform[0], msg->transform[1], msg->transform[2], msg->transform[3]);
-			Position player_position = *player->getTransform()->get_position();
+			Position player_position = player->getTransform()->getWorldPosition();
 			player_position.setPosition(position);
 			player_position.setOrientation(rot);
 			player->setWorldPosition(player_position);

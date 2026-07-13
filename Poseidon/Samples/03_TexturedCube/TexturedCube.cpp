@@ -10,12 +10,13 @@
 #include <Poseidon/Material.h>
 #include <Poseidon/Shader.h>
 #include <Poseidon/Texture.h>
-#include <Poseidon/Entity.h>
 #include <Poseidon/Camera.h>
 #include <Poseidon/Viewport.h>
 #include <Poseidon/FrameRenderer.h>
 #include <Hippios/VertexBuffer.h>
 #include <Psio/Log.h>
+#include <Math/Vector3.h>
+#include <Math/Quaternion.h>
 
 using namespace poseidon::samples;
 
@@ -78,8 +79,8 @@ public:
         m_camera = getCore()->createCamera();
         m_camera->get_position()->setPosition(0.0f, 3.0f, -8.0f);
         m_camera->get_position()->lookAt(
-            poseidon::Vector3(0.0f, 0.0f, 0.0f), 
-            poseidon::Vector3::UNIT_Z
+            math::Vector3(0.0f, 0.0f, 0.0f), 
+            math::Vector3::UNIT_Z
         );
         m_camera->setAspectRatio((float)getWidth() / (float)getHeight());
         
@@ -96,10 +97,10 @@ public:
         if (m_rotation > 6.28f)
             m_rotation -= 6.28f;
 
-        auto* pos = m_cube->get_position();
-        pos->setPosition(0, 0, 0);
-        pos->setOrientation(poseidon::Quaternion(m_rotation, poseidon::Vector3(0.0f, 1.0f, 0.0f)));
-        pos->moveRelative(poseidon::Vector3(4.0f, 0.0f, 0.0f));
+		auto pos = m_cube->getWorldPosition();
+        pos->setWorldPosition(math::Vector3(0, 0, 0));
+        pos->setOrientation(Quaternion(m_rotation, math::Vector3(0.0f, 1.0f, 0.0f)));
+        pos->moveRelative(math::Vector3(4.0f, 0.0f, 0.0f));
     }
 
     void render() override

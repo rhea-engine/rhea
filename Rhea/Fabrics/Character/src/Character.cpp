@@ -34,7 +34,7 @@ namespace rhea
 		if (!m_physics_body)
 			return false;
 		
-		rhea::Position position = *getTransform()->get_position();
+		rhea::Position position = getTransform()->getWorldPosition();
 
 		float delta = static_cast<PhysicsEvent*>(ev)->getDelta();		
 

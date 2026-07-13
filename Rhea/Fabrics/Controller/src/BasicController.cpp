@@ -84,8 +84,8 @@ namespace rhea
 				std::string type_name = u->getTypeName();
 			if ((type_name == "//meworla/item") || (type_name == "//meworla/camera") || (type_name == "//meworla/terrain") || (type_name == "//meworla/character")) {
 				DLOG(LOG_DEBUG) << "debugtree: " << doCast<Unit>(u)->getPath();
-				math::Vector3 pos = ((Item*)u)->getTransform()->get_position()->getTranslation();
-				math::Vector3 pos_d = ((Item*)u)->getTransform()->get_derived_position()->getTranslation();
+				math::Vector3 pos = ((Item*)u)->getTransform()->getLocalPosition().getTranslation();
+				math::Vector3 pos_d = ((Item*)u)->getTransform()->getWorldPosition().getTranslation();
 				DLOG(LOG_DEBUG) << "item:pos(" << pos.x << ", " << pos.y << ", " << pos.z << "); DPos(" << pos_d.x << ", " << pos_d.y << ", " << pos_d.z << ")";
 			}
 			return true;

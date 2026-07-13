@@ -56,6 +56,11 @@ namespace rhea
         void setParent(Unit* parent) { m_parent = parent; }
         Unit* getParent() const { return m_parent; }
 
+        // handle on parented
+        virtual void onParented() {}
+        // onRemove handler - called when the unit is removed from its parent
+        virtual void onRemoved() {}
+
         // get name
         std::string& getPathName() { return m_pathname; }
 

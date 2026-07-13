@@ -38,9 +38,8 @@ namespace rhea
 			u_child->m_path = m_path + "/" + child->getPathName();
 		child->setParent(this);
 		m_children[child->getPathName()] = child;
-		m_ordered_children.push_back(child);
-		if (u_child)
-			u_child->onParented();
+		m_ordered_children.push_back(child);		
+		child->onParented();
 	}
 
 	bool Unit::removeChild(Component* child)
@@ -48,8 +47,7 @@ namespace rhea
 		if (!child || child->getParent() != this)
 			return false;
 		Unit* u_child = doCast<Unit>(child);
-		if (u_child)
-			u_child->onRemoved();
+		child->onRemoved();
 		m_children.erase(child->getPathName());
 		m_ordered_children.erase(std::remove(m_ordered_children.begin(), m_ordered_children.end(), child), m_ordered_children.end());
 		child->setParent(nullptr);

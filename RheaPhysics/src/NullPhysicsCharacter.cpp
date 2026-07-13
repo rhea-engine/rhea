@@ -11,9 +11,9 @@ namespace rhea::physics {
 
 	math::Vector3 NullPhysicsCharacter::update(rhea::Position* pos, math::Vector3& move, math::Vector3& gravity)
 	{
-		math::Vector3 position = pos->get_worldspace();
+		math::Vector3 position = pos->getTranslation();
 
-		math::Vector3 trans = pos->get_rotation() * move;
+		math::Vector3 trans = pos->getRotation() * move;
 
 		math::Vector3 target_position = position + math::Vector3(trans.x, trans.y, trans.z);
 

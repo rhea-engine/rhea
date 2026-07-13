@@ -95,7 +95,7 @@ int ConnectionHandler::EnterWorld(rhea::Avatar* avatar)
 	math::Vector3 position = { 128.0f, 0.0f, 10.0f }; // default position
 	position = avatar->getPosition();
 	m_scene->addChild(m_player);
-	m_player->setPosition(position);
+	m_player->setWorldPosition(position);
 	m_player->setValue("avatar", avatar);
 
 	// add a network controller
@@ -117,14 +117,14 @@ int ConnectionHandler::EnterWorld(rhea::Avatar* avatar)
 
 	// inform connector
 	hermes::MessageCreate msg;
-	math::Vector3 pos = m_player->getTransform()->get_position()->get_worldspace();
+	math::Vector3 pos = m_player->getTransform()->get_position()->getTranslation();
 	msg.path = internal_name;
 	msg.type_name = avatar->getValueString("model");
 	msg.NUID = m_player->getComponent<rhea::NetworkComponent>()->NUID();
 	msg.pos[0] = pos.x;
 	msg.pos[1] = pos.y;
 	msg.pos[2] = pos.z;
-	math::Quaternion q = m_player->getTransform()->get_position()->get_rotation();
+	math::Quaternion q = m_player->getTransform()->get_position()->getRotation();
 	msg.transform[0] = q.w;
 	msg.transform[1] = q.x;
 	msg.transform[2] = q.y;
@@ -140,7 +140,7 @@ int ConnectionHandler::EnterWorld(rhea::Avatar* avatar)
 		rhea::NetworkComponent* net_com = (*item_it)->getComponent<rhea::NetworkComponent>();
 		if (net_com) {
 			hermes::MessageCreate item_msg;
-			math::Vector3 pos = (*item_it)->getTransform()->get_position()->get_worldspace();
+			math::Vector3 pos = (*item_it)->getTransform()->get_position()->getTranslation();
 			item_msg.path = (*item_it)->getPathName();
 			avatar = (rhea::Avatar*)(Variant*)(*item_it)->getValue("avatar");
 			if (avatar) {
@@ -154,7 +154,7 @@ int ConnectionHandler::EnterWorld(rhea::Avatar* avatar)
 			item_msg.pos[0] = pos.x;
 			item_msg.pos[1] = pos.y;
 			item_msg.pos[2] = pos.z;
-			math::Quaternion q = (*item_it)->getTransform()->get_position()->get_rotation();
+			math::Quaternion q = (*item_it)->getTransform()->get_position()->getRotation();
 			item_msg.transform[0] = q.w;
 			item_msg.transform[1] = q.x;
 			item_msg.transform[2] = q.y;

@@ -33,10 +33,8 @@ namespace rhea
 		void setOrientation(const math::Quaternion& q) { setRotation(q); }
 		void setRotation(const math::Quaternion& q);
 		void lookAt(const Vector3& targetPoint, const Vector3& localDirectionVector = Vector3::NEGATIVE_UNIT_Z);
-		
-		Vector3 get_worldspace() const { return m_position; }
-		Vector3 getTranslation() const { return m_position; }		
-		math::Quaternion get_rotation() const { return m_rotation; }
+				
+		Vector3 getTranslation() const { return m_position; }				
 		math::Quaternion getRotation() const { return m_rotation; }
 
 		bool nearlyEquals(const Position& other, float epsilon = (float)1e-06) const {

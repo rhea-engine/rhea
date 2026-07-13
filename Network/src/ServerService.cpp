@@ -106,9 +106,9 @@ namespace rhea
 				if (net_com && net_com->isDirty()) {
 					hermes::MessagePosition msg;
 					msg.NUID = net_com->NUID();
-					math::Vector3 pos = (*item_it)->getTransform()->get_position()->get_worldspace();
+					math::Vector3 pos = (*item_it)->getTransform()->get_position()->getTranslation();
 					msg.setPosition(pos.x, pos.y, pos.z);
-					math::Quaternion rot = (*item_it)->getTransform()->get_position()->get_rotation();
+					math::Quaternion rot = (*item_it)->getTransform()->get_position()->getRotation();
 					msg.setTransform(rot.w, rot.x, rot.y, rot.z);
 
 					// send to all clients

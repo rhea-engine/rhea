@@ -68,8 +68,8 @@ namespace rhea::client {
 		frame_renderer->getViewport()->getRenderContext(render_context)->setCameraHandle(rc->camera);
 		
 		const Position* derived = camera->getTransform()->get_derived_position();
-		const math::Vector3& pos = derived->get_worldspace();
-		const math::Quaternion& rot = derived->get_rotation();
+		const math::Vector3& pos = derived->getTranslation();
+		const math::Quaternion& rot = derived->getRotation();
 
 //		LOG(LOG_DEBUG) << "creating camera transform: position(" << pos.x << ", " << pos.y << ", " << pos.z << ") rotation(" << rot.w << ", " << rot.x << ", " << rot.y << ", " << rot.z << ")";
 

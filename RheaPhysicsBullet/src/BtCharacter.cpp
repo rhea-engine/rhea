@@ -273,7 +273,7 @@ namespace rhea::physics::bullet
 
 	void BulletPhysicsCharacter::moveStep(rhea::Position* pos, math::Vector3& move)
 	{
-		Vector3 trans = pos->get_rotation() * move;
+		Vector3 trans = pos->getRotation() * move;
 
 		btVector3 fromPos = m_currentPosition;
 		btVector3 desiredMove(trans.x, trans.y, trans.z);
@@ -372,7 +372,7 @@ namespace rhea::physics::bullet
 
 	bool BulletPhysicsCharacter::updateFootContact(bool ccd)
 	{
-		//		Vector3 pFrom = m_position->get_worldspace();
+		//		Vector3 pFrom = m_position->getTranslation();
 		btVector3 step_height = btVector3(0, m_step_height, 0);
 		btVector3 from = m_currentPosition + step_height;
 		btVector3 to = m_currentPosition - step_height;
@@ -459,11 +459,11 @@ namespace rhea::physics::bullet
 	math::Vector3 BulletPhysicsCharacter::update(rhea::Position* pos, math::Vector3& move, math::Vector3& gravity)
 	{
 		m_position = pos;
-		Vector3 position = pos->get_worldspace();
+		Vector3 position = pos->getTranslation();
 		m_currentPosition = btVector3(position.x, position.y, position.z);
 		m_gravity_v = btVector3(gravity.x, gravity.y, gravity.z);
 
-		Vector3 dir = pos->get_rotation() * move;
+		Vector3 dir = pos->getRotation() * move;
 
 		updateHeadContact();
 	

@@ -34,18 +34,15 @@ namespace rhea
 	*/
 	class Item : public ActiveUnit
 	{
-		RECLASS(Item, ActiveUnit, "//meworla/item");
-		REPROPERTY(rhea::Position, "position", Label("Position"), Edit, Read);
+		RECLASS(Item, ActiveUnit, "//meworla/item");		
 	public:
 		Item(std::string name, std::string type_name) :
 			m_physics_body(nullptr),
 			m_turn(0.0f),			
-			m_transform(new Transform(name + "_transform", "//meworla/transform")),
+			m_transform(nullptr),
 			m_is_renderable(true),
 			ActiveUnit(name, type_name)
-		{
-			addChild(m_transform);
-		}
+		{}
 		
 		// setup from strings
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
@@ -68,7 +65,7 @@ namespace rhea
 		virtual Item* instance(std::string name);
 
 		// positioning
-		Transform* getTransform() { return m_transform; }
+		Transform* getTransform() { ensureTransform(); return m_transform; }
 
 		// update on frame
 		void onFrame(float delta) override;
@@ -104,6 +101,7 @@ namespace rhea
 		bool isRenderable() const { return m_is_renderable; }
 
 	protected:
+		void ensureTransform();
 		PhysicsBody* m_physics_body; // cached - not owned
 		math::Vector3 m_movement;
 		float m_turn;				

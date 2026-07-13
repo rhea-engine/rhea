@@ -11,6 +11,32 @@
 
 namespace rhea
 {
+	void Transform::onParented()
+	{
+		if (!m_parent->getComponent<Transform>()) {
+			m_parent->addComponent(this);
+		}
+
+		markWorldDirty();
+	}
+
+	void Transform::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
+	{
+		Component::setup(app, attributes, values);
+		if (values.find("position") != values.end()) {
+			Variant pos = values["position"];
+			m_local_position.setPosition(pos[0], pos[1], pos[2]);
+		}
+		if (values.find("rotation") != values.end()) {
+			Variant rot = values["rotation"];
+			m_local_position.setRotation(math::Quaternion(rot[0], rot[1], rot[2], rot[3]));
+		}
+		if (values.find("scale") != values.end()) {
+			Variant scale = values["scale"];
+			m_local_scale = math::Vector3(scale[0], scale[1], scale[2]);
+		}
+	}
+
 	void Transform::updateWorldTransform()
 	{
 		if (!m_dirty)

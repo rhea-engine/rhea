@@ -33,6 +33,9 @@ namespace rhea
 			m_local_scale(1.0f, 1.0f, 1.0f),
 			Component(name, type_name)
 		{}	
+		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values) override;
+
+		void onParented() override;
 
 		// get position
 		const Position* get_position() { return &m_local_position; }

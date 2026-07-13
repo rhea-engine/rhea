@@ -122,7 +122,7 @@ public:
         // Create camera
         //rhea::Camera* camera = m_scene->createUnit<rhea::Camera>("MainCamera");
         rhea::Camera* camera = simpleparser::Type::create<rhea::Camera>("MainCamera");
-        camera->setPosition(math::Vector3(0, 2, -5));
+        camera->setWorldPosition(math::Vector3(0, 2, -5));
         camera->setLookAt(math::Vector3(0, 0, 0), math::Vector3::UNIT_Z);
         camera->setup(this, {}, {});
         //m_scene->setMainCamera(camera);
@@ -204,7 +204,7 @@ public:
         cube->setLookAt(math::Vector3(0.0f, 0.0f, 0), math::Vector3::UNIT_Z);
         scene->addChild(cube);
         m_cube = cube; // Store reference to m_cube
-        m_cube->setPosition(math::Vector3(0.0f, 1.0f, 0.0f));
+        m_cube->setWorldPosition(math::Vector3(0.0f, 1.0f, 0.0f));
 
         rhea::Material* material = simpleparser::Type::create<rhea::Material>("cube_material");
         material->setup(this);
@@ -275,7 +275,7 @@ public:
         sphereMesh->createMesh();
         meshComp->setMesh(sphereMesh);
         scene->addChild(sphere);
-		sphere->setPosition(math::Vector3(-2.0f, 1.0f, 2.0f));
+		sphere->setWorldPosition(math::Vector3(-2.0f, 1.0f, 2.0f));
 
         // add material
         rhea::Material* material = simpleparser::Type::create<rhea::Material>("sphere_material");
@@ -310,7 +310,7 @@ public:
         cylinderMesh->createMesh();
         meshComp->setMesh(cylinderMesh);
         scene->addChild(cylinder);
-        cylinder->setPosition(math::Vector3(1.0f, 1.0f, -2.0f));
+        cylinder->setWorldPosition(math::Vector3(1.0f, 1.0f, -2.0f));
 
         // add material
         rhea::Material* material = simpleparser::Type::create<rhea::Material>("cylinder_material");
@@ -346,7 +346,7 @@ public:
         coneMesh->createMesh();
         meshComp->setMesh(coneMesh);
         scene->addChild(cone);
-        cone->setPosition(math::Vector3(-1.25f, 1.0f, 2.0f));
+        cone->setWorldPosition(math::Vector3(-1.25f, 1.0f, 2.0f));
         // add material (similar to previous examples)
 
         // add material
@@ -383,7 +383,7 @@ public:
         capsuleMesh->createMesh();
         meshComp->setMesh(capsuleMesh);
         scene->addChild(capsule);
-        capsule->setPosition(math::Vector3(1.0f, 1.0f, 2.0f));
+        capsule->setWorldPosition(math::Vector3(1.0f, 1.0f, 2.0f));
 
         // add material
         rhea::Material* material = simpleparser::Type::create<rhea::Material>("capsule_material");
@@ -418,7 +418,7 @@ public:
         torusMesh->createMesh();
         meshComp->setMesh(torusMesh);
         scene->addChild(torus);
-        torus->setPosition(math::Vector3(1.0f, 1.0f, -1.5f));
+        torus->setWorldPosition(math::Vector3(1.0f, 1.0f, -1.5f));
         
         // add material
         rhea::Material* material = simpleparser::Type::create<rhea::Material>("torus_material");
@@ -448,9 +448,8 @@ public:
         rhea::LineBatchMesh *lineMesh = simpleparser::Type::create<rhea::LineBatchMesh>("gizmo_mesh");
         lineMesh->setup(this, {}, {});
         lineMesh->ready();
-        
-        rhea::Position pos = *m_cube->getTransform()->get_derived_position();
-        math::Matrix3x4 m = pos.getWorldTransform();
+                
+        math::Matrix3x4 m = m_cube->getTransform()->getWorldMatrix();
         lineMesh->addAxis(m, 1.0f);
         lineMesh->update();
         meshComp->setMesh(lineMesh);
@@ -465,7 +464,7 @@ public:
 		cubeLineMesh->addCube(math::Vector3(0.1f, 0.1f, 0.1f), math::Vector3(0.9f, 0.9f, 0.9f), math::Vector4(1, 1, 1, 1));
 		cubeLineMesh->update();
 		cubeLineMeshComp->setMesh(cubeLineMesh);
-		cubeLineItem->setPosition(math::Vector3(-2.0f, 0.2f, -1.0f));
+		cubeLineItem->setWorldPosition(math::Vector3(-2.0f, 0.2f, -1.0f));
 		scene->addChild(cubeLineItem);
 
         // add some lines 
@@ -481,7 +480,7 @@ public:
         linesMesh->addCube(math::Vector3(1.1f, 0.5f, -1.0f), math::Vector3(2.0f, 1.4f, -0.1f), math::Vector4(1, 1, 1, 1));
         linesMesh->addAxis(math::Vector3(-1.0f, 1.0f, 0.0f), 0.5);
         rhea::Position pos_grid;
-        linesMesh->addGrid(pos_grid.getWorldTransform(), 5, 50, math::Vector4(1, 0, 0, 1));
+        linesMesh->addGrid(linesItem->getTransform()->getWorldMatrix(), 5, 50, math::Vector4(1, 0, 0, 1));
         linesMesh->update();
 		linesMeshComp->setMesh(linesMesh);
 		scene->addChild(linesItem);
@@ -489,7 +488,7 @@ public:
 
 	void setupGUI()
 	{
-		loadResource("//sandbox/sandbox.css", "//meworla/stylesheet", [&](rhea::Unit* unit, ReqError error) {
+		loadResource("//sandbox/sandbox.css", "//meworla/stylesheet", [&](rhea::Component* unit, ReqError error) {
 			// Handle the loaded resource
 			if (error == ReqError::OK) {
 				LOG(LOG_INFO) << "Stylesheet loaded successfully: " << unit->getPathName();
@@ -683,9 +682,8 @@ public:
         if (m_cube2)
             m_cube2->setLookAt(target, math::Vector3::UNIT_Y);   
 
-        if (m_gizmo && m_cube) {
-            rhea::Position pos = *m_cube->getTransform()->get_derived_position();
-            math::Matrix3x4 m = pos.getWorldTransform();
+        if (m_gizmo && m_cube) {           
+			math::Matrix3x4 m = m_cube->getTransform()->getWorldMatrix();
             rhea::LineBatchMesh* lineMesh = doCast<rhea::LineBatchMesh>(m_gizmo->getComponent<rhea::MeshComponent>()->getMesh());
             lineMesh->clearLines();
             lineMesh->addAxis(m, 1.0f);
@@ -716,7 +714,7 @@ int main(int argc, char** argv)
         app.setupScene();
     }
     else {
-        app.loadResource(home_scene, "meworla/scene", [&](rhea::Unit* scene, ReqError error) {
+        app.loadResource(home_scene, "meworla/scene", [&](rhea::Component* scene, ReqError error) {
             rhea::Scene* world_scene = doCast<rhea::Scene>(scene);
             if (world_scene) {
                 app.showScene(world_scene);

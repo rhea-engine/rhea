@@ -115,10 +115,12 @@ namespace orion
 
 	void FileResourceStream::Close()
 	{
-		if (m_state == psio::Stream::StreamState::STREAM_OPEN) {
-			fclose(f);			
-			m_state = psio::Stream::StreamState::STREAM_CLOSED;
+		if (f) {
+			fclose(f);
+			f = nullptr;
 		}
+
+		m_state = psio::Stream::StreamState::STREAM_CLOSED;
 	}
 
 	size_t FileResourceStream::Write(const void* data, size_t length)
@@ -255,6 +257,7 @@ namespace orion
 
 	void FileResourceStream::doError(int status)
 	{
+		Close();
 		if (status < 0) {
 			m_state = psio::Stream::StreamState::STREAM_ERROR;
 			if (m_error_handler)

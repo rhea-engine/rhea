@@ -23,7 +23,7 @@ namespace rhea
 		}
 		virtual void onMovementChanged(const math::Vector3& move) = 0;
 		virtual void onTurnChanged(float turn) = 0;
-		virtual void onPositionChanged() = 0;
+		virtual void onTransformChanged() = 0;
 	};
 }
 

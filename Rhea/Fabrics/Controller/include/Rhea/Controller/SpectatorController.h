@@ -43,6 +43,8 @@ namespace rhea
 	protected:
 		Camera* m_view;
 
+		// Offset in target-oriented space.
+		// Affected by target rotation, but intentionally not by target scale.
 		math::Vector3 m_follow_offset;
 
 		// register event handler

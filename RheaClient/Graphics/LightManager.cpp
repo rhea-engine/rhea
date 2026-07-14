@@ -133,14 +133,14 @@ namespace rhea::client
 		}
 		else if (auto* point = doCast<rhea::PointLight>(source)) {
 			dst->setType(poseidon::Light::LightType::Point);
-			auto pos = point->getTransform()->get_position()->get_worldspace();
+			auto pos = point->getTransform()->getWorldPosition().getTranslation();
 			dst->setPosition(math::Vector3(pos.x, pos.y, pos.z));
 			dst->setAttenuation(point->getAttenuation());
 		}
 		else if (auto* spot = doCast<rhea::SpotLight>(source)) {
 			dst->setType(poseidon::Light::LightType::Spot);
 
-			auto pos = spot->getTransform()->get_position()->get_worldspace();
+			auto pos = spot->getTransform()->getWorldPosition().getTranslation();
 			math::Vector3 p(pos.x, pos.y, pos.z);
 			dst->setPosition(p);
 

@@ -23,7 +23,7 @@ namespace rhea::client {
 
 		void onMovementChanged(const math::Vector3& move) override {}
 		void onTurnChanged(float turn) override {}
-		void onPositionChanged() override { if (m_mgr) m_mgr->onTransformUpdate(m_parent); }
+		void onTransformChanged() override { if (m_mgr) m_mgr->onTransformUpdate(m_parent); }
 
 	private:
 		GraphicsManager* m_mgr = nullptr;

@@ -84,14 +84,14 @@ namespace rhea::client {
 				z = pos_sit[2];
 			}
 
-			rhea::Position position = *t->get_position();
+			rhea::Position position = t->getWorldPosition();
 			position.setPosition(x, y, z);
-			t->setPosition(position);
+			t->setWorldPosition(position);
 		}
 		else {
-			rhea::Position position = *t->get_position();
+			rhea::Position position = t->getWorldPosition();
 			position.setPosition(0.0f, 0.0f, 0.0f);
-			t->setPosition(position);
+			t->setWorldPosition(position);
 		}
 	}	
 }

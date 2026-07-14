@@ -33,11 +33,11 @@ namespace rhea
 			m_local_scale(1.0f, 1.0f, 1.0f),
 			Component(name, type_name)
 		{}	
+		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values) override;
+
+		void onParented() override;
 
 		// get position
-		const Position* get_position() { return &m_local_position; }
-		const Position* get_derived_position() { if (m_dirty) updateWorldTransform(); return &m_world_position; }
-
 		const Position& getWorldPosition()
 		{
 			updateWorldTransform();
@@ -81,7 +81,13 @@ namespace rhea
 
 		// update the position
 		void updateWorldTransform();
-		void setPosition(const Position& position);
+		
+		// deprecated - use setLocalPosition or setWorldPosition
+		void setPosition(const Position& position) { setLocalPosition(position); }
+		
+		// set the local or world position
+		void setLocalPosition(const Position& position);
+		void setWorldPosition(const Position& position);
 
 		// create a position of the given type
 		void createPosition(int position_type);

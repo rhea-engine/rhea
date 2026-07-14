@@ -19,9 +19,7 @@ namespace rhea
 	{
 		MECLASS(BasicController, Controller)
 	public:
-		BasicController(std::string path_name, std::string type_name) :
-			m_position(),
-			m_orientation(),
+		BasicController(std::string path_name, std::string type_name) :			
 			Controller(path_name, type_name)
 		{}
 
@@ -29,10 +27,11 @@ namespace rhea
 		void message(std::string method_name);
 
 		// set the position manually
-		void setPosition(math::Vector3 position);
+		void setLocalPosition(const Position& position);
+		void setWorldPosition(const Position& position);
 		void lookAt(math::Vector3& target);
 
-		math::Vector3 getPosition();
+		math::Vector3 getWorldPosition();
 
 		// Controller functions
 
@@ -46,12 +45,9 @@ namespace rhea
 		void logMe();
 
 		// get the current orientation
-		math::Quaternion getOrientation() {	return m_orientation; }
+		math::Quaternion getOrientation() {	if (m_target) return m_target->getTransform()->getWorldPosition().getRotation(); else return math::Quaternion(); }
 
 	protected:
-		Position m_position;
-		math::Quaternion m_orientation;
-
 		math::Vector3 m_move;
 		float m_turn = 0;
 		math::Vector3 m_last_move;

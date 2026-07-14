@@ -57,11 +57,6 @@ namespace rhea
 		// check if a component can be removed
 		virtual bool canRemoveComponent(const Component* component) const { return true; }
 
-		// handle on parented
-		virtual void onParented() {}
-		// onRemove handler - called when the unit is removed from its parent
-		virtual void onRemoved() {}
-
 		// add component
 		// a component is a child which is stored in the type lookup table
 		// this is allows lookup by type
@@ -101,6 +96,23 @@ namespace rhea
 		}					
 
 		std::vector<Component*> getAllComponents() const;
+
+		// ensure a component of the given type exists - if not create it with the given fallback name
+		template <typename T>
+		T* ensureComponent(const std::string& fallback_name)
+		{
+			if (auto* existing = getComponent<T>())
+				return existing;
+
+			for (auto* child : orderedChildren()) {
+				if (auto* component = doCast<T>(child)) {
+					addComponent(component);
+					return component;
+				}
+			}
+
+			return addComponentUnique<T>(fallback_name);
+		}
 
 		// get full path
 		std::string getPath() { return m_path; }

@@ -53,7 +53,7 @@ namespace rhea::physics
 			if (m_body)
 				m_body->turn(turn);
 		}
-		void onPositionChanged() override {}
+		void onTransformChanged() override {}
 
 	protected:
 		std::unique_ptr<rhea::PhysicsBody> m_body;

@@ -33,10 +33,10 @@ namespace rhea
 	
 	void NetworkComponent::setPosition(Position& position)
 	{
-		m_item->setPosition(position);
+		m_item->setWorldPosition(position);
 	}
 	
-	void NetworkComponent::onPositionChanged()
+	void NetworkComponent::onTransformChanged()
 	{
 		if (m_role == NET_ROLE_SERVER) {
 			m_dirty = true;

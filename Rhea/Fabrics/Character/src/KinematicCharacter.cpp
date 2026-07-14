@@ -63,7 +63,7 @@ namespace rhea
 			if (!getPhysicsBody())
 				return false;
 		
-		Position position = *getTransform()->get_position();		
+		Position position = getTransform()->getWorldPosition();		
 
 		float delta = static_cast<PhysicsEvent*>(ev)->getDelta();		
 		auto* character = m_physics_body->query<IPhysicsCharacter>("PhysicsCharacter");
@@ -113,7 +113,7 @@ namespace rhea
 
 			// compute the next position
 			math::Vector3 pos = character->update(&position, move, gravity);			
-			if (!pos.equals(position.get_worldspace())) {
+			if (!pos.equals(position.getTranslation())) {
 				position.setPosition(pos);
 				getTransform()->setPosition(position);
 				m_physics_body->setPosition(pos);
@@ -138,16 +138,16 @@ namespace rhea
 			float turn_step = m_turn * delta;
 			math::Quaternion q;
 			q.fromAngleAxis(turn_step, math::Vector3(0, 1, 0));
-			math::Quaternion m_orientation = q * position.get_rotation();
+			math::Quaternion m_orientation = q * position.getRotation();
 			m_orientation.normalize();
-			position.setOrientation(m_orientation);
-			getTransform()->setPosition(position);
+			position.setRotation(m_orientation);
+			getTransform()->setWorldPosition(position);
 			dirty = true;
 			m_physics_body->setOrientation(m_orientation);
 		}
 		if (dirty) {
 			for (auto* l : m_movement_listeners) {
-				l->onPositionChanged();
+				l->onTransformChanged();
 			}
 		}
 		return false;
@@ -162,8 +162,8 @@ namespace rhea
 			// set the forced movement to the current movement
 			m_forced_movement = m_movement;			
 
-			Position position = *getTransform()->get_position();
-			math::Vector3 pos = position.get_worldspace();
+			Position position = getTransform()->getWorldPosition();
+			math::Vector3 pos = position.getTranslation();
 			m_jump_start_y = pos.y;
 			auto* character = m_physics_body->query<IPhysicsCharacter>("PhysicsCharacter");
 			if (!character) {
@@ -172,7 +172,7 @@ namespace rhea
 			if (character->jump(pos)) {
 				// jumping is possible
 				position.setPosition(pos);
-				getTransform()->setPosition(position);
+				getTransform()->setWorldPosition(position);
 				m_move_state = MoveState::JUMP;
 				m_vertical_velocity = 6.0f;
 			}

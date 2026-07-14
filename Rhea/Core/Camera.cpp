@@ -19,6 +19,8 @@ namespace rhea
 			return;
 		}
 
+		ensureTransform();
+
 		if (m_values.find("lookAt") != m_values.end())
 		{
 			Variant look_at_sit = getValue("lookAt");

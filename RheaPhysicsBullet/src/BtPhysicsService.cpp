@@ -188,13 +188,13 @@ namespace rhea::physics::bullet
 				{
 					trans = obj->getWorldTransform();
 				}
-				rhea::Position position = *item->getTransform()->get_position();
+				rhea::Position position = item->getTransform()->getWorldPosition();
 
 				position.setPosition(math::Vector3(float(trans.getOrigin().getX()), float(trans.getOrigin().getY()), float(trans.getOrigin().getZ())));
 				btQuaternion rot = trans.getRotation();
 				position.setOrientation(math::Quaternion(rot.getW(), rot.getX(), rot.getY(), rot.getZ()));
 
-				item->setPosition(position);				
+				item->setWorldPosition(position);				
 			}
 		}
 	}

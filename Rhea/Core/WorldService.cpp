@@ -59,16 +59,22 @@ namespace rhea
 
 	bool WorldService::onFrame(float delta)
 	{
-		// update items
-		for (auto it = m_scenes.begin(); it < m_scenes.end(); ++it) {
-			(*it)->traverse([delta](std::string& name, Component* unit)->bool {
-				ActiveUnit* active_unit = doCast<ActiveUnit>(unit);
-				if (active_unit) {
-					active_unit->onFrame(delta);
-				}				
-				return true;
-				});
-		}
+		// update items in scenes that are active
+		for (auto& pair : m_managed_scenes) {
+			ManagedScene& managed_scene = pair.second;
+			if (managed_scene.state == SceneLifecycleState::Active) {
+				Scene* scene = managed_scene.scene;
+				if (scene) {
+					scene->traverse([delta](std::string& name, Component* unit)->bool {
+						ActiveUnit* active_unit = doCast<ActiveUnit>(unit);
+						if (active_unit) {
+							active_unit->onFrame(delta);
+						}
+						return true;
+						});
+				}
+			}
+		}		
 		return false;
 	}
 
@@ -80,13 +86,27 @@ namespace rhea
 	void WorldService::onSceneActivate(Scene* scene)
 	{
 		// only add if not already in the list
-		if (std::find(m_scenes.begin(), m_scenes.end(), scene) == m_scenes.end())
-			m_scenes.push_back(scene);
+		if (scene == nullptr)
+			return;
+		if (m_managed_scenes.find(scene) == m_managed_scenes.end()) {
+			ManagedScene managed_scene;
+			managed_scene.scene = scene;
+			managed_scene.role = SceneRole::External;
+			managed_scene.state = SceneLifecycleState::Active;
+			m_managed_scenes[scene] = managed_scene;
+		}
+		else {
+			m_managed_scenes[scene].state = SceneLifecycleState::Active;
+		}		
 	}
 
 	void WorldService::onSceneDeactivate(Scene* scene)
 	{
-		m_scenes.erase(std::remove(m_scenes.begin(), m_scenes.end(), scene), m_scenes.end());
+		if (scene == nullptr)
+			return;
+		if (m_managed_scenes.find(scene) != m_managed_scenes.end()) {
+			m_managed_scenes[scene].state = SceneLifecycleState::Loaded;
+		}		
 	}
 
 	void WorldService::onWorldLoaded(uint64_t requestId, Component* component, OpenHandler handler)

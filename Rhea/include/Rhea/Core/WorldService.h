@@ -58,6 +58,38 @@ namespace rhea
 			InvalidController
 		};
 
+		enum class SceneRole
+		{
+			Primary,
+			Persistent,
+			Partition,
+			Overlay,
+			External
+		};
+
+		enum class SceneLifecycleState
+		{
+			Loaded,
+			Prepared,
+			Active,
+			Shown
+		};
+
+		struct ManagedScene
+		{
+			Scene* scene = nullptr;
+			SceneRole role = SceneRole::External;
+			SceneLifecycleState state = SceneLifecycleState::Loaded;
+
+			// logical relation, no unit-parent relation
+			Scene* owner_scene = nullptr;
+
+			std::string resource_id;
+
+			// loaded by world service?
+			bool owned_by_worldservice = false;
+		};
+
 		WorldService(std::string name, std::string type_name) :
 			Service(name, type_name)
 		{}
@@ -71,10 +103,12 @@ namespace rhea
 		// scene lifecycle management
 		void openWorld(std::string& resource_id, OpenHandler handler = nullptr);
 
+		// get current state
 		World* getWorld() const { return m_world; }
 		Scene* getPrimaryScene() const { return m_primary_scene; }
 		State getState() const { return m_state; }
 
+		// add preparation handlers
 		void addPrepareHandler(PrepareHandler handler) { m_prepare_handlers.push_back(handler); }
 		void addWorldPrepareHandler(PrepareHandler handler) { m_world_prepare_handlers.push_back(handler); }
 
@@ -87,9 +121,6 @@ namespace rhea
 		void onSceneActivate(Scene* scene);
 		void onSceneDeactivate(Scene* scene);
 
-		// list of active scenes
-		std::vector<Scene*> m_scenes;
-
 		void onWorldLoaded(uint64_t requestId, Component* component, OpenHandler handler);
 
 		void loadStartScene(uint64_t requestId, OpenHandler handler);
@@ -99,8 +130,12 @@ namespace rhea
 		PrepareError prepareWorld(World* world);
 
 		World* m_world = nullptr;
+
+		// list of active scenes	
+		std::unordered_map<Scene*, ManagedScene> m_managed_scenes;
 		Scene* m_primary_scene = nullptr;
 		Scene* m_next_scene = nullptr;
+
 		State m_state = State::Idle;
 
 		uint64_t m_request_id = 0;

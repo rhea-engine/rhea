@@ -84,15 +84,15 @@ namespace rhea
 				// initialize physics
 
 				std::string backend = "none";
-				if (!context || (!context->start_scene && !context->world)) {
+				if (!context || (!context->next_scene && !context->world)) {
 					LOG(LOG_ERROR) << "WorldService has no world and no start scene. Physics will be disabled.";
 					return rhea::WorldService::PrepareError::PhysicsInitializationFailed;
 				}
 				std::string phy = "none";
 				if (context->world)
 					phy = context->world->getValueString("physics", "none");
-				else if (context->start_scene)
-					phy = context->start_scene->getValueString("physics", "none");
+				else if (context->next_scene)
+					phy = context->next_scene->getValueString("physics", "none");
 				if (phy == std::string("world") || phy == std::string("bullet")) {
 					backend = "world";
 				}

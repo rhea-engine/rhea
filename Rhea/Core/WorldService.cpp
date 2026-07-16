@@ -94,6 +94,11 @@ namespace rhea
 		// get start scene
 		m_world = doCast<World>(component);
 		if (m_world) {
+			if (m_primary_scene) {
+				m_primary_scene->hide();
+				m_primary_scene->deactivate();
+				m_primary_scene = nullptr;
+			}
 			if (prepareWorld(m_world) != PrepareError::None) {
 				m_state = State::Failed;
 				if (handler) {
@@ -107,7 +112,7 @@ namespace rhea
 			// if the loaded component is a scene, we can use it directly
 			LOG(LOG_INFO) << "Loaded scene: " << m_request_path;
 			m_world = nullptr;
-			m_current_scene = doCast<Scene>(component);
+			m_next_scene = doCast<Scene>(component);
 			if (prepareWorld(m_world) != PrepareError::None) {
 				m_state = State::Failed;
 				if (handler) {
@@ -115,7 +120,7 @@ namespace rhea
 				}
 				return;
 			}
-			onSceneLoaded(doCast<Scene>(component), handler);
+			onSceneLoaded(m_next_scene, handler);
 		}
 		else if (doCast<Collection>(component)) {
 			// user tried to open directory
@@ -150,7 +155,8 @@ namespace rhea
 		// first search within the already loaded world.scene.
 		Scene* embedded = doCast<Scene>(m_world->find(start, m_world->getPath(), false));
 		if (embedded) {
-			onSceneLoaded(embedded, handler);
+			m_next_scene = embedded;
+			onSceneLoaded(m_next_scene, handler);
 			return;
 		}
 
@@ -175,14 +181,13 @@ namespace rhea
 					return;
 				}				
 
-				onSceneLoaded(scene, handler);
+				m_next_scene = scene;
+				onSceneLoaded(m_next_scene, handler);
 			});
 	}
 
 	void WorldService::onSceneLoaded(Scene* scene, OpenHandler handler)
 	{
-		m_current_scene = scene;
-
 		PrepareError prepareError = prepareScene(scene);
 		if (prepareError != PrepareError::None) {
 			if (handler) {
@@ -191,6 +196,15 @@ namespace rhea
 			return;
 		}
 
+		if (m_primary_scene) {
+			m_primary_scene->hide();
+			m_primary_scene->deactivate();
+			m_primary_scene = nullptr;
+		}
+
+		m_primary_scene = scene;
+		m_next_scene = nullptr;
+
 		scene->activate();
 		scene->show();
 		m_state = State::Ready;
@@ -198,9 +212,9 @@ namespace rhea
 			handler(OpenError::None);
 	}
 
-	WorldService::PrepareError WorldService::prepareScene(Scene* scene)
+	WorldService::PrepareError WorldService::prepareScene(Scene* next_scene)
 	{
-		WorldContext context = { m_world, scene };
+		WorldContext context = { m_world, next_scene, m_primary_scene };
 		for (PrepareHandler& preparer : m_prepare_handlers) {
 			PrepareError error = preparer(&context);
 			if (error != PrepareError::None)
@@ -212,7 +226,7 @@ namespace rhea
 
 	WorldService::PrepareError WorldService::prepareWorld(World* world)
 	{
-		WorldContext context = { world, m_current_scene };
+		WorldContext context = { world, m_next_scene, m_primary_scene };
 		for (PrepareHandler& preparer : m_world_prepare_handlers) {
 			PrepareError error = preparer(&context);
 			if (error != PrepareError::None)

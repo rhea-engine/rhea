@@ -410,6 +410,21 @@ void Ceto::setup()
 	mat->setup(this);
 	mat->setValue("shader", "shader_vp");
 	m_unit_tree->addChild(mat);
+
+	auto* worlds = doCast<rhea::WorldService>(getService("world"));
+	worlds->addPrepareHandler([this](rhea::WorldContext* context) -> rhea::WorldService::PrepareError
+		{
+			m_focused_controller = m_unit_tree->findByType<rhea::Controller>();
+			if (!m_focused_controller) {
+				// no controller found - use camera and add default controller for it
+				// note: spectator does not work, because we have no controlled element
+				m_focused_controller = new rhea::BasicController("camera_controller", "//meworla/controller");
+				m_focused_controller->setup(this);
+				m_focused_controller->connect(m_view);
+				context->next_scene->addChild(m_focused_controller);
+			}
+			return rhea::WorldService::PrepareError::None;
+		});
 }
 
 void Ceto::setScene(bool mark_preferrences)
@@ -426,19 +441,6 @@ void Ceto::setScene(bool mark_preferrences)
 	}
 
 	auto* worlds = doCast<rhea::WorldService>(getService("world"));
-	worlds->addWorldPrepareHandler([this](rhea::WorldContext* context) -> rhea::WorldService::PrepareError
-		{
-			m_focused_controller = m_unit_tree->findByType<rhea::Controller>();
-			if (!m_focused_controller) {
-				// no controller found - use camera and add default controller for it
-				// note: spectator does not work, because we have no controlled element
-				m_focused_controller = new rhea::BasicController("camera_controller", "//meworla/controller");
-				m_focused_controller->setup(this);
-				m_focused_controller->connect(m_view);
-				context->start_scene->addChild(m_focused_controller);
-			}
-			return rhea::WorldService::PrepareError::None;
-		});
 
 	worlds->openWorld(m_home_scene,	[this, worlds](rhea::WorldService::OpenError error)
 		{
@@ -467,7 +469,7 @@ void Ceto::setScene(bool mark_preferrences)
 
 			inScene = true;
 
-			rhea::Scene* scene = worlds->getCurrentScene();
+			rhea::Scene* scene = worlds->getPrimaryScene();
 
 			rhea::Unit* gus2 = doCast<rhea::Unit>(scene->getChild("gus2"));
 			if (gus2)

@@ -21,7 +21,8 @@ namespace rhea
 	struct WorldContext
 	{
 		World* world;
-		Scene* start_scene;
+		Scene* next_scene;
+		Scene* current_primary_scene;
 	};
 
 	class WorldService : public Service
@@ -71,7 +72,7 @@ namespace rhea
 		void openWorld(std::string& resource_id, OpenHandler handler = nullptr);
 
 		World* getWorld() const { return m_world; }
-		Scene* getCurrentScene() const { return m_current_scene; }
+		Scene* getPrimaryScene() const { return m_primary_scene; }
 		State getState() const { return m_state; }
 
 		void addPrepareHandler(PrepareHandler handler) { m_prepare_handlers.push_back(handler); }
@@ -94,17 +95,16 @@ namespace rhea
 		void loadStartScene(uint64_t requestId, OpenHandler handler);
 		void onSceneLoaded(Scene* scene, OpenHandler handler);
 
-		PrepareError prepareScene(Scene* scene);
+		PrepareError prepareScene(Scene* next_scene);
 		PrepareError prepareWorld(World* world);
 
 		World* m_world = nullptr;
-		Scene* m_current_scene = nullptr;
+		Scene* m_primary_scene = nullptr;
+		Scene* m_next_scene = nullptr;
 		State m_state = State::Idle;
 
 		uint64_t m_request_id = 0;
 		std::string m_request_path;
-
-		OpenHandler* m_open_handler = nullptr;
 
 		std::vector<PrepareHandler> m_prepare_handlers;
 		std::vector<PrepareHandler> m_world_prepare_handlers;

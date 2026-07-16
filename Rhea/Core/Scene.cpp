@@ -90,6 +90,9 @@ namespace rhea
 					Event ev("scene_item_added", child_item);
 					sendEvent("scene_item_added", &ev);
 			}
+			if (m_is_active) {
+				c->onActivate();
+			}
 			return true;
 			});		
 		return false;
@@ -108,11 +111,13 @@ namespace rhea
 
 		item->traverse([&](std::string&, Component* c) {
 			if (auto* childItem = doCast<Item>(c)) {
+				if (m_is_active) {
+					c->onDeactivate();
+				}
 				m_items.erase(
 					std::remove(m_items.begin(), m_items.end(), childItem),
 					m_items.end()
 				);
-
 				Event e("scene_item_removed", item);
 				sendEvent("scene_item_removed", &e);
 			}
@@ -154,9 +159,13 @@ namespace rhea
 	void Scene::activate()
 	{
 		if (!m_is_active) {
+			traverse([&](std::string&, Component* c) {
+				c->onActivate();
+				return true;
+				});
 			Event e("scene_activate", this);
 			m_app->getUnitTree()->sendEvent("scene_activate", &e);
-			m_is_active = true;
+			m_is_active = true;			
 		}
 	}
 
@@ -168,6 +177,10 @@ namespace rhea
 
 			Event e("scene_deactivate", this);
 			m_app->getUnitTree()->sendEvent("scene_deactivate", &e);
+			traverse([&](std::string&, Component* c) {
+				c->onDeactivate();
+				return true;
+				});
 			m_is_active = false;
 		}
 	}

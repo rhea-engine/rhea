@@ -49,8 +49,12 @@ namespace rhea
         virtual void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, simpleparser::Variant> values);
         virtual void setup(Application* app) { m_app = app; }
 
-        // ready signal - finalize the component for usage
+        // ready signal - finalize the component for usage after load
         virtual void ready() {}
+
+		// activate and deactivate the component
+		virtual void onActivate() {}
+		virtual void onDeactivate() {}
 
         // Set and get parent
         void setParent(Unit* parent) { m_parent = parent; }

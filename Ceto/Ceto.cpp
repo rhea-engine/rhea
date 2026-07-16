@@ -37,6 +37,7 @@
 #include <Rhea/ConfigFile.h>
 #include <Rhea/GUI/Button.h>
 #include <Rhea/GUI/Dialog.h>
+#include <Rhea/GUI/TextInput.h>
 #include <RheaAudio/AudioService.h>
 
 bool Ceto::onQuit(rhea::Event* ev, rhea::Unit* unit)
@@ -200,6 +201,18 @@ bool Ceto::handleDevShortcuts(const rhea::InputEvent& evt)
 			m_gui_controller->dumpDebugInfo();
 		}
 	}
+
+	if (evt.isKeyPressed(rhea::Key::B)) {
+		// transition to a new scene
+		auto* worlds = doCast<rhea::WorldService>(getService("world"));
+		std::string scene_path = "//local/world1_scene2.scene";
+		if (worlds) {
+			if (worlds->getPrimaryScene()->getPathName() == "scene2") {
+				scene_path = "//local/world1_scene1.scene";
+			}
+			worlds->transitionToScene(scene_path);
+		}
+	}
 	return false;
 }
 
@@ -331,6 +344,37 @@ bool Ceto::onRealmSelect(rhea::Event* ev, rhea::Unit* unit)
 	DLOG(LOG_DEBUG) << "target selected was '" << (std::string)target->getValue("value") << "'";
 
 	openScene((std::string)target->getValue("value"));
+	return false;
+}
+
+bool Ceto::onRealmSearch(rhea::Event* ev, rhea::Unit* unit)
+{
+	ev->stopPropagation();
+	rhea::TextInput* target = doCast<rhea::TextInput>(ev->getTarget());
+	if (!target) {
+		DLOG(LOG_DEBUG) << "onRealmSearch: target is not a TextInput";
+		return false;
+	}
+	DLOG(LOG_DEBUG) << "search text was '" << (std::string)target->getText() << "'";
+	openScene((std::string)target->getText());
+	// search for realms
+	/*
+	rhea::Widget* w = doCast<rhea::Widget>(m_unit_tree->find("//local/cetogui/gui/realms"));
+	if (w) {
+		rhea::List* list = doCast<rhea::List>(w->find("realm_list"));
+		if (list) {
+			list->clearItems();
+			// add search result items
+			for (int i = 0; i < 5; i++) {
+				std::string realm_name = "Realm " + std::to_string(i + 1);
+				rhea::Unit* item = m_unit_tree->createUnit("realm_item_" + std::to_string(i), "//core/types/unit");
+				item->setValue("text", realm_name);
+				item->setValue("value", realm_name);
+				list->addItem(item);
+			}
+		}
+	}
+	*/
 	return false;
 }
 
@@ -537,6 +581,7 @@ void Ceto::loadMainGUI()
 
 			// register open
 			gui->registerEventHandler("open", this, std::bind(&Ceto::onRealmSelect, this, std::placeholders::_1, std::placeholders::_2));
+			gui->registerEventHandler("search", this, std::bind(&Ceto::onRealmSearch, this, std::placeholders::_1, std::placeholders::_2));
 		}
 		else {
 			log("loading of gui failed");
@@ -544,7 +589,7 @@ void Ceto::loadMainGUI()
 		});
 }
 
-void Ceto::setHomeScene(string scene)
+void Ceto::setHomeScene(std::string scene)
 {
 	m_home_scene = scene;
 }

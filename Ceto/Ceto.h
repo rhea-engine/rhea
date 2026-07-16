@@ -53,6 +53,7 @@ protected:
 	bool onQuitCancel(rhea::Event* ev, rhea::Unit* unit);
 	bool onInput(rhea::EventInput* e, rhea::Unit* unit);
 	bool onRealmSelect(rhea::Event* ev, rhea::Unit* unit);
+	bool onRealmSearch(rhea::Event* ev, rhea::Unit* unit);
 	void showAlert(std::string text);
 	void setRealmSelectDialog();
 	void openScene(std::string scene_name);

@@ -57,6 +57,92 @@ namespace rhea
 			});
 	}
 
+	void WorldService::loadScene(std::string& resource_id, OpenHandler handler)
+	{
+		// check if the scene is already loaded
+		for (auto& pair : m_managed_scenes) {
+			ManagedScene& managed_scene = pair.second;
+			if (managed_scene.resource_id == resource_id) {
+				LOG(LOG_INFO) << "Scene already loaded: " << resource_id;
+				if (handler) {
+					handler(OpenError::None);
+				}
+				return;
+			}
+		}
+
+		const uint64_t request_id = ++m_request_id;
+		m_state = State::LoadingStartScene;
+		m_request_path = resource_id;
+		m_app->loadResource(resource_id, "//meworla/scene", [this, request_id, handler](Component* component, ReqError error)
+			{
+				if (request_id != m_request_id) {
+					if (handler) {
+						handler(OpenError::RequestCanceled);
+					}
+					return; // stale result
+				}
+				if (error == ReqError::OK) {
+					LOG(LOG_INFO) << "Loaded scene: " << m_request_path;
+					Scene* scene = doCast<Scene>(component);
+					if (scene) {
+						m_managed_scenes[scene] = ManagedScene{ scene, SceneRole::External, SceneLifecycleState::Loaded, nullptr, m_request_path, true };
+						if (handler) {
+							handler(OpenError::None);
+						}
+					}
+					else {
+						LOG(LOG_ERROR) << "Loaded component is not a scene: " << m_request_path;
+						m_state = State::Failed;
+						if (handler) {
+							handler(OpenError::InvalidStartScene);
+						}
+					}
+				}
+				else {
+					LOG(LOG_ERROR) << "Failed to load scene: " << static_cast<int>(error) << " (" << m_request_path << ")";
+					m_state = State::Failed;
+					if (handler) {
+						handler(OpenError::ResourceNotFound);
+					}
+				}
+			});
+	}
+	
+	void rhea::WorldService::transitionToScene(std::string& resource_id, OpenHandler handler)
+	{
+		loadScene(resource_id, [this, resource_id, handler](OpenError error) {
+			if (error == OpenError::None) {
+				// find the loaded scene
+				Scene* next_scene = nullptr;
+				for (auto& pair : m_managed_scenes) {
+					ManagedScene& managed_scene = pair.second;
+					if (managed_scene.resource_id == resource_id) {
+						next_scene = managed_scene.scene;
+						break;
+					}
+				}
+				if (next_scene) {
+					onSceneLoaded(next_scene, handler);
+				}
+				else {
+					LOG(LOG_ERROR) << "Transition failed: scene not found after loading: " << resource_id;
+					m_state = State::Failed;
+					if (handler) {
+						handler(OpenError::InvalidStartScene);
+					}
+				}
+			}
+			else {
+				LOG(LOG_ERROR) << "Transition failed: could not load scene: " << resource_id;
+				m_state = State::Failed;
+				if (handler) {
+					handler(error);
+				}
+			}
+			});
+	}
+
 	bool WorldService::onFrame(float delta)
 	{
 		// update items in scenes that are active
@@ -183,26 +269,35 @@ namespace rhea
 		// Otherwise, load as an external resource ID.
 		m_state = State::LoadingStartScene;
 
-		m_app->loadResource(
-			start,
-			"//meworla/scene",
-			[this, requestId, handler](Component* component, ReqError error)
-			{
-				if (requestId != m_request_id)
-					return;
-
-				Scene* scene = doCast<Scene>(component);
-				if (error != ReqError::OK || !scene) {
-					LOG(LOG_ERROR) << "Could not load start scene: " << static_cast<int>(error) << " (" << m_request_path << ")";
+		loadScene(start, [this, requestId, handler](OpenError error) {
+			if (error == OpenError::None) {
+				// find the loaded scene
+				Scene* next_scene = nullptr;
+				for (auto& pair : m_managed_scenes) {
+					ManagedScene& managed_scene = pair.second;
+					if (managed_scene.resource_id == m_request_path) {
+						next_scene = managed_scene.scene;
+						break;
+					}
+				}
+				if (next_scene) {
+					onSceneLoaded(next_scene, handler);
+				}
+				else {
+					LOG(LOG_ERROR) << "Start scene not found after loading: " << m_request_path;
 					m_state = State::Failed;
 					if (handler) {
 						handler(OpenError::InvalidStartScene);
 					}
-					return;
-				}				
-
-				m_next_scene = scene;
-				onSceneLoaded(m_next_scene, handler);
+				}
+			}
+			else {
+				LOG(LOG_ERROR) << "Failed to load start scene: " << static_cast<int>(error) << " (" << m_request_path << ")";
+				m_state = State::Failed;
+				if (handler) {
+					handler(error);
+				}
+			}
 			});
 	}
 

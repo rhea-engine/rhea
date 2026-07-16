@@ -100,8 +100,12 @@ namespace rhea
 		using OpenHandler =	std::function<void(OpenError)>;
 		using PrepareHandler = std::function<PrepareError(WorldContext* context)>;
 
-		// scene lifecycle management
 		void openWorld(std::string& resource_id, OpenHandler handler = nullptr);
+		// scene lifecycle management
+		// load a scene without transitioning to it
+		void loadScene(std::string& resource_id, OpenHandler handler = nullptr);
+		// transition to a scene
+		void transitionToScene(std::string& resource_id, OpenHandler handler = nullptr);
 
 		// get current state
 		World* getWorld() const { return m_world; }
@@ -124,6 +128,7 @@ namespace rhea
 		void onWorldLoaded(uint64_t requestId, Component* component, OpenHandler handler);
 
 		void loadStartScene(uint64_t requestId, OpenHandler handler);
+		// activate loaded scene and make it primary scene
 		void onSceneLoaded(Scene* scene, OpenHandler handler);
 
 		PrepareError prepareScene(Scene* next_scene);

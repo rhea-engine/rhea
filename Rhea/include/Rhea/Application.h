@@ -55,6 +55,8 @@ namespace rhea
 		virtual void setup();
 		// onScene Event
 		virtual void onScene(Scene*) = 0;
+		// set physics service
+		void setPhysicsService(PhysicsService* physics) { m_physics = physics; }
 
 		/**
 		 * Main Application Loop

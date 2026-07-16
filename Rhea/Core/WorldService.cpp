@@ -191,7 +191,7 @@ namespace rhea
 			return;
 		}
 
-		//scene->activate();
+		scene->activate();
 		scene->show();
 		m_state = State::Ready;
 		if (handler)

@@ -9,6 +9,8 @@
 #include <Rhea/Physics/PhysicsService.h>
 #include <Rhea/Physics/PhysicsBody.h>
 #include <Rhea/Core/Item.h>
+#include <Rhea/Core/WorldService.h>
+#include <Psio/Log.h>
 
 namespace rhea
 {
@@ -74,8 +76,48 @@ namespace rhea
 
 	void PhysicsManagerService::onInit()
 	{
-		// optional: choose default backend if desired, or do nothing
-		// createPhysicsService("none");
+		// register in worldservice to be called during world prepare
+		WorldService* world_service = doCast<WorldService>(m_app->getService("world"));
+		if (world_service) {
+			world_service->addWorldPrepareHandler([this](WorldContext* context) -> rhea::WorldService::PrepareError {
+				
+				// initialize physics
+
+				std::string backend = "none";
+				if (!context || (!context->start_scene && !context->world)) {
+					LOG(LOG_ERROR) << "WorldService has no world and no start scene. Physics will be disabled.";
+					return rhea::WorldService::PrepareError::PhysicsInitializationFailed;
+				}
+				std::string phy = "none";
+				if (context->world)
+					phy = context->world->getValueString("physics", "none");
+				else if (context->start_scene)
+					phy = context->start_scene->getValueString("physics", "none");
+				if (phy == std::string("world") || phy == std::string("bullet")) {
+					backend = "world";
+				}
+				else if (phy == std::string("none")) {
+					backend = "none";
+				}
+				else if (!phy.empty()) {
+					// allow future backends by id, e.g. "physx"
+					backend = phy;
+				}
+				// create service by id (manager handles fallback to "none" if unknown/unavailable)
+				rhea::PhysicsService* physics = createPhysicsService(backend);
+				if (!physics) {
+					// last-resort fallback if the manager doesn't already do it
+					physics = createPhysicsService("none");
+				}
+				if (physics) {
+					physics->onInit();
+					m_app->setPhysicsService(physics);
+					return rhea::WorldService::PrepareError::None;
+				}
+
+				return WorldService::PrepareError::PhysicsInitializationFailed;
+				});
+		}
 	}
 
 	// note: currently physics_service is stored directly in application

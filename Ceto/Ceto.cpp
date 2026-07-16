@@ -428,54 +428,22 @@ void Ceto::setScene(bool mark_preferrences)
 	auto* worlds = doCast<rhea::WorldService>(getService("world"));
 	worlds->addWorldPrepareHandler([this](rhea::WorldContext* context) -> rhea::WorldService::PrepareError
 		{
-			// initialize physics
-			auto* mgr = static_cast<rhea::PhysicsManagerService*>(m_services["physics_mgr"]);
-			if (!mgr) {
-				LOG(LOG_ERROR) << "No physics manager service found. Physics will be disabled.";
-				return rhea::WorldService::PrepareError::PhysicsInitializationFailed;
+			m_focused_controller = m_unit_tree->findByType<rhea::Controller>();
+			if (!m_focused_controller) {
+				// no controller found - use camera and add default controller for it
+				// note: spectator does not work, because we have no controlled element
+				m_focused_controller = new rhea::BasicController("camera_controller", "//meworla/controller");
+				m_focused_controller->setup(this);
+				m_focused_controller->connect(m_view);
+				context->start_scene->addChild(m_focused_controller);
 			}
-			else {
-				std::string backend = "none";
-				std::string phy = context->start_scene->getValueString("physics", "none");
-				if (phy == std::string("world") || phy == std::string("bullet")) {
-					backend = "world";
-				}
-				else if (phy == std::string("none")) {
-					backend = "none";
-				}
-				else if (!phy.empty()) {
-					// allow future backends by id, e.g. "physx"
-					backend = phy;
-				}
-				// create service by id (manager handles fallback to "none" if unknown/unavailable)
-				rhea::PhysicsService* physics = mgr->createPhysicsService(backend);
-				if (!physics) {
-					// last-resort fallback if the manager doesn't already do it
-					physics = mgr->createPhysicsService("none");
-				}
-				if (physics) {
-					physics->onInit();
-					m_physics = physics;
-					return rhea::WorldService::PrepareError::None;
-				}
-
-				m_focused_controller = m_unit_tree->findByType<rhea::Controller>();
-				if (!m_focused_controller) {
-					// no controller found - use camera and add default controller for it
-					// note: spectator does not work, because we have no controlled element
-					m_focused_controller = new rhea::BasicController("camera_controller", "//meworla/controller");
-					m_focused_controller->setup(this);
-					m_focused_controller->connect(m_view);
-					context->start_scene->addChild(m_focused_controller);
-				}
-			}
-			return rhea::WorldService::PrepareError::PhysicsInitializationFailed;
+			return rhea::WorldService::PrepareError::None;
 		});
 
 	worlds->openWorld(m_home_scene,	[this, worlds](rhea::WorldService::OpenError error)
 		{
 			if (error != rhea::WorldService::OpenError::None) {
-				log("Could not open scene");
+				log("Ceto: Could not open scene");
 				rhea::Widget* w = doCast<rhea::Widget>(m_unit_tree->find("//local/cetogui/gui/realms"));
 				if (w) {
 					m_gui_controller->closeDialog((rhea::Dialog*)w);

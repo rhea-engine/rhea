@@ -275,18 +275,15 @@ namespace rhea::physics::bullet
 			m_ground = nullptr;
 		}
 
-		std::vector<rhea::Item*> items = m_scene->getItems();
-
-		for (auto it = items.begin(); it != items.end(); ++it) {
-			rhea::Item* item = *it;
-			auto* pc = item->getComponent<PhysicsComponent>();
-			if (!pc)
-				continue;
-			pc->deleteBody();
+		for (auto* item : scene->getItems()) {
+			item->deleteComponent<PhysicsComponent>();
 		}
 
 		scene->unregisterEventHandler("scene_item_added", this);
 		scene->unregisterEventHandler("scene_item_removed", this);
+
+		if (m_scene == scene)
+			m_scene = nullptr;
 	}
 
 	bool BulletPhysicsService::onItemAdd(rhea::Event* ev, rhea::Unit* unit)
@@ -312,11 +309,24 @@ namespace rhea::physics::bullet
 
 	void BulletPhysicsService::initializeItem(rhea::Item* item)
 	{
+		if (!item) {
+			LOG(LOG_ERROR) << "BulletPhysicsService::initializeItem: no item";
+			return;
+		}
+
 	//	auto* mgr = doCast<rhea::PhysicsManagerService>(m_app->getService("physics_mgr"));		
 	//	const auto* desc = mgr->getBodyDescFor(item);
 	//	if (!desc || desc->kind.empty()) return;
 		auto* pdc = item->getComponent<rhea::PhysicsDataComponent>();
 		if (!pdc) return;
+
+		if (auto* existing = item->getComponent<PhysicsComponent>()) {
+			if (existing->getBody())
+				return;
+
+			// clean up an inconsistent old state.
+			item->deleteComponent<PhysicsComponent>();
+		}
 
 		auto body = createBody(pdc, item); // bullet decides by desc.kind
 		auto* bt = static_cast<BulletPhysicsBody*>(body.get()); // safe in this backend
@@ -334,6 +344,10 @@ namespace rhea::physics::bullet
 
 	void BulletPhysicsService::removeItem(rhea::Item* item)
 	{
+		if (!item) {
+			LOG(LOG_ERROR) << "BulletPhysicsService::removeItem: no item";
+			return;
+		}
 		item->deleteComponent<PhysicsComponent>();
 	}
 

@@ -59,14 +59,14 @@ namespace rhea
 
 	bool KinematicCharacter::doPhysics(Event* ev, Unit* unit)
 	{
-		if (!m_physics_body)
-			if (!getPhysicsBody())
-				return false;
+		auto* physics_body = getPhysicsBody();
+		if (!physics_body)
+			return false;
 		
 		Position position = getTransform()->getWorldPosition();		
 
 		float delta = static_cast<PhysicsEvent*>(ev)->getDelta();		
-		auto* character = m_physics_body->query<IPhysicsCharacter>("PhysicsCharacter");
+		auto* character = physics_body->query<IPhysicsCharacter>("PhysicsCharacter");
 		if (!character) {
 			return false;
 		}
@@ -116,7 +116,7 @@ namespace rhea
 			if (!pos.equals(position.getTranslation())) {
 				position.setPosition(pos);
 				getTransform()->setPosition(position);
-				m_physics_body->setPosition(pos);
+				physics_body->setPosition(pos);
 				dirty = true;
 			}
 
@@ -143,7 +143,7 @@ namespace rhea
 			position.setRotation(m_orientation);
 			getTransform()->setWorldPosition(position);
 			dirty = true;
-			m_physics_body->setOrientation(m_orientation);
+			physics_body->setOrientation(m_orientation);
 		}
 		if (dirty) {
 			for (auto* l : m_movement_listeners) {
@@ -165,7 +165,10 @@ namespace rhea
 			Position position = getTransform()->getWorldPosition();
 			math::Vector3 pos = position.getTranslation();
 			m_jump_start_y = pos.y;
-			auto* character = m_physics_body->query<IPhysicsCharacter>("PhysicsCharacter");
+			auto* physics_body = getPhysicsBody();
+			if (!physics_body)
+				return;
+			auto* character = physics_body->query<IPhysicsCharacter>("PhysicsCharacter");
 			if (!character) {
 				return;
 			}

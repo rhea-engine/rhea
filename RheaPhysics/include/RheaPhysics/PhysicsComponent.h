@@ -42,7 +42,14 @@ namespace rhea::physics
 			}
 		}
 		rhea::PhysicsBody* getBody() { return m_body.get(); }
-		void deleteBody() { m_body.reset(); }
+		void deleteBody() { 
+			if (auto* item = doCast<rhea::Item>(getParent())) {
+				if (item->getPhysicsBody() == m_body.get())
+					item->setPhysicsBody(nullptr);
+			}
+
+			m_body.reset();
+		}
 
 		// movement listener functions
 		void onMovementChanged(const math::Vector3& move) override {

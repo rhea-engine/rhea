@@ -17,6 +17,7 @@
 #include "Rhea/Core/Camera.h"
 #include "Rhea/Physics/PhysicsManagerService.h"
 #include "Rhea/Physics/PhysicsService.h"
+#include <Rhea/Core/WorldService.h>
 
 #include "Poseidon/Material.h"
 #include "Poseidon/Shader.h"
@@ -424,145 +425,100 @@ void Ceto::setScene(bool mark_preferrences)
 		stream->Close();
 	}
 
-	loadResource(m_home_scene, "//meworla/scene", [&](rhea::Component* scene_unit, ReqError err) {
-		rhea::Scene* scene = doCast<rhea::Scene>(scene_unit);
-		if (scene && err == ReqError::OK) {
+	auto* worlds = doCast<rhea::WorldService>(getService("world"));
+	worlds->addWorldPrepareHandler([this](rhea::WorldContext* context) -> rhea::WorldService::PrepareError
+		{
+			// initialize physics
+			auto* mgr = static_cast<rhea::PhysicsManagerService*>(m_services["physics_mgr"]);
+			if (!mgr) {
+				LOG(LOG_ERROR) << "No physics manager service found. Physics will be disabled.";
+				return rhea::WorldService::PrepareError::PhysicsInitializationFailed;
+			}
+			else {
+				std::string backend = "none";
+				std::string phy = context->start_scene->getValueString("physics", "none");
+				if (phy == std::string("world") || phy == std::string("bullet")) {
+					backend = "world";
+				}
+				else if (phy == std::string("none")) {
+					backend = "none";
+				}
+				else if (!phy.empty()) {
+					// allow future backends by id, e.g. "physx"
+					backend = phy;
+				}
+				// create service by id (manager handles fallback to "none" if unknown/unavailable)
+				rhea::PhysicsService* physics = mgr->createPhysicsService(backend);
+				if (!physics) {
+					// last-resort fallback if the manager doesn't already do it
+					physics = mgr->createPhysicsService("none");
+				}
+				if (physics) {
+					physics->onInit();
+					m_physics = physics;
+					return rhea::WorldService::PrepareError::None;
+				}
 
+				m_focused_controller = m_unit_tree->findByType<rhea::Controller>();
+				if (!m_focused_controller) {
+					// no controller found - use camera and add default controller for it
+					// note: spectator does not work, because we have no controlled element
+					m_focused_controller = new rhea::BasicController("camera_controller", "//meworla/controller");
+					m_focused_controller->setup(this);
+					m_focused_controller->connect(m_view);
+					context->start_scene->addChild(m_focused_controller);
+				}
+			}
+			return rhea::WorldService::PrepareError::PhysicsInitializationFailed;
+		});
+
+	worlds->openWorld(m_home_scene,	[this, worlds](rhea::WorldService::OpenError error)
+		{
+			if (error != rhea::WorldService::OpenError::None) {
+				log("Could not open scene");
+				rhea::Widget* w = doCast<rhea::Widget>(m_unit_tree->find("//local/cetogui/gui/realms"));
+				if (w) {
+					m_gui_controller->closeDialog((rhea::Dialog*)w);
+				}
+				showAlert("Could not open world");
+				return;
+			}
+			
 			// set origin info
 			rhea::Unit* engine = doCast<rhea::Unit>(m_unit_tree->getChild("engine"));
 			if (engine)
 				engine->setValue("origin", m_home_scene);
+
 
 			// hide GUI background
 			rhea::GUIController* w = doCast<rhea::GUIController>(m_unit_tree->find("//local/cetogui/gui"));
 			if (w) {
 				w->setStyle(rhea::StylePropertyId::kBackgroundImage, "none");
 				w->UpdateStyle();
-			}				
+			}
 
 			inScene = true;
 
-			// display scene
-			std::string start_scene = scene->getValueString("startscene", "");
-			if (start_scene != "") {
-				rhea::Scene* go_scene = doCast<rhea::Scene>(m_unit_tree->find(start_scene, scene->getPath(), false));
-				if (go_scene)
-					showScene(go_scene);
-				else {
-					LOG(LOG_ERROR) << "Startscene '" << start_scene << "' not found.";
-					showScene(scene);
+			rhea::Scene* scene = worlds->getCurrentScene();
+
+			rhea::Unit* gus2 = doCast<rhea::Unit>(scene->getChild("gus2"));
+			if (gus2)
+			{
+				rhea::Mesh* mesh = doCast<rhea::Mesh>(gus2->getChild("mesh"));
+				if (mesh) {
+					rhea::Animation* anim = doCast<rhea::Animation>(mesh->getChild("RunningAction"));
+					rhea::Skeleton* skeleton = doCast<rhea::Skeleton>(mesh->getComponent<rhea::Skeleton>());
+					if (anim && skeleton) {
+						// add the animator to the scene
+						rhea::Animator* animator = new rhea::Animator("Animator", "//meworla/animator");
+						animator->setSkeleton(skeleton);
+						animator->PlayAnimation(anim);
+						scene->addChild(animator);
+					}
 				}
 			}
-			else {
-				showScene(scene);
-			}
-		}
-		else {
-			rhea::Collection* dir = doCast<rhea::Collection>(scene_unit);
-			if (dir) {
-				// user tried to open directory
-				// try world.scene
-				m_home_scene += "/world.scene";
-				return setScene(false);
-			}
-
-			log("Could not open scene");
-			rhea::Widget* w = doCast<rhea::Widget>(m_unit_tree->find("//local/cetogui/gui/realms"));
-			if (w) {
-				m_gui_controller->closeDialog((rhea::Dialog*)w);
-			}
-			showAlert("Could not open scene");
-		}
 		});
-}
-
-void Ceto::showScene(rhea::Scene* scene)
-{
-	// initialize physics
-	auto* mgr = static_cast<rhea::PhysicsManagerService*>(m_services["physics_mgr"]);
-	if (!mgr) {
-		LOG(LOG_ERROR) << "No physics manager service found. Physics will be disabled.";		
-	}
-	else { 
-		std::string backend = "none";
-		std::string phy = scene->getValueString("physics", "none");
-		if (phy == std::string("world") || phy == std::string("bullet")) {
-			backend = "world";
-		}
-		else if (phy == std::string("none")) {
-			backend = "none";
-		}
-		else if (!phy.empty()) {
-			// allow future backends by id, e.g. "physx"
-			backend = phy;
-		}
-
-		// create service by id (manager handles fallback to "none" if unknown/unavailable)
-		rhea::PhysicsService* physics = mgr->createPhysicsService(backend);
-		if (!physics) {
-			// last-resort fallback if the manager doesn't already do it
-			physics = mgr->createPhysicsService("none");
-		}
-
-		if (physics) {
-			physics->onInit();			
-			m_physics = physics;
-		}		
-	}
-
-	// search for a camera		
-	/*	
-	m_view = scene->findByType<rhea::Camera>();
-	if (!m_view) {
-		// no camera found - create a default cam
-		m_view = static_cast<rhea::Camera*>(m_unit_tree->createUnit("camera", "//meworla/camera"));
-		scene->addChild(m_view);
-
-		rhea::client::GraphicsService* gs = static_cast<rhea::client::GraphicsService*>(getService("graphics"));
-		rhea::client::GraphicsManager* mgr = gs->getManager<rhea::Camera>();
-		//rhea::client::GraphicsCamera::createElement(core, m_view);
-		mgr->Ensure(core, m_view);
-		Variant pos = scene->getValue("start");
-		if (pos != Variant()) {
-			math::Vector3 start_pos(pos[0], pos[1], pos[2]);
-			m_view->setPosition(start_pos);
-		}
-		else {
-			m_view->setPosition(math::Vector3(0, 1.7f, 0.0f));
-		}
-	}
-	*/
-
-	// search for a controller
-	m_focused_controller = m_unit_tree->findByType<rhea::Controller>();
-	if (!m_focused_controller) {
-		// no controller found - use camera and add default controller for it
-		// note: spectator does not work, because we have no controlled element
-		m_focused_controller = new rhea::BasicController("camera_controller", "//meworla/controller");
-		m_focused_controller->setup(this);
-		m_focused_controller->connect(m_view);
-		scene->addChild(m_focused_controller);
-	}
-
-	// now we are ready
-	scene->show();
-
-	rhea::Unit* gus2 = doCast<rhea::Unit>(scene->getChild("gus2"));
-	if (gus2)
-	{
-		rhea::Mesh* mesh = doCast<rhea::Mesh>(gus2->getChild("mesh"));
-		if (mesh) {
-			rhea::Animation* anim = doCast<rhea::Animation>(mesh->getChild("RunningAction"));
-			rhea::Skeleton* skeleton = doCast<rhea::Skeleton>(mesh->getComponent<rhea::Skeleton>());
-			if (anim && skeleton) {
-				// add the animator to the scene
-				rhea::Animator* animator = new rhea::Animator("Animator", "//meworla/animator");
-				animator->setSkeleton(skeleton);
-				animator->PlayAnimation(anim);
-				scene->addChild(animator);
-			}
-		}
-	}
+	
 }
 
 void Ceto::showAlert(std::string text)

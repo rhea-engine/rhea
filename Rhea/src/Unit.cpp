@@ -271,7 +271,7 @@ namespace rhea
 	{
 		auto it = m_eventhandlers.find(event_name);
 		if (it != m_eventhandlers.end()) {
-			(it->second)[owner] = nullptr;				
+			(it->second).erase(owner);
 		}
 	}
 

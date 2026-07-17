@@ -39,8 +39,17 @@ namespace rhea::client
 		auto* rc = light->getComponent<RenderComponent>();
 		if (!rc) rc = light->addComponentUnique<RenderComponent>("renderer", m_next_id++);
 
-		if (rc->hasLight())
+		if (rc->hasLight()) {
+			// already registered
+			// ensure context is valid
+			if (!rc->ctx) {
+				rc->ctx = getRenderContext(core, "default");
+				if (rc->ctx) {
+					rc->ctx->addLight(rc->light);
+				}
+			}
 			return true;
+		}
 
 		DLOG(LOG_DEBUG) << "GraphicsItemManager::Ensure: registering light";
 		poseidon::RenderContext* context = getRenderContext(core, "default");

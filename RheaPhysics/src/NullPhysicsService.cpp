@@ -25,7 +25,7 @@ namespace rhea::physics
 		sendEvent(std::string("pre_physics"), ev.get());
 	}
 
-	void NullPhysicsService::setScene(rhea::Scene* scene)
+	void NullPhysicsService::activateScene(rhea::Scene* scene)
 	{
 		// get items of scene
 		std::vector<rhea::Item*> items = scene->getItems();
@@ -36,6 +36,17 @@ namespace rhea::physics
 				continue;
 
 			initializeItem(item);
+		}
+	}
+
+	void NullPhysicsService::deactivateScene(rhea::Scene* scene)
+	{
+		// get items of scene
+		std::vector<rhea::Item*> items = scene->getItems();
+		for (auto it = items.begin(); it != items.end(); ++it) {
+			rhea::Item* item = *it;
+			if (item->getComponent<PhysicsComponent>())
+				removeItem(item);
 		}
 	}
 
@@ -61,7 +72,11 @@ namespace rhea::physics
 	void NullPhysicsService::onInit()
 	{
 		m_app->getUnitTree()->registerEventHandler("scene_activate", this, [&](rhea::Event* ev, rhea::Unit* tree)->bool {
-			setScene((rhea::Scene*)ev->getTarget());
+			activateScene((rhea::Scene*)ev->getTarget());
+			return false;
+			});
+		m_app->getUnitTree()->registerEventHandler("scene_deactivate", this, [&](rhea::Event* ev, rhea::Unit* tree)->bool {
+			deactivateScene((rhea::Scene*)ev->getTarget());
 			return false;
 			});
 	}

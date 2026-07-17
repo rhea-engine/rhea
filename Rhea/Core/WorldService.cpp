@@ -109,6 +109,81 @@ namespace rhea
 			});
 	}
 	
+	void WorldService::activateScene(std::string& resource_id, OpenHandler handler)
+	{
+		loadScene(resource_id, [this, resource_id, handler](OpenError error) {
+			if (error == OpenError::None) {
+				// find the loaded scene
+				Scene* next_scene = nullptr;
+				for (auto& pair : m_managed_scenes) {
+					ManagedScene& managed_scene = pair.second;
+					if (managed_scene.resource_id == resource_id) {
+						next_scene = managed_scene.scene;
+						break;
+					}
+				}
+				if (next_scene) {
+					// prepare and activate the scene
+					PrepareError prepareError = prepareScene(next_scene);
+					if (prepareError != PrepareError::None) {
+						if (handler) {
+							handler(OpenError::InvalidStartScene);
+						}
+						return;
+					}
+
+					next_scene->activate();
+					next_scene->show();
+
+					m_next_scene = nullptr;
+					if (handler) {
+						handler(OpenError::None);
+					}
+				}
+				else {
+					LOG(LOG_ERROR) << "Activation failed: scene not found after loading: " << resource_id;
+					m_state = State::Failed;
+					if (handler) {
+						handler(OpenError::InvalidStartScene);
+					}
+				}
+			}
+			else {
+				LOG(LOG_ERROR) << "Activation failed: could not load scene: " << resource_id;
+				m_state = State::Failed;
+				if (handler) {
+					handler(error);
+				}
+			}
+			});
+	}
+
+	bool WorldService::deactivateScene(std::string& resource_id)
+	{
+		// find the loaded scene
+		Scene* scene_to_deactivate = nullptr;
+		for (auto& pair : m_managed_scenes) {
+			ManagedScene& managed_scene = pair.second;
+			if (managed_scene.resource_id == resource_id) {
+				scene_to_deactivate = managed_scene.scene;
+				break;
+			}
+		}
+		if (scene_to_deactivate) {
+			if (scene_to_deactivate == m_primary_scene) {
+				LOG(LOG_WARNING) << "Cannot deactivate primary scene: " << resource_id;
+				return false;
+			}
+			scene_to_deactivate->deactivate();
+			scene_to_deactivate->hide();
+			return true;
+		}
+		else {
+			LOG(LOG_WARNING) << "Scene not found for deactivation: " << resource_id;
+		}
+		return false;
+	}
+
 	void rhea::WorldService::transitionToScene(std::string& resource_id, OpenHandler handler)
 	{
 		loadScene(resource_id, [this, resource_id, handler](OpenError error) {

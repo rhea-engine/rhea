@@ -210,7 +210,24 @@ bool Ceto::handleDevShortcuts(const rhea::InputEvent& evt)
 			if (worlds->getPrimaryScene()->getPathName() == "scene2") {
 				scene_path = "//local/world1_scene1.scene";
 			}
+			m_focused_controller = nullptr;
 			worlds->transitionToScene(scene_path);
+		}
+	}
+	if (evt.isKeyPressed(rhea::Key::V)) {
+		// activate a new scene
+		auto* worlds = doCast<rhea::WorldService>(getService("world"));
+		std::string scene_path_a = "//local/world1_scene1_a.scene";
+		static bool scene1_a_active = false;
+		if (worlds) {
+			if (scene1_a_active) {
+				scene1_a_active = false;
+				worlds->deactivateScene(scene_path_a);
+			}
+			else {
+				scene1_a_active = true;
+				worlds->activateScene(scene_path_a);
+			}
 		}
 	}
 	return false;
@@ -456,8 +473,12 @@ void Ceto::setup()
 	m_unit_tree->addChild(mat);
 
 	auto* worlds = doCast<rhea::WorldService>(getService("world"));
-	worlds->addPrepareHandler([this](rhea::WorldContext* context) -> rhea::WorldService::PrepareError
+	worlds->addPrepareHandler([this, worlds](rhea::WorldContext* context) -> rhea::WorldService::PrepareError
 		{
+			// only set controller for primary scene
+			if (m_focused_controller)
+				return rhea::WorldService::PrepareError::None;
+
 			m_focused_controller = m_unit_tree->findByType<rhea::Controller>();
 			if (!m_focused_controller) {
 				// no controller found - use camera and add default controller for it

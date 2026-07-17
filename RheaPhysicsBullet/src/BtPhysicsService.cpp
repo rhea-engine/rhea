@@ -32,7 +32,6 @@ namespace rhea::physics::bullet
 {
 	BulletPhysicsService::BulletPhysicsService(std::string name, std::string type_name) :
 		m_world(nullptr),
-		m_scene(nullptr),
 		m_debug_drawer(nullptr),
 		rhea::PhysicsService("BulletPhysicsService", type_name)
 	{
@@ -63,7 +62,7 @@ namespace rhea::physics::bullet
 
 	void BulletPhysicsService::onPhysicsStep(float delta)
 	{
-		if (!m_world || !m_scene) {		
+		if (!m_world) {		
 			assert(false);
 			return;
 		}
@@ -199,12 +198,20 @@ namespace rhea::physics::bullet
 		}
 	}
 	
-	void BulletPhysicsService::setScene(rhea::Scene* scene)
+	void BulletPhysicsService::activateScene(rhea::Scene* scene)
 	{
 		if (!scene) {
-			LOG(LOG_ERROR) << "BulletPhysicsService::setScene: no scene";
+			LOG(LOG_ERROR) << "BulletPhysicsService::activateScene: no scene";
 			return;
 		}
+
+		// check if already activated
+		if (m_scene_states.find(scene) != m_scene_states.end()) {
+			LOG(LOG_WARNING) << "BulletPhysicsService::activateScene: scene already activated";
+			return;
+		}
+
+		ScenePhysicsState phy_state;
 
 		btAlignedObjectArray<btCollisionShape*> collisionShapes;
 		bool defaultGround = scene->getValue("ground");
@@ -231,15 +238,14 @@ namespace rhea::physics::bullet
 			//using motionstate is optional, it provides interpolation capabilities, and only synchronizes 'active' objects
 			btDefaultMotionState* myMotionState = new btDefaultMotionState(groundTransform);
 			btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, myMotionState, groundShape, localInertia);
-			m_ground = new btRigidBody(rbInfo);
+			phy_state.ground = new btRigidBody(rbInfo);
 
 			//add the body to the dynamics world
-			m_world->addRigidBody(m_ground);
+			m_world->addRigidBody(phy_state.ground);
 		}
 
 		// get items of scene
-		m_scene = scene;
-		std::vector<rhea::Item*> items = m_scene->getItems();
+		std::vector<rhea::Item*> items = scene->getItems();
 
 		for (auto it = items.begin(); it != items.end(); ++it) {
 			rhea::Item* item = *it;
@@ -257,22 +263,29 @@ namespace rhea::physics::bullet
 			"scene_item_removed", this,
 			std::bind(&BulletPhysicsService::onItemRemove, this, std::placeholders::_1, std::placeholders::_2)
 		);
+
+		// register the scene state
+		m_scene_states[scene] = phy_state;
 	}
 
-	void BulletPhysicsService::clearScene(rhea::Scene* scene)
+	void BulletPhysicsService::deactivateScene(rhea::Scene* scene)
 	{
 		if (!scene) {
-			LOG(LOG_ERROR) << "BulletPhysicsService::clearScene: no scene";
+			LOG(LOG_ERROR) << "BulletPhysicsService::deactivateScene: no scene";
 			return;
 		}
-		if (m_ground)
+		auto it = m_scene_states.find(scene);
+		if (it == m_scene_states.end())
 		{
-			m_world->removeRigidBody(m_ground);
+			// already deactivated
+			LOG(LOG_WARNING) << "BulletPhysicsService::deactivateScene: scene not activated";
+			return;
+		}
+		if (it->second.ground) {
+			m_world->removeRigidBody(it->second.ground);
 
-			delete m_ground->getMotionState();
-			delete m_ground;
-
-			m_ground = nullptr;
+			delete it->second.ground->getMotionState();
+			delete it->second.ground;
 		}
 
 		for (auto* item : scene->getItems()) {
@@ -282,8 +295,7 @@ namespace rhea::physics::bullet
 		scene->unregisterEventHandler("scene_item_added", this);
 		scene->unregisterEventHandler("scene_item_removed", this);
 
-		if (m_scene == scene)
-			m_scene = nullptr;
+		m_scene_states.erase(it);
 	}
 
 	bool BulletPhysicsService::onItemAdd(rhea::Event* ev, rhea::Unit* unit)
@@ -370,11 +382,11 @@ namespace rhea::physics::bullet
 		m_world->setGravity(btVector3(0.0f, -0.8f, 0.0f));
 
 		m_app->getUnitTree()->registerEventHandler("scene_activate", this, [&](rhea::Event* ev, rhea::Unit* tree)->bool {
-			setScene(doCast<rhea::Scene>(ev->getTarget()));
+			activateScene(doCast<rhea::Scene>(ev->getTarget()));
 			return false;
 			});
 		m_app->getUnitTree()->registerEventHandler("scene_deactivate", this, [&](rhea::Event* ev, rhea::Unit* tree)->bool {
-			clearScene(doCast<rhea::Scene>(ev->getTarget()));
+			deactivateScene(doCast<rhea::Scene>(ev->getTarget()));
 			return false;
 			});
 

@@ -35,7 +35,8 @@ namespace rhea::physics
 		void onPhysicsStep(float delta) override;
 
 		// set scene and initialize objects in it
-		void setScene(rhea::Scene* scene) override;		
+		void activateScene(rhea::Scene* scene) override;		
+		void deactivateScene(rhea::Scene* scene) override;
 
 		// initalize one object
 		void initializeItem(rhea::Item* item) override;

@@ -104,6 +104,11 @@ namespace rhea
 		// scene lifecycle management
 		// load a scene without transitioning to it
 		void loadScene(std::string& resource_id, OpenHandler handler = nullptr);
+		// activate a scene without transitioning to it
+		void activateScene(std::string& resource_id, OpenHandler handler = nullptr);
+		// deactivate a scene
+		// return false if scene was primary scene and cannot be deactivated
+		bool deactivateScene(std::string& resource_id);
 		// transition to a scene
 		void transitionToScene(std::string& resource_id, OpenHandler handler = nullptr);
 
@@ -121,7 +126,7 @@ namespace rhea
 		bool onFrameFinal(float delta) override;
 
 	protected:
-		// prepare a scene to display
+		// handle activate and deactivate scene events
 		void onSceneActivate(Scene* scene);
 		void onSceneDeactivate(Scene* scene);
 

@@ -217,7 +217,7 @@ bool Ceto::handleDevShortcuts(const rhea::InputEvent& evt)
 				{},
 				false
 			};
-			worlds->transitionToScene(&request);
+			worlds->transitionToScene(request);
 		}
 	}
 	if (evt.isKeyPressed(rhea::Key::V)) {
@@ -652,7 +652,7 @@ bool Ceto::onFrameEnd()
 
 void Ceto::onScene(rhea::Scene* scene)
 {
-	log("scene displayed");
+	LOG(LOG_DEBUG) << "Ceto::onScene: scene '" << scene->getPathName() << "' is ready";
 	std::unique_ptr<rhea::Event> ev_r = std::make_unique<rhea::Event>("ready", scene);
 	scene->sendEvent(std::string("ready"), ev_r.get());
 

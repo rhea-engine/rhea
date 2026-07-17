@@ -58,9 +58,13 @@ namespace rhea
 
 	void WorldService::beginSession()
 	{
+		WorldSessionChangedEvent event(this, m_world, m_session_generation, m_session_generation + 1);
+
 		++m_session_generation;
 		deactivatePreviousSession();
 		m_primary_scene = nullptr;
+
+		sendEvent("world_session_changed", &event);
 	}
 
 	void WorldService::deactivatePreviousSession()
@@ -444,6 +448,9 @@ namespace rhea
 		m_state = State::Ready;
 		m_managed_scenes[scene].state = SceneLifecycleState::Active;
 		m_managed_scenes[scene].lifecycle_managed = true;
+
+		PrimarySceneChangedEvent event(this, m_primary_scene, old_scene, m_session_generation);
+		sendEvent("primary_scene_changed", &event);
 
 		if (handler)
 			handler(OpenError::None);

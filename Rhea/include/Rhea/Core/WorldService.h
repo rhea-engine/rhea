@@ -12,6 +12,7 @@
 #include "Rhea/Core/Scene.h"
 #include <Rhea/Core/World.h>
 #include <Rhea/Application.h>
+#include <Rhea/Event.h>
 
 namespace rhea
 {
@@ -131,6 +132,39 @@ namespace rhea
 			bool lifecycle_managed = false;
 			
 			bool isPrepared() const { return state == SceneLifecycleState::Prepared || state == SceneLifecycleState::Active; }
+		};
+
+		class PrimarySceneChangedEvent : public Event
+		{
+		public:
+			PrimarySceneChangedEvent(WorldService* service, Scene* current_scene, Scene* previous_scene, uint64_t session_generation) :
+				Event("primary_scene_changed", nullptr),
+				service(service),
+				current_scene(current_scene),
+				previous_scene(previous_scene),
+				session_generation(session_generation)
+			{}
+			WorldService* service = nullptr;
+			Scene* current_scene = nullptr;
+			Scene* previous_scene = nullptr;
+			uint64_t session_generation = 0;
+		};
+
+		class WorldSessionChangedEvent : public Event
+		{
+		public:
+			WorldSessionChangedEvent(WorldService* service,	World* world, uint64_t previous, uint64_t current)
+				: Event("world_session_changed", nullptr),
+				service(service),
+				world(world),
+				previous_generation(previous),
+				current_generation(current)
+			{}
+
+			WorldService* service;
+			World* world;
+			uint64_t previous_generation;
+			uint64_t current_generation;
 		};
 
 		WorldService(std::string name, std::string type_name) :

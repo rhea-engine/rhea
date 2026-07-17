@@ -57,13 +57,12 @@ namespace rhea
 			});
 	}
 
-	void WorldService::loadScene(std::string& resource_id, OpenHandler handler)
+	void WorldService::loadScene(std::string resource_id, OpenHandler handler)
 	{
 		// check if the scene is already loaded
 		for (auto& pair : m_managed_scenes) {
 			ManagedScene& managed_scene = pair.second;
 			if (managed_scene.resource_id == resource_id) {
-				LOG(LOG_INFO) << "Scene already loaded: " << resource_id;
 				if (handler) {
 					handler(OpenError::None);
 				}
@@ -83,7 +82,7 @@ namespace rhea
 					return; // stale result
 				}
 				if (error == ReqError::OK) {
-					LOG(LOG_INFO) << "Loaded scene: " << m_request_path;
+					LOG(LOG_DEBUG) << "Loaded scene: " << m_request_path;
 					Scene* scene = doCast<Scene>(component);
 					if (scene) {
 						m_managed_scenes[scene] = ManagedScene{ scene, SceneRole::External, SceneLifecycleState::Loaded, nullptr, m_request_path, true };
@@ -115,21 +114,24 @@ namespace rhea
 			if (error == OpenError::None) {
 				// find the loaded scene
 				Scene* next_scene = nullptr;
+				ManagedScene managed_scene;
 				for (auto& pair : m_managed_scenes) {
-					ManagedScene& managed_scene = pair.second;
+					managed_scene = pair.second;
 					if (managed_scene.resource_id == resource_id) {
 						next_scene = managed_scene.scene;
 						break;
 					}
 				}
 				if (next_scene) {
-					// prepare and activate the scene
-					PrepareError prepareError = prepareScene(next_scene);
-					if (prepareError != PrepareError::None) {
-						if (handler) {
-							handler(OpenError::InvalidStartScene);
+					// prepare the scene if not already prepared
+					if (!managed_scene.isPrepared()) {
+						PrepareError prepareError = prepareScene(next_scene, managed_scene.role, managed_scene.owner_scene);
+						if (prepareError != PrepareError::None) {
+							if (handler) {
+								handler(OpenError::InvalidStartScene);
+							}
+							return;
 						}
-						return;
 					}
 
 					next_scene->activate();
@@ -184,24 +186,24 @@ namespace rhea
 		return false;
 	}
 
-	void rhea::WorldService::transitionToScene(std::string& resource_id, OpenHandler handler)
+	void rhea::WorldService::transitionToScene(const TransitionRequest* request, OpenHandler handler)
 	{
-		loadScene(resource_id, [this, resource_id, handler](OpenError error) {
+		loadScene(request->target_resource_id, [this, request, handler](OpenError error) {
 			if (error == OpenError::None) {
 				// find the loaded scene
 				Scene* next_scene = nullptr;
 				for (auto& pair : m_managed_scenes) {
 					ManagedScene& managed_scene = pair.second;
-					if (managed_scene.resource_id == resource_id) {
+					if (managed_scene.resource_id == request->target_resource_id) {
 						next_scene = managed_scene.scene;
 						break;
 					}
 				}
 				if (next_scene) {
-					onSceneLoaded(next_scene, handler);
+					doTransitionScene(next_scene, const_cast<TransitionRequest*>(request), handler);
 				}
 				else {
-					LOG(LOG_ERROR) << "Transition failed: scene not found after loading: " << resource_id;
+					LOG(LOG_ERROR) << "Transition failed: scene not found after loading: " << request->target_resource_id;
 					m_state = State::Failed;
 					if (handler) {
 						handler(OpenError::InvalidStartScene);
@@ -209,7 +211,7 @@ namespace rhea
 				}
 			}
 			else {
-				LOG(LOG_ERROR) << "Transition failed: could not load scene: " << resource_id;
+				LOG(LOG_ERROR) << "Transition failed: could not load scene: " << request->target_resource_id;
 				m_state = State::Failed;
 				if (handler) {
 					handler(error);
@@ -266,7 +268,7 @@ namespace rhea
 		if (scene == nullptr)
 			return;
 		if (m_managed_scenes.find(scene) != m_managed_scenes.end()) {
-			m_managed_scenes[scene].state = SceneLifecycleState::Loaded;
+			m_managed_scenes[scene].state = SceneLifecycleState::Prepared;
 		}		
 	}
 
@@ -301,7 +303,7 @@ namespace rhea
 				}
 				return;
 			}
-			onSceneLoaded(m_next_scene, handler);
+			doTransitionScene(m_next_scene, nullptr, handler);
 		}
 		else if (doCast<Collection>(component)) {
 			// user tried to open directory
@@ -337,7 +339,7 @@ namespace rhea
 		Scene* embedded = doCast<Scene>(m_world->find(start, m_world->getPath(), false));
 		if (embedded) {
 			m_next_scene = embedded;
-			onSceneLoaded(m_next_scene, handler);
+			doTransitionScene(m_next_scene, nullptr, handler);
 			return;
 		}
 
@@ -356,7 +358,7 @@ namespace rhea
 					}
 				}
 				if (next_scene) {
-					onSceneLoaded(next_scene, handler);
+					doTransitionScene(next_scene, nullptr, handler);
 				}
 				else {
 					LOG(LOG_ERROR) << "Start scene not found after loading: " << m_request_path;
@@ -376,20 +378,47 @@ namespace rhea
 			});
 	}
 
-	void WorldService::onSceneLoaded(Scene* scene, OpenHandler handler)
-	{
-		PrepareError prepareError = prepareScene(scene);
-		if (prepareError != PrepareError::None) {
+	void WorldService::doTransitionScene(Scene* scene, TransitionRequest* request, OpenHandler handler)
+	{		
+		if (m_managed_scenes.find(scene) == m_managed_scenes.end()) {
+			LOG(LOG_ERROR) << "Scene is not managed by WorldService: " << scene->getPathName();
 			if (handler) {
 				handler(OpenError::InvalidStartScene);
 			}
 			return;
 		}
+		else if (m_managed_scenes[scene].state == SceneLifecycleState::Active) {
+			LOG(LOG_WARNING) << "Scene is already active: " << scene->getPathName();
+			if (handler) {
+				handler(OpenError::None);
+			}
+			return;
+		}
+		else if (m_managed_scenes[scene].state == SceneLifecycleState::Loaded) {
+			PrepareError prepareError = prepareScene(scene, SceneRole::Primary);
+			if (prepareError != PrepareError::None) {
+				if (handler) {
+					handler(OpenError::InvalidStartScene);
+				}
+				return;
+			}
+		}
+		
+		m_managed_scenes[scene].role = SceneRole::Primary;
 
+		// prepare the transition to the new scene
+		if (prepareSceneTransition(m_primary_scene, scene, nullptr, request) != PrepareError::None) {
+			if (handler) {
+				handler(OpenError::InvalidStartScene);
+			}
+			return;
+		}
 		if (m_primary_scene) {
 			m_primary_scene->hide();
 			m_primary_scene->deactivate();
 			m_primary_scene = nullptr;
+			if (m_managed_scenes.find(m_primary_scene) != m_managed_scenes.end())
+				m_managed_scenes[m_primary_scene].state = SceneLifecycleState::Prepared;
 		}
 
 		m_primary_scene = scene;
@@ -398,14 +427,16 @@ namespace rhea
 		scene->activate();
 		scene->show();
 		m_state = State::Ready;
+		m_managed_scenes[scene].state = SceneLifecycleState::Active;
+
 		if (handler)
 			handler(OpenError::None);
 	}
 
-	WorldService::PrepareError WorldService::prepareScene(Scene* next_scene)
+	WorldService::PrepareError WorldService::prepareScene(Scene* next_scene, SceneRole role, Scene* owner_scene)
 	{
-		WorldContext context = { m_world, next_scene, m_primary_scene };
-		for (PrepareHandler& preparer : m_prepare_handlers) {
+		ScenePrepareContext context = { m_world, m_primary_scene, next_scene, role, owner_scene };
+		for (ScenePrepareHandler& preparer : m_scene_prepare_handlers) {
 			PrepareError error = preparer(&context);
 			if (error != PrepareError::None)
 				return error;
@@ -416,11 +447,22 @@ namespace rhea
 
 	WorldService::PrepareError WorldService::prepareWorld(World* world)
 	{
-		WorldContext context = { world, m_next_scene, m_primary_scene };
-		for (PrepareHandler& preparer : m_world_prepare_handlers) {
+		WorldPrepareContext context = { world, m_next_scene };
+		for (WorldPrepareHandler& preparer : m_world_prepare_handlers) {
 			PrepareError error = preparer(&context);
 			if (error != PrepareError::None)
 				return error;
+		}
+		return PrepareError::None;
+	}
+
+	WorldService::PrepareError WorldService::prepareSceneTransition(Scene* source_scene, Scene* target_scene, Unit* entry_point, const TransitionRequest* request)
+	{
+		SceneTransitionContext context = { m_world, source_scene, target_scene, entry_point, request };
+		for (TransitionHandler& handler : m_scene_transition_handlers) {
+			TransitionError error = handler(&context);
+			if (error != TransitionError::None)
+				return PrepareError::InvalidController;
 		}
 		return PrepareError::None;
 	}

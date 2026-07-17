@@ -211,7 +211,13 @@ bool Ceto::handleDevShortcuts(const rhea::InputEvent& evt)
 				scene_path = "//local/world1_scene1.scene";
 			}
 			m_focused_controller = nullptr;
-			worlds->transitionToScene(scene_path);
+			const rhea::WorldService::TransitionRequest request = {
+				scene_path,
+				"entrypoint",
+				{},
+				false
+			};
+			worlds->transitionToScene(&request);
 		}
 	}
 	if (evt.isKeyPressed(rhea::Key::V)) {
@@ -473,12 +479,8 @@ void Ceto::setup()
 	m_unit_tree->addChild(mat);
 
 	auto* worlds = doCast<rhea::WorldService>(getService("world"));
-	worlds->addPrepareHandler([this, worlds](rhea::WorldContext* context) -> rhea::WorldService::PrepareError
+	worlds->addSceneTransitionHandler([this, worlds](rhea::WorldService::SceneTransitionContext* context) -> rhea::WorldService::TransitionError
 		{
-			// only set controller for primary scene
-			if (m_focused_controller)
-				return rhea::WorldService::PrepareError::None;
-
 			m_focused_controller = m_unit_tree->findByType<rhea::Controller>();
 			if (!m_focused_controller) {
 				// no controller found - use camera and add default controller for it
@@ -486,9 +488,9 @@ void Ceto::setup()
 				m_focused_controller = new rhea::BasicController("camera_controller", "//meworla/controller");
 				m_focused_controller->setup(this);
 				m_focused_controller->connect(m_view);
-				context->next_scene->addChild(m_focused_controller);
+				context->target_scene->addChild(m_focused_controller);
 			}
-			return rhea::WorldService::PrepareError::None;
+			return rhea::WorldService::TransitionError::None;
 		});
 }
 

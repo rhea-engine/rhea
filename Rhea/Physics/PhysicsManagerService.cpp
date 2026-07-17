@@ -79,20 +79,20 @@ namespace rhea
 		// register in worldservice to be called during world prepare
 		WorldService* world_service = doCast<WorldService>(m_app->getService("world"));
 		if (world_service) {
-			world_service->addWorldPrepareHandler([this](WorldContext* context) -> rhea::WorldService::PrepareError {
+			world_service->addWorldPrepareHandler([this](rhea::WorldService::WorldPrepareContext* context) -> rhea::WorldService::PrepareError {
 				
 				// initialize physics
 
 				std::string backend = "none";
-				if (!context || (!context->next_scene && !context->world)) {
-					LOG(LOG_ERROR) << "WorldService has no world and no start scene. Physics will be disabled.";
+				if (!context || (!context->world) && (!context->standaloneScene)) {
+					LOG(LOG_ERROR) << "WorldService has no world. Physics will be disabled.";
 					return rhea::WorldService::PrepareError::PhysicsInitializationFailed;
 				}
 				std::string phy = "none";
 				if (context->world)
 					phy = context->world->getValueString("physics", "none");
-				else if (context->next_scene)
-					phy = context->next_scene->getValueString("physics", "none");
+				else if (context->standaloneScene)
+					phy = context->standaloneScene->getValueString("physics", "none");
 				if (phy == std::string("world") || phy == std::string("bullet")) {
 					backend = "world";
 				}

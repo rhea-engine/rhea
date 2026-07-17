@@ -89,30 +89,26 @@ namespace rhea
 
 		// set defaults
 		m_values["character"] = true;
+	}
 
-		// register to physics step
+	void Character::onActivate()
+	{
 		auto* mgr = doCast<PhysicsManagerService>(m_app->getService("physics_mgr"));
 		if (!mgr) return;
 		PhysicsService* phy_srv = mgr->getPhysicsService();
+		// bind our physics loop
 		if (phy_srv) {
 			m_phy_pre_handler = std::bind(&Character::doPhysics, this, std::placeholders::_1, std::placeholders::_2);
 			phy_srv->registerEventHandler("pre_physics", this, m_phy_pre_handler);
-			m_gravity = getValue("gravity");
 		}
-		else
-			m_parent->registerEventHandler("ready", this, std::bind(&Character::onSceneReady, this, std::placeholders::_1, std::placeholders::_2));
 	}
 
-	bool Character::onSceneReady(Event* ev, Unit* unit)
+	void Character::onDeactivate()
 	{
 		auto* mgr = doCast<PhysicsManagerService>(m_app->getService("physics_mgr"));
-		if (!mgr) return true;
+		if (!mgr) return;
 		PhysicsService* phy_srv = mgr->getPhysicsService();
-		if (phy_srv) {
-			m_phy_pre_handler = std::bind(&Character::doPhysics, this, std::placeholders::_1, std::placeholders::_2);
-			phy_srv->registerEventHandler("pre_physics", this, m_phy_pre_handler);
-		}
-		m_gravity = getValue("gravity");
-		return false;
+		if (phy_srv)
+			phy_srv->unregisterEventHandler("pre_physics", this);
 	}
 }

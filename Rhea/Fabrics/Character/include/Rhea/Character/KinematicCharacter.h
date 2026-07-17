@@ -54,10 +54,8 @@ namespace rhea
 		// ready event handler
 		void ready();
 
-		void unready();
-
-		// scene reads
-		bool onSceneReady(Event* ev, Unit* unit);
+		void onActivate() override;
+		void onDeactivate() override;
 
 	protected:
 		MoveState m_move_state;

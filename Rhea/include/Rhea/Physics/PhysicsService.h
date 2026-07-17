@@ -31,7 +31,8 @@ namespace rhea
             : Service(std::move(name), std::move(type_name)) {
         }       
 
-        virtual void setScene(Scene* scene) = 0;
+        virtual void activateScene(Scene* scene) = 0;
+		virtual void deactivateScene(Scene* scene) = 0;
         virtual void initializeItem(Item* item) = 0;
         virtual void removeItem(Item* item) = 0;
 

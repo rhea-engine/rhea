@@ -23,8 +23,10 @@ namespace rhea
 			Controller(path_name, type_name)
 		{}
 
-		virtual void show();
-		void message(std::string method_name);
+		void ready() override;
+
+		void onActivate() override;
+		void onDeactivate() override;
 
 		// set the position manually
 		void setLocalPosition(const Position& position);
@@ -52,9 +54,6 @@ namespace rhea
 		float m_turn = 0;
 		math::Vector3 m_last_move;
 		float m_last_turn = 0;
-
-		// register event handler
-		virtual void _registerEvent(Unit* unittree);
 	};
 }
 

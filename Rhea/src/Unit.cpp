@@ -244,23 +244,7 @@ namespace rhea
 			if (component)
 				component->ready();
 		}
-	}
-
-	void Unit::broadcast(std::string method_name)
-	{
-		// do i have this method?
-		message(method_name);
-		for (auto it = m_children.begin(); it != m_children.end(); ++it) {
-			Unit* c = doCast<Unit>(it->second);
-			if (c)
-				c->broadcast(method_name);
-		}
-	}
-
-	void Unit::message(std::string method_name)
-	{
-		if (method_name == "logme") logMe(); 		
-	}
+	}	
 
 	void Unit::registerEventHandler(std::string event_name, void* owner, Event::EventHandler handler)
 	{
@@ -271,7 +255,7 @@ namespace rhea
 	{
 		auto it = m_eventhandlers.find(event_name);
 		if (it != m_eventhandlers.end()) {
-			(it->second)[owner] = nullptr;				
+			(it->second).erase(owner);
 		}
 	}
 

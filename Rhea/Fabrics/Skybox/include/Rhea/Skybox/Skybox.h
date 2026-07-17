@@ -28,6 +28,9 @@ namespace rhea
 
 		void ready() override;	
 
+		void onActivate() override;
+		void onDeactivate() override;
+
 		// on Frame event
 		void onFrame(float delta) override;
 

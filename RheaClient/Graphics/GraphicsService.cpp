@@ -654,6 +654,14 @@ namespace rhea::client {
 			if (std::find(items.begin(), items.end(), item) == items.end()) {
 				items.push_back(item);
 			}
+
+			// Ensure() selects a camera only when its renderer representation is
+			// created for the first time. When a scene is shown again, the camera
+			// already exists, so explicitly restore it as the active camera of the
+			// scene's render context.
+			if (doCast<rhea::Camera>(item) && rc->hasCamera()) {
+				context->setCameraHandle(rc->camera);
+			}
 			//LOG(LOG_DEBUG) << "Registered item '" << item->getPath() << "' to render context '" << context->getName() << "', rc-node id: " << rc->gfx_node_id << ", rendernode id: " << render_node_id << ", parent id: " << parent_id;
 		}
 		else {

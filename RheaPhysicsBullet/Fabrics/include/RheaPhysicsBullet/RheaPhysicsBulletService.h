@@ -38,9 +38,9 @@ namespace rhea::physics::bullet
 		btDynamicsWorld* getWorld() { return m_world; }
 
 		// set scene and initialize objects in it
-		void setScene(rhea::Scene* scene);
+		void activateScene(rhea::Scene* scene);
 		// deactivate scene and bulk deregister items
-		void clearScene(rhea::Scene* scene);
+		void deactivateScene(rhea::Scene* scene);
 
 		// initalize one object
 		void initializeItem(rhea::Item* item);
@@ -66,11 +66,14 @@ namespace rhea::physics::bullet
 		void dumpStats() const override;
 
 	protected:
+		struct ScenePhysicsState
+		{
+			btRigidBody* ground = nullptr;
+		};
 		btDynamicsWorld* m_world;
-		rhea::Scene* m_scene;
 		BulletDrawerFactory m_drawer_factory;
 		rhea::IPhysicsDebugDraw* m_debug_drawer;
-		btRigidBody* m_ground = nullptr;
+		std::unordered_map<Scene*, ScenePhysicsState> m_scene_states;
 	};
 }
 

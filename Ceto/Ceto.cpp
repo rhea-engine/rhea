@@ -17,6 +17,7 @@
 #include "Rhea/Core/Camera.h"
 #include "Rhea/Physics/PhysicsManagerService.h"
 #include "Rhea/Physics/PhysicsService.h"
+#include <Rhea/Core/WorldService.h>
 
 #include "Poseidon/Material.h"
 #include "Poseidon/Shader.h"
@@ -36,6 +37,7 @@
 #include <Rhea/ConfigFile.h>
 #include <Rhea/GUI/Button.h>
 #include <Rhea/GUI/Dialog.h>
+#include <Rhea/GUI/TextInput.h>
 #include <RheaAudio/AudioService.h>
 
 bool Ceto::onQuit(rhea::Event* ev, rhea::Unit* unit)
@@ -199,6 +201,41 @@ bool Ceto::handleDevShortcuts(const rhea::InputEvent& evt)
 			m_gui_controller->dumpDebugInfo();
 		}
 	}
+
+	if (evt.isKeyPressed(rhea::Key::B)) {
+		// transition to a new scene
+		auto* worlds = doCast<rhea::WorldService>(getService("world"));
+		std::string scene_path = "//local/world1_scene2.scene";
+		if (worlds) {
+			if (worlds->getPrimaryScene()->getPathName() == "scene2") {
+				scene_path = "//local/world1_scene1.scene";
+			}
+			m_focused_controller = nullptr;
+			const rhea::WorldService::TransitionRequest request = {
+				scene_path,
+				"entrypoint",
+				{},
+				false
+			};
+			worlds->transitionToScene(request);
+		}
+	}
+	if (evt.isKeyPressed(rhea::Key::V)) {
+		// activate a new scene
+		auto* worlds = doCast<rhea::WorldService>(getService("world"));
+		std::string scene_path_a = "//local/world1_scene1_a.scene";
+		static bool scene1_a_active = false;
+		if (worlds) {
+			if (scene1_a_active) {
+				scene1_a_active = false;
+				worlds->deactivateScene(scene_path_a);
+			}
+			else {
+				scene1_a_active = true;
+				worlds->activateScene(scene_path_a);
+			}
+		}
+	}
 	return false;
 }
 
@@ -333,6 +370,37 @@ bool Ceto::onRealmSelect(rhea::Event* ev, rhea::Unit* unit)
 	return false;
 }
 
+bool Ceto::onRealmSearch(rhea::Event* ev, rhea::Unit* unit)
+{
+	ev->stopPropagation();
+	rhea::TextInput* target = doCast<rhea::TextInput>(ev->getTarget());
+	if (!target) {
+		DLOG(LOG_DEBUG) << "onRealmSearch: target is not a TextInput";
+		return false;
+	}
+	DLOG(LOG_DEBUG) << "search text was '" << (std::string)target->getText() << "'";
+	openScene((std::string)target->getText());
+	// search for realms
+	/*
+	rhea::Widget* w = doCast<rhea::Widget>(m_unit_tree->find("//local/cetogui/gui/realms"));
+	if (w) {
+		rhea::List* list = doCast<rhea::List>(w->find("realm_list"));
+		if (list) {
+			list->clearItems();
+			// add search result items
+			for (int i = 0; i < 5; i++) {
+				std::string realm_name = "Realm " + std::to_string(i + 1);
+				rhea::Unit* item = m_unit_tree->createUnit("realm_item_" + std::to_string(i), "//core/types/unit");
+				item->setValue("text", realm_name);
+				item->setValue("value", realm_name);
+				list->addItem(item);
+			}
+		}
+	}
+	*/
+	return false;
+}
+
 void Ceto::setRealmSelectDialog()
 {
 	// show dialog
@@ -409,6 +477,21 @@ void Ceto::setup()
 	mat->setup(this);
 	mat->setValue("shader", "shader_vp");
 	m_unit_tree->addChild(mat);
+
+	auto* worlds = doCast<rhea::WorldService>(getService("world"));
+	worlds->addSceneTransitionHandler([this, worlds](rhea::WorldService::SceneTransitionContext* context) -> rhea::WorldService::TransitionError
+		{
+			m_focused_controller = m_unit_tree->findByType<rhea::Controller>();
+			if (!m_focused_controller) {
+				// no controller found - use camera and add default controller for it
+				// note: spectator does not work, because we have no controlled element
+				m_focused_controller = new rhea::BasicController("camera_controller", "//meworla/controller");
+				m_focused_controller->setup(this);
+				m_focused_controller->connect(m_view);
+				context->target_scene->addChild(m_focused_controller);
+			}
+			return rhea::WorldService::TransitionError::None;
+		});
 }
 
 void Ceto::setScene(bool mark_preferrences)
@@ -424,145 +507,55 @@ void Ceto::setScene(bool mark_preferrences)
 		stream->Close();
 	}
 
-	loadResource(m_home_scene, "//meworla/scene", [&](rhea::Component* scene_unit, ReqError err) {
-		rhea::Scene* scene = doCast<rhea::Scene>(scene_unit);
-		if (scene && err == ReqError::OK) {
+	auto* worlds = doCast<rhea::WorldService>(getService("world"));
 
+	worlds->openWorld(m_home_scene,	[this, worlds](rhea::WorldService::OpenError error)
+		{
+			if (error != rhea::WorldService::OpenError::None) {
+				log("Ceto: Could not open scene");
+				rhea::Widget* w = doCast<rhea::Widget>(m_unit_tree->find("//local/cetogui/gui/realms"));
+				if (w) {
+					m_gui_controller->closeDialog((rhea::Dialog*)w);
+				}
+				showAlert("Could not open world");
+				return;
+			}
+			
 			// set origin info
 			rhea::Unit* engine = doCast<rhea::Unit>(m_unit_tree->getChild("engine"));
 			if (engine)
 				engine->setValue("origin", m_home_scene);
+
 
 			// hide GUI background
 			rhea::GUIController* w = doCast<rhea::GUIController>(m_unit_tree->find("//local/cetogui/gui"));
 			if (w) {
 				w->setStyle(rhea::StylePropertyId::kBackgroundImage, "none");
 				w->UpdateStyle();
-			}				
+			}
 
 			inScene = true;
 
-			// display scene
-			std::string start_scene = scene->getValueString("startscene", "");
-			if (start_scene != "") {
-				rhea::Scene* go_scene = doCast<rhea::Scene>(m_unit_tree->find(start_scene, scene->getPath(), false));
-				if (go_scene)
-					showScene(go_scene);
-				else {
-					LOG(LOG_ERROR) << "Startscene '" << start_scene << "' not found.";
-					showScene(scene);
+			rhea::Scene* scene = worlds->getPrimaryScene();
+
+			rhea::Unit* gus2 = doCast<rhea::Unit>(scene->getChild("gus2"));
+			if (gus2)
+			{
+				rhea::Mesh* mesh = doCast<rhea::Mesh>(gus2->getChild("mesh"));
+				if (mesh) {
+					rhea::Animation* anim = doCast<rhea::Animation>(mesh->getChild("RunningAction"));
+					rhea::Skeleton* skeleton = doCast<rhea::Skeleton>(mesh->getComponent<rhea::Skeleton>());
+					if (anim && skeleton) {
+						// add the animator to the scene
+						rhea::Animator* animator = new rhea::Animator("Animator", "//meworla/animator");
+						animator->setSkeleton(skeleton);
+						animator->PlayAnimation(anim);
+						scene->addChild(animator);
+					}
 				}
 			}
-			else {
-				showScene(scene);
-			}
-		}
-		else {
-			rhea::Collection* dir = doCast<rhea::Collection>(scene_unit);
-			if (dir) {
-				// user tried to open directory
-				// try world.scene
-				m_home_scene += "/world.scene";
-				return setScene(false);
-			}
-
-			log("Could not open scene");
-			rhea::Widget* w = doCast<rhea::Widget>(m_unit_tree->find("//local/cetogui/gui/realms"));
-			if (w) {
-				m_gui_controller->closeDialog((rhea::Dialog*)w);
-			}
-			showAlert("Could not open scene");
-		}
 		});
-}
-
-void Ceto::showScene(rhea::Scene* scene)
-{
-	// initialize physics
-	auto* mgr = static_cast<rhea::PhysicsManagerService*>(m_services["physics_mgr"]);
-	if (!mgr) {
-		LOG(LOG_ERROR) << "No physics manager service found. Physics will be disabled.";		
-	}
-	else { 
-		std::string backend = "none";
-		std::string phy = scene->getValueString("physics", "none");
-		if (phy == std::string("world") || phy == std::string("bullet")) {
-			backend = "world";
-		}
-		else if (phy == std::string("none")) {
-			backend = "none";
-		}
-		else if (!phy.empty()) {
-			// allow future backends by id, e.g. "physx"
-			backend = phy;
-		}
-
-		// create service by id (manager handles fallback to "none" if unknown/unavailable)
-		rhea::PhysicsService* physics = mgr->createPhysicsService(backend);
-		if (!physics) {
-			// last-resort fallback if the manager doesn't already do it
-			physics = mgr->createPhysicsService("none");
-		}
-
-		if (physics) {
-			physics->onInit();			
-			m_physics = physics;
-		}		
-	}
-
-	// search for a camera		
-	/*	
-	m_view = scene->findByType<rhea::Camera>();
-	if (!m_view) {
-		// no camera found - create a default cam
-		m_view = static_cast<rhea::Camera*>(m_unit_tree->createUnit("camera", "//meworla/camera"));
-		scene->addChild(m_view);
-
-		rhea::client::GraphicsService* gs = static_cast<rhea::client::GraphicsService*>(getService("graphics"));
-		rhea::client::GraphicsManager* mgr = gs->getManager<rhea::Camera>();
-		//rhea::client::GraphicsCamera::createElement(core, m_view);
-		mgr->Ensure(core, m_view);
-		Variant pos = scene->getValue("start");
-		if (pos != Variant()) {
-			math::Vector3 start_pos(pos[0], pos[1], pos[2]);
-			m_view->setPosition(start_pos);
-		}
-		else {
-			m_view->setPosition(math::Vector3(0, 1.7f, 0.0f));
-		}
-	}
-	*/
-
-	// search for a controller
-	m_focused_controller = m_unit_tree->findByType<rhea::Controller>();
-	if (!m_focused_controller) {
-		// no controller found - use camera and add default controller for it
-		// note: spectator does not work, because we have no controlled element
-		m_focused_controller = new rhea::BasicController("camera_controller", "//meworla/controller");
-		m_focused_controller->setup(this);
-		m_focused_controller->connect(m_view);
-		scene->addChild(m_focused_controller);
-	}
-
-	// now we are ready
-	scene->show();
-
-	rhea::Unit* gus2 = doCast<rhea::Unit>(scene->getChild("gus2"));
-	if (gus2)
-	{
-		rhea::Mesh* mesh = doCast<rhea::Mesh>(gus2->getChild("mesh"));
-		if (mesh) {
-			rhea::Animation* anim = doCast<rhea::Animation>(mesh->getChild("RunningAction"));
-			rhea::Skeleton* skeleton = doCast<rhea::Skeleton>(mesh->getComponent<rhea::Skeleton>());
-			if (anim && skeleton) {
-				// add the animator to the scene
-				rhea::Animator* animator = new rhea::Animator("Animator", "//meworla/animator");
-				animator->setSkeleton(skeleton);
-				animator->PlayAnimation(anim);
-				scene->addChild(animator);
-			}
-		}
-	}
+	
 }
 
 void Ceto::showAlert(std::string text)
@@ -611,6 +604,7 @@ void Ceto::loadMainGUI()
 
 			// register open
 			gui->registerEventHandler("open", this, std::bind(&Ceto::onRealmSelect, this, std::placeholders::_1, std::placeholders::_2));
+			gui->registerEventHandler("search", this, std::bind(&Ceto::onRealmSearch, this, std::placeholders::_1, std::placeholders::_2));
 		}
 		else {
 			log("loading of gui failed");
@@ -618,7 +612,7 @@ void Ceto::loadMainGUI()
 		});
 }
 
-void Ceto::setHomeScene(string scene)
+void Ceto::setHomeScene(std::string scene)
 {
 	m_home_scene = scene;
 }
@@ -658,7 +652,7 @@ bool Ceto::onFrameEnd()
 
 void Ceto::onScene(rhea::Scene* scene)
 {
-	log("scene displayed");
+	LOG(LOG_DEBUG) << "Ceto::onScene: scene '" << scene->getPathName() << "' is ready";
 	std::unique_ptr<rhea::Event> ev_r = std::make_unique<rhea::Event>("ready", scene);
 	scene->sendEvent(std::string("ready"), ev_r.get());
 

@@ -45,20 +45,9 @@ namespace rhea
 		return BasicController::onInput(ev, unit);
 	}
 
-	void SpectatorController::show()
+	void SpectatorController::ready()
 	{
-		BasicController::show();
-
-		if (!m_target) {
-			LOG(LOG_ERROR) << "Spectator " << m_pathname << ": no target defined";
-			return;
-		}
-
-		std::unordered_map<std::string, std::string> attr;
-		std::unordered_map<std::string, Variant> values;
-
-		// create the view		
-		m_view = m_app->getUnitTree()->createUnit<Camera>("scene_view", attr, values);		
+		BasicController::ready();
 
 		// add relative position of view
 		auto it = m_values.find("position");
@@ -67,15 +56,22 @@ namespace rhea
 		else
 			m_follow_offset = math::Vector3(0.0f, 1.7f, -3.0f);
 
+		// create a camera view for the spectator controller
+		m_view = m_app->getUnitTree()->createUnit<Camera>("scene_view", {}, {});
 		m_view->setWorldPosition(m_follow_offset);
-		m_view->getTransform()->markWorldDirty();	
+		m_view->getTransform()->markWorldDirty();
 		addChild(m_view);
+		m_view->ready();
+	}
 
-		// Fire scene_enter event to notify Scene to add graphics components to the view
-		Event enter_event("scene_enter", m_view);
-		m_view->bubbleEvent("scene_enter", &enter_event); m_target->bubbleEvent("scene_enter", &enter_event);
+	void SpectatorController::onActivate()
+	{
+		m_app->getUnitTree()->registerEventHandler("unhandled_input", this, std::bind(&SpectatorController::onInput, this, std::placeholders::_1, std::placeholders::_2));
+	}
 
-		_registerEvent(m_app->getUnitTree());
+	void SpectatorController::onDeactivate()
+	{
+		m_app->getUnitTree()->unregisterEventHandler("unhandled_input", this);
 	}
 
 	void SpectatorController::updateCamera(float delta)
@@ -122,13 +118,6 @@ namespace rhea
 		m_view->setWorldPosition(camPos);
 	}
 
-	void SpectatorController::message(std::string method_name)
-	{
-		Unit::message(method_name);
-		if (method_name == "show")
-			show();
-	}
-
 	void SpectatorController::setPosition(math::Vector3 position)
 	{
 		if (!m_view)
@@ -148,15 +137,5 @@ namespace rhea
 		Position pos = m_view->getTransform()->getWorldPosition();
 		pos.lookAt(target, math::Vector3::UNIT_Z);
 		m_view->setWorldPosition(pos);
-	}
-
-	void SpectatorController::_registerEvent(Unit* unittree)
-	{
-		unittree->registerEventHandler("unhandled_input", this, std::bind(&SpectatorController::onInput, this, std::placeholders::_1, std::placeholders::_2));
-		unittree->registerEventHandler("scene_deactivate", this, [this, unittree](Event* ev, Unit* tree) -> bool {
-			unittree->unregisterEventHandler("unhandled_input", this);
-			unittree->unregisterEventHandler("scene_deactivate", this);
-			return false;
-			});
 	}
 }

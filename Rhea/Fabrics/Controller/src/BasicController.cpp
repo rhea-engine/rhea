@@ -115,10 +115,13 @@ namespace rhea
 		}
 		m_target = target;
 	}
+	
+	void BasicController::ready()
+	{ 
+		Controller::ready();
 
-	void BasicController::show()
-	{
-		auto target_it = m_values.find("target");		
+		// try to find target from values
+		auto target_it = m_values.find("target");
 		if (target_it != m_values.end()) {
 			Item* target = doCast<Item>(m_app->getUnitTree()->find(target_it->second.toString(), m_attributes["basepath"], false));
 			if (!target) {
@@ -128,14 +131,16 @@ namespace rhea
 			}
 			connect(target);
 		}
-		_registerEvent(m_app->getUnitTree());
+	}	
+
+	void BasicController::onActivate()
+	{
+		m_app->getUnitTree()->registerEventHandler("unhandled_input", this, std::bind(&BasicController::onInput, this, std::placeholders::_1, std::placeholders::_2));
 	}
 
-	void BasicController::message(std::string method_name)
+	void BasicController::onDeactivate()
 	{
-		Unit::message(method_name);
-		if (method_name == "show")
-			show();
+		m_app->getUnitTree()->unregisterEventHandler("unhandled_input", this);
 	}
 
 	void BasicController::setLocalPosition(const Position& position)
@@ -185,15 +190,10 @@ namespace rhea
 	void BasicController::logMe()
 	{
 		Unit::logMe();
-		printf("Target: %s\n", (m_target) ? m_target->getPathName().c_str() : "(empty)");
+		LOG(LOG_DEBUG) << "Target: " << ((m_target) ? m_target->getPathName() : "(empty)");
 		if (m_target) {
 			math::Vector3 pos = m_target->getTransform()->getWorldPosition().getTranslation();
-			printf("Position: (%f,%f,%f)\n", pos.x, pos.y, pos.z);
+			LOG(LOG_DEBUG) << "Position: (" << pos.x << "," << pos.y << "," << pos.z << ")";
 		}
-	}
-
-	void BasicController::_registerEvent(Unit* unittree)
-	{
-		unittree->registerEventHandler("unhandled_input", this, std::bind(&BasicController::onInput, this, std::placeholders::_1, std::placeholders::_2));
 	}
 }

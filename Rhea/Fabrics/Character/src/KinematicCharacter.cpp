@@ -59,14 +59,14 @@ namespace rhea
 
 	bool KinematicCharacter::doPhysics(Event* ev, Unit* unit)
 	{
-		if (!m_physics_body)
-			if (!getPhysicsBody())
-				return false;
+		auto* physics_body = getPhysicsBody();
+		if (!physics_body)
+			return false;
 		
 		Position position = getTransform()->getWorldPosition();		
 
 		float delta = static_cast<PhysicsEvent*>(ev)->getDelta();		
-		auto* character = m_physics_body->query<IPhysicsCharacter>("PhysicsCharacter");
+		auto* character = physics_body->query<IPhysicsCharacter>("PhysicsCharacter");
 		if (!character) {
 			return false;
 		}
@@ -116,7 +116,7 @@ namespace rhea
 			if (!pos.equals(position.getTranslation())) {
 				position.setPosition(pos);
 				getTransform()->setPosition(position);
-				m_physics_body->setPosition(pos);
+				physics_body->setPosition(pos);
 				dirty = true;
 			}
 
@@ -143,7 +143,7 @@ namespace rhea
 			position.setRotation(m_orientation);
 			getTransform()->setWorldPosition(position);
 			dirty = true;
-			m_physics_body->setOrientation(m_orientation);
+			physics_body->setOrientation(m_orientation);
 		}
 		if (dirty) {
 			for (auto* l : m_movement_listeners) {
@@ -165,7 +165,10 @@ namespace rhea
 			Position position = getTransform()->getWorldPosition();
 			math::Vector3 pos = position.getTranslation();
 			m_jump_start_y = pos.y;
-			auto* character = m_physics_body->query<IPhysicsCharacter>("PhysicsCharacter");
+			auto* physics_body = getPhysicsBody();
+			if (!physics_body)
+				return;
+			auto* character = physics_body->query<IPhysicsCharacter>("PhysicsCharacter");
 			if (!character) {
 				return;
 			}
@@ -186,8 +189,14 @@ namespace rhea
 		// set some defaults
 		m_values["kinematic"] = true;
 		m_values["body_type"] = "ghost";
+		
+		if (m_parent)
+			m_gravity =
+			getValue("gravity", m_parent->getValue("linear_gravity"));
+	}
 
-		// register to physics step
+	void KinematicCharacter::onActivate()
+	{
 		auto* mgr = doCast<PhysicsManagerService>(m_app->getService("physics_mgr"));
 		if (!mgr) return;
 		PhysicsService* phy_srv = mgr->getPhysicsService();
@@ -195,30 +204,15 @@ namespace rhea
 		if (phy_srv) {
 			m_phy_pre_handler = std::bind(&KinematicCharacter::doPhysics, this, std::placeholders::_1, std::placeholders::_2);
 			phy_srv->registerEventHandler("pre_physics", this, m_phy_pre_handler);
-			// gravity - default is scene but char may overwrite it
-			m_gravity = getValue("gravity", m_parent->getValue("linear_gravity"));
-		}
-		else if (m_parent) {
-			m_parent->registerEventHandler("ready", this, std::bind(&KinematicCharacter::onSceneReady, this, std::placeholders::_1, std::placeholders::_2));
-		}
-		else {
-			LOG(LOG_ERROR) << "KinematicCharacter: parent should not be null";
 		}
 	}
 
-	bool KinematicCharacter::onSceneReady(Event* ev, Unit* unit)
+	void KinematicCharacter::onDeactivate()
 	{
 		auto* mgr = doCast<PhysicsManagerService>(m_app->getService("physics_mgr"));
-		if (!mgr) return true;
+		if (!mgr) return;
 		PhysicsService* phy_srv = mgr->getPhysicsService();
-		// bind our physics loop
-		if (phy_srv) {
-			m_phy_pre_handler = std::bind(&KinematicCharacter::doPhysics, this, std::placeholders::_1, std::placeholders::_2);
-			phy_srv->registerEventHandler("pre_physics", this, m_phy_pre_handler);
-		}
-		// gravity - default is scene but char may overwrite it
-		m_gravity = getValue("gravity", unit->getValue("linear_gravity"));
-		
-		return false;
-	}	
+		if (phy_srv)
+			phy_srv->unregisterEventHandler("pre_physics", this);
+	}
 }

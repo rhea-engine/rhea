@@ -26,8 +26,10 @@ namespace rhea
 			BasicController(path_name, type_name)
 		{}
 
-		void show();
-		void message(std::string method_name);
+		void ready() override;
+
+		void onActivate() override;
+		void onDeactivate() override;
 
 		// set the position manually
 		void setPosition(math::Vector3 position);
@@ -46,9 +48,6 @@ namespace rhea
 		// Offset in target-oriented space.
 		// Affected by target rotation, but intentionally not by target scale.
 		math::Vector3 m_follow_offset;
-
-		// register event handler
-		void _registerEvent(Unit* unittree);
 
 		void updateCamera(float delta);
 

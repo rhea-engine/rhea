@@ -36,7 +36,6 @@ public:
 	{}
 	void setup();
 	void setScene(bool mark_preferrences = true);
-	void showScene(rhea::Scene* scene);
 	bool checkLocalScene(std::string realm_name, std::string path);
 	void loadMainGUI();
 	void setHomeScene(string scene);
@@ -54,6 +53,7 @@ protected:
 	bool onQuitCancel(rhea::Event* ev, rhea::Unit* unit);
 	bool onInput(rhea::EventInput* e, rhea::Unit* unit);
 	bool onRealmSelect(rhea::Event* ev, rhea::Unit* unit);
+	bool onRealmSearch(rhea::Event* ev, rhea::Unit* unit);
 	void showAlert(std::string text);
 	void setRealmSelectDialog();
 	void openScene(std::string scene_name);

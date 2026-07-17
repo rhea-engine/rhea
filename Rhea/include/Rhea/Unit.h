@@ -159,13 +159,8 @@ namespace rhea
 			return nullptr;
 		}
 
-		// messaging and events
-
-		// broadcast message
-		void broadcast(std::string method_name);
-		// message implementation
-		virtual void message(std::string method_name);
-
+		// events
+	
 		// register the event handler for event event_name
 		void registerEventHandler(std::string event_name, void* owner, Event::EventHandler handler);
 

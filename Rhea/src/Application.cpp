@@ -47,6 +47,7 @@
 #include <Rhea/Resources/Collection.h>
 #include <Rhea/Core/Shader.h>
 #include <Rhea/Core/WorldService.h>
+#include <Rhea/Core/World.h>
 #include "Rhea/Core/Light.h"
 #include "Rhea/Core/DirectionalLight.h"
 #include <Rhea/Core/Lighting.h>
@@ -180,6 +181,7 @@ namespace rhea
 		orion::MIME::RegisterExtenstion("application/vnd.meworla.scene", "shader");
 		simpleparser::Type::registerType<Material>("//meworla/material");
 		simpleparser::Type::registerType<Avatar>("//meworla/avatar");
+		World::_register_World();
 		
 		ImageResource::_register_ImageResource();
 		simpleparser::Type::registerType<ImageResource>("//meworla/texture");

@@ -13,6 +13,7 @@
 #include <Psio/Log.h>
 #include <Rhea/Components/MeshComponent.h>
 #include <Rhea/Core/Mesh.h>
+#include <Rhea/Core/Scene.h>
 
 namespace rhea
 {
@@ -99,10 +100,10 @@ namespace rhea
 		// find camera
 		if (m_values.find("camera") != m_values.end())
 		{
-			m_camera = doCast<Camera>(m_app->getUnitTree()->find(m_values["camera"].toString(), m_attributes["basepath"], false));
+	//		m_camera = doCast<Camera>(m_app->getUnitTree()->find(m_values["camera"].toString(), m_attributes["basepath"], false));
 		}
 		else {
-			m_camera = m_app->getUnitTree()->findByType<Camera>();			
+	//		m_camera = m_app->getUnitTree()->findByType<Camera>();			
 		}
 
 		if (!mesh_component->getMesh()->getMaterial()) {
@@ -116,11 +117,32 @@ namespace rhea
 		}
 	}
 
-	void rhea::Skybox::onFrame(float delta)
+	void Skybox::onActivate()
+	{
+		Item::onActivate();
+
+		// find scene and scenes camera
+		Scene* scene = findParentByType<Scene>();
+		if (scene) {
+			m_camera = scene->findByType<Camera>();
+		}
+		else {
+			m_camera = m_app->getUnitTree()->findByType<Camera>();
+		}
+	}
+
+	void Skybox::onDeactivate()
+	{
+		Item::onDeactivate();
+
+		m_camera = nullptr;
+	}
+
+	void Skybox::onFrame(float delta)
 	{
 		// set skybox to camera position
 		if (!m_camera) {
-			m_camera = m_app->getUnitTree()->findByType<Camera>();
+			return;
 		}
 		if (m_camera) {
 			Vector3 position = m_camera->getTransform()->getWorldPosition().getTranslation();

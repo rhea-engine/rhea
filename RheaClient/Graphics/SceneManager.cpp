@@ -104,31 +104,34 @@ namespace rhea::client {
 			return false;
 		}
 
-		// Already initialized? Use SceneRenderState as the marker.
-		if (scene->getComponent<SceneRenderState>()) {
-			return false;
+		m_core = core;
+		auto* state = scene->getComponent<SceneRenderState>();
+		const bool first_initialization = state == nullptr;
+
+		if (first_initialization) {
+			// The state marks only the one-time event setup. Rendering resources
+			// still have to be ensured whenever this scene becomes active again.
+			scene->addComponentUnique<SceneRenderState>(scene);
 		}
 
-		// Create scene render state
-		scene->addComponentUnique<SceneRenderState>(scene);
-
-		// Initialize: add existing items + register handler
-		m_core = core;
-
+		// Re-run this for every activation. Individual managers reuse existing
+		// resources and restore scene-dependent state such as the active camera.
 		scene->traverse([&](std::string& name, rhea::Component* c)->bool {
 			rhea::Unit* u = doCast<rhea::Unit>(c);
 			if (u && c != scene) addItem(u);
 			return true;
 			});
 
-		scene->registerEventHandler(
-			"scene_item_added", this,
-			std::bind(&GraphicsSceneManager::onItemAdd, this, std::placeholders::_1, std::placeholders::_2)
-		);
-		scene->registerEventHandler(
-			"scene_item_removed", this,
-			std::bind(&GraphicsSceneManager::onItemRemove, this, std::placeholders::_1, std::placeholders::_2)
-		);
+		if (first_initialization) {
+			scene->registerEventHandler(
+				"scene_item_added", this,
+				std::bind(&GraphicsSceneManager::onItemAdd, this, std::placeholders::_1, std::placeholders::_2)
+			);
+			scene->registerEventHandler(
+				"scene_item_removed", this,
+				std::bind(&GraphicsSceneManager::onItemRemove, this, std::placeholders::_1, std::placeholders::_2)
+			);
+		}
 
 		return true;
 	}

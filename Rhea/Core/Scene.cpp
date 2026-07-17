@@ -142,7 +142,6 @@ namespace rhea
 
 			rhea::Event ev("scene_show", this);
 			sendEventChildren(std::string("scene_show"), &ev);
-			broadcast("show");
 			m_app->onScene(this);
 		}
 	}

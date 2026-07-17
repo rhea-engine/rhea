@@ -32,8 +32,17 @@ namespace rhea::client {
 
 		if (!rc) rc = camera->addComponentUnique<RenderComponent>("renderer", m_next_id++);
 
-		if (rc->hasCamera())
+		if (rc->hasCamera()) {
+			// The renderer resource survives a scene switch. Ensure must still
+			// restore it as the active camera when its scene is activated again.
+			poseidon::FrameRenderer* frame_renderer = core->getFrameRenderer();
+			poseidon::Viewport* viewport = frame_renderer ? frame_renderer->getViewport() : nullptr;
+			if (viewport) {
+				std::string render_context = "default";
+				viewport->getRenderContext(render_context)->setCameraHandle(rc->camera);
+			}
 			return true;
+		}
 
 		auto* tl = camera->getComponent<TransformListener>();
 		if (!tl) {

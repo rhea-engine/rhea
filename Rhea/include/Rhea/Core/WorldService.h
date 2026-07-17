@@ -127,8 +127,8 @@ namespace rhea
 			std::string resource_id;
 			uint64_t session_generation = 0;
 
-			// loaded by world service?
-			bool owned_by_worldservice = false;
+			// lifecycle management
+			bool lifecycle_managed = false;
 			
 			bool isPrepared() const { return state == SceneLifecycleState::Prepared || state == SceneLifecycleState::Active; }
 		};
@@ -189,6 +189,8 @@ namespace rhea
 		void onSceneActivate(Scene* scene);
 		void onSceneDeactivate(Scene* scene);
 
+		void beginSession();
+		void deactivatePreviousSession();
 		void onWorldLoaded(uint64_t open_generation, std::string request_id, Component* component, OpenHandler handler);
 
 		void loadStartScene(World* world, uint64_t open_generation, OpenHandler handler);

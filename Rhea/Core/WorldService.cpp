@@ -44,7 +44,6 @@ namespace rhea
 
 				if (error == ReqError::OK) {
 					LOG(LOG_INFO) << "Loaded world: " << rid;
-					++m_session_generation;					
 					onWorldLoaded(open_generation, rid, component, handler);
 				}
 				else {
@@ -55,6 +54,26 @@ namespace rhea
 					}
 				}			
 			});
+	}
+
+	void WorldService::beginSession()
+	{
+		++m_session_generation;
+		deactivatePreviousSession();
+		m_primary_scene = nullptr;
+	}
+
+	void WorldService::deactivatePreviousSession()
+	{
+		for (auto& [scene, managed] : m_managed_scenes) {
+			if (managed.session_generation == m_session_generation)
+				continue;
+
+			if (managed.state == SceneLifecycleState::Active && managed.lifecycle_managed) {
+				scene->hide();
+				scene->deactivate();
+			}
+		}
 	}
 
 	void WorldService::loadScene(std::string resource_id, LoadSceneHandler handler)
@@ -94,7 +113,6 @@ namespace rhea
 
 						if (scene) {
 							ManagedScene& managed_scene = ensureManagedScene(scene, resource_id, SceneRole::Regular, nullptr);
-							managed_scene.owned_by_worldservice = true;
 						}
 						else {
 							LOG(LOG_ERROR) << "Loaded component is not a scene: " << resource_id;
@@ -137,8 +155,9 @@ namespace rhea
 							}
 							return;
 						}
-						m_managed_scenes[next_scene].state = SceneLifecycleState::Prepared;
+						m_managed_scenes[next_scene].state = SceneLifecycleState::Prepared;					
 					}
+					m_managed_scenes[next_scene].lifecycle_managed = true;
 
 					next_scene->activate();
 					next_scene->show();
@@ -180,7 +199,7 @@ namespace rhea
 				return false;
 			}
 			scene_to_deactivate->deactivate();
-			scene_to_deactivate->hide();
+			scene_to_deactivate->hide();			
 			return true;
 		}
 		else {
@@ -218,7 +237,7 @@ namespace rhea
 		// update items in scenes that are active
 		for (auto& pair : m_managed_scenes) {
 			ManagedScene& managed_scene = pair.second;
-			if (managed_scene.state == SceneLifecycleState::Active) {
+			if (managed_scene.state == SceneLifecycleState::Active && managed_scene.session_generation == m_session_generation) {
 				Scene* scene = managed_scene.scene;
 				if (scene) {
 					scene->traverse([delta](std::string& name, Component* unit)->bool {
@@ -261,36 +280,35 @@ namespace rhea
 	void WorldService::onWorldLoaded(uint64_t open_generation, std::string request_id, Component* component, OpenHandler handler)
 	{
 		// get start scene
-		m_world = doCast<World>(component);
-		if (m_world) {
-			if (m_primary_scene) {
-				m_primary_scene->hide();
-				m_primary_scene->deactivate();
-				m_primary_scene = nullptr;
-			}
-			if (prepareWorld(m_world) != PrepareError::None) {
-				m_state = State::Idle;
+		World* world = doCast<World>(component);
+		if (world) {
+			if (prepareWorld(world) != PrepareError::None) {
+				m_state = m_primary_scene ? State::Ready : State::Idle;
 				if (handler) {
 					handler(OpenError::InvalidWorldType);
 				}
 				return;
 			}
-			loadStartScene(m_world, open_generation, handler);
+			beginSession();
+			m_world = world;
+			loadStartScene(world, open_generation, handler);
 		}
 		else if (doCast<Scene>(component)) {
 			// if the loaded component is a scene, we can use it directly
-			LOG(LOG_INFO) << "Loaded scene: " << request_id;
-			m_world = nullptr;
+			LOG(LOG_INFO) << "Loaded scene: " << request_id;			
 			Scene* scene = doCast<Scene>(component);
-			if (prepareWorld(m_world, scene) != PrepareError::None) {
+			if (prepareWorld(nullptr, scene) != PrepareError::None) {
 				m_state = State::Idle;
 				if (handler) {
 					handler(OpenError::InvalidWorldType);
 				}
 				return;
 			}
+			beginSession();
+			m_world = nullptr;
+
 			ManagedScene& managed_scene = ensureManagedScene(scene, request_id, SceneRole::Regular, nullptr);
-			managed_scene.owned_by_worldservice = true;
+			managed_scene.lifecycle_managed = true;
 			doTransitionScene(scene, nullptr, handler);
 		}
 		else if (doCast<Collection>(component)) {
@@ -326,7 +344,7 @@ namespace rhea
 		Scene* embedded = doCast<Scene>(m_world->find(start, m_world->getPath(), false));
 		if (embedded) {
 			ManagedScene& managed_scene = ensureManagedScene(embedded, m_world->getPath() + "/" + start, SceneRole::Regular, nullptr);
-			managed_scene.owned_by_worldservice = true;
+			managed_scene.lifecycle_managed = true;
 			doTransitionScene(embedded, nullptr, handler);
 			return;
 		}
@@ -419,12 +437,13 @@ namespace rhea
 		if (old_scene) {
 			// if the old scene is not the primary scene anymore, we can deactivate it
 			if (m_managed_scenes.find(old_scene) != m_managed_scenes.end()) {
-				m_managed_scenes[old_scene].state = SceneLifecycleState::Prepared;
+				m_managed_scenes[old_scene].state = SceneLifecycleState::Prepared;				
 			}
 		}
 
 		m_state = State::Ready;
 		m_managed_scenes[scene].state = SceneLifecycleState::Active;
+		m_managed_scenes[scene].lifecycle_managed = true;
 
 		if (handler)
 			handler(OpenError::None);

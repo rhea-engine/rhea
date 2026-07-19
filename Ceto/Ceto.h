@@ -28,8 +28,7 @@ public:
 		m_view(nullptr),
 		m_debug_text(nullptr),
 		m_exiting(false),
-		m_current_time(0.0f),
-		walk_state(0)
+		m_current_time(0.0f)
 #if defined(CETO_DEV_TOOLS)
 		, m_dev_test_counter(1)
 #endif
@@ -87,7 +86,6 @@ protected:
 	rhea::GUIController* m_gui_controller;
 
 	float m_current_time;
-	int walk_state;
 
 	bool inScene = false;
 };

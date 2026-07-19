@@ -48,7 +48,8 @@ namespace rhea
 		void ready() override;
 
 		// add a child resource
-		void addChild(Component* child);
+		// returns false if the a child with the same name already exists
+		bool addChild(Component* child);
 
 		// remove a child
 		// returns false if the child was not found or the child was not a child of this unit

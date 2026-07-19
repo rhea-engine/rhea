@@ -8,6 +8,7 @@
 #include "Rhea/Unit.h"
 #include "SimpleParser/Method.h"
 #include <unordered_set>
+#include <Psio/Log.h>
 
 using simpleparser::Type;
 using simpleparser::Method;
@@ -31,15 +32,29 @@ namespace rhea
 		}
 	}
 
-	void Unit::addChild(Component* child)
+	bool Unit::addChild(Component* child)
 	{		
+		// check if child is valid and not already a child of this unit
+		if (!child || child->getParent() == this)
+			return false;
+		// check if a child with the same name already exists
+		if (m_children.find(child->getPathName()) != m_children.end()) {
+			LOG(LOG_ERROR) << "Child with name " << child->getPathName() << " already exists.";
+			return false;
+		}
+		// if the child has a parent, remove it from its parent
+		if (child->getParent())
+			child->getParent()->removeChild(child);
+		// only units have a path, so we need to cast to unit to set the path
 		Unit* u_child = doCast<Unit>(child);
 		if (u_child)
 			u_child->m_path = m_path + "/" + child->getPathName();
+		// everything in order, so we can add the child to the children map and ordered children vector
 		child->setParent(this);
 		m_children[child->getPathName()] = child;
 		m_ordered_children.push_back(child);		
 		child->onParented();
+		return true;
 	}
 
 	bool Unit::removeChild(Component* child)
@@ -433,6 +448,6 @@ namespace rhea
 
 	void Unit::logMe()
 	{
-		printf("--------\nName: %s\nPath: %s\nType: %s\n", m_pathname.c_str(), m_path.c_str(), m_type->getName().c_str());
+		LOG(LOG_INFO) << "--------\nName: " << m_pathname << "\nPath: " << m_path << "\nType: " << m_type->getName();
 	}
 }

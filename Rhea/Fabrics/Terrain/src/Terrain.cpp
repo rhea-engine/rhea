@@ -181,7 +181,7 @@ namespace rhea
 
 				MeshComponent* mesh_component = getComponent<MeshComponent>();
 				if (!mesh_component) {
-					mesh_component = addComponentUnique<MeshComponent>("renderer");					
+					mesh_component = addComponentUnique<MeshComponent>("mesh");					
 				}
 
 				if (!m_material) {

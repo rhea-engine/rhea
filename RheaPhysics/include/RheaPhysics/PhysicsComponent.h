@@ -24,7 +24,7 @@ namespace rhea::physics
 		{
 		}
 		PhysicsComponent() :
-			rhea::MovementListenerComponent("physics", "//meworla/physicscomponent")
+			rhea::MovementListenerComponent("physicsruntime", "//meworla/physicscomponent")
 		{}
 		~PhysicsComponent() { 
 			// ensure cache cleared (if still pointing to our body)

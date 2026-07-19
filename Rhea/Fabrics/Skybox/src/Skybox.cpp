@@ -47,7 +47,7 @@ namespace rhea
 		// skybox mesh
 		MeshComponent* mesh_component = getComponent<MeshComponent>();
 		if (!mesh_component) {
-			mesh_component = addComponentUnique<MeshComponent>("renderer");			
+			mesh_component = addComponentUnique<MeshComponent>("mesh");			
 		}
 		// if no mesh defined, add a cube
 		if (!mesh_component->getMesh()) {

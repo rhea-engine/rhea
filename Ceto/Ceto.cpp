@@ -334,25 +334,27 @@ void Ceto::devAddTestDialog()
 
 void Ceto::devToggleSceneAnimation()
 {
-	rhea::Item* gus2 = doCast<rhea::Item>(m_unit_tree->find("//local/scene1/gus2"));
-	if (!gus2)
+	rhea::Item* gus2 = doCast<rhea::Item>(m_current_scene->getChild("gus2"));
+	rhea::Animator* animator = doCast<rhea::Animator>(m_current_scene->getChild("gus2animator"));
+	if (!gus2 || !animator)
 		return;
 
 	rhea::Animation* anim = nullptr;
 	rhea::Mesh* mesh = doCast<rhea::Mesh>(gus2->getChild("mesh"));
 	if (mesh) {
-		if (!walk_state) {
-			anim = doCast<rhea::Animation>(mesh->getChild("IdleAction"));
-			walk_state = 1;
+		rhea::Animation* idle_anim = doCast<rhea::Animation>(mesh->getChild("IdleAction"));
+		rhea::Animation* run_anim = doCast<rhea::Animation>(mesh->getChild("RunningAction"));
+
+		// toggle between idle and running animation
+		if (animator->getCurrentAnimation() == idle_anim) {
+			anim = run_anim;
 		}
 		else {
-			anim = doCast<rhea::Animation>(mesh->getChild("RunningAction"));
-			walk_state = 0;
+			anim = idle_anim;
 		}
 	}
 
-	rhea::Animator* animator = doCast<rhea::Animator>(m_unit_tree->find("//local/scene1/Animator"));
-	if (animator && anim) {
+	if (anim) {
 		animator->PlayAnimation(anim);
 	}
 }
@@ -535,25 +537,6 @@ void Ceto::setScene(bool mark_preferrences)
 			}
 
 			inScene = true;
-
-			rhea::Scene* scene = worlds->getPrimaryScene();
-
-			rhea::Unit* gus2 = doCast<rhea::Unit>(scene->getChild("gus2"));
-			if (gus2)
-			{
-				rhea::Mesh* mesh = doCast<rhea::Mesh>(gus2->getChild("mesh"));
-				if (mesh) {
-					rhea::Animation* anim = doCast<rhea::Animation>(mesh->getChild("RunningAction"));
-					rhea::Skeleton* skeleton = doCast<rhea::Skeleton>(mesh->getComponent<rhea::Skeleton>());
-					if (anim && skeleton) {
-						// add the animator to the scene
-						rhea::Animator* animator = new rhea::Animator("Animator", "//meworla/animator");
-						animator->setSkeleton(skeleton);
-						animator->PlayAnimation(anim);
-						scene->addChild(animator);
-					}
-				}
-			}
 		});
 	
 }

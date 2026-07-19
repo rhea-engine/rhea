@@ -7,10 +7,51 @@ function(rhea_copy_assets target source_dir subdir_name)
         message(FATAL_ERROR "rhea_copy_runtime_assets: RHEA_ASSETS_DIR not set")
     endif()
 
-    add_custom_command(TARGET ${target} POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
+    file(
+        GLOB_RECURSE asset_files
+        CONFIGURE_DEPENDS
+        "${source_dir}/*"
+    )
+
+    string(MAKE_C_IDENTIFIER
+        "${target}_assets_${subdir_name}"
+        asset_target
+    )
+
+    set(destination
+        "$<TARGET_FILE_DIR:${target}>/Data/${subdir_name}"
+    )
+
+    set(stamp
+        "${CMAKE_CURRENT_BINARY_DIR}/${asset_target}_$<CONFIG>.stamp"
+    )
+
+    add_custom_command(
+        OUTPUT "${stamp}"
+
+        COMMAND "${CMAKE_COMMAND}" -E make_directory
+            "${destination}"
+
+        COMMAND "${CMAKE_COMMAND}" -E copy_directory_if_different
             "${source_dir}"
-            "$<TARGET_FILE_DIR:${target}>/Data/${subdir_name}"
+            "${destination}"
+
+        COMMAND "${CMAKE_COMMAND}" -E touch
+            "${stamp}"
+
+        DEPENDS ${asset_files}
+        COMMENT "Staging ${subdir_name} assets"
+        VERBATIM
+    )
+
+    add_custom_target(
+        "${asset_target}"
+        DEPENDS "${stamp}"
+    )
+
+    add_dependencies(
+        "${target}"
+        "${asset_target}"
     )
 endfunction()
 

@@ -131,6 +131,19 @@ bool Ceto::handleDevShortcuts(const rhea::InputEvent& evt)
 		return true;
 	}
 
+	if (evt.isKeyPressed(rhea::Key::G)) {
+		rhea::Item* gus2 = doCast<rhea::Item>(m_current_scene->getChild("gus2"));
+		rhea::AnimationComponent* ac = gus2->getComponent<rhea::AnimationComponent>();
+		if (ac) {
+			if (ac->isPlaying()) {
+				ac->pause();
+			}
+			else {
+				ac->resume();
+			}
+		}
+	}
+
 	if (evt.isKeyPressed(rhea::Key::T)) {
 		devAddTestLabel();
 		return true;
@@ -338,27 +351,17 @@ void Ceto::devToggleSceneAnimation()
 {
 	rhea::Item* gus2 = doCast<rhea::Item>(m_current_scene->getChild("gus2"));
 	rhea::AnimationComponent* ac = gus2->getComponent<rhea::AnimationComponent>();
-	rhea::MeshComponent* mc = gus2->getComponent<rhea::MeshComponent>();
-	if (!gus2 || !ac || !mc)
+	if (!gus2 || !ac)
 		return;
 
-	rhea::Animation* anim = nullptr;
-	rhea::Mesh* mesh = mc->getMesh();
-	if (mesh) {
-		rhea::Animation* idle_anim = doCast<rhea::Animation>(mesh->getChild("IdleAction"));
-		rhea::Animation* run_anim = doCast<rhea::Animation>(mesh->getChild("RunningAction"));
+	std::string current_state = ac->getCurrentStateName();
 
-		// toggle between idle and running animation
-		if (ac->getCurrentAnimation() == idle_anim) {
-			anim = run_anim;
-		}
-		else {
-			anim = idle_anim;
-		}
+	// toggle between idle and running animation
+	if (current_state == "idle") {
+		ac->play("running");
 	}
-
-	if (anim) {
-		ac->playAnimation(anim);
+	else {
+		ac->play("idle");
 	}
 }
 

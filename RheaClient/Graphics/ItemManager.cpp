@@ -350,13 +350,6 @@ namespace rhea::client {
 			return false;
 		}			
 
-		if (skeleton) 
-		LOG(LOG_DEBUG)
-			<< item->getPath()
-			<< " renderable=" << rc->renderable
-			<< " skeleton_pose=" << rc->skeleton_pose
-			<< " gpuMesh=" << rc->gpuMesh;
-
 		return true;
 	}
 

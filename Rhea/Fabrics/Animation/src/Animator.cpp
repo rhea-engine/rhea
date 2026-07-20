@@ -11,6 +11,7 @@
 #include <Psio/Log.h>
 #include <Rhea/Components/MeshComponent.h>
 #include <cmath>
+#include <Rhea/Animation/AnimationState.h>
 
 namespace rhea
 {
@@ -22,7 +23,7 @@ namespace rhea
 		const std::string base_path = m_attributes["basepath"];
 		m_mesh_ref = Ref<Mesh>(getValueString("mesh"), base_path);
 		m_skeleton_ref = Ref<Skeleton>(getValueString("skeleton"), base_path); // allow override of skeleton reference
-		m_animation_id = getValueString("animation");
+		m_initial_state = getValueString("initialState");
 		m_autoplay = getValue("autoplay", false);
 	}
 
@@ -69,9 +70,68 @@ namespace rhea
 		return false;
 	}
 
-	Animator::AnimationContext* Animator::createAnimationContext(const std::string& animation_id)
+	Animator::AnimationContext* Animator::createAnimationContext(const std::string& initial_state)
 	{
 		AnimationContext* context = nullptr;
+		if (!ensureSkeleton()) {
+			return nullptr;
+		}
+		AnimationState* animation_state = nullptr;
+		if (m_mesh) {
+			if (!initial_state.empty()) {
+				animation_state = doCast<AnimationState>(getChild(initial_state));
+				if (!animation_state) {
+					LOG(LOG_ERROR) << "Animator " << m_pathname << ": animation state " << initial_state << " not found";
+				}
+			}
+			else if (!m_initial_state.empty()) {
+				// try default initial state
+				animation_state = doCast<AnimationState>(getChild(m_initial_state));
+				if (!animation_state) {
+					LOG(LOG_ERROR) << "Animator " << m_pathname << ": animation state " << m_initial_state << " not found";
+				}
+			}
+		}
+		else {
+			LOG(LOG_ERROR) << "Animator " << getPath() << ": no mesh specified";
+		}
+		context = new AnimationContext(animation_state);
+		return context;
+	}
+
+	bool Animator::play(AnimationContext& context, const std::string& state_name)
+	{
+		auto state = doCast<AnimationState>(getChild(state_name));
+
+		if (!state) {
+			LOG(LOG_ERROR) << "Animator " << getPath() << ": unknown state " << state_name;
+			return false;
+		}
+
+		context.current_state = state;
+		context.current_time = 0.0f;
+		context.playing = true;
+		context.started = true;
+		return true;
+	}
+
+	void Animator::onFrame(float delta, AnimationContext* context)
+	{
+		if (context && context->playing && context->current_state && m_skeleton) {
+			context->current_time += delta * context->speed;
+			Animation* animation = context->current_state->getAnimation();
+			if (!animation) {
+				return;
+			}
+			if (animation->duration > 0.0f && context->current_time > animation->duration) {
+				context->current_time = fmod(context->current_time, animation->duration);
+			}
+			animation->UpdateSkeleton(context->component, m_skeleton, context->current_time);			
+		}
+	}
+
+	Animation* Animator::resolveAnimation(const std::string& animation_id)
+	{
 		if (!ensureSkeleton()) {
 			return nullptr;
 		}
@@ -83,29 +143,10 @@ namespace rhea
 					LOG(LOG_ERROR) << "Animator " << m_pathname << ": animation " << animation_id << " not found";
 				}
 			}
-			else if (!m_animation_id.empty()) {
-				// try default animation id
-				animation = doCast<Animation>(m_mesh->getChild(m_animation_id));
-				if (!animation) {
-					LOG(LOG_ERROR) << "Animator " << m_pathname << ": animation " << m_animation_id << " not found";
-				}
-			}
 		}
 		else {
 			LOG(LOG_ERROR) << "Animator " << getPath() << ": no mesh specified";
 		}
-		context = new AnimationContext(animation);
-		return context;
-	}
-
-	void Animator::onFrame(float delta, AnimationContext* context)
-	{
-		if (context && context->is_playing && context->animation && m_skeleton) {
-			context->current_time += delta * context->speed;
-			if (context->animation->duration > 0.0f && context->current_time > context->animation->duration) {
-				context->current_time = fmod(context->current_time, context->animation->duration);
-			}
-			context->animation->UpdateSkeleton(context->component, m_skeleton, context->current_time);			
-		}
+		return animation;
 	}
 }

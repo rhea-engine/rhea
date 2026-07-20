@@ -37,6 +37,13 @@ namespace rhea
             m_animator_ref = std::move(ref);
         }
 
+        // play api
+		void play(std::string state_name);
+        void pause();
+		void resume();
+        bool isPlaying() const;
+		std::string getCurrentStateName() const;
+
         // Resolved asset
         Animator* getAnimator() const { return m_animator; }
         void setAnimator(Animator* anim) { m_animator = anim; }

@@ -9,7 +9,9 @@ add_library (Animation
 	"include/Rhea/Animation/Skeleton.h" 
 	"src/Skeleton.cpp"
 	"include/Rhea/Animation/AnimationComponent.h"
- "src/AnimationComponent.cpp")
+	"src/AnimationComponent.cpp"
+	"include/Rhea/Animation/AnimationState.h"
+ "src/AnimationState.cpp")
 add_library(Rhea::Animation ALIAS Animation)
 target_include_directories(Animation PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 

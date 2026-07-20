@@ -22,7 +22,8 @@ namespace rhea
 				return false;
 			}
 		}
-
+#ifdef OLD_TEST
+		// Note: this test does no longer work, because the transform is now handled in the animation component
 		for (int i = 0; i < m_bones.size(); ++i) {
 			math::Matrix4 testIdentity = m_bones[i].inverse_bind_matrix * m_bones[i].global_transform;
 			
@@ -37,6 +38,7 @@ namespace rhea
 				DLOG(LOG_DEBUG) << "Bone " << i << " (" << m_bones[i].name << ") Identity Check: ok";// << testIdentity;
 #endif
 		}
+#endif
 
 		// debug output
 #ifdef DEBUG_BONES

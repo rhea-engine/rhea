@@ -11,20 +11,6 @@
 
 namespace rhea
 {
-	void Skeleton::UpdateBoneTransforms()
-	{		
-		for (int i = 0; i < m_bones.size(); ++i) {
-			if (m_bones[i].parent_index == -1) {
-				// Root bone, no parent, so global transform is just the local transform
-				m_bones[i].UpdateGlobalTransform(math::Matrix4()); // Identity matrix
-			}
-			else {
-				// Update based on parent's global transform							
-				m_bones[i].UpdateGlobalTransform(m_bones[m_bones[i].parent_index].global_transform);
-			}
-		}
-	}
-
 	bool Skeleton::isValid()
 	{
 		// check if sorted
@@ -36,7 +22,8 @@ namespace rhea
 				return false;
 			}
 		}
-		UpdateBoneTransforms();
+#ifdef OLD_TEST
+		// Note: this test does no longer work, because the transform is now handled in the animation component
 		for (int i = 0; i < m_bones.size(); ++i) {
 			math::Matrix4 testIdentity = m_bones[i].inverse_bind_matrix * m_bones[i].global_transform;
 			
@@ -51,6 +38,7 @@ namespace rhea
 				DLOG(LOG_DEBUG) << "Bone " << i << " (" << m_bones[i].name << ") Identity Check: ok";// << testIdentity;
 #endif
 		}
+#endif
 
 		// debug output
 #ifdef DEBUG_BONES
@@ -69,21 +57,5 @@ namespace rhea
 #endif
 		
 		return true;
-	}	
-
-	const std::vector<math::Matrix4>& Skeleton::getFinalBoneMatrices() const
-	{
-		return getBoneMatrices();
-	}
-
-	const std::vector<math::Matrix4>& Skeleton::getBoneMatrices() const
-	{
-		m_finalBoneMatrices.clear();
-		m_finalBoneMatrices.reserve(m_bones.size());
-
-		for (const auto& bone : m_bones) {
-			m_finalBoneMatrices.push_back(bone.final_transform.transpose());
-		}
-		return m_finalBoneMatrices;
 	}
 }

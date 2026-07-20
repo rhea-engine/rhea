@@ -22,20 +22,14 @@ namespace rhea
 			Component(name, type_name)
 		{}
 
-		void UpdateBoneTransforms();
-
 		void addBone(Bone bone) { m_bones.push_back(bone); }
 
 		bool isValid();
 		
 		std::vector<Bone>& getBones() {	return m_bones;	}
 
-		const std::vector<math::Matrix4>& getBoneMatrices() const;
-		const std::vector<math::Matrix4>& getFinalBoneMatrices() const;
-
 	protected:
 		std::vector<Bone> m_bones;	
-		mutable std::vector<math::Matrix4> m_finalBoneMatrices;
 	};
 }
 

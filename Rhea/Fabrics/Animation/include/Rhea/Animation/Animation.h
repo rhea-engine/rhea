@@ -13,6 +13,8 @@
 
 namespace rhea
 {
+	class AnimationComponent;
+
 	class Animation : public Unit
 	{
 		MECLASS(Animation, Unit)
@@ -47,7 +49,7 @@ namespace rhea
 
 		std::vector<AnimationChannel> channels;  // Channels controlling different nodes
 
-		void UpdateSkeleton(Skeleton* skeleton, float currentTime);
+		void UpdateSkeleton(AnimationComponent* component, Skeleton* skeleton, float currentTime);
 
 	protected:
 

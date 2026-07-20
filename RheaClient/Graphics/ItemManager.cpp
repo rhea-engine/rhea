@@ -32,6 +32,7 @@
 #include <Rhea/Components/MeshComponent.h>
 #include <Poseidon/RenderWorld.h>
 #include "TransformListener.h"
+#include <Rhea/Animation/AnimationComponent.h>
 
 namespace rhea::client {
 	GraphicsItemManager::~GraphicsItemManager()
@@ -269,6 +270,15 @@ namespace rhea::client {
 			m_service->getEngine()->getRenderWorld()->destroyCamera(rc->camera);
 			rc->camera = poseidon::InvalidCamera;
 		}
+		if (rc->skeleton_pose != poseidon::InvalidSkeletonPoseHandle) {
+			m_service->getEngine()->getRenderWorld()->destroySkeletonPose(rc->skeleton_pose);
+			rc->skeleton_pose = poseidon::InvalidSkeletonPoseHandle;
+			// clear from animated items list
+			auto it = std::find(m_animated_items.begin(), m_animated_items.end(), item);
+			if (it != m_animated_items.end()) {
+				m_animated_items.erase(it);
+			}
+		}
 
 		rc->ctx = nullptr;
 		rc->gpuMesh = nullptr;
@@ -455,21 +465,53 @@ namespace rhea::client {
 		if (!renderable)
 			return;
 
+		auto* ac = item->getComponent<rhea::AnimationComponent>();
 		if (rc->skeleton) {
-			if (!rc->skeleton_pose)
-			{
-				rc->skeleton_pose = core->getRenderWorld()->createSkeletonPose(rc->skeleton->getBones().size());
+			renderable->skinned = true;
+			if (ac) {
+				// If the item has an animation component, we need to update the skeleton pose
+				if (!rc->skeleton_pose)
+				{
+					rc->skeleton_pose = core->getRenderWorld()->createSkeletonPose(rc->skeleton->getBones().size());
+				}
+				poseidon::SkeletonPose* pose = core->getRenderWorld()->getSkeletonPose(rc->skeleton_pose);
+				auto& dst = pose->accessBoneMatrices();
+				const auto& src = ac->getFinalBoneMatrices();
+				for (size_t i = 0; i < src.size(); ++i)
+				{
+					dst[i] = src[i];
+				}
+				renderable->skeleton_pose = rc->skeleton_pose;
 			}
+			else {
+				// If the item has a skeleton but no animation component, we should clean up the skeleton pose if it exists
+				if (rc->skeleton_pose) {
+					core->getRenderWorld()->destroySkeletonPose(rc->skeleton_pose);
+					rc->skeleton_pose = poseidon::InvalidSkeletonPoseHandle;
+					renderable->skinned = false;
+					renderable->skeleton_pose = poseidon::InvalidSkeletonPoseHandle;
+					// clear from animated items list
+					auto it = std::find(m_animated_items.begin(), m_animated_items.end(), item);
+					if (it != m_animated_items.end()) {
+						m_animated_items.erase(it);
+					}
+				}
 
-			poseidon::SkeletonPose* pose = core->getRenderWorld()->getSkeletonPose(rc->skeleton_pose);
-			auto& dst = pose->accessBoneMatrices();
-			const auto& src = rc->skeleton->getFinalBoneMatrices();
-
-			for (size_t i = 0; i < src.size(); ++i)
-			{
-				dst[i] = src[i];
 			}
-			renderable->skeleton_pose = rc->skeleton_pose;
+		}
+		else {
+			renderable->skinned = false;
+			if (rc->skeleton_pose) {
+				// If the item no longer has an animation component, but we have a skeleton pose, we should clean it up
+				core->getRenderWorld()->destroySkeletonPose(rc->skeleton_pose);
+				rc->skeleton_pose = poseidon::InvalidSkeletonPoseHandle;
+				renderable->skeleton_pose = poseidon::InvalidSkeletonPoseHandle;
+				// clear from animated items list
+				auto it = std::find(m_animated_items.begin(), m_animated_items.end(), item);
+				if (it != m_animated_items.end()) {
+					m_animated_items.erase(it);
+				}
+			}
 		}
 	}
 }

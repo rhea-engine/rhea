@@ -35,6 +35,7 @@ namespace poseidon
 				
         RenderableHandle handle = InvalidRenderable;
 		SkeletonPoseHandle skeleton_pose = InvalidSkeletonPoseHandle;
+		bool skinned = false;
 
         Mesh* mesh = nullptr;
         Material* overrideMaterial = nullptr;

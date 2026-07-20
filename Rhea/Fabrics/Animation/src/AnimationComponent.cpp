@@ -67,12 +67,12 @@ namespace rhea
 			m_active = false;
 			return;
 		}
-		if (!m_animation_state) {
+		if (!m_animation_context) {
 			std::string animation_id = m_values.find("animation") != m_values.end() ? m_values["animation"].toString() : "";
-			auto* state = m_animator->createAnimationState(animation_id);
-			if (state) {
-				m_animation_state.reset(state);
-				m_animation_state->component = this;
+			auto* context = m_animator->createAnimationContext(animation_id);
+			if (context) {
+				m_animation_context.reset(context);
+				m_animation_context->component = this;
 			}
 			else
 				LOG(LOG_ERROR) << "AnimationComponent: failed to create animation state for animator " << m_animator_ref.id();
@@ -81,9 +81,9 @@ namespace rhea
 		auto& bones = m_skeleton->getBones();
 		m_bone_poses.clear();
 		m_bone_poses.resize(bones.size());
-		if (m_animation_state) {
-			m_animation_state->current_time = 0.0f;
-			m_animation_state->is_playing = true;
+		if (m_animation_context) {
+			m_animation_context->current_time = 0.0f;
+			m_animation_context->is_playing = true;
 		}
 	}
 
@@ -95,7 +95,7 @@ namespace rhea
 	void AnimationComponent::onFrame(float delta)
 	{
 		if (m_active && m_animator && ensureSkeleton()) {
-			m_animator->onFrame(delta, m_animation_state.get());
+			m_animator->onFrame(delta, m_animation_context.get());
 		}
 	}
 
@@ -113,19 +113,19 @@ namespace rhea
 	void AnimationComponent::playAnimation(Animation* animation)
 	{
 		if (animation && m_animator) {
-			if (!m_animation_state) {
-				auto* anim = m_animator->createAnimationState(animation->getPathName());
-				if (anim)
-					m_animation_state.reset(anim);
+			if (!m_animation_context) {
+				auto* context = m_animator->createAnimationContext(animation->getPathName());
+				if (context)
+					m_animation_context.reset(context);
 				else {
 					LOG(LOG_ERROR) << "AnimationComponent: failed to create animation state for animator " << animation->getPathName();
 					return;
 				}
 			}
 			else 
-				m_animation_state->animation = animation;
-			m_animation_state->current_time = 0.0f;
-			m_animation_state->is_playing = true;
+				m_animation_context->animation = animation;
+			m_animation_context->current_time = 0.0f;
+			m_animation_context->is_playing = true;
 		}
 		else {
 			LOG(LOG_ERROR) << "AnimationComponent: invalid animation or animator";
@@ -134,8 +134,8 @@ namespace rhea
 
 	Animation* AnimationComponent::getCurrentAnimation() const
 	{
-		if (m_animation_state) {
-			return m_animation_state->animation;
+		if (m_animation_context) {
+			return m_animation_context->animation;
 		}
 		return nullptr;
 	}

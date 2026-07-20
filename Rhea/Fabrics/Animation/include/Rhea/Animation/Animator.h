@@ -9,7 +9,6 @@
 #define RHEA_ANIMATOR_H
 
 #include <Rhea/Unit.h>
-#include <Rhea/Core/Item.h>
 #include <Rhea/Core/Mesh.h>
 #include <Rhea/Ref.h>
 #include <Rhea/Animation/Skeleton.h>
@@ -19,33 +18,32 @@ namespace rhea
 {
 	class AnimationComponent;
 
-	class Animator : public Item
+	class Animator : public Unit
 	{
-		MECLASS(Animator, Item)
+		MECLASS(Animator, Unit)
 	public:
-		struct AnimationState {
+		struct AnimationContext {
 			Animation* animation;
 			AnimationComponent* component;
 			float current_time;
 			float speed;
 			bool is_playing;
-			AnimationState(Animation* anim) : animation(anim), component(nullptr), current_time(0.0f), speed(1.0f), is_playing(false) {}
+			AnimationContext(Animation* anim) : animation(anim), component(nullptr), current_time(0.0f), speed(1.0f), is_playing(false) {}
 		};
 
 		Animator(std::string name, std::string type_name) :
 			m_skeleton(nullptr),
 			m_mesh(nullptr),
-			Item(name, "//meworla/animator")
+			Unit(name, "//meworla/animator")
 		{}
-		void setup(Application* app) override { Item::setup(app, {}, {}); }
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values) override;
 		void ready() override;
 
-		// return a fresh animation state for the given animation id
+		// return a fresh animation context for the given animation id
 		// if animation id is empty use the default animation id
-		AnimationState* createAnimationState(const std::string& animation_id);
+		AnimationContext* createAnimationContext(const std::string& animation_id);
       
-		void onFrame(float delta, AnimationState* state);
+		void onFrame(float delta, AnimationContext* context);
 			
 		void setSkeleton(Skeleton* skeleton) { m_skeleton = skeleton; }
 

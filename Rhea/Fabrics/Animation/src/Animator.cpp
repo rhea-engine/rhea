@@ -17,7 +17,7 @@ namespace rhea
 	void Animator::setup(Application* app, std::unordered_map<std::string, std::string> attributes,
 		std::unordered_map<std::string, Variant> values)
 	{
-		Item::setup(app, std::move(attributes), std::move(values));
+		Unit::setup(app, std::move(attributes), std::move(values));
 
 		const std::string base_path = m_attributes["basepath"];
 		m_mesh_ref = Ref<Mesh>(getValueString("mesh"), base_path);
@@ -28,7 +28,7 @@ namespace rhea
 
 	void Animator::ready()
 	{
-		Item::ready();
+		Unit::ready();
 	}
 
 	bool Animator::ensureSkeleton()
@@ -69,9 +69,9 @@ namespace rhea
 		return false;
 	}
 
-	Animator::AnimationState* Animator::createAnimationState(const std::string& animation_id)
+	Animator::AnimationContext* Animator::createAnimationContext(const std::string& animation_id)
 	{
-		AnimationState* state = nullptr;
+		AnimationContext* context = nullptr;
 		if (!ensureSkeleton()) {
 			return nullptr;
 		}
@@ -94,18 +94,18 @@ namespace rhea
 		else {
 			LOG(LOG_ERROR) << "Animator " << getPath() << ": no mesh specified";
 		}
-		state = new AnimationState(animation);
-		return state;
+		context = new AnimationContext(animation);
+		return context;
 	}
 
-	void Animator::onFrame(float delta, AnimationState* state)
+	void Animator::onFrame(float delta, AnimationContext* context)
 	{
-		if (state && state->is_playing && state->animation && m_skeleton) {
-			state->current_time += delta * state->speed;
-			if (state->animation->duration > 0.0f && state->current_time > state->animation->duration) {
-				state->current_time = fmod(state->current_time, state->animation->duration);
+		if (context && context->is_playing && context->animation && m_skeleton) {
+			context->current_time += delta * context->speed;
+			if (context->animation->duration > 0.0f && context->current_time > context->animation->duration) {
+				context->current_time = fmod(context->current_time, context->animation->duration);
 			}
-			state->animation->UpdateSkeleton(state->component, m_skeleton, state->current_time);			
+			context->animation->UpdateSkeleton(context->component, m_skeleton, context->current_time);			
 		}
 	}
 }

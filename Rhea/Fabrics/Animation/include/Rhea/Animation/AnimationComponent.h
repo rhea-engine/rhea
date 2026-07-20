@@ -11,6 +11,7 @@
 #include <Rhea/Animation/Animator.h>
 #include <Rhea/Ref.h>
 #include <string>
+#include <memory>
 #include <Rhea/Components/ActiveComponent.h>
 
 namespace rhea
@@ -69,7 +70,7 @@ namespace rhea
         std::vector<BonePose> m_bone_poses;
         mutable std::vector<math::Matrix4> m_finalBoneMatrices;
 
-		std::unique_ptr<Animator::AnimationState> m_animation_state;
+		std::unique_ptr<Animator::AnimationContext> m_animation_context;
 
 		bool ensureSkeleton();
     };

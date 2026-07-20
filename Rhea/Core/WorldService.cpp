@@ -11,6 +11,7 @@
 #include <Rhea/UnitTree.h>
 #include <Rhea/Core/Item.h>
 #include <Rhea/Core/ActiveUnit.h>
+#include <Rhea/Components/ActiveComponent.h>
 #include <Psio/Log.h>
 #include "Rhea/Resources/Collection.h"
 
@@ -248,6 +249,9 @@ namespace rhea
 						ActiveUnit* active_unit = doCast<ActiveUnit>(unit);
 						if (active_unit) {
 							active_unit->onFrame(delta);
+						}
+						else if (doCast<ActiveComponent>(unit)) {
+							doCast<ActiveComponent>(unit)->onFrame(delta);
 						}
 						return true;
 						});

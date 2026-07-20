@@ -39,6 +39,8 @@
 #include <Rhea/GUI/Dialog.h>
 #include <Rhea/GUI/TextInput.h>
 #include <RheaAudio/AudioService.h>
+#include <Rhea/Animation/AnimationComponent.h>
+#include <Rhea/Components/MeshComponent.h>
 
 bool Ceto::onQuit(rhea::Event* ev, rhea::Unit* unit)
 {
@@ -335,18 +337,19 @@ void Ceto::devAddTestDialog()
 void Ceto::devToggleSceneAnimation()
 {
 	rhea::Item* gus2 = doCast<rhea::Item>(m_current_scene->getChild("gus2"));
-	rhea::Animator* animator = doCast<rhea::Animator>(m_current_scene->getChild("gus2animator"));
-	if (!gus2 || !animator)
+	rhea::AnimationComponent* ac = gus2->getComponent<rhea::AnimationComponent>();
+	rhea::MeshComponent* mc = gus2->getComponent<rhea::MeshComponent>();
+	if (!gus2 || !ac || !mc)
 		return;
 
 	rhea::Animation* anim = nullptr;
-	rhea::Mesh* mesh = doCast<rhea::Mesh>(gus2->getChild("mesh"));
+	rhea::Mesh* mesh = mc->getMesh();
 	if (mesh) {
 		rhea::Animation* idle_anim = doCast<rhea::Animation>(mesh->getChild("IdleAction"));
 		rhea::Animation* run_anim = doCast<rhea::Animation>(mesh->getChild("RunningAction"));
 
 		// toggle between idle and running animation
-		if (animator->getCurrentAnimation() == idle_anim) {
+		if (ac->getCurrentAnimation() == idle_anim) {
 			anim = run_anim;
 		}
 		else {
@@ -355,7 +358,7 @@ void Ceto::devToggleSceneAnimation()
 	}
 
 	if (anim) {
-		animator->PlayAnimation(anim);
+		ac->playAnimation(anim);
 	}
 }
 

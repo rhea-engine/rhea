@@ -17,10 +17,20 @@
 
 namespace rhea
 {
+	class AnimationComponent;
+
 	class Animator : public Item
 	{
 		MECLASS(Animator, Item)
 	public:
+		struct AnimationState {
+			Animation* animation;
+			AnimationComponent* component;
+			float current_time;
+			float speed;
+			bool is_playing;
+			AnimationState(Animation* anim) : animation(anim), component(nullptr), current_time(0.0f), speed(1.0f), is_playing(false) {}
+		};
 
 		Animator(std::string name, std::string type_name) :
 			m_skeleton(nullptr),
@@ -30,27 +40,27 @@ namespace rhea
 		void setup(Application* app) override { Item::setup(app, {}, {}); }
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values) override;
 		void ready() override;
-		void onActivate() override;
-		void onDeactivate() override;
 
-        void PlayAnimation(Animation* animation);
-       
-		void onFrame(float delta) override;
+		// return a fresh animation state for the given animation id
+		// if animation id is empty use the default animation id
+		AnimationState* createAnimationState(const std::string& animation_id);
+      
+		void onFrame(float delta, AnimationState* state);
 			
 		void setSkeleton(Skeleton* skeleton) { m_skeleton = skeleton; }
 
-		Animation* getCurrentAnimation() const { return m_current_animation; }
         
     private:
 		Ref<Mesh> m_mesh_ref;
 		Ref<Skeleton> m_skeleton_ref;
-		Ref<Animation> m_animation_ref;
-        Animation* m_current_animation = nullptr;
+		std::string m_animation_id;
+		Animation* m_default_animation = nullptr;
 		Mesh* m_mesh = nullptr;
         Skeleton* m_skeleton = nullptr;
-        float m_current_time = 0.0f;
+
 		bool m_autoplay = false;
-		bool m_active = false;
+
+		bool ensureSkeleton();
 	};
 }
 

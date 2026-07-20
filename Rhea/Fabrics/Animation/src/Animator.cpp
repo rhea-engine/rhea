@@ -9,7 +9,7 @@
 #include <Rhea/Application.h>
 #include <Rhea/UnitTree.h>
 #include <Psio/Log.h>
-
+#include <Rhea/Components/MeshComponent.h>
 #include <cmath>
 
 namespace rhea
@@ -22,15 +22,21 @@ namespace rhea
 		const std::string base_path = m_attributes["basepath"];
 		m_mesh_ref = Ref<Mesh>(getValueString("mesh"), base_path);
 		m_skeleton_ref = Ref<Skeleton>(getValueString("skeleton"), base_path); // allow override of skeleton reference
-		m_animation_ref = Ref<Animation>(getValueString("animation"), base_path);
+		m_animation_id = getValueString("animation");
 		m_autoplay = getValue("autoplay", false);
 	}
 
 	void Animator::ready()
 	{
 		Item::ready();
+	}
 
-		if (m_mesh_ref) {
+	bool Animator::ensureSkeleton()
+	{
+		if (m_skeleton)
+			return true;
+
+		if (!m_mesh && m_mesh_ref) {
 			m_mesh = m_mesh_ref.resolve(m_app->getUnitTree());
 			if (!m_mesh) {
 				LOG(LOG_ERROR) << "Animator " << m_pathname << ": mesh " << m_mesh_ref.id() << " not found";
@@ -41,6 +47,8 @@ namespace rhea
 				if (!m_skeleton) {
 					LOG(LOG_ERROR) << "Animator " << m_pathname << ": mesh " << m_mesh_ref.id() << " does not have a skeleton component";
 				}
+				else
+					return true;
 			}
 		}
 
@@ -48,43 +56,56 @@ namespace rhea
 			m_skeleton = m_skeleton_ref.resolve(m_app->getUnitTree());
 			if (!m_skeleton) {
 				LOG(LOG_ERROR) << "Animator " << m_pathname << ": skeleton " << m_skeleton_ref.id() << " not found";
+				return false;
+			}
+			else {
+				// also try to find mesh from skeleton if not already set
+				if (!m_mesh && doCast<Mesh>(m_skeleton->getParent())) {
+					m_mesh = doCast<Mesh>(m_skeleton->getParent());
+				}
+				return true;
 			}
 		}
+		return false;
+	}
 
-		if (m_animation_ref) {
-			m_current_animation = m_animation_ref.resolve(m_app->getUnitTree());
-			if (!m_current_animation) {
-				LOG(LOG_ERROR) << "Animator " << m_pathname << ": animation " << m_animation_ref.id() << " not found";
+	Animator::AnimationState* Animator::createAnimationState(const std::string& animation_id)
+	{
+		AnimationState* state = nullptr;
+		if (!ensureSkeleton()) {
+			return nullptr;
+		}
+		Animation* animation = nullptr;
+		if (m_mesh) {
+			if (!animation_id.empty()) {
+				animation = doCast<Animation>(m_mesh->getChild(animation_id));
+				if (!animation) {
+					LOG(LOG_ERROR) << "Animator " << m_pathname << ": animation " << animation_id << " not found";
+				}
+			}
+			else if (!m_animation_id.empty()) {
+				// try default animation id
+				animation = doCast<Animation>(m_mesh->getChild(m_animation_id));
+				if (!animation) {
+					LOG(LOG_ERROR) << "Animator " << m_pathname << ": animation " << m_animation_id << " not found";
+				}
 			}
 		}
+		else {
+			LOG(LOG_ERROR) << "Animator " << getPath() << ": no mesh specified";
+		}
+		state = new AnimationState(animation);
+		return state;
 	}
 
-	void Animator::onActivate()
+	void Animator::onFrame(float delta, AnimationState* state)
 	{
-		m_active = true;
-		if (m_autoplay && m_current_animation)
-			PlayAnimation(m_current_animation);
-	}
-
-	void Animator::onDeactivate()
-	{
-		m_active = false;
-	}
-
-	void Animator::PlayAnimation(Animation* animation)
-	{
-		m_current_animation = animation;
-		m_current_time = 0.0f;
-	}
-
-	void Animator::onFrame(float delta)	
-	{
-		if (m_active && m_current_animation && m_skeleton) {
-			m_current_time += delta;
-			if (m_current_animation->duration > 0.0f && m_current_time > m_current_animation->duration) {
-				m_current_time = fmod(m_current_time, m_current_animation->duration);
+		if (state && state->is_playing && state->animation && m_skeleton) {
+			state->current_time += delta * state->speed;
+			if (state->animation->duration > 0.0f && state->current_time > state->animation->duration) {
+				state->current_time = fmod(state->current_time, state->animation->duration);
 			}
-			m_current_animation->UpdateSkeleton(m_skeleton, m_current_time);			
+			state->animation->UpdateSkeleton(state->component, m_skeleton, state->current_time);			
 		}
 	}
 }

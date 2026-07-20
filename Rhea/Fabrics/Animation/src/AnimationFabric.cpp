@@ -11,6 +11,7 @@
 #include <Rhea/Animation/Animator.h>
 #include <Rhea/Animation/Animation.h>
 #include <Rhea/Physics/PhysicsManagerService.h>
+#include <Rhea/Animation/AnimationComponent.h>
 
 namespace rhea
 {
@@ -19,6 +20,7 @@ namespace rhea
 		simpleparser::Type::registerType<Animator>("//meworla/animator");
 		simpleparser::Type::registerType<Animation>("//meworla/animation");
 		simpleparser::Type::registerType<Skeleton>("//meworla/skeleton");
+		AnimationComponent::_register_AnimationComponent();
 
 		// no physics
 		auto* mgr = static_cast<PhysicsManagerService*>(app->getService("physics_mgr"));

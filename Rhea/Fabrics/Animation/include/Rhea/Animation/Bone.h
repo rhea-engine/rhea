@@ -34,9 +34,15 @@ struct Bone {
     void addChild(int child_index) {
         children_indices.push_back(child_index);
     }
+};
+
+struct BonePose {
+	math::Matrix4 global_transform; // Global transform for this pose
+    math::Matrix4 final_transform;  // Final transform used for skinning
+    math::Matrix4 local_transform;  // Local transform (relative to parent)
 
     // Method to update the global transform (called during animation)
-    void UpdateGlobalTransform(const math::Matrix4& parentGlobalTransform) {
+    void UpdateGlobalTransform(const math::Matrix4& parentGlobalTransform, const math::Matrix4& inverse_bind_matrix) {
         global_transform = parentGlobalTransform * local_transform;
         final_transform = global_transform * inverse_bind_matrix; // For skinning      
     }

@@ -263,28 +263,36 @@ namespace poseidon
 				continue;
 			}
 
-			if (renderable->skeleton_pose != InvalidSkeletonPoseHandle)
-			{
-				auto* pose = world->getSkeletonPose(renderable->skeleton_pose);
+			if (renderable->skinned) {
 
-				if (pose)
+				// Fill the bone buffer
+				BoneBuffer boneBuffer{};
+				for (auto& matrix : boneBuffer.boneMatrices)
+					matrix = math::Matrix4::IDENTITY;
+
+				if (renderable->skeleton_pose != InvalidSkeletonPoseHandle)
 				{
-					// Fill the bone buffer
-					BoneBuffer boneBuffer{};
-					for (int i = 0; i < 100; ++i)
-					{
-						boneBuffer.boneMatrices[i] = math::Matrix4::IDENTITY;
-					}
-					const auto& boneMatrices = pose->getBoneMatrices();
-					size_t max_bones = std::min(boneMatrices.size(), static_cast<size_t>(100)); // Ensure we do not exceed buffer capacity.
-					for (size_t i = 0; i < max_bones; ++i)
-						boneBuffer.boneMatrices[i] = boneMatrices[i];
+					auto* pose = world->getSkeletonPose(renderable->skeleton_pose);
 
-					// Update the bone matrix buffer
-					m_bone_buffer->update((void*)&boneBuffer);
-					m_renderer->bindGPUBuffer(m_bone_buffer.get(), 4, hippios::ShaderStage::Vertex); // Bind bone buffer to slot 4 for vertex shader
+					if (pose)
+					{
+						for (int i = 0; i < 100; ++i)
+						{
+							boneBuffer.boneMatrices[i] = math::Matrix4::IDENTITY;
+						}
+						const auto& boneMatrices = pose->getBoneMatrices();
+						size_t max_bones = std::min(boneMatrices.size(), static_cast<size_t>(100)); // Ensure we do not exceed buffer capacity.
+						for (size_t i = 0; i < max_bones; ++i)
+							boneBuffer.boneMatrices[i] = boneMatrices[i];
+
+
+					}
 				}
-			}			
+
+				// Update the bone matrix buffer
+				m_bone_buffer->update((void*)&boneBuffer);
+				m_renderer->bindGPUBuffer(m_bone_buffer.get(), 4, hippios::ShaderStage::Vertex); // Bind bone buffer to slot 4 for vertex shader
+			}
 
 			// iterate over submeshes
 			for (size_t i = 0; i < mesh->getMeshCount(); ++i) {

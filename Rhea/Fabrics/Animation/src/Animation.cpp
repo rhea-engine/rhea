@@ -8,10 +8,11 @@
 #include <Rhea/Animation/Animation.h>
 #include <Math/Interpolation.h>
 #include <Psio/Log.h>
+#include <Rhea/Animation/AnimationComponent.h>
 
 namespace rhea
 {
-	void Animation::UpdateSkeleton(Skeleton* skeleton, float currentTime)
+	void Animation::UpdateSkeleton(AnimationComponent* component, Skeleton* skeleton, float currentTime)
 	{
 #ifdef DEBUG_ANIMATION
 		LOG(LOG_DEBUG) << "current time: " << currentTime;
@@ -20,6 +21,8 @@ namespace rhea
 			if (channel.targetNode >= skeleton->getBones().size())
 				continue;
 			Bone& bone = skeleton->getBones()[channel.targetNode];
+			BonePose* pose = component->getBonePose(bone.index);
+			if (!pose) continue;
 
 			// Find surrounding timestamps for translation, rotation, and scale
 			math::Vector3 interpolatedTranslation = InterpolateTranslation(channel, currentTime);
@@ -27,27 +30,27 @@ namespace rhea
 			math::Vector3 interpolatedScale = InterpolateScale(channel, currentTime);
 
 			// Compose the final local transform
-			bone.local_transform = math::Matrix4::compose(interpolatedTranslation, interpolatedRotation, interpolatedScale);
-
+			pose->local_transform = math::Matrix4::compose(interpolatedTranslation, interpolatedRotation, interpolatedScale);
+			
 #ifdef DEBUG_ANIMATION
 			LOG(LOG_DEBUG) << "Bone: " << bone.name;
 
 			LOG(LOG_DEBUG) << "Translation: (" << interpolatedTranslation.x << ", " << interpolatedTranslation.y << ", " << interpolatedTranslation.z << ")";
 			LOG(LOG_DEBUG) << "Rotation: (" << interpolatedRotation.w << ", " << interpolatedRotation.x << ", " << interpolatedRotation.y << ", " << interpolatedRotation.z << ")";
-			LOG(LOG_DEBUG) << "Translation: (" << interpolatedScale.x << ", " << interpolatedScale.y << ", " << interpolatedScale.z << ")";
+			LOG(LOG_DEBUG) << "Scale: (" << interpolatedScale.x << ", " << interpolatedScale.y << ", " << interpolatedScale.z << ")";
 			LOG(LOG_DEBUG) << "Global Transform";
-			LOG(LOG_DEBUG) << "[ " << bone.global_transform[0][0] << ", " << bone.global_transform[0][1] << ", " << bone.global_transform[0][2] << ", " << bone.global_transform[0][3] << "]";
-			LOG(LOG_DEBUG) << "[ " << bone.global_transform[1][0] << ", " << bone.global_transform[1][1] << ", " << bone.global_transform[1][2] << ", " << bone.global_transform[1][3] << "]";
-			LOG(LOG_DEBUG) << "[ " << bone.global_transform[2][0] << ", " << bone.global_transform[2][1] << ", " << bone.global_transform[2][2] << ", " << bone.global_transform[2][3] << "]";
-			LOG(LOG_DEBUG) << "[ " << bone.global_transform[3][0] << ", " << bone.global_transform[3][1] << ", " << bone.global_transform[3][2] << ", " << bone.global_transform[3][3] << "]";
+			LOG(LOG_DEBUG) << "[ " << pose->global_transform[0][0] << ", " << pose->global_transform[0][1] << ", " << pose->global_transform[0][2] << ", " << pose->global_transform[0][3] << "]";
+			LOG(LOG_DEBUG) << "[ " << pose->global_transform[1][0] << ", " << pose->global_transform[1][1] << ", " << pose->global_transform[1][2] << ", " << pose->global_transform[1][3] << "]";
+			LOG(LOG_DEBUG) << "[ " << pose->global_transform[2][0] << ", " << pose->global_transform[2][1] << ", " << pose->global_transform[2][2] << ", " << pose->global_transform[2][3] << "]";
+			LOG(LOG_DEBUG) << "[ " << pose->global_transform[3][0] << ", " << pose->global_transform[3][1] << ", " << pose->global_transform[3][2] << ", " << pose->global_transform[3][3] << "]";
 			LOG(LOG_DEBUG) << "Local Transform";
-			LOG(LOG_DEBUG) << "[ " << bone.local_transform[0][0] << ", " << bone.local_transform[0][1] << ", " << bone.local_transform[0][2] << ", " << bone.local_transform[0][3] << "]";
-			LOG(LOG_DEBUG) << "[ " << bone.local_transform[1][0] << ", " << bone.local_transform[1][1] << ", " << bone.local_transform[1][2] << ", " << bone.local_transform[1][3] << "]";
-			LOG(LOG_DEBUG) << "[ " << bone.local_transform[2][0] << ", " << bone.local_transform[2][1] << ", " << bone.local_transform[2][2] << ", " << bone.local_transform[2][3] << "]";
-			LOG(LOG_DEBUG) << "[ " << bone.local_transform[3][0] << ", " << bone.local_transform[3][1] << ", " << bone.local_transform[3][2] << ", " << bone.local_transform[3][3] << "]";
+			LOG(LOG_DEBUG) << "[ " << pose->local_transform[0][0] << ", " << pose->local_transform[0][1] << ", " << pose->local_transform[0][2] << ", " << pose->local_transform[0][3] << "]";
+			LOG(LOG_DEBUG) << "[ " << pose->local_transform[1][0] << ", " << pose->local_transform[1][1] << ", " << pose->local_transform[1][2] << ", " << pose->local_transform[1][3] << "]";
+			LOG(LOG_DEBUG) << "[ " << pose->local_transform[2][0] << ", " << pose->local_transform[2][1] << ", " << pose->local_transform[2][2] << ", " << pose->local_transform[2][3] << "]";
+			LOG(LOG_DEBUG) << "[ " << pose->local_transform[3][0] << ", " << pose->local_transform[3][1] << ", " << pose->local_transform[3][2] << ", " << pose->local_transform[3][3] << "]";
 #endif			
 		}	
-		skeleton->UpdateBoneTransforms();  // Recompute global and final transforms for the skeleton
+		component->UpdateBoneTransforms();  // Recompute global and final transforms for the skeleton
 	}
 	math::Vector3 Animation::InterpolateTranslation(const AnimationChannel& channel, float currentTime) 
 	{

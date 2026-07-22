@@ -6,6 +6,9 @@
  */
 
 #include "Poseidon/RenderQueue.h"
+#include <Poseidon/RenderWorld.h>
+#include <Poseidon/Renderable.h>
+#include <algorithm>
 
 namespace poseidon
 {
@@ -34,5 +37,19 @@ namespace poseidon
 		if (m_idx < static_cast<int>(m_renderables.size()))
 			return m_renderables[m_idx];
 		return InvalidRenderable;
+	}
+
+	void RenderQueue::sortPhase(RenderWorld* world)
+	{
+		std::stable_sort(
+			m_renderables.begin(),
+			m_renderables.end(),
+			[world](RenderableHandle a, RenderableHandle b)
+			{
+				const auto* ra = world->resolveRenderable(a);
+				const auto* rb = world->resolveRenderable(b);
+
+				return ra->renderPhase < rb->renderPhase;
+			});
 	}
 }

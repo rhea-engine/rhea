@@ -371,6 +371,7 @@ namespace rhea::client {
 		//	renderable->castsShadow = vis->castsShadow();
 		//	renderable->receivesShadow = vis->receivesShadow();
 		//	renderable->renderLayers = vis->getRenderLayers();
+			renderable->renderPhase = static_cast<poseidon::RenderPhase>(vis->getRenderPhase());
 		}
 		else {
 			renderable->visible = false;

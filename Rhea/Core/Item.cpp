@@ -85,7 +85,7 @@ namespace rhea
 
 		ensureTransform();
 
-		VisualComponent* visual_component  = getComponent<VisualComponent>();
+		VisualComponent* visual_component = getComponent<VisualComponent>();
 
 		auto mesh_it = m_values.find("mesh");
 		if (mesh_it != m_values.end()) {
@@ -98,7 +98,7 @@ namespace rhea
 			}
 			// only set ref
 			mesh_component->setMeshRef(Ref<Mesh>(mesh_it->second.toString(), m_attributes["basepath"]));
-		}		
+		}
 		else {
 			if (getComponent<MeshComponent>()) {
 				if (!visual_component) {
@@ -107,9 +107,31 @@ namespace rhea
 			}
 		}
 
-		if (visual_component && m_values.find("fabric") != m_values.end())
-			visual_component->hide();
-	}	
+		if (visual_component) {
+			if (m_values.find("fabric") != m_values.end())
+				visual_component->hide();
+			if (m_values.find("hidden") != m_values.end()) {
+				if (m_values["hidden"].toBool())
+					visual_component->hide();
+				else
+					visual_component->show();
+			}
+			if (m_values.find("render_phase") != m_values.end()) {
+				std::string phase = m_values["render_phase"].toString();
+				if (phase == "opaque")
+					visual_component->setRenderPhase(RenderPhase::Opaque);
+				else if (phase == "transparent")
+					visual_component->setRenderPhase(RenderPhase::Transparent);
+				else if (phase == "overlay")
+					visual_component->setRenderPhase(RenderPhase::Overlay);
+				else if (phase == "background")
+					visual_component->setRenderPhase(RenderPhase::Background);
+				else
+					LOG(LOG_WARNING) << "unknown render_phase value: " << phase;
+
+			}
+		}
+	}
 
 	void Item::onParented()
 	{

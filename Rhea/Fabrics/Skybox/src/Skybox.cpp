@@ -40,6 +40,10 @@ namespace rhea
 		if (!visual_component) {
 			visual_component = addComponentUnique<VisualComponent>("visual");
 		}
+
+		// set to background phase
+		visual_component->setRenderPhase(RenderPhase::Background);
+
 		// skybox mesh
 		MeshComponent* mesh_component = getComponent<MeshComponent>();
 		if (!mesh_component) {

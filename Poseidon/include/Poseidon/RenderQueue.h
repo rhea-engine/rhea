@@ -14,11 +14,15 @@
 
 namespace poseidon
 {
+    class RenderWorld;
+
 	class RenderQueue
 	{
     public:
         void addRenderable(RenderableHandle h);
         void clear();
+
+        void sortPhase(RenderWorld* world);
 
         RenderableHandle first();
         RenderableHandle next();

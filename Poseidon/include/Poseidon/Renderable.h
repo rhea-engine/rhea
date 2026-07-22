@@ -26,6 +26,15 @@ namespace poseidon
 	class Camera;
 	class Material;
 
+
+	enum class RenderPhase : uint8_t
+	{
+		Background,
+		Opaque,
+		Transparent,
+		Overlay
+	};
+
 	class Renderable
 	{
 	public:
@@ -51,6 +60,7 @@ namespace poseidon
         bool receivesShadow = true;
 
         uint32_t renderLayers = 0xFFFFFFFF;                
+        RenderPhase renderPhase = RenderPhase::Opaque;
     };
 }
 

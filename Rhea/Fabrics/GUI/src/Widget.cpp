@@ -155,6 +155,9 @@ namespace rhea
 			visual_component = addComponentUnique<VisualComponent>("visual");
 		}
 
+		// add to render phase
+		visual_component->setRenderPhase(RenderPhase::Overlay);
+
 		MeshComponent* mesh_component = getComponent<MeshComponent>();
 		//  widgets always need a render component
 		if (!mesh_component) {

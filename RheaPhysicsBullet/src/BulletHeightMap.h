@@ -5,8 +5,8 @@
  * See LICENSE file in the project root for full license information.
  */
 
-#ifndef RHEA_PHYISCS_BULLET_HEIGHTMAP_H
-#define RHEA_PHYISCS_BULLET_HEIGHTMAP_H
+#ifndef RHEA_PHYSICS_BULLET_HEIGHTMAP_H
+#define RHEA_PHYSICS_BULLET_HEIGHTMAP_H
 
 #include <vector>
 #include <memory>
@@ -31,7 +31,7 @@ namespace rhea::physics::bullet
 		BulletHeightMap(btDynamicsWorld* world, rhea::Item* item);
 		~BulletHeightMap();
 
-		bool init() override { return true; }
+		bool init() override { return m_shape != nullptr && m_body != nullptr; }
 
 	protected:
 		btHeightfieldTerrainShape* m_shape;
@@ -42,4 +42,4 @@ namespace rhea::physics::bullet
 	};
 }
 
-#endif // !RHEA_PHYISCS_BULLET_HEIGHTMAP_H
+#endif // !RHEA_PHYSICS_BULLET_HEIGHTMAP_H

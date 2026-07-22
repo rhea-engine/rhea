@@ -108,6 +108,7 @@ namespace rhea::physics::bullet
 
 			compound->addChildShape(localTransform, childShape);
 		}
+		m_shapes.push_back(compound); // store the compound shape to delete later
 
 		return compound;
 	}
@@ -157,7 +158,8 @@ namespace rhea::physics::bullet
 				if (!ExtractTrianglesFromScene(app, m_item, tri) || tri.indices.empty()) {
 					LOG(LOG_ERROR) << "BtBody: no collision triangles for item " << m_item->getPath();
 					colShape = new btBoxShape(btVector3(1, 1, 1));
-					return false;
+					m_shapes.push_back(colShape); // store the shape to delete later
+					return nullptr;
 				}
 				else {
 					btTriangleMesh* triMesh = new btTriangleMesh();
@@ -172,12 +174,14 @@ namespace rhea::physics::bullet
 						);
 					}
 					colShape = new btBvhTriangleMeshShape(triMesh, true);
+					m_shapes.push_back(colShape); // store the shape to delete later
+					m_mesh_interfaces.push_back(triMesh); // store the mesh interface to delete later
 				}
 				/*
 				// for static object we use the triangles
 				Mesh* mesh = m_item->getMesh();
 				if (!mesh) {
-					return false;
+					return nullptr;
 				}
 				VertexBuffer* vb = mesh->getVertexBuffer();
 				if (vb && vb->size()) {
@@ -235,6 +239,7 @@ namespace rhea::physics::bullet
 			else {
 				// for dynamic objects we handle it not correctly...
 				colShape = new btBoxShape(btVector3(1, 1, 1));
+				m_shapes.push_back(colShape); // store the shape to delete later
 			}
 		}
 
@@ -251,6 +256,14 @@ namespace rhea::physics::bullet
 			delete m_body;
 			m_body = nullptr;
 		}
+		for (btCollisionShape* shape : m_shapes) {
+			delete shape;
+		}
+		for (btStridingMeshInterface* meshInterface : m_mesh_interfaces) {
+			delete meshInterface;
+		}
+		m_shapes.clear();
+		m_mesh_interfaces.clear();
 	}
 
 	void BulletPhysicsBody::move(math::Vector3 move)

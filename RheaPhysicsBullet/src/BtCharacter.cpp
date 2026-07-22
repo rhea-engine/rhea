@@ -88,6 +88,40 @@ namespace rhea::physics::bullet
 		btScalar m_minSlopeDot;
 	};
 
+	class ClosestNotMeConvexResultCallback
+		: public btCollisionWorld::ClosestConvexResultCallback
+	{
+	public:
+		explicit ClosestNotMeConvexResultCallback(
+			btCollisionObject* me,
+			const btVector3& from,
+			const btVector3& to
+		)
+			: btCollisionWorld::ClosestConvexResultCallback(from, to),
+			m_me(me)
+		{}
+
+		btScalar addSingleResult(
+			btCollisionWorld::LocalConvexResult& result,
+			bool normalInWorldSpace
+		) override
+		{
+			if (result.m_hitCollisionObject == m_me)
+				return btScalar(1.0);
+
+			if (!result.m_hitCollisionObject->hasContactResponse())
+				return btScalar(1.0);
+
+			return ClosestConvexResultCallback::addSingleResult(
+				result,
+				normalInWorldSpace
+			);
+		}
+
+	private:
+		btCollisionObject* m_me;
+	};
+
 	BulletPhysicsCharacter::BulletPhysicsCharacter(btDynamicsWorld* world, rhea::Item* item) :
 		m_world(world),
 		m_move_state(moveState::GROUND),
@@ -102,7 +136,7 @@ namespace rhea::physics::bullet
 		BulletPhysicsBody(world, item)
 	{
 		// prepare default values
-		m_step_height = item->getValue("step_height", 0.3f);
+		m_step_height = item->getValue("step_height", 0.1f);
 
 		auto* pdc = item->getComponent<rhea::PhysicsDataComponent>();
 		if (!pdc) return;
@@ -210,10 +244,141 @@ namespace rhea::physics::bullet
 		if (m_ghost)
 			m_ghost->setOrientation(rot);
 	}
-	
-	void BulletPhysicsCharacter::applyGravity()
+
+	bool BulletPhysicsCharacter::sweepGravity()
 	{
-		m_currentPosition += m_gravity_v;
+		btVector3 gravityMove = m_gravity_v;
+
+		if (gravityMove.length2() < SIMD_EPSILON)
+			return false;
+
+		auto* shape =
+			static_cast<btConvexShape*>(
+				m_ghost_object->getCollisionShape()
+				);
+
+		if (!shape) {
+			m_currentPosition += gravityMove;
+			return false;
+		}
+
+		btVector3 ghostOffset(0, m_ghost_offset_y, 0);
+
+		btTransform from;
+		from.setIdentity();
+		from.setOrigin(m_currentPosition + ghostOffset);
+
+		btTransform to;
+		to.setIdentity();
+		to.setOrigin(m_currentPosition + gravityMove + ghostOffset);
+
+		ClosestNotMeConvexResultCallback callback(
+			m_ghost_object,
+			from.getOrigin(),
+			to.getOrigin()
+		);
+
+		callback.m_collisionFilterGroup =
+			m_ghost_object->getBroadphaseHandle()->m_collisionFilterGroup;
+
+		callback.m_collisionFilterMask =
+			m_ghost_object->getBroadphaseHandle()->m_collisionFilterMask;
+
+		m_world->convexSweepTest(shape, from, to, callback);
+
+		if (!callback.hasHit()) {
+			m_currentPosition += gravityMove;
+			return false;
+		}
+
+		btScalar safeFraction = btMax(
+			btScalar(0.0),
+			callback.m_closestHitFraction - btScalar(0.001)
+		);
+
+		m_currentPosition += gravityMove * safeFraction;
+
+		btVector3 normal =
+			callback.m_hitNormalWorld.normalized();
+
+		btScalar dotUp = normal.dot(m_up);
+
+		if (gravityMove.getY() <= 0.0f &&
+			dotUp >= m_min_slope_dot)
+		{
+			// hitPointWorld lies on the surface
+			m_currentPosition.setY(
+				callback.m_hitPointWorld.getY()
+			);
+
+			m_foot_contact_pos = callback.m_hitPointWorld;
+			m_foot_contact_normal = normal;
+			m_foot_contact = true;
+			m_move_state = moveState::GROUND;
+			return true;
+		}
+
+		// steep slope
+		// project remaining motion
+		btVector3 remainingMove = gravityMove * (btScalar(1.0) - safeFraction);
+
+		btVector3 slideMove = remainingMove - normal * remainingMove.dot(normal);
+
+		if (slideMove.length2() < SIMD_EPSILON) {
+			m_foot_contact = false;
+			return false;
+		}
+
+		// a small offset to avoid getting stuck in the surface (0.002 is a magic number from btKinematicCharacterController)
+		m_currentPosition += normal * btScalar(0.002);
+
+		btTransform slideFrom;
+		slideFrom.setIdentity();
+		slideFrom.setOrigin(
+			m_currentPosition + ghostOffset
+		);
+
+		btTransform slideTo;
+		slideTo.setIdentity();
+		slideTo.setOrigin(
+			m_currentPosition + slideMove + ghostOffset
+		);
+
+		ClosestNotMeConvexResultCallback slideCallback(
+			m_ghost_object,
+			slideFrom.getOrigin(),
+			slideTo.getOrigin()
+		);
+
+		slideCallback.m_collisionFilterGroup =
+			m_ghost_object->getBroadphaseHandle()->m_collisionFilterGroup;
+
+		slideCallback.m_collisionFilterMask =
+			m_ghost_object->getBroadphaseHandle()->m_collisionFilterMask;
+
+		m_world->convexSweepTest(
+			shape,
+			slideFrom,
+			slideTo,
+			slideCallback
+		);
+
+		if (!slideCallback.hasHit()) {
+			m_currentPosition += slideMove;
+		}
+		else {
+			btScalar slideFraction = btMax(
+				btScalar(0.0),
+				slideCallback.m_closestHitFraction
+				- btScalar(0.001)
+			);
+
+			m_currentPosition += slideMove * slideFraction;
+		}
+
+		m_move_state = moveState::FALL;
+		m_foot_contact = false;
+		return false;
 	}
 
 	void BulletPhysicsCharacter::detectGhostContacts()
@@ -270,6 +435,8 @@ namespace rhea::physics::bullet
 			}
 		}
 	}
+
+
 
 	void BulletPhysicsCharacter::moveStep(rhea::Position* pos, math::Vector3& move)
 	{
@@ -406,8 +573,13 @@ namespace rhea::physics::bullet
 
 		// steep slope check: if the normal is too steep we are not on ground
 		btScalar dotUp = results.m_hitNormalWorld.normalized().dot(btVector3(0, 1, 0));
+		float groundY = results.m_hitPointWorld.getY();
 
 		if (dotUp < 0.707f) {
+			if (m_currentPosition.getY() < groundY) {
+				m_currentPosition.setY(groundY);
+			}
+
 			m_foot_contact = false;
 			return false;
 		}
@@ -416,12 +588,15 @@ namespace rhea::physics::bullet
 		// m_closestHitFraction < 0.5 means we have to climb
 		// > 0.5 means we have to descend
 
-		m_move_state = moveState::GROUND;
+	/*	m_move_state = moveState::GROUND;
 
-		if ((results.m_closestHitFraction - 0.5f) < SIMD_EPSILON) {
+		if (btFabs(results.m_closestHitFraction - 0.5f) < SIMD_EPSILON) {
 			// exactly on ground, prevent jittering
+			m_foot_contact_pos = results.m_hitPointWorld;
+			m_foot_contact_normal = results.m_hitNormalWorld;
+			m_foot_contact = true;
 			return true;
-		}
+		}*/
 
 #if 0
 		if (results.m_closestHitFraction < 0.5f)
@@ -432,7 +607,15 @@ namespace rhea::physics::bullet
 		m_foot_contact_pos = results.m_hitPointWorld;
 		m_foot_contact_normal = results.m_hitNormalWorld;
 		m_foot_contact = true;
+		// update current position to be on the ground
+		// but prevent jittering by only updating if we are more than 2mm away from the ground
+	//	float groundY = results.m_hitPointWorld.getY();
+		float correction = groundY - m_currentPosition.getY();
+		if (btFabs(correction) > 0.002f)
+			m_currentPosition.setY(m_currentPosition.getY() + correction);
+		else
 		m_currentPosition.setY(m_foot_contact_pos.getY());
+		m_move_state = moveState::GROUND;
 		return true;
 	}
 
@@ -480,16 +663,20 @@ namespace rhea::physics::bullet
 		case moveState::JUMP:
 			// move by given vector (which includes y)
 			moveStep(pos, move);
-			applyGravity();
-			// if on ground reset movement state - need ccd because velocity may be high
-			if (updateFootContact(true))
+			if (sweepGravity()) {
 				m_move_state = moveState::GROUND;
+			}
+			else {
+				updateFootContact(true);
+			}
 			break;
 		case moveState::FALL:
-			applyGravity();
-			// if on ground reset movement state - need ccd because velocity may be high
-			if (updateFootContact(true))
+			if (sweepGravity()) {
 				m_move_state = moveState::GROUND;
+			}
+			else {
+				updateFootContact(true);
+			}
 			break;
 		}
 

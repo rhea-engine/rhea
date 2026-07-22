@@ -62,8 +62,8 @@ namespace rhea::physics::bullet
 		// get ground state
 		bool isOnGround() const override;
 
-		// reduce gravity from current position
-		void applyGravity();
+		// capsule sweep to detect if we are on the ground and move gavity to the ground if we are not
+		bool sweepGravity();
 
 		// detect all contacts the ghost object has currently
 		void detectGhostContacts();

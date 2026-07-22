@@ -5,6 +5,7 @@
  * See LICENSE file in the project root for full license information.
  */
 
+#define NOMINMAX
 #include <Rhea/Terrain/Terrain.h>
 #include <Rhea/Application.h>
 #include <Rhea/Resources/ImageResource.h>
@@ -25,7 +26,7 @@ namespace rhea
 	Terrain::~Terrain()
 	{
 		if (m_heights)
-			delete m_heights;
+			delete[] m_heights;
 	}
 
 	void Terrain::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
@@ -49,6 +50,12 @@ namespace rhea
 		pc->rigid_body.motion = RigidBody::MotionType::Static;
 		pc->rigid_body.kind = "RheaPhysics:HeightMap";
 		pc->rigid_body.mass = 0.0f;
+
+		// get size from setup
+		if (m_values.find("sizeX") != m_values.end())
+			m_sizeX = m_values["sizeX"].toInt();
+		if (m_values.find("sizeY") != m_values.end())
+			m_sizeY = m_values["sizeY"].toInt();
 	}
 
 	std::vector<Unit::Export> Terrain::getReferences()
@@ -73,7 +80,11 @@ namespace rhea
 
 	float Terrain::getHeight(float x, float z)
 	{
-		float gridSquareSize = 1.0f; 
+		float cellSizeX =
+			float(m_sizeX) / float(m_width - 1);
+
+		float cellSizeZ =
+			float(m_sizeY) / float(m_length - 1);
 		
 		int gridX = (int)x;
 		int gridZ = m_length - (int)z;
@@ -81,8 +92,8 @@ namespace rhea
 		if (gridX<0 || gridX>m_width || gridZ<0 || gridZ>m_length)
 			return 0.0f;
 
-		float xCoord = fmodf(x, gridSquareSize) / gridSquareSize;
-		float zCoord = fmodf(z, gridSquareSize) / gridSquareSize;
+		float xCoord = fmodf(x, cellSizeX) / cellSizeX;
+		float zCoord = fmodf(z, cellSizeZ) / cellSizeZ;
 
 		float ret;
 		if (xCoord <= (1 - zCoord)) {
@@ -119,7 +130,7 @@ namespace rhea
 		// "normalize" to grey
 		unsigned char height = (unsigned char)(0.299 * c.r + 0.587 * c.g + 0.114 * c.b);
 		// scale to max_height
-		return (float)height / 256 * m_max_height;
+		return (float)height / 255 * m_max_height;
 	}
 
 	Unit* Terrain::getHeightmap()
@@ -130,10 +141,15 @@ namespace rhea
 
 	math::Vector3 Terrain::calculateNormal(int x, int y)
 	{
-		float heightL = getHeightAt(x - 1, y);
-		float heightR = getHeightAt(x + 1, y);
-		float heightD = getHeightAt(x, y - 1);
-		float heightU = getHeightAt(x, y + 1);
+		int left = std::max(x - 1, 0);
+		int right = std::min(x + 1, m_width - 1);
+		int lower = std::max(y - 1, 0);
+		int upper = std::min(y + 1, m_length - 1);
+
+		float heightL = getHeightAt(left, y);
+		float heightR = getHeightAt(right, y);
+		float heightD = getHeightAt(x, lower);
+		float heightU = getHeightAt(x, upper);
 
 		math::Vector3 normal(heightL - heightR, 2.0f, heightD - heightU);
 		normal.normalize();
@@ -214,6 +230,8 @@ namespace rhea
 						m_heightmap->load(buf, buflen);
 						m_width = m_heightmap->getWidth();
 						m_length = m_heightmap->getHeight();
+						if (m_sizeX < 0) m_sizeX = m_width;
+						if (m_sizeY < 0) m_sizeY = m_length;
 
 						// build buffers
 						size_t vert_count = (size_t)(m_width * m_length);
@@ -226,14 +244,14 @@ namespace rhea
 
 						for (int h = 0; h < m_length; h++) {
 							for (int w = 0; w < m_width; w++) {
-								vertex.position.x = (float)w / ((float)m_width - 1) * m_width;
+								vertex.position.x = (float)w / ((float)m_width - 1) * m_sizeX;
 								vertex.position.y = (float)getHeightAt(w, h);
 								if (flipZ) {
-									vertex.position.z = (float)(m_length - 1 - h) / ((float)m_length - 1) * m_length;
+									vertex.position.z = (float)(m_length - 1 - h) / ((float)m_length - 1) * m_sizeY;
 									m_heights[h * m_width + w] = vertex.position.y;
 								}
 								else {
-									vertex.position.z = (float)h / ((float)m_length - 1) * m_length;
+									vertex.position.z = (float)h / ((float)m_length - 1) * m_sizeY;
 									m_heights[h * m_width + w] = vertex.position.y;
 								}
 								vertex.normal = calculateNormal(w, h);								
@@ -249,9 +267,9 @@ namespace rhea
 
 						for (int gz = 0; gz < m_length - 1; gz++) {
 							for (int gx = 0; gx < m_width - 1; gx++) {
-								int topLeft = (gz * m_length) + gx;
+								int topLeft = (gz * m_width) + gx;
 								int topRight = topLeft + 1;
-								int bottomLeft = ((gz + 1) * m_length) + gx;
+								int bottomLeft = ((gz + 1) * m_width) + gx;
 								int bottomRight = bottomLeft + 1;
 								if (!flipZ) {
 									indices.push_back(topLeft);

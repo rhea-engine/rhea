@@ -4,18 +4,17 @@
  * Licensed under the MIT License.
  * See LICENSE file in the project root for full license information.
  */
-
+#define NOMINMAX
 #include "BulletHeightMap.h"
 #include <Rhea/Core/Item.h>
 #include <Rhea/Resources/ImageResource.h>
 #include <Rhea/Terrain/Terrain.h>
+#include <Psio/Log.h>
 
 #include <bullet/src/btBulletDynamicsCommon.h>
 #include <bullet/src/BulletCollision/CollisionShapes/btHeightfieldTerrainShape.h>
 
 #include <algorithm>
-#undef min
-#undef max
 
 namespace rhea::physics::bullet
 {
@@ -25,7 +24,12 @@ namespace rhea::physics::bullet
 		m_shape(nullptr),
 		BulletPhysicsBody(world, item)
 	{
-		rhea::Unit* heightmap = static_cast<rhea::Terrain*>(item)->getHeightmap();
+		rhea::Terrain* terrain = doCast<rhea::Terrain>(item);
+		if (!terrain) {
+			LOG(LOG_ERROR) << "BulletHeightMap: item is not a Terrain";
+			return;
+		}
+		rhea::Unit* heightmap = terrain->getHeightmap();
 		bool flipZ = true;
 		m_isStatic = true; // static heightmap
 		
@@ -34,7 +38,6 @@ namespace rhea::physics::bullet
 			unsigned char* buf;
 			size_t buflen;
 
-			float min_height = 0.0f;
 			float max_height = 0.0f;
 
 			m_image = std::make_unique<poseidon::Image>();
@@ -47,7 +50,6 @@ namespace rhea::physics::bullet
 						for (size_t w = 0; w < (size_t)m_width; w++) {
 							poseidon::Image::Color c = m_image->getPixel(w, h);
 							unsigned char grey = (unsigned char)(0.299 * c.r + 0.587 * c.g + 0.114 * c.b);
-							min_height = std::min((float)grey, min_height);
 							max_height = std::max((float)grey, max_height);
 							m_map.push_back(grey);
 						}
@@ -59,7 +61,6 @@ namespace rhea::physics::bullet
 						for (size_t w = 0; w < (size_t)m_width; w++) {
 							poseidon::Image::Color c = m_image->getPixel(w, h);
 							unsigned char grey = (unsigned char)(0.299 * c.r + 0.587 * c.g + 0.114 * c.b);
-							min_height = std::min((float)grey, min_height);
 							max_height = std::max((float)grey, max_height);
 							m_map.push_back(grey);
 						}
@@ -82,14 +83,45 @@ namespace rhea::physics::bullet
 		float maxH = item->getValue("height");
 		if (!maxH)
 			maxH = 255;
-		float scale = maxH / 256;
-		if (m_width > 0 && m_height > 0 && m_map.size() > 0)
+		float scale = maxH / 255;
+		if (m_width > 0 && m_height > 0 && m_map.size() > 0) {
 			m_shape = new btHeightfieldTerrainShape(m_width, m_height, m_map.data(), scale, 0, maxH, 1, PHY_UCHAR, false);
+			if (!m_shape) {
+				LOG(LOG_ERROR) << "BulletHeightMap: could not create shape";
+				return;
+			}
+			// shapes are owned by the rigid body, so we need to keep track of them to delete them later
+			m_shapes.push_back(m_shape);
+		}
+		else {
+			LOG(LOG_ERROR) << "BulletHeightMap: invalid heightmap data for item " << item->getPath();
+			return;
+		}
+		float sizeX = static_cast<float>(terrain->getTerrainWidth());
+		float sizeZ = static_cast<float>(terrain->getTerrainLength());
+
 		btTransform startTrans = btTransform::getIdentity();
 		float offset_y = (minH + maxH) * 0.5f;
-		float offset_x = (float)m_width / 2;
-		float offset_z = (float)m_height / 2;
-		startTrans.setOrigin(btVector3(offset_x, offset_y, offset_z));
+		float offset_x = sizeX * 0.5f;
+		float offset_z = sizeZ * 0.5f;
+		// add terrain position
+		auto worldTransform = item->getTransform()->getWorldPosition();
+		math::Vector3 terrainPosition =	worldTransform.getTranslation();
+
+		startTrans.setOrigin(btVector3(
+			terrainPosition.x + offset_x,
+			terrainPosition.y + offset_y,
+			terrainPosition.z + offset_z
+		));
+
+		float scaleX = sizeX / static_cast<float>(m_width - 1);
+		float scaleZ = sizeZ / static_cast<float>(m_height - 1);
+
+		m_shape->setLocalScaling(
+			btVector3(scaleX, 1.0f, scaleZ)
+		);
+
+//		startTrans.setOrigin(btVector3(offset_x, offset_y, offset_z));
 		btMotionState* ms = new btDefaultMotionState(startTrans);
 		btRigidBody::btRigidBodyConstructionInfo rbInfo(0, ms, m_shape, btVector3(0, 0, 0));
 		m_body = new btRigidBody(rbInfo);

@@ -50,12 +50,23 @@ namespace rhea
 
 		// load terrain
 		void ready();
+
+		int getWidth() { return m_width; }
+		int getLength() { return m_length; }
+
+		void setTerrainSize(int w, int h) { m_sizeX = w, m_sizeY = h; }
+		int getTerrainWidth() { return m_sizeX; }
+		int getTerrainLength() { return m_sizeY; }
 		
 		math::Vector3 calculateNormal(int x, int y);
 
 	protected:
+		// size of heightmap image
 		int m_width;
 		int m_length;
+		// size of terrain
+		int m_sizeX = -1;
+		int m_sizeY = -1;
 		float m_min_height;
 		float m_max_height;
 		std::unique_ptr<poseidon::Image> m_heightmap;

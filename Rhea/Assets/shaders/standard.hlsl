@@ -24,6 +24,7 @@ cbuffer cbPerFrame : register(b0)
     float4x4 P;
     float4x4 VP;
     float4 cameraPosition;
+    float4 frameTime;
 };
 
 cbuffer cbPerObject : register(b1)

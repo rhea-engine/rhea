@@ -159,8 +159,16 @@ namespace poseidon
 
 		per_frame_buf.cameraPos = camera->getPosition();
 
+		per_frame_buf.frameTime = math::Vector4(
+			m_elapsed_time,
+			m_delta_time,
+			0.0f,
+			0.0f
+		);
+
 		m_frame_buffer->update((void*)&per_frame_buf);
 		m_renderer->bindGPUBuffer(m_frame_buffer.get(), 0, hippios::ShaderStage::Vertex);
+		m_renderer->bindGPUBuffer(m_frame_buffer.get(), 0, hippios::ShaderStage::Fragment);
 
 		// fill lights buffer
 		light_buf = {};

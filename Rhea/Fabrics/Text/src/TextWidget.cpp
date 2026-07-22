@@ -41,6 +41,13 @@ namespace rhea
 	{
 		Item2D::ready();
 
+		VisualComponent* visual_component = getComponent<VisualComponent>();
+		if (!visual_component) {
+			visual_component = addComponentUnique<VisualComponent>("visual");
+		}
+		// add to render phase
+		visual_component->setRenderPhase(RenderPhase::Overlay);
+
 		// load and add font and text
 		if (m_values.find("font") != m_values.end())
 		{

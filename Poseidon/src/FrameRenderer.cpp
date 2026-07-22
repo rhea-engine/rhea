@@ -133,6 +133,9 @@ namespace poseidon
 		m_rend_queue->clear();
 		context->cullObjects(m_rend_queue, world);
 
+		// sort renderables by phase
+		m_rend_queue->sortPhase(world);
+
 		// render pass
 		
 		// resolve camera from context

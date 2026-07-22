@@ -68,6 +68,12 @@ namespace poseidon
 			return nullptr;
 		}
 
+		void advanceTime(float delta)
+		{
+			m_delta_time = delta;
+			m_elapsed_time += delta;
+		}
+
 	protected:
 		hippios::Renderer* m_renderer;		
 		std::vector<Window*> m_windows;
@@ -95,7 +101,11 @@ namespace poseidon
 			math::Matrix4 v;
 			math::Matrix4 p;
 			math::Matrix4 vp;
-			math::Vector4 cameraPos;			
+			math::Vector4 cameraPos;	
+			// x = elapsed time in seconds
+			// y = delta time in seconds
+			// z/w = reserved
+			math::Vector4 frameTime;
 		};
 
 		struct cbPerObject {
@@ -146,6 +156,9 @@ namespace poseidon
 		std::unique_ptr<hippios::GraphicsBuffer> m_object_buffer_wvp;
 		std::unique_ptr<hippios::GraphicsBuffer> m_light_buffer;
 		std::unique_ptr<hippios::GraphicsBuffer> m_bone_buffer;
+
+		float m_elapsed_time = 0.0f;
+		float m_delta_time = 0.0f;
 	};
 }
 #endif // !POSEIDON_FRAMERENDERER_H

@@ -11,6 +11,7 @@ layout(std140) uniform cbPerFrame
     mat4 P;
     mat4 VP;
     vec4 cameraPosition;
+    vec4 frameTime;
 };
 
 layout(std140) uniform cbPerObject

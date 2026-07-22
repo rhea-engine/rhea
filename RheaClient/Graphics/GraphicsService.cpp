@@ -360,6 +360,7 @@ namespace rhea::client {
 		if (item_mgr) {
 			item_mgr->onFrame(delta);
 		}
+		m_core->getFrameRenderer()->advanceTime(delta);
 		return m_core->iterate();
 	}
 

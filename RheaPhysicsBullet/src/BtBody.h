@@ -17,6 +17,7 @@ class btRigidBody;
 class btDynamicsWorld;
 class btCompoundShape;
 class btCollisionShape;
+class btStridingMeshInterface;
 
 namespace rhea
 {
@@ -36,7 +37,9 @@ namespace rhea::physics::bullet
 		~BulletPhysicsBody();
 
 		virtual bool init();
-		btCollisionShape* BulletPhysicsBody::createCollisionShape(PhysicsDataComponent* pdc);
+		// create collision shape from physics data component
+		// the shape is owned by the BulletPhysicsBody and will be deleted in the destructor
+		btCollisionShape* createCollisionShape(PhysicsDataComponent* pdc);
 		btCollisionShape* createColliderShape(ColliderShape* shape);
 
 		// move by vector
@@ -73,6 +76,8 @@ namespace rhea::physics::bullet
 		float m_upwards;
 		btDynamicsWorld* m_world;
 		float m_mass;
+		std::vector<btCollisionShape*> m_shapes;
+		std::vector<btStridingMeshInterface*> m_mesh_interfaces;
 	};
 }
 

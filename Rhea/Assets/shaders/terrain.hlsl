@@ -191,7 +191,8 @@ float4 PShader(VS_OUTPUT input) : SV_TARGET
 	float4 blendColor = Texture[0].Sample(ObjSamplerState, input.tex);
 	// black means background
 	float bgAmount = 1 - (blendColor.x + blendColor.y + blendColor.z);
-	float2 tiledCoord = input.tex * 256.0;
+    float tileSize = 1.0;
+    float2 tiledCoord = float2(input.positionWS.x, -input.positionWS.z) / tileSize;
 	// get colors of texs
 	float4 tex1col = Texture[1].Sample(ObjSamplerState, tiledCoord) * bgAmount;
 	float4 tex2col = Texture[2].Sample(ObjSamplerState, tiledCoord) * blendColor.x;

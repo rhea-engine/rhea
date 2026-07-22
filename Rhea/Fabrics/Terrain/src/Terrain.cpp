@@ -5,6 +5,7 @@
  * See LICENSE file in the project root for full license information.
  */
 
+#define NOMINMAX
 #include <Rhea/Terrain/Terrain.h>
 #include <Rhea/Application.h>
 #include <Rhea/Resources/ImageResource.h>
@@ -140,10 +141,15 @@ namespace rhea
 
 	math::Vector3 Terrain::calculateNormal(int x, int y)
 	{
-		float heightL = getHeightAt(x - 1, y);
-		float heightR = getHeightAt(x + 1, y);
-		float heightD = getHeightAt(x, y - 1);
-		float heightU = getHeightAt(x, y + 1);
+		int left = std::max(x - 1, 0);
+		int right = std::min(x + 1, m_width - 1);
+		int lower = std::max(y - 1, 0);
+		int upper = std::min(y + 1, m_length - 1);
+
+		float heightL = getHeightAt(left, y);
+		float heightR = getHeightAt(right, y);
+		float heightD = getHeightAt(x, lower);
+		float heightU = getHeightAt(x, upper);
 
 		math::Vector3 normal(heightL - heightR, 2.0f, heightD - heightU);
 		normal.normalize();

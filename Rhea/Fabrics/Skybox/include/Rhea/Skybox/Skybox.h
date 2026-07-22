@@ -18,7 +18,6 @@ namespace rhea
 		RECLASS(Skybox, Item, "//meworla/skybox")
 	public:
 		Skybox(std::string name, std::string type_name) :
-			m_camera(nullptr),
 			Item(name, type_name)
 		{}
 	
@@ -30,12 +29,6 @@ namespace rhea
 
 		void onActivate() override;
 		void onDeactivate() override;
-
-		// on Frame event
-		void onFrame(float delta) override;
-
-	protected:
-		Camera* m_camera;
 	};
 }
 #endif // !RHEA_SKYBOX_H

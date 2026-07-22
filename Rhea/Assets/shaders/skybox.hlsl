@@ -23,9 +23,12 @@ SkymapVSOutput VShader(float4 position : POSITION, float2 tex : TEXCOORD)
 {    
     SkymapVSOutput output = (SkymapVSOutput) 0;
     
-    float4 worldPos = mul(position, model);
-    output.position = mul(worldPos, VP).xyww;    
-    output.tex = position;
+     // w=0: ignore translations in the View-Matrix.
+    float4 clipPos = mul(float4(position.xyz, 0.0f), VP);
+
+    // set Skybox to the farthest depth.
+    output.position = clipPos.xyww;
+    output.tex = position.xyz;
 
     return output;
 }

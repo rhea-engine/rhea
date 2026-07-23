@@ -96,7 +96,7 @@ namespace rhea::physics::bullet
 			JUMP,
 		};
 
-		bool trySlide(btConvexShape* shape,	const btVector3& start, const btVector3& movement, const btVector3& hitNormal);
+		bool trySlide(btConvexShape* shape, const btVector3& startPos, const btVector3& desiredMove, btScalar hitFraction, const btVector3& hitNormal);
 		
 		moveState m_move_state;
 

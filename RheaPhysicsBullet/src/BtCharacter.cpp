@@ -582,39 +582,9 @@ namespace rhea::physics::bullet
 				return;
 			}
 
-			const btScalar safeFraction = btMax(
-				btScalar(0.0f),
-				callback.m_closestHitFraction - btScalar(0.005f)
-			);
-
-			m_currentPosition =
-				fromPos.lerp(toPos, safeFraction);
+			trySlide(shape, fromPos, desiredMove, callback.m_closestHitFraction, hitNormal);
 
 			return;
-		}
-
-		if (false && callback.hasHit()) {
-			const btVector3 hitNormal =	callback.m_hitNormalWorld.normalized();
-
-			const btScalar groundDot = hitNormal.dot(m_up);
-
-			// Fast horizontale Fläche nicht als Wand behandeln.
-			if (groundDot >= m_min_slope_dot) {
-				m_currentPosition = toPos;
-				return;
-			}
-			const btScalar safeFraction = btMax(
-				btScalar(0.0),
-				callback.m_closestHitFraction - btScalar(0.005)
-			);
-
-			m_currentPosition =
-				fromPos.lerp(toPos, safeFraction);
-
-			trySlide(shape, fromPos, toPos, hitNormal);
-			return;
-
-
 		}
 
 		m_currentPosition = toPos;
@@ -878,45 +848,77 @@ namespace rhea::physics::bullet
 		return target_position;
 	}
 
-	bool BulletPhysicsCharacter::trySlide(btConvexShape* shape, const btVector3& start, const btVector3& movement, const btVector3& hitNormal)
+	bool BulletPhysicsCharacter::trySlide(btConvexShape* shape,	const btVector3& startPos, const btVector3& desiredMove, btScalar hitFraction, const btVector3& hitNormal)
 	{
-		//m_hitting_wall = true;
+		if (!shape)
+			return false;
 
-		// we hit something, move only up to the hit point
-		// Use 0.95f instead of 0.9f to reduce sticking at walls
-//		float safeFraction = btMax(btScalar(0.0), callback.m_closestHitFraction - btScalar(0.005));
-		//m_currentPosition = fromPos.lerp(toPos, safeFraction);
-		return false;
+		const btScalar moveLength = desiredMove.length();
 
-		// slide along the wall
-		// not working yet, needs more work
-//		btVector3 hitNormal = callback.m_hitNormalWorld.normalized();
-		//btScalar safeFraction = btMax(btScalar(0.0), callback.m_closestHitFraction - m_added_margin);
+		if (moveLength < SIMD_EPSILON)
+			return false;
 
-		btVector3 allowedMove;// = desiredMove;//* safeFraction;
-		btVector3 firstPos;// = fromPos + allowedMove;
+		btVector3 normal = hitNormal.normalized();
 
-		btVector3 remainingMove;// = desiredMove - allowedMove;
+		if (m_move_state == moveState::GROUND) {
+			normal -= m_up * normal.dot(m_up);
 
-		// Project remaining movement onto the wall plane.
-		btVector3 slideMove = remainingMove - hitNormal * remainingMove.dot(hitNormal);
+			if (normal.length2() > SIMD_EPSILON) {
+				normal.normalize();
+			}
+		}
 
-		if (slideMove.length2() < SIMD_EPSILON/* || callback.m_closestHitFraction < btScalar(0.001)*/) {
-			m_currentPosition = firstPos;
+		// small distance to the wall, so that the next sweep
+		// does not immediately hit at fraction == 0.
+		const btScalar skinDistance = btScalar(0.005f);
+
+		const btScalar skinFraction = skinDistance / moveLength;
+
+		// Move just before the first hit.
+		const btScalar travelFraction = btClamped(hitFraction - skinFraction, btScalar(0.0f), btScalar(1.0f)
+		);
+
+		const btVector3 contactPos = startPos + desiredMove * travelFraction;
+
+		// Only the remaining part is slid.
+		const btVector3 remainingMove = desiredMove * (btScalar(1.0f) - hitFraction);
+
+		// Remove the component that points into the wall.
+		btVector3 slideMove = remainingMove - normal * remainingMove.dot(normal);
+
+		// On the ground, prevent a slightly sloped
+		// wall normal from moving the character up or down.
+		if (m_move_state == moveState::GROUND) {
+			slideMove -= m_up * slideMove.dot(m_up);
+		}
+
+		const btScalar remainingLength = remainingMove.length();
+
+		const btScalar slideLength = slideMove.length();
+
+		const btScalar slideDeadZone = btScalar(0.1f);
+
+		if (remainingLength < SIMD_EPSILON || slideLength <= remainingLength * slideDeadZone)
+		{
+			m_currentPosition = contactPos;
 			return false;
 		}
 
-		// Limit slide amount at first while debugging.
-		//slideMove *= btScalar(0.5);
+		// Sliding must not move backward due to numerical errors.
+		if (slideMove.dot(desiredMove) <= btScalar(0.0f)) {
+			m_currentPosition = contactPos;
+			return false;
+		}
 
-		// Sweep again for the slide.
+		const btVector3 ghostOffset(0.0f, m_ghost_offset_y,	0.0f);
+
 		btTransform slideFrom;
 		slideFrom.setIdentity();
-		slideFrom.setOrigin(firstPos + btVector3(0, m_ghost_offset_y, 0));
+		slideFrom.setOrigin(contactPos + ghostOffset);
 
 		btTransform slideTo;
 		slideTo.setIdentity();
-		slideTo.setOrigin(firstPos + slideMove + btVector3(0, m_ghost_offset_y, 0));
+		slideTo.setOrigin(contactPos + slideMove + ghostOffset);
 
 		characterSweepCallback slideCallback(
 			m_ghost_object,
@@ -924,20 +926,68 @@ namespace rhea::physics::bullet
 			m_min_slope_dot
 		);
 
-		slideCallback.m_closestHitFraction = 1.0f;
+		slideCallback.m_collisionFilterGroup = m_ghost_object->getBroadphaseHandle()->m_collisionFilterGroup;
 
-		m_world->convexSweepTest(shape, slideFrom, slideTo, slideCallback);
+		slideCallback.m_collisionFilterMask =
+			m_ghost_object
+			->getBroadphaseHandle()
+			->m_collisionFilterMask;
 
-		if (slideCallback.hasHit()) {
-			btScalar slideSafeFraction =
-				btMax(btScalar(0.0), slideCallback.m_closestHitFraction - btScalar(0.02));
+		m_world->convexSweepTest(
+			shape,
+			slideFrom,
+			slideTo,
+			slideCallback
+		);
 
-			m_currentPosition = firstPos.lerp(firstPos + slideMove, slideSafeFraction);
+		m_currentPosition = contactPos;
+
+		if (!slideCallback.hasHit()) {
+			m_currentPosition += slideMove;
+
+#if DEBUG_CHARACTER_VERBOSE
+			CHAR_LOG(LOG_DEBUG)
+				<< "[SLIDE]"
+				<< " tick=" << m_debug_tick
+				<< " result=free"
+				<< " move=("
+				<< slideMove.x() << ","
+				<< slideMove.y() << ","
+				<< slideMove.z() << ")";
+#endif
+
+			return true;
 		}
-		else {
-			m_currentPosition = firstPos + slideMove;
-		}
 
-		return false;
+		const btScalar slideSkinFraction =
+			slideLength > SIMD_EPSILON
+			? skinDistance / slideLength
+			: btScalar(0.0f);
+
+		const btScalar secondFraction = btClamped(
+			slideCallback.m_closestHitFraction -
+			slideSkinFraction,
+			btScalar(0.0f),
+			btScalar(1.0f)
+		);
+
+		m_currentPosition += slideMove * secondFraction;
+
+#if DEBUG_CHARACTER_VERBOSE
+		const btVector3 secondNormal = slideCallback.m_hitNormalWorld.normalized();
+
+		CHAR_LOG(LOG_DEBUG)
+			<< "[SLIDE]"
+			<< " tick=" << m_debug_tick
+			<< " result=blocked"
+			<< " fraction="
+			<< slideCallback.m_closestHitFraction
+			<< " normal=("
+			<< secondNormal.x() << ","
+			<< secondNormal.y() << ","
+			<< secondNormal.z() << ")";
+#endif
+
+		return secondFraction > btScalar(0.0f);
 	}
 }

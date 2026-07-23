@@ -64,6 +64,7 @@ namespace rhea
 		float m_upwards;
 		float m_jump_start_y;
 		float m_vertical_velocity;
+		float m_jump_height = 0.8f;
 
 		float m_air_timer;
 

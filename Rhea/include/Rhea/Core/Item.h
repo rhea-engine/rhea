@@ -61,9 +61,6 @@ namespace rhea
 
 		std::vector<Export> getReferences();
 
-		// instancing
-		virtual Item* instance(std::string name);
-
 		// positioning
 		Transform* getTransform() { ensureTransform(); return m_transform; }
 

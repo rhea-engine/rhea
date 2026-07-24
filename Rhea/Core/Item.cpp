@@ -158,37 +158,6 @@ namespace rhea
 		return true;
 	}
 
-	Item* Item::instance(std::string name)
-	{
-		Item* new_item = (rhea::Item*)simpleparser::Type::create(name, getTypeName());
-		if (!new_item) {
-			LOG(LOG_ERROR) << "could not instance type with type " << getTypeName();
-			return nullptr;
-		}
-		std::unordered_map<std::string, std::string> attr = m_attributes;
-		std::unordered_map<std::string, Variant> values = m_values;
-		auto fit = values.find("fabric");
-		if (fit != values.end())
-			values.erase(fit);
-
-		new_item->Unit::setup(m_app, attr, values);
-
-		// copy item values and components
-		if (getComponent<VisualComponent>()) {
-
-			// TODO: copy all components using their own copy function?			
-			VisualComponent* v_c = getComponent<VisualComponent>();
-			VisualComponent* visual_component = new_item->addComponentUnique<VisualComponent>("visual_component");
-		}
-		if (getComponent<MeshComponent>()) {
-			MeshComponent* m_c = getComponent<MeshComponent>();
-			MeshComponent* mesh_component = new_item->addComponentUnique<MeshComponent>("mesh_component");
-			mesh_component->setMeshRef(m_c->meshRef());
-		}
-
-		return new_item;
-	}
-
 	void Item::onFrame(float delta)
 	{
 	}

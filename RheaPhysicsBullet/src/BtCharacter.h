@@ -18,11 +18,16 @@
 #include "BtBody.h"
 #include <Rhea/Physics/PhysicsBodyDescriptor.h>
 
+ // Set to 1 to enable detailed character controller debug output
+#define DEBUG_CHARACTER_EVENTS 0
+#define DEBUG_CHARACTER_VERBOSE 0
+
 class btDynamicsWorld;
 class btPairCachingGhostObject;
 class btCollisionWorld;
 class btIDebugDraw;
 class btKinematicCharacterController;
+class btConvexShape;
 
 namespace rhea
 {
@@ -65,16 +70,12 @@ namespace rhea::physics::bullet
 		// capsule sweep to detect if we are on the ground and move gavity to the ground if we are not
 		bool sweepGravity();
 
-		// detect all contacts the ghost object has currently
-		void detectGhostContacts();
-
 		// move in the given direction - move must be already adjusted to timestep
 		void moveStep(rhea::Position* pos, math::Vector3& move);
 
 		// check if we are on the floor
 		// if we are not but in step_height distance adjust current position
-		// ccd - make sure didnt pass the ground in the last step
-		bool updateFootContact(bool ccd = false);
+		bool updateFootContact();
 
 		// check if we bump on the ceiling
 		void updateHeadContact();
@@ -94,11 +95,10 @@ namespace rhea::physics::bullet
 			FLY,
 			JUMP,
 		};
+
+		bool trySlide(btConvexShape* shape, const btVector3& startPos, const btVector3& desiredMove, btScalar hitFraction, const btVector3& hitNormal);
 		
-		float m_gravity = 0.0f;
 		moveState m_move_state;
-		math::Vector3 m_forced_movement;
-		rhea::Position* m_position;
 
 		btDynamicsWorld* m_world;
 		BulletPhysicsGhost* m_ghost = nullptr;
@@ -109,28 +109,26 @@ namespace rhea::physics::bullet
 		float m_step_height = 0.0f;
 		float m_height = 0.0f;
 		float m_radius = 0.0f;
-		float m_levitation = 0.0f;
+		
 		btVector3 m_up = btVector3(0.0f, 1.0f, 0.0f);
 		btScalar m_min_slope_dot = 0.707f;
-		btScalar m_added_margin = 0.05f;
 
 		bool m_foot_contact;
 		bool m_head_contact;
-		btVector3 m_foot_contact_pos;
 		btVector3 m_foot_contact_normal;
-		btVector3 m_head_contact_pos;
 		btVector3 m_gravity_v;
-		btVector3 m_last_position;
 
 		bool m_check_ground = false;
 		float m_minimal_ground = 0.0f;
 
-		bool m_hitting_wall = false;
-		std::vector<math::Vector3> m_surface_hits_normals;
-
-		//some internal variables
+		// the current position of the character - used to detect if we are on the ground or not
 		btVector3 m_currentPosition;
-		btVector3 m_targetPosition;
+
+		// debug info
+#if DEBUG_CHARACTER_EVENTS || DEBUG_CHARACTER_VERBOSE
+		uint64_t m_debug_tick = 0;
+		btVector3 m_debug_frame_start;
+#endif
 	};
 }
 

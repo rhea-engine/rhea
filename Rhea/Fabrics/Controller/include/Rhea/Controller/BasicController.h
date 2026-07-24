@@ -22,6 +22,7 @@ namespace rhea
 		BasicController(std::string path_name, std::string type_name) :			
 			Controller(path_name, type_name)
 		{}
+		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, simpleparser::Variant> values) override;
 
 		void ready() override;
 
@@ -42,7 +43,8 @@ namespace rhea
 
 		void onFrame(float delta) override {};
 
-		void connect(Item* target);
+		void connect(Item* target) override;
+		void disconnect() override;
 
 		void logMe();
 
@@ -54,6 +56,14 @@ namespace rhea
 		float m_turn = 0;
 		math::Vector3 m_last_move;
 		float m_last_turn = 0;
+
+		void resetInputState();
+
+		// default speed in m/s
+		float m_move_step = 1.66f; // ~6km/h 
+		float m_turn_step = 1.3f;
+		float m_side_step = 0.575f;
+		float m_up_step = 0.5f;
 	};
 }
 

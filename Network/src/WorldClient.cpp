@@ -66,11 +66,11 @@ namespace rhea
 				msg->is_player = false;
 			}
 			if (msg->is_player) {
-				player = gnar->instance("player");
+				player = doCast<rhea::Item>(gnar->instance("player"));
 				m_player_set = true;
 			}
 			else
-				player = gnar->instance(msg->path);
+				player = doCast<rhea::Item>(gnar->instance(msg->path));
 
 			m_scene->addChild(player);
 			math::Vector3 position = math::Vector3(msg->pos[0], msg->pos[1], msg->pos[2]);

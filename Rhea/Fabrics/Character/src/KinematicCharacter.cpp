@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <Psio/Log.h>
 #include <Rhea/Components/PhysicsDataComponent.h>
+#include <cmath>
 
 using math::Quaternion;
 using math::Vector3;
@@ -39,22 +40,9 @@ namespace rhea
 	{
 		Item::setup(app, attributes, values);
 
-		// find or create physics data component
-		
-		// find by type from children
-		PhysicsDataComponent* pc = nullptr;
-		for (auto child : m_children) {
-			if (doCast<PhysicsDataComponent>(child.second)) {
-				pc = doCast<PhysicsDataComponent>(child.second);
-				break;
-			}
+		if (m_values.find("jump_height") != m_values.end()) {
+			m_jump_height = m_values["jump_height"].toFloat();
 		}
-		if (!pc)
-			pc = addComponentUnique<PhysicsDataComponent>("physics_data");
-		pc->rigid_body.motion = RigidBody::MotionType::Kinematic;
-		pc->rigid_body.velocity = { 0,0,0 };
-		pc->rigid_body.friction = 0.0f;
-		pc->rigid_body.kind = "RheaPhysics:Character";
 	}
 
 	bool KinematicCharacter::doPhysics(Event* ev, Unit* unit)
@@ -73,11 +61,17 @@ namespace rhea
 		bool dirty = false;
 
 		// if not on ground increase air timer else reset it
-		if (m_move_state != MoveState::GROUND) {
+		// and set vertical velocity to 0 if on ground
+		if (m_move_state == MoveState::JUMP ||
+			m_move_state == MoveState::FALL)
+		{
 			m_air_timer += delta;
+			m_vertical_velocity += m_gravity * delta;
 		}
-		else {
+		else if (m_move_state == MoveState::GROUND)
+		{
 			m_air_timer = 0.0f;
+			m_vertical_velocity = 0.0f;
 		}
 
 		// handle movement except if if currently standing still on the ground
@@ -96,20 +90,11 @@ namespace rhea
 			// move object itself
 
 			// compute gravity
-			m_upwards = m_gravity * (m_air_timer + delta);			
+			// m_vertical_velocity is a velocity.
+			// For this physics step, it is converted to a position change.
+			const float vertical_offset = m_vertical_velocity * delta;
 
-			// handle jumping
-			if (m_move_state == MoveState::JUMP) {
-				// add jumping
-				m_upwards += m_vertical_velocity;
-
-				// if still going up use only delta
-				float vertical_offset = m_upwards * delta;
-
-				//if (vertical_offset > 0.0f)
-				m_upwards = vertical_offset;
-			}
-			math::Vector3 gravity = Vector3(0, m_upwards, 0);
+			math::Vector3 gravity(0.0f,	vertical_offset, 0.0f);
 
 			// compute the next position
 			math::Vector3 pos = character->update(&position, move, gravity);			
@@ -127,6 +112,11 @@ namespace rhea
 			}
 			else if (m_move_state == MoveState::GROUND) {
 				// no - if we were on ground we are now falling
+				 // Take the current movement direction when leaving the edge.
+				m_forced_movement = m_movement;
+				// The character starts falling without vertical velocity.
+				m_vertical_velocity = 0.0f;
+				m_air_timer = 0.0f;
 				m_move_state = MoveState::FALL;
 			}
 		
@@ -177,7 +167,15 @@ namespace rhea
 				position.setPosition(pos);
 				getTransform()->setWorldPosition(position);
 				m_move_state = MoveState::JUMP;
-				m_vertical_velocity = 6.0f;
+				float gravityMagnitude =
+					std::abs(m_gravity);
+
+				// protect against no gravity configured.
+				if (gravityMagnitude < 0.001f) {
+					gravityMagnitude = 9.81f;
+				}
+				m_vertical_velocity = std::sqrt(2.0f * gravityMagnitude * m_jump_height);
+				m_air_timer = 0.0f;
 			}
 		}
 	}
@@ -186,13 +184,21 @@ namespace rhea
 	{
 		Item::ready();
 
+		auto* pc = getComponent<PhysicsDataComponent>();
+		if (!pc)
+			pc = addComponentUnique<PhysicsDataComponent>("physics_data");
+
 		// set some defaults
+		pc->rigid_body.motion = RigidBody::MotionType::Kinematic;
+		pc->rigid_body.velocity = { 0,0,0 };
+		pc->rigid_body.friction = 0.0f;
+		pc->rigid_body.kind = "RheaPhysics:Character";
+
 		m_values["kinematic"] = true;
 		m_values["body_type"] = "ghost";
 		
 		if (m_parent)
-			m_gravity =
-			getValue("gravity", m_parent->getValue("linear_gravity"));
+			m_gravity = getValue("gravity", m_parent->getValue("linear_gravity"));
 	}
 
 	void KinematicCharacter::onActivate()

@@ -42,7 +42,7 @@ namespace rhea
 		void removeItem(Item* item);
 
 		// get the items
-		std::vector<Item*>& getItems() const { return const_cast<std::vector<Item*>&>(m_items); }
+		const std::vector<Item*>& getItems() const { return m_items; }
 
 		// ready event handler
 		void ready();

@@ -25,11 +25,16 @@ namespace rhea
 			m_view(NULL),
 			BasicController(path_name, type_name)
 		{}
+		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, simpleparser::Variant> values) override;
 
 		void ready() override;
 
+		void setCamera(Camera* camera);
+		Camera* getCamera() const { return m_view; }
+
 		void onActivate() override;
 		void onDeactivate() override;
+
 
 		// set the position manually
 		void setPosition(math::Vector3 position);
@@ -41,6 +46,8 @@ namespace rhea
 
 		// input event handler
 		bool onInput(Event* ev, Unit* unit);
+
+		math::Vector3 getFollowOffset() const { return m_follow_offset; }
 
 	protected:
 		Camera* m_view;

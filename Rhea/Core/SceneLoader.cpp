@@ -63,6 +63,7 @@ namespace rhea
 			}
 		}
 		Unit* scene = tree->createUnit(name, type_name);
+		scene->setOrigin(Component::ComponentOrigin::Configured);
 		if (sections.size() > 0 && sections[0].section_name == "scene") {
 			if (sections[0].values["name"].length())
 				scene->setName(sections[0].values["name"].toString());
@@ -128,6 +129,7 @@ namespace rhea
 				path = path.substr(rpos + 1);
 				//unit = tree->createUnit(path, type_name, section.attributes, section.values);
 				component = doCast<Component>(simpleparser::Type::create(path, type_name));
+				component->setOrigin(Component::ComponentOrigin::Configured);
 
 				// find parent relative to top parent			
 				child_parent = doCast<Unit>(scene->find(ppath, true));

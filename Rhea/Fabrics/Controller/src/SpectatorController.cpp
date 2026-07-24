@@ -66,10 +66,17 @@ namespace rhea
 		m_app->getUnitTree()->unregisterEventHandler("unhandled_input", this);
 	}
 
-	void SpectatorController::disconnect()
+	void SpectatorController::setCamera(Camera* camera)
 	{
-		BasicController::disconnect();
-		m_view = nullptr;
+		if (m_view)
+			m_view->unregisterEventHandler("delete", this);
+		m_view = camera;
+		if (m_view)
+			m_view->registerEventHandler("delete", this, [this](Event*, Unit*) {
+			// targets gets destroyed
+			m_view = nullptr;
+			return false;
+				});
 	}
 
 	void SpectatorController::updateCamera(float delta)

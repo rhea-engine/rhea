@@ -123,17 +123,31 @@ namespace rhea
 			LOG(LOG_WARNING) << "Controller " << m_pathname << ": connect() called with a different target, replacing previous target";
 		}
 		m_target = target;
+
+		target->registerEventHandler("delete", this, [this](Event*, Unit*) {
+				// targets gets destroyed
+				m_target = nullptr;
+				resetInputState();
+				return false;
+			});
 	}
 
 	void BasicController::disconnect()
 	{
 		if (m_target) {
+			m_target->unregisterEventHandler("delete", this);
+
 			m_target->setMovement(math::Vector3::ZERO);
 			m_target->setTurn(0.0f);
 		}
 
 		m_target = nullptr;
 
+		resetInputState();
+	}
+
+	void BasicController::resetInputState()
+	{
 		m_move = math::Vector3::ZERO;
 		m_last_move = math::Vector3::ZERO;
 		m_turn = 0.0f;

@@ -57,8 +57,10 @@ namespace rhea
 		math::Vector3 m_last_move;
 		float m_last_turn = 0;
 
+		void resetInputState();
+
 		// default speed in m/s
-		float m_move_step = 5.66f;//1.66f; // ~6km/h 
+		float m_move_step = 1.66f; // ~6km/h 
 		float m_turn_step = 1.3f;
 		float m_side_step = 0.575f;
 		float m_up_step = 0.5f;

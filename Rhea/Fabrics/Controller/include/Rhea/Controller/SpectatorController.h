@@ -25,15 +25,16 @@ namespace rhea
 			m_view(NULL),
 			BasicController(path_name, type_name)
 		{}
+		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, simpleparser::Variant> values) override;
 
 		void ready() override;
 
-		void setCamera(Camera* camera) { m_view = camera; }
+		void setCamera(Camera* camera);
+		Camera* getCamera() const { return m_view; }
 
 		void onActivate() override;
 		void onDeactivate() override;
 
-		void disconnect() override;
 
 		// set the position manually
 		void setPosition(math::Vector3 position);

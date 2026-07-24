@@ -10,14 +10,18 @@
 #include <Rhea/Application.h>
 #include <Rhea/UnitTree.h>
 #include <Rhea/Core/Camera.h>
-//#include <Rhea/Graphics/CameraManager.h>
-//#include <Rhea/Graphics/GraphicsService.h>
-//#include <Rhea/Graphics/GraphicsManager.h>
 #include <Rhea/EventInput.h>
 #include <Psio/Log.h>
 
 namespace rhea
 {
+	void SpectatorController::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, simpleparser::Variant> values)
+	{
+		BasicController::setup(app, attributes, values);
+
+		m_side_step = getValue("side_step", 0.5f);
+	}
+
 	bool SpectatorController::onInput(Event* ev, Unit* unit)
 	{
 		// safety check
@@ -103,13 +107,6 @@ namespace rhea
 	{
 		BasicController::onFrame(delta);
 		updateCamera(delta);
-		return;
-		auto targetPos = m_target->getTransform()->getWorldPosition().getTranslation();
-
-		Position camPos;
-		camPos.setPosition(targetPos + m_follow_offset);
-
-		m_view->setWorldPosition(camPos);
 	}
 
 	void SpectatorController::setPosition(math::Vector3 position)

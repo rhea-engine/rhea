@@ -39,7 +39,7 @@ namespace rhea
 				// get controller folder from the world, if it exists
 				std::string controller_folder = context->world->getValueString("controllers", "");
 				if (!controller_folder.empty()) {
-					
+
 					// find the first controller in the folder
 					Unit* folder = doCast<Unit>(context->world->find(controller_folder));
 					if (folder) {
@@ -47,11 +47,11 @@ namespace rhea
 						folder->children([this](std::string& name, Component* child)->bool {
 							rhea::Controller* ctrl = doCast<rhea::Controller>(child);
 							if (ctrl) {
-								int slot = ctrl->getValue("player_slot", -1);
+								int slot = ctrl->getValue("player_slot", 0);
 								ctrl->onActivate(); // Todo - only for local controllers, remote controllers should be activated when connected
-								m_controllers.push_back({ ctrl, static_cast<unsigned>(slot), nullptr });
+								m_controllers.push_back({ ctrl, slot, m_next_controller_id++ });
 							}
-							return false;
+							return true;
 							});
 					}
 					else {
@@ -63,50 +63,109 @@ namespace rhea
 					// NOTE: for now we just find the first one
 					ctrl = context->world->findByType<rhea::Controller>();
 					if (ctrl) {
-						int slot = ctrl->getValue("player_slot", -1);
+						PlayerSlotHandle slot = ((int)ctrl->getValue("player_slot", (int)InvalidPlayerSlot));
 						ctrl->onActivate(); // Todo - only for local controllers, remote controllers should be activated when connected
-						m_controllers.push_back({ ctrl, static_cast<unsigned>(slot), nullptr });
+						m_controllers.push_back({ ctrl, slot, m_next_controller_id++ });
 					}
 				}
 				if (m_controllers.empty()) {
-					LOG(LOG_ERROR) << "ControllerService: No controller found in world " << context->world->getPathName();
-					return rhea::WorldService::PrepareError::InvalidController;
+					LOG(LOG_INFO) << "ControllerService: No controller found in world " << context->world->getPathName();
+					return rhea::WorldService::PrepareError::None;
 				}
 				return rhea::WorldService::PrepareError::None;
 			});
 
 		worlds->addSceneTransitionHandler([this, worlds](rhea::WorldService::SceneTransitionContext* context) -> rhea::WorldService::TransitionError
 			{
-				// TODO: disconnect from target in old scene?
+				// find by player slot
 				for (auto& ctrl_info : m_controllers) {
-					if (ctrl_info.controller) {
-						// iterate over all items in the scene to find all items with the same player_slot as the controller
-						Item* character = nullptr;
-						for (auto& item : context->target_scene->getItems()) {
-							int char_slot = item->getValue("player_slot", -1);
+					if (!ctrl_info.controller)
+						continue;
 
-							if (char_slot != static_cast<int>(ctrl_info.player_slot))
-								continue;
+					// first phase search for character and camera
 
-							character = item;
-						}
-						if (character) {
-							ctrl_info.controller->disconnect();
-							ctrl_info.controller->connect(character);
-							// find the camera
-							if (auto spectator_ctrl = doCast<SpectatorController>(ctrl_info.controller)) {
-								rhea::Camera* cam = context->target_scene->findByType<rhea::Camera>();
-								if (!cam) {
-									cam = new rhea::Camera("scene_view");
-									cam->setup(m_app, {}, {});
-								}
-								spectator_ctrl->setCamera(cam);
-								context->target_scene->addChild(cam);
-								cam->ready();
+					// first subphase: iterate over all items in the scene to find all items with the same player_slot as the controller
+					Item* character = nullptr;
+					Camera* camera = nullptr;
+					for (auto& item : context->target_scene->getItems()) {
+						int controller_id = item->getValue("__controller_id", -1);
+
+						if (controller_id != -1 && controller_id == ctrl_info.controller_id) {
+							if (auto cam = doCast<rhea::Camera>(item)) {
+								camera = cam;
 							}
+							else
+								character = item;
+							continue;
+						}
+
+						PlayerSlotHandle char_slot = ((int)item->getValue("player_slot", (int)InvalidPlayerSlot));
+						if (char_slot == InvalidPlayerSlot)
+							continue;
+
+						if (char_slot != ctrl_info.player_slot)
+							continue;
+						if (auto cam = doCast<rhea::Camera>(item)) {
+							camera = cam;
 						}
 						else
-							LOG(LOG_WARNING) << "ControllerService: No character found in target scene " << context->target_scene->getPathName() << " for player_slot " << ctrl_info.player_slot;
+							character = item;
+					}
+
+					// second subphase: if not found, try to use template character from the world
+					if (!character) {
+						std::string template_character_path = ctrl_info.controller->getValueString("default_character_template", "");
+						if (!template_character_path.empty()) {
+							Item* template_character = doCast<Item>(context->world->find(template_character_path));
+							if (template_character) {
+								character = doCast<Item>(template_character->instance(template_character->getPathName()));
+								if (character) {
+									context->target_scene->addChild(character);
+									character->ready();
+								}
+							}
+							else
+								LOG(LOG_ERROR) << "ControllerService: Default character template not found: " << template_character_path;
+						}
+					}
+					if (!camera) {
+						std::string template_camera_path = ctrl_info.controller->getValueString("default_camera_template", "");
+						if (!template_camera_path.empty()) {
+							Camera* template_camera = doCast<Camera>(context->world->find(template_camera_path));
+							if (template_camera) {
+								camera = doCast<Camera>(template_camera->instance(template_camera->getPathName()));
+								if (camera) {
+									context->target_scene->addChild(camera);
+									camera->ready();
+								}
+							}
+						}
+					}
+
+					// third subphase: if not found, try to use class
+					// TODO
+
+
+					// second phase register the controller to the character and camera
+
+					// first subphase: remove old connections					
+					ctrl_info.controller->disconnect();
+
+					// second subphase: if a character or camera was found, connect the controller to it
+					if (character) {
+						character->setValue("__controller_id", ctrl_info.controller_id);
+						ctrl_info.controller->connect(character);
+					}
+					else
+						LOG(LOG_WARNING) << "ControllerService: No character found in target scene " << context->target_scene->getPathName() << " for player_slot " << ctrl_info.player_slot;
+
+					auto* spectator_ctrl = doCast<SpectatorController>(ctrl_info.controller);
+					if (spectator_ctrl) {
+						spectator_ctrl->setCamera(nullptr);
+						if (camera) {
+							camera->setValue("__controller_id", ctrl_info.controller_id);
+							spectator_ctrl->setCamera(camera);
+						}
 					}
 				}
 				return rhea::WorldService::TransitionError::None;

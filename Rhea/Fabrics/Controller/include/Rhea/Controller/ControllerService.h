@@ -12,6 +12,11 @@
 
 namespace rhea
 {
+	using PlayerSlotHandle = int;
+	constexpr PlayerSlotHandle InvalidPlayerSlot = -1;
+
+	class Camera;
+
 	class ControllerService : public Service
 	{
 		RECLASS(ControllerService, Service, "//meworla/controllerservice")
@@ -19,8 +24,8 @@ namespace rhea
 		struct ControllerBinding
 		{
 			Controller* controller = nullptr;
-			unsigned player_slot = 0;
-			Item* character = nullptr;
+			PlayerSlotHandle player_slot = InvalidPlayerSlot;
+			int controller_id = -1;
 		};
 
 		ControllerService(std::string name, std::string type_name);
@@ -32,6 +37,7 @@ namespace rhea
 	private:
 		// we assume only one world is active at a time, so we can keep a list of controllers for the current world
 		std::vector<ControllerBinding> m_controllers;
+		int m_next_controller_id = 0;
 	};
 }
 

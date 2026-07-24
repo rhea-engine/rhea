@@ -15,6 +15,20 @@
 
 namespace rhea
 {
+	void BasicController::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, simpleparser::Variant> values)
+	{
+		Controller::setup(app, attributes, values);
+
+		if (values.find("move_step") != values.end())
+			m_move_step = values["move_step"].toFloat();
+		if (values.find("turn_step") != values.end())
+			m_turn_step = values["turn_step"].toFloat();
+		if (values.find("side_step") != values.end())
+			m_side_step = values["side_step"].toFloat();
+		if (values.find("up_step") != values.end())
+			m_up_step = values["up_step"].toFloat();
+	}
+
 	bool BasicController::onInput(Event* ev, Unit* unit)
 	{
 		// safety check
@@ -23,29 +37,24 @@ namespace rhea
 
 		EventInput* e = (EventInput*)ev;
 
-		// default speed in m/s
-		float move_step = 1.66f; // ~6km/h 
-		float turn_step = 1.3f;
-		float side_step = 0.575f;
-		float up_step = 0.5f;
 
 		if (e->isAction("move_left")) {
-			m_move.x = -side_step;
+			m_move.x = -m_side_step;
 		}
 		else if (e->isAction("move_right")) {
-			m_move.x = side_step;
+			m_move.x = m_side_step;
 		}
 		else if (e->isAction("move_forward")) {
-			m_move.z = move_step;			
+			m_move.z = m_move_step;			
 		}
 		else if (e->isAction("move_back")) {
-			m_move.z = -move_step;			
+			m_move.z = -m_move_step;			
 		}
 		else if (e->isAction("move_up")) {
-			m_move.y = up_step;
+			m_move.y = m_up_step;
 		}
 		else if (e->isAction("move_down")) {
-			m_move.y = -up_step;
+			m_move.y = -m_up_step;
 		}
 		if (e->isAction("move_left_stop")) {
 			m_move.x = 0;
@@ -66,10 +75,10 @@ namespace rhea
 			m_move.y = 0;
 		}
 		else if (e->isAction("turn_left")) {
-			m_turn = -turn_step;
+			m_turn = -m_turn_step;
 		}
 		else if (e->isAction("turn_right")) {
-			m_turn = turn_step;
+			m_turn = m_turn_step;
 		}
 		else if (e->isAction("turn_left_stop"))
 			m_turn = 0;
@@ -115,6 +124,21 @@ namespace rhea
 		}
 		m_target = target;
 	}
+
+	void BasicController::disconnect()
+	{
+		if (m_target) {
+			m_target->setMovement(math::Vector3::ZERO);
+			m_target->setTurn(0.0f);
+		}
+
+		m_target = nullptr;
+
+		m_move = math::Vector3::ZERO;
+		m_last_move = math::Vector3::ZERO;
+		m_turn = 0.0f;
+		m_last_turn = 0.0f;
+	}
 	
 	void BasicController::ready()
 	{ 
@@ -135,7 +159,8 @@ namespace rhea
 
 	void BasicController::onActivate()
 	{
-		m_app->getUnitTree()->registerEventHandler("unhandled_input", this, std::bind(&BasicController::onInput, this, std::placeholders::_1, std::placeholders::_2));
+		if (!m_app->getUnitTree()->hasEventHandler("unhandled_input", this))
+			m_app->getUnitTree()->registerEventHandler("unhandled_input", this, std::bind(&BasicController::onInput, this, std::placeholders::_1, std::placeholders::_2));
 	}
 
 	void BasicController::onDeactivate()

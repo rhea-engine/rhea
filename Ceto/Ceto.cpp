@@ -41,6 +41,7 @@
 #include <RheaAudio/AudioService.h>
 #include <Rhea/Animation/AnimationComponent.h>
 #include <Rhea/Components/MeshComponent.h>
+#include <Rhea/Controller/ControllerService.h>
 
 bool Ceto::onQuit(rhea::Event* ev, rhea::Unit* unit)
 {
@@ -225,7 +226,6 @@ bool Ceto::handleDevShortcuts(const rhea::InputEvent& evt)
 			if (worlds->getPrimaryScene()->getPathName() == "scene2") {
 				scene_path = "//local/world1_scene1.scene";
 			}
-			m_focused_controller = nullptr;
 			const rhea::WorldService::TransitionRequest request = {
 				scene_path,
 				"entrypoint",
@@ -435,6 +435,14 @@ void Ceto::setup()
 	addDefaultWindow();
 	m_windows[0].views[0].layers.push_back({"HUD",0,0,m_windows[0].width, m_windows[0].height});
 
+	// register contoller service
+	if (!getService("controller")) {
+		log("Ceto: Registering controller service");
+		rhea::ControllerService* srv = new rhea::ControllerService("controllerservice");
+		srv->setup(this);
+		registerService("controller", srv);
+	}
+
 	rhea::Application::setup();
 
 	// check for config file
@@ -487,17 +495,18 @@ void Ceto::setup()
 	m_unit_tree->addChild(mat);
 
 	auto* worlds = doCast<rhea::WorldService>(getService("world"));
+	worlds->addWorldPrepareHandler([this, worlds](rhea::WorldService::WorldPrepareContext* context) -> rhea::WorldService::PrepareError
+		{
+			if (context->world)
+				m_focused_controller = context->world->findByType<rhea::Controller>();
+			else if (context->standaloneScene)
+				m_focused_controller = context->standaloneScene->findByType<rhea::Controller>();
+			else
+				m_focused_controller = nullptr;
+			return rhea::WorldService::PrepareError::None;
+		});
 	worlds->addSceneTransitionHandler([this, worlds](rhea::WorldService::SceneTransitionContext* context) -> rhea::WorldService::TransitionError
 		{
-			m_focused_controller = m_unit_tree->findByType<rhea::Controller>();
-			if (!m_focused_controller) {
-				// no controller found - use camera and add default controller for it
-				// note: spectator does not work, because we have no controlled element
-				m_focused_controller = new rhea::BasicController("camera_controller", "//meworla/controller");
-				m_focused_controller->setup(this);
-				m_focused_controller->connect(m_view);
-				context->target_scene->addChild(m_focused_controller);
-			}
 			return rhea::WorldService::TransitionError::None;
 		});
 }
@@ -618,13 +627,13 @@ bool Ceto::onFrameEnd()
 	if (m_debug_text) {
 		float elapsed_d_s = static_cast<float>(elapsed_ticks) / 1000000.0f;
 		elapsed_s += elapsed_d_s;
-
+		
 		std::string debug = "";
 		debug += "debugging: sec=" + std::to_string(elapsed_s) +"; fps = " + std::to_string(floor(fps*100)/100.0f);
-		m_focused_controller = doCast<rhea::BasicController>(m_unit_tree->find("//local/scene1/maincamera"));
 		if (m_focused_controller) {
-			math::Vector3 pos = static_cast<rhea::BasicController*>(m_focused_controller)->getWorldPosition();
-			math::Quaternion rot = static_cast<rhea::BasicController*>(m_focused_controller)->getOrientation();
+			rhea::Item* target = m_focused_controller->getTarget();
+			math::Vector3 pos = target->getTransform()->getWorldPosition().getTranslation();
+			math::Quaternion rot = target->getTransform()->getWorldPosition().getRotation();
 			float angle;
 			math::Vector3 axis;
 			rot.getAsAngleAxis(angle, axis);

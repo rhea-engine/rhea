@@ -5,7 +5,7 @@ add_library (RheaController
 "src/BasicController.cpp" 
 "include/Rhea/Controller/SpectatorController.h" 
 "src/SpectatorController.cpp" 
-)
+ "include/Rhea/Controller/ControllerService.h" "src/ControllerService.cpp")
 add_library(Rhea::Controller ALIAS RheaController)
 
 # Scoped includes are under include/Rhea/GUI/**

@@ -28,8 +28,12 @@ namespace rhea
 
 		void ready() override;
 
+		void setCamera(Camera* camera) { m_view = camera; }
+
 		void onActivate() override;
 		void onDeactivate() override;
+
+		void disconnect() override;
 
 		// set the position manually
 		void setPosition(math::Vector3 position);
@@ -41,6 +45,8 @@ namespace rhea
 
 		// input event handler
 		bool onInput(Event* ev, Unit* unit);
+
+		math::Vector3 getFollowOffset() const { return m_follow_offset; }
 
 	protected:
 		Camera* m_view;

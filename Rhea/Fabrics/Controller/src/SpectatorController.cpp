@@ -26,19 +26,13 @@ namespace rhea
 
 		EventInput* e = (EventInput*)ev;
 
-		// default speed in m/s
-		float move_step = 1.66f; // ~6km/h 
-		float turn_step = 1.3f;
-		float side_step = 0.575f;
-		float up_step = 0.5f;
-
 		// handle actions for the camera (if the camera moves independend of the target)
 
 		if (e->isAction("cam_move_left")) {
-			m_camera_slide = -side_step;
+			m_camera_slide = -m_side_step;
 		}
 		else if (e->isAction("cam_move_right")) {
-			m_camera_slide = side_step;
+			m_camera_slide = m_side_step;
 		}
 
 		//BasicController::onInput(action, evt);
@@ -55,23 +49,23 @@ namespace rhea
 			m_follow_offset = math::Vector3(it->second[0], it->second[1], it->second[2]);
 		else
 			m_follow_offset = math::Vector3(0.0f, 1.7f, -3.0f);
-
-		// create a camera view for the spectator controller
-		m_view = m_app->getUnitTree()->createUnit<Camera>("scene_view", {}, {});
-		m_view->setWorldPosition(m_follow_offset);
-		m_view->getTransform()->markWorldDirty();
-		addChild(m_view);
-		m_view->ready();
 	}
 
 	void SpectatorController::onActivate()
 	{
-		m_app->getUnitTree()->registerEventHandler("unhandled_input", this, std::bind(&SpectatorController::onInput, this, std::placeholders::_1, std::placeholders::_2));
+		if (!m_app->getUnitTree()->hasEventHandler("unhandled_input", this))
+			m_app->getUnitTree()->registerEventHandler("unhandled_input", this, std::bind(&SpectatorController::onInput, this, std::placeholders::_1, std::placeholders::_2));
 	}
 
 	void SpectatorController::onDeactivate()
 	{
 		m_app->getUnitTree()->unregisterEventHandler("unhandled_input", this);
+	}
+
+	void SpectatorController::disconnect()
+	{
+		BasicController::disconnect();
+		m_view = nullptr;
 	}
 
 	void SpectatorController::updateCamera(float delta)

@@ -24,6 +24,12 @@ namespace rhea
     {
 
     public:
+        enum class ComponentOrigin
+        {
+            Configured,
+            Runtime
+        };
+
         Component(std::string name, std::string type_name) :
 			m_app(nullptr),
             m_pathname(name),
@@ -91,9 +97,34 @@ namespace rhea
         } Export;
         virtual std::vector<Export> getReferences();
 
+        // Get attributes map
+        const std::unordered_map<std::string, std::string>& getAttributes() const {
+            return m_attributes;
+        }
+
+        // Get attribute by key
+        std::string getAttribute(const std::string& key) const {
+            auto it = m_attributes.find(key);
+            return it != m_attributes.end() ? it->second : "";
+        }
+
+        // Get values map
+        const std::unordered_map<std::string, simpleparser::Variant>& getValues() const {
+            return m_values;
+        }
+
 
         // Clone method, returns a pointer to a copy of the object
         virtual Component* Clone() const { return new Component(*this); }
+        // may instantiated?
+		virtual bool isInstanceable() const { return true; }
+        virtual Component* instance(const std::string& name = "");
+		// use two phases for instancing - creation and setup
+        struct InstantiationContext {
+			std::unordered_map<const Component*, Component*> instantiated_components;
+        };
+        virtual Component* instanceCreate(const std::string& name, Component* source, InstantiationContext& context);
+		virtual void instanceSetup(Component* source, Component* target, InstantiationContext& context);
 
         // tree/parent functions
 
@@ -133,6 +164,9 @@ namespace rhea
         // get Application
         Application* getApplication() { return m_app; }
 
+		ComponentOrigin getOrigin() const { return m_origin; }
+		void setOrigin(ComponentOrigin origin) { m_origin = origin; }
+
     protected:
         Application* m_app;
         Unit* m_parent = nullptr;  // Pointer to the parent Unit
@@ -141,6 +175,10 @@ namespace rhea
 
         std::unordered_map<std::string, std::string> m_attributes;
         std::unordered_map<std::string, simpleparser::Variant> m_values;
+
+        // runtime or configuration origin?
+		// used to determine if the component should be instanced or not
+		ComponentOrigin m_origin = ComponentOrigin::Runtime;
     };
 }
 #endif // !RHEA_COMPONENT_H

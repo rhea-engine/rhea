@@ -40,23 +40,6 @@ namespace rhea
 	{
 		Item::setup(app, attributes, values);
 
-		// find or create physics data component
-		
-		// find by type from children
-		PhysicsDataComponent* pc = nullptr;
-		for (auto child : m_children) {
-			if (doCast<PhysicsDataComponent>(child.second)) {
-				pc = doCast<PhysicsDataComponent>(child.second);
-				break;
-			}
-		}
-		if (!pc)
-			pc = addComponentUnique<PhysicsDataComponent>("physics_data");
-		pc->rigid_body.motion = RigidBody::MotionType::Kinematic;
-		pc->rigid_body.velocity = { 0,0,0 };
-		pc->rigid_body.friction = 0.0f;
-		pc->rigid_body.kind = "RheaPhysics:Character";
-
 		if (m_values.find("jump_height") != m_values.end()) {
 			m_jump_height = m_values["jump_height"].toFloat();
 		}
@@ -201,7 +184,16 @@ namespace rhea
 	{
 		Item::ready();
 
+		auto* pc = getComponent<PhysicsDataComponent>();
+		if (!pc)
+			pc = addComponentUnique<PhysicsDataComponent>("physics_data");
+
 		// set some defaults
+		pc->rigid_body.motion = RigidBody::MotionType::Kinematic;
+		pc->rigid_body.velocity = { 0,0,0 };
+		pc->rigid_body.friction = 0.0f;
+		pc->rigid_body.kind = "RheaPhysics:Character";
+
 		m_values["kinematic"] = true;
 		m_values["body_type"] = "ghost";
 		

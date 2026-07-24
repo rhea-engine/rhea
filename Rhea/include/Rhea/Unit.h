@@ -205,6 +205,10 @@ namespace rhea
 
 		// Clone method, returns a pointer to a copy of the object
 		Unit* Clone() const override { return new Unit(*this); }
+		
+		// instance this unit - this will create a copy of the unit and all its children
+		Component* instanceCreate(const std::string& name, Component* source, InstantiationContext& context);
+		void instanceSetup(Component* source, Component* target, InstantiationContext& context);
 
 		// print my info
 		virtual void logMe();

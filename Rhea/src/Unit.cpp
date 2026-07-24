@@ -342,6 +342,52 @@ namespace rhea
 		}
 	}
 
+	Component* Unit::instanceCreate(const std::string& name, Component* source, InstantiationContext& context)
+	{
+		Unit* result = doCast<Unit>(Component::instanceCreate(name, source, context));
+
+		auto* source_unit = doCast<Unit>(source);
+		if (source_unit && result) {
+			source_unit->children([this, name, result, &context](std::string& name, Component* source_child) -> bool {
+				if (source_child->getOrigin() != ComponentOrigin::Configured || !source_child->isInstanceable()) {
+					return true;
+				}
+
+				Component* target_child = source_child->instanceCreate(name, source_child, context);
+
+				result->addChild(target_child);
+				// check if original was a unique component and add to unique components map
+				simpleparser::Type* type = source_child->getType();
+				if (m_unique_components.find(type) != m_unique_components.end()) {
+					result->addComponent(target_child);
+				}
+				return true;
+			});
+		}
+
+		return result;
+	}
+
+	void rhea::Unit::instanceSetup(Component* source, Component* target, InstantiationContext& context)
+	{
+		Component::instanceSetup(source, target, context);
+
+		auto* source_unit = doCast<Unit>(source);
+		auto* target_unit = doCast<Unit>(target);
+
+		if (!source_unit || !target_unit)
+			return;
+
+		source_unit->children([this, &context](std::string& name, Component* source_child) -> bool {
+			if (context.instantiated_components.find(source_child) == context.instantiated_components.end())
+				return true;
+
+			Component* target_child = context.instantiated_components[source_child];
+			
+			source_child->instanceSetup(source_child,	target_child, context);
+			return true;
+			});
+	}
 
 	void Unit::onDestroy()
 	{		

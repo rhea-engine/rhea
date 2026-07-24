@@ -105,6 +105,40 @@ namespace rhea
 		return std::vector<Export>();
 	}
 
+	Component* Component::instance(const std::string& name) 
+	{
+		InstantiationContext context;
+		Component* result = instanceCreate(name, this, context);
+
+		if (!result)
+			return nullptr;
+
+		result->setOrigin(ComponentOrigin::Configured);
+		instanceSetup(this, result, context);
+
+		return result;
+	}
+
+	Component* Component::instanceCreate(const std::string& name, Component* source, InstantiationContext& context)
+	{
+		std::string instance_name = name.empty() ? source->getPathName() : name;
+
+		Component* result = doCast<Component>(simpleparser::Type::create(instance_name, source->getTypeName()));
+
+		if (!result)
+			return nullptr;
+
+		result->setOrigin(ComponentOrigin::Configured);
+		context.instantiated_components[source] = result;
+		return result;
+	}
+
+	void Component::instanceSetup(Component* source, Component* target, InstantiationContext& context)
+	{
+		auto values = source->getValues();
+		values.erase("fabric");
+		target->setup(m_app, source->getAttributes(), values);	
+	}
 
 	Component* Component::getCommonAncestor(Component* u2)
 	{

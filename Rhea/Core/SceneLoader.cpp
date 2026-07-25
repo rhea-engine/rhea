@@ -129,7 +129,8 @@ namespace rhea
 				path = path.substr(rpos + 1);
 				//unit = tree->createUnit(path, type_name, section.attributes, section.values);
 				component = doCast<Component>(simpleparser::Type::create(path, type_name));
-				component->setOrigin(Component::ComponentOrigin::Configured);
+				if (component)
+					component->setOrigin(Component::ComponentOrigin::Configured);
 
 				// find parent relative to top parent			
 				child_parent = doCast<Unit>(scene->find(ppath, true));

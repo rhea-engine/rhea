@@ -48,6 +48,14 @@ namespace rhea
 		std::string getAppname() { return m_appname; }
 		// get a specific service
 		Service* getService(std::string name);
+		template <class T>
+		T* getService() {
+			for (auto& [name, service] : m_services) {
+				if (doCast<T>(service))
+					return doCast<T>(service);
+			}
+			return nullptr;
+		}
 		// register a service
 		void registerService(std::string name, Service* service);
 		void unregisterService(std::string name);

@@ -30,7 +30,8 @@ namespace rhea
 
 		// set the controlled unit
 		virtual void connect(Item* target) { m_target = target; }
-		virtual void disconnect() { m_target = nullptr; }
+		virtual void disconnect(bool reset_input = true) { m_target = nullptr; }
+		virtual void switchTarget(Item* target, bool reset_input) { m_target = target; }
 
 		void onFrame(float delta) override {}
 

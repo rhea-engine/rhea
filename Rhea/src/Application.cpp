@@ -24,6 +24,9 @@
 #include "Rhea/Core/Mesh.h"
 #include "Rhea/Core/Camera.h"
 #include "Rhea/Core/Item2D.h"
+#include "Rhea/Core/AreaService.h"
+#include "Rhea/Core/AreaComponent.h"
+#include "Rhea/Core/Trigger.h"
 #include "Rhea/Resources/TextResource.h"
 #include "Rhea/Resources/CubeMap.h"
 #include "Rhea/Resources/TextLoader.h"
@@ -97,6 +100,7 @@ namespace rhea
 		PhysicsDataComponent::_register_PhysicsDataComponent();
 		ColliderComponent::_register_ColliderComponent();
 		Transform::_register_Transform();
+		AreaComponent::_register_AreaComponent();
 
 		// register services
 		simpleparser::Type::registerType<Service>("//meworla/service");
@@ -182,7 +186,12 @@ namespace rhea
 		simpleparser::Type::registerType<Material>("//meworla/material");
 		simpleparser::Type::registerType<Avatar>("//meworla/avatar");
 		World::_register_World();
-		
+		Area::_register_Area();
+		AreaService::_register_AreaService();
+		auto* area_srv = new AreaService("area");
+		area_srv->setup(this);
+		m_services["area"] = area_srv;
+		Trigger::_register_Trigger();	
 		ImageResource::_register_ImageResource();
 		simpleparser::Type::registerType<ImageResource>("//meworla/texture");
 		CubeMap::_register_CubeMap();

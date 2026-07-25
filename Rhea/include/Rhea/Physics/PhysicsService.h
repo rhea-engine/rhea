@@ -36,9 +36,17 @@ namespace rhea
         virtual void initializeItem(Item* item) = 0;
         virtual void removeItem(Item* item) = 0;
 
-        void onInit() = 0;
-
         virtual Unit* ray(math::Vector3 origin, math::Vector3 direction) { return nullptr; }
+
+        struct PhysicsQueryHit
+        {
+            Unit* unit = nullptr;
+            math::Vector3 position;
+            math::Vector3 normal;
+            float distance = 0.0f;
+        };
+
+        virtual bool sphereCast(const math::Vector3& from, const math::Vector3& to, float radius, PhysicsQueryHit& hit, const Unit* ignoredUnit = nullptr) = 0;
 
         using CreatorFunc = std::function<std::unique_ptr<PhysicsBody>(PhysicsService*, Item*)>;
         void registerPhysicsComponent(const std::string& name, CreatorFunc func) { m_physics_component_registry[name] = func; }

@@ -412,6 +412,71 @@ namespace rhea::physics::bullet
 		return nullptr;
 	}
 
+	bool BulletPhysicsService::sphereCast(const math::Vector3& from, const math::Vector3& to, float radius, PhysicsQueryHit& hit, const Unit* ignoredUnit)
+	{
+		hit = PhysicsQueryHit{};
+
+		if (!m_world || radius <= 0.0f)
+			return false;
+
+		const btVector3 btFrom(from.x, from.y, from.z);
+		const btVector3 btTo(to.x, to.y, to.z);
+		const btVector3 movement = btTo - btFrom;
+
+		if (movement.fuzzyZero())
+			return false;
+
+		class ClosestSphereResultCallback final : public btCollisionWorld::ClosestConvexResultCallback
+		{
+		public:
+			ClosestSphereResultCallback(const btVector3& castFrom, const btVector3& castTo, const Unit* ignored)
+				: btCollisionWorld::ClosestConvexResultCallback(castFrom, castTo),
+				m_ignored(ignored)
+			{
+			}
+
+			btScalar addSingleResult(btCollisionWorld::LocalConvexResult& convexResult, bool normalInWorldSpace) override
+			{
+				const btCollisionObject* object = convexResult.m_hitCollisionObject;
+				if (m_ignored && object && object->getUserPointer() == m_ignored)
+					return btScalar(1.0);
+
+				return ClosestConvexResultCallback::addSingleResult(convexResult, normalInWorldSpace);
+			}
+
+		private:
+			const Unit* m_ignored;
+		};
+
+		btSphereShape sphere{ btScalar(radius) };
+		btTransform startTransform;
+		btTransform endTransform;
+		startTransform.setIdentity();
+		endTransform.setIdentity();
+		startTransform.setOrigin(btFrom);
+		endTransform.setOrigin(btTo);
+
+		ClosestSphereResultCallback callback(btFrom, btTo, ignoredUnit);
+		m_world->convexSweepTest(&sphere, startTransform, endTransform, callback);
+
+		if (!callback.hasHit())
+			return false;
+
+		const btCollisionObject* object = callback.m_hitCollisionObject;
+		hit.unit = object ? reinterpret_cast<Unit*>(object->getUserPointer()) : nullptr;
+		hit.position = math::Vector3(
+			float(callback.m_hitPointWorld.x()),
+			float(callback.m_hitPointWorld.y()),
+			float(callback.m_hitPointWorld.z()));
+		hit.normal = math::Vector3(
+			float(callback.m_hitNormalWorld.x()),
+			float(callback.m_hitNormalWorld.y()),
+			float(callback.m_hitNormalWorld.z()));
+		hit.distance = float(movement.length() * callback.m_closestHitFraction);
+
+		return true;
+	}
+
 	std::unique_ptr<rhea::PhysicsBody>
 		BulletPhysicsService::createBody(const rhea::PhysicsDataComponent* pdc, rhea::Item* item)
 	{

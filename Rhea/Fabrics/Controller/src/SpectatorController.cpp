@@ -14,6 +14,7 @@
 #include <Psio/Log.h>
 #include <Rhea/Physics/PhysicsService.h>
 #include <Rhea/Physics/PhysicsManagerService.h>
+#include <algorithm>
 
 namespace rhea
 {
@@ -31,6 +32,7 @@ namespace rhea
 			return false;
 
 		EventInput* e = (EventInput*)ev;
+		InputEventType id = e->getEvent().type;
 
 		// handle actions for the camera (if the camera moves independend of the target)
 
@@ -39,6 +41,18 @@ namespace rhea
 		}
 		else if (e->isAction("cam_move_right")) {
 			m_camera_slide = m_side_step;
+		}
+		else if (id == InputEventType::MouseWheel) {
+			// mouse wheel zoom
+			float wheel = static_cast<float>(e->getEvent().wheelY);
+
+			if (wheel != 0.0f)
+			{
+				// Positives Mausrad: hineinzoomen
+				float direction = wheel > 0.0f ? -1.0f : 1.0f;
+
+				m_zoom_distance = std::clamp(m_zoom_distance + direction * m_zoom_step, m_zoom_min, m_zoom_max);
+			}
 		}
 
 		//BasicController::onInput(action, evt);
@@ -55,6 +69,13 @@ namespace rhea
 			m_follow_offset = math::Vector3(it->second[0], it->second[1], it->second[2]);
 		else
 			m_follow_offset = math::Vector3(0.0f, 1.7f, -3.0f);
+
+		math::Vector3 initial_arm(m_follow_offset.x, 0.0f, m_follow_offset.z);
+
+		float initial_distance = initial_arm.length();
+		m_zoom_max = std::max(m_zoom_max, initial_distance);
+		m_zoom_min = std::min(m_zoom_min, initial_distance);
+		m_zoom_distance = std::clamp(initial_arm.length(), m_zoom_min, m_zoom_max);
 	}
 
 	void SpectatorController::onActivate()
@@ -95,8 +116,16 @@ namespace rhea
 		math::Vector3 camera_world;
 		math::Vector3 camera_pivot;
 
-		math::Vector3 local_offset = m_follow_offset;
-		local_offset.x += m_camera_slide;
+		// camera zoom
+		math::Vector3 arm(m_follow_offset.x, 0.0f, m_follow_offset.z);
+
+		if (arm.length() > 0.0f)
+		{
+			arm.normalize();
+			arm *= m_zoom_distance;
+		}
+
+		math::Vector3 local_offset(arm.x + m_camera_slide, m_follow_offset.y, arm.z);
 
 		if (m_follow_rotation) {		
 			// Both the follow position and the collision pivot are expressed in

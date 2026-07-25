@@ -34,6 +34,14 @@ namespace rhea
 
 		bool onFrame(float delta) override;
 
+		Controller* getPrimaryController() const;
+		Controller* getController(PlayerSlotHandle player_slot) const;
+		template<class T>
+		T* getController(PlayerSlotHandle player_slot) const
+		{
+			return doCast<T>(getController(player_slot));
+		}
+
 	private:
 		// we assume only one world is active at a time, so we can keep a list of controllers for the current world
 		std::vector<ControllerBinding> m_controllers;

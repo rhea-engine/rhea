@@ -44,7 +44,8 @@ namespace rhea
 		void onFrame(float delta) override {};
 
 		void connect(Item* target) override;
-		void disconnect() override;
+		void disconnect(bool reset_input = true) override;
+		void switchTarget(Item* new_target, bool reset_input) override;
 
 		void logMe();
 

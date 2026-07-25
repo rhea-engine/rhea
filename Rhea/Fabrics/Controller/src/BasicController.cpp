@@ -132,7 +132,7 @@ namespace rhea
 			});
 	}
 
-	void BasicController::disconnect()
+	void BasicController::disconnect(bool reset_input)
 	{
 		if (m_target) {
 			m_target->unregisterEventHandler("delete", this);
@@ -143,7 +143,25 @@ namespace rhea
 
 		m_target = nullptr;
 
+		if (reset_input)
 		resetInputState();
+	}
+
+	void BasicController::switchTarget(Item* new_target, bool reset_input)
+	{
+		Vector3 move = m_move;
+		float turn = m_turn;
+
+		if (m_target) {
+			disconnect();
+		}
+		if (new_target) {
+			connect(new_target);
+			if (m_target && !reset_input) {
+				m_target->setMovement(move);
+				m_target->setTurn(turn);
+			}
+		}
 	}
 
 	void BasicController::resetInputState()

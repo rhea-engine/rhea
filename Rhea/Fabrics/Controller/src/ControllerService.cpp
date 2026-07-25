@@ -147,14 +147,11 @@ namespace rhea
 
 
 					// second phase register the controller to the character and camera
-
-					// first subphase: remove old connections					
-					ctrl_info.controller->disconnect();
-
-					// second subphase: if a character or camera was found, connect the controller to it
+				
 					if (character) {
+						//if a character or camera was found, switch the controller to it, this disconnects the old controller
 						character->setValue("__controller_id", ctrl_info.controller_id);
-						ctrl_info.controller->connect(character);
+						ctrl_info.controller->switchTarget(character, true); // could be false if we would have key polling
 					}
 					else
 						LOG(LOG_WARNING) << "ControllerService: No character found in target scene " << context->target_scene->getPathName() << " for player_slot " << ctrl_info.player_slot;
@@ -181,5 +178,29 @@ namespace rhea
 			}
 		}
 		return false;
+	}
+
+	Controller* ControllerService::getPrimaryController() const
+	{
+		if(m_controllers.size() == 1)
+			return m_controllers.front().controller;
+
+		for (const ControllerBinding& binding : m_controllers) {
+			if (binding.controller && binding.controller->getValue("primary", false).toBool()) {
+				return binding.controller;
+			}
+		}
+
+		return nullptr;
+	}
+
+	Controller* ControllerService::getController(PlayerSlotHandle player_slot) const
+	{
+		for (const ControllerBinding& binding : m_controllers) {
+			if (binding.player_slot == player_slot)
+				return binding.controller;
+		}
+
+		return nullptr;
 	}
 }

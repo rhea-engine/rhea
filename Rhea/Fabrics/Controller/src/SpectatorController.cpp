@@ -4,7 +4,7 @@
  * Licensed under the MIT License.
  * See LICENSE file in the project root for full license information.
  */
-
+#define NOMINMAX
 #include <Rhea/Controller/SpectatorController.h>
 #include <Rhea/Core/Item.h>
 #include <Rhea/Application.h>
@@ -12,6 +12,8 @@
 #include <Rhea/Core/Camera.h>
 #include <Rhea/EventInput.h>
 #include <Psio/Log.h>
+#include <Rhea/Physics/PhysicsService.h>
+#include <Rhea/Physics/PhysicsManagerService.h>
 
 namespace rhea
 {
@@ -91,21 +93,49 @@ namespace rhea
 
 		Position camera_world_pose;
 		math::Vector3 camera_world;
+		math::Vector3 camera_pivot;
 
 		math::Vector3 local_offset = m_follow_offset;
 		local_offset.x += m_camera_slide;
 
 		if (m_follow_rotation) {		
-			// Change position vector based on target's orientation & scale
+			// Both the follow position and the collision pivot are expressed in
+			// target-local space when the camera follows the target rotation.
 			camera_world = target_world + target_rot * local_offset;
+			camera_pivot = target_world + target_rot * math::Vector3(0.0f, local_offset.y, 0.0f);
+		}
+		else {			
+			// Keep both positions in world space when target rotation is ignored.
+			camera_world = target_world + local_offset;
+			camera_pivot = target_world + math::Vector3(0.0f, local_offset.y, 0.0f);
+		}
+
+		math::Vector3 direction = camera_world - camera_pivot;
+		float desired_distance = direction.length();
+		if (desired_distance > 0.0f)
+		{
+			direction.normalize();
+
+			auto* physics_manager = m_app->getService<PhysicsManagerService>();
+			auto* physics = physics_manager ? physics_manager->getPhysicsService() : nullptr;
+			PhysicsService::PhysicsQueryHit hit;
+
+			if (physics && physics->sphereCast(camera_pivot, camera_world, m_camera_collision_radius, hit, m_target))
+			{
+				float safe_distance = std::max(0.0f, hit.distance - m_camera_collision_padding);
+				camera_world = camera_pivot + direction * safe_distance;
+			}
+		}
+
+		if (m_follow_rotation) {
+			// Change position vector based on target's orientation & scale			
 			camera_world_pose.setOrientation(target_rot);
 			camera_world_pose.setPosition(camera_world);
 		}
-		else {			
+		else {
 			// Just change position vector based on target's position, ignore rotation
-			camera_world = target_world + local_offset;
 			camera_world_pose.setPosition(camera_world);
-			camera_world_pose.lookAt(target_world, math::Vector3::UNIT_Z);
+			camera_world_pose.lookAt(camera_pivot, math::Vector3::UNIT_Z);
 		}
 		m_view->setWorldPosition(camera_world_pose);
 	}

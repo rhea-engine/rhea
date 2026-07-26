@@ -215,6 +215,21 @@ namespace rhea
 			ev->stopPropagation();
 			break;
 		}
+		case Key::Enter:
+		{
+			if (!multiline) {
+				Event on_submit_ev("submit", this);
+				if (m_values.find("onSubmit") != m_values.end()) {
+					sendBoundEvent(m_values["onSubmit"].toString(), &on_submit_ev);
+				}
+
+				// send submit event
+				Event submit_ev("submit", this);
+				bubbleEvent("submit", &submit_ev);
+			}
+			ev->stopPropagation();
+			break;
+		}
 		case Key::Backspace:
 			if (m_pos > 0) {
 				m_text = m_text.substr(0, m_pos - 1) + m_text.substr(m_pos);
@@ -235,6 +250,7 @@ namespace rhea
 			ev->stopPropagation();
 			break;
 		default:
+			ev->stopPropagation();
 			break;
 		}
 

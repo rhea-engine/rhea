@@ -40,6 +40,16 @@
       "source": "Assets/world.scene.in",
       "target": "Assets/world.scene",
       "render": true
+    },
+    {
+      "source": "Assets/resources.scene.in",
+      "target": "Assets/resources.scene",
+      "render": true
+    },
+    {
+      "source": "Assets/scene1.scene.in",
+      "target": "Assets/scene1.scene",
+      "render": true
     }
   ]
 }

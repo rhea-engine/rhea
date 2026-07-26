@@ -4,19 +4,20 @@
 #define {{PROJECT_NAME_UPPER}}_H
 
 #include <Rhea/UnitTree.h>
-#include <Poseidon/Poseidon.h>
+#include <Rhea/Application.h>
 #include <Rhea/Core/Scene.h>
 
-class {{PROJECT_NAME}} : public poseidon::Application
+class {{PROJECT_NAME}} : public rhea::Application
 {
 public:
 	{{PROJECT_NAME}}();
 	~{{PROJECT_NAME}}() override;
+	void setup() override;
 
 	void setScene(rhea::Scene* world_scene) { m_world_scene = world_scene; }
 	rhea::Scene* getScene() { return m_world_scene; }
 
-	void showScene(rhea::Scene* scene);
+	void onScene(rhea::Scene* scene) {}
 
 protected:
 	rhea::Scene* m_world_scene;

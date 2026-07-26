@@ -130,6 +130,15 @@ namespace rhea
 					}
 				}
 
+				// register alls scene entry points
+				scene->children([this, scene](std::string& name, Component* child) -> bool {
+					if (doCast<SceneEntryPoint>(child)) {
+						ManagedScene& managed_scene = m_managed_scenes[scene];
+						managed_scene.entry_points[name] = doCast<SceneEntryPoint>(child);
+					}
+					return true;
+				});
+
 				SceneLoadKey key{ session_generation, resource_id };
 				auto it = m_pending_scene_loads.find(key);
 				if (it == m_pending_scene_loads.end())
@@ -422,8 +431,27 @@ namespace rhea
 		State previous_state = m_state;
 		m_state = State::Transitioning;
 
+		// get the entry point
+		SceneEntryPoint* entry_point = nullptr;
+		if (request && !request->entry_point.empty()) {
+			auto it = m_managed_scenes[scene].entry_points.find(request->entry_point);
+			if (it == m_managed_scenes[scene].entry_points.end()) {
+				LOG(LOG_ERROR) << "Entry point not found in scene: " << request->entry_point;
+				m_state = previous_state;
+				if (handler) {
+					handler(OpenError::EntryPointNotFound);
+				}
+				return;
+			}
+			entry_point = it->second;
+		} else if (m_managed_scenes[scene].entry_points.size()>0) {
+			// use the first entry point if no specific entry point is requested
+			auto it = m_managed_scenes[scene].entry_points.begin();
+			entry_point = it->second;
+		}
+
 		// prepare the transition to the new scene
-		if (prepareSceneTransition(m_primary_scene, scene, nullptr, request) != PrepareError::None) {
+		if (prepareSceneTransition(m_primary_scene, scene, entry_point, request) != PrepareError::None) {
 			m_state = previous_state;
 			if (handler) {
 				handler(OpenError::InvalidStartScene);
@@ -483,7 +511,7 @@ namespace rhea
 		return PrepareError::None;
 	}
 
-	WorldService::PrepareError WorldService::prepareSceneTransition(Scene* source_scene, Scene* target_scene, Unit* entry_point, const TransitionRequest* request)
+	WorldService::PrepareError WorldService::prepareSceneTransition(Scene* source_scene, Scene* target_scene, SceneEntryPoint* entry_point, const TransitionRequest* request)
 	{
 		SceneTransitionContext context = { m_world, source_scene, target_scene, entry_point, request };
 		for (TransitionHandler& handler : m_scene_transition_handlers) {

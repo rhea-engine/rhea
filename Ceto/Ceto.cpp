@@ -228,7 +228,7 @@ bool Ceto::handleDevShortcuts(const rhea::InputEvent& evt)
 			}
 			const rhea::WorldService::TransitionRequest request = {
 				scene_path,
-				"entrypoint",
+				"",
 				{},
 				false
 			};
@@ -508,6 +508,15 @@ void Ceto::setup()
 	worlds->addSceneTransitionHandler([this, worlds](rhea::WorldService::SceneTransitionContext* context) -> rhea::WorldService::TransitionError
 		{
 			return rhea::WorldService::TransitionError::None;
+		});
+	auto* ctrl_srv = getService<rhea::ControllerService>();
+	ctrl_srv->addPlacementHandler([this, ctrl_srv](rhea::ControllerService::PlacementContext& context) -> rhea::ControllerService::PlacementResult
+		{
+			if (!context.source_character || !context.target_character)
+				return rhea::ControllerService::PlacementResult::Unhandled;
+			auto position = context.source_character->getTransform()->getWorldPosition();
+			context.target_character->getTransform()->setWorldPosition(position);
+			return rhea::ControllerService::PlacementResult::Placed;
 		});
 }
 

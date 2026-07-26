@@ -10,6 +10,7 @@
 #include <Rhea/Core/Item.h>
 #include <Rhea/Core/Camera.h>
 #include <Rhea/Controller/SpectatorController.h>
+#include <algorithm>
 
 namespace rhea
 {
@@ -147,11 +148,39 @@ namespace rhea
 
 
 					// second phase register the controller to the character and camera
-				
+
+					// setup new position and rotation for the character
+					 
+					rhea::Item* source_character = ctrl_info.controller->getTarget();
+		
+
+					// iterate over placement handlers by priority
+					PlacementResult placement = PlacementResult::Unhandled;
+					for (const auto& slot : m_placement_handlers) {
+						PlacementContext placement_context;
+						placement_context.transition = context;
+						placement_context.player_slot = ctrl_info.player_slot;
+						placement_context.controller = ctrl_info.controller;
+						placement_context.source_character = source_character;
+						placement_context.target_character = character;
+
+						placement = slot.handler(placement_context);
+						if (placement == PlacementResult::Placed || placement == PlacementResult::PlacedKeepTransform) {
+							break;
+						}
+					}
+					if (placement == PlacementResult::Unhandled && context->entry_point) {
+						// if no placement handler handled the placement, use the entry point as fallback
+						if (character) {
+							auto position = context->entry_point->getTransform()->getWorldPosition();
+							character->getTransform()->setWorldPosition(position);
+						}
+					}
+
 					if (character) {
 						//if a character or camera was found, switch the controller to it, this disconnects the old controller
 						character->setValue("__controller_id", ctrl_info.controller_id);
-						ctrl_info.controller->switchTarget(character, true); // could be false if we would have key polling
+						ctrl_info.controller->switchTarget(character, (placement != PlacementResult::KeepTransform && placement != PlacementResult::PlacedKeepTransform));
 					}
 					else
 						LOG(LOG_WARNING) << "ControllerService: No character found in target scene " << context->target_scene->getPathName() << " for player_slot " << ctrl_info.player_slot;
@@ -202,5 +231,15 @@ namespace rhea
 		}
 
 		return nullptr;
+	}
+
+	void ControllerService::addPlacementHandler(PlacementHandler handler, int priority)
+	{
+		m_placement_handlers.push_back({std::move(handler), priority}); 
+		// resort by priority, highest first
+		std::sort(m_placement_handlers.begin(), m_placement_handlers.end(),
+			[](const auto& a, const auto& b) {
+				return a.priority > b.priority;
+			});
 	}
 }

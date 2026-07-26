@@ -495,7 +495,9 @@ namespace rhea
 
 	void GltfScene::HandleNode(tinygltf::Node& node, Mesh* u_mesh)
 	{
+#ifdef GLTF_DEBUG
 		LOG(LOG_DEBUG) << "Loading node: " << node.name;
+#endif // GLTF_DEBUG
 
 		// if we have a mesh add it as submesh
 		if (node.mesh > -1) {
@@ -672,12 +674,14 @@ namespace rhea
 					VertexBufferSkeletal* v_data = (VertexBufferSkeletal*)vertices;
 					for (int k = 0; k < 10 /*vertices->size()*/; k++) {
 						VertexBufferSkeletal::VertexSkeletal* v = v_data->get(k);
+#ifdef GLTF_DEBUG
 						LOG(LOG_DEBUG) << "Vertex " << k;
 						for (int b = 0; b < 4; ++b) {
 							LOG(LOG_ERROR) << "Vertex " << k << ", Joint " << b
 								<< ": Index = " << v->jointIndices[b]
 								<< ", Weight = " << v->weights[b];
 						}
+#endif // GLTF_DEBUG
 					}
 				}
 

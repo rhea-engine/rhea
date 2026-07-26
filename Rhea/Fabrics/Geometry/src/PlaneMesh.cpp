@@ -1,4 +1,4 @@
-/*
+/*  
  * Copyright (c) 2019-2026 Meworla
  *
  * Licensed under the MIT License.
@@ -10,6 +10,25 @@
 
 namespace rhea
 {
+    void PlaneMesh::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
+    {
+		GeometryMesh::setup(app, attributes, values);
+
+		if (values.find("width") != values.end())
+			m_width = values["width"].toFloat();
+		if (values.find("height") != values.end())
+			m_height = values["height"].toFloat();
+		if (values.find("segmentsX") != values.end())
+			m_segmentsX = values["segmentsX"].toInt();
+		if (values.find("segmentsY") != values.end())
+			m_segmentsY = values["segmentsY"].toInt();
+		if (values.find("centered") != values.end())
+			m_centered = values["centered"].toBool();
+		if (values.find("uvScale") != values.end()) {
+            m_uvScale = math::Vector2(values["uvScale"][0].toFloat(), values["uvScale"][1].toFloat());
+        }
+    }
+
     void PlaneMesh::createMesh()
     {
         MeshBuilder b;

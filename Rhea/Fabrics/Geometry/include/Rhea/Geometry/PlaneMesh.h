@@ -18,6 +18,8 @@ namespace rhea
 		RECLASS(PlaneMesh, GeometryMesh, "//meworla/planemesh")
 	public:
 		PlaneMesh(std::string name, std::string type_name) : GeometryMesh(name, type_name) {}
+		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values) override;
+
 		void setSize(float width, float height) { m_width = width; m_height = height; markDirty(); }
 		void setWidth(float width) { m_width = width; markDirty(); }
 		void setHeight(float height) { m_height = height; markDirty(); }
@@ -34,7 +36,7 @@ namespace rhea
 		uint32_t segmentsX() const { return m_segmentsX; }
 		uint32_t segmentsY() const { return m_segmentsY; }
 		bool centered() const { return m_centered; }
-
+		math::Vector2 uvScale() const { return m_uvScale; }
 		void createMesh() override;
 
 	protected:

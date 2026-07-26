@@ -165,7 +165,12 @@ namespace rhea
 						placement_context.target_character = character;
 
 						placement = slot.handler(placement_context);
-						if (placement == PlacementResult::Placed || placement == PlacementResult::PlacedKeepTransform) {
+						if (placement == PlacementResult::Placed || placement == PlacementResult::PlacedKeepInput) {
+							break;
+						}
+						if (placement == PlacementResult::Failed) {
+							LOG(LOG_WARNING) << "ControllerService: Placement handler failed for player_slot " << ctrl_info.player_slot;
+							return rhea::WorldService::TransitionError::EntryPointNotFound;
 							break;
 						}
 					}
@@ -180,7 +185,7 @@ namespace rhea
 					if (character) {
 						//if a character or camera was found, switch the controller to it, this disconnects the old controller
 						character->setValue("__controller_id", ctrl_info.controller_id);
-						ctrl_info.controller->switchTarget(character, (placement != PlacementResult::KeepTransform && placement != PlacementResult::PlacedKeepTransform));
+						ctrl_info.controller->switchTarget(character, (placement != PlacementResult::KeepInput && placement != PlacementResult::PlacedKeepInput));
 					}
 					else
 						LOG(LOG_WARNING) << "ControllerService: No character found in target scene " << context->target_scene->getPathName() << " for player_slot " << ctrl_info.player_slot;

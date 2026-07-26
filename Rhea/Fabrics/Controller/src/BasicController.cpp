@@ -144,7 +144,7 @@ namespace rhea
 		m_target = nullptr;
 
 		if (reset_input)
-		resetInputState();
+			resetInputState();
 	}
 
 	void BasicController::switchTarget(Item* new_target, bool reset_input)
@@ -153,7 +153,7 @@ namespace rhea
 		float turn = m_turn;
 
 		if (m_target) {
-			disconnect();
+			disconnect(reset_input);
 		}
 		if (new_target) {
 			connect(new_target);

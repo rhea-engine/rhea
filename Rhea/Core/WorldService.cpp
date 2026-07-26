@@ -130,11 +130,12 @@ namespace rhea
 					}
 				}
 
-				// register alls scene entry points
+				// register all scene entry points
 				scene->children([this, scene](std::string& name, Component* child) -> bool {
-					if (doCast<SceneEntryPoint>(child)) {
+					if (auto* entry = doCast<SceneEntryPoint>(child)) {
+						std::string entry_id = entry->getEntryId();
 						ManagedScene& managed_scene = m_managed_scenes[scene];
-						managed_scene.entry_points[name] = doCast<SceneEntryPoint>(child);
+						managed_scene.entry_points[entry_id] = entry;
 					}
 					return true;
 				});
@@ -444,10 +445,9 @@ namespace rhea
 				return;
 			}
 			entry_point = it->second;
-		} else if (m_managed_scenes[scene].entry_points.size()>0) {
-			// use the first entry point if no specific entry point is requested
-			auto it = m_managed_scenes[scene].entry_points.begin();
-			entry_point = it->second;
+		} else if (m_managed_scenes[scene].entry_points.find("default") != m_managed_scenes[scene].entry_points.end()) {
+			// use the default entry point if no specific entry point is requested
+			entry_point = m_managed_scenes[scene].entry_points["default"];
 		}
 
 		// prepare the transition to the new scene

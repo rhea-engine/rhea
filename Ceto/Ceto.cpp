@@ -228,7 +228,7 @@ bool Ceto::handleDevShortcuts(const rhea::InputEvent& evt)
 			}
 			const rhea::WorldService::TransitionRequest request = {
 				scene_path,
-				"",
+				"entry_point",
 				{},
 				false
 			};
@@ -514,9 +514,13 @@ void Ceto::setup()
 		{
 			if (!context.source_character || !context.target_character)
 				return rhea::ControllerService::PlacementResult::Unhandled;
+#ifdef CETO_TEST_PLACEMENT
 			auto position = context.source_character->getTransform()->getWorldPosition();
 			context.target_character->getTransform()->setWorldPosition(position);
 			return rhea::ControllerService::PlacementResult::Placed;
+#else
+			return rhea::ControllerService::PlacementResult::Unhandled;
+#endif;
 		});
 }
 

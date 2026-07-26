@@ -45,8 +45,8 @@ namespace rhea
 			Unhandled,
 			Placed,
 			Failed,
-			KeepTransform,
-			PlacedKeepTransform
+			KeepInput,
+			PlacedKeepInput
 		};
 		using PlacementHandler = std::function<PlacementResult(PlacementContext&)>;
 

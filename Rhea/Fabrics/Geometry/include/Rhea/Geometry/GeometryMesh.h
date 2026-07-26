@@ -21,6 +21,11 @@ namespace rhea
         GeometryMesh(std::string name) :
             GeometryMesh(name, "//meworla/geometrymesh")
         {}
+
+		void ready() override {
+            rebuildMesh();
+			Mesh::ready();			
+		}
 		
 		virtual void createMesh() = 0;
         void rebuildMesh() {

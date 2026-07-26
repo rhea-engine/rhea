@@ -10,6 +10,7 @@
 #include <Rhea/Core/Item.h>
 #include <Rhea/Core/Camera.h>
 #include <Rhea/Controller/SpectatorController.h>
+#include <algorithm>
 
 namespace rhea
 {
@@ -148,13 +149,43 @@ namespace rhea
 
 					// second phase register the controller to the character and camera
 
-					// first subphase: remove old connections					
-					ctrl_info.controller->disconnect();
+					// setup new position and rotation for the character
+					 
+					rhea::Item* source_character = ctrl_info.controller->getTarget();
+		
 
-					// second subphase: if a character or camera was found, connect the controller to it
+					// iterate over placement handlers by priority
+					PlacementResult placement = PlacementResult::Unhandled;
+					for (const auto& slot : m_placement_handlers) {
+						PlacementContext placement_context;
+						placement_context.transition = context;
+						placement_context.player_slot = ctrl_info.player_slot;
+						placement_context.controller = ctrl_info.controller;
+						placement_context.source_character = source_character;
+						placement_context.target_character = character;
+
+						placement = slot.handler(placement_context);
+						if (placement == PlacementResult::Placed || placement == PlacementResult::PlacedKeepInput) {
+							break;
+						}
+						if (placement == PlacementResult::Failed) {
+							LOG(LOG_WARNING) << "ControllerService: Placement handler failed for player_slot " << ctrl_info.player_slot;
+							return rhea::WorldService::TransitionError::EntryPointNotFound;
+							break;
+						}
+					}
+					if (placement == PlacementResult::Unhandled && context->entry_point) {
+						// if no placement handler handled the placement, use the entry point as fallback
+						if (character) {
+							auto position = context->entry_point->getTransform()->getWorldPosition();
+							character->getTransform()->setWorldPosition(position);
+						}
+					}
+
 					if (character) {
+						//if a character or camera was found, switch the controller to it, this disconnects the old controller
 						character->setValue("__controller_id", ctrl_info.controller_id);
-						ctrl_info.controller->connect(character);
+						ctrl_info.controller->switchTarget(character, (placement != PlacementResult::KeepInput && placement != PlacementResult::PlacedKeepInput));
 					}
 					else
 						LOG(LOG_WARNING) << "ControllerService: No character found in target scene " << context->target_scene->getPathName() << " for player_slot " << ctrl_info.player_slot;
@@ -181,5 +212,39 @@ namespace rhea
 			}
 		}
 		return false;
+	}
+
+	Controller* ControllerService::getPrimaryController() const
+	{
+		if(m_controllers.size() == 1)
+			return m_controllers.front().controller;
+
+		for (const ControllerBinding& binding : m_controllers) {
+			if (binding.controller && binding.controller->getValue("primary", false).toBool()) {
+				return binding.controller;
+			}
+		}
+
+		return nullptr;
+	}
+
+	Controller* ControllerService::getController(PlayerSlotHandle player_slot) const
+	{
+		for (const ControllerBinding& binding : m_controllers) {
+			if (binding.player_slot == player_slot)
+				return binding.controller;
+		}
+
+		return nullptr;
+	}
+
+	void ControllerService::addPlacementHandler(PlacementHandler handler, int priority)
+	{
+		m_placement_handlers.push_back({std::move(handler), priority}); 
+		// resort by priority, highest first
+		std::sort(m_placement_handlers.begin(), m_placement_handlers.end(),
+			[](const auto& a, const auto& b) {
+				return a.priority > b.priority;
+			});
 	}
 }

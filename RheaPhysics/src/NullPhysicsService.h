@@ -49,6 +49,7 @@ namespace rhea::physics
 
 		// ray trace
 		Unit* ray(math::Vector3 origin, math::Vector3 direction) override { return nullptr; };
+		bool sphereCast(const math::Vector3& from, const math::Vector3& to, float radius, PhysicsQueryHit& hit, const Unit* ignoredUnit = nullptr) override { return false; }
 	};
 }
 

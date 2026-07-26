@@ -100,7 +100,9 @@ namespace rhea
 		PhysicsDataComponent::_register_PhysicsDataComponent();
 		ColliderComponent::_register_ColliderComponent();
 		Transform::_register_Transform();
+		// register world framework components
 		AreaComponent::_register_AreaComponent();
+		SceneEntryPoint::_register_SceneEntryPoint();
 
 		// register services
 		simpleparser::Type::registerType<Service>("//meworla/service");

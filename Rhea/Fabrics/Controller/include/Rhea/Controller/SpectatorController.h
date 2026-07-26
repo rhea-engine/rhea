@@ -65,6 +65,14 @@ namespace rhea
 		// m_camera_slide > 0  // slide right
 		float m_camera_slide = 0.0f;
 
+		float m_camera_collision_radius = 0.20f;
+		float m_camera_collision_padding = 0.05f;
+		float m_camera_return_speed = 8.0f;
+
+		float m_zoom_distance = 3.0f;
+		float m_zoom_min = 0.5f;
+		float m_zoom_max = 12.0f;
+		float m_zoom_step = 0.5f;
 	};
 }
 

@@ -13,6 +13,7 @@
 #include <Rhea/Core/World.h>
 #include <Rhea/Application.h>
 #include <Rhea/Event.h>
+#include <Rhea/Core/SceneEntryPoint.h>
 
 namespace rhea
 {
@@ -40,6 +41,7 @@ namespace rhea
 			InvalidStartScene,
 			InvalidSceneType,
 			StartSceneLoadFailed,
+			EntryPointNotFound,
 			RequestCanceled
 		};
 
@@ -112,7 +114,7 @@ namespace rhea
 			Scene* source_scene = nullptr;
 			Scene* target_scene = nullptr;
 
-			Unit* entry_point = nullptr;
+			SceneEntryPoint* entry_point = nullptr;
 			const TransitionRequest* request = nullptr;
 		};
 		
@@ -130,6 +132,8 @@ namespace rhea
 
 			// lifecycle management
 			bool lifecycle_managed = false;
+
+			std::unordered_map<std::string, SceneEntryPoint*> entry_points;
 			
 			bool isPrepared() const { return state == SceneLifecycleState::Prepared || state == SceneLifecycleState::Active; }
 		};
@@ -233,7 +237,7 @@ namespace rhea
 
 		PrepareError prepareScene(Scene* next_scene, SceneRole role, Scene* owner_scene = nullptr);
 		PrepareError prepareWorld(World* world, Scene* standalone_scene = nullptr);
-		PrepareError prepareSceneTransition(Scene* source_scene, Scene* target_scene, Unit* entry_point, const TransitionRequest* request);
+		PrepareError prepareSceneTransition(Scene* source_scene, Scene* target_scene, SceneEntryPoint* entry_point, const TransitionRequest* request);
 
 		ManagedScene& ensureManagedScene(Scene* scene, std::string resourceId, SceneRole role, Scene* owner = nullptr);
 

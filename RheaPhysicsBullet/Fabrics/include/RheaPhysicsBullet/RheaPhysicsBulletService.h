@@ -53,6 +53,7 @@ namespace rhea::physics::bullet
 
 		// ray trace
 		Unit* ray(math::Vector3 origin, math::Vector3 direction);
+		bool sphereCast(const math::Vector3& from, const math::Vector3& to, float radius, PhysicsQueryHit& hit, const Unit* ignoredUnit = nullptr);
 
 		std::unique_ptr<rhea::PhysicsBody> createBody(const rhea::PhysicsDataComponent* pdc, rhea::Item* item);
 

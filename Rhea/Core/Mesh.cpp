@@ -120,12 +120,6 @@ namespace rhea
 		}
 	}
 
-	void Mesh::onDestroy()
-	{
-		Event e("delete", this);
-		sendEvent("delete", &e);
-	}
-
 	void Mesh::setMaterial(Material* material)
 	{
 		m_material = material;

@@ -32,8 +32,37 @@ namespace rhea
 		VertexBuffer(const VertexBuffer& vb);
 		VertexBuffer& operator=(const VertexBuffer&) = delete;
 
-		VertexBuffer(VertexBuffer&&) = default;
-		VertexBuffer& operator=(VertexBuffer&&) = default;
+		VertexBuffer(VertexBuffer&& vb) noexcept :
+			m_data(vb.m_data),
+			m_vertex_size(vb.m_vertex_size),
+			m_vertex_count(vb.m_vertex_count),
+			m_buf_size(vb.m_buf_size)
+		{
+			vb.m_data = nullptr;
+			vb.m_vertex_size = 0;
+			vb.m_vertex_count = 0;
+			vb.m_buf_size = 0;
+		}
+
+		VertexBuffer& operator=(VertexBuffer&& vb) noexcept
+		{
+			if (this == &vb)
+				return *this;
+
+			delete[] m_data;
+
+			m_data = vb.m_data;
+			m_vertex_size = vb.m_vertex_size;
+			m_vertex_count = vb.m_vertex_count;
+			m_buf_size = vb.m_buf_size;
+
+			vb.m_data = nullptr;
+			vb.m_vertex_size = 0;
+			vb.m_vertex_count = 0;
+			vb.m_buf_size = 0;
+
+			return *this;
+		}
 
 		// get vertex dimensions
 

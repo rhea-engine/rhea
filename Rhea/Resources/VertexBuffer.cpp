@@ -17,7 +17,9 @@ namespace rhea
 		m_buf_size(vb.m_buf_size)
 	{
 		// copy the data
-		m_data = new float[m_buf_size];
+		// m_buf_size is in bytes, but new float[] allocates in elements
+		size_t float_count = m_buf_size / sizeof(float);
+		m_data = new float[float_count];
 		memcpy(m_data, vb.m_data, m_buf_size);
 	}
 

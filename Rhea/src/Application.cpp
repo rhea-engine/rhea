@@ -70,13 +70,13 @@ namespace rhea
 {
 	Application::~Application()
 	{
-		m_unit_tree.reset();
 		for (auto it = m_services.begin(); it != m_services.end(); ++it)
 		{
 			delete it->second;
 		}
 		m_services.clear();
-	}	
+		m_unit_tree.reset();
+	}
 
 	void Application::init(int argc, char* argv[])
 	{		

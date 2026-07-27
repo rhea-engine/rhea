@@ -12,9 +12,9 @@
 #include <Rhea/Components/ColliderComponent.h>
 #include <Psio/Log.h>
 
-#include <bullet/src/btBulletDynamicsCommon.h>
-#include <bullet/src/BulletCollision/CollisionDispatch/btGhostObject.h>
-#include <bullet/src/BulletCollision/NarrowPhaseCollision/btRaycastCallback.h>
+#include <btBulletDynamicsCommon.h>
+#include <BulletCollision/CollisionDispatch/btGhostObject.h>
+#include <BulletCollision/NarrowPhaseCollision/btRaycastCallback.h>
 
 #if DEBUG_CHARACTER_EVENTS || DEBUG_CHARACTER_VERBOSE
 #define CHAR_LOG(severity) LOG_COND(Log::logger().level()>severity, severity) & LogMessage(severity).stream()

@@ -12,8 +12,8 @@
 #include "BtGhost.h"
 #include "BtCharacter.h"
 
-#include <bullet/src/btBulletDynamicsCommon.h>
-#include <bullet/src/BulletCollision/CollisionDispatch/btGhostObject.h>
+#include <btBulletDynamicsCommon.h>
+#include <BulletCollision/CollisionDispatch/btGhostObject.h>
 #include <Psio/Log.h>
 #include <Rhea/Application.h>
 #include <Rhea/UnitTree.h>

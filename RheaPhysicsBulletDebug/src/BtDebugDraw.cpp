@@ -6,7 +6,7 @@
  */
 
 #include <RheaPhysicsBulletDebug/BtDebugDraw.h>
-#include <bullet/src/btBulletDynamicsCommon.h>
+#include <btBulletDynamicsCommon.h>
 #include <Rhea/Application.h>
 #include <Poseidon/Mesh.h>
 #include <Poseidon/RenderQueue.h>

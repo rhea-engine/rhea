@@ -11,8 +11,8 @@
 #include <vector>
 
 #include <Rhea/Core/Position.h>
-#include <bullet/src/LinearMath/btGeometryUtil.h>
-#include <bullet/src/LinearMath/btQuaternion.h>
+#include <LinearMath/btGeometryUtil.h>
+#include <LinearMath/btQuaternion.h>
 
 #include <Rhea/Physics/IPhysicsCharacter.h>
 #include "BtBody.h"

@@ -11,8 +11,8 @@
 #include <Rhea/Terrain/Terrain.h>
 #include <Psio/Log.h>
 
-#include <bullet/src/btBulletDynamicsCommon.h>
-#include <bullet/src/BulletCollision/CollisionShapes/btHeightfieldTerrainShape.h>
+#include <btBulletDynamicsCommon.h>
+#include <BulletCollision/CollisionShapes/btHeightfieldTerrainShape.h>
 
 #include <algorithm>
 

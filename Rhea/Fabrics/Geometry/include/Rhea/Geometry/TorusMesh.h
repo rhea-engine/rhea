@@ -18,6 +18,7 @@ namespace rhea
         RECLASS(TorusMesh, GeometryMesh, "//meworla/torusmesh")
     public:
         TorusMesh(std::string name, std::string type_name) : GeometryMesh(name, type_name) {}
+		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values) override;
 
         void setMajorRadius(float radius) {
             m_majorRadius = (std::max)(0.001f, radius);

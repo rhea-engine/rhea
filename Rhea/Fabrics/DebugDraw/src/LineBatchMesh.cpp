@@ -28,14 +28,14 @@ namespace rhea
 		if (!m_material) {
 			m_material = new Material(m_path + "_material");
 			addChild(m_material);
-			m_material->setup(m_app);
+			m_material->setup(m_app, {}, {});
 			m_material->setValue("shader", getValueString("shadername", "lines"));
 
 			// get the shader				
 			//Shader* shader_res = doCast<Shader>(m_app->getUnitTree()->find(m_values["shader"].toString(), m_attributes["basepath"], false));
 			Shader* shader_res = doCast<Shader>(m_app->getUnitTree()->find("//rhea/shaders/lines", "", false));
 			if (shader_res) {
-				m_material->setShaderRes(shader_res);
+				m_material->setShader(shader_res);
 			}
 			else {
 				LOG(LOG_ERROR) << "Could not find shader resource: " << m_values["shader"].toString();

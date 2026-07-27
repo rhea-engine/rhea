@@ -43,10 +43,21 @@ namespace poseidon
 		// handle textures		
 		
 		// add a texture
-		void addTexture(Texture* texture); 
+		void addTexture(Texture* texture);
+		// set texture at slot
+		void setTexture(size_t slot, Texture* texture);
 
 		// return the list of textures
 		std::vector<Texture*>& getTextures() { return m_textures; }
+		void setHasNormalMap(bool value)
+		{
+			per_mat_buf.has_normal_map = value ? 1.0f : 0.0f;
+		}
+
+		void setTextureCount(int count)
+		{
+			per_mat_buf.num_textures = count;
+		}
 
 		hippios::ShaderProgram* getShaderProgram();		
 		
@@ -72,8 +83,8 @@ namespace poseidon
 		std::vector<Shader::MatBufferLayoutElement>* m_layout;
 		struct MatBuffer
 		{
-			math::Color ambient;
 			math::Color diffuse;
+			math::Color ambient;
 			math::Color specular;
 			math::Color emissive;
 			float shininess;

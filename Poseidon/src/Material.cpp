@@ -114,9 +114,15 @@ namespace poseidon
 	void Material::addTexture(Texture* texture)
 	{
 		m_textures.push_back(texture);
-		if (m_textures.size() > 1)
-			per_mat_buf.has_normal_map = 1.0f;
 		per_mat_buf.num_textures = (int)m_textures.size();
+	}
+
+	void Material::setTexture(size_t slot, Texture* texture)
+	{
+		if (slot >= m_textures.size())
+			m_textures.resize(slot + 1, nullptr);
+
+		m_textures[slot] = texture;	
 	}
 
 	hippios::ShaderProgram* Material::getShaderProgram()
@@ -130,10 +136,10 @@ namespace poseidon
 	{
 		switch (slot) {
 		case 0:
-			per_mat_buf.ambient = color;
+			per_mat_buf.diffuse = color;
 			break;
 		case 1:
-			per_mat_buf.diffuse = color;
+			per_mat_buf.ambient = color;
 			break;
 		case 2:
 			per_mat_buf.specular = color;

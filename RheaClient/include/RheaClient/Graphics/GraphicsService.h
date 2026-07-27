@@ -90,6 +90,8 @@ namespace rhea::client {
 		TextureGpuCache& textureCache() { return m_textureCache; }
 		MaterialGpuCache& materialCache() { return m_materialCache; }
 
+		poseidon::Texture* getWhiteFallbackTexture() { return m_white_fallback_texture.get(); }
+
 		// register an item to the context
 		void registerItemToContext(rhea::Item* item, poseidon::RenderContext* context);
 		// Helper method for cleanup
@@ -128,6 +130,8 @@ namespace rhea::client {
 
 		// Map context -> items for efficient lookup and cleanup
 		std::unordered_map<poseidon::RenderContext*, std::vector<rhea::Item*>> m_context_items;
+
+		std::unique_ptr<poseidon::Texture> m_white_fallback_texture; 
 	};
 }
 

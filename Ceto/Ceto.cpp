@@ -38,6 +38,7 @@
 #include <Rhea/GUI/Button.h>
 #include <Rhea/GUI/Dialog.h>
 #include <Rhea/GUI/TextInput.h>
+#include <Rhea/GUI/Label.h>
 #include <RheaAudio/AudioService.h>
 #include <Rhea/Animation/AnimationComponent.h>
 #include <Rhea/Components/MeshComponent.h>
@@ -490,7 +491,7 @@ void Ceto::setup()
 	// The poseidon::Shader will be created lazily by EnsurePoseidonShader
 	// when a mesh with this material is first rendered.
 	rhea::Material* mat = new rhea::Material("color");
-	mat->setup(this);
+	mat->setup(this, {}, {});
 	mat->setValue("shader", "shader_vp");
 	m_unit_tree->addChild(mat);
 

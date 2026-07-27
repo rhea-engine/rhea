@@ -80,7 +80,7 @@ namespace rhea
 					m_material = new Material(m_path + "_material");
 					addChild(m_material);
 				}
-				m_material->setup(m_app);
+				m_material->setup(m_app, {}, {});
 				m_material->setTexture(0, static_cast<ImageResource*>(tex));
 				m_material->setValue("shader", getValue("shadername", "standard"));
 				if (m_values.find("shadername") != m_values.end()) {
@@ -93,7 +93,7 @@ namespace rhea
 				// get the shader				
 				Shader* shader_res = doCast<Shader>(m_app->getUnitTree()->find(m_values["shader"].toString(), m_attributes["basepath"], false));
 				if (shader_res) {
-					m_material->setShaderRes(shader_res);
+					m_material->setShader(shader_res);
 					int diffuse_id = shader_res->getInputSlotId("DIFFUSE");
 					m_material->setColor(diffuse_id, math::Color(1.0f,1.0f,1.0f,1.0f));
 				    int basecolor_id = shader_res->getTextureSlotId("BASECOLOR");
@@ -104,7 +104,13 @@ namespace rhea
 				}
 			}
 		}	
-		
+		else if (m_values.find("material") != m_values.end()) {
+			m_material = doCast<Material>(m_app->getUnitTree()->find(m_values["material"].toString(), m_attributes["basepath"], false));
+			if (m_submeshes.size() > 0) {
+				m_submeshes[0].material = m_material;
+			}
+		}
+
 		// load using geometry (normally used for import from file)
 		if (m_values.find("geometry") != m_values.end()) {
 			Geometry* geometry = doCast<Geometry>(m_app->getUnitTree()->find(m_values["geometry"].toString(), m_attributes["basepath"], false));
@@ -150,7 +156,7 @@ namespace rhea
 
 	void Mesh::setVertexBuffer(std::vector<VertexAttribute>& layout, std::unordered_map<std::string, VertexBuffer>& vertices, size_t num_vertices)
 	{
-		//		std::vector<VertexAttribute>& layout = m_material->getShaderRes()->getVertexLayout();
+		//		std::vector<VertexAttribute>& layout = m_material->getShader()->getVertexLayout();
 
 		// get vertex sizes
 		int vertex_size = 0;
@@ -189,7 +195,7 @@ namespace rhea
 			LOG(LOG_ERROR) << "No main material assigned to mesh";
 			return;
 		}
-		std::vector<VertexAttribute>& layout = m_material->getShaderRes()->getVertexLayout();
+		std::vector<VertexAttribute>& layout = m_material->getShader()->getVertexLayout();
 		setVertexBuffer(layout, vertices, num_vertices);
 		if (!m_submeshes.size())
 			addSubmesh(m_material, indices);

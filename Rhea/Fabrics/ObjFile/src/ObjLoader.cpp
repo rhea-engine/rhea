@@ -137,7 +137,7 @@ namespace rhea
         for (int slot = 0; slot < materials.size(); slot++) {
 			Material* mat = new Material(materials[slot].name);
 			// set shader
-            mat->setShaderRes(shader_res);
+            mat->setShader(shader_res);
             mat->setValue("shader", getValue("shadername", "standard"));
             
             // set material values

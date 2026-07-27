@@ -39,7 +39,8 @@ layout(std140) uniform cbMaterial
     vec4 mat_emissive;
     float mat_shininess;
     float has_normal_map;
-    vec2 _cbMaterialPad0;
+    int num_textures;
+    float material_padding;
 };
 
 uniform sampler2D BaseColorTexture;

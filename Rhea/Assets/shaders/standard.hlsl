@@ -48,6 +48,8 @@ cbuffer cbMaterial : register(b3)
     float4 mat_emissive;
     float mat_shininess;
     float has_normal_map;
+    int num_textures;
+    float material_padding;
 }
 
 Texture2D BaseColorTexture;

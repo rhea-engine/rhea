@@ -376,7 +376,7 @@ namespace rhea::client {
 		else {
 			renderable->visible = false;
 		}
-		if (vis->hasClipping())
+		if (vis && vis->hasClipping())
 		{
 			renderable->scissorEnabled = true;
 			ClipRect rect = vis->getClipping();

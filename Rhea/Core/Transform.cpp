@@ -146,6 +146,10 @@ namespace rhea
 
 		m_local_scale = scale;
 		markWorldDirty();
+		Item* owner = doCast<Item>(getParent());
+		if (owner) {
+			owner->onTransformChanged();
+		}
 	}
 
 	void Transform::markWorldDirty()
@@ -154,8 +158,10 @@ namespace rhea
 			return;
 		m_dirty = true;
 		m_parent->children([](std::string&, Component* component) {
-			if (auto* child = doCast<Item>(component))
+			if (auto* child = doCast<Item>(component)) {
 				child->getTransform()->markWorldDirty();
+				child->onTransformChanged();
+			}
 			return true;
 			});
 	}

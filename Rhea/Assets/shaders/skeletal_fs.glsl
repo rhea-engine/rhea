@@ -38,7 +38,8 @@ layout(std140) uniform cbMaterial
     vec4 mat_emissive;
     float mat_shininess;
     float has_normal_map;
-    vec2 _cbMaterialPad0;
+    int num_textures;
+    float material_padding;
 };
 
 uniform sampler2D BaseColorTexture;
@@ -170,7 +171,11 @@ void main()
 {
     vec3 finalNormal = normalize(v_normal);
 
-    vec4 diffuseSample = texture(BaseColorTexture, v_tex);
+    vec4 diffuseSample = vec4(1.0);
+    if (num_textures > 0)
+    {
+        diffuseSample = texture(BaseColorTexture, v_tex);
+    }
 
     if (has_normal_map > 0.0)
     {

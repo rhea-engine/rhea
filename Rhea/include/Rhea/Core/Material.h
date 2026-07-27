@@ -30,9 +30,9 @@ namespace rhea
 		{}
 		Material(std::string name, std::string type_name) :
 			m_shader(nullptr),
-			m_shader_res(nullptr),
 			Unit(name, type_name)
 		{}
+		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, simpleparser::Variant> values) override;
 		std::vector<Unit::Export> getReferences();
 
 		void ready() override;
@@ -44,16 +44,10 @@ namespace rhea
 		void setTexture(int slot, ImageResource* res) { if (slot < 0) return; if (slot >= m_textures.size() && res) m_textures.resize(slot + 1); m_textures[slot] = res; }
 
 		// set shader resource
-		void setShader(TextResource* shader) { m_shader = shader; }
+		void setShader(Shader* shader);
 
 		// get shader resource
-		TextResource* getShader() { return m_shader; }
-
-		// set shader resource
-		void setShaderRes(Shader* shader);
-
-		// get shader resource
-		Shader* getShaderRes() { return m_shader_res; }		
+		Shader* getShader() { return m_shader; }
 
 		// set / get material properties
 
@@ -132,8 +126,8 @@ namespace rhea
 		int getIntVS(size_t propertyID) { if (propertyID < m_ints_vs.size()) return m_ints_vs[propertyID]; else return 0; }
 
 	protected:
-		TextResource* m_shader;
-		Shader* m_shader_res;
+		std::string m_shader_id;
+		Shader* m_shader;
 		std::vector<ImageResource*> m_textures;
 		std::vector<math::Color> m_colors;
 		std::vector<math::Vector2> m_float2s;

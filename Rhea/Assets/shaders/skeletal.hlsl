@@ -47,6 +47,8 @@ cbuffer cbMaterial : register(b3)
     float4 mat_emissive;
     float mat_shininess;
     float has_normal_map;
+    int num_textures;
+    float material_padding;
 }
 
 // bone transforms
@@ -259,7 +261,11 @@ float4 PShader(VS_OUTPUT input) : SV_TARGET
 {  
     float3 finalNormal = input.normal;
     
-    float4 diffuseSample = BaseColorTexture.Sample(ObjSamplerState, input.tex);
+    float4 diffuseSample = float4(1.0f, 1.0f, 1.0f, 1.0f);
+    if (num_textures > 0)
+    {
+        diffuseSample = BaseColorTexture.Sample(ObjSamplerState, input.tex);
+    }
     
     if (has_normal_map > 0.0f)
     {

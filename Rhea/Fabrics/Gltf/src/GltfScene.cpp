@@ -124,7 +124,7 @@ namespace rhea
 			for (const auto& material : m_model.materials) {
 				Material* mat = new Material(material.name);
 				// set shader
-				mat->setShaderRes(shader_res);
+				mat->setShader(shader_res);
 				mat->setValue("shader", shader_name);
 
 				// set material values
@@ -185,7 +185,7 @@ namespace rhea
 			// add a default material
 			Material* mat = new Material("default");
 			// set shader
-			mat->setShaderRes(shader_res);
+			mat->setShader(shader_res);
 			mat->setValue("shader", shader_name);
 
 			mat->setColor(diffuse_id, math::Color(0.8f, 0.8f, 0.8f));

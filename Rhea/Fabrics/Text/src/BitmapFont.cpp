@@ -63,13 +63,13 @@ namespace rhea
 
 				// create dummy material
 				m_material = new Material(m_path + "_material");
-				m_material->setup(m_app);
+				m_material->setup(m_app, {}, {});
 				m_material->setValue("shader", m_values["shader"]);
 
 				// get the shader
 				Shader* shader_res = doCast<Shader>(m_app->getUnitTree()->find(m_values["shader"].toString(), m_attributes["basepath"], false));
 				if (shader_res) {
-					m_material->setShaderRes(shader_res);
+					m_material->setShader(shader_res);
 				}
 				else {
 					LOG(LOG_ERROR) << "BitmapFont::ready(): Shader '" << (std::string)m_values["shader"] << "' for " << m_pathname << " not found";

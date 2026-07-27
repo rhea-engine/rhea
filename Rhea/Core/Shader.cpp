@@ -73,11 +73,11 @@ namespace rhea
 			m_vertex_layout.push_back({ "NORMAL", VertexAttributeType::NORMAL, 4, 3, 12, 12, 1 });
 			m_vertex_layout.push_back({ "TEXCOORD", VertexAttributeType::TEXCOORD, 4, 2, 8, 24, 2 });
 		}
-
+		
 		// setup material input slots
 		std::string light_type = getValueString("light_type", "none");		
 		if (light_type == "vertex") {
-			m_property_names = { "AMBIENT", "DIFFUSE", "SPECULAR", "EMISSIVE" };
+			m_property_names = { "AMBIENT", "DIFFUSE", "SPECULAR", "SHININESS", "EMISSIVE" };
 			m_input_slots["AMBIENT"] = 0;
 			m_input_slots["DIFFUSE"] = 1;
 			m_input_slots["SPECULAR"] = 2;

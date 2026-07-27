@@ -18,6 +18,7 @@ namespace rhea
         RECLASS(SphereMesh, GeometryMesh, "//meworla/spheremesh")
     public:
         SphereMesh(std::string name, std::string type_name) : GeometryMesh(name, type_name) {}
+		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
 
         void setRadius(float radius) { m_radius = (std::max)(0.001f, radius); markDirty(); }
         void setSegments(uint32_t segments) { m_segments = (std::max)(3u, segments); markDirty(); }

@@ -15,6 +15,17 @@
 
 namespace rhea
 {
+	void SphereMesh::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
+	{
+		GeometryMesh::setup(app, attributes, values);
+		if (values.find("radius") != values.end())
+			setRadius(values["radius"].toFloat());
+		if (values.find("segments") != values.end())
+			setSegments(static_cast<uint32_t>(values["segments"].toInt()));
+		if (values.find("rings") != values.end())
+			setRings(static_cast<uint32_t>(values["rings"].toInt()));
+	}
+
     void SphereMesh::createMesh()
     {
         MeshBuilder b;

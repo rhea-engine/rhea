@@ -130,10 +130,10 @@ namespace poseidon
 	{
 		switch (slot) {
 		case 0:
-			per_mat_buf.ambient = color;
+			per_mat_buf.diffuse = color;
 			break;
 		case 1:
-			per_mat_buf.diffuse = color;
+			per_mat_buf.ambient = color;
 			break;
 		case 2:
 			per_mat_buf.specular = color;

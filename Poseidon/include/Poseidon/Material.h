@@ -72,8 +72,8 @@ namespace poseidon
 		std::vector<Shader::MatBufferLayoutElement>* m_layout;
 		struct MatBuffer
 		{
-			math::Color ambient;
 			math::Color diffuse;
+			math::Color ambient;
 			math::Color specular;
 			math::Color emissive;
 			float shininess;

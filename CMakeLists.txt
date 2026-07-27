@@ -9,7 +9,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 include(FetchContent)
 set(CMAKE_POLICY_DEFAULT_CMP0135 NEW)
-set(CMAKE_POLICY_DEFAULT_CMP0115 OLD)
+set(CMAKE_POLICY_DEFAULT_CMP0115 NEW)
 
 #set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/CMake")
 #set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/CMake")
@@ -18,6 +18,10 @@ set(CMAKE_POLICY_DEFAULT_CMP0115 OLD)
 message("MSVC_VERSION: ${MSVC_VERSION}")
 message("MSVC_TOOLSET_VERSION: ${MSVC_TOOLSET_VERSION}")
 include(InstallRequiredSystemLibraries)
+
+# Build SDL3 as static
+set(SDL_SHARED OFF CACHE BOOL "" FORCE)
+set(SDL_STATIC ON CACHE BOOL "" FORCE)
 
 # add some warnings
 enable_testing()
@@ -31,7 +35,8 @@ set(WarningsEXE ${WarningsLib} "-Wno-c++98-compat" "-Wno-c++98-compat-pedantic"
 FetchContent_Declare(
   googletest
   GIT_REPOSITORY https://github.com/google/googletest.git
-  GIT_TAG        7e33b6a1c497ced1e98fc60175aeb4678419281c # release-1.14
+  GIT_TAG        v1.17.0
+  DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
 # For Windows: Prevent overriding the parent project's compiler/linker settings
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
@@ -40,7 +45,7 @@ FetchContent_MakeAvailable(googletest)
 # json library
 FetchContent_Declare(
     nlohmann_json
- #   DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
     URL https://github.com/nlohmann/json/releases/download/v3.12.0/json.tar.xz
  #   URL_HASH SHA256=8c4b26bf4b422252e13f332bc5e388ec0ab5c3443d24399acb675e68278d341f
 )

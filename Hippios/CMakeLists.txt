@@ -24,6 +24,10 @@ option(HIPPIOS_USE_D3D11 "Use DirectX11 renderer" ON)
 option(HIPPIOS_USE_SDL "Use SDL window system" ON)
 option(HIPPIOS_USE_WIN32 "Use Win32 window system" ON)
 
+# Build SDL3 as static
+set(SDL_SHARED OFF CACHE BOOL "" FORCE)
+set(SDL_STATIC ON CACHE BOOL "" FORCE)
+
 # Disable D3D11 and Win32 windows automatically on non-Windows
 if(NOT WIN32)
     set(HIPPIOS_USE_D3D11 OFF CACHE BOOL "Use DirectX11 renderer" FORCE)
@@ -96,24 +100,22 @@ if(HIPPIOS_USE_D3D11)
 endif()
 
 if (HIPPIOS_USE_SDL)
+
 	if(NOT TARGET SDL3::SDL3)
 		find_package(SDL3 CONFIG QUIET)
 
-	    if(NOT TARGET SDL3::SDL3-static)
+	    if(NOT TARGET SDL3::SDL3)
 	        include(FetchContent)
 	        
-			# Build SDL3 as static
-			set(SDL_SHARED OFF CACHE BOOL "" FORCE)
-			set(SDL_STATIC ON CACHE BOOL "" FORCE)
-
 		    FetchContent_Declare(
 			    SDL3
 				GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
-				GIT_TAG release-3.4.8
+				GIT_TAG release-3.4.12
+				DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 			)
 			FetchContent_MakeAvailable(SDL3)
 		endif()
 	endif()
 	# use static version of SDL3 to avoid forcing users to have SDL3 dlls in their system. Also, we don't need dynamic features of SDL3, and static linking is simpler for distribution.
-	target_link_libraries(Hippios PUBLIC SDL3::SDL3-static)
+	target_link_libraries(Hippios PUBLIC SDL3::SDL3)
 endif()

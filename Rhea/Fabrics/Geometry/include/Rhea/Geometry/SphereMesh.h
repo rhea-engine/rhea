@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <cmath>
 #include <Rhea/Geometry/GeometryMesh.h>
+#include <algorithm>
 
 namespace rhea
 {

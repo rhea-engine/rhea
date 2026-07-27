@@ -14,18 +14,19 @@ namespace rhea
     {
 		GeometryMesh::setup(app, attributes, values);
 
-		if (values.find("width") != values.end())
-			m_width = values["width"].toFloat();
+		if (values.find("width") != values.end())   
+			m_width = (std::max)(0.001f, values["width"].toFloat());
 		if (values.find("height") != values.end())
-			m_height = values["height"].toFloat();
+			m_height = (std::max)(0.001f, values["height"].toFloat());
 		if (values.find("segmentsX") != values.end())
-			m_segmentsX = values["segmentsX"].toInt();
+			m_segmentsX = (std::max)(1, values["segmentsX"].toInt());
 		if (values.find("segmentsY") != values.end())
-			m_segmentsY = values["segmentsY"].toInt();
+			m_segmentsY = (std::max)(1, values["segmentsY"].toInt());
 		if (values.find("centered") != values.end())
 			m_centered = values["centered"].toBool();
 		if (values.find("uvScale") != values.end()) {
-            m_uvScale = math::Vector2(values["uvScale"][0].toFloat(), values["uvScale"][1].toFloat());
+            if (values["uvScale"].isArray() && values["uvScale"].length() == 2)
+                m_uvScale = math::Vector2((std::max)(0.001f, values["uvScale"][0].toFloat()), (std::max)(0.001f, values["uvScale"][1].toFloat()));
         }
     }
 

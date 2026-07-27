@@ -64,14 +64,14 @@ namespace rhea
 
     void MeshBuilder::buildInto(Mesh& mesh)
     {
-        auto* vb = new VertexBufferStandard();
+        VertexBufferStandard vb;
 
         for (const auto& v : m_vertices) {
-            vb->push_back(v);
+            vb.push_back(v);
         }
 
-        mesh.setVertexBuffer(*vb);
-        mesh.addSubmesh(nullptr, m_indices);
+        mesh.setVertexBuffer(vb);
+        mesh.setSubmesh(0, mesh.getDefaultMaterial(), m_indices);
     }
 
     MeshBuilder& MeshBuilder::addStandardVertex(const math::Vector3& position, const math::Vector3& normal, const math::Vector2& uv)

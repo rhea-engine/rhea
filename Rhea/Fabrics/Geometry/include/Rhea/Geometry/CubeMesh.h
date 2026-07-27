@@ -9,6 +9,7 @@
 #define RHEA_GEOMETRY_CUBEMESH_H
 
 #include <Rhea/Geometry/GeometryMesh.h>
+#include <algorithm>
 
 namespace rhea
 {

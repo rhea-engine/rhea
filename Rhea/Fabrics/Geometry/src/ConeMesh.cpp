@@ -17,8 +17,10 @@ namespace rhea
 			setRadius(values["radius"].toFloat());
 		if (values.find("height") != values.end())
 			setHeight(values["height"].toFloat());
-		if (values.find("segments") != values.end())
-			setSegments(static_cast<uint32_t>(values["segments"].toInt()));
+		if (values.find("segments") != values.end()) {
+            const int segments = values["segments"].toInt();
+			setSegments(static_cast<uint32_t>(std::max(3, segments)));
+		}
 		if (values.find("cap") != values.end())
 			setCap(values["cap"].toBool());
 	}

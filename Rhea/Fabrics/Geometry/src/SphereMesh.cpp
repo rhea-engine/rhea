@@ -20,10 +20,14 @@ namespace rhea
 		GeometryMesh::setup(app, attributes, values);
 		if (values.find("radius") != values.end())
 			setRadius(values["radius"].toFloat());
-		if (values.find("segments") != values.end())
-			setSegments(static_cast<uint32_t>(values["segments"].toInt()));
-		if (values.find("rings") != values.end())
-			setRings(static_cast<uint32_t>(values["rings"].toInt()));
+		if (values.find("segments") != values.end()) {
+            const int segments = values["segments"].toInt();
+			setSegments(static_cast<uint32_t>(std::max(3, segments)));
+		}
+		if (values.find("rings") != values.end()) {
+            const int rings = values["rings"].toInt();
+			setRings(static_cast<uint32_t>(std::max(2, rings)));
+		}
 	}
 
     void SphereMesh::createMesh()

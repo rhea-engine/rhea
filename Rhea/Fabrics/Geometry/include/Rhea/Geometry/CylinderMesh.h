@@ -9,6 +9,7 @@
 #define RHEA_GEOMETRY_CYLINDERMESH_H
 
 #include <Rhea/Geometry/GeometryMesh.h>
+#include <algorithm>
 
 namespace rhea
 {

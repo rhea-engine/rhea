@@ -10,6 +10,7 @@
 
 #include <Rhea/Geometry/GeometryMesh.h>
 #include <Math/Vector2.h>
+#include <algorithm>
 
 namespace rhea
 {

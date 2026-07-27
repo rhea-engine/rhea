@@ -17,10 +17,14 @@ namespace rhea
 			setMajorRadius(values["majorRadius"].toFloat());
 		if (values.find("minorRadius") != values.end())
 			setMinorRadius(values["minorRadius"].toFloat());
-		if (values.find("segments") != values.end())
-			setSegments(static_cast<uint32_t>(values["segments"].toInt()));
-		if (values.find("tubeSegments") != values.end())
-			setTubeSegments(static_cast<uint32_t>(values["tubeSegments"].toInt()));
+		if (values.find("segments") != values.end()) {
+			const int segments = values["segments"].toInt();
+			setSegments(static_cast<uint32_t>(std::max(3, segments)));
+		}
+		if (values.find("tubeSegments") != values.end()) {
+			const int tubeSegments = values["tubeSegments"].toInt();
+			setTubeSegments(static_cast<uint32_t>(std::max(3, tubeSegments)));
+		}
 	}
 
     void TorusMesh::createMesh()

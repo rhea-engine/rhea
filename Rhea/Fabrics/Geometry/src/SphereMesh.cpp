@@ -59,8 +59,7 @@ namespace rhea
                 uint32_t i2 = i0 + stride;
                 uint32_t i3 = i2 + 1;
 
-                // Same winding convention as your fixed Plane/Cube.
-                b.addQuad(i0, i1, i3, i2);
+                b.addQuadFlipped(i0, i1, i3, i2);
             }
         }
 

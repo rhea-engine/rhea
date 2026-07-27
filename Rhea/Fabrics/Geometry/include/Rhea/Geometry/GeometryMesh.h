@@ -8,6 +8,7 @@
 #ifndef RHEA_GEOMETRYMESH_H
 #define RHEA_GEOMETRYMESH_H
 
+#define NOMINMAX
 #include <Rhea/Core/Mesh.h>
 
 namespace rhea

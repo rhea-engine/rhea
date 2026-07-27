@@ -18,32 +18,32 @@ namespace rhea
 	public:
 		CubeMesh(std::string name, std::string type_name) : GeometryMesh(name, type_name) {}
 
-		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
+		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values) override;
 
-		void setSize(float size) { m_width = size; m_length = size; m_height = size; markDirty(); }
+		void setSize(float size) { m_width = (std::max)(0.001f, size); m_length = (std::max)(0.001f, size); m_height = (std::max)(0.001f, size); markDirty(); }
 		float getSize() const { return m_width; }
 
-		void setWidth(float width) { m_width = width;  markDirty(); }
+		void setWidth(float width) { m_width = (std::max)(0.001f, width);  markDirty(); }
 		float getWidth() const { return m_width; }
 
-		void setLength(float length) { m_length = length;  markDirty(); }
+		void setLength(float length) { m_length = (std::max)(0.001f, length);  markDirty(); }
 		float getLength() const { return m_length; }
 
-		void setHeight(float height) { m_height = height;  markDirty(); }
+		void setHeight(float height) { m_height = (std::max)(0.001f, height);  markDirty(); }
 		float getHeight() const { return m_height; }
 
 		void createMesh() override;
 
 		void setTileSize(float width, float height)
 		{
-			m_tile_width = width;
-			m_tile_height = height;
+			m_tile_width = (std::max)(0.001f, width);
+			m_tile_height = (std::max)(0.001f, height);
 			markDirty();
 		}
 
 		void setTileWidth(float width)
 		{
-			m_tile_width = width;
+			m_tile_width = (std::max)(0.001f, width);
 			markDirty();
 		}
 
@@ -54,7 +54,7 @@ namespace rhea
 
 		void setTileHeight(float height)
 		{
-			m_tile_height = height;
+			m_tile_height = (std::max)(0.001f, height);
 			markDirty();
 		}
 

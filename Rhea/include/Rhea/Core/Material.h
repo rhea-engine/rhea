@@ -41,7 +41,7 @@ namespace rhea
 		std::vector<ImageResource*>& getTextures() { return m_textures; }
 
 		// set texture to specific slot
-		void setTexture(int slot, ImageResource* res) { if (slot < 0) return; if (slot >= m_textures.size() && res) m_textures.resize(slot + 1); m_textures[slot] = res; }
+		void setTexture(int slot, ImageResource* res) { if (slot < 0) return; if (slot >= m_textures.size() && res) m_textures.resize(slot + 1, nullptr); m_textures[slot] = res; }
 
 		// set shader resource
 		void setShader(Shader* shader);

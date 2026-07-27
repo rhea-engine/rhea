@@ -9,7 +9,7 @@
 #include <Rhea/Application.h>
 #include <Rhea/UnitTree.h>
 #include <Psio/Log.h>
-#include "Rhea/Resources/TextResource.h"
+#include <Rhea/Resources/ImageResource.h>
 #include <Rhea/Core/Shader.h>
 #include <algorithm>
 
@@ -27,6 +27,12 @@ namespace rhea
 		std::vector<Export> refs;		
 		if (m_values.find("shaderpath") != m_values.end()) {			
 			refs.push_back({ "shader", "//meworla/shader", m_values["shaderpath"] });
+		}
+		// add all referenced textures (starting with "texture_")
+		for (const auto& [key, value] : m_values) {
+			if (key.rfind("texture_", 0) == 0) { // starts with "texture_"
+				refs.push_back({ key, "//meworla/texture", value });
+			}
 		}
 		return refs;
 	}
@@ -103,6 +109,24 @@ namespace rhea
 						}
 					}
 				}
+			}
+
+			// handle textures
+
+			for (const auto& desc : m_shader->getTextureSlots()) {
+				std::string key = "texture_" + desc.propertyName;
+				std::transform(key.begin(), key.end(), key.begin(), ::tolower);
+
+				auto it = m_values.find(key);
+				if (it == m_values.end())
+					continue;
+
+				auto* texture = doCast<ImageResource>(m_app->getUnitTree()->find(it->second.toString(), m_attributes["basepath"], false));
+
+				if (texture)
+					setTexture(desc.slot, texture);
+				else
+					LOG(LOG_WARNING) << "Material texture not found: " << it->second.toString();
 			}
 		}
 	}

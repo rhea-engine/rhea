@@ -212,8 +212,8 @@ namespace rhea
 	void Mesh::setSubmesh(size_t idx, Material* material, std::vector<uint32_t>& indices)
 	{
 		if (idx >= m_submeshes.size())
-			m_submeshes.push_back({ indices, material });
-		else
-			m_submeshes[idx] = { indices, material };
+			m_submeshes.resize(idx + 1);
+
+		m_submeshes[idx] = { indices, material };
 	}
 }

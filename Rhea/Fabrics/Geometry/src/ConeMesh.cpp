@@ -10,6 +10,21 @@
 
 namespace rhea
 {
+	void ConeMesh::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
+	{
+		GeometryMesh::setup(app, attributes, values);
+		if (values.find("radius") != values.end())
+			setRadius(values["radius"].toFloat());
+		if (values.find("height") != values.end())
+			setHeight(values["height"].toFloat());
+		if (values.find("segments") != values.end()) {
+            const int segments = values["segments"].toInt();
+			setSegments(static_cast<uint32_t>(std::max(3, segments)));
+		}
+		if (values.find("cap") != values.end())
+			setCap(values["cap"].toBool());
+	}
+
     void ConeMesh::createMesh()
     {
         MeshBuilder b;

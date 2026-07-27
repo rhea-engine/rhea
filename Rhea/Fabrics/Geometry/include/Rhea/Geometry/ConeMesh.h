@@ -18,6 +18,7 @@ namespace rhea
         RECLASS(ConeMesh, GeometryMesh, "//meworla/conemesh")
     public:
         ConeMesh(std::string name, std::string type_name) : GeometryMesh(name, type_name) {}
+		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values) override;
 
         void setRadius(float radius) {
             m_radius = (std::max)(0.001f, radius);

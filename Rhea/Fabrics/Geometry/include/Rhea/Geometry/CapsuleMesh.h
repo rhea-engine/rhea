@@ -8,6 +8,7 @@
 #define RHEA_GEOMETRY_CAPSULEMESH_H
 
 #include <Rhea/Geometry/GeometryMesh.h>
+#include <algorithm>
 
 namespace rhea
 {
@@ -16,13 +17,14 @@ namespace rhea
         RECLASS(CapsuleMesh, GeometryMesh, "//meworla/capsulemesh")
     public:
         CapsuleMesh(std::string name, std::string type_name) : GeometryMesh(name, type_name) {}
+		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values) override;
 
-        void setRadius(float radius) { m_radius = radius; markDirty(); }
-        void setHeight(float height) { m_height = height; markDirty(); } // total height, including hemispheres
-        void setSegments(uint32_t segments) { m_segments = segments; markDirty(); }
-        void setRings(uint32_t rings) { m_rings = rings; markDirty(); }
+        void setRadius(float radius) { m_radius = (std::max)(0.001f, radius); markDirty(); }
+        void setHeight(float height) { m_height = (std::max)(0.001f, height); markDirty(); } // total height, including hemispheres
+        void setSegments(uint32_t segments) { m_segments = (std::max)(3u, segments); markDirty(); }
+        void setRings(uint32_t rings) { m_rings = (std::max)(2u, rings); markDirty(); }
 
-        void createMesh();
+        void createMesh() override;
 
     private:
         float m_radius = 0.5f;

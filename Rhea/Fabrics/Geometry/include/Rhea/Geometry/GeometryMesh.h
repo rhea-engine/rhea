@@ -8,6 +8,7 @@
 #ifndef RHEA_GEOMETRYMESH_H
 #define RHEA_GEOMETRYMESH_H
 
+#define NOMINMAX
 #include <Rhea/Core/Mesh.h>
 
 namespace rhea
@@ -21,6 +22,11 @@ namespace rhea
         GeometryMesh(std::string name) :
             GeometryMesh(name, "//meworla/geometrymesh")
         {}
+
+		void ready() override {
+            rebuildMesh();
+			Mesh::ready();			
+		}
 		
 		virtual void createMesh() = 0;
         void rebuildMesh() {

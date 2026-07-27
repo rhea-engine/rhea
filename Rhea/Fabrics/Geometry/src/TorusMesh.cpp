@@ -10,6 +10,23 @@
 
 namespace rhea
 {
+	void TorusMesh::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
+	{
+		GeometryMesh::setup(app, attributes, values);
+		if (values.find("majorRadius") != values.end())
+			setMajorRadius(values["majorRadius"].toFloat());
+		if (values.find("minorRadius") != values.end())
+			setMinorRadius(values["minorRadius"].toFloat());
+		if (values.find("segments") != values.end()) {
+			const int segments = values["segments"].toInt();
+			setSegments(static_cast<uint32_t>(std::max(3, segments)));
+		}
+		if (values.find("tubeSegments") != values.end()) {
+			const int tubeSegments = values["tubeSegments"].toInt();
+			setTubeSegments(static_cast<uint32_t>(std::max(3, tubeSegments)));
+		}
+	}
+
     void TorusMesh::createMesh()
     {
         MeshBuilder b;

@@ -10,6 +10,7 @@
 
 #include <Rhea/Geometry/GeometryMesh.h>
 #include <Math/Vector2.h>
+#include <algorithm>
 
 namespace rhea
 {
@@ -18,13 +19,15 @@ namespace rhea
 		RECLASS(PlaneMesh, GeometryMesh, "//meworla/planemesh")
 	public:
 		PlaneMesh(std::string name, std::string type_name) : GeometryMesh(name, type_name) {}
-		void setSize(float width, float height) { m_width = width; m_height = height; markDirty(); }
-		void setWidth(float width) { m_width = width; markDirty(); }
-		void setHeight(float height) { m_height = height; markDirty(); }
+		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values) override;
 
-		void setSegments(uint32_t x, uint32_t y) { m_segmentsX = x; m_segmentsY = y; markDirty(); }
-		void setSegmentsX(uint32_t x) { m_segmentsX = x; markDirty(); }
-		void setSegmentsY(uint32_t y) { m_segmentsY = y; markDirty(); }
+		void setSize(float width, float height) { m_width = (std::max)(0.001f, width); m_height = (std::max)(0.001f, height); markDirty(); }
+		void setWidth(float width) { m_width = (std::max)(0.001f, width); markDirty(); }
+		void setHeight(float height) { m_height = (std::max)(0.001f, height); markDirty(); }
+
+		void setSegments(uint32_t x, uint32_t y) { m_segmentsX = (std::max)(1u, x); m_segmentsY = (std::max)(1u, y); markDirty(); }
+		void setSegmentsX(uint32_t x) { m_segmentsX = (std::max)(1u, x); markDirty(); }
+		void setSegmentsY(uint32_t y) { m_segmentsY = (std::max)(1u, y); markDirty(); }
 
 		void setCentered(bool centered) { m_centered = centered; markDirty(); }
 		void setUVScale(float u, float v) { m_uvScale = { u, v }; markDirty(); }
@@ -34,7 +37,7 @@ namespace rhea
 		uint32_t segmentsX() const { return m_segmentsX; }
 		uint32_t segmentsY() const { return m_segmentsY; }
 		bool centered() const { return m_centered; }
-
+		math::Vector2 uvScale() const { return m_uvScale; }
 		void createMesh() override;
 
 	protected:

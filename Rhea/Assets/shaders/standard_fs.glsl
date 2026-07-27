@@ -172,10 +172,7 @@ void main()
 {
     vec3 finalNormal = normalize(v_normal);
 
-    vec4 diffuseSample = vec4(1.0);
-
-    if (num_textures > 0)
-        diffuseSample = texture(BaseColorTexture, v_tex);
+    vec4 diffuseSample = texture(BaseColorTexture, v_tex);
 
     if (has_normal_map > 0.0)
     {

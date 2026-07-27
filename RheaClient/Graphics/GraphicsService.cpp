@@ -50,6 +50,7 @@
 #include <RheaClient/Components/GraphicsComponent.h>
 #include <Rhea/Resources/ResourceList.h>
 #include <Rhea/Resources/ResourceService.h>
+#include <Poseidon/Texture.h>
 
 namespace rhea::client {
 	GraphicsService::GraphicsService(std::string name, std::string type_name) :
@@ -351,6 +352,13 @@ namespace rhea::client {
 
 		// note: for locally installed resources this is actually synchronous
 		static_cast<rhea::ResourceService*>(m_app->getService("resources"))->loadAsync(res_list, nullptr);
+
+		// create a white fallback texture for missing textures
+		m_white_fallback_texture.reset(m_core->createTexture(0, 1)); // TEXTURE_2D, 1 image
+		if (m_white_fallback_texture) {
+			unsigned char white_pixel[4] = { 255, 255, 255, 255 }; // RGBA white
+			m_white_fallback_texture->load(0, 1, 1, white_pixel);
+		}
 	}
 
 	bool GraphicsService::onFrameFinal(float delta)

@@ -42,6 +42,16 @@ namespace poseidon
 			return false;
 	}
 
+	bool Texture::load(int index, unsigned int width, unsigned int height, unsigned char* image_data)
+	{
+		m_width = width;
+		m_height = height;
+		m_channels = 4; // Assuming RGBA
+		createTexture();
+		m_hw_texture->loadImpl(index, m_width, m_height, image_data);
+		return true;
+	}
+
 	bool Texture::load(int index, Texture* tex)
 	{
 		abort();

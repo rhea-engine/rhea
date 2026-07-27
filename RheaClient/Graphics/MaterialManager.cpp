@@ -288,18 +288,33 @@ namespace rhea::client {
 		}
 
 		// ---- textures ----
-		// IMPORTANT: poseidon::Material only supports addTexture(), no clear.
-		// So ONLY add textures when this poseidon::Material is freshly built.
-		if (fresh_build) {
-			for (auto* img : material_res->getTextures()) {
-				if (!img) continue;
-				poseidon::Texture* t = m_service->textureCache().getPoseidonTexture(core, img);
-				if (t)
-					out_mat->addTexture(t);
-				else
-					DLOG(LOG_DEBUG) << "GraphicsMaterialManager::FillPoseidonMaterial: empty texture";
-			}
+		const auto& textures = material_res->getTextures();
+
+		int realTextureCount = 0;
+
+		for (size_t slot = 0; slot < textures.size(); ++slot) {
+			ImageResource* image = textures[slot];
+
+			if (image)
+				++realTextureCount;
+
+
+			poseidon::Texture* texture = image
+				? m_service->textureCache().getPoseidonTexture(core, image)
+				: m_service->getWhiteFallbackTexture();
+
+			out_mat->setTexture(slot, texture);
 		}
+
+		const int normalSlot = shader_res->getTextureSlotId("NORMALMAP");
+
+		const bool hasNormalMap =
+			normalSlot >= 0 &&
+			static_cast<size_t>(normalSlot) < textures.size() &&
+			textures[normalSlot] != nullptr;
+
+		out_mat->setHasNormalMap(hasNormalMap);
+		out_mat->setTextureCount(realTextureCount);
 
 		// register handlers
 		//unit->registerEventHandler("delete", this, std::bind(&GraphicsMaterialManager::onItemDelete, this, std::placeholders::_1, std::placeholders::_2));

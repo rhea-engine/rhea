@@ -30,6 +30,9 @@ namespace poseidon
 		// load an image from buffer
 		virtual bool load(int index, unsigned char* buf, size_t buflen);
 
+		// load rgba image from buffer
+		virtual bool load(int index, unsigned int width, unsigned int height, unsigned char* image_data);
+
 		// load an image from existing texture (not implemented for base class)
 		virtual bool load(int index, Texture* tex);
 

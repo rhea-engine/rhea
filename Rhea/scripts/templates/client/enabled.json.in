@@ -1,1 +1,16 @@
-{}
+{
+  "enabled_fabrics": [
+    "rhea/core:Animation",
+    "rhea/core:Character",
+    "rhea/core:Controller",
+    "rhea/core:DebugDraw",
+    "rhea/core:Geometry",
+    "rhea/core:Gltf",
+    "rhea/core:GUI",
+    "rhea/core:Media",
+    "rhea/core:ObjFile",
+    "rhea/core:Skybox",
+    "rhea/core:Terrain",
+    "rhea/core:Text"
+  ]
+}

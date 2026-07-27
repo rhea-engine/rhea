@@ -1,9 +1,19 @@
 # CMakeLists.txt for RheaPhysicsBullet
 
-# add bullet physics engine as a subdirectory
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/ ${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/bullet/src)
-cmake_policy(SET CMP0115 OLD)
-add_subdirectory(ThirdParty/bullet)
+set(BULLET_PHYSICS_BUILD_DEMOS OFF CACHE BOOL "Build Bullet Demos" FORCE)
+set(BUILD_UNIT_TESTS OFF CACHE BOOL "Build Bullet Unit Tests" FORCE)
+set(BUILD_BULLET2_DEMOS OFF CACHE BOOL "Build Bullet2 Demos" FORCE)
+set(BUILD_EXTRAS OFF CACHE BOOL "Build Bullet Extras" FORCE)
+
+include(FetchContent)
+FetchContent_Declare(
+    bullet3
+    GIT_REPOSITORY https://github.com/bulletphysics/bullet3.git
+    GIT_TAG        master
+    GIT_SHALLOW    TRUE
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+)
+FetchContent_MakeAvailable(bullet3)
 
 add_library(RheaPhysicsBullet)
 target_sources(RheaPhysicsBullet PRIVATE
@@ -20,11 +30,14 @@ add_library(Meworla::RheaPhysicsBullet ALIAS RheaPhysicsBullet)
 
 target_include_directories(RheaPhysicsBullet PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/Fabrics/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty
-    ${CMAKE_CURRENT_SOURCE_DIR}/ThirdParty/bullet/src
 )
 
-target_link_libraries(RheaPhysicsBullet PUBLIC Meworla::RheaPhysics Rhea::Core Rhea::Terrain Meworla::Orion Rhea::TinyObj
-BulletDynamics BulletSoftBody BulletCollision LinearMath)
+target_link_libraries(RheaPhysicsBullet PRIVATE BulletDynamics BulletSoftBody BulletCollision LinearMath)
+
+target_include_directories(RheaPhysicsBullet PRIVATE
+    "${bullet3_SOURCE_DIR}/src"
+)
+
+target_link_libraries(RheaPhysicsBullet PUBLIC Meworla::RheaPhysics Rhea::Core Rhea::Terrain Meworla::Orion Rhea::TinyObj)
 
 rhea_register_fabric("${CMAKE_CURRENT_SOURCE_DIR}/Fabrics/fabric.json")

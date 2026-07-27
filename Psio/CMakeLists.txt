@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.13)
 
+# Build SDL3 as static
+set(SDL_SHARED OFF CACHE BOOL "" FORCE)
+set(SDL_STATIC ON CACHE BOOL "" FORCE)
+
 if(TARGET Psio)
     return()
 endif()
@@ -37,26 +41,24 @@ endif()
 include(FetchContent)
 
 if(PSIO_ENABLE_SDL)
+
 	if(NOT TARGET SDL3::SDL3)
 		find_package(SDL3 CONFIG QUIET)
 	endif()
 
-	if(NOT TARGET SDL3::SDL3-static)
+	if(NOT TARGET SDL3::SDL3)
 		include(FetchContent)
-
-		# Build SDL3 as static
-        set(SDL_SHARED OFF CACHE BOOL "" FORCE)
-        set(SDL_STATIC ON CACHE BOOL "" FORCE)
 
 		FetchContent_Declare(
 			SDL3
 			GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
-			GIT_TAG release-3.4.8
+			GIT_TAG release-3.4.12
+			DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 		)
 		FetchContent_MakeAvailable(SDL3)
 	endif()
 	
-    target_link_libraries(Psio PRIVATE SDL3::SDL3-static)
+    target_link_libraries(Psio PRIVATE SDL3::SDL3)
     target_compile_definitions(Psio PRIVATE PSIO_HAS_SDL=1)
 
     target_sources(Psio PRIVATE

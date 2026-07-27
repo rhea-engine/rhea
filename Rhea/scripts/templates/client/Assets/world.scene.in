@@ -1,56 +1,20 @@
 [scene]
-name="scene1"
-start=(0.0f, 1.7f, -1.0f)
+type="//meworla/world"
+name="world"
 physics="world"
 ground=true
 debug_physics=false
 startscene="//{{PROJECT_NAME_LOWER}}/scene1"
-linear_gravity=-3.0f
+linear_gravity=-9.81f
+controllers="controllers"
 
-[environment]
-type="//meworla/lighting"
-ambient=(0.8f, 0.8f, 0.8f, 1.0f)
+[resources]
+type="//meworla/resources"
+path="//{{PROJECT_NAME_LOWER}}/resources.scene"
 
-[maincamera]
-type="//meworla/camera"
-position=(2.0f, 4.0f, -10.0f)
-[controller]
+[controllers]
+type="//core/types/unit"
+[controllers/player_controller]
 type="//meworla/controller"
+player_slot=0
 target="//{{PROJECT_NAME_LOWER}}/scene1/maincamera"
-
-[grid]
-type="//meworla/texture"
-path="//{{PROJECT_NAME_LOWER}}/grid.png"
-
-[uv_d]
-type="//meworla/texture"
-path="//{{PROJECT_NAME_LOWER}}/uv_debug.png"
-
-[ground]
-type="//meworla/item"
-mesh="ground/mesh"
-position=(0.0f, -0.5f, 0.0f)
-
-[ground/mesh]
-type="//meworla/mesh"
-geometry="ground/ground_obj"
-
-[ground/ground_obj]
-type="//meworla/wavefront"
-path="//{{PROJECT_NAME_LOWER}}/ground.obj"
-material="//{{PROJECT_NAME_LOWER}}/ground.mtl"
-diffuse_tex=("grid")
-
-[cube2]
-type="//meworla/item"
-position=(0.0f, 4.0f, 15.0f)
-mesh="cube2/mesh"
-mass=20.0f
-[cube2/mesh]
-type="//meworla/mesh"
-geometry="cube2/cube_obj"
-[cube2/cube_obj]
-type="//meworla/wavefront"
-path="//{{PROJECT_NAME_LOWER}}/cube1.obj"
-material="//{{PROJECT_NAME_LOWER}}/cube1.mtl"
-diffuse_tex=("uv_d")

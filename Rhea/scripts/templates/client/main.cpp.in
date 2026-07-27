@@ -2,6 +2,8 @@
 #include <Rhea/Physics/PhysicsManagerService.h>
 #include <Rhea/Physics/PhysicsService.h>
 #include <Psio/Log.h>
+#include <Rhea/Controller/ControllerService.h>
+#include <Rhea/Core/WorldService.h>
 
 // Implementation
 
@@ -15,25 +17,20 @@
 {
 }
 
-void {{PROJECT_NAME}}::showScene(rhea::Scene* scene)
+void {{PROJECT_NAME}}::setup()
 {
-	auto* mgr = static_cast<rhea::PhysicsManagerService*>(getService("physics_mgr"));
-	if (!mgr) {
-		LOG(LOG_ERROR) << "physics_mgr missing";
-		return;
+	addDefaultWindow();
+	m_windows[0].views[0].layers.push_back({ "HUD",0,0,m_windows[0].width, m_windows[0].height });
+
+	Application::setup();
+
+	// register contoller service
+	if (!getService("controller")) {
+		log("Dragonstemple: Registering controller service");
+		rhea::ControllerService* srv = new rhea::ControllerService("controllerservice");
+		srv->setup(this);
+		registerService("controller", srv);
 	}
-
-	auto* physics = mgr->createPhysicsService("world");
-	if (!physics) {
-		LOG(LOG_ERROR) << "physics backend missing";
-		return;
-	}
-	physics->onInit();
-	m_physics = physics;
-
-	setScene(scene);
-
-	scene->show();
 }
 
 int main(int argc, char* argv[])
@@ -41,11 +38,11 @@ int main(int argc, char* argv[])
 	{{PROJECT_NAME}}* app = new {{PROJECT_NAME}}();
 	app->setAppname("{{PROJECT_NAME}}");
 
-	app->init();
+	app->init(argc, argv);
 
 	int argi = 1;
 	bool scene_set = false;
-	std::string home_scene;
+	std::string home_scene = "//{{PROJECT_NAME_LOWER}}/world.scene";
 
 	while (argi < argc) {
 		if (!strcmp(argv[argi], "-d")) {
@@ -53,7 +50,7 @@ int main(int argc, char* argv[])
 			app->setAppDir(argv[argi]);
 			LOG(LOG_INFO) << "Set //local to directory: " << argv[argi];
 		}
-		else {
+		else if (argv[argi][0] != '-') {
 			home_scene = argv[argi];
 			scene_set = true;
 		}
@@ -62,15 +59,14 @@ int main(int argc, char* argv[])
 
 	app->setup();
 
-	app->loadResource("//{{PROJECT_NAME_LOWER}}/world.scene", "meworla/scene", [&, app](rhea::Unit* scene, ReqError error) {
-		rhea::Scene* world_scene = doCast<rhea::Scene>(scene);
-		if (world_scene) {
-			app->showScene(world_scene);
-		}
-		else {
-			LOG(LOG_ERROR) << "Failed to load world scene";
-		}
-		return 0;
+	auto* worlds = app->getService<rhea::WorldService>();
+
+	worlds->openWorld(home_scene, [app, worlds](rhea::WorldService::OpenError error)
+		{
+			if (error != rhea::WorldService::OpenError::None) {
+				LOG(LOG_ERROR) << "Failed to open world: " << static_cast<int>(error);
+				return;
+			}
 		});
 
 	app->loop();

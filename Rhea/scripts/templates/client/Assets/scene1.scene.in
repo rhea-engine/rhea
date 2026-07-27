@@ -1,0 +1,47 @@
+[scene]
+name="scene1"
+physics="world"
+ground=true
+debug_physics=false
+linear_gravity=-9.81f
+
+[environment]
+type="//meworla/lighting"
+ambient=(0.8f, 0.8f, 0.8f, 1.0f)
+
+[maincamera]
+type="//meworla/camera"
+position=(2.0f, 4.0f, -10.0f)
+player_slot=0
+
+[ground]
+type="//meworla/item"
+[ground/mc]
+type="//meworla/meshcomponent"
+meshRef="//{{PROJECT_NAME_LOWER}}/groundmesh"
+[ground/transform]
+type="//meworla/transform"
+position=(0.0f, -0.5f, 0.0f)
+[ground/physics]
+type="//meworla/physicsdatacomponent"
+mass=20.0f
+[ground/physics/collider]
+type="//meworla/collidercomponent"
+shape="box"
+half_extents=(10.0f, 0.25f, 10.0f)
+
+[cube]
+type="//meworla/item"
+[cube/transform]
+type="//meworla/transform"
+position=(0.0f, 4.0f, 15.0f)
+[cube/mc]
+type="//meworla/meshcomponent"
+meshRef="//{{PROJECT_NAME_LOWER}}/cubemesh"
+[cube/physics]
+type="//meworla/physicsdatacomponent"
+mass=20.0f
+[cube/physics/collider]
+type="//meworla/collidercomponent"
+shape="box"
+half_extents=(0.5f, 0.5f, 0.5f)

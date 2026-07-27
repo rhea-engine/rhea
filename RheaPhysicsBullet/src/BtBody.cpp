@@ -10,7 +10,7 @@
 #include <Rhea/Core/Mesh.h>
 #include <Psio/Log.h>
 
-#include <bullet/src/btBulletDynamicsCommon.h>
+#include <btBulletDynamicsCommon.h>
 #include "ObjTriangleLoader.h"
 #include <Rhea/Components/PhysicsDataComponent.h>
 #include <Rhea/Components/ColliderComponent.h>
@@ -51,6 +51,14 @@ namespace rhea::physics::bullet
 			LOG(LOG_ERROR) << "BtBody: no collision shape for item " << m_item->getPath();
 			return false;
 		}		
+
+		const math::Vector3 scale = m_item->getTransform()->getWorldScale();
+
+		colShape->setLocalScaling(btVector3(
+			std::abs(scale.x),
+			std::abs(scale.y),
+			std::abs(scale.z)
+		));
 
 		// Create Dynamic Objects
 		btTransform startTransform;

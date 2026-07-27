@@ -17,9 +17,13 @@ target_link_libraries(RheaPhysicsBulletDebug PUBLIC
   RheaFabrics
 )
 
+FetchContent_GetProperties(bullet3)
+
 # Bullet libs private if not exposed in headers
-target_link_libraries(RheaPhysicsBulletDebug PRIVATE
-  BulletDynamics BulletCollision LinearMath
+target_link_libraries(RheaPhysicsBulletDebug PRIVATE BulletDynamics BulletCollision LinearMath)
+
+target_include_directories(RheaPhysicsBulletDebug PRIVATE
+    "${bullet3_SOURCE_DIR}/src"
 )
 
 rhea_register_fabric("${CMAKE_CURRENT_SOURCE_DIR}/Fabrics/fabric.json")

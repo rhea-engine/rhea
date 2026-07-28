@@ -242,6 +242,8 @@ namespace simpleparser
 			err = nextToken(buf, reader, buflen, line, token);
 			if (err >= SimpleParser::Error::PARSE_ERR)
 				return Error::PARSE_ERR;
+			if (err == SimpleParser::Error::PARSE_EOF)
+				return Error::PARSE_EOF;
 			switch (token.type) {
 			case TokenType::TOKEN_COMMA:
 				break;

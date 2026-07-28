@@ -84,7 +84,6 @@ namespace rhea
 			m_scrollbar->size(Vector2(m_scrollbar_width, constraints.y));
 		}
 
-		return constraints;
 		return Vector2(
 			constraints.x,
 			std::min(content_size.y, constraints.y)

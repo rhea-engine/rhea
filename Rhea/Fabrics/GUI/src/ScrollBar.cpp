@@ -84,20 +84,9 @@ namespace rhea {
 	void ScrollBar::invalidateLayout() {
 		Widget::invalidateLayout();
 
-		static bool inInvalidateLayout = false;
-
-		if (inInvalidateLayout) {
-			return;
-		}
-
-		// Prevent recursive calls
-		inInvalidateLayout = true;
-
 		// also invalidate track and thumb
 		if (m_track) m_track->invalidateLayout();
 		if (m_thumb) m_thumb->invalidateLayout();
-
-		inInvalidateLayout = false;
 	}
 
     bool ScrollBar::onMouseClicked(Event* ev, Unit* sender) {

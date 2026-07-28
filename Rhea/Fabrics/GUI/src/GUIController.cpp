@@ -733,7 +733,7 @@ namespace rhea
 			Widget* w = doCast<Widget>(ev->getTarget());
 			if (w) {
 #ifdef _DEBUG
-				ScopedTimer timer("RecalculateStyle:onSceneEnter");
+				ScopedTimer timer("RecalculateStyle:onSceneEnter", 50000.0f);
 #endif
 				w->RecalculateStyleTree(m_style_engine.get());	
 

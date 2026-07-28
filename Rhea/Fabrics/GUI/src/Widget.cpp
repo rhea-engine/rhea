@@ -458,7 +458,7 @@ namespace rhea
 	{
 #ifdef _DEBUG
 		std::string  debug_msg = "RecalculateStyle() for " + getPath() + "/" + getPathName();
-		ScopedTimer timer(debug_msg.c_str(), 500.0f);
+		ScopedTimer timer(debug_msg.c_str(), 5000.0f);
 #endif
 
 		if (m_style_dirty) {

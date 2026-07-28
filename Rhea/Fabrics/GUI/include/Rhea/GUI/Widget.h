@@ -58,6 +58,7 @@ namespace rhea
 			m_sizing_mode_h(TextureSizingMode::kAuto),
 			m_screen_position_valid(false),
 			m_style_dirty(true),
+			m_has_style_dirty_children(false),
 			m_layout_dirty(true),
 			m_is_rtl(false),
 			m_essential_size_valid(false),
@@ -184,6 +185,11 @@ namespace rhea
 		void setContentPosition(Vector2 pos) { m_content_position = pos; }
 
 		/**
+		* @brief Clears the children of the widget.
+		*/
+		void clearWidgetChildren();
+
+		/**
 		* @brief compute clipping
 		*/
 		void computeClipping();
@@ -193,8 +199,16 @@ namespace rhea
 
 		// Invalidate the layout, causing it to be recalculated on the next render.
 		virtual void invalidateLayout();
+		bool isLayoutDirty() { return m_layout_dirty; }
 
-		void clearWidgetChildren();
+		// Mark parents as having dirty children.
+		virtual void markDirtyStyleChildren();
+
+		/**
+		 * @brief Recalculates the styles of the widgets in the widgets tree using the given style engine.
+		 * @param style_engine The style engine instance.
+		 */
+		void RecalculateStyleTree(StyleEngine* style_engine);
 
 		/**
 		 * @brief Recalculates the style of the widget using the given style engine.
@@ -213,6 +227,8 @@ namespace rhea
 		 */
 		virtual void ApplyStyles();
 
+
+		void onParented() override;
 		/**
 		 * @brief Sets the alignment of the widget.
 		 * @param horizontal The horizontal alignment.
@@ -225,6 +241,11 @@ namespace rhea
 		  * @param styles The styles to set.
 		  */
 		 void setStyles(CssRuleSet& styles);
+
+		 /**
+		  * @brief Set the style using a css string that gets parsed into a rule set.
+		  */
+		 void setStyleValue(StylePropertyId id, std::string css_string);
 
 		 /**
 		  * @brief Sets a style property of the widget.
@@ -474,6 +495,8 @@ namespace rhea
 		CssRuleSet m_computed_properties;
 		// Store if style is changed
 		bool m_style_dirty;
+		// store if any children have their style dirty
+		bool m_has_style_dirty_children;
 		// Store if layout is changed
 		bool m_layout_dirty;
 

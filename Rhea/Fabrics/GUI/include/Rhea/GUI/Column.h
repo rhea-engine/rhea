@@ -14,7 +14,7 @@ namespace rhea {
 
 	class ColumnWidget : public Widget
 	{
-		MECLASS(ColumnWidget, Widget)
+		RECLASS(ColumnWidget, Widget, "//meworla/gui/column")
 
 	public:
 		ColumnWidget(std::string name, std::string type_name) :		

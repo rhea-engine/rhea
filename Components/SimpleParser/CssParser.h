@@ -95,6 +95,7 @@ namespace simpleparser
 		// get an error message
 		char* getErrMsg(Error);
 
+		// parse a property value string into a list of properties, appending to the properties vector. Returns true if successful, false otherwise.
 		bool ParsePropertyValue(const std::string& value, std::vector<Property>& properties);
 
 	protected:
@@ -108,6 +109,8 @@ namespace simpleparser
 			PARSE_NAME,
 			PARSE_WS
 		};
+
+		void recoverToNextRule(char* buf, size_t& reader, size_t buflen, int& line);
 	};
 }
 

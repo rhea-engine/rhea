@@ -29,6 +29,7 @@ namespace simpleparser
 		SimpleSelectorSequence cur_simple_seq;
 		selector.clear();
 
+		bool selector_started = false;
 		bool ws_relevant = false;
 
 		id_chars = "-_";
@@ -40,12 +41,15 @@ namespace simpleparser
 				switch (state) {
 				case SelectorStates::kNone:
 					if (err == SimpleParser::Error::PARSE_EOF)
-						return Error::PARSE_EOF;
+						return selector_started
+						? Error::PARSE_EXPECT_CONTENT_START
+						: Error::PARSE_EOF;
 					switch (token.type) {
 					case TokenType::TOKEN_IDENTIFIER:
 					case TokenType::TOKEN_STRING:
 						// must be a type selector
 						// start the simple sequence
+						selector_started = true;
 						cur_simple_seq.push_back({ SimpleSelectorType::kType, token.value.toString() });
 						state = SelectorStates::kSequence;
 						ws_relevant = true;
@@ -53,11 +57,13 @@ namespace simpleparser
 					case TokenType::TOKEN_DOT:
 						// start of class selector
 						state = SelectorStates::kClass;
+						selector_started = true;
 						ws_relevant = true;
 						break;
 					case TokenType::TOKEN_HASH:
 						// start of id selector
 						state = SelectorStates::kId;
+						selector_started = true;
 						ws_relevant = true;
 						break;
 					case TokenType::TOKEN_GREATER:
@@ -87,7 +93,7 @@ namespace simpleparser
 				case SelectorStates::kSequence:
 					// expect a new element of the sequence or whitespace or start of content
 					if (err == SimpleParser::Error::PARSE_EOF)
-						return Error::PARSE_EXPECT_IDENTIFIER;
+						return Error::PARSE_EXPECT_CONTENT_START;
 					switch (token.type) {
 					case TokenType::TOKEN_DOT:
 						// start of class selector
@@ -175,7 +181,9 @@ namespace simpleparser
 				}
 			}
 		}
-		return Error::PARSE_EXPECT_IDENTIFIER;
+		return selector_started
+			? Error::PARSE_EXPECT_CONTENT_START
+			: Error::PARSE_EOF;
 	}
 
 	CssParser::Error CssParser::parseContent(char* buf, size_t& reader, size_t buflen, int& line, PropertyMap& property_map)
@@ -184,7 +192,7 @@ namespace simpleparser
 		SimpleParser::Error err;
 		std::string prop_name;
 		std::vector<Property> properties;
-		Variant value;	
+		Variant value;
 
 		int state = 0;
 		id_chars = "-";
@@ -196,7 +204,7 @@ namespace simpleparser
 				switch (state) {
 				case 0: // outer context
 					if (err == SimpleParser::Error::PARSE_EOF)
-						return Error::PARSE_EXPECT_IDENTIFIER;
+						return Error::PARSE_EXPECT_CONTENT_END;
 					if (token.type == TokenType::TOKEN_RIGHT_CURLYBRACKET) {
 						return Error::PARSE_OK;
 					}
@@ -243,19 +251,29 @@ namespace simpleparser
 			if (err >= SimpleParser::Error::PARSE_ERR)
 				return Error::PARSE_ERR;
 			if (err == SimpleParser::Error::PARSE_EOF)
-				return Error::PARSE_EOF;
+				if (anchestor < 0)
+					return Error::PARSE_EOF;
+				else
+					return Error::PARSE_UNTERMINATED_ARRAY;
 			switch (token.type) {
 			case TokenType::TOKEN_COMMA:
 				break;
 			case TokenType::TOKEN_SEMICOLON:
 				// end of property
-				return Error::PARSE_OK;
+				if (anchestor < 0)
+					return Error::PARSE_OK;
+				else
+					return Error::PARSE_UNTERMINATED_ARRAY;
 				break;
 			case TokenType::TOKEN_RIGHT_CURLYBRACKET:
 				// end of rule entry
 				// push it back on stack
 				reader--;
-				return Error::PARSE_OK;
+				if (anchestor < 0)
+					return Error::PARSE_OK;
+				else
+					return Error::PARSE_UNTERMINATED_ARRAY;
+				break;
 			case TokenType::TOKEN_NUMBER:
 				// lookahead if its a dimension
 				if (reader < buflen && ((buf[reader] >= 'a' && buf[reader] <= 'z') ||
@@ -302,7 +320,10 @@ namespace simpleparser
 				break;
 			}
 		}
-		return Error::PARSE_EOF;
+		if (anchestor < 0)
+			return Error::PARSE_EOF;
+		else
+			return Error::PARSE_UNTERMINATED_ARRAY;
 	}
 
 	CssParser::Error CssParser::parseEntry(char* buf, size_t& reader, size_t buflen, int& line, Entry& entry)
@@ -319,8 +340,10 @@ namespace simpleparser
 		entry.properties.clear();
 		err = parseContent(buf, reader, buflen, line, entry.properties);
 
-		// continue on eof: empty sections are allowd
-		if (err != Error::PARSE_OK && err != Error::PARSE_EOF)
+		if (err == Error::PARSE_EOF)
+			return Error::PARSE_EXPECT_CONTENT_END;
+
+		if (err != Error::PARSE_OK)
 			return err;
 
 		return Error::PARSE_OK;
@@ -342,14 +365,16 @@ namespace simpleparser
 		{
 			err = parseEntry(buf, reader, buflen, line, entry);
 			if (err == Error::PARSE_OK) {
-				css.push_back(entry);
+				css.push_back(std::move(entry));
 				entries++;
+				continue;
 			}
-			else if (err == Error::PARSE_EOF)
+			else if (err == Error::PARSE_EOF) {
 				break;
+			}
 			else {
-				printf("%s in line %d\n", getErrMsg(err), line);
-				return entries;
+				printf("Css Parser: %s in line %d\n", getErrMsg(err), line);
+				recoverToNextRule(buf, reader, buflen, line);
 			}
 		}
 		return entries;
@@ -384,10 +409,25 @@ namespace simpleparser
 		case Error::PARSE_EXPECT_CONTENT_START:
 			return "Expected content start '{'";
 		case Error::PARSE_EXPECT_CONTENT_END:
-			return "Expected header end '}'";
+			return "Expected content end '}'";
 
 		default:
 			return "Syntax error";
+		}
+	}
+
+	void CssParser::recoverToNextRule(char* buf, size_t& reader, size_t buflen, int& line)
+	{
+		Token token;
+
+		while (reader < buflen) {
+			const auto err = nextToken(buf, reader, buflen, line, token);
+
+			if (err == SimpleParser::Error::PARSE_EOF)
+				return;
+
+			if (token.type == TokenType::TOKEN_RIGHT_CURLYBRACKET)
+				return;
 		}
 	}
 }

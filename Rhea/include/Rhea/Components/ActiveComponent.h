@@ -9,17 +9,21 @@
 
 #include <Rhea/Component.h>
 
-class ActiveComponent : public rhea::Component
+namespace rhea
 {
-	RECLASS(ActiveComponent, Component, "//meworla/activecomponent");
-public:
-	ActiveComponent(std::string name, std::string type_name) :
-		rhea::Component(name, type_name)
-	{}
-	virtual void onFrame(float delta_time) {
-		// Default implementation does nothing
-	}
-};
-
+	// ActiveComponent is a base class for components that need to perform actions every frame.
+	// It provides an onFrame method that can be overridden by derived classes to implement custom behavior.
+	class ActiveComponent : public Component
+	{
+		RECLASS(ActiveComponent, Component, "//meworla/activecomponent");
+	public:
+		ActiveComponent(std::string name, std::string type_name) :
+			Component(name, type_name)
+		{}
+		virtual void onFrame(float delta_time) {
+			// Default implementation does nothing
+		}
+	};
+}
 
 #endif // !RHEA_ACTIVECOMPONENT_H

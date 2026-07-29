@@ -6,117 +6,96 @@
  */
 
 #include "Rhea/Core/Position.h"
-#include <Psio/Log.h>
 
 namespace rhea
 {
 	Position::Position() :
-		m_position(Vector3(0, 0, 0)),
+		m_position(Vector3::ZERO),
 		m_yaw_fixed_axis(Vector3::UNIT_Y)
 	{}
 
+	Position::Position(const Vector3& position, const Quaternion& rotation)
+	    : m_position(position)
+	    , m_rotation(rotation)
+	    , m_yaw_fixed_axis(Vector3::UNIT_Y)
+	{
+	}
+
+	Position::Position(const Position& other)
+	    : m_position(other.m_position)
+	    , m_rotation(other.m_rotation)
+	    , m_yaw_fixed_axis(other.m_yaw_fixed_axis)
+	{
+	}
+
+	Position::Position(const Vector3& position)
+	    : m_position(position)
+	    , m_rotation(Quaternion::IDENTITY)
+	    , m_yaw_fixed_axis(Vector3::UNIT_Y)
+	{
+	}
+
+	Position::Position(const Quaternion& rotation)
+	    : m_position(Vector3::ZERO)
+	    , m_rotation(rotation)
+	    , m_yaw_fixed_axis(Vector3::UNIT_Y)
+	{
+	}
+
+	Position::Position(const Matrix3x4& matrix)
+	    : m_position(matrix.Translation())
+	    , m_rotation(Quaternion::IDENTITY)
+	    , m_yaw_fixed_axis(Vector3::UNIT_Y)
+	{
+	    m_rotation.fromRotationMatrix(matrix.linear());
+	}
+
 	void Position::setPosition(float x, float y, float z)
 	{
-		m_position.x = x;
-		m_position.y = y;
-		m_position.z = z;
+	    m_position.x = x;
+	    m_position.y = y;
+	    m_position.z = z;
 	}
 
 	void Position::setPosition(const Vector3& vec)
 	{
-		m_position = vec;
+	    m_position = vec;
 	}
 
 	void Position::setTranslation(const Vector3& vec)
 	{
-		m_position = vec;
+	    m_position = vec;
 	}
 
 	void Position::setDirection(float x, float y, float z, const Vector3& localDirectionVector)
 	{
-		setDirection(Vector3(x, y, z), localDirectionVector);		
+	    setDirection(Vector3(x, y, z), localDirectionVector);
 	}
 
-	void Position::setDirection(const Vector3& direction, const Vector3& localDirectionVector)
+	void Position::setDirection(const Vector3& vec, const Vector3& localDirectionVector)
 	{
-		Vector3 forward = direction.normalizedCopy();
-		if (forward == Vector3::ZERO)
-			return;
-		
-		Vector3 yawAxis = m_yaw_fixed_axis;
-		Vector3 right = yawAxis.crossProduct(forward);
-		
-		// DEBUG: Check if cross product is zero (parallel vectors!)
-		if (right.length() < 0.0001f) {
-			LOG(LOG_ERROR) << "setDirection: forward and yawAxis are parallel! forward=" 
-			               << forward.x << "," << forward.y << "," << forward.z;
-			// Fallback: use a different up vector
-			yawAxis = Vector3::UNIT_X;
-			right = yawAxis.crossProduct(forward);
-		}
-		
-		right.normalize();
-		Vector3 up = forward.crossProduct(right);
-		up.normalize();
-
-		Quaternion targetOrientation;
-
-		if (localDirectionVector == Vector3::NEGATIVE_UNIT_Z)
-		{
-			targetOrientation = Quaternion(right, up, -forward);
-		}
-		else if (localDirectionVector == Vector3::UNIT_Z)
-		{
-			targetOrientation = Quaternion(right, up, forward);
-		}
-		else
-		{
-			targetOrientation = Quaternion(right, up, -forward);
-		}
-
-		//LOG(LOG_DEBUG) << "setDirection result quat: " << targetOrientation.w << "," 
-		//               << targetOrientation.x << "," << targetOrientation.y << "," << targetOrientation.z;
-
-		setOrientation(targetOrientation);
-	}
-
-	void Position::setRotation(const Quaternion& q)
-	{
-		m_rotation = q;
-	}
-
-	void Position::lookAt(const Vector3& targetPoint, const Vector3& localDirectionVector)
-	{
-		// Calculate ourself origin relative to the given transform space
-		Vector3 origin;
-
-		// only world space for now
-		origin = m_position;
-		/*
-		switch (relativeTo)
-		{
-		default:    // Just in case
-		case TS_WORLD:
-			origin = _getDerivedPosition();
-			break;
-		case TS_PARENT:
-			origin = mPosition;
-			break;
-		case TS_LOCAL:
-			origin = Vector3::ZERO;
-			break;
-		}
-		*/
-		setDirection(targetPoint - origin, localDirectionVector);
+	    Vector3 targetDir = vec.normalizedCopy();
+	    Vector3 currentDir = m_rotation * localDirectionVector;
+	    
+	    Quaternion rotQuat = currentDir.getRotationTo(targetDir);
+	    m_rotation = rotQuat * m_rotation;
 	}
 
 	Vector3 Position::moveRelative(const Vector3& vec)
 	{
-		// Transform the axes of the relative vector by camera's local axes
-		Vector3 trans = m_rotation * vec;
+	    Vector3 trans = m_rotation * vec;
+	    m_position = m_position + trans;
+	    return trans;
+	}
 
-		m_position = m_position + trans;
-		
-		return m_position;		
+	void Position::setRotation(const math::Quaternion& q)
+	{
+	    m_rotation = q;
+	}
+
+	void Position::lookAt(const Vector3& targetPoint, const Vector3& localDirectionVector)
+	{
+	    Vector3 direction = targetPoint - m_position;
+	    setDirection(direction, localDirectionVector);
 	}
 }

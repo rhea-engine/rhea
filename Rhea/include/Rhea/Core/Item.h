@@ -78,7 +78,10 @@ namespace rhea
 		virtual void setLookAt(math::Vector3 look_at, const math::Vector3& localDirectionVector);
 
 		// movement
+		// Movement relative to the item's current orientation.
 		virtual void setMovement(math::Vector3 move);
+		// Movement expressed in world coordinates.
+		virtual void setWorldMovement(const math::Vector3& move);
 		virtual void setTurn(float turn);
 		math::Vector3 getMovement() { return m_movement; }
 		float getTurn() { return m_turn; }

@@ -220,6 +220,22 @@ namespace rhea
 		}		
 	}	
 
+	void Item::setWorldMovement(
+		const math::Vector3& world_movement)
+	{
+		const math::Quaternion orientation =
+			getTransform()->getWorldPosition().getRotation();
+
+		const math::Quaternion inverse_orientation(
+			orientation.w,
+			-orientation.x,
+			-orientation.y,
+			-orientation.z
+		);
+
+		setMovement(inverse_orientation * world_movement);
+	}
+
 	void Item::setTurn(float turn)
 	{
 		m_turn = turn;

@@ -23,6 +23,11 @@ namespace rhea
 	{		
 	public:
 		Position();
+		Position(const Vector3& position, const Quaternion& rotation);
+		Position(const Position& other);
+		Position(const Vector3& position);
+		Position(const Quaternion& rotation);
+		Position(const Matrix3x4& matrix);
 		void setPosition(float x, float y, float z);
 		void setPosition(const Vector3& vec);
 		void setTranslation(const Vector3& vec);		

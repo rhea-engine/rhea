@@ -78,17 +78,6 @@ namespace rhea
 		m_zoom_distance = std::clamp(initial_arm.length(), m_zoom_min, m_zoom_max);
 	}
 
-	void SpectatorController::onActivate()
-	{
-		if (!m_app->getUnitTree()->hasEventHandler("unhandled_input", this))
-			m_app->getUnitTree()->registerEventHandler("unhandled_input", this, std::bind(&SpectatorController::onInput, this, std::placeholders::_1, std::placeholders::_2));
-	}
-
-	void SpectatorController::onDeactivate()
-	{
-		m_app->getUnitTree()->unregisterEventHandler("unhandled_input", this);
-	}
-
 	void SpectatorController::setCamera(Camera* camera)
 	{
 		if (m_view)

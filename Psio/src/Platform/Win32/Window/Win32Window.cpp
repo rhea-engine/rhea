@@ -118,6 +118,32 @@ namespace psio
 			const bool alt = (GetKeyState(VK_MENU) & 0x8000) != 0;
 			const bool ctrl = (GetKeyState(VK_CONTROL) & 0x8000) != 0;
 
+			bool left = false;
+			bool right = false;
+			bool middle = false;
+
+			if (uMsg == WM_MOUSEMOVE) {
+				left = (wParam & MK_LBUTTON) != 0;
+				right = (wParam & MK_RBUTTON) != 0;
+				middle = (wParam & MK_MBUTTON) != 0;
+			}
+			else {
+				left =
+					uMsg == WM_LBUTTONDOWN ||
+					uMsg == WM_LBUTTONUP ||
+					uMsg == WM_LBUTTONDBLCLK;
+
+				right =
+					uMsg == WM_RBUTTONDOWN ||
+					uMsg == WM_RBUTTONUP ||
+					uMsg == WM_RBUTTONDBLCLK;
+
+				middle =
+					uMsg == WM_MBUTTONDOWN ||
+					uMsg == WM_MBUTTONUP ||
+					uMsg == WM_MBUTTONDBLCLK;
+			}
+
 			InputEventId id = InputEventId::NONE;
 			switch (uMsg) {
 			case WM_LBUTTONDOWN:
@@ -143,9 +169,9 @@ namespace psio
 				id,
 				GET_X_LPARAM(lParam),
 				GET_Y_LPARAM(lParam),
-				(wParam & MK_LBUTTON) != 0,
-				(wParam & MK_RBUTTON) != 0,
-				(wParam & MK_MBUTTON) != 0,
+				left,
+				right,
+				middle,
 				shift,
 				alt,
 				ctrl);

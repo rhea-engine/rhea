@@ -32,10 +32,6 @@ namespace rhea
 		void setCamera(Camera* camera);
 		Camera* getCamera() const { return m_view; }
 
-		void onActivate() override;
-		void onDeactivate() override;
-
-
 		// set the position manually
 		void setPosition(math::Vector3 position);
 		void lookAt(math::Vector3& target);

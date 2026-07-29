@@ -192,7 +192,9 @@ namespace rhea
 	void BasicController::onActivate()
 	{
 		if (!m_app->getUnitTree()->hasEventHandler("unhandled_input", this))
-			m_app->getUnitTree()->registerEventHandler("unhandled_input", this, std::bind(&BasicController::onInput, this, std::placeholders::_1, std::placeholders::_2));
+			m_app->getUnitTree()->registerEventHandler("unhandled_input", this, [this](Event* e, Unit* u) {
+				return onInput(e, u);
+			});
 	}
 
 	void BasicController::onDeactivate()

@@ -79,7 +79,7 @@ namespace math
 			return *this;
 		}
 
-		Vector3 operator*(float s)
+		Vector3 operator*(float s) const
 		{
 			Vector3 ret = *this;
 			ret.x *= s;
@@ -104,7 +104,7 @@ namespace math
 			return ret;
 		}
 
-		Vector3 operator/(float s)
+		Vector3 operator/(float s) const
 		{
 			Vector3 ret = *this;
 			ret.x /= s;

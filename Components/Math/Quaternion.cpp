@@ -11,6 +11,8 @@
 
 namespace math
 {
+	const Quaternion Quaternion::IDENTITY(0.0f, 0.0f, 0.0f, 1.0f);
+
 	Matrix3 Quaternion::RotationMatrix() const
 	{
 		Matrix3 result;

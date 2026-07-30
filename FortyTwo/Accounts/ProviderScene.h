@@ -21,7 +21,7 @@ public:
 	// setup phase
 	void Setup(rhea::Application* app, std::unordered_map<std::string, Variant>& values);
 	
-	std::vector<rhea::Unit::Export> getReferences();
+	std::vector<rhea::Unit::ResourceReference> getReferences();
 
 	virtual void GetAccount(AuthInfo& auth_info, std::function<void(User*, int)> handler) override;
 

@@ -33,7 +33,7 @@ namespace rhea {
 
 				// resource to load?
 				ResourceList res_list(app);
-				std::vector<Unit::Export> references = css->getReferences();
+				std::vector<Unit::ResourceReference> references = css->getReferences();
 				for (auto ref_it = references.begin(); ref_it != references.end(); ++ref_it) {					
 					res_list.push(ref_it->name, ref_it->value.toString(), ref_it->type);
 				}

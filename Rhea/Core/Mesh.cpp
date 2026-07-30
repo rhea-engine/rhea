@@ -43,9 +43,9 @@ namespace rhea
 		}
 	}
 
-	std::vector<Unit::Export> Mesh::getReferences()
+	std::vector<Unit::ResourceReference> Mesh::getReferences()
 	{
-		std::vector<Export> refs;
+		std::vector<ResourceReference> refs;
 		if (m_values.find("geometry") != m_values.end())
 			refs.push_back({ "geometry", "//meworla/geometryloader", m_values["geometry"] });		
 		if (m_values.find("shader") != m_values.end()) {

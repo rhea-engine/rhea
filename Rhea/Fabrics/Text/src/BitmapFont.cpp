@@ -33,9 +33,9 @@ namespace rhea
 		m_dim_h = getValue("bmp_height", 256.0f);
 	}
 
-	std::vector<Unit::Export> BitmapFont::getReferences()
+	std::vector<Unit::ResourceReference> BitmapFont::getReferences()
 	{
-		std::vector<Export> refs;
+		std::vector<ResourceReference> refs;
 		if (m_values.find("texture") != m_values.end()) {
 			refs.push_back({ "texture", "//meworla/texture", m_values["texture"] });
 		}

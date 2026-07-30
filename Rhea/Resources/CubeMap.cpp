@@ -17,9 +17,9 @@ namespace rhea
 		ImageResource::setup(app, attributes, values);
 	}
 
-	std::vector<Component::Export> CubeMap::getReferences()
+	std::vector<Component::ResourceReference> CubeMap::getReferences()
 	{
-		std::vector<Export> refs;
+		std::vector<ResourceReference> refs;
 		if (m_values.find("path") != m_values.end()) {
 			refs.push_back({ "image", "//meworla/image", m_values["path"] });
 		}

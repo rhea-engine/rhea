@@ -65,9 +65,9 @@ void AccountService::CreateAccount(AuthInfo& auth_info, std::function<void(User*
 	m_provider->CreateAccount(auth_info.user_id, auth_info.name, handler);
 }
 
-std::vector<rhea::Unit::Export> AccountService::getReferences()
+std::vector<rhea::Unit::ResourceReference> AccountService::getReferences()
 {
-	std::vector<Unit::Export> refs;
+	std::vector<Unit::ResourceReference> refs;
 	if (m_provider)
 		refs = m_provider->getReferences();
 	return refs;

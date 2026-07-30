@@ -49,7 +49,7 @@ namespace rhea
 		void ready() override;
 
 		// for loading the base
-		std::vector<Unit::Export> getReferences();
+		std::vector<Unit::ResourceReference> getReferences();
 
 		void SetModel(tinygltf::Model model) { m_model = model; }
 

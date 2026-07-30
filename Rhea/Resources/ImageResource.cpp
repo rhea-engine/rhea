@@ -29,9 +29,9 @@ namespace rhea
 		Resource::setup(app, attributes, values);		
 	}
 
-	std::vector<Component::Export> ImageResource::getReferences()
+	std::vector<Component::ResourceReference> ImageResource::getReferences()
 	{
-		std::vector<Export> refs;
+		std::vector<ResourceReference> refs;
 		if (m_values.find("path") != m_values.end()) {
 			refs.push_back({ "image", "//meworla/image", m_values["path"] });
 		}

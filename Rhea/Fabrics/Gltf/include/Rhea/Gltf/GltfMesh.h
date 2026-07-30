@@ -23,7 +23,7 @@ namespace rhea
 		virtual ~GltfMesh()
 		{}
 
-		std::vector<Unit::Export> getReferences();
+		std::vector<Unit::ResourceReference> getReferences();
 
 		bool load(rhea::Mesh* mesh);
 	};

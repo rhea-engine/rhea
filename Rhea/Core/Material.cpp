@@ -22,9 +22,9 @@ namespace rhea
 		m_shader_id = getValueString("shader", "//rhea/shaders/standard");
 	}
 
-	std::vector<Unit::Export> Material::getReferences()
+	std::vector<Unit::ResourceReference> Material::getReferences()
 	{
-		std::vector<Export> refs;
+		std::vector<ResourceReference> refs;
 		if (m_values.find("shaderpath") != m_values.end()) {
 			refs.push_back({ "shaderpath", "//meworla/shader", m_values["shaderpath"] });
 		}

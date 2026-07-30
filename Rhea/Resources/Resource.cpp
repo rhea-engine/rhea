@@ -23,6 +23,18 @@ namespace rhea {
 	{
 		handler(ReqError::OK);
 	}
+
+	void Resource::buildInstance(const InstanceRequest&, InstanceHandler handler)
+	{
+		if (handler)
+			handler(ReqError::NOT_IMPLEMENTED, nullptr);
+	}
+
+	void Resource::ensureReady(InstanceHandler handler)
+	{
+		if (handler)
+			handler(ReqError::OK, this);
+	}
 	
 	void Resource::setRaw(size_t buflen, char* buf)
 	{

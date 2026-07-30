@@ -34,6 +34,7 @@ namespace rhea
         };
 
         using SpawnHandler = std::function<void(ReqError, Unit*)>;
+        using MaterializeHandler = std::function<void(ReqError, Unit*)>;
 
         SceneResource(std::string name, std::string type_name) :
 			Resource(name, type_name)
@@ -55,36 +56,44 @@ namespace rhea
 			return m_scene_root;
 		}
 
-        // instantiate the scene resource into a unit tree under the given parent unit
-        // if parent is nullptr, the scene will be instantiated as a root unit, the caller may need to add it to the unit tree manually
-        void spawn(Unit* runtime_parent, SpawnHandler handler);
+        // Build, attach and ready a runtime instance.
+        void spawn(Unit* parent, const std::string& name, SpawnHandler handler);
+        void spawn(Unit* parent, SpawnHandler handler)
+        {
+            spawn(parent, "", std::move(handler));
+        }
+
+        void ensureMaterialized(MaterializeHandler handler);
+		void ensureReady(InstanceHandler handler) override
+		{
+			ensureMaterialized(std::move(handler));
+		}
+
+        // Build a complete detached tree without calling ready().
+        void buildInstance(const InstanceRequest& request, InstanceHandler handler) override;
 
     private:
-        void instantiate(rhea::Unit* definition_parent, SpawnHandler handler);
-
         SceneDefinition m_definition;
 		std::string m_scene_root;
-
-        enum class SceneReferenceMode {
-            LoadOnly,
-            Spawn,
-            Materialize
-        };
 
         struct PendingSceneInstance {
             std::string resource_key;
             Unit* parent;
             std::string instance_name;
-			SceneReferenceMode mode;
+			Component::ResourceUsage usage = Component::ResourceUsage::Load;
         };
-        std::vector<PendingSceneInstance> pending_instances;
-
 		using CompletionHandler = std::function<void(ReqError)>;
 
         void instantiatePendingScenes(
             ResourceList& resources,
             std::vector<PendingSceneInstance> pending,
             CompletionHandler complete);
+
+		bool m_materializing = false;
+		std::vector<MaterializeHandler> m_waiting_materialize_handlers;
+		Unit* m_materialized_instance = nullptr;
+
+		void completeMaterialization(ReqError error, Unit* instance);
     };
 }
 

@@ -28,9 +28,9 @@ namespace rhea
 		m_multiline = getValue("multiline", true);
 	}
 
-	std::vector<Unit::Export> TextWidget::getReferences()
+	std::vector<Unit::ResourceReference> TextWidget::getReferences()
 	{
-		std::vector<Export> refs = Item2D::getReferences();
+		std::vector<ResourceReference> refs = Item2D::getReferences();
 		if (m_values.find("font") != m_values.end()) {
 			refs.push_back({ "font", "//meworla/bitmapfont", m_values["font"] });
 		}		

@@ -31,7 +31,7 @@ namespace rhea
 		void setup(Application* app) { Resource::setup(app); }
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
 
-		std::vector<Component::Export> getReferences();
+		std::vector<Component::ResourceReference> getReferences();
 
 		// handle ready event
 		void ready();

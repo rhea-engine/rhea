@@ -56,7 +56,7 @@ TEST_F(ProviderSceneTest, AvatarListConfig)
 
     provider.Setup(app.get(), values);
 
-    std::vector<rhea::Unit::Export> refs;
+    std::vector<rhea::Unit::ResourceReference> refs;
     refs = provider.getReferences();
 
     EXPECT_TRUE(refs[0].value == "//avatarlist");
@@ -71,7 +71,7 @@ TEST_F(ProviderSceneTest, AvatarListWrongConfig)
 
     provider.Setup(app.get(), values);
 
-    std::vector<rhea::Unit::Export> refs;
+    std::vector<rhea::Unit::ResourceReference> refs;
     refs = provider.getReferences();
 
     EXPECT_FALSE(refs[0].value == "//avatarlist");
@@ -85,7 +85,7 @@ TEST_F(ProviderSceneTest, AvatarListNoConfig)
 
     provider.Setup(app.get(), values);
 
-    std::vector<rhea::Unit::Export> refs;
+    std::vector<rhea::Unit::ResourceReference> refs;
     refs = provider.getReferences();
 
     EXPECT_EQ(refs.size(), 0);
@@ -106,7 +106,7 @@ TEST_F(ProviderSceneTest, GetUser)
 
     provider.Setup(app.get(), values);
 
-    std::vector<rhea::Unit::Export> refs;
+    std::vector<rhea::Unit::ResourceReference> refs;
     refs = provider.getReferences();
 
     EXPECT_TRUE(refs[0].value == "//avatarlist");
@@ -134,7 +134,7 @@ TEST_F(ProviderSceneTest, GetUserNoUser)
 
     provider.Setup(app.get(), values);
 
-    std::vector<rhea::Unit::Export> refs;
+    std::vector<rhea::Unit::ResourceReference> refs;
     refs = provider.getReferences();
 
     EXPECT_TRUE(refs[0].value == "//avatarlist");

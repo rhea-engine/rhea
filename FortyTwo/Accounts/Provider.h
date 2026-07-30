@@ -21,7 +21,7 @@ public:
 
 	virtual void Setup(rhea::Application* app, std::unordered_map<std::string, Variant> &values) = 0;
 
-	virtual std::vector<rhea::Unit::Export> getReferences() = 0;
+	virtual std::vector<rhea::Unit::> getReferences() = 0;
 
 	// get the account with the given user name
 	// if user account not exists create one

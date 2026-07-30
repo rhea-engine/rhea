@@ -17,8 +17,8 @@ class ProviderMemory : public Provider
 public:
 	void Setup(rhea::Application* app, std::unordered_map<std::string, Variant>& values) {}
 
-	std::vector<rhea::Unit::Export> getReferences() {
-		return std::vector<rhea::Unit::Export>();
+	std::vector<rhea::Unit::> getReferences() {
+		return std::vector<rhea::Unit::ResourceReference>();
 	}
 
 	virtual void GetAccount(AuthInfo& auth_info, std::function<void(User*, int)> handler) override;

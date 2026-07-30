@@ -21,7 +21,6 @@ namespace rhea
 	void Scene::onParented()
 	{		
 		LOG(LOG_NOTICE) << "scene ready";
-		ready(); 
 	}
 
 	void Scene::onRemoved()

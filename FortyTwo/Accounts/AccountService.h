@@ -39,7 +39,7 @@ public:
 
 	// setup
 
-	std::vector<rhea::Unit::Export> getReferences();
+	std::vector<rhea::Unit::ResourceReference> getReferences();
 
 	static void RegisterFabrics(rhea::Application* app);
 

@@ -22,7 +22,7 @@ namespace rhea
 			Unit(name, type_name)
 		{}
 
-		std::vector<Unit::Export> getReferences();
+		std::vector<Unit::ResourceReference> getReferences();
 	};
 }
 

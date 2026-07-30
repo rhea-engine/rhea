@@ -24,7 +24,7 @@ namespace rhea
 		{}
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
 
-		std::vector<Unit::Export> getReferences();
+		std::vector<Unit::ResourceReference> getReferences();
 
 		void setStyle(std::vector<simpleparser::CssParser::Entry>& entries);
 
@@ -34,7 +34,7 @@ namespace rhea
 
 	protected:
 		std::vector<StyleRule> m_entries;
-		std::vector<Unit::Export> refs;
+		std::vector<Unit::ResourceReference> refs;
 	};
 }
 

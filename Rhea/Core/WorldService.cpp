@@ -15,6 +15,7 @@
 #include <Psio/Log.h>
 #include "Rhea/Resources/Collection.h"
 #include <Rhea/Core/SceneResource.h>
+#include <memory>
 
 namespace rhea
 {
@@ -492,41 +493,44 @@ namespace rhea
 		}
 
 		// prepare the transition to the new scene
-		if (prepareSceneTransition(m_primary_scene, scene, entry_point, request) != PrepareError::None) {
-			m_state = previous_state;
-			if (handler) {
-				handler(OpenError::InvalidStartScene);
+		prepareSceneTransition(m_primary_scene, scene, entry_point, request, [this, scene, previous_state, handler](TransitionError error) {
+			if (error != TransitionError::None) {
+				m_state = previous_state;
+				if (handler) {
+					handler(OpenError::InvalidStartScene);
+				}
+				return;
 			}
-			return;
-		}
-		Scene* old_scene = m_primary_scene;
-		if (m_primary_scene) {
-			m_primary_scene->hide();
-			m_primary_scene->deactivate();
-			m_primary_scene = nullptr;
-		}
 
-		scene->activate();
-		scene->show();
-
-		m_primary_scene = scene;
-
-		if (old_scene) {
-			// if the old scene is not the primary scene anymore, we can deactivate it
-			if (m_managed_scenes.find(old_scene) != m_managed_scenes.end()) {
-				m_managed_scenes[old_scene].state = SceneLifecycleState::Prepared;				
+			Scene* old_scene = m_primary_scene;
+			if (m_primary_scene) {
+				m_primary_scene->hide();
+				m_primary_scene->deactivate();
+				m_primary_scene = nullptr;
 			}
-		}
 
-		m_state = State::Ready;
-		m_managed_scenes[scene].state = SceneLifecycleState::Active;
-		m_managed_scenes[scene].lifecycle_managed = true;
+			scene->activate();
+			scene->show();
 
-		PrimarySceneChangedEvent event(this, m_primary_scene, old_scene, m_session_generation);
-		sendEvent("primary_scene_changed", &event);
+			m_primary_scene = scene;
 
-		if (handler)
-			handler(OpenError::None);
+			if (old_scene) {
+				// if the old scene is not the primary scene anymore, we can deactivate it
+				if (m_managed_scenes.find(old_scene) != m_managed_scenes.end()) {
+					m_managed_scenes[old_scene].state = SceneLifecycleState::Prepared;
+				}
+			}
+
+			m_state = State::Ready;
+			m_managed_scenes[scene].state = SceneLifecycleState::Active;
+			m_managed_scenes[scene].lifecycle_managed = true;
+
+			PrimarySceneChangedEvent event(this, m_primary_scene, old_scene, m_session_generation);
+			sendEvent("primary_scene_changed", &event);
+
+			if (handler)
+				handler(OpenError::None);
+			});
 	}
 
 	WorldService::PrepareError WorldService::prepareScene(Scene* next_scene, SceneRole role, Scene* owner_scene)
@@ -552,15 +556,49 @@ namespace rhea
 		return PrepareError::None;
 	}
 
-	WorldService::PrepareError WorldService::prepareSceneTransition(Scene* source_scene, Scene* target_scene, SceneEntryPoint* entry_point, const TransitionRequest* request)
+	void WorldService::prepareSceneTransition(
+		Scene* source_scene, 
+		Scene* target_scene, 
+		SceneEntryPoint* entry_point, 
+		const TransitionRequest* request,
+		TransitionCompletion completion)
 	{
-		SceneTransitionContext context = { m_world, source_scene, target_scene, entry_point, request };
-		for (TransitionHandler& handler : m_scene_transition_handlers) {
-			TransitionError error = handler(&context);
-			if (error != TransitionError::None)
-				return PrepareError::InvalidController;
+		auto context = std::make_shared<SceneTransitionContext>(SceneTransitionContext{ m_world, source_scene, target_scene, entry_point, request });
+		prepareSceneTransitionAsync(context, 0, [completion](TransitionError error) {
+			completion(error);
+			});
+	}
+
+	void WorldService::prepareSceneTransitionAsync(
+		std::shared_ptr<SceneTransitionContext> context,
+		size_t handlerIndex,
+		TransitionCompletion complete)
+	{
+		if (handlerIndex >=
+			m_scene_transition_handlers.size()) {
+			complete(TransitionError::None);
+			return;
 		}
-		return PrepareError::None;
+
+		auto& handler =
+			m_scene_transition_handlers[handlerIndex];
+
+		handler(
+			context.get(),
+			[this,
+			context,
+			handlerIndex,
+			complete](TransitionError error) mutable {
+				if (error != TransitionError::None) {
+					complete(error);
+					return;
+				}
+
+				prepareSceneTransitionAsync(
+					context,
+					handlerIndex + 1,
+					std::move(complete));
+			});
 	}
 
 	WorldService::ManagedScene& WorldService::ensureManagedScene(Scene* scene, std::string resourceId, SceneRole role, Scene* owner)

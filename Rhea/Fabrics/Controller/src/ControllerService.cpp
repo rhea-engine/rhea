@@ -76,7 +76,7 @@ namespace rhea
 				return rhea::WorldService::PrepareError::None;
 			});
 
-		worlds->addSceneTransitionHandler([this, worlds](rhea::WorldService::SceneTransitionContext* context) -> rhea::WorldService::TransitionError
+		worlds->addSceneTransitionHandler([this, worlds](rhea::WorldService::SceneTransitionContext* context, rhea::WorldService::TransitionCompletion completion) -> void
 			{
 				// find by player slot
 				for (auto& ctrl_info : m_controllers) {
@@ -170,7 +170,7 @@ namespace rhea
 						}
 						if (placement == PlacementResult::Failed) {
 							LOG(LOG_WARNING) << "ControllerService: Placement handler failed for player_slot " << ctrl_info.player_slot;
-							return rhea::WorldService::TransitionError::EntryPointNotFound;
+							completion(rhea::WorldService::TransitionError::EntryPointNotFound);
 							break;
 						}
 					}
@@ -199,7 +199,7 @@ namespace rhea
 						}
 					}
 				}
-				return rhea::WorldService::TransitionError::None;
+				completion(rhea::WorldService::TransitionError::None);
 			});
 	}
 

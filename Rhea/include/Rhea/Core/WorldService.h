@@ -180,10 +180,11 @@ namespace rhea
 
 		using OpenHandler =	std::function<void(OpenError)>;
 		using LoadSceneHandler = std::function<void(Scene*, OpenError)>;
+		using TransitionCompletion = std::function<void(TransitionError)>;
 
-		using WorldPrepareHandler = std::function<PrepareError(WorldPrepareContext* context)>;
-		using ScenePrepareHandler = std::function<PrepareError(ScenePrepareContext* context)>;
-		using TransitionHandler = std::function<TransitionError(SceneTransitionContext* context)>;
+		using WorldPrepareHandler = std::function<PrepareError(WorldPrepareContext*)>;
+		using ScenePrepareHandler = std::function<PrepareError(ScenePrepareContext*)>;
+		using TransitionHandler = std::function<void(SceneTransitionContext*, TransitionCompletion)>;
 
 
 		void openWorld(std::string& resource_id, OpenHandler handler = nullptr);
@@ -237,7 +238,8 @@ namespace rhea
 
 		PrepareError prepareScene(Scene* next_scene, SceneRole role, Scene* owner_scene = nullptr);
 		PrepareError prepareWorld(World* world, Scene* standalone_scene = nullptr);
-		PrepareError prepareSceneTransition(Scene* source_scene, Scene* target_scene, SceneEntryPoint* entry_point, const TransitionRequest* request);
+		void prepareSceneTransition(Scene* source_scene, Scene* target_scene, SceneEntryPoint* entry_point, const TransitionRequest* request, TransitionCompletion completion);
+		void prepareSceneTransitionAsync(std::shared_ptr<SceneTransitionContext> context, size_t handlerIndex, TransitionCompletion complete);
 
 		ManagedScene& ensureManagedScene(Scene* scene, std::string resourceId, SceneRole role, Scene* owner = nullptr);
 

@@ -507,9 +507,9 @@ void Ceto::setup()
 				m_focused_controller = nullptr;
 			return rhea::WorldService::PrepareError::None;
 		});
-	worlds->addSceneTransitionHandler([this, worlds](rhea::WorldService::SceneTransitionContext* context) -> rhea::WorldService::TransitionError
+	worlds->addSceneTransitionHandler([this, worlds](rhea::WorldService::SceneTransitionContext* context, rhea::WorldService::TransitionCompletion completion) -> void
 		{
-			return rhea::WorldService::TransitionError::None;
+			completion(rhea::WorldService::TransitionError::None);
 		});
 	auto* ctrl_srv = getService<rhea::ControllerService>();
 	ctrl_srv->addPlacementHandler([this, ctrl_srv](rhea::ControllerService::PlacementContext& context) -> rhea::ControllerService::PlacementResult

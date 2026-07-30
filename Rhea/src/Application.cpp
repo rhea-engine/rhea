@@ -28,6 +28,7 @@
 #include "Rhea/Core/AreaComponent.h"
 #include "Rhea/Core/Trigger.h"
 #include "Rhea/Resources/TextResource.h"
+#include "Rhea/Core/SceneResource.h"
 #include "Rhea/Resources/CubeMap.h"
 #include "Rhea/Resources/TextLoader.h"
 #include "Rhea/Resources/ImageResource.h"
@@ -93,6 +94,7 @@ namespace rhea
 		simpleparser::Type::registerType<UnitTree>("//core/unittree");
 		simpleparser::Type::registerType<Collection>("//core/collection");
 		simpleparser::Type::registerType<ConfigFile>("//core/types/configfile");
+		SceneResource::_register_SceneResource();
 
 		// register core components
 		VisualComponent::_register_VisualComponent();

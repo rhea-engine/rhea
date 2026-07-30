@@ -14,6 +14,7 @@
 #include <Rhea/Components/ActiveComponent.h>
 #include <Psio/Log.h>
 #include "Rhea/Resources/Collection.h"
+#include <Rhea/Core/SceneResource.h>
 
 namespace rhea
 {
@@ -32,28 +33,51 @@ namespace rhea
 	void WorldService::openWorld(std::string& rid, OpenHandler handler)
 	{
 		const uint64_t open_generation = ++m_open_generation;
-		m_state = State::LoadingWorld;		
+		m_state = State::LoadingWorld;
 
-		m_app->loadResource(rid, "//meworla/world", [this, rid, open_generation, handler](Component* component, ReqError error)
-			{
-				if (open_generation != m_open_generation) {
-					if (handler) {
-						handler(OpenError::RequestCanceled);
-					}
-					return; // stale result
+		m_app->loadResource(rid, "//meworla/world", [this, rid, open_generation, handler](Component* component, ReqError error) {
+
+			if (open_generation != m_open_generation) {
+				if (handler) {
+					handler(OpenError::RequestCanceled);
 				}
+				return; // stale result
+			}
 
-				if (error == ReqError::OK) {
+			SceneResource* scene_resource = doCast<SceneResource>(component);
+			if (error == ReqError::OK && scene_resource) {
+				// instance the world
+				Unit* parent = doCast<Unit>(m_app->getUnitTree()->find(scene_resource->getSceneRoot()));
+				scene_resource->spawn(parent, [this, rid, open_generation, handler](ReqError error, Unit* unit) {
+					if (open_generation != m_open_generation) {
+						if (handler) {
+							handler(OpenError::RequestCanceled);
+						}
+						return; // stale result
+					}
+					if (error != ReqError::OK) {
+						if (handler) {
+							handler(OpenError::InvalidSceneType);
+						}
+						return;
+					}
+
+					World* world = doCast<World>(unit);
+					if (world) {
+						m_world = world;
+						m_state = State::Ready;
+					}
 					LOG(LOG_INFO) << "Loaded world: " << rid;
-					onWorldLoaded(open_generation, rid, component, handler);
+					onWorldLoaded(open_generation, rid, unit, handler);
+					});
+			}
+			else {
+				LOG(LOG_ERROR) << "Failed to load world: " << static_cast<int>(error) << " (" << rid << ")";
+				m_state = State::Idle;
+				if (handler) {
+					handler(OpenError::ResourceNotFound);
 				}
-				else {
-					LOG(LOG_ERROR) << "Failed to load world: " << static_cast<int>(error) << " (" << rid << ")";
-					m_state = State::Idle;
-					if (handler) {
-						handler(OpenError::ResourceNotFound);
-					}
-				}			
+			}
 			});
 	}
 
@@ -103,8 +127,24 @@ namespace rhea
 			return; // Resource already being loaded, handler will be called when loading is complete
 
 		const uint64_t session_generation = m_session_generation;
-		m_app->loadResource(resource_id, "//meworla/scene", [this, resource_id, handler, session_generation](Component* component, ReqError error)
-			{
+		m_app->loadResource(resource_id, "//meworla/scene", [this, resource_id, handler, session_generation](Component* component, ReqError error) {
+			SceneResource* scene_resource = doCast<SceneResource>(component);
+
+			if (error != ReqError::OK || !scene_resource) {
+				LOG(LOG_ERROR) << "Failed to load scene: " << static_cast<int>(error) << " (" << resource_id << ")";
+				handler(nullptr, OpenError::ResourceNotFound);
+				return;
+			}
+
+			Unit* parent = doCast<Unit>(m_app->getUnitTree()->find(scene_resource->getSceneRoot()));
+			if (!parent) {
+				LOG(LOG_ERROR) << "Failed to find scene root: " << scene_resource->getSceneRoot() << " (" << resource_id << ")";
+				handler(nullptr, OpenError::InvalidSceneType);
+				return;
+			}
+
+			scene_resource->spawn(parent, [this, resource_id, session_generation](ReqError error, Unit* component) {
+
 				Scene* scene = doCast<Scene>(component);
 				OpenError result = OpenError::None;
 
@@ -138,7 +178,7 @@ namespace rhea
 						managed_scene.entry_points[entry_id] = entry;
 					}
 					return true;
-				});
+					});
 
 				SceneLoadKey key{ session_generation, resource_id };
 				auto it = m_pending_scene_loads.find(key);
@@ -150,6 +190,7 @@ namespace rhea
 
 				for (auto& handler : pending.handlers)
 					handler(scene, result);
+				});
 			});
 	}
 	

@@ -10,6 +10,7 @@
 
 #include <Rhea/Resources/Resource.h>
 #include <Rhea/Resources/ResourceLoader.h>
+#include <Rhea/Core/SceneResource.h>
 
 namespace psio
 {
@@ -20,30 +21,15 @@ namespace rhea
 {
 	class Application;
 	class Unit;
-	class Scene;
+	class SceneResource;
 
 	class SceneLoader
 	{
 	public:
-		struct NodeDefinition {
-			std::string node_id;
-			std::string parent_id;
-			std::string name;
-			std::string type_name;
-			std::unordered_map<std::string, std::string> attributes;
-			std::unordered_map<std::string, Variant> values;
-		};
-
-		struct SceneDefinition {
-			NodeDefinition root;
-			std::vector<NodeDefinition> nodes;
-		};
-
 		static void load(std::string name, Application* app, orion::ResourceRequest* req, Resource::LoadedHandler handler);
-		// build a SceneDefinition from a resource request
-		static SceneDefinition* parseIniFile(std::string name, const std::string& scene_root, char* buf, size_t buflen);
-
-		static void instantiate(Application* app, Resource::LoadedHandler handler, const std::string& scene_root, SceneDefinition* scene_def);
+	private:
+		// build a SceneResource from a resource request
+		static SceneResource::SceneDefinition parseIniFile(std::string name, const std::string& scene_root, char* buf, size_t buflen);
 	};
 }
 #endif // !RHEA_SCENELOADER_H

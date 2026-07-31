@@ -72,7 +72,7 @@ namespace rhea
 			root->ready();
 			if (handler)
 				handler(ReqError::OK, root);
-		});
+			});
 	}
 
 	void SceneResource::ensureMaterialized(MaterializeHandler handler)
@@ -110,7 +110,7 @@ namespace rhea
 			canonical_parent->addChild(root);
 			root->ready();
 			completeMaterialization(ReqError::OK, root);
-		});
+			});
 	}
 
 	void SceneResource::completeMaterialization(ReqError error, Unit* instance)
@@ -184,24 +184,24 @@ namespace rhea
 
 		auto collect_references = [this, &resources, &pending_instances](
 			const std::string& owner_id, Component* owner) {
-			for (const auto& reference : owner->getReferences()) {
-				const std::string id = reference.value.toString();
-				if (id.size() <= 1 || id[0] != '/')
-					continue;
+				for (const auto& reference : owner->getReferences()) {
+					const std::string id = reference.value.toString();
+					if (id.size() <= 1 || id[0] != '/')
+						continue;
 
-				const std::string resolved_id = id[1] == '/' ? id : m_scene_root + id;
-				const std::string key = owner_id + "_" + reference.name + "_" + resolved_id;
-				resources.push(key, resolved_id, reference.type);
-				if (reference.usage != Component::ResourceUsage::Load) {
-					pending_instances.push_back({
-						key,
-						doCast<Unit>(owner),
-						"",
-						reference.usage
-					});
+					const std::string resolved_id = id[1] == '/' ? id : m_scene_root + id;
+					const std::string key = owner_id + "_" + reference.name + "_" + resolved_id;
+					resources.push(key, resolved_id, reference.type);
+					if (reference.usage != Component::ResourceUsage::Load) {
+						pending_instances.push_back({
+							key,
+							doCast<Unit>(owner),
+							"",
+							reference.usage
+							});
+					}
 				}
-			}
-		};
+			};
 
 		collect_references("scene", root);
 		for (const auto& config : pending_configs) {
@@ -295,7 +295,7 @@ namespace rhea
 			case Component::ResourceUsage::EnsureReady:
 				resource->ensureReady([state](ReqError error, Unit*) {
 					state->finishOne(error);
-				});
+					});
 				break;
 
 			case Component::ResourceUsage::Instantiate: {
@@ -323,11 +323,13 @@ namespace rhea
 	void SceneResource::prepare(PrepareHandler handler)
 	{
 		if (m_prepare_state == PrepareState::Prepared) {
-			handler(ReqError::OK);
+			if (handler)
+				handler(ReqError::OK);
 			return;
 		}
 
-		m_prepare_handlers.push_back(std::move(handler));
+		if (handler)
+			m_prepare_handlers.push_back(std::move(handler));
 
 		if (m_prepare_state == PrepareState::Preparing) {
 			return;
@@ -354,7 +356,7 @@ namespace rhea
 				h(error);
 			}
 			m_prepare_handlers.clear();
-		});
+			});
 	}
 
 	Unit* SceneResource::spawnPrepared(
@@ -374,7 +376,11 @@ namespace rhea
 			return nullptr;
 		}
 
-		Unit* instance = doCast<Unit>(m_prepared_prototype->instance(name));
+		const std::string instance_name =
+			name.empty()
+			? m_definition.root.name
+			: name;
+		Unit* instance = doCast<Unit>(m_prepared_prototype->instance(instance_name));
 
 		if (!instance) {
 			if (error)

@@ -92,6 +92,7 @@ namespace rhea
 		// get refernced resources - returns a list of resources that are referenced by this component
         enum class ResourceUsage {
             Load,           // only load
+			Prepare,        // prepare for usage
             EnsureReady,    // ensure ready
             Instantiate     // instantiate
         };

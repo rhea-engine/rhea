@@ -29,6 +29,16 @@ namespace rhea
 			m_up_step = values["up_step"].toFloat();
 	}
 
+
+	std::vector<Component::ResourceReference> BasicController::getReferences()
+	{
+		std::vector<ResourceReference> refs = Controller::getReferences();
+		if (m_values.find("default_character") != m_values.end())
+			refs.push_back({ "default_character", "//meworla/scene", getValue("default_character"), ResourceUsage::Prepare });
+		return refs;
+	}
+
+
 	bool BasicController::onInput(Event* ev, Unit* unit)
 	{
 		// safety check

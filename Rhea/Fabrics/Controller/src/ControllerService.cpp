@@ -10,6 +10,7 @@
 #include <Rhea/Core/Item.h>
 #include <Rhea/Core/Camera.h>
 #include <Rhea/Controller/SpectatorController.h>
+#include <Rhea/Core/SceneResource.h>
 #include <algorithm>
 
 namespace rhea
@@ -113,7 +114,24 @@ namespace rhea
 							character = item;
 					}
 
-					// second subphase: if not found, try to use template character from the world
+					// second subphase: if not found, try to use scene-definition or template character from the world
+					if (!character) {
+						std::string default_character_path = ctrl_info.controller->getValueString("default_character", "");
+						if (!default_character_path.empty()) {
+							SceneResource* default_character = doCast<SceneResource>(m_app->getUnitTree()->find(default_character_path));
+							if (default_character) {
+								ReqError error;
+								character = doCast<Item>(default_character->spawnPrepared(context->target_scene, "", &error));
+								if (character) {
+									LOG(LOG_INFO) << "ControllerService: Default character spawned: " << default_character_path;
+								}
+								else
+									LOG(LOG_ERROR) << "ControllerService: Default character failed to spawn: " << default_character_path << " with error " << (int)error;
+							}
+							else
+								LOG(LOG_ERROR) << "ControllerService: Default character not found: " << default_character_path;
+						}
+					}
 					if (!character) {
 						std::string template_character_path = ctrl_info.controller->getValueString("default_character_template", "");
 						if (!template_character_path.empty()) {

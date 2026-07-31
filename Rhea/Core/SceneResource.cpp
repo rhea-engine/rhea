@@ -30,8 +30,32 @@ namespace rhea
 		};
 	}
 
+	SceneResource::~SceneResource()
+	{
+		if (m_prepared_prototype) {
+			m_prepared_prototype->destroy();
+			m_prepared_prototype = nullptr;
+		}
+	}
+
 	void SceneResource::spawn(Unit* parent, const std::string& name, SpawnHandler handler)
 	{
+		if (!parent) {
+			if (handler)
+				handler(ReqError::PATH_NOT_FOUND, nullptr);
+			return;
+		}
+
+		if (m_prepare_state == PrepareState::Prepared) {
+			ReqError error;
+			Unit* instance = spawnPrepared(parent, name, &error);
+
+			if (handler)
+				handler(error, instance);
+
+			return;
+		}
+
 		InstanceRequest request;
 		request.name = name;
 
@@ -39,13 +63,6 @@ namespace rhea
 			if (error != ReqError::OK) {
 				if (handler)
 					handler(error, nullptr);
-				return;
-			}
-
-			if (!parent) {
-				root->destroy();
-				if (handler)
-					handler(ReqError::PATH_NOT_FOUND, nullptr);
 				return;
 			}
 
@@ -124,6 +141,7 @@ namespace rhea
 		root->setOrigin(Component::ComponentOrigin::Configured);
 		root->setup(m_app, m_definition.root.attributes, m_definition.root.values);
 		instances[""] = root;
+		instances[m_definition.root.name] = root;
 
 		// Create every configured component before establishing relationships.
 		for (const auto& node : m_definition.nodes) {
@@ -261,7 +279,11 @@ namespace rhea
 			case Component::ResourceUsage::Load:
 				state->finishOne(ReqError::OK);
 				break;
-
+			case Component::ResourceUsage::Prepare:
+				resource->prepare([state](ReqError error) {
+					state->finishOne(error);
+					});
+				break;
 			case Component::ResourceUsage::EnsureReady:
 				resource->ensureReady([state](ReqError error, Unit*) {
 					state->finishOne(error);
@@ -285,5 +307,76 @@ namespace rhea
 			}
 			}
 		}
+	}
+
+	void SceneResource::prepare(PrepareHandler handler)
+	{
+		if (m_prepare_state == PrepareState::Prepared) {
+			handler(ReqError::OK);
+			return;
+		}
+
+		m_prepare_handlers.push_back(std::move(handler));
+
+		if (m_prepare_state == PrepareState::Preparing) {
+			return;
+		}
+
+		m_prepare_state = PrepareState::Preparing;
+
+		InstanceRequest request;
+		request.name = "";
+
+		buildInstance(request, [this](ReqError error, Unit* root) {
+			if (error != ReqError::OK) {
+				if (root)
+					root->destroy();
+				m_prepare_state = PrepareState::Failed;
+				m_prepared = false;
+			}
+			else {
+				m_prepared_prototype = root;
+				m_prepare_state = PrepareState::Prepared;
+				m_prepared = true;
+			}
+			for (auto& h : m_prepare_handlers) {
+				h(error);
+			}
+			m_prepare_handlers.clear();
+		});
+	}
+
+	Unit* SceneResource::spawnPrepared(
+		Unit* parent,
+		const std::string& name,
+		ReqError* error)
+	{
+		if (m_prepare_state != PrepareState::Prepared || !m_prepared_prototype) {
+			if (error)
+				*error = ReqError::IO_PENDING;
+			return nullptr;
+		}
+
+		if (!parent) {
+			if (error)
+				*error = ReqError::PATH_NOT_FOUND;
+			return nullptr;
+		}
+
+		Unit* instance = doCast<Unit>(m_prepared_prototype->instance(name));
+
+		if (!instance) {
+			if (error)
+				*error = ReqError::DATA_INVALID;
+			return nullptr;
+		}
+
+		parent->addChild(instance);
+		instance->ready();
+
+		if (error)
+			*error = ReqError::OK;
+
+		return instance;
 	}
 }

@@ -36,6 +36,12 @@ namespace rhea {
 			handler(ReqError::OK, this);
 	}
 	
+	void Resource::prepare(PrepareHandler handler)
+	{
+		m_prepared = true;
+		handler(ReqError::OK);
+	}
+
 	void Resource::setRaw(size_t buflen, char* buf)
 	{
 		// delete old content?

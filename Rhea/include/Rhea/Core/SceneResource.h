@@ -27,6 +27,7 @@ namespace rhea
             std::unordered_map<std::string, std::string> attributes;
             std::unordered_map<std::string, Variant> values;
         };
+		~SceneResource() override;
 
         struct SceneDefinition {
             NodeDefinition root;
@@ -69,6 +70,14 @@ namespace rhea
 			ensureMaterialized(std::move(handler));
 		}
 
+		// prepare without instantiating - this will load all resources and prepare them for usage, but will not create any units
+        void prepare(PrepareHandler handler) override;
+
+        Unit* spawnPrepared(
+            Unit* parent,
+            const std::string& name,
+            ReqError* error = nullptr);
+
         // Build a complete detached tree without calling ready().
         void buildInstance(const InstanceRequest& request, InstanceHandler handler) override;
 
@@ -94,6 +103,18 @@ namespace rhea
 		Unit* m_materialized_instance = nullptr;
 
 		void completeMaterialization(ReqError error, Unit* instance);
+
+        enum class PrepareState {
+            Unprepared,
+            Preparing,
+            Prepared,
+            Failed
+        };
+
+        PrepareState m_prepare_state = PrepareState::Unprepared;
+
+        std::vector<PrepareHandler> m_prepare_handlers;
+		rhea::Unit* m_prepared_prototype = nullptr;
     };
 }
 

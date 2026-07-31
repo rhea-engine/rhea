@@ -656,13 +656,15 @@ bool Ceto::onFrameEnd()
 		debug += "debugging: sec=" + std::to_string(elapsed_s) +"; fps = " + std::to_string(floor(fps*100)/100.0f);
 		if (m_focused_controller) {
 			rhea::Item* target = m_focused_controller->getTarget();
-			math::Vector3 pos = target->getTransform()->getWorldPosition().getTranslation();
-			math::Quaternion rot = target->getTransform()->getWorldPosition().getRotation();
-			float angle;
-			math::Vector3 axis;
-			rot.getAsAngleAxis(angle, axis);
-			debug += "\nPosition: " + std::to_string(pos.x) + " / " + std::to_string(pos.y) + " / " + std::to_string(pos.z);
-			debug += "\nRotation angle=" + std::to_string(angle * math::M_RADTODEG);
+			if (target) {
+				math::Vector3 pos = target->getTransform()->getWorldPosition().getTranslation();
+				math::Quaternion rot = target->getTransform()->getWorldPosition().getRotation();
+				float angle;
+				math::Vector3 axis;
+				rot.getAsAngleAxis(angle, axis);
+				debug += "\nPosition: " + std::to_string(pos.x) + " / " + std::to_string(pos.y) + " / " + std::to_string(pos.z);
+				debug += "\nRotation angle=" + std::to_string(angle * math::M_RADTODEG);
+			}
 			// (vector is always 0,1,0) 
 			//debug += "\nRotation: Angle=" + std::to_string(angle * math::M_RADTODEG) + "\nAxes: " + std::to_string(axis.x) + " / " + std::to_string(axis.y) + " / " + std::to_string(axis.z);
 		}

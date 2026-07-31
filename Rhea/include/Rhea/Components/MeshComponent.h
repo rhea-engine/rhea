@@ -34,6 +34,21 @@ namespace rhea
 			}
         }
 
+        std::vector<ResourceReference> getReferences() override
+        {
+            auto it = m_values.find("meshRef");
+
+            if (it == m_values.end())
+                return {};
+
+            return { {
+                "meshRef",
+                "//meworla/mesh",
+                it->second,
+                ResourceUsage::Load
+            } };
+        }
+
         // Asset reference (unresolved)
         const Ref<Mesh>& meshRef() const { return m_meshRef; }
         void setMeshRef(Ref<Mesh> ref) { 

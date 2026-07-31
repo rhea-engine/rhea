@@ -62,6 +62,7 @@
 #include <Rhea/ConfigFile.h>
 #include <Rhea/Components/MeshComponent.h>
 #include <Rhea/Components/PhysicsDataComponent.h>
+#include <Rhea/Core/SceneInstance.h>
 
 #undef min
 
@@ -189,6 +190,7 @@ namespace rhea
 		orion::MIME::RegisterExtenstion("application/vnd.meworla.scene", "shader");
 		simpleparser::Type::registerType<Material>("//meworla/material");
 		simpleparser::Type::registerType<Avatar>("//meworla/avatar");
+		SceneInstance::_register_SceneInstance();
 		World::_register_World();
 		Area::_register_Area();
 		AreaService::_register_AreaService();

@@ -171,15 +171,18 @@ namespace rhea
 					}
 				}
 
-				// register all scene entry points
-				scene->children([this, scene](std::string& name, Component* child) -> bool {
-					if (auto* entry = doCast<SceneEntryPoint>(child)) {
-						std::string entry_id = entry->getEntryId();
-						ManagedScene& managed_scene = m_managed_scenes[scene];
-						managed_scene.entry_points[entry_id] = entry;
-					}
-					return true;
-					});
+				if (result == OpenError::None) {
+
+					// register all scene entry points
+					scene->children([this, scene](std::string& name, Component* child) -> bool {
+						if (auto* entry = doCast<SceneEntryPoint>(child)) {
+							std::string entry_id = entry->getEntryId();
+							ManagedScene& managed_scene = m_managed_scenes[scene];
+							managed_scene.entry_points[entry_id] = entry;
+						}
+						return true;
+						});
+				}
 
 				SceneLoadKey key{ session_generation, resource_id };
 				auto it = m_pending_scene_loads.find(key);

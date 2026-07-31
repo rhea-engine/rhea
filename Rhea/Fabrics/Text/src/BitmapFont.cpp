@@ -8,6 +8,9 @@
 #include "Rhea/Text/BitmapFont.h"
 #include <vector>
 #include <string>
+#include <exception>
+#include <sstream>
+#include <unordered_map>
 
 #include "Rhea/Resources/ResourceList.h"
 #include "Rhea/Application.h"
@@ -20,6 +23,96 @@
 
 namespace rhea
 {
+	namespace
+	{
+		std::unordered_map<std::string, int> parseBmFontValues(const std::string& line)
+		{
+			std::unordered_map<std::string, int> values;
+			std::istringstream stream(line);
+			std::string token;
+
+			// Skip the record type ("common", "char", ...).
+			stream >> token;
+			while (stream >> token) {
+				const size_t separator = token.find('=');
+				if (separator == std::string::npos)
+					continue;
+
+				const std::string key = token.substr(0, separator);
+				try {
+					values[key] = std::stoi(token.substr(separator + 1));
+				}
+				catch (const std::exception&) {
+					// Non-numeric fields (for example page file names) are irrelevant here.
+				}
+			}
+			return values;
+		}
+
+		bool loadBmFont(const char* data, size_t length, int& texture_width,
+			int& texture_height, float font_size, unsigned int first_character,
+			std::vector<Glyph>& glyphs)
+		{
+			const std::string contents(data, length);
+			if (contents.find("common ") == std::string::npos ||
+				contents.find("char id=") == std::string::npos)
+				return false;
+
+			std::istringstream lines(contents);
+			std::string line;
+			float native_font_size = font_size;
+			while (std::getline(lines, line)) {
+				if (line.compare(0, 5, "info ") == 0) {
+					const auto values = parseBmFontValues(line);
+					if (values.count("size") && values.at("size") != 0) {
+						const int size = values.at("size");
+						native_font_size = static_cast<float>(size < 0 ? -size : size);
+					}
+				}
+				else if (line.compare(0, 7, "common ") == 0) {
+					const auto values = parseBmFontValues(line);
+					if (values.count("scaleW")) texture_width = values.at("scaleW");
+					if (values.count("scaleH")) texture_height = values.at("scaleH");
+				}
+				else if (line.compare(0, 5, "char ") == 0) {
+					const auto values = parseBmFontValues(line);
+					if (!values.count("id") || !values.count("x") || !values.count("y") ||
+						!values.count("width") || !values.count("height") ||
+						!values.count("xadvance"))
+						continue;
+
+					const int id = values.at("id");
+					if (id < static_cast<int>(first_character) || texture_width <= 0 || texture_height <= 0)
+						continue;
+
+					const size_t index = static_cast<size_t>(id - first_character);
+					if (glyphs.size() <= index)
+						glyphs.resize(index + 1, Glyph{ 0, 0, 0, 0, 0, 0, 0, 0, 0 });
+					
+					Glyph& glyph = glyphs[index];
+					const float metric_scale = font_size / native_font_size;
+					const int bitmap_width = values.at("width");
+					const int bitmap_height = values.at("height");
+					const float inset_x = bitmap_width > 1 ? 0.5f : 0.0f;
+					const float inset_y = bitmap_height > 1 ? 0.5f : 0.0f;
+					glyph.left = (static_cast<float>(values.at("x")) + inset_x) / texture_width;
+					glyph.top = (static_cast<float>(values.at("y")) + inset_y) / texture_height;
+					glyph.right = (static_cast<float>(values.at("x") + bitmap_width) - inset_x) / texture_width;
+					glyph.bottom = (static_cast<float>(values.at("y") + bitmap_height) - inset_y) / texture_height;
+					glyph.bearing_x = values.count("xoffset")
+						? static_cast<int>(values.at("xoffset") * metric_scale) : 0;
+					glyph.bearing_y = values.count("yoffset")
+						? static_cast<int>(values.at("yoffset") * metric_scale) : 0;
+					glyph.width = static_cast<float>(bitmap_width) * metric_scale;
+					glyph.height = static_cast<float>(bitmap_height) * metric_scale;
+					glyph.advance = static_cast<float>(values.at("xadvance")) * metric_scale;
+				}
+			}
+
+			return !glyphs.empty();
+		}
+	}
+
 	void BitmapFont::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{
 		Unit::setup(app, attributes, values);
@@ -88,7 +181,10 @@ namespace rhea
 			if (font_info && font_info->isA("//meworla/text")) {
 				char* buf;
 				size_t buflen;
-				font_info->getRaw(&buf, &buflen);				
+				font_info->getRaw(&buf, &buflen);
+				if (loadBmFont(buf, buflen, m_dim_w, m_dim_h, m_sz, m_start_letter, m_glyphs))
+					return;
+
 				std::string key;
 				std::string value;
 				size_t start = 0;
@@ -99,6 +195,7 @@ namespace rhea
 				unsigned int nof_rows = 0;
 
 				Glyph glyph = {
+				0,0,
 				0,0,
 				0,0,
 				0,0,
@@ -172,6 +269,8 @@ namespace rhea
 											glyph.right = glyph.left + ((float)val / m_dim_w);
 											glyph.top = (float)((row * m_cell_h) / m_dim_h);
 											glyph.bottom = glyph.top + (m_sz / (float)m_dim_h);
+											glyph.width = (float)val;
+											glyph.height = m_sz;
 											glyph.advance = (float)val;
 											m_glyphs.push_back(glyph);
 										}
@@ -206,6 +305,7 @@ namespace rhea
 				0,0,
 				0,0,
 				0,0,
+				0,0,
 				22.0f
 			};
 
@@ -216,6 +316,8 @@ namespace rhea
 					glyph.right = glyph.left + (m_sz / m_dim_w);
 					glyph.top = (float)((row * m_sz) / m_dim_h);
 					glyph.bottom = glyph.top + (m_sz / m_dim_h);
+					glyph.width = m_sz;
+					glyph.height = m_sz;
 					m_glyphs.push_back(glyph);
 				}
 			}
@@ -223,15 +325,17 @@ namespace rhea
 	}
 
 	Glyph* BitmapFont::getGlyph(unsigned int letter)
-	{		
-		// overflow?
-		letter -= m_start_letter;
-		if (letter >= m_glyphs.size()) {
-			letter = 0;
-			// check if any glyphs defined			
-			if (!m_glyphs.size())
-				return nullptr;
-		}
-		return &m_glyphs[letter];
+	{
+		if (m_glyphs.empty())
+			return nullptr;
+
+		if (letter < m_start_letter)
+			return &m_glyphs[0];
+
+		const size_t index = static_cast<size_t>(letter - m_start_letter);
+		if (index >= m_glyphs.size() || m_glyphs[index].advance <= 0.0f)
+			return &m_glyphs[0];
+
+		return &m_glyphs[index];
 	}
 }

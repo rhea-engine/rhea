@@ -163,23 +163,25 @@ namespace rhea
 					i++;
 					continue;
 				}
-				// If the space glyph would exceed the line width (and we’re not already at the line start)
+				// If the space glyph would exceed the line width (and weâ€™re not already at the line start)
 				if (draw_x + glyph->advance > t_x + t_w && draw_x != t_x) {
 					draw_x = t_x;
 					draw_y -= f_sz;
 				}
 				// Render the whitespace glyph
 				if (draw_x >= X()) {
+					const float glyph_x = draw_x + glyph->bearing_x;
+					const float glyph_y = draw_y - glyph->bearing_y;
 					// First triangle
-					vertices.push_back({ draw_x, draw_y, z, glyph->left, glyph->top });
+					vertices.push_back({ glyph_x, glyph_y, z, glyph->left, glyph->top });
 					v_indices.push_back(v_c * 4);
-					vertices.push_back({ draw_x + glyph->advance, draw_y - f_sz, z, glyph->right, glyph->bottom });
+					vertices.push_back({ glyph_x + glyph->width, glyph_y - glyph->height, z, glyph->right, glyph->bottom });
 					v_indices.push_back(v_c * 4 + 1);
-					vertices.push_back({ draw_x, draw_y - f_sz, z, glyph->left, glyph->bottom });
+					vertices.push_back({ glyph_x, glyph_y - glyph->height, z, glyph->left, glyph->bottom });
 					v_indices.push_back(v_c * 4 + 2);
 					// Second triangle
 					v_indices.push_back(v_c * 4 + 0);
-					vertices.push_back({ draw_x + glyph->advance, draw_y, z, glyph->right, glyph->top });
+					vertices.push_back({ glyph_x + glyph->width, glyph_y, z, glyph->right, glyph->top });
 					v_indices.push_back(v_c * 4 + 3);
 					v_indices.push_back(v_c * 4 + 1);
 					v_c++;
@@ -214,7 +216,7 @@ namespace rhea
 				if (!glyph)
 					continue;
 
-				// In the unlikely event a glyph doesn’t fit (e.g. an overly long word), break mid-word
+				// In the unlikely event a glyph doesnâ€™t fit (e.g. an overly long word), break mid-word
 				if (draw_x + glyph->advance > t_x + t_w) {
 					if (m_multiline) {
 						draw_x = t_x;
@@ -229,16 +231,18 @@ namespace rhea
 						break;
 				}
 				if (draw_x >= X()) {
+					const float glyph_x = draw_x + glyph->bearing_x;
+					const float glyph_y = draw_y - glyph->bearing_y;
 					// First triangle
-					vertices.push_back({ draw_x, draw_y, z, glyph->left, glyph->top });
+					vertices.push_back({ glyph_x, glyph_y, z, glyph->left, glyph->top });
 					v_indices.push_back(v_c * 4);
-					vertices.push_back({ draw_x + glyph->advance, draw_y - f_sz, z, glyph->right, glyph->bottom });
+					vertices.push_back({ glyph_x + glyph->width, glyph_y - glyph->height, z, glyph->right, glyph->bottom });
 					v_indices.push_back(v_c * 4 + 1);
-					vertices.push_back({ draw_x, draw_y - f_sz, z, glyph->left, glyph->bottom });
+					vertices.push_back({ glyph_x, glyph_y - glyph->height, z, glyph->left, glyph->bottom });
 					v_indices.push_back(v_c * 4 + 2);
 					// Second triangle
 					v_indices.push_back(v_c * 4 + 0);
-					vertices.push_back({ draw_x + glyph->advance, draw_y, z, glyph->right, glyph->top });
+					vertices.push_back({ glyph_x + glyph->width, glyph_y, z, glyph->right, glyph->top });
 					v_indices.push_back(v_c * 4 + 3);
 					v_indices.push_back(v_c * 4 + 1);
 					v_c++;

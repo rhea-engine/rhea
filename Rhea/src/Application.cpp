@@ -205,6 +205,8 @@ namespace rhea
 		Camera::_register_Camera();
 		simpleparser::Type::registerType<Item2D>("//meworla/widget");
 		simpleparser::Type::registerType<TextResource>("//meworla/fontinfo");
+		orion::MIME::RegisterExtenstion("text/fontinfo", "fnt");
+
 		//GUIController::Register(this);
 		
 		simpleparser::Type::registerType<Geometry>("//meworla/geometry");

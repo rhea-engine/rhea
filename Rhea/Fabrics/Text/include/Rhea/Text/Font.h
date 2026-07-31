@@ -27,6 +27,8 @@ namespace rhea
 		float bottom;
 		int bearing_x;
 		int bearing_y;
+		float width;
+		float height;
 		float advance;
 	};
 

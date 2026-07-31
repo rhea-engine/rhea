@@ -43,21 +43,29 @@ namespace rhea
         {}
 
         // Visibility management
-        void hide() { m_hidden = true; }
-        void show() { m_hidden = false; }
+        void hide() { m_hidden = true; visualUpdate(); }
+        void show() { m_hidden = false; visualUpdate(); }
         bool isVisible() const { return !m_hidden; }
-		void setVisible(bool visible) { m_hidden = !visible; }
+		void setVisible(bool visible) { m_hidden = !visible; visualUpdate(); }
 
-        void enableClipping(bool enable) { m_has_clipping = enable; }
+        void enableClipping(bool enable) { m_has_clipping = enable; visualUpdate(); }
         bool hasClipping() { return m_has_clipping; }
         ClipRect getClipping() { return m_clip_rect; }
-        void setClipping(ClipRect rect) { m_clip_rect = rect; }
+        void setClipping(ClipRect rect) { m_clip_rect = rect; visualUpdate(); }
 
 		RenderPhase getRenderPhase() { return m_render_phase; }
 		void setRenderPhase(RenderPhase phase) { m_render_phase = phase; }
 
     private:
        
+		// send update event on owner if visual properties change
+		void visualUpdate() {
+			if (!m_parent)
+				return;
+			rhea::Event e("update", m_parent);
+			m_parent->sendEvent("update", (&e));
+		}
+
         bool m_hidden;
        
         bool m_has_clipping = false;

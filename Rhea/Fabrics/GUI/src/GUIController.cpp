@@ -49,9 +49,9 @@ namespace rhea
 		m_values["rendercontext"] = getValue("rendercontext", "HUD");
 	}
 
-	std::vector<Unit::Export> GUIController::getReferences()
+	std::vector<Unit::ResourceReference> GUIController::getReferences()
 	{
-		std::vector<Export> refs = Widget::getReferences();
+		std::vector<ResourceReference> refs = Widget::getReferences();
 		if (m_values.find("stylesheet") != m_values.end()) {
 			refs.push_back({ "stylesheet", "text/css", m_values["stylesheet"] });
 		}

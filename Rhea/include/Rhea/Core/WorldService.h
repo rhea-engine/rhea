@@ -18,7 +18,7 @@
 namespace rhea
 {
 	/** The main service that manages scene and their lifecycles
-	*/	
+	*/
 
 	class WorldService : public Service
 	{
@@ -28,7 +28,7 @@ namespace rhea
 		enum class State
 		{
 			Idle,
-			LoadingWorld,			
+			LoadingWorld,
 			Ready,
 			Transitioning
 		};
@@ -66,7 +66,7 @@ namespace rhea
 		{
 			Loaded,
 			Prepared,
-			Active			
+			Active
 		};
 
 		enum class TransitionError
@@ -115,9 +115,9 @@ namespace rhea
 			Scene* target_scene = nullptr;
 
 			SceneEntryPoint* entry_point = nullptr;
-			const TransitionRequest* request = nullptr;
+			TransitionRequest request;
 		};
-		
+
 		struct ManagedScene
 		{
 			Scene* scene = nullptr;
@@ -134,7 +134,7 @@ namespace rhea
 			bool lifecycle_managed = false;
 
 			std::unordered_map<std::string, SceneEntryPoint*> entry_points;
-			
+
 			bool isPrepared() const { return state == SceneLifecycleState::Prepared || state == SceneLifecycleState::Active; }
 		};
 
@@ -157,7 +157,7 @@ namespace rhea
 		class WorldSessionChangedEvent : public Event
 		{
 		public:
-			WorldSessionChangedEvent(WorldService* service,	World* world, uint64_t previous, uint64_t current)
+			WorldSessionChangedEvent(WorldService* service, World* world, uint64_t previous, uint64_t current)
 				: Event("world_session_changed", nullptr),
 				service(service),
 				world(world),
@@ -178,12 +178,13 @@ namespace rhea
 		// init event
 		virtual void onInit();
 
-		using OpenHandler =	std::function<void(OpenError)>;
+		using OpenHandler = std::function<void(OpenError)>;
 		using LoadSceneHandler = std::function<void(Scene*, OpenError)>;
+		using TransitionCompletion = std::function<void(TransitionError)>;
 
-		using WorldPrepareHandler = std::function<PrepareError(WorldPrepareContext* context)>;
-		using ScenePrepareHandler = std::function<PrepareError(ScenePrepareContext* context)>;
-		using TransitionHandler = std::function<TransitionError(SceneTransitionContext* context)>;
+		using WorldPrepareHandler = std::function<PrepareError(WorldPrepareContext*)>;
+		using ScenePrepareHandler = std::function<PrepareError(ScenePrepareContext*)>;
+		using TransitionHandler = std::function<void(SceneTransitionContext*, TransitionCompletion)>;
 
 
 		void openWorld(std::string& resource_id, OpenHandler handler = nullptr);
@@ -196,13 +197,13 @@ namespace rhea
 		// return false if scene was primary scene and cannot be deactivated
 		bool deactivateScene(std::string& resource_id);
 		// transition to a scene
-		void transitionToScene(const TransitionRequest request, OpenHandler handler = nullptr);
+		void transitionToScene(const TransitionRequest& request, OpenHandler handler = nullptr);
 
 		// get current state
 		World* getWorld() const { return m_world; }
 		Scene* getPrimaryScene() const { return m_primary_scene; }
 		State getState() const { return m_state; }
-		bool isPrimaryScene(const Scene* scene) const {	return scene == m_primary_scene; }
+		bool isPrimaryScene(const Scene* scene) const { return scene == m_primary_scene; }
 
 		// add preparation handlers
 		// prepare handlers are called in the order they are added, and if any of them returns an error, the preparation is aborted
@@ -233,11 +234,12 @@ namespace rhea
 
 		void loadStartScene(World* world, uint64_t open_generation, OpenHandler handler);
 		// activate loaded scene and make it primary scene
-		void doTransitionScene(Scene* scene, const TransitionRequest* request, OpenHandler handler);
+		void doTransitionScene(Scene* scene, const TransitionRequest& request, OpenHandler handler);
 
 		PrepareError prepareScene(Scene* next_scene, SceneRole role, Scene* owner_scene = nullptr);
 		PrepareError prepareWorld(World* world, Scene* standalone_scene = nullptr);
-		PrepareError prepareSceneTransition(Scene* source_scene, Scene* target_scene, SceneEntryPoint* entry_point, const TransitionRequest* request);
+		void prepareSceneTransition(Scene* source_scene, Scene* target_scene, SceneEntryPoint* entry_point, const TransitionRequest& request, TransitionCompletion completion);
+		void prepareSceneTransitionAsync(std::shared_ptr<SceneTransitionContext> context, size_t handlerIndex, TransitionCompletion complete);
 
 		ManagedScene& ensureManagedScene(Scene* scene, std::string resourceId, SceneRole role, Scene* owner = nullptr);
 
@@ -267,7 +269,7 @@ namespace rhea
 		};
 
 		struct PendingSceneLoad
-		{			
+		{
 			std::vector<LoadSceneHandler> handlers;
 		};
 

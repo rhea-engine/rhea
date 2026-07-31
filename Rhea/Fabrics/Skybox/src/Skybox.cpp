@@ -22,9 +22,9 @@ namespace rhea
 		Item::setup(app, attributes, values);
 	}
 
-	std::vector<Unit::Export> Skybox::getReferences()
+	std::vector<Unit::ResourceReference> Skybox::getReferences()
 	{
-		std::vector<Export> refs = Item::getReferences();		
+		std::vector<ResourceReference> refs = Item::getReferences();		
 		if (m_values.find("shader") != m_values.end()) {
 			refs.push_back({ "shader", "//meworla/shader", m_values["shader"] });
 		}

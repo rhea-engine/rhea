@@ -124,9 +124,9 @@ namespace rhea
 		m_num_texture_slots = (int)m_texture_slot_descs.size();
 	}
 
-	std::vector<Unit::Export> rhea::Shader::getReferences()
+	std::vector<Unit::ResourceReference> rhea::Shader::getReferences()
 	{
-		std::vector<Export> refs = std::vector<Unit::Export>();
+		std::vector<ResourceReference> refs = std::vector<Unit::ResourceReference>();
 
 		if (m_values.find("code_hlsl") != m_values.end()) {
 			refs.push_back({ "code_hlsl", "//meworla/text", m_values["code_hlsl"] });

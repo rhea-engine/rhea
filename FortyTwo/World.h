@@ -28,7 +28,7 @@ public:
 	// start the setup process
 	void setup(rhea::Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
 
-	std::vector<Unit::Export> getReferences();
+	std::vector<Unit::ResourceReference> getReferences();
 
 	rhea::Scene* getScene() { return m_scene; }
 

@@ -28,6 +28,7 @@
 #include "Rhea/Core/AreaComponent.h"
 #include "Rhea/Core/Trigger.h"
 #include "Rhea/Resources/TextResource.h"
+#include "Rhea/Core/SceneResource.h"
 #include "Rhea/Resources/CubeMap.h"
 #include "Rhea/Resources/TextLoader.h"
 #include "Rhea/Resources/ImageResource.h"
@@ -61,6 +62,7 @@
 #include <Rhea/ConfigFile.h>
 #include <Rhea/Components/MeshComponent.h>
 #include <Rhea/Components/PhysicsDataComponent.h>
+#include <Rhea/Core/SceneInstance.h>
 
 #undef min
 
@@ -93,6 +95,7 @@ namespace rhea
 		simpleparser::Type::registerType<UnitTree>("//core/unittree");
 		simpleparser::Type::registerType<Collection>("//core/collection");
 		simpleparser::Type::registerType<ConfigFile>("//core/types/configfile");
+		SceneResource::_register_SceneResource();
 
 		// register core components
 		VisualComponent::_register_VisualComponent();
@@ -187,6 +190,7 @@ namespace rhea
 		orion::MIME::RegisterExtenstion("application/vnd.meworla.scene", "shader");
 		simpleparser::Type::registerType<Material>("//meworla/material");
 		simpleparser::Type::registerType<Avatar>("//meworla/avatar");
+		SceneInstance::_register_SceneInstance();
 		World::_register_World();
 		Area::_register_Area();
 		AreaService::_register_AreaService();

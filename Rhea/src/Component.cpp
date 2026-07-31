@@ -100,9 +100,9 @@ namespace rhea
 		m_values[name] = val;
 	}
 
-	std::vector<Component::Export> Component::getReferences()
+	std::vector<Component::ResourceReference> Component::getReferences()
 	{
-		return std::vector<Export>();
+		return std::vector<ResourceReference>();
 	}
 
 	Component* Component::instance(const std::string& name) 

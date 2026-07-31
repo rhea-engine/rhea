@@ -33,7 +33,7 @@ namespace rhea
 			Unit(name, type_name)
 		{}
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, simpleparser::Variant> values) override;
-		std::vector<Unit::Export> getReferences();
+		std::vector<Unit::ResourceReference> getReferences();
 
 		void ready() override;
 

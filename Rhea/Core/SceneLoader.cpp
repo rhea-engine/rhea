@@ -16,27 +16,23 @@
 #include <Rhea/Resources/ResourceList.h>
 #include <Rhea/Resources/ResourceService.h>
 #include <Psio/Log.h>
+#include <Rhea/Core/SceneResource.h>
 
 namespace rhea
 {	
-	struct PendingUnitConfig
-	{
-		Component* component = nullptr;
-		Unit* parent = nullptr;
-		std::string section_name;
-
-		simpleparser::IniFileParser::AttributeMap attributes;
-		simpleparser::IniFileParser::ValueMap values;
-
-		bool isSceneRoot = false;
-	};
-
 	void SceneLoader::load(std::string name, Application* app, orion::ResourceRequest* req, Resource::LoadedHandler handler)
 	{
 		psio::Stream* rs = req->getStream();
 		psio::IOBuffer* buf = new psio::IOBuffer(64 * 1024);
 		rs->onEnd([req, handler, buf, app, name](size_t buflen) {
-			parseIniFile(name, app, req, handler, buf, buflen);
+			std::string scene_root = "//" + req->getRealmName() + req->getParentPath();
+			SceneResource::SceneDefinition scene_def = parseIniFile(name, scene_root, buf->reader(), buflen);
+			SceneResource* scene_res = new SceneResource(name);
+			if (scene_res) {
+				scene_res->setup(app);
+				scene_res->setDefinition(scene_def, scene_root);
+				handler(ReqError::OK, scene_res);
+			}
 			delete buf;
 			});
 		rs->onError([buf, handler](int err) {
@@ -46,148 +42,72 @@ namespace rhea
 		rs->ReadAsync(buf);
 	}
 
-	void SceneLoader::parseIniFile(std::string name, Application* app, orion::ResourceRequest* req, Resource::LoadedHandler handler, psio::IOBuffer* buf, size_t buflen)
+	SceneResource::SceneDefinition SceneLoader::parseIniFile(std::string name, const std::string& scene_root, char* buf, size_t buflen)
 	{
 		std::unique_ptr<simpleparser::IniFileParser> parser = std::make_unique<simpleparser::IniFileParser>();
 		std::vector<simpleparser::IniFileParser::Section> sections;
-		UnitTree* tree = app->getUnitTree();
-		std::string scene_root = "//" + req->getRealmName() + req->getParentPath();
 
-		int entries = parser->parse(buf->reader(), buflen, sections);
+		int entries = parser->parse(buf, buflen, sections);
+
+		if (!entries) {
+			LOG(LOG_ERROR) << "Failed to parse scene file: " << name;
+			return SceneResource::SceneDefinition();
+		}		
+		SceneResource::SceneDefinition scene_def;
 
 		// initialize the scene
+		scene_def.root.name = name;
 		std::string type_name = "//meworla/scene";
 		if (sections.size() > 0 && sections[0].section_name == "scene") {
 			if (sections[0].values["type"].length()) {
 				type_name = sections[0].values["type"].toString();
 			}
 		}
-		Unit* scene = tree->createUnit(name, type_name);
-		scene->setOrigin(Component::ComponentOrigin::Configured);
+		scene_def.root.type_name = type_name;
 		if (sections.size() > 0 && sections[0].section_name == "scene") {
-			if (sections[0].values["name"].length())
-				scene->setName(sections[0].values["name"].toString());
-			scene->setup(app, sections[0].attributes, sections[0].values);
+			if (sections[0].values.find("name") != sections[0].values.end() && sections[0].values["name"].length())
+				scene_def.root.name = sections[0].values["name"].toString();
+			scene_def.root.attributes = sections[0].attributes;
+			scene_def.root.values = sections[0].values;
 		}
-		std::string basepath = "//" + req->getRealmName() + req->getParentPath() + "/" + scene->getPathName();
-
-		// get all resources packed in this file to prevent reloading them
-		std::vector<std::string> packed_resources;
-		for (std::vector<simpleparser::IniFileParser::Section>::iterator it = sections.begin(); it != sections.end(); ++it) {
-			simpleparser::IniFileParser::Section section = *it;
-			packed_resources.push_back(section.section_name);
-		}
-
-		ResourceList res_list(app);
-
-		// add here because scene is skipped below
-		std::vector<Unit::Export> references = scene->getReferences();
-		for (auto ref_it = references.begin(); ref_it != references.end(); ++ref_it) {
-			std::string id = ref_it->value.toString();
-			// if absolute path or base path it is a resource not satified by this scene file
-			if (id.size() > 1 && id[0] == '/') {
-				if (id[1] == '/')
-					res_list.push("scene_" + id, id, ref_it->type);
-				else
-					res_list.push("scene_" + id, scene_root + id, ref_it->type);
-			}
-		}
-
-		std::vector<PendingUnitConfig> pending_configs;
-
-		// instantiate all resources
-		for (std::vector<simpleparser::IniFileParser::Section>::iterator it = sections.begin(); it != sections.end(); ++it) {
-			simpleparser::IniFileParser::Section section = *it;
+		
+		// get all resources packed in this file 
+	
+		for (auto section : sections) {
 			if (section.section_name == "scene")
 				continue;
-
-			auto val = section.values.find("type");
-			std::string type_name;
-			if (val != section.values.end()) {
-				type_name = val->second.toString();
-			}
-			else {
-				LOG(LOG_ERROR) << "Type name not set";
-				continue;
-			}
 
 			// split path into basename and path
 			std::string path = section.section_name;
 			size_t rpos = path.find_last_of("/");
 			if (rpos == path.length()) {
-				// trailing delim
+				// one trailing delim
 				rpos = path.find_last_of("/", 1);
 			}
 			std::string ppath;
-			Component* component;
-			Unit* child_parent;
-			// add basepath to attributes
-			section.attributes["basepath"] = basepath;
 			if (rpos != std::string::npos) {
 				// create the unit and set config params
 				ppath = path.substr(0, rpos);
 				path = path.substr(rpos + 1);
-				//unit = tree->createUnit(path, type_name, section.attributes, section.values);
-				component = doCast<Component>(simpleparser::Type::create(path, type_name));
-				if (component)
-					component->setOrigin(Component::ComponentOrigin::Configured);
-
-				// find parent relative to top parent			
-				child_parent = doCast<Unit>(scene->find(ppath, true));
 			}
-			else {
-				// create the unit and set config params
-				//unit = tree->createUnit(path, type_name, section.attributes, section.values);
-				component = doCast<Component>(simpleparser::Type::create(path, type_name));
 
-				// find parent relative to top parent			
-				child_parent = scene;
-			}
-			if (!component) {
-				LOG(LOG_ERROR) << "Failed to create component of type " << type_name;
+			SceneResource::NodeDefinition node;
+			node.node_id = section.section_name;
+			node.parent_id = ppath;
+			node.name = path;
+			node.attributes = section.attributes;
+			if (section.values.find("type") == section.values.end()) {
+				LOG(LOG_ERROR) << "Type name not set for resource: " << section.section_name;
 				continue;
 			}
-			child_parent->addChild(component);
+			node.type_name = section.values["type"].toString();
+			node.values = section.values;
 
-			// store config params
-			PendingUnitConfig config;
-			config.component = component;
-			config.parent = child_parent;
-			config.section_name = section.section_name;
-			config.attributes = section.attributes;
-			config.values = section.values;
-			pending_configs.push_back(config);
+			scene_def.nodes.push_back(node);
 		}
 
-		for (std::vector<PendingUnitConfig>::iterator it = pending_configs.begin(); it != pending_configs.end(); ++it) {
-			PendingUnitConfig config = *it;
-
-			Component* component = config.component;
-
-			// setup component with config params
-			component->setup(app, config.attributes, config.values);
-
-			static int i = 0;
-			i++;
-
-			// resource to load?
-			std::vector<Component::Export> references = component->getReferences();
-			for (auto ref_it = references.begin(); ref_it != references.end(); ++ref_it) {
-				std::string id = ref_it->value.toString();
-				// if absolute path or base path it is a resource not satified by this scene file
-				if (id.size() > 1 && id[0] == '/') {
-					if (id[1] == '/')
-						res_list.push(config.section_name + '_' + id, id, ref_it->type);
-					else
-						res_list.push(config.section_name + '_' + id, scene_root + id, ref_it->type);
-				}
-			}
-		}
-
-		// get dependencies
-		LOG(LOG_INFO) << "scene loaded. Loading dependencies.";
-		static_cast<ResourceService*>(app->getService("resources"))->loadAsync(res_list, [scene, handler](ResourceList* rh, Error* err) {
-			handler(ReqError::OK, scene);
-			});
+		return scene_def;
 	}
+
+	
 }

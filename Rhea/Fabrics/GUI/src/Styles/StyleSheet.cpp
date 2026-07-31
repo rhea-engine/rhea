@@ -19,7 +19,7 @@ namespace rhea
 		refs = Unit::getReferences();
 	}
 
-	std::vector<Unit::Export> StyleSheet::getReferences()
+	std::vector<Unit::ResourceReference> StyleSheet::getReferences()
 	{
 		if (m_values.find("path") != m_values.end())
 			refs.push_back({ "path", "text/css", m_values["path"] });

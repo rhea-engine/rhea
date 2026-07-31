@@ -65,7 +65,7 @@ namespace rhea
 
 		// setup
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
-		std::vector<Unit::Export> getReferences();
+		std::vector<Unit::ResourceReference> getReferences();
 
 		// get shader code for specified backend and stage		
 		TextResource* getShaderCode(ShaderBackend backend, ShaderStage stage);

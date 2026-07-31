@@ -24,9 +24,9 @@ void World::setup(rhea::Application* app, std::unordered_map<std::string, std::s
 	Unit::setup(app, attributes, values);	
 }
 
-std::vector<Unit::Export> World::getReferences()
+std::vector<Unit::ResourceReference> World::getReferences()
 {
-	std::vector<Export> refs = Unit::getReferences();
+	std::vector<ResourceReference> refs = Unit::getReferences();
 
 	if (m_values.find("scene") != m_values.end()) {
 		refs.push_back({ "scene", "//meworla/scene", m_values["scene"] });

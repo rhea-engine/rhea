@@ -21,7 +21,6 @@ namespace rhea
 	void Scene::onParented()
 	{		
 		LOG(LOG_NOTICE) << "scene ready";
-		ready(); 
 	}
 
 	void Scene::onRemoved()
@@ -53,11 +52,29 @@ namespace rhea
 	{
 		Unit::ready();
 
-		for (auto it = m_children.begin(); it != m_children.end(); ++it) {
-			Item* child = doCast<Item>(it->second);
-			if (child)
-				m_items.push_back(child);
-		}
+		m_items.clear();
+
+		children([this](std::string&, Component* child) {
+			if (auto* unit = doCast<Unit>(child)) {
+				unit->traverse([this](std::string&, Component* component) {
+					if (doCast<Scene>(component))
+						return false;
+
+					if (auto* item = doCast<Item>(component)) {
+						m_items.push_back(item);
+					}
+
+					return true;
+					});
+			}
+			else if (auto* item = doCast<Item>(child)) {
+				m_items.push_back(item);
+			}
+
+			return true;
+			},
+			true);
+
 		registerEventHandler("scene_enter", this, std::bind(&Scene::onSceneEnter, this, std::placeholders::_1, std::placeholders::_2));
 		registerEventHandler("attached_item", this, std::bind(&Scene::onItemAttached, this, std::placeholders::_1, std::placeholders::_2));
 		registerEventHandler("detached_item", this, std::bind(&Scene::onItemDetached, this, std::placeholders::_1, std::placeholders::_2));

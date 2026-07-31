@@ -21,6 +21,13 @@ namespace rhea
 	class ResourceList
 	{
 	public:
+		struct ResourceInfo {
+			std::string id;
+			std::string type;
+			Resource::Status status;
+			Unit* resource;
+		};
+
 		ResourceList(Application* app) :
 			m_app(app),
 			m_to_load(0),
@@ -49,13 +56,9 @@ namespace rhea
 
 		size_t size() { return m_resources.size(); }
 
+		const std::unordered_map<std::string, ResourceInfo>& getAllComponents() const { return m_resources; }
+
 	protected:
-		struct ResourceInfo {
-			std::string id;
-			std::string type;
-			Resource::Status status;
-			Unit* resource;
-		};
 		Application* m_app;
 		int m_to_load;
 		bool m_loaded;

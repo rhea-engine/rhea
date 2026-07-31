@@ -89,13 +89,20 @@ namespace rhea
         std::string getValueString(std::string name, std::string default_val) const;
         // set a value
         void setValue(std::string name, simpleparser::Variant val);
-        // get exported values
-        typedef struct {
+		// get refernced resources - returns a list of resources that are referenced by this component
+        enum class ResourceUsage {
+            Load,           // only load
+			Prepare,        // prepare for usage
+            EnsureReady,    // ensure ready
+            Instantiate     // instantiate
+        };
+        struct ResourceReference {
             std::string name;
             std::string type;
             simpleparser::Variant value;
-        } Export;
-        virtual std::vector<Export> getReferences();
+            ResourceUsage usage = ResourceUsage::Load;
+        };
+        virtual std::vector<ResourceReference> getReferences();
 
         // Get attributes map
         const std::unordered_map<std::string, std::string>& getAttributes() const {

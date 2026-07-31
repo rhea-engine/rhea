@@ -94,9 +94,9 @@ namespace rhea::audio
 		}
 	}
 
-	std::vector<Unit::Export> AudioResource::getReferences()
+	std::vector<Unit::ResourceReference> AudioResource::getReferences()
 	{
-		std::vector<Export> refs;
+		std::vector<ResourceReference> refs;
 		if (m_values.find("path") != m_values.end()) {
 			refs.push_back({ "audio", "//meworla/audio", m_values["path"] });
 		}

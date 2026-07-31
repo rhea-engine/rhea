@@ -51,6 +51,7 @@
 #include <Rhea/Resources/ResourceList.h>
 #include <Rhea/Resources/ResourceService.h>
 #include <Poseidon/Texture.h>
+#include <Rhea/Core/SceneResource.h>
 
 namespace rhea::client {
 	GraphicsService::GraphicsService(std::string name, std::string type_name) :
@@ -351,7 +352,26 @@ namespace rhea::client {
 		res_list.push("skybox_shader", "//rhea/shaders/skybox.shader", "//meworla/shader");
 
 		// note: for locally installed resources this is actually synchronous
-		static_cast<rhea::ResourceService*>(m_app->getService("resources"))->loadAsync(res_list, nullptr);
+		res_list.load([this](rhea::Error* err){
+			if (err) {
+				LOG(LOG_ERROR) << "Error loading core shader resources: " << err->getText();
+			}
+			else {
+				LOG(LOG_INFO) << "Core shader resources loaded successfully.";
+			}
+		});
+		// instantiate all shaders
+		Unit* parent = doCast<Unit>(m_app->getUnitTree()->find("//rhea/shaders", true));
+		for (auto& [key, res] : res_list.getAllComponents()) {
+			SceneResource* shader_res = doCast<SceneResource>(res.resource);
+			if (shader_res) {
+				shader_res->spawn(parent, [](ReqError err, Unit* unit){
+					if (err != ReqError::OK) {
+						LOG(LOG_DEBUG) << "Shader resource could not be spawned: " << unit->getPathName() << " (error: " << static_cast<int>(err) << ")";
+					}
+					});
+			}
+		}
 
 		// create a white fallback texture for missing textures
 		m_white_fallback_texture.reset(m_core->createTexture(0, 1)); // TEXTURE_2D, 1 image

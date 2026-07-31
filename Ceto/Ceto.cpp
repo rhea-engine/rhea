@@ -43,6 +43,7 @@
 #include <Rhea/Animation/AnimationComponent.h>
 #include <Rhea/Components/MeshComponent.h>
 #include <Rhea/Controller/ControllerService.h>
+#include <Rhea/Core/SceneResource.h>
 
 bool Ceto::onQuit(rhea::Event* ev, rhea::Unit* unit)
 {
@@ -506,9 +507,9 @@ void Ceto::setup()
 				m_focused_controller = nullptr;
 			return rhea::WorldService::PrepareError::None;
 		});
-	worlds->addSceneTransitionHandler([this, worlds](rhea::WorldService::SceneTransitionContext* context) -> rhea::WorldService::TransitionError
+	worlds->addSceneTransitionHandler([this, worlds](rhea::WorldService::SceneTransitionContext* context, rhea::WorldService::TransitionCompletion completion) -> void
 		{
-			return rhea::WorldService::TransitionError::None;
+			completion(rhea::WorldService::TransitionError::None);
 		});
 	auto* ctrl_srv = getService<rhea::ControllerService>();
 	ctrl_srv->addPlacementHandler([this, ctrl_srv](rhea::ControllerService::PlacementContext& context) -> rhea::ControllerService::PlacementResult
@@ -587,36 +588,45 @@ void Ceto::loadMainGUI()
 	// load the apps gui			
 	std::string app_gui = "//local/cetogui.scene";
 	loadResource(app_gui, "//meworla/scene", [&](rhea::Component* res, ReqError r_err) {
-		rhea::Scene* gui = doCast<rhea::Scene>(res);
-		if (gui && r_err == ReqError::OK) {
-			
-			gui->show();
-			m_gui = gui;
-			m_gui_controller = doCast<rhea::GUIController>(gui->find("gui"));
-			log("gui ready");
-			
-			// find label for debug text
-			m_debug_text = doCast<rhea::Label>(m_unit_tree->find("//local/cetogui/gui/widget1/laber"));
-			if (!m_debug_text) {
-				log("no debug text label found");
-			}
+		rhea::SceneResource* scene_res = doCast<rhea::SceneResource>(res);
+		if (scene_res && r_err == ReqError::OK) {
+			rhea::Unit* parent = doCast<rhea::Unit>(m_unit_tree->find(scene_res->getSceneRoot()));
+			scene_res->spawn(parent, [&](ReqError r_err, rhea::Unit* res) {
+				rhea::Scene* gui = doCast<rhea::Scene>(res);
+				if (gui && r_err == ReqError::OK) {
 
-			// setup system dialogs
+					gui->show();
+					m_gui = gui;
+					m_gui_controller = doCast<rhea::GUIController>(gui->find("gui"));
+					log("gui ready");
 
-			// quit dialog
-			rhea::Dialog* quit_dlg = doCast<rhea::Dialog>(m_unit_tree->find("//local/cetogui/gui/quit"));
-			if (quit_dlg) {
-				quit_dlg->registerEventHandler("submitted", this, std::bind(&Ceto::onQuit, this, std::placeholders::_1, std::placeholders::_2));
-				quit_dlg->registerEventHandler("canceled", this, std::bind(&Ceto::onQuitCancel, this, std::placeholders::_1, std::placeholders::_2));
-			}
-			gui->registerEventHandler("quit", this, std::bind(&Ceto::onQuit, this, std::placeholders::_1, std::placeholders::_2));
+					// find label for debug text
+					m_debug_text = doCast<rhea::Label>(m_unit_tree->find("//local/cetogui/gui/widget1/laber"));
+					if (!m_debug_text) {
+						log("no debug text label found");
+					}
 
-			// realm selection
-			setRealmSelectDialog();
+					// setup system dialogs
 
-			// register open
-			gui->registerEventHandler("open", this, std::bind(&Ceto::onRealmSelect, this, std::placeholders::_1, std::placeholders::_2));
-			gui->registerEventHandler("search", this, std::bind(&Ceto::onRealmSearch, this, std::placeholders::_1, std::placeholders::_2));
+					// quit dialog
+					rhea::Dialog* quit_dlg = doCast<rhea::Dialog>(m_unit_tree->find("//local/cetogui/gui/quit"));
+					if (quit_dlg) {
+						quit_dlg->registerEventHandler("submitted", this, std::bind(&Ceto::onQuit, this, std::placeholders::_1, std::placeholders::_2));
+						quit_dlg->registerEventHandler("canceled", this, std::bind(&Ceto::onQuitCancel, this, std::placeholders::_1, std::placeholders::_2));
+					}
+					gui->registerEventHandler("quit", this, std::bind(&Ceto::onQuit, this, std::placeholders::_1, std::placeholders::_2));
+
+					// realm selection
+					setRealmSelectDialog();
+
+					// register open
+					gui->registerEventHandler("open", this, std::bind(&Ceto::onRealmSelect, this, std::placeholders::_1, std::placeholders::_2));
+					gui->registerEventHandler("search", this, std::bind(&Ceto::onRealmSearch, this, std::placeholders::_1, std::placeholders::_2));
+				}
+				else {
+					log("instantiating of gui failed");
+				}
+				});
 		}
 		else {
 			log("loading of gui failed");
@@ -646,13 +656,15 @@ bool Ceto::onFrameEnd()
 		debug += "debugging: sec=" + std::to_string(elapsed_s) +"; fps = " + std::to_string(floor(fps*100)/100.0f);
 		if (m_focused_controller) {
 			rhea::Item* target = m_focused_controller->getTarget();
-			math::Vector3 pos = target->getTransform()->getWorldPosition().getTranslation();
-			math::Quaternion rot = target->getTransform()->getWorldPosition().getRotation();
-			float angle;
-			math::Vector3 axis;
-			rot.getAsAngleAxis(angle, axis);
-			debug += "\nPosition: " + std::to_string(pos.x) + " / " + std::to_string(pos.y) + " / " + std::to_string(pos.z);
-			debug += "\nRotation angle=" + std::to_string(angle * math::M_RADTODEG);
+			if (target) {
+				math::Vector3 pos = target->getTransform()->getWorldPosition().getTranslation();
+				math::Quaternion rot = target->getTransform()->getWorldPosition().getRotation();
+				float angle;
+				math::Vector3 axis;
+				rot.getAsAngleAxis(angle, axis);
+				debug += "\nPosition: " + std::to_string(pos.x) + " / " + std::to_string(pos.y) + " / " + std::to_string(pos.z);
+				debug += "\nRotation angle=" + std::to_string(angle * math::M_RADTODEG);
+			}
 			// (vector is always 0,1,0) 
 			//debug += "\nRotation: Angle=" + std::to_string(angle * math::M_RADTODEG) + "\nAxes: " + std::to_string(axis.x) + " / " + std::to_string(axis.y) + " / " + std::to_string(axis.z);
 		}

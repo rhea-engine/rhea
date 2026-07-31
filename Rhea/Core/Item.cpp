@@ -60,9 +60,9 @@ namespace rhea
 		}
 	}
 
-	std::vector<Unit::Export> Item::getReferences()
+	std::vector<Unit::ResourceReference> Item::getReferences()
 	{
-		std::vector<Export> refs;
+		std::vector<ResourceReference> refs;
 		if (m_values.find("mesh") != m_values.end()) {
 			refs.push_back({ "mesh", "//meworla/mesh", m_values["mesh"] });
 		}

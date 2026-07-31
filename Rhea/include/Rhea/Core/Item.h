@@ -59,7 +59,7 @@ namespace rhea
 		// dont remove transform component
 		bool canRemoveComponent(const Component* component) const override;
 
-		std::vector<Export> getReferences();
+		std::vector<ResourceReference> getReferences();
 
 		// positioning
 		Transform* getTransform() { ensureTransform(); return m_transform; }

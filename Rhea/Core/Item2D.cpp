@@ -38,9 +38,9 @@ namespace rhea
 		}
 	}
 
-	std::vector<Unit::Export> Item2D::getReferences()
+	std::vector<Unit::ResourceReference> Item2D::getReferences()
 	{
-		std::vector<Export> refs = {};//Item::getReferences();
+		std::vector<ResourceReference> refs = {};//Item::getReferences();
 		if (m_values.find("texture") != m_values.end()) {
 			refs.push_back({ "texture", "//meworla/texture", m_values["texture"] });
 		}

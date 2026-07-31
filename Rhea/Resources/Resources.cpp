@@ -10,14 +10,14 @@
 namespace rhea
 {
 
-	std::vector<Unit::Export> Resources::getReferences()
+	std::vector<Unit::ResourceReference> Resources::getReferences()
 	{
-		std::vector<Export> refs;
+		std::vector<ResourceReference> refs;
 
 		for (auto it = m_values.begin(); it != m_values.end(); ++it)
 		{
 			if (it->first.compare("type"))
-				refs.push_back({ it->first, "//meworla/scene", it->second });
+				refs.push_back({ it->first, "//meworla/scene", it->second, ResourceUsage::EnsureReady });
 		}
 		return refs;
 	}

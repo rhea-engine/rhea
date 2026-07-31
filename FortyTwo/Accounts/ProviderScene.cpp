@@ -23,9 +23,9 @@ void ProviderScene::Setup(rhea::Application* app, std::unordered_map<std::string
 	}
 }
 
-std::vector<rhea::Unit::Export> ProviderScene::getReferences()
+std::vector<rhea::Unit::ResourceReference> ProviderScene::getReferences()
 {
-	std::vector<rhea::Unit::Export> refs;
+	std::vector<rhea::Unit::ResourceReference> refs;
 	if (!m_avatarlist_scene.empty())
 		refs.push_back({ "avatarlist", "//meworla/avatarlist", m_avatarlist_scene });
 

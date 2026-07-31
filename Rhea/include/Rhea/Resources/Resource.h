@@ -68,6 +68,20 @@ namespace rhea
 		size_t getSize() { if (m_proxy_resource) return m_proxy_resource->getSize(); return m_buflen; }
 		char* getData() { if (m_proxy_resource) return m_proxy_resource->getData(); return m_buf; }
 
+		// instantiate
+		struct InstanceRequest {
+			std::string name;
+			std::string basepath;
+		};
+
+		using InstanceHandler = std::function<void(ReqError, Unit*)>;
+		virtual void buildInstance(const InstanceRequest& request, InstanceHandler handler);
+		virtual void ensureReady(InstanceHandler handler);
+
+		using PrepareHandler = std::function<void(ReqError)>;
+		virtual void prepare(PrepareHandler handler);
+		bool isPrepared() const { return m_prepared; }
+
 	protected:
 		Status m_status;
 		char* m_buf;

@@ -43,26 +43,31 @@ namespace rhea
 		}
 	}
 
-	std::vector<Unit::Export> Mesh::getReferences()
+	std::vector<Unit::ResourceReference> Mesh::getReferences()
 	{
-		std::vector<Export> refs;
+		std::vector<ResourceReference> refs;
 		if (m_values.find("geometry") != m_values.end())
 			refs.push_back({ "geometry", "//meworla/geometryloader", m_values["geometry"] });		
 		if (m_values.find("shader") != m_values.end()) {
-		//	refs.push_back({ "texture", "//meworla/texture", m_values["texture"] });
 			refs.push_back({ "shader", "//meworla/shader", m_values["shader"] });
+		}
+		if (m_values.find("texture") != m_values.end()) {
+			refs.push_back({ "texture", "//meworla/texture", m_values["texture"] });
+		}
+		if (m_values.find("material") != m_values.end()) {
+			refs.push_back({ "material", "//meworla/material", m_values["material"] });
 		}
 		return refs;
 	}
 
 	void Mesh::ready()
 	{
-		if (m_state)
+		if (m_state > 1)
 			return;
-		m_state = 1;
+		m_state = 1; // set to preparing
 
 		Unit::ready();
-		
+				
 		// if we have a texture we create a correspondig material
 		if (m_values.find("texture") != m_values.end())
 		{
@@ -98,17 +103,23 @@ namespace rhea
 					m_material->setColor(diffuse_id, math::Color(1.0f,1.0f,1.0f,1.0f));
 				    int basecolor_id = shader_res->getTextureSlotId("BASECOLOR");
 					m_material->setTexture(basecolor_id, static_cast<ImageResource*>(tex));
+					m_state = 2;
 				}
 				else {
 					LOG(LOG_ERROR) << "Could not find shader resource: " << (std::string)m_values["shader"];
 				}
 			}
+			else
+				LOG(LOG_ERROR) << "Mesh: Could not find texture " << m_attributes["basepath"] << "/" << (std::string)m_values["texture"] << " for mesh " << m_path;
 		}	
 		else if (m_values.find("material") != m_values.end()) {
 			m_material = doCast<Material>(m_app->getUnitTree()->find(m_values["material"].toString(), m_attributes["basepath"], false));
 			if (m_submeshes.size() > 0) {
 				m_submeshes[0].material = m_material;
+				m_state = 2;
 			}
+			else
+				LOG(LOG_ERROR) << "Mesh: No material found for mesh " << m_path << " with path " << m_attributes["basepath"] << "/" << (std::string)m_values["material"];
 		}
 
 		// load using geometry (normally used for import from file)
@@ -116,7 +127,10 @@ namespace rhea
 			Geometry* geometry = doCast<Geometry>(m_app->getUnitTree()->find(m_values["geometry"].toString(), m_attributes["basepath"], false));
 			if (geometry) {				
 				geometry->load(this);
+				m_state = 2;
 			}
+			else 
+				LOG(LOG_ERROR) << "Mesh: Could not find geometry " << m_attributes["basepath"] << "/" << (std::string)m_values["geometry"] << " for mesh " << m_path;
 		}
 	}
 

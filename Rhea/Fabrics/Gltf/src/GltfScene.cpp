@@ -432,9 +432,9 @@ namespace rhea
 		}
 	}
 
-	std::vector<Unit::Export> GltfScene::getReferences()
+	std::vector<Unit::ResourceReference> GltfScene::getReferences()
 	{
-		std::vector<Export> refs;
+		std::vector<ResourceReference> refs;
 		if (m_values.find("path") != m_values.end()) {
 			refs.push_back({ "path", "//meworla/gltf+json", m_values["path"] });
 		}

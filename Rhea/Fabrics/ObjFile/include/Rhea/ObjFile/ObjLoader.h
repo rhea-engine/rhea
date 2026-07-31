@@ -27,7 +27,7 @@ namespace rhea
 		{}		
 		bool load(rhea::Mesh* mesh);
 
-		std::vector<Unit::Export> getReferences();
+		std::vector<Unit::ResourceReference> getReferences();
 	
 		struct Vertex {
 			math::Vector3 position;

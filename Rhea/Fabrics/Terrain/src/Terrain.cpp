@@ -58,9 +58,9 @@ namespace rhea
 			m_sizeY = m_values["sizeY"].toInt();
 	}
 
-	std::vector<Unit::Export> Terrain::getReferences()
+	std::vector<Unit::ResourceReference> Terrain::getReferences()
 	{
-		std::vector<Export> refs = Item::getReferences();
+		std::vector<ResourceReference> refs = Item::getReferences();
 		if (m_values["heightmap"] != Variant())
 			refs.push_back({ "heightmap", "//meworla/heightmap", m_values["heightmap"] });
 		if (m_values["shader"] != Variant())

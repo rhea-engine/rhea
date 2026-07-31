@@ -41,7 +41,7 @@ namespace rhea::audio
             std::unordered_map<std::string, Variant> values
         );
 
-        std::vector<Unit::Export> getReferences();
+        std::vector<Unit::ResourceReference> getReferences();
 
         void ready();
 

@@ -348,9 +348,9 @@ namespace rhea
         return ret;
     }
 
-    std::vector<Unit::Export> ObjLoader::getReferences()
+    std::vector<Unit::ResourceReference> ObjLoader::getReferences()
     {
-        std::vector<Unit::Export> refs;
+        std::vector<Unit::ResourceReference> refs;
         if (m_values.find("path") != m_values.end())
             refs.push_back({ "obj", "//meworla/wavefront-object", m_values["path"] });
         else

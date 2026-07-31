@@ -58,6 +58,8 @@ namespace rhea
 
 		InstanceRequest request;
 		request.name = name;
+		const std::string root_name = request.name.empty() ? m_definition.root.name : request.name;
+		request.basepath = parent->getPath() + "/" + root_name;
 
 		buildInstance(request, [parent, handler](ReqError error, Unit* root) {
 			if (error != ReqError::OK) {
@@ -89,6 +91,8 @@ namespace rhea
 
 		m_materializing = true;
 		InstanceRequest request;
+		const std::string root_name = request.name.empty() ? m_definition.root.name : request.name;
+		request.basepath = m_scene_root + "/" + root_name;
 
 		buildInstance(request, [this](ReqError error, Unit* root) {
 			if (error != ReqError::OK) {
@@ -139,7 +143,9 @@ namespace rhea
 		}
 
 		root->setOrigin(Component::ComponentOrigin::Configured);
-		root->setup(m_app, m_definition.root.attributes, m_definition.root.values);
+		auto rootAttributes = m_definition.root.attributes;
+		rootAttributes["basepath"] = request.basepath;
+		root->setup(m_app, rootAttributes, m_definition.root.values);
 		instances[""] = root;
 		instances[m_definition.root.name] = root;
 
@@ -156,7 +162,9 @@ namespace rhea
 
 			component->setOrigin(Component::ComponentOrigin::Configured);
 			instances[node.node_id] = component;
-			pending_configs.push_back({ component, node.node_id, node.attributes, node.values });
+			auto attributes = node.attributes;
+			attributes["basepath"] = request.basepath;
+			pending_configs.push_back({ component, node.node_id, attributes, node.values });
 		}
 
 		// Attach the configured tree. All referenced parents must be Units.
@@ -297,6 +305,9 @@ namespace rhea
 				}
 				InstanceRequest request;
 				request.name = item.instance_name;
+				if (request.name.empty() && doCast<SceneResource>(resource))
+					request.name = doCast<SceneResource>(resource)->getDefinition().root.name;
+				request.basepath = item.parent->getPath() + "/" + request.name;
 				resource->buildInstance(request,
 					[state, parent = item.parent](ReqError error, Unit* instance) {
 						if (error == ReqError::OK && instance)

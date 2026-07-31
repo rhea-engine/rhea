@@ -71,6 +71,7 @@ namespace rhea
 		// instantiate
 		struct InstanceRequest {
 			std::string name;
+			std::string basepath;
 		};
 
 		using InstanceHandler = std::function<void(ReqError, Unit*)>;

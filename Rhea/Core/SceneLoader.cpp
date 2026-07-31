@@ -70,8 +70,7 @@ namespace rhea
 			scene_def.root.attributes = sections[0].attributes;
 			scene_def.root.values = sections[0].values;
 		}
-		std::string basepath = scene_root + "/" + scene_def.root.name;
-
+		
 		// get all resources packed in this file 
 	
 		for (auto section : sections) {
@@ -91,8 +90,6 @@ namespace rhea
 				ppath = path.substr(0, rpos);
 				path = path.substr(rpos + 1);
 			}
-			// add basepath to attributes
-			section.attributes["basepath"] = basepath;
 
 			SceneResource::NodeDefinition node;
 			node.node_id = section.section_name;

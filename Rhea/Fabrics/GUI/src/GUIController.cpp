@@ -51,6 +51,12 @@ namespace rhea
 		// make sure at least one font is set
 		if (!m_properties[StylePropertyId::kFont].size())
 			m_properties[StylePropertyId::kFont].push_back({ CssValueId::kString, "//rhea/fonts/Inter"});
+		// set default font color to white
+		if (!m_properties[StylePropertyId::kColor].size()) {
+			m_properties[StylePropertyId::kColor].push_back({ CssValueId::kNumeric, 255.0f });
+			m_properties[StylePropertyId::kColor].push_back({ CssValueId::kNumeric, 255.0f });
+			m_properties[StylePropertyId::kColor].push_back({ CssValueId::kNumeric, 255.0f });
+		}
 	}
 
 	std::vector<Unit::ResourceReference> GUIController::getReferences()

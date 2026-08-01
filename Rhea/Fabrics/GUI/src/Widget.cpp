@@ -591,6 +591,16 @@ namespace rhea
 				if (prev_font_size != m_font_size)
 					layout_changed = true;
 				break;
+			case StylePropertyId::kColor:
+				if (values.size() >= 3) {
+					m_text_color = math::Color(
+						values[0].value.toFloat() / 255.0f,
+						values[1].value.toFloat() / 255.0f,
+						values[2].value.toFloat() / 255.0f,
+						values.size() > 3 ? values[3].value.toFloat() : 1.0f);
+					render_changed = true;
+				}
+				break;
 			case StylePropertyId::kOverflow:
 			{
 				bool old_clip = m_clip;
@@ -1232,7 +1242,7 @@ namespace rhea
 			m_widget_states &= ~state_bit;
 		}
 
-		// Wenn sich der Zustand ge‰ndert hat, Styles neu berechnen
+		// Wenn sich der Zustand ge√§ndert hat, Styles neu berechnen
 		if (old_states != m_widget_states) {
 			m_style_dirty = true;
 			markDirtyStyleChildren();

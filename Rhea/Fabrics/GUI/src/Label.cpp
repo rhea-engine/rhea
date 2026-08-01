@@ -141,6 +141,7 @@ namespace rhea
 
 		if (m_label_item) {
 			m_label_item->setFontSize(getFontSize());
+			m_label_item->setTextColor(getTextColor());
 
 			// set the font style
 			std::vector<CssValue> font_prop = getStyle(StylePropertyId::kFont);

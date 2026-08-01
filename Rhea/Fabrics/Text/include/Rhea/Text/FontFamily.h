@@ -22,6 +22,8 @@ namespace rhea
 			Unit(name, type_name)
 		{}
 
+		// TODO(text): Add a FreeTypeFontFamily that rasterizes and caches an
+		// exact font instance for requested_size.
 		virtual Font* resolve(float requested_size) = 0;
 	};
 }

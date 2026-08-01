@@ -10,6 +10,11 @@ cbuffer cbPerObject
     float4x4 model;
 };
 
+cbuffer cbMaterial : register(b3)
+{
+    float4 mat_diffuse;
+};
+
 struct VS_OUTPUT
 {
     float4 position : SV_POSITION;
@@ -38,14 +43,6 @@ VS_OUTPUT VShader(float4 position : POSITION, float2 tex : TEXCOORD)
 
 float4 PShader(VS_OUTPUT input) : SV_TARGET
 {
-    float4 color;
-    color = ObjTexture.Sample(ObjSamplerState, input.tex);
-     
-    // If the color is black on the texture then treat this pixel as transparent.
-    if (color.r == 0.0f)
-    {
-        color.a = 0.0f;
-    }   
-    
-    return color;
+    float coverage = ObjTexture.Sample(ObjSamplerState, input.tex).r;
+    return float4(mat_diffuse.rgb, mat_diffuse.a * coverage);
 }

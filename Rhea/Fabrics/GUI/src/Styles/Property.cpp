@@ -24,7 +24,7 @@ namespace rhea
         const CssProperty height{ StylePropertyId::kHeight, "height", false, false };
         const CssProperty font{ StylePropertyId::kFont, "font", true, false };
 		const CssProperty fontSize{ StylePropertyId::kFontSize, "font-size", true, false };
-        const CssProperty color{ StylePropertyId::kColor, "color", false, false };
+		const CssProperty color{ StylePropertyId::kColor, "color", true, false };
 		const CssProperty overflow{ StylePropertyId::kOverflow, "overflow", false, false };
 		const CssProperty alignItems{ StylePropertyId::kAlignItems, "align-items", false, false };
 		const CssProperty justifyContent{ StylePropertyId::kJustifyContent, "justify-content", false, false };

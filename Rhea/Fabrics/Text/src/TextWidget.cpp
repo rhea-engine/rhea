@@ -15,6 +15,7 @@
 #include <Psio/Log.h>
 #include <Rhea/Graphics/IGraphicsService.h>
 #include <Rhea/Core/Mesh.h>
+#include <Rhea/Core/Shader.h>
 #include <Rhea/Components/MeshComponent.h>
 
 namespace rhea
@@ -97,6 +98,18 @@ namespace rhea
 			setFontFamily(m_font_family);
 	}
 
+	void TextWidget::setTextColor(math::Color color)
+	{
+		if (m_text_color == color)
+			return;
+		m_text_color = color;
+		if (!m_text_material || !m_text_material->getShader())
+			return;
+
+		m_text_material->setColor(m_text_material->getShader()->getInputSlotId("BaseColor"), m_text_color);
+		invalidateRender();
+	}
+
 	void TextWidget::setFont(Font* font)
 	{
 		if (m_font == font)
@@ -107,6 +120,20 @@ namespace rhea
 		if (m_font) {
 			m_font->ready();
 			Material* font_material = m_font->getMaterial();
+			if (!m_text_material) {
+				// TODO(text): Cache immutable materials by font and color so widgets
+				// with the same style can share one. Vertex color is a possible
+				// longer-term alternative that would also improve batching.
+				m_text_material = new Material(m_pathname + "_text_material");
+				m_text_material->setup(m_app, {}, {});
+				addChild(m_text_material);
+			}
+			m_text_material->setValue("shader", font_material->getValue("shader"));
+			m_text_material->setShader(font_material->getShader());
+			for (size_t slot = 0; slot < font_material->getTextures().size(); ++slot)
+				m_text_material->setTexture(static_cast<int>(slot), font_material->getTextures()[slot]);
+			m_text_material->setColor(m_text_material->getShader()->getInputSlotId("BaseColor"), m_text_color);
+			font_material = m_text_material;
 
 			// make sure visualcomponent is set
 			VisualComponent* visual_component = getComponent<VisualComponent>();

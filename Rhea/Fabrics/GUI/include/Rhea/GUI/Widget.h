@@ -54,6 +54,7 @@ namespace rhea
 			m_cur_position(0.0f, 0.0f),
 			m_anchor_position(0.0f, 0.0f),
 			m_font_size(0.0f),
+			m_text_color(0.0f, 0.0f, 0.0f, 1.0f),
 			m_sizing_mode_w(TextureSizingMode::kAuto),
 			m_sizing_mode_h(TextureSizingMode::kAuto),
 			m_screen_position_valid(false),
@@ -338,6 +339,8 @@ namespace rhea
 
 		 bool isTopLevel() const { return m_top_window; }
 
+		 math::Color getTextColor() const { return m_text_color; }
+
 		 /**
 		  * @brief Sends a bound event to the widget.
 		  * @param binding The event binding.
@@ -451,6 +454,7 @@ namespace rhea
 
 		// Cached font size
 		float m_font_size;
+		math::Color m_text_color;
 
 		// Recursively clear the layout dirty flag for this widget and all its children.
 		virtual void clearLayoutDirtyRecursive();

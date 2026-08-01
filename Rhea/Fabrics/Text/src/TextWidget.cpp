@@ -6,6 +6,7 @@
  */
 
 #include "Rhea/Text/TextWidget.h"
+#include "Rhea/Text/FontFamily.h"
 #include "Rhea/Application.h"
 #include "Rhea/Resources/ImageResource.h"
 #include "Rhea/Resources/TextResource.h"
@@ -23,6 +24,7 @@ namespace rhea
 		Item2D::setup(app, attributes, values);
 		
 		m_text = values["text"].toString();
+		m_requested_font_size = getValue("font_size", 0.0f);
 		m_max_length = m_text.length();
 		m_word_wrap = getValue("word_wrap", true);
 		m_multiline = getValue("multiline", true);
@@ -33,7 +35,10 @@ namespace rhea
 		std::vector<ResourceReference> refs = Item2D::getReferences();
 		if (m_values.find("font") != m_values.end()) {
 			refs.push_back({ "font", "//meworla/bitmapfont", m_values["font"] });
-		}		
+		}
+		if (m_values.find("font_family") != m_values.end()) {
+			refs.push_back({ "font_family", "//meworla/fontfamily", m_values["font_family"] });
+		}
 		return refs;
 	}
 
@@ -48,8 +53,17 @@ namespace rhea
 		// add to render phase
 		visual_component->setRenderPhase(RenderPhase::Overlay);
 
-		// load and add font and text
-		if (m_values.find("font") != m_values.end())
+		// A family takes precedence over the legacy direct font reference.
+		if (m_values.find("font_family") != m_values.end())
+		{
+			FontFamily* family = doCast<FontFamily>(m_app->getUnitTree()->find(
+				m_values["font_family"].toString(), m_attributes["basepath"], false));
+			if (!family)
+				LOG(LOG_ERROR) << "TextWidget: Font family '" << (std::string)m_values["font_family"] << "' not found";
+			else
+				setFontFamily(family);
+		}
+		else if (m_values.find("font") != m_values.end())
 		{
 			Font* font = doCast<Font>(m_app->getUnitTree()->find(m_values["font"].toString(), m_attributes["basepath"], false));
 			if (!font)
@@ -57,6 +71,30 @@ namespace rhea
 			else
 				setFont(font);
 		}
+	}
+
+	void TextWidget::setFontFamily(FontFamily* family)
+	{
+		m_font_family = family;
+		if (!m_font_family)
+			return;
+
+		m_font_family->ready();
+		Font* resolved_font = m_font_family->resolve(m_requested_font_size);
+		if (!resolved_font)
+			LOG(LOG_ERROR) << "TextWidget: Font family could not resolve size " << m_requested_font_size;
+		else
+			setFont(resolved_font);
+	}
+
+	void TextWidget::setFontSize(float font_size)
+	{
+		if (font_size <= 0.0f || m_requested_font_size == font_size)
+			return;
+
+		m_requested_font_size = font_size;
+		if (m_font_family)
+			setFontFamily(m_font_family);
 	}
 
 	void TextWidget::setFont(Font* font)
@@ -91,6 +129,9 @@ namespace rhea
 				mesh->setDynamic(true);
 				addChild(mesh);
 				mesh_component->setMesh(mesh);
+			}
+			else {
+				mesh_component->getMesh()->setMaterial(font_material);
 			}
 		}
 
@@ -137,7 +178,7 @@ namespace rhea
 		float z = 0.0f;
 		float draw_x = t_x;
 		float draw_y = t_y;
-		float f_sz = font->getFontSize();
+		float f_sz = font->getLineHeight();
 
 		std::vector<Mesh::vertex> vertices;
 		std::vector<uint32_t> v_indices;
@@ -278,7 +319,7 @@ namespace rhea
 		std::string sentence = getText();
 		if (!font)
 			return Vector2();
-		float f_sz = font->getFontSize();
+		float f_sz = font->getLineHeight();
 		Glyph* glyph;
 
 		if (pos > sentence.length())
@@ -330,7 +371,7 @@ namespace rhea
 		std::string sentence = getText();
 		if (!font)
 			return 0;
-		float f_sz = font->getFontSize();
+		float f_sz = font->getLineHeight();
 		Glyph* glyph;
 		float x = X() + m_offset_x;
 
@@ -354,7 +395,7 @@ namespace rhea
 		if (!font)
 			return 0.0f;
 		std::string sentence = getText();
-		float f_sz = font->getFontSize();
+		float f_sz = font->getLineHeight();
 		Glyph* glyph;
 
 		for (int i = 0; i < sentence.size() && i < pos; i++) {
@@ -380,7 +421,7 @@ namespace rhea
 		if (!font)
 			return Vector2();
 
-		float f_sz = font->getFontSize();
+		float f_sz = font->getLineHeight();
 		Vector2 size(0.0f, 0.0f);
 		// At least one line height
 		size.y = f_sz;

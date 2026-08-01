@@ -39,6 +39,7 @@ namespace rhea
 		Font(std::string name, std::string type_name) :
 			m_material(nullptr),
 			m_sz(0.0f),
+			m_line_height(0.0f),
 			Unit(name, type_name)
 		{}
 		Font(std::string name) :
@@ -50,6 +51,7 @@ namespace rhea
 
 		// get info about font
 		float getFontSize() { return m_sz; }
+		float getLineHeight() { return m_line_height > 0.0f ? m_line_height : m_sz; }
 
 		// get info about a glyph
 		virtual Glyph* getGlyph(unsigned int letter) = 0;
@@ -57,6 +59,7 @@ namespace rhea
 	protected:
 		Material* m_material;
 		float m_sz;
+		float m_line_height;
 	};
 }
 

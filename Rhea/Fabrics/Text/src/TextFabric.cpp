@@ -9,6 +9,8 @@
 
 #include <Rhea/Text/TextWidget.h>
 #include <Rhea/Text/BitmapFont.h>
+#include <Rhea/Text/FontFamily.h>
+#include <Rhea/Text/BitmapFontFamily.h>
 
 namespace rhea
 {
@@ -17,5 +19,7 @@ namespace rhea
 		simpleparser::Type::registerType<TextWidget>("//meworla/textwidget");
 		simpleparser::Type::registerType<Font>("//meworla/font");
 		simpleparser::Type::registerType<BitmapFont>("//meworla/bitmapfont");
+		simpleparser::Type::registerType<FontFamily>("//meworla/fontfamily");
+		simpleparser::Type::registerType<BitmapFontFamily>("//meworla/bitmapfontfamily");
 	}
 }

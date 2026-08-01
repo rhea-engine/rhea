@@ -55,6 +55,8 @@ namespace rhea
 		if (m_values.find("stylesheet") != m_values.end()) {
 			refs.push_back({ "stylesheet", "text/css", m_values["stylesheet"] });
 		}
+		// add default fonts
+		refs.push_back({ "inter", "meworla/scene", "//rhea/fonts/inter.scene", ResourceUsage::EnsureReady });
 		return refs;
 	}
 

@@ -10,6 +10,7 @@
 #include <Rhea/UnitTree.h>
 #include <Rhea/Core/Scene.h>
 #include <Rhea/Text/TextWidget.h>
+#include <Rhea/Text/FontFamily.h>
 #include <Psio/Log.h>
 
 namespace rhea
@@ -28,9 +29,13 @@ namespace rhea
 		val["x"] = m_base_position.x;
 		val["y"] = m_base_position.y;
 		val["text"] = getValue("text", "");
-		if (m_values.find("font") != m_values.end()) {
+		if (m_values.find("font") != m_values.end() && m_values.find("font_family") == m_values.end()) {
 			val["font"] = getValue("font");
 			m_properties[StylePropertyId::kFont].push_back({ CssValueId::kString, getValue("font") });
+		}
+		if (m_values.find("font_family") != m_values.end()) {
+			val["font_family"] = getValue("font_family");
+			m_properties[StylePropertyId::kFont].push_back({ CssValueId::kString, getValue("font_family") });
 		}
 		val["word_wrap"] = getValue("word_wrap", true);
 		val["multiline"] = getValue("multiline", true);
@@ -135,12 +140,21 @@ namespace rhea
 		Widget::ApplyStyles();
 
 		if (m_label_item) {
+			m_label_item->setFontSize(getFontSize());
 
 			// set the font style
 			std::vector<CssValue> font_prop = getStyle(StylePropertyId::kFont);
 			if (font_prop.size()) {
-				Font* font = doCast<Font>(m_app->getUnitTree()->find(font_prop[0].value.toString()));
-				if (font != m_label_item->getFont()) {
+				Component* font_resource = m_app->getUnitTree()->find(font_prop[0].value.toString());
+				FontFamily* family = doCast<FontFamily>(font_resource);
+				Font* font = doCast<Font>(font_resource);
+				if (family) {
+					if (family != m_label_item->getFontFamily()) {
+						m_label_item->setFontFamily(family);
+						invalidateLayout();
+					}
+				}
+				else if (font != m_label_item->getFont()) {
 					if (!font)
 						LOG(LOG_ERROR) << "font " << (std::string)(font_prop[0].value) << " not found";
 					else {

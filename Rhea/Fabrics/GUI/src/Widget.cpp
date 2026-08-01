@@ -132,6 +132,10 @@ namespace rhea
 		// set styles based on values
 		if (m_values.find("font") != m_values.end())
 			m_properties[StylePropertyId::kFont].push_back({ CssValueId::kString, m_values["font"] });
+		if (m_values.find("font_family") != m_values.end())
+			m_properties[StylePropertyId::kFont].push_back({ CssValueId::kString, m_values["font_family"] });
+		if (m_values.find("font_size") != m_values.end())
+			m_properties[StylePropertyId::kFontSize].push_back({ CssValueId::kNumeric, m_values["font_size"] });
 		if (m_values.find("texture") != m_values.end())
 			m_properties[StylePropertyId::kBackgroundImage].push_back({ CssValueId::kString, m_values["texture"] });
 

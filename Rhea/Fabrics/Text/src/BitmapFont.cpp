@@ -50,7 +50,8 @@ namespace rhea
 		}
 
 		bool loadBmFont(const char* data, size_t length, int& texture_width,
-			int& texture_height, float font_size, unsigned int first_character,
+			int& texture_height, float& font_size, float& line_height,
+			unsigned int first_character,
 			std::vector<Glyph>& glyphs)
 		{
 			const std::string contents(data, length);
@@ -60,19 +61,20 @@ namespace rhea
 
 			std::istringstream lines(contents);
 			std::string line;
-			float native_font_size = font_size;
 			while (std::getline(lines, line)) {
 				if (line.compare(0, 5, "info ") == 0) {
 					const auto values = parseBmFontValues(line);
 					if (values.count("size") && values.at("size") != 0) {
 						const int size = values.at("size");
-						native_font_size = static_cast<float>(size < 0 ? -size : size);
+						font_size = static_cast<float>(size < 0 ? -size : size);
 					}
 				}
 				else if (line.compare(0, 7, "common ") == 0) {
 					const auto values = parseBmFontValues(line);
 					if (values.count("scaleW")) texture_width = values.at("scaleW");
 					if (values.count("scaleH")) texture_height = values.at("scaleH");
+					if (values.count("lineHeight") && values.at("lineHeight") > 0)
+						line_height = static_cast<float>(values.at("lineHeight"));
 				}
 				else if (line.compare(0, 5, "char ") == 0) {
 					const auto values = parseBmFontValues(line);
@@ -90,7 +92,6 @@ namespace rhea
 						glyphs.resize(index + 1, Glyph{ 0, 0, 0, 0, 0, 0, 0, 0, 0 });
 					
 					Glyph& glyph = glyphs[index];
-					const float metric_scale = font_size / native_font_size;
 					const int bitmap_width = values.at("width");
 					const int bitmap_height = values.at("height");
 					const float inset_x = bitmap_width > 1 ? 0.5f : 0.0f;
@@ -100,12 +101,12 @@ namespace rhea
 					glyph.right = (static_cast<float>(values.at("x") + bitmap_width) - inset_x) / texture_width;
 					glyph.bottom = (static_cast<float>(values.at("y") + bitmap_height) - inset_y) / texture_height;
 					glyph.bearing_x = values.count("xoffset")
-						? static_cast<int>(values.at("xoffset") * metric_scale) : 0;
+						? values.at("xoffset") : 0;
 					glyph.bearing_y = values.count("yoffset")
-						? static_cast<int>(values.at("yoffset") * metric_scale) : 0;
-					glyph.width = static_cast<float>(bitmap_width) * metric_scale;
-					glyph.height = static_cast<float>(bitmap_height) * metric_scale;
-					glyph.advance = static_cast<float>(values.at("xadvance")) * metric_scale;
+						? values.at("yoffset") : 0;
+					glyph.width = static_cast<float>(bitmap_width);
+					glyph.height = static_cast<float>(bitmap_height);
+					glyph.advance = static_cast<float>(values.at("xadvance"));
 				}
 			}
 
@@ -122,6 +123,7 @@ namespace rhea
 
 		// default values
 		m_sz = getValue("font_size", 32.0f);
+		m_line_height = m_sz;
 		m_dim_w = getValue("bmp_width", 256.0f);
 		m_dim_h = getValue("bmp_height", 256.0f);
 	}
@@ -182,7 +184,8 @@ namespace rhea
 				char* buf;
 				size_t buflen;
 				font_info->getRaw(&buf, &buflen);
-				if (loadBmFont(buf, buflen, m_dim_w, m_dim_h, m_sz, m_start_letter, m_glyphs))
+				if (loadBmFont(buf, buflen, m_dim_w, m_dim_h, m_sz, m_line_height,
+					m_start_letter, m_glyphs))
 					return;
 
 				std::string key;
@@ -236,6 +239,7 @@ namespace rhea
 								}
 								else if (!key.compare("Cell Height")) {
 									m_cell_h = (float)val;									
+									m_line_height = (float)val;
 								}
 								else if (!key.compare("Font Height")) {
 									m_sz = (float)val;

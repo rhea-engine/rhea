@@ -6,6 +6,7 @@ font_12="Inter12"
 font_16="Inter16"
 font_20="Inter20"
 font_32="Inter32"
+font_48="Inter48"
 
 [Inter12]
 type="//meworla/bitmapfont"

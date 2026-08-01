@@ -47,6 +47,10 @@ namespace rhea
 
 		// make sure the GUI is not displayed in the world render context by default
 		m_values["rendercontext"] = getValue("rendercontext", "HUD");
+
+		// make sure at least one font is set
+		if (!m_properties[StylePropertyId::kFont].size())
+			m_properties[StylePropertyId::kFont].push_back({ CssValueId::kString, "//rhea/fonts/Inter"});
 	}
 
 	std::vector<Unit::ResourceReference> GUIController::getReferences()

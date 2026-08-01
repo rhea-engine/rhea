@@ -5,17 +5,16 @@ out vec4 FragColor;
 
 uniform sampler2D ObjTexture;
 
+layout(std140) uniform cbMaterial
+{
+    vec4 mat_diffuse;
+};
+
 void main()
 {
-    vec4 color = texture(ObjTexture, v_tex);
+	float coverage = texture(ObjTexture, v_tex).r;
+	if (coverage == 0.0)
+		discard;
 
-    // Match existing HLSL logic.
-    if (color.r == 0.0)
-    {
-        //color.a = 0.0;
-        discard;
-    }
-
-    FragColor = color;
-    //FragColor = vec4(1.0, 0.0, 0.0, 1.0);
+	FragColor = vec4(mat_diffuse.rgb, mat_diffuse.a * coverage);
 }

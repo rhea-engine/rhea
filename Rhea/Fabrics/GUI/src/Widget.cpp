@@ -132,6 +132,10 @@ namespace rhea
 		// set styles based on values
 		if (m_values.find("font") != m_values.end())
 			m_properties[StylePropertyId::kFont].push_back({ CssValueId::kString, m_values["font"] });
+		if (m_values.find("font_family") != m_values.end())
+			m_properties[StylePropertyId::kFont].push_back({ CssValueId::kString, m_values["font_family"] });
+		if (m_values.find("font_size") != m_values.end())
+			m_properties[StylePropertyId::kFontSize].push_back({ CssValueId::kNumeric, m_values["font_size"] });
 		if (m_values.find("texture") != m_values.end())
 			m_properties[StylePropertyId::kBackgroundImage].push_back({ CssValueId::kString, m_values["texture"] });
 
@@ -586,6 +590,16 @@ namespace rhea
 				m_font_size = calculateFontSize(values[0]);
 				if (prev_font_size != m_font_size)
 					layout_changed = true;
+				break;
+			case StylePropertyId::kColor:
+				if (values.size() >= 3) {
+					m_text_color = math::Color(
+						values[0].value.toFloat() / 255.0f,
+						values[1].value.toFloat() / 255.0f,
+						values[2].value.toFloat() / 255.0f,
+						values.size() > 3 ? values[3].value.toFloat() : 1.0f);
+					render_changed = true;
+				}
 				break;
 			case StylePropertyId::kOverflow:
 			{
@@ -1228,7 +1242,7 @@ namespace rhea
 			m_widget_states &= ~state_bit;
 		}
 
-		// Wenn sich der Zustand ge‰ndert hat, Styles neu berechnen
+		// Wenn sich der Zustand ge√§ndert hat, Styles neu berechnen
 		if (old_states != m_widget_states) {
 			m_style_dirty = true;
 			markDirtyStyleChildren();

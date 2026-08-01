@@ -125,6 +125,9 @@ namespace rhea
 		// handle onFrame
 		void onFrame();
 
+		// selector
+		const std::string getSelector() override { return "GUI"; }
+
 		// gui fabric function
 		static void Register(Application* app);
 

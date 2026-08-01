@@ -43,16 +43,11 @@ namespace rhea::client {
 		if (!material_res || !shader_res)
 			return nullptr;
 
-		// try to get poseidon shader by resource path name
+		// Prefer the explicitly assigned shader resource. A runtime-created
+		// material does not necessarily have a serialized "shader" value.
 		std::string shader_name = shader_res->getPathName();
-		if (!shader_name.empty()) {
-			// ensure shader is registered in core
-			poseidon::Shader* shader = core->getShader(shader_name);
-			if (shader)
-				return shader;
-		}
-		// not found - try by config value "shader" in material resource
-		shader_name = material_res->getValueString("shader", "standard");
+		if (shader_name.empty())
+			shader_name = material_res->getValueString("shader", "standard");
 		if (shader_name.empty()) {
 			LOG(LOG_ERROR) << "EnsurePoseidonShader: material has empty shader name";
 			return nullptr;

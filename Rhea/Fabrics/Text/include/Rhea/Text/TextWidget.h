@@ -16,13 +16,19 @@
 
 namespace rhea
 {
+	class FontFamily;
+
 	class TextWidget : public Item2D
 	{
 		RECLASS(TextWidget, Item2D, "//meworla/textwidget")
 	public:		
 		TextWidget(std::string name, std::string type_name) :
 			m_font(nullptr),
+			m_font_family(nullptr),
+			m_text_material(nullptr),
 			Item2D(name, type_name),
+			m_requested_font_size(0.0f),
+			m_text_color(math::Color::WHITE),
 			m_max_length(0),
 			m_vertex_size(0),
 			m_word_wrap(true),
@@ -40,6 +46,9 @@ namespace rhea
 		void ready();
 
 		void setFont(Font* font);
+		void setFontFamily(FontFamily* family);
+		void setFontSize(float font_size);
+		void setTextColor(math::Color color);
 
 		void syncRender() override;
 
@@ -74,6 +83,8 @@ namespace rhea
 
 		// get the font
 		Font* getFont() { return m_font; }
+		FontFamily* getFontFamily() { return m_font_family; }
+		float getRequestedFontSize() const { return m_requested_font_size; }
 
 		// mark text dirty
 		void markTextDirty() { m_text_dirty = true; invalidateRender(); }
@@ -81,6 +92,10 @@ namespace rhea
 	protected:
 		std::string m_text;
 		Font* m_font;
+		FontFamily* m_font_family;
+		Material* m_text_material;
+		float m_requested_font_size;
+		math::Color m_text_color;
 		size_t m_max_length;
 		size_t m_vertex_size;
 		bool m_word_wrap;

@@ -47,6 +47,16 @@ namespace rhea
 
 		// make sure the GUI is not displayed in the world render context by default
 		m_values["rendercontext"] = getValue("rendercontext", "HUD");
+
+		// make sure at least one font is set
+		if (!m_properties[StylePropertyId::kFont].size())
+			m_properties[StylePropertyId::kFont].push_back({ CssValueId::kString, "//rhea/fonts/Inter"});
+		// set default font color to white
+		if (!m_properties[StylePropertyId::kColor].size()) {
+			m_properties[StylePropertyId::kColor].push_back({ CssValueId::kNumeric, 255.0f });
+			m_properties[StylePropertyId::kColor].push_back({ CssValueId::kNumeric, 255.0f });
+			m_properties[StylePropertyId::kColor].push_back({ CssValueId::kNumeric, 255.0f });
+		}
 	}
 
 	std::vector<Unit::ResourceReference> GUIController::getReferences()
@@ -55,6 +65,8 @@ namespace rhea
 		if (m_values.find("stylesheet") != m_values.end()) {
 			refs.push_back({ "stylesheet", "text/css", m_values["stylesheet"] });
 		}
+		// add default fonts
+		refs.push_back({ "inter", "meworla/scene", "//rhea/fonts/inter.scene", ResourceUsage::EnsureReady });
 		return refs;
 	}
 

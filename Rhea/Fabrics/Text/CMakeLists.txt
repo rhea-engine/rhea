@@ -2,6 +2,7 @@ add_library (RheaText
 "src/TextFabric.cpp" 
 "src/TextWidget.cpp"
 "src/BitmapFont.cpp"
+"src/BitmapFontFamily.cpp"
 )
 add_library(Rhea::Text ALIAS RheaText)
 

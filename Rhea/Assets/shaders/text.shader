@@ -10,3 +10,4 @@ depth_stencil_state="disabled"
 depth_test=false
 depth_write=false
 sampler="nearest"
+material_slots_ps=("BaseColor")

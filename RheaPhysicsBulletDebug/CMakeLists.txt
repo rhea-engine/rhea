@@ -1,3 +1,7 @@
+include(
+    "${CMAKE_CURRENT_LIST_DIR}/cmake/RheaBulletDependency.cmake"
+)
+
 add_library(RheaPhysicsBulletDebug STATIC
   src/BtDebugDraw.cpp
   src/RheaPhysicsBulletDebugFabric.cpp
@@ -17,13 +21,9 @@ target_link_libraries(RheaPhysicsBulletDebug PUBLIC
   RheaFabrics
 )
 
-FetchContent_GetProperties(bullet3)
+rhea_require_bullet()
 
 # Bullet libs private if not exposed in headers
 target_link_libraries(RheaPhysicsBulletDebug PRIVATE BulletDynamics BulletCollision LinearMath)
-
-target_include_directories(RheaPhysicsBulletDebug PRIVATE
-    "${bullet3_SOURCE_DIR}/src"
-)
 
 rhea_register_fabric("${CMAKE_CURRENT_SOURCE_DIR}/Fabrics/fabric.json")

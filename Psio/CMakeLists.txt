@@ -29,6 +29,7 @@ target_link_libraries(Psio PRIVATE Meworla::StbImage)
 option(PSIO_ENABLE_WIN32 "Enable Win32 backend" ON)
 option(PSIO_ENABLE_UNIX "Enable Unix backend" ON)
 option(PSIO_ENABLE_SDL "Enable SDL backend" ON)
+option(PSIO_ENABLE_OPENSSL "Enable OpenSSL support" ON)
 
 if (WIN32 AND PSIO_ENABLE_WIN32)
     target_compile_definitions(Psio PRIVATE PSIO_HAS_WIN32=1)
@@ -85,20 +86,21 @@ endif()
 
 # SSL
 # (openssl)
-if(WIN32)
-	set(OPENSSL_USE_STATIC_LIBS TRUE)
-endif()
-find_package(OpenSSL)
+if(PSIO_ENABLE_OPENSSL)
+    find_package(OpenSSL REQUIRED)
 
-if (OPENSSL_FOUND)
-	target_link_libraries(Psio PRIVATE ${OPENSSL_CRYPTO_LIBRARIES} ${OPENSSL_SSL_LIBRARIES})
-	if (WIN32)
-		target_link_libraries(Psio PRIVATE crypt32)
-	endif()
-	target_compile_definitions(Psio PRIVATE HAS_OPENSSL)
-	target_sources(Psio PRIVATE 
-	"src/Net/Socket/SSLConnector.cpp" "src/Net/Socket/SSLSocket.cpp")
-	INCLUDE_DIRECTORIES( ${OPENSSL_INCLUDE_DIR} ) 
+    target_link_libraries(Psio
+        PRIVATE
+            OpenSSL::SSL
+            OpenSSL::Crypto
+    )
+
+    target_compile_definitions(Psio PRIVATE PSIO_HAS_OPENSSL=1)
+
+    target_sources(Psio PRIVATE
+        src/Net/Socket/SSLConnector.cpp
+        src/Net/Socket/SSLSocket.cpp
+    )
 endif()
 
 # GTest

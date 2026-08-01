@@ -26,15 +26,32 @@ function(rhea_copy_assets target source_dir subdir_name)
         "${CMAKE_CURRENT_BINARY_DIR}/${asset_target}_$<CONFIG>.stamp"
     )
 
+    set(copy_script
+        "${CMAKE_CURRENT_BINARY_DIR}/${asset_target}_copy_$<CONFIG>.cmake"
+    )
+
+    set(copy_script_template [=[
+file(MAKE_DIRECTORY "@destination@")
+execute_process(
+    COMMAND "@CMAKE_COMMAND@" -E copy_directory_if_different
+        "@source_dir@"
+        "@destination@"
+    RESULT_VARIABLE copy_result
+)
+if(NOT copy_result EQUAL 0)
+    message(FATAL_ERROR "Failed to stage assets from '@source_dir@' to '@destination@'")
+endif()
+]=])
+    string(CONFIGURE "${copy_script_template}" copy_script_content @ONLY)
+    file(GENERATE
+        OUTPUT "${copy_script}"
+        CONTENT "${copy_script_content}"
+    )
+
     add_custom_command(
         OUTPUT "${stamp}"
 
-        COMMAND "${CMAKE_COMMAND}" -E make_directory
-            "${destination}"
-
-        COMMAND "${CMAKE_COMMAND}" -E copy_directory_if_different
-            "${source_dir}"
-            "${destination}"
+        COMMAND "${CMAKE_COMMAND}" -P "${copy_script}"
 
         COMMAND "${CMAKE_COMMAND}" -E touch
             "${stamp}"

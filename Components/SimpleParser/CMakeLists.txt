@@ -1,5 +1,6 @@
 add_library(SimpleParser "SimpleParser.cpp" "IniFileParser.cpp" "Variant.cpp" "Type.cpp" "Method.h" "CssParser.h" "CssParser.cpp")
 add_library(Meworla::SimpleParser ALIAS SimpleParser)
+target_compile_features(SimpleParser PUBLIC cxx_std_17)
 
 # Tests
 if(TARGET GTest::gtest)

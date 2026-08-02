@@ -1,6 +1,8 @@
 add_library(RheaClient STATIC)
 add_library(Rhea::Client ALIAS RheaClient)
 
+target_compile_features(RheaClient PUBLIC cxx_std_17)
+
 target_sources(RheaClient PRIVATE
 	"Graphics/GraphicsService.cpp" "Graphics/Texture.cpp" "Graphics/ItemManager.cpp" "Graphics/SceneManager.cpp" 
 	"Graphics/CameraManager.cpp" "Graphics/MaterialManager.cpp"

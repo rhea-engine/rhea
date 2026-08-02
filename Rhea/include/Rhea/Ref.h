@@ -9,6 +9,7 @@
 
 #include <Rhea/UnitTree.h>
 #include <SimpleParser/Type.h>
+#include <string_view>
 
 namespace rhea
 {

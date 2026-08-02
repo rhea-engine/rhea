@@ -1,9 +1,5 @@
 cmake_minimum_required(VERSION 3.13)
 
-# Build SDL3 as static
-set(SDL_SHARED OFF CACHE BOOL "" FORCE)
-set(SDL_STATIC ON CACHE BOOL "" FORCE)
-
 if(TARGET Psio)
     return()
 endif()
@@ -24,6 +20,7 @@ target_include_directories(Psio PUBLIC
   $<INSTALL_INTERFACE:include>
 )
 target_link_libraries(Psio PRIVATE Meworla::StbImage)
+target_compile_features(Psio PUBLIC cxx_std_17)
 
 # options
 option(PSIO_ENABLE_WIN32 "Enable Win32 backend" ON)

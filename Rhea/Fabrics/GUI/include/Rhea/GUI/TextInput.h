@@ -35,7 +35,8 @@ namespace rhea
 			m_has_focus(false),
 			m_offset_x(0.0f)
 		{
-			event_binding.target = nullptr;
+			m_commit_binding.target = nullptr;
+			m_change_binding.target = nullptr;
 		}
 
 		virtual void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
@@ -86,6 +87,9 @@ namespace rhea
 		// the currently entered and displayed text
 		std::string m_text;
 		std::string m_placeholder;
+
+		// the text at focus gained time
+		std::string m_text_at_focus;
 		
 		// position of cursor in text
 		size_t m_pos;
@@ -109,7 +113,8 @@ namespace rhea
 		bool m_has_focus;
 
 		// event handling
-		UnitTree::Binding event_binding;
+		UnitTree::Binding m_commit_binding;
+		UnitTree::Binding m_change_binding;
 	};
 }
 

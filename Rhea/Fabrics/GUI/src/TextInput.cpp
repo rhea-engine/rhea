@@ -55,11 +55,12 @@ namespace rhea
 		m_textwidget = m_label_item->getTextWidget();
 
 		// offset of "|" assumed to be 2/2
-		val["x"] = -2.0f;
-		val["y"] = -2.0f;
-		val["w"] = 20;
-		val["h"] = 20;
-		m_cursor_item = (Label*)m_app->getUnitTree()->createUnit(getPathName() + "_cursor", "//meworla/gui/label", attr, val);
+		std::unordered_map<std::string, Variant> cursor_val;
+		cursor_val["x"] = -2.0f;
+		cursor_val["y"] = -2.0f;
+		cursor_val["w"] = 20;
+		cursor_val["h"] = 20;
+		m_cursor_item = (Label*)m_app->getUnitTree()->createUnit(getPathName() + "_cursor", "//meworla/gui/label", attr, cursor_val);
 		addChild(m_cursor_item);
 		m_cursor_item->setText("|");
 		m_cursor_item->hide();
@@ -142,6 +143,7 @@ namespace rhea
 		if (!m_text.size() && m_placeholder.size()) {
 			m_label_item->setText("");
 		}
+		m_text_at_focus = m_text;		
 		m_has_focus = true;
 		updateCursor(true);
 		return false;
@@ -154,6 +156,23 @@ namespace rhea
 			m_label_item->setText(m_placeholder);
 		}
 		m_cursor_item->hide();
+
+		if (m_text != m_text_at_focus) {
+			// send change event
+			Event commit_ev = Event("commit", this);
+			sendEvent("commit", &commit_ev);
+			// send to binding
+			if (!m_commit_binding.target) {
+				// event binding?
+				if (m_values.find("onCommit") != m_values.end())
+					m_commit_binding = m_app->getUnitTree()->getBinding(m_values["onCommit"].toString(), m_attributes["basepath"]);
+			}
+			if (m_commit_binding.target) {
+				Event my_ev = Event("commit", this);
+				m_commit_binding.target->sendEvent(m_commit_binding.value, &my_ev);
+			}
+		}
+
 		return false;
 	}
 
@@ -183,8 +202,56 @@ namespace rhea
 			if (multiline)
 				ev->stopPropagation();
 			break;
+		case Key::Escape:
+		{
+			// revert to text at focus
+			m_text = m_text_at_focus;
+			m_pos = m_text.size();
+			m_length = m_pos;
+			updateText(true);
+			updateCursor(true);
+			Event cancel_ev = Event("cancel", this);
+			sendEvent("cancel", &cancel_ev);
+			ev->stopPropagation();
+			break;
+		}
+		case Key::Enter:
+		{
+			if (!multiline) {
+				Event on_submit_ev("submit", this);
+				if (m_values.find("onSubmit") != m_values.end()) {
+					sendBoundEvent(m_values["onSubmit"].toString(), &on_submit_ev);
+				}
+
+				// send submit event
+				Event submit_ev("submit", this);
+				bubbleEvent("submit", &submit_ev);
+			}
+			ev->stopPropagation();
+			break;
+		}
+		case Key::Backspace:
+			if (m_pos > 0) {
+				m_text = m_text.substr(0, m_pos - 1) + m_text.substr(m_pos);
+				m_pos--;
+				m_length--;
+				updateText(true);
+				updateCursor();
+			}
+			ev->stopPropagation();
+			break;
+		case Key::DeleteKey:
+			if (m_pos < m_length) {
+				m_text = m_text.substr(0, m_pos) + m_text.substr(m_pos + 1);
+				m_length--;
+				updateText(true);
+				updateCursor();
+			}
+			ev->stopPropagation();
+			break;
 		default:
 			ev->stopPropagation();
+			break;
 		}
 
 		return false;
@@ -194,15 +261,26 @@ namespace rhea
 	{
 		InputEvent e = static_cast<EventInput*>(ev)->getEvent();
 		std::string text = e.text;
-		switch (text[0]) {
+
+		if (e.modifiers.ctrl || e.modifiers.alt) {
+			ev->stopPropagation();
+			return false;
+		}
+
+		if (text.empty()) {
+			ev->stopPropagation();
+			return false;
+		}
+
+		unsigned char ch = static_cast<unsigned char>(text[0]);
+		if (ch < 0x20 && ch != '\r' && ch != '\n' && ch != '\t' && ch != '\b') {
+			ev->stopPropagation();
+			return false;
+		}
+
+		switch (static_cast<unsigned char>(text[0])) {
 		case '\b':
-			if (m_pos > 0) {
-				m_text = m_text.substr(0, m_pos - 1) + m_text.substr(m_pos);
-				m_pos--;
-				m_length--;
-				updateText(true);
-				updateCursor();
-			}
+			// ignore backspace, handled in onKeyPressed
 			ev->stopPropagation();
 			break;
 		case '\r':
@@ -215,6 +293,18 @@ namespace rhea
 			}
 			ev->stopPropagation();
 			break;
+		case '\t':
+			if (multiline) {
+				m_text += '\t';
+				m_pos++;
+				m_length++;
+				updateText(true);
+				updateCursor();
+			}
+			ev->stopPropagation();
+			break;
+		case '\n':
+			// ignore, handled in onKeyPressed
 		default:
 			std::string new_text = m_text.substr(0, m_pos);
 			new_text += text;
@@ -265,7 +355,7 @@ namespace rhea
 			return;
 
 		m_label_item->setText(m_text);
-		m_values["text"] = m_text;
+		m_values["text"] = m_text;		
 
 		float offset_x = m_textwidget->W() - m_textwidget->getTextWidth(m_pos);
 		offset_x = (offset_x < 0.0f) ? offset_x : 0.0f;
@@ -278,16 +368,22 @@ namespace rhea
 		
 		if (isEvent)
 		{
-			if (!event_binding.target) {
+			if (!m_change_binding.target) {
 				// event binding?
-				if (m_values["onChange"] != Variant())
-					event_binding = m_app->getUnitTree()->getBinding(m_values["onChange"].toString(), m_attributes["basepath"]);
+				if (m_values.find("onChange") != m_values.end())
+					m_change_binding = m_app->getUnitTree()->getBinding(m_values["onChange"].toString(), m_attributes["basepath"]);
 			}
 			// send change event
-			if (event_binding.target) {
+
+			// send to binding
+			if (m_change_binding.target) {
 				Event my_ev = Event("change", this);
-				event_binding.target->sendEvent(event_binding.value, &my_ev);
+				m_change_binding.target->sendEvent(m_change_binding.value, &my_ev);
 			}
+
+			// send to my own listeners
+			Event change_ev = Event("change", this);
+			sendEvent("change", &change_ev);
 		}
 	}
 }

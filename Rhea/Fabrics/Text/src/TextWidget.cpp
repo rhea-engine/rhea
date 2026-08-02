@@ -356,6 +356,8 @@ namespace rhea
 		res.y = Y();
 		float t_w = res.x + (float)W() - m_offset_x;
 
+		const bool allowOverflowCursor = !m_multiline;
+
 		for (int i = 0; i < pos; i++) {
 
 			unsigned char c = static_cast<unsigned char>(sentence[i]);
@@ -378,12 +380,11 @@ namespace rhea
 				continue;
 
 			// advance by glyph width
-			if (1 || res.x + glyph->advance < t_w) {
+			if (allowOverflowCursor || res.x + glyph->advance < t_w) {
 				res.x += glyph->advance;
 			}
 			else {
 				// TODO: word-wrapping?
-
 				break;
 			}
 		}

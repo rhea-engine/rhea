@@ -42,6 +42,7 @@ add_library(Orion STATIC Orion.cpp Realm.cpp Realms.cpp ResourceRequest.cpp Reso
  "UrlResponseStream.cpp"  "FileCollection.cpp" "RealmJson.h" "RealmJson.cpp")
 add_library(Meworla::Orion ALIAS Orion)
 target_link_libraries(Orion PRIVATE Meworla::Psio nlohmann_json::nlohmann_json)
+target_compile_features(Orion PUBLIC cxx_std_17)
 
 target_include_directories(Orion PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>

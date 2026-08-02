@@ -48,7 +48,7 @@ function(rhea_fabrics_begin)
   if(TARGET RheaFabrics)
     return()
   endif()
-  
+  set_property(GLOBAL PROPERTY RHEA_FABRICS_FINALIZED FALSE)
   
   find_package(Python3 REQUIRED COMPONENTS Interpreter)
 
@@ -63,6 +63,11 @@ endfunction()
 # Finalize generation + link module targets.
 # Call this once from Rhea/CMakeLists.txt *after* all module subdirectories have been added.
 function(rhea_fabrics_end)
+   get_property(_finalized GLOBAL PROPERTY RHEA_FABRICS_FINALIZED)
+
+   if(_finalized)
+     message(FATAL_ERROR "rhea_fabrics_end() was called more than once. Exactly one project must own the Fabric registry.")
+   endif()
 
   if(NOT TARGET RheaFabrics)
     message(FATAL_ERROR "rhea_fabrics_end: call rhea_fabrics_begin() first.")
@@ -76,6 +81,13 @@ function(rhea_fabrics_end)
     set(_all_jsons "")
     message(STATUS "RheaFabrics: no fabrics registered; generating empty registry.")
   endif()
+
+  list(LENGTH _all_jsons _fabric_count)
+    message(STATUS "RheaFabrics: ${_fabric_count} manifests registered")
+
+  foreach(_json IN LISTS _all_jsons)
+    message(STATUS "RheaFabrics: registered ${_json}")
+  endforeach()
 
  # Build map: fabric_id -> (cmake_target, json_file)
  # fabric_id format: packageId:FabricName
@@ -156,7 +168,7 @@ function(rhea_fabrics_end)
     VERBATIM
   )
 
-  # Include paths for enabled fabris only
+  # Include paths for enabled fabrics only
   foreach(json_file IN LISTS _enabled_jsons)
     get_filename_component(module_dir "${json_file}" DIRECTORY)
     set(include_path "${module_dir}/include")
@@ -164,6 +176,13 @@ function(rhea_fabrics_end)
       target_include_directories(RheaFabrics PUBLIC "${include_path}")
     endif()
   endforeach()
+
+  if(NOT TARGET Rhea::Core)
+    message(FATAL_ERROR
+        "RheaFabrics requires Rhea::Core, but the target does not exist."
+    )
+  endif()
+  target_link_libraries(RheaFabrics PUBLIC Rhea::Core)
 
   target_sources(RheaFabrics PRIVATE "${RHEA_GENERATED_CPP}")
   add_custom_target(RheaFabrics_Gen DEPENDS "${RHEA_GENERATED_CPP}")
@@ -178,6 +197,7 @@ function(rhea_fabrics_end)
     endif()
     target_link_libraries(RheaFabrics PRIVATE ${t})
   endforeach()
+  set_property(GLOBAL PROPERTY RHEA_FABRICS_FINALIZED TRUE)
 endfunction()
 
 function(_rhea_parse_cmake_target_from_json json_file out_var)
@@ -213,7 +233,9 @@ function(_rhea_read_enabled_ids out_var)
       list(APPEND _ids "${s}")
     endforeach()
   endif()
-
+  if(RHEA_ENABLED_PROFILE_JSON AND NOT EXISTS "${RHEA_ENABLED_PROFILE_JSON}")
+    message(FATAL_ERROR "RHEA_ENABLED_PROFILE_JSON does not exist: ${RHEA_ENABLED_PROFILE_JSON}")
+  endif()
   if(DEFINED RHEA_ENABLED_FABRIC_IDS AND RHEA_ENABLED_FABRIC_IDS)
     list(APPEND _ids ${RHEA_ENABLED_FABRIC_IDS})
   endif()

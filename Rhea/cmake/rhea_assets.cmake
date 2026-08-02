@@ -3,8 +3,8 @@ function(rhea_copy_assets target source_dir subdir_name)
         message(FATAL_ERROR "rhea_copy_runtime_assets: target '${target}' does not exist")
     endif()
 
-    if(NOT DEFINED RHEA_ASSETS_DIR)
-        message(FATAL_ERROR "rhea_copy_runtime_assets: RHEA_ASSETS_DIR not set")
+    if(NOT IS_DIRECTORY "${source_dir}")
+        message(FATAL_ERROR "rhea_copy_assets: source directory does not exist: ${source_dir}")
     endif()
 
     file(

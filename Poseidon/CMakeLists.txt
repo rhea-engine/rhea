@@ -25,6 +25,7 @@ target_include_directories(Poseidon
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
+target_compile_features(Poseidon PUBLIC cxx_std_17)
 
 if(NOT TARGET Meworla::Components)
     find_package(MeworlaComponents CONFIG QUIET)

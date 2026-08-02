@@ -1,6 +1,6 @@
 ﻿cmake_minimum_required (VERSION 3.24)
 
-project ("Poseidon")
+project ("Rhea")
 
 # Require C++17 standard
 set(CMAKE_CXX_STANDARD 17)
@@ -52,17 +52,6 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(nlohmann_json)
 
 option(ENABLE_SDL "Enable SDL" ON)
-
-# SDL
-if(ENABLE_SDL)
-    FetchContent_Declare(
-	    SDL3
-	    GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
-		GIT_TAG release-3.2.10
-	)
-
-	FetchContent_MakeAvailable(SDL3)
-endif()
 
 # Target definition
 add_library(RheaEngine INTERFACE)

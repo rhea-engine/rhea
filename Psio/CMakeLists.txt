@@ -54,7 +54,10 @@ if(PSIO_ENABLE_SDL)
 			SDL3
 			GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
 			GIT_TAG release-3.4.12
-			DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+			GIT_SHALLOW    TRUE
+            GIT_PROGRESS   TRUE
+            SYSTEM
+            FIND_PACKAGE_ARGS CONFIG
 		)
 		FetchContent_MakeAvailable(SDL3)
 	endif()
@@ -87,20 +90,24 @@ endif()
 # SSL
 # (openssl)
 if(PSIO_ENABLE_OPENSSL)
-    find_package(OpenSSL REQUIRED)
+    find_package(OpenSSL QUIET)
+    if(OpenSSL_FOUND)
+        target_link_libraries(Psio
+            PRIVATE
+                OpenSSL::SSL
+                OpenSSL::Crypto
+        )
 
-    target_link_libraries(Psio
-        PRIVATE
-            OpenSSL::SSL
-            OpenSSL::Crypto
-    )
+        target_compile_definitions(Psio PRIVATE PSIO_HAS_OPENSSL=1)
 
-    target_compile_definitions(Psio PRIVATE PSIO_HAS_OPENSSL=1)
-
-    target_sources(Psio PRIVATE
-        src/Net/Socket/SSLConnector.cpp
-        src/Net/Socket/SSLSocket.cpp
-    )
+        target_sources(Psio PRIVATE
+            src/Net/Socket/SSLConnector.cpp
+            src/Net/Socket/SSLSocket.cpp
+        )
+        message(STATUS "Psio: OpenSSL support enabled")
+    else()
+        message(STATUS "Psio: OpenSSL not found; TLS support disabled")
+    endif()
 endif()
 
 # GTest

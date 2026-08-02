@@ -37,7 +37,7 @@ endif()
 target_compile_definitions(Hippios PUBLIC
     HIPPIOS_OPENGL=$<BOOL:${HIPPIOS_USE_OPENGL}>
     HIPPIOS_D3D11=$<BOOL:${HIPPIOS_USE_D3D11}>
-	HIPPIOS_SDL=$<BOOL:${HIPPIOS_USE_SDL}>,
+	HIPPIOS_SDL=$<BOOL:${HIPPIOS_USE_SDL}>
 	HIPPIOS_WIN32=$<BOOL:${HIPPIOS_USE_WIN32}>
 )
 
@@ -111,7 +111,10 @@ if (HIPPIOS_USE_SDL)
 			    SDL3
 				GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
 				GIT_TAG release-3.4.12
-				DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+				GIT_SHALLOW    TRUE
+				GIT_PROGRESS   TRUE
+				SYSTEM
+				FIND_PACKAGE_ARGS CONFIG
 			)
 			FetchContent_MakeAvailable(SDL3)
 		endif()

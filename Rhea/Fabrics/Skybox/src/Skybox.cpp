@@ -47,7 +47,7 @@ namespace rhea
 		// skybox mesh
 		MeshComponent* mesh_component = getComponent<MeshComponent>();
 		if (!mesh_component) {
-			mesh_component = addComponentUnique<MeshComponent>("renderer");			
+			mesh_component = addComponentUnique<MeshComponent>("mesh");			
 		}
 		// if no mesh defined, add a cube
 		if (!mesh_component->getMesh()) {
@@ -100,15 +100,6 @@ namespace rhea
 			cube->ready();
 			mesh_component->setMesh(cube);
 		}
-		
-		// find camera
-		if (m_values.find("camera") != m_values.end())
-		{
-	//		m_camera = doCast<Camera>(m_app->getUnitTree()->find(m_values["camera"].toString(), m_attributes["basepath"], false));
-		}
-		else {
-	//		m_camera = m_app->getUnitTree()->findByType<Camera>();			
-		}
 
 		if (!mesh_component->getMesh()->getMaterial()) {
 			Material* mat = doCast<Material>(m_app->getUnitTree()->find(m_values["shader"].toString(), m_attributes["basepath"], false));
@@ -124,37 +115,10 @@ namespace rhea
 	void Skybox::onActivate()
 	{
 		Item::onActivate();
-
-		// find scene and scenes camera
-		Scene* scene = findParentByType<Scene>();
-		if (scene) {
-			m_camera = scene->findByType<Camera>();
-		}
-		else {
-			m_camera = m_app->getUnitTree()->findByType<Camera>();
-		}
 	}
 
 	void Skybox::onDeactivate()
 	{
 		Item::onDeactivate();
-
-		m_camera = nullptr;
-	}
-
-	void Skybox::onFrame(float delta)
-	{
-		// set skybox to camera position
-		if (!m_camera) {
-			return;
-		}
-		if (m_camera) {
-			Vector3 position = m_camera->getTransform()->getWorldPosition().getTranslation();
-			Vector3 old_pos = m_transform->getWorldPosition().getTranslation();
-			// check wheter we need to update the position
-			if (position != old_pos) {
-				setWorldPosition(position);
-			}
-		}
 	}
 }

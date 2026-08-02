@@ -8,6 +8,7 @@
 #include "Rhea/Core/Transform.h"
 #include "Rhea/Core/Item.h"
 #include <Psio/Log.h>
+#include <Math/Math.h>
 
 namespace rhea
 {
@@ -29,7 +30,20 @@ namespace rhea
 		}
 		if (values.find("rotation") != values.end()) {
 			Variant rot = values["rotation"];
-			m_local_position.setRotation(math::Quaternion(rot[0], rot[1], rot[2], rot[3]));
+			if (rot.size() == 4) {
+				m_local_position.setRotation(math::Quaternion(rot[0], rot[1], rot[2], rot[3]));
+			}
+			else if (rot.size() == 3) {
+				// Assuming the rotation is given in Euler angles (pitch, yaw, roll)
+				float pitch = rot[0];
+				float yaw = rot[1];
+				float roll = rot[2];
+				// Convert Euler angles to quaternion
+				math::Quaternion qx(pitch * math::M_DEGTORAD, math::Vector3::UNIT_X);
+				math::Quaternion qy(yaw * math::M_DEGTORAD, math::Vector3::UNIT_Y);
+				math::Quaternion qz(roll * math::M_DEGTORAD, math::Vector3::UNIT_Z);
+				m_local_position.setRotation(qx * qy * qz);
+			}
 		}
 		if (values.find("scale") != values.end()) {
 			Variant scale = values["scale"];

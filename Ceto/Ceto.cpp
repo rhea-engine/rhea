@@ -472,8 +472,12 @@ void Ceto::setup()
 	std::unordered_map<std::string, Variant> values;
 
 	// create a representation for the engine
-	rhea::Unit* engine = m_unit_tree->createUnit("engine", "//core/types/unit", attributes, values);
-	m_unit_tree->addChild(engine);
+
+	rhea::Unit* engine = doCast<rhea::Unit>(m_unit_tree->find("engine"));
+	if (!engine) {
+		engine = m_unit_tree->createUnit("engine", "//core/types/unit", attributes, values);
+		m_unit_tree->addChild(engine);
+	}
 
 	// create a user unit
 

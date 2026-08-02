@@ -487,7 +487,11 @@ namespace rhea
 				if (!realm_unit) {
 					// add the realm
 					realm_unit = (Component*)new Realm(req->getRealm(), realm_name);
-					m_unit_tree->addChild(realm_unit);
+					if (!m_unit_tree->addChild(realm_unit)) {
+						LOG(LOG_ERROR) << "LoadResource(" << resource_id << "): Failed to add realm " << realm_name;
+						delete realm_unit;
+						return handler(NULL, ReqError::DATA_INVALID);
+					}
 				}
 
 				// find the unit parent and create the folders if necessary
@@ -501,7 +505,11 @@ namespace rhea
 					// sepcial case for directory
 					Collection* collection = new Collection(req->getBasename(), "//core/collection");
 					collection->readFromStream(req->getStream());
-					parent_unit->addChild(collection);
+					if (!parent_unit->addChild(collection)) {
+						LOG(LOG_ERROR) << "LoadResource(" << resource_id << "): Failed to add collection " << collection->getPathName() << " to parent " << parent_unit->getPath();
+						delete collection;
+						return handler(NULL, ReqError::DATA_INVALID);
+					}
 					return handler(collection, ReqError::OK);
 				}
 
@@ -510,11 +518,16 @@ namespace rhea
 				// get from request
 				std::string mime = req->getMimeType();
 				if (mime.length()) {
-					if (m_resource_loader.load(req->getBasename(), this, mime, req, [this, handler, parent_unit](ReqError err, Component* component) {
+					if (m_resource_loader.load(req->getBasename(), this, mime, req, [this, handler, parent_unit, resource_id](ReqError err, Component* component) {
 
 						// add it to tree
-						if (component)
-							parent_unit->addChild(component);
+						if (component) {
+							if (!parent_unit->addChild(component)) {
+								LOG(LOG_ERROR) << "LoadResource(" << resource_id << "): Failed to add component " << component->getPathName() << " to parent " << parent_unit->getPath();
+								delete component;
+								return handler(NULL, ReqError::DATA_INVALID);
+							}
+						}
 
 						handler(component, err);
 						}))
@@ -530,7 +543,11 @@ namespace rhea
 				Resource* component = new Resource(req->getBasename(), "//meworla/resource");
 
 				// add it to tree
-				parent_unit->addChild(component);
+				if (!parent_unit->addChild(component)) {
+					LOG(LOG_ERROR) << "LoadResource(" << resource_id << "): Failed to add component " << component->getPathName() << " to parent " << parent_unit->getPath();
+					delete component;
+					return handler(NULL, ReqError::DATA_INVALID);
+				}
 
 				// call load of unit
 				component->load(req, [&, handler](ReqError err) {

@@ -161,7 +161,8 @@ void main()
     vec4 blendColor = texture(Texture0, v_tex);
 
     float bgAmount = 1.0 - (blendColor.r + blendColor.g + blendColor.b);
-    vec2 tiledCoord = v_tex * 256.0;
+    float tileSize = 1.0;
+    vec2 tiledCoord = vec2(v_positionWS.x, -v_positionWS.z) / tileSize;
 
     vec4 tex1col = texture(Texture1, tiledCoord) * bgAmount;
     vec4 tex2col = texture(Texture2, tiledCoord) * blendColor.r;

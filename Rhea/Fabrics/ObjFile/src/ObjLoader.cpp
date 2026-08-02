@@ -283,7 +283,10 @@ namespace rhea
                             */                        
                         }
                     }
-
+					if (shape.mesh.material_ids[f] >= indices.size()) {
+						LOG(LOG_ERROR) << "Material id " << shape.mesh.material_ids[f] << " is out of range for shape " << shape.name;
+						return false;
+					}
                     indices[shape.mesh.material_ids[f]].push_back(unique_vertices[vertex]);
                 }
 

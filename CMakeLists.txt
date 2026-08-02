@@ -1,6 +1,6 @@
-﻿cmake_minimum_required (VERSION 3.21)
+﻿cmake_minimum_required (VERSION 3.24)
 
-project ("Poseidon")
+project ("Rhea")
 
 # Require C++17 standard
 set(CMAKE_CXX_STANDARD 17)
@@ -53,17 +53,6 @@ FetchContent_MakeAvailable(nlohmann_json)
 
 option(ENABLE_SDL "Enable SDL" ON)
 
-# SDL
-if(ENABLE_SDL)
-    FetchContent_Declare(
-	    SDL3
-	    GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
-		GIT_TAG release-3.2.10
-	)
-
-	FetchContent_MakeAvailable(SDL3)
-endif()
-
 # Target definition
 add_library(RheaEngine INTERFACE)
 
@@ -86,6 +75,7 @@ option(RHEA_BUILD_EXTRAS  "Build bundled extras" ${RHEA_IS_TOPLEVEL})
 option(RHEA_BUILD_APPS     "Build engine apps (Ceto etc.)" ${RHEA_IS_TOPLEVEL})
 option(RHEA_BUILD_SAMPLES "Build Rhea samples (high-level API)" ${RHEA_IS_TOPLEVEL})
 option(POSEIDON_BUILD_SAMPLES "Build Poseidon samples (low-level renderer)" ${RHEA_IS_TOPLEVEL})
+option(RHEA_FETCH_MISSING_DEPENDENCIES "Download missing third-party dependencies" ON)
 
 # Cross-Compiling works only for some projects
 set(engine_dirs Components)

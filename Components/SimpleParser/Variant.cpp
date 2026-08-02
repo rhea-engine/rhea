@@ -320,7 +320,7 @@ namespace simpleparser
 		return m_type->m_base == Type::BaseType::NONE;
 	}
 	
-	int Variant::length()
+	int Variant::length() const
 	{
 		switch (m_type->m_base) {
 		case Type::BaseType::STRING:

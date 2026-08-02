@@ -158,16 +158,40 @@ namespace simpleparser
 						state = 3;
 					}
 					else {
-						value = token.value;
+						if (token.type == TokenType::TOKEN_IDENTIFIER)
+						{
+							if (token.value.toString().compare("true") == 0) {
+								value = true;
+							}
+							else if (token.value.toString().compare("false") == 0) {
+								value = false;
+							}
+							else {
+								value = token.value;
+							}
+						}
+						else
+							value = token.value;
 						return Error::PARSE_OK;
 					}
 					break;
 				case 3: // in array
 					if (token.type == TokenType::TOKEN_NUMBER ||
-						token.type == TokenType::TOKEN_STRING ||
-						token.type == TokenType::TOKEN_IDENTIFIER)
+						token.type == TokenType::TOKEN_STRING)
 					{
 						arr.push_back(token.value);
+					}
+					else if (token.type == TokenType::TOKEN_IDENTIFIER)
+					{
+						if (token.value.toString().compare("true") == 0) {
+							arr.push_back(true);
+						}
+						else if (token.value.toString().compare("false") == 0) {
+							arr.push_back(false);
+						}
+						else {
+							arr.push_back(token.value);
+						}
 					}
 					else if (token.type == TokenType::TOKEN_COMMA) {
 						// simply ignore

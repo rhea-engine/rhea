@@ -19,11 +19,23 @@ namespace rhea
 {
 	struct RigidBody
 	{
+		RESTRUCT(RigidBody, "//meworla/rigidbody");
+
 		enum class MotionType {
 			Static,
 			Dynamic,
 			Kinematic
 		};
+
+		REENUM(MotionType, "//meworla/rigidbody/motiontype", Static, Dynamic, Kinematic);
+
+		REPROPERTY(MotionType, "motion", Label("Motion Type"), Edit, Read);
+		REPROPERTY(float, "mass", Label("Mass"), Edit, Read);
+		REPROPERTY(float, "gravity", Label("Gravity"), Edit, Read);
+		REPROPERTY(bool, "ground_check", Label("Ground Check"), Edit, Read);
+		REPROPERTY(float, "ground_height", Label("Ground Height"), Edit, Read);
+		REPROPERTY(float, "friction", Label("Friction"), Edit, Read);
+		REPROPERTY(math::Vector3, "velocity", Label("Velocity"), Edit, Read);
 
 		MotionType motion = MotionType::Static;
 
@@ -38,7 +50,8 @@ namespace rhea
 
 	class PhysicsDataComponent : public Unit
 	{
-		RECLASS(PhysicsDataComponent, Unit, "//meworla/physicsdatacomponent")
+		RECLASS(PhysicsDataComponent, Unit, "//meworla/physicsdatacomponent");
+		REPROPERTY(RigidBody, "rigid_body", Label("Rigid Body"), Edit, Read);	
 	public:
 		PhysicsDataComponent(std::string name, std::string type_name) :
 			Unit(name, type_name)

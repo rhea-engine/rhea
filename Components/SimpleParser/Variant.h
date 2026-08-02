@@ -70,16 +70,16 @@ namespace simpleparser
 		bool isNull() const;
 
 		// support functions
-		int length();
+		int length() const;
 
-		int size() { return length(); }
+		int size() const { return length(); }
 
 		// type info
 		Type* getType() { return m_type; }
 		const Type* getType() const { return m_type; }
 		std::string getTypeName() const;
-		bool isA(std::string type_name) { return Type::get(type_name) == m_type; }
-		bool isArray() { return (m_type->m_base == Type::BaseType::ARRAY); }
+		bool isA(std::string type_name) const { return Type::get(type_name) == m_type; }
+		bool isArray() const { return (m_type->m_base == Type::BaseType::ARRAY); }
 
 		// factory
 		static Variant* createType(std::string name, std::string type);

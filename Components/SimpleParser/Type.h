@@ -221,4 +221,10 @@ private: \
 #define REPROPERTY(...) \
     [[maybe_unused]] static constexpr int RE_JOIN(__reproperty_, __LINE__) = 0
 
+#define REENUM(...) \
+	[[maybe_unused]] static constexpr int RE_JOIN(__reenum_, __LINE__) = 0
+
+#define RESTRUCT(...) \
+    [[maybe_unused]] static constexpr int RE_JOIN(__restruct_, __LINE__) = 0
+
 #endif // !SIMPLEPARSER_TYPE_H

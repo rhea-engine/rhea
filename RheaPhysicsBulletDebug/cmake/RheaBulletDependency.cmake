@@ -1,8 +1,8 @@
 include_guard(GLOBAL)
 
-option(
-    RHEA_FETCH_MISSING_DEPENDENCIES "Download missing third-party dependencies" ON
-)
+if(NOT DEFINED RHEA_FETCH_MISSING_DEPENDENCIES)
+    option(RHEA_FETCH_MISSING_DEPENDENCIES "Download missing third-party dependencies" ON)
+endif()
 
 function(rhea_require_bullet)
     if(TARGET BulletDynamics)

@@ -41,6 +41,10 @@ endif()
 
 include(FetchContent)
 
+if(NOT DEFINED RHEA_FETCH_MISSING_DEPENDENCIES)
+    option(RHEA_FETCH_MISSING_DEPENDENCIES "Download missing third-party dependencies" ON)
+endif()
+
 if(PSIO_ENABLE_SDL)
 
 	if(NOT TARGET SDL3::SDL3)
@@ -48,18 +52,22 @@ if(PSIO_ENABLE_SDL)
 	endif()
 
 	if(NOT TARGET SDL3::SDL3)
-		include(FetchContent)
+        if (RHEA_FETCH_MISSING_DEPENDENCIES)
+		    include(FetchContent)
 
-		FetchContent_Declare(
-			SDL3
-			GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
-			GIT_TAG release-3.4.12
-			GIT_SHALLOW    TRUE
-            GIT_PROGRESS   TRUE
-            SYSTEM
-            FIND_PACKAGE_ARGS CONFIG
-		)
-		FetchContent_MakeAvailable(SDL3)
+		    FetchContent_Declare(
+			    SDL3
+			    GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
+			    GIT_TAG release-3.4.12
+			    GIT_SHALLOW    TRUE
+                GIT_PROGRESS   TRUE
+                SYSTEM
+                FIND_PACKAGE_ARGS CONFIG
+		    )
+		    FetchContent_MakeAvailable(SDL3)
+        else()
+            find_package(SDL3 CONFIG REQUIRED)
+        endif()
 	endif()
 	
     target_link_libraries(Psio PRIVATE SDL3::SDL3)
@@ -106,7 +114,7 @@ if(PSIO_ENABLE_OPENSSL)
         )
         message(STATUS "Psio: OpenSSL support enabled")
     else()
-        message(STATUS "Psio: OpenSSL not found; TLS support disabled")
+        message(STATUS "Psio: OpenSSL not found; TLS support DISABELED")
     endif()
 endif()
 

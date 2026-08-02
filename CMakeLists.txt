@@ -75,6 +75,7 @@ option(RHEA_BUILD_EXTRAS  "Build bundled extras" ${RHEA_IS_TOPLEVEL})
 option(RHEA_BUILD_APPS     "Build engine apps (Ceto etc.)" ${RHEA_IS_TOPLEVEL})
 option(RHEA_BUILD_SAMPLES "Build Rhea samples (high-level API)" ${RHEA_IS_TOPLEVEL})
 option(POSEIDON_BUILD_SAMPLES "Build Poseidon samples (low-level renderer)" ${RHEA_IS_TOPLEVEL})
+option(RHEA_FETCH_MISSING_DEPENDENCIES "Download missing third-party dependencies" ON)
 
 # Cross-Compiling works only for some projects
 set(engine_dirs Components)

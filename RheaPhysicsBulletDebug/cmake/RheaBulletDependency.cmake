@@ -12,9 +12,13 @@ function(rhea_require_bullet)
     # Prefer an installed package.
     find_package(Bullet CONFIG QUIET)
 
-    # Some Linux packages provide a config file without imported targets.
-    # Try CMake's FindBullet module to obtain BULLET_* variables.
-    if(NOT TARGET BulletDynamics AND NOT BULLET_LIBRARIES)
+    # Package configs supplied by some Linux distributions contain no imported
+    # targets and may report relative include directories. In that case use
+    # CMake's FindBullet module to obtain normalized paths.
+    if(NOT TARGET BulletDynamics)
+        unset(BULLET_INCLUDE_DIRS)
+        unset(BULLET_LIBRARIES)
+
         find_package(Bullet MODULE QUIET)
     endif()
  
@@ -59,17 +63,39 @@ function(rhea_require_bullet)
                 LinearMath
         )
     elseif(BULLET_LIBRARIES)
-        target_include_directories(
-            RheaBulletDependencies
-            INTERFACE
-                ${BULLET_INCLUDE_DIRS}
-        )
+    find_path(
+        RHEA_BULLET_INCLUDE_DIR
+        NAMES
+            btBulletDynamicsCommon.h
+        HINTS
+            ${BULLET_INCLUDE_DIRS}
+        PATH_SUFFIXES
+            bullet
+    )
 
-        target_link_libraries(
-            RheaBulletDependencies
-            INTERFACE
-                ${BULLET_LIBRARIES}
+    if(NOT RHEA_BULLET_INCLUDE_DIR)
+        message(FATAL_ERROR
+            "Bullet libraries were found, but "
+            "btBulletDynamicsCommon.h could not be located. "
+            "BULLET_INCLUDE_DIRS='${BULLET_INCLUDE_DIRS}'"
         )
+    endif()
+
+    message(STATUS
+        "Bullet: headers at ${RHEA_BULLET_INCLUDE_DIR}"
+    )
+
+    target_include_directories(
+        RheaBulletDependencies
+        INTERFACE
+            "${RHEA_BULLET_INCLUDE_DIR}"
+    )
+
+    target_link_libraries(
+        RheaBulletDependencies
+        INTERFACE
+            ${BULLET_LIBRARIES}
+    )
     else()
         message(FATAL_ERROR
             "Bullet was found, but neither imported targets nor "

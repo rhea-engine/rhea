@@ -47,11 +47,11 @@ namespace rhea
 					float z = rot_sit[2];
 					math::Quaternion rot;
 					if (x != 0.0f)
-						rot.fromAngleAxis(x * math::M_DEGTORAD, math::Vector3(1.0f, 0.0f, 0.0f));
+						rot.fromAngleAxis(x * math::degToRad, math::Vector3(1.0f, 0.0f, 0.0f));
 					if (y != 0.0f)
-						rot.fromAngleAxis(y * math::M_DEGTORAD, math::Vector3(0.0f, 1.0f, 0.0f));
+						rot.fromAngleAxis(y * math::degToRad, math::Vector3(0.0f, 1.0f, 0.0f));
 					if (z != 0.0f)
-						rot.fromAngleAxis(z * math::M_DEGTORAD, math::Vector3(0.0f, 0.0f, 1.0f));
+						rot.fromAngleAxis(z * math::degToRad, math::Vector3(0.0f, 0.0f, 1.0f));
 					Position position = m_transform->getLocalPosition();
 					position.setOrientation(rot);
 					m_transform->setLocalPosition(position);

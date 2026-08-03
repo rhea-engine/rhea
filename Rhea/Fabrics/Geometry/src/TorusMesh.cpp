@@ -39,7 +39,7 @@ namespace rhea
 
         for (uint32_t i = 0; i <= segments; ++i) {
             float u = static_cast<float>(i) / static_cast<float>(segments);
-            float a = u * math::M_PI * 2.0f;
+            float a = u * math::pi * 2.0f;
 
             float ca = std::cos(a);
             float sa = std::sin(a);
@@ -52,7 +52,7 @@ namespace rhea
 
             for (uint32_t j = 0; j <= tubeSegments; ++j) {
                 float v = static_cast<float>(j) / static_cast<float>(tubeSegments);
-                float bAngle = v * math::M_PI * 2.0f;
+                float bAngle = v * math::pi * 2.0f;
 
                 float cb = std::cos(bAngle);
                 float sb = std::sin(bAngle);

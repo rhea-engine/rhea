@@ -667,10 +667,10 @@ bool Ceto::onFrameEnd()
 				math::Vector3 axis;
 				rot.getAsAngleAxis(angle, axis);
 				debug += "\nPosition: " + std::to_string(pos.x) + " / " + std::to_string(pos.y) + " / " + std::to_string(pos.z);
-				debug += "\nRotation angle=" + std::to_string(angle * math::M_RADTODEG);
+				debug += "\nRotation angle=" + std::to_string(angle * math::radToDeg);
 			}
 			// (vector is always 0,1,0) 
-			//debug += "\nRotation: Angle=" + std::to_string(angle * math::M_RADTODEG) + "\nAxes: " + std::to_string(axis.x) + " / " + std::to_string(axis.y) + " / " + std::to_string(axis.z);
+			//debug += "\nRotation: Angle=" + std::to_string(angle * math::radToDeg) + "\nAxes: " + std::to_string(axis.x) + " / " + std::to_string(axis.y) + " / " + std::to_string(axis.z);
 		}
 		m_debug_text->setText(debug);
 	}

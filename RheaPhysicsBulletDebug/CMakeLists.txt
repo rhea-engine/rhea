@@ -23,17 +23,6 @@ target_link_libraries(RheaPhysicsBulletDebug PUBLIC
 
 rhea_require_bullet()
 
-if(BULLET_PHYSICS_SOURCE_DIR)
-    target_include_directories(RheaPhysicsBulletDebug PRIVATE
-        "${BULLET_PHYSICS_SOURCE_DIR}/src"
-    )
-elseif(BULLET_INCLUDE_DIRS)
-    target_include_directories(RheaPhysicsBulletDebug PRIVATE
-        ${BULLET_INCLUDE_DIRS}
-    )
-endif()
-
-# Bullet libs private if not exposed in headers
-target_link_libraries(RheaPhysicsBulletDebug PRIVATE BulletDynamics BulletCollision LinearMath)
+target_link_libraries(RheaPhysicsBulletDebug PRIVATE Rhea::BulletDependencies)
 
 rhea_register_fabric("${CMAKE_CURRENT_SOURCE_DIR}/Fabrics/fabric.json")

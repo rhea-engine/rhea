@@ -13,6 +13,8 @@
 #include <Math/Vector3.h>
 #include <Math/Vector4.h>
 
+#include <cstring>
+
 namespace rhea
 {
 	class VertexBufferColor : public VertexBuffer

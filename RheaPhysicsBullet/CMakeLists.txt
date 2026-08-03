@@ -22,17 +22,7 @@ target_include_directories(RheaPhysicsBullet PUBLIC
 
 rhea_require_bullet()
 
-if(BULLET_PHYSICS_SOURCE_DIR)
-    target_include_directories(RheaPhysicsBullet PRIVATE
-        "${BULLET_PHYSICS_SOURCE_DIR}/src"
-    )
-elseif(BULLET_INCLUDE_DIRS)
-    target_include_directories(RheaPhysicsBullet PRIVATE
-        ${BULLET_INCLUDE_DIRS}
-    )
-endif()
-
-target_link_libraries(RheaPhysicsBullet PRIVATE BulletDynamics BulletSoftBody BulletCollision LinearMath)
+target_link_libraries(RheaPhysicsBullet PRIVATE Rhea::BulletDependencies)
 
 target_link_libraries(RheaPhysicsBullet PUBLIC Meworla::RheaPhysics Rhea::Core Rhea::Terrain Meworla::Orion Rhea::TinyObj)
 

@@ -42,7 +42,7 @@ namespace rhea
         // side vertices
         for (uint32_t i = 0; i <= segments; ++i) {
             float u = static_cast<float>(i) / segments;
-            float a = u * math::M_PI * 2.0f;
+            float a = u * math::pi * 2.0f;
 
             float x = std::cos(a);
             float z = std::sin(a);
@@ -72,7 +72,7 @@ namespace rhea
 
             for (uint32_t i = 0; i <= segments; ++i) {
                 float u = static_cast<float>(i) / segments;
-                float a = u * math::M_PI * 2.0f;
+                float a = u * math::pi * 2.0f;
 
                 float x = std::cos(a);
                 float z = std::sin(a);
@@ -96,7 +96,7 @@ namespace rhea
 
             for (uint32_t i = 0; i <= segments; ++i) {
                 float u = static_cast<float>(i) / segments;
-                float a = u * math::M_PI * 2.0f;
+                float a = u * math::pi * 2.0f;
 
                 float x = std::cos(a);
                 float z = std::sin(a);

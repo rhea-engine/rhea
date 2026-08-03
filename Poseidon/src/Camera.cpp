@@ -57,7 +57,7 @@ namespace poseidon
 
 		if (!m_orthographic)
 		{
-			float h = (1.0f / tanf(fov_ * math::M_DEGTORAD * 0.5f)) * m_zoom;
+			float h = (1.0f / tanf(fov_ * math::degToRad * 0.5f)) * m_zoom;
 			float w = h / aspectRatio_;
 			float q = farClip_ / (farClip_ - nearClip_);
 			float r = -q * nearClip_;

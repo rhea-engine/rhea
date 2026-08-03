@@ -105,7 +105,7 @@ namespace rhea
 			if (auto* existing = getComponent<T>())
 				return existing;
 
-			for (auto* child : orderedChildren()) {
+			for (auto* child : m_ordered_children) {
 				if (auto* component = doCast<T>(child)) {
 					addComponent(component);
 					return component;
@@ -116,13 +116,13 @@ namespace rhea
 		}
 
 		// get full path
-		std::string getPath() { return m_path; }
+		const std::string& getPath() const noexcept { return m_path; }
 
 		// get full path for other unit
-		std::string getPath(std::string& unit_path);
+		std::string getPath(const std::string& unit_path) const;
 
 		// get basepath of unit
-		std::string getBasePath() { return m_attributes["basepath"]; }
+		const std::string getBasePath() const { auto it = m_attributes.find("basepath"); return it != m_attributes.end() ? it->second : std::string{}; }
 
 		// find child with given name
 		Component* getChild(std::string name);

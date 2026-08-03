@@ -66,15 +66,15 @@ namespace simpleparser
 			return m_base_types[Type::BaseType::NONE];
 	}
 
-	Type* Type::get(std::string& type_name)
+	Type* Type::get(const std::string& type_name)
 	{
-		if (m_types.find(type_name) != m_types.end())
-			return m_types[type_name];
-		else
+		auto it = m_types.find(type_name);
+		if (it != m_types.end())
+			return it->second;
 #ifndef _DEBUG
-			return m_base_types[Type::BaseType::NONE];
+		return m_base_types[Type::BaseType::NONE];
 #else
-			throw("Unknown Type");
+		throw("Unknown Type");
 #endif
 	}
 

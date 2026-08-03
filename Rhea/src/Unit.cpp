@@ -224,15 +224,16 @@ namespace rhea
 		return components;
 	}	
 
-	std::string Unit::getPath(std::string& unit_path)
+	std::string Unit::getPath(const std::string& unit_path) const
 	{
 		// is the string a full path?
 		if (unit_path.length() > 1 && unit_path[0] == '/' && unit_path[1] == '/')
 			return unit_path;
-		else if (m_attributes.find("basepath") != m_attributes.end())
-			return m_attributes["basepath"] + "/" + unit_path;
-		else
-			return "//" + unit_path;
+		auto it = m_attributes.find("basepath");
+		if (it != m_attributes.end())
+			return it->second + "/" + unit_path;
+
+		return "//" + unit_path;
 	}
 
 	Component* Unit::getChild(std::string name)
@@ -363,7 +364,7 @@ namespace rhea
 
 		auto* source_unit = doCast<Unit>(source);
 		if (source_unit && result) {
-			source_unit->children([this, name, result, &context](std::string& name, Component* source_child) -> bool {
+			source_unit->children([this, result, &context](const std::string& name, Component* source_child) -> bool {
 				if (source_child->getOrigin() != ComponentOrigin::Configured || !source_child->isInstanceable()) {
 					return true;
 				}

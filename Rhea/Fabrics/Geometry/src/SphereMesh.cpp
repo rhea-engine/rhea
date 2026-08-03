@@ -40,14 +40,14 @@ namespace rhea
 
         for (uint32_t y = 0; y <= rings; ++y) {
             float v = static_cast<float>(y) / static_cast<float>(rings);
-            float theta = v * math::M_PI; // 0 -> pi
+            float theta = v * math::pi; // 0 -> pi
 
             float sinTheta = std::sin(theta);
             float cosTheta = std::cos(theta);
 
             for (uint32_t x = 0; x <= segments; ++x) {
                 float u = static_cast<float>(x) / static_cast<float>(segments);
-                float phi = u * math::M_PI * 2.0f;
+                float phi = u * math::pi * 2.0f;
 
                 float sinPhi = std::sin(phi);
                 float cosPhi = std::cos(phi);

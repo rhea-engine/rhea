@@ -39,9 +39,9 @@ namespace rhea
 				float yaw = rot[1];
 				float roll = rot[2];
 				// Convert Euler angles to quaternion
-				math::Quaternion qx(pitch * math::M_DEGTORAD, math::Vector3::UNIT_X);
-				math::Quaternion qy(yaw * math::M_DEGTORAD, math::Vector3::UNIT_Y);
-				math::Quaternion qz(roll * math::M_DEGTORAD, math::Vector3::UNIT_Z);
+				math::Quaternion qx(pitch * math::degToRad, math::Vector3::UNIT_X);
+				math::Quaternion qy(yaw * math::degToRad, math::Vector3::UNIT_Y);
+				math::Quaternion qz(roll * math::degToRad, math::Vector3::UNIT_Z);
 				m_local_position.setRotation(qx * qy * qz);
 			}
 		}

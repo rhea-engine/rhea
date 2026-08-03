@@ -66,7 +66,7 @@ namespace simpleparser
 		}
 
 		// get name of type
-		std::string& getName() { return m_name; }
+		const std::string& getName() const noexcept { return m_name; }
 
 		// register a new property with the given type
 		void registerProperty(std::string name, Type* unit_type, std::string setter, std::string getter);
@@ -101,7 +101,7 @@ namespace simpleparser
 		}
 
 		static Type* get(BaseType t);
-		static Type* get(std::string& type_name);
+		static Type* get(const std::string& type_name);
 
 		Type* getParent() { return m_parent; }
 		void setParent(Type* parentType) { m_parent = parentType; }

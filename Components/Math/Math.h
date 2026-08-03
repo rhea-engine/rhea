@@ -10,10 +10,8 @@
 
 namespace math
 {
-#ifndef M_PI
-	static constexpr float M_PI = 3.14159265358979323846f;
-#endif
-	static constexpr float M_DEGTORAD = M_PI / 180.0f;
-	static constexpr float M_RADTODEG = 1.0f / M_DEGTORAD;
+	inline  constexpr float pi = 3.14159265358979323846f;
+	inline  constexpr float degToRad = pi / 180.0f;
+	inline  constexpr float radToDeg = 1.0f / degToRad;
 }
 #endif // !MATH_H

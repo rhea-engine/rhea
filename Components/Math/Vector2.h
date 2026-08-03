@@ -9,6 +9,7 @@
 #define MATH_VECTOR2_H
 
 #include <functional>
+#include <cmath>
 
 namespace math
 {

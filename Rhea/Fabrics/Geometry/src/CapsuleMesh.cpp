@@ -49,7 +49,7 @@ namespace rhea
             float t = static_cast<float>(y) / static_cast<float>(totalRings);
 
             // angle from bottom pole to top pole
-            float theta = -math::M_PI * 0.5f + t * math::M_PI;
+            float theta = -math::pi * 0.5f + t * math::pi;
 
             float cosTheta = std::cos(theta);
             float sinTheta = std::sin(theta);
@@ -60,7 +60,7 @@ namespace rhea
 
             for (uint32_t x = 0; x <= segments; ++x) {
                 float u = static_cast<float>(x) / static_cast<float>(segments);
-                float phi = u * math::M_PI * 2.0f;
+                float phi = u * math::pi * 2.0f;
 
                 float cp = std::cos(phi);
                 float sp = std::sin(phi);

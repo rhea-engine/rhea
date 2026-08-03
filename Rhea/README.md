@@ -4,14 +4,11 @@ Modern C++ game framework built around modular systems, rendering, and tooling.
 
 Rhea is part of the broader Meworla ecosystem and is designed for building games and interactive applications with a flexible, component-oriented architecture.
 
-Note: This repository is a filtered public export of the main Rhea development workspace.
-Some shared infrastructure may live outside this repository.
-
 ---
 
 ## Features
 
-- Modern C++20 architecture
+- Modern C++17 architecture
 - Modular framework structure
 - Cross-platform oriented design
 - Integrated rendering through Poseidon
@@ -51,7 +48,7 @@ Clone the repository:
 ```bash
 git clone https://github.com/rhea-engine/rhea.git
 cd rhea
-````
+```
 
 Configure and build:
 
@@ -82,7 +79,7 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(Rhea)
 
-target_link_libraries(MyGame PRIVATE Meworla::Rhea)
+target_link_libraries(MyGame PRIVATE Rhea::Core)
 ```
 
 ---

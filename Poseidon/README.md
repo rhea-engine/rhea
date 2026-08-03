@@ -2,15 +2,11 @@
 
 C++ rendering framework used by the Rhea ecosystem.
 
-Note: This repository is a filtered public export of the main Rhea development workspace.
-Some shared infrastructure may live outside this repository.
-
 ---
 
 ## Features
 
-- Modern C++20 renderer architecture
-- Vulkan-based rendering backend
+- Modern C++17 renderer architecture
 - Frame renderer system
 - Materials, textures, cubemaps
 - Window abstraction
@@ -37,7 +33,7 @@ int main()
 {
     return 0;
 }
-````
+```
 
 ---
 
@@ -46,8 +42,8 @@ int main()
 Clone the repository:
 
 ```bash
-git clone https://github.com/rhea-engine/poseidon.git
-cd poseidon
+git clone https://github.com/rhea-engine/rhea.git
+cd rhea
 ```
 
 Configure and build:
@@ -72,12 +68,12 @@ cmake --build build
 include(FetchContent)
 
 FetchContent_Declare(
-    Poseidon
-    GIT_REPOSITORY https://github.com/rhea-engine/poseidon.git
+    Rhea
+    GIT_REPOSITORY https://github.com/rhea-engine/rhea.git
     GIT_TAG v0.1.0
 )
 
-FetchContent_MakeAvailable(Poseidon)
+FetchContent_MakeAvailable(Rhea)
 
 target_link_libraries(MyGame PRIVATE Meworla::Poseidon)
 ```

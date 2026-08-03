@@ -4,14 +4,11 @@ Shared foundational libraries and utilities used throughout the Rhea ecosystem.
 
 Rhea Common contains reusable low-level modules that support rendering, filesystem, engine, and tooling projects across the ecosystem.
 
-Note: This repository is a filtered public export of the main Rhea development workspace.
-Some shared infrastructure may live outside this repository.
-
 ---
 
 ## Features
 
-- Modern C++20 utility libraries
+- Modern C+17 utility libraries
 - Shared platform abstractions
 - Math utilities
 - Parsing utilities
@@ -63,9 +60,9 @@ Modules are exposed as independent CMake targets while remaining bundled in a sh
 Clone the repository:
 
 ```bash
-git clone https://github.com/rhea-engine/rhea-common.git
-cd rhea-common
-````
+git clone https://github.com/rhea-engine/rhea.git
+cd rhea
+```
 
 Configure and build:
 
@@ -82,12 +79,12 @@ cmake --build build
 include(FetchContent)
 
 FetchContent_Declare(
-    RheaCommon
-    GIT_REPOSITORY https://github.com/rhea-engine/rhea-common.git
-    GIT_TAG v0.9.0
+    Rhea
+    GIT_REPOSITORY https://github.com/rhea-engine/rhea.git
+    GIT_TAG v0.1.0
 )
 
-FetchContent_MakeAvailable(RheaCommon)
+FetchContent_MakeAvailable(Rhea)
 
 target_link_libraries(MyProject PRIVATE Meworla::Psio)
 ```

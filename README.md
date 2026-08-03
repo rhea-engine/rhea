@@ -1,81 +1,144 @@
-﻿## 💪 Developer Setup (Meworla Rhea Engine + Tools)
+# Rhea SDK
 
-If you're working directly on the `Rhea` engine and its tools (like `Ceto`), follow these steps:
+Rhea is an experimental C++17 SDK for building games and interactive applications.
 
-### 1. Install `mwpkg`
+The repository contains the Rhea runtime framework together with its foundational libraries, rendering infrastructure, filesystem abstraction, optional runtime modules, and development tools. These components are maintained and versioned together but remain separate CMake targets.
 
-```bash
-pip install mwpkg
+> Rhea is under active development. APIs, file formats, and module boundaries may change between versions.
+
+## Components
+
+| Component | Purpose |
+|---|---|
+| Rhea | Application framework, scenes, components, services, and Fabrics |
+| Components | Shared math, parsing, and utility libraries |
+| Psio | Platform, networking, and system abstractions |
+| Orion | Virtual and mounted filesystem support |
+| Poseidon | Rendering framework |
+| Hippios | Platform-specific rendering backends |
+| RheaClient | Client and graphics integration |
+| RheaAudio | Optional audio support |
+| RheaPhysics | Physics abstraction |
+| RheaPhysicsBullet | Optional Bullet Physics implementation |
+
+More detailed documentation is available in the component directories:
+
+- [Rhea](Rhea/README.md)
+- [Components](Components/README.md)
+- [Orion](Orion/README.md)
+- [Poseidon](Poseidon/README.md)
+
+## Requirements
+
+- CMake 3.24 or newer
+- A C++17 compiler
+- Python 3 for generated registries
+- Platform-specific graphics and system development libraries
+
+Optional dependencies include SDL3, Bullet Physics, and OpenSSL. Depending on the selected configuration, dependencies can be supplied by the host system, vcpkg, or Rhea's FetchContent fallbacks.
+
+## Building the SDK
+
+Configure and build with CMake:
+
+```sh
+cmake -S . -B out/build -DRHEA_BUILD_TESTS=OFF
+cmake --build out/build
 ```
 
-### 2. Clone the main repository
+On Windows, the included presets can also be used:
 
-```bash
-git clone https://your.git.host/Meworla.git
-cd Meworla
+```sh
+cmake --preset x64-debug
+cmake --build out/build/x64-debug
 ```
 
-### 3. (Optional) Register the core engine package
+## Using Rhea with add_subdirectory
 
-If not already registered in `registry.json`:
+Place Rhea in your project, for example as a Git submodule, filesystem link, or local checkout:
 
-```bash
-mwpkg registry-add Meworla/Rhea --path .
+```text
+MyGame/
+├─ external/
+│  └─ rhea/
+├─ src/
+└─ CMakeLists.txt
 ```
 
-### 4. Set the registry path
+Then add it from your game's `CMakeLists.txt`:
 
-```bash
-# PowerShell
-$env:MWP_REGISTRY_PATH = "C:/your/path/to/Meworla/registry.json"
+```cmake
+cmake_minimum_required(VERSION 3.24)
+project(MyGame LANGUAGES C CXX)
 
-# or Bash
-export MWP_REGISTRY_PATH=~/sources/Meworla/registry.json
+set(RHEA_SDK_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/rhea")
+
+include("${RHEA_SDK_DIR}/Rhea/cmake/rhea_project.cmake")
+
+add_subdirectory("${RHEA_SDK_DIR}")
+
+add_executable(MyGame
+    src/main.cpp
+)
+
+target_link_libraries(MyGame PRIVATE
+    Rhea::Core
+    Rhea::Client
+    RheaFabrics
+)
+
+rhea_project_end()
 ```
 
-You can add this to your shell profile to persist it.
+Additional packages that register Fabrics must be added before `rhea_project_end()`.
 
-### 5. Install dependencies for internal tools (e.g. Ceto)
+## Selecting Fabrics
 
-```bash
-cd Ceto
-mwpkg install
+A project may provide an `enabled.json` file and select it before including Rhea:
+
+```cmake
+set(
+    RHEA_ENABLED_PROFILE_JSON
+    "${CMAKE_CURRENT_SOURCE_DIR}/enabled.json"
+)
 ```
 
-This installs the modules listed in `Ceto/module.json` using the main repo's registry.
+If no enabled profile is specified, all registered Fabrics are enabled.
 
----
+## Useful CMake options
 
-## 🎮 Game Developer Setup (Using Meworla Rhea Engine)
+| Option | Description |
+|---|---|
+| `RHEA_BUILD_TESTS` | Build SDK tests |
+| `RHEA_BUILD_SAMPLES` | Build Rhea samples |
+| `POSEIDON_BUILD_SAMPLES` | Build Poseidon samples |
+| `RHEA_BUILD_AUDIO` | Build audio support |
+| `RHEA_BUILD_CLIENT` | Build client support |
+| `RHEA_BUILD_PHYSICS` | Build the physics abstraction |
+| `RHEA_BUILD_BULLET` | Build the Bullet Physics integration |
+| `RHEA_FETCH_MISSING_DEPENDENCIES` | Download supported dependencies when they cannot be found locally |
+| `RHEA_SDL_STATIC` | Prefer static SDL3 linkage |
 
-If you're making a game using the Rhea engine:
+## Repository model
 
-### 1. Create or open your game project
+Rhea is distributed as one SDK repository. Its subsystems are separate CMake targets and can be enabled or disabled according to the needs of an application.
 
-```bash
-cd NewGame
-```
+Games and application-specific code are expected to live in separate repositories. Official SDK tools, such as the scene editor, may be maintained in this repository while remaining optional build targets.
 
-### 2. Install the core engine
+The `mwpkg` tool can provide additional package-management workflows, but it is not required to use the SDK.
 
-```bash
-mwpkg install Meworla/Rhea
-```
+## Status
 
-This installs the engine and its required modules.
+Rhea is currently experimental and intended primarily for evaluation and active development.
 
-### 3. (Optional) Add optional modules
+Before a stable release, the project still expects changes in areas such as:
 
-```bash
-mwpkg install Meworla/Lobby
-```
+- public API stability
+- editor and asset workflows
+- installation and package configuration
+- platform coverage
+- documentation and examples
 
-These use the registry and will link automatically if your `MWP_REGISTRY_PATH` is set.
+## License
 
----
-
-## 📁 Files Generated
-
-* `module.json` — your declared dependencies
-* `module-lock.json` — pinned versions for reproducibility
-* `mwpkg.cmake` — included automatically to link module targets
+See [LICENSE](LICENSE).

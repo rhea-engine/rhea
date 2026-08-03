@@ -4,14 +4,11 @@ Virtual and global filesystem framework for modern C++ applications and games.
 
 Orion is part of the Rhea ecosystem and provides a flexible abstraction layer for working with filesystems, mounted resources, archives, and virtualized file access.
 
-Note: This repository is a filtered public export of the main Rhea development workspace.
-Some shared infrastructure may live outside this repository.
-
 ---
 
 ## Features
 
-- Modern C++20 architecture
+- Modern C++17 architecture
 - Virtual filesystem abstraction
 - Mountable filesystem structure
 - Cross-platform oriented design
@@ -49,9 +46,9 @@ Orion is intended to integrate closely with the wider Rhea ecosystem while remai
 Clone the repository:
 
 ```bash
-git clone https://github.com/rhea-engine/orion.git
-cd orion
-````
+git clone https://github.com/rhea-engine/rhea.git
+cd rhea
+```
 
 Configure and build:
 
@@ -75,12 +72,12 @@ cmake --build build
 include(FetchContent)
 
 FetchContent_Declare(
-    Orion
-    GIT_REPOSITORY https://github.com/rhea-engine/orion.git
-    GIT_TAG v0.9.0
+    Rhea
+    GIT_REPOSITORY https://github.com/rhea-engine/rhea.git
+    GIT_TAG v0.1.0
 )
 
-FetchContent_MakeAvailable(Orion)
+FetchContent_MakeAvailable(Rhea)
 
 target_link_libraries(MyGame PRIVATE Meworla::Orion)
 ```

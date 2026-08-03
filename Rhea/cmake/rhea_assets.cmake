@@ -33,7 +33,7 @@ function(rhea_copy_assets target source_dir subdir_name)
     set(copy_script_template [=[
 file(MAKE_DIRECTORY "@destination@")
 execute_process(
-    COMMAND "@CMAKE_COMMAND@" -E copy_directory_if_different
+    COMMAND "@CMAKE_COMMAND@" -E copy_directory
         "@source_dir@"
         "@destination@"
     RESULT_VARIABLE copy_result

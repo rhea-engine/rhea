@@ -41,7 +41,9 @@ target_link_libraries(GLRenderer
     glad
 )
 if(HIPPIOS_USE_SDL)
-    find_package(SDL3 CONFIG REQUIRED)
+    if(NOT TARGET SDL3::SDL3)
+      find_package(SDL3 CONFIG REQUIRED)
+    endif()
     target_link_libraries(GLRenderer PRIVATE SDL3::SDL3)
     target_compile_definitions(GLRenderer PRIVATE HIPPIOS_HAS_SDL=1)
 endif()

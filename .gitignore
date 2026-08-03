@@ -50,3 +50,18 @@ mwpkg.cmake
 .rhea
 __pycache__
 type_registry.json	
+
+# Autotools output generated inside bundled libogg
+/RheaAudio/thirdparty/libogg/ogg/Makefile
+/RheaAudio/thirdparty/libogg/src/Makefile
+
+# CMake build trees
+/out/
+/cmake-build-*/
+CMakeCache.txt
+CMakeFiles/
+_deps/
+vcpkg_installed/
+
+# Local user configuration
+CMakeUserPresets.json

@@ -53,6 +53,10 @@ namespace rhea
 	{
 		if (m_skeleton)
 			return true;
+		if (!m_mesh) {
+			LOG(LOG_ERROR) << "Animation for " << m_parent->getPath() << ": mesh is null";
+			return false;
+		}
 		m_skeleton = m_mesh->getComponent<Skeleton>();
 		if (!m_skeleton) {
 			LOG(LOG_ERROR) << "Animation for " << m_parent->getPath() << ": mesh does not have a skeleton component";

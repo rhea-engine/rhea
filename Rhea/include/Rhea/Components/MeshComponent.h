@@ -26,13 +26,16 @@ namespace rhea
             Component(name, type_name),
             m_mesh(nullptr)
         {}
-        void ready() override {
-			if (m_values.find("meshRef") != m_values.end())
+        void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, simpleparser::Variant> values) override {
+            Component::setup(app, attributes, values);
+            if (m_values.find("meshRef") != m_values.end())
                 m_meshRef = Ref<Mesh>(m_values["meshRef"].toString(), m_attributes["basepath"]);
+        }
+		void onParented() override {
 			if (m_parent && !m_parent->getComponent<MeshComponent>()) {
 				m_parent->addComponent(this);
 			}
-        }
+		}
 
         std::vector<ResourceReference> getReferences() override
         {

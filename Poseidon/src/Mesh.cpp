@@ -57,18 +57,19 @@ namespace poseidon
 			m_num_meshes = mesh_idx + 1;
 		}
 
+		const size_t required_size = index_stride * num_faces * 3;
+
 		if (m_indexed) {
-			if (m_submeshes[mesh_idx].ibuffer) {
-				if (m_submeshes[mesh_idx].ibuffer->getLength() < index_stride * num_faces * 3) {
-					m_submeshes[mesh_idx].ibuffer = m_renderer->createIndexBuffer(index_stride, num_faces, m_dynamic_buffer);
-					m_submeshes[mesh_idx].num_indices = num_faces * 3;
-				}
+			if (num_faces == 0) {
+				m_submeshes[mesh_idx].num_indices = 0;
 			}
 			else {
-				m_submeshes[mesh_idx].ibuffer = m_renderer->createIndexBuffer(index_stride, num_faces, m_dynamic_buffer);
-				m_submeshes[mesh_idx].num_indices = num_faces * 3;
+				if (!m_submeshes[mesh_idx].ibuffer || m_submeshes[mesh_idx].ibuffer->getLength() < required_size) {
+					m_submeshes[mesh_idx].ibuffer = m_renderer->createIndexBuffer(index_stride, num_faces, m_dynamic_buffer);
+				}
 			}
-			m_submeshes[mesh_idx].ibuffer->WriteData(0, index_stride * num_faces * 3, source, false);
+			m_submeshes[mesh_idx].num_indices = num_faces * 3;
+			m_submeshes[mesh_idx].ibuffer->WriteData(0, required_size, source, false);
 		}
 		m_submeshes[mesh_idx].material = material;
 	}

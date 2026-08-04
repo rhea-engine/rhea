@@ -67,7 +67,8 @@ function(generate_type_registry target_name)
 
 		if(PYTHON_EXE)
 			# Custom target that always runs
-			add_custom_target(${target_name}_generate_types ALL
+			add_custom_command(
+				OUTPUT "${ARG_OUTPUT_FILE}"
 				COMMAND ${PYTHON_EXE} ${ARG_PYTHON_SCRIPT} 
 						${CMAKE_CURRENT_SOURCE_DIR} 
 						${ARG_OUTPUT_FILE}
@@ -75,15 +76,17 @@ function(generate_type_registry target_name)
 				WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 				COMMENT "Generating type registry for ${target_name}..."
 				VERBATIM
-				BYPRODUCTS ${ARG_OUTPUT_FILE}
+			)
+			add_custom_target(
+				RheaTypeRegistry
+				DEPENDS "${ARG_OUTPUT_FILE}"
 			)
 
 			# Automatically build before target
-			add_dependencies(${target_name} ${target_name}_generate_types)
+			add_dependencies(${target_name} RheaTypeRegistry)
 
 			message(STATUS "Type registry generation enabled for ${target_name}")
 			message(STATUS "  Output: ${ARG_OUTPUT_FILE}")
-			message(STATUS "  Using Python: ${PYTHON_EXE}")
 		else()
 			message(WARNING "Python not found - type registry will not be generated at build time")
 		endif()
@@ -103,3 +106,30 @@ endfunction()
 #     OUTPUT_FILE "${CMAKE_BINARY_DIR}/Rhea/.rhea/type_registry.json"
 #     PYTHON_SCRIPT "${CMAKE_SOURCE_DIR}/scripts/scan_types.py"
 # )
+
+function(rhea_copy_type_registry target)
+    if(NOT TARGET "${target}")
+        message(FATAL_ERROR "rhea_copy_type_registry: unknown target '${target}'")
+    endif()
+
+    if(NOT TARGET RheaTypeRegistry)
+        message(FATAL_ERROR "rhea_copy_type_registry: RheaTypeRegistry is not available")
+    endif()
+
+    add_dependencies("${target}" RheaTypeRegistry)
+
+    add_custom_command(
+        TARGET "${target}"
+        POST_BUILD
+        COMMAND
+            "${CMAKE_COMMAND}" -E make_directory
+            "$<TARGET_FILE_DIR:${target}>/Data/rhea"
+        COMMAND
+            "${CMAKE_COMMAND}" -E copy_if_different
+            "${RHEA_TYPE_REGISTRY}"
+            "$<TARGET_FILE_DIR:${target}>/Data/rhea/type_registry.json"
+        COMMENT
+            "Copying Rhea type registry for ${target}"
+        VERBATIM
+    )
+endfunction()

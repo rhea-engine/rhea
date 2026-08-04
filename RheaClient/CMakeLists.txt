@@ -26,7 +26,6 @@ target_link_libraries(RheaClient PUBLIC
 )
 
 if(WIN32)
-	target_compile_options(RheaClient PRIVATE /showIncludes)
 	target_link_libraries(RheaClient PRIVATE Winmm)
 endif()
 

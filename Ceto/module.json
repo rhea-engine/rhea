@@ -3,11 +3,5 @@
   "displayName": "Rhea Ceto",
   "author": "Meworla",
   "dependencies": {
-    "rhea/animation": "0.9.0",
-    "rhea/gui": "0.9.0",
-    "rhea/gltf": "0.9.0",
-    "rhea/controller": "0.9.0",
-    "rhea/heightmapterrain": "0.9.0",
-    "rhea/terrain": "0.9.0",
-    "rhea/character": "0.9.0"
+  }
 }

@@ -85,10 +85,6 @@ function(rhea_fabrics_end)
   list(LENGTH _all_jsons _fabric_count)
     message(STATUS "RheaFabrics: ${_fabric_count} manifests registered")
 
-  foreach(_json IN LISTS _all_jsons)
-    message(STATUS "RheaFabrics: registered ${_json}")
-  endforeach()
-
  # Build map: fabric_id -> (cmake_target, json_file)
  # fabric_id format: packageId:FabricName
  # example: rhea/rendering:Gltf
@@ -106,6 +102,8 @@ function(rhea_fabrics_end)
 
    if(NOT _pkg_id OR NOT _fabric_name)
      message(FATAL_ERROR "Fabric manifest json missing id/name: ${json_file}")
+   else()
+     message(STATUS "RheaFabrics: registered fabric: ${_fabric_name}")
    endif()
 
    set(_id "${_pkg_id}:${_fabric_name}")

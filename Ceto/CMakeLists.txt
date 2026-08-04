@@ -4,12 +4,12 @@ add_executable (Ceto "Ceto.h" "Ceto.cpp" "UserPrefs.h" "UserPrefs.cpp")
 #include(../rhea.cmake)
 
 # add the renderer engine
-target_link_libraries(Ceto Rhea::Core RheaFabrics Rhea::Client Rhea::Audio Meworla::RheaPhysicsBulletDebug nlohmann_json::nlohmann_json)
+target_link_libraries(Ceto RheaEngine nlohmann_json::nlohmann_json)
 #RheaPhysicsDebug
 
 # add a headless app for testing
 add_executable (Headless "Headless.cpp" "Headless.h")
-target_link_libraries(Headless Rhea::Core nlohmann_json::nlohmann_json)
+target_link_libraries(Headless RheaHeadless nlohmann_json::nlohmann_json)
 
 # option to enable dev tools
 option(ENABLE_DEV_TOOLS "Enable development tools" ON)

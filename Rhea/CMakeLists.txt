@@ -15,44 +15,17 @@ else()
     set(RHEA_OWNS_FABRIC_REGISTRY FALSE)
 endif()
 
-include(${CMAKE_CURRENT_LIST_DIR}/cmake/rhea_dependencies.cmake)
-rhea_resolve_dependencies()
-
 add_subdirectory(ThirdParty)
 add_subdirectory(Resources)
 add_subdirectory(Fabrics)
 
-option(RHEA_BUILD_AUDIO "Build RheaAudio" ON)
-option(RHEA_BUILD_CLIENT "Build RheaClient" ON)
 option(RHEA_BUILD_SAMPLES "Build Rhea samples" ${PROJECT_IS_TOP_LEVEL})
-option(RHEA_WITH_GRAPHICS "Enable graphics support for Rhea" ON)
-option(RHEA_BUILD_PHYSICS "Enable physics support for Rhea" ON)
-option(RHEA_BUILD_BULLET "Enable bullet physics support for Rhea" ON)
-
-if(RHEA_BUILD_AUDIO AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/RheaAudio/CMakeLists.txt")
-    add_subdirectory(RheaAudio)
-endif()
-
-if(RHEA_BUILD_CLIENT AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/RheaClient/CMakeLists.txt")
-    add_subdirectory(RheaClient)
-endif()
-
-if(RHEA_BUILD_PHYSICS AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/RheaPhysics/CMakeLists.txt")
-    add_subdirectory(RheaPhysics)
-endif()
-
-if(RHEA_BUILD_BULLET AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/RheaPhysicsBullet/CMakeLists.txt")
-    add_subdirectory(RheaPhysicsBullet)
-    add_subdirectory(RheaPhysicsBulletDebug)
-endif()
-
-option(RHEA_WITH_GRAPHICS "Enable graphics support for Rhea" ON)
 
 add_library(RheaBase "src/Unit.cpp" "src/UnitTree.cpp" "src/Realm.cpp" "src/Dispatcher.cpp"  "Platform/PlatformService.cpp" 
  "src/EventInput.cpp" "src/Application.cpp" "src/Component.cpp"
 "Core/Material.cpp" "Core/SceneLoader.cpp" "Core/Scene.cpp" "Core/Avatar.cpp" "Core/Position.cpp"
 "Core/Transform.cpp" "Core/Shader.cpp" "Core/Item.cpp" "Core/Item2D.cpp"
-"Core/WorldService.cpp" "Core/Lighting.cpp" "Core/Lighting.cpp" 
+"Core/WorldService.cpp" "Core/Lighting.cpp"
 "Core/Camera.cpp" "Core/Mesh.cpp" 
 "Core/Light.cpp" "Core/DirectionalLight.cpp" "Core/PointLight.cpp" 
 "Core/SpotLight.cpp"
@@ -90,26 +63,24 @@ if(RHEA_GENERATE_TYPE_REGISTRY)
 	# Find Python (optional, but recommended)
 	find_package(Python3 COMPONENTS Interpreter QUIET)
 
+	set(
+		RHEA_TYPE_REGISTRY
+	    "${CMAKE_CURRENT_BINARY_DIR}/.rhea/type_registry.json"
+	)
+
 	# Generate type registry for Rhea
-	generate_type_registry(RheaBase
-		OUTPUT_FILE "${CMAKE_BINARY_DIR}/Rhea/.rhea/type_registry.json"
+	generate_type_registry(
+		RheaBase
+		TARGET_NAME RheaTypeRegistry
+		OUTPUT_FILE "${RHEA_TYPE_REGISTRY}"
 		PYTHON_SCRIPT "${CMAKE_CURRENT_LIST_DIR}/scripts/scan_types.py"
 	)
 
 	target_sources(RheaBase PRIVATE ${ARG_OUTPUT_FILE})
-
-	# Copy to source tree for development
-	add_custom_command(
-		TARGET RheaBase POST_BUILD
-		COMMAND ${CMAKE_COMMAND} -E copy_if_different
-				${CMAKE_BINARY_DIR}/Rhea/.rhea/type_registry.json
-				${CMAKE_CURRENT_SOURCE_DIR}/.rhea/type_registry.json
-		COMMENT "Copying type registry to source tree..."
-	)
 endif()
 
 # Export registry path for other targets
-set(RHEA_TYPE_REGISTRY "${CMAKE_BINARY_DIR}/Rhea/.rhea/type_registry.json" 
+set(RHEA_TYPE_REGISTRY "${CMAKE_CURRENT_BINARY_DIR}/.rhea/type_registry.json" 
 	CACHE FILEPATH "Path to Rhea type registry")
 
 if(RHEA_BUILD_SAMPLES)

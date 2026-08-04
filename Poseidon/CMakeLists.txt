@@ -9,8 +9,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-if (NOT TARGET Meworla::Hippios AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Hippios/CMakeLists.txt")
-    add_subdirectory(Hippios)
+if(NOT TARGET Meworla::Hippios)
+    message(FATAL_ERROR "Poseidon requires Meworla::Hippios. Please ensure that the Hippios library is available and properly configured.")
 endif()
 
 # define the main library
@@ -29,18 +29,6 @@ target_compile_features(Poseidon PUBLIC cxx_std_17)
 
 if(NOT TARGET Meworla::Components)
     find_package(MeworlaComponents CONFIG QUIET)
-endif()
-
-if(NOT TARGET Meworla::Components)  
-    include(FetchContent)
-
-    FetchContent_Declare(
-        MeworlaComponents
-        GIT_REPOSITORY https://github.com/rhea-engine/components.git
-        GIT_TAG v0.1.0
-    )
-    
-    FetchContent_MakeAvailable(MeworlaComponents)
 endif()
 
 # Link Poseidon’s real dependencies as targets

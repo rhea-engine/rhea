@@ -138,7 +138,7 @@ namespace rhea::client {
 					LOG(LOG_ERROR) << "GraphicsMeshManager::FillPoseidonMesh: Failed to build GPU material for " << mat->getPathName();
 					return false;
 				}				
-				out->setMesh(0, sizeof(unsigned long), 0, 0, gpuMat);
+				out->setMesh(0, sizeof(uint32_t), 0, 0, gpuMat);
 				return true;
 			}
 			for (size_t idx = 0; idx < mesh->getNumSubmeshes(); idx++) {
@@ -167,7 +167,7 @@ namespace rhea::client {
 					LOG(LOG_ERROR) << "GraphicsMeshManager::FillPoseidonMesh: Failed to build GPU material for " << mat->getPathName();
 					return false;
 				}				
-				out->setMesh(idx, sizeof(unsigned long), v_indices.size() / 3, v_indices.data(), gpuMat);
+				out->setMesh(idx, sizeof(uint32_t), v_indices.size() / 3, v_indices.data(), gpuMat);
 			}
 		}
 		else {
@@ -208,7 +208,7 @@ namespace rhea::client {
 				LOG(LOG_ERROR) << "GraphicsMeshManager::FillPoseidonMesh: Failed to build GPU material for " << mat0->getPathName();
 				return false;
 			}
-			out->setMesh(0, sizeof(unsigned long), v_indices.size() / 3, v_indices.data(), gpuMat0);
+			out->setMesh(0, sizeof(uint32_t), v_indices.size() / 3, v_indices.data(), gpuMat0);
 		}
 		return true;
 	}	

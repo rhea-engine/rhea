@@ -4,7 +4,7 @@ Miniaudio supports various audio formats, including WAV, MP3, OGG, and FLAC. It 
 Miniaudio is open-source and can be found on GitHub. It is licensed under the MIT License, allowing for flexible use in both commercial and non-commercial projects. The library is actively maintained and has a growing community of users and contributors.
 
 Version: 0.11.25
-License: MIT License
+License: MIT-0 License
 Extracted from: https://github.com/mackron/miniaudio:
 miniaudio.h
 

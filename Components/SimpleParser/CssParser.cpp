@@ -195,7 +195,7 @@ namespace simpleparser
 		Variant value;
 
 		int state = 0;
-		id_chars = "-";
+		id_chars = "-_";
 		while (reader < buflen) {
 			err = nextToken(buf, reader, buflen, line, token);
 			if (err >= SimpleParser::Error::PARSE_ERR)
@@ -229,7 +229,7 @@ namespace simpleparser
 						if (properties.size())
 							property_map[prop_name] = properties;
 						state = 0;
-						id_chars = "-";
+						id_chars = "-_";
 					}
 					break;
 				}
@@ -387,7 +387,7 @@ namespace simpleparser
 		size_t reader = 0;
 
 		err = parseProperty((char*)value.c_str(), reader, value.size(), line, properties);
-		if (err == Error::PARSE_OK || err == Error::PARSE_EOF)
+		if (err == Error::PARSE_OK || (err == Error::PARSE_EOF && reader >= value.size()))
 			return true;
 		else
 			return false;

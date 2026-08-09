@@ -249,7 +249,7 @@ namespace simpleparser
 							))
 						reader++;
 					if (&buf[reader] - s_start == 0)
-						return Error::PARSE_EOF;
+						return Error::PARSE_INVALID_ID_CHAR;
 					token.value = std::string(s_start, &buf[reader] - s_start);
 					token.type = TokenType::TOKEN_IDENTIFIER;
 					return Error::PARSE_OK;

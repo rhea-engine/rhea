@@ -72,7 +72,7 @@ namespace rhea
 		float H() { return m_size.y; }
 
 		// viewport size event
-		bool onViewportSize(Event* ev, Unit* unit);
+		virtual bool onViewportSize(Event* ev, Unit* unit);
 		void setViewportSize(int width, int height);
 
 		// get viewport size

@@ -520,6 +520,7 @@ namespace rhea
 		virtual bool onMousePressed(Event* ev, Unit* u) { return false; }
 		virtual bool onMouseReleased(Event* ev, Unit* u) { return false; }
 		virtual bool onMouseClicked(Event* ev, Unit* u) { return false; }
+		virtual bool onMouseDoubleClicked(Event* ev, Unit* u) { return false; }
 		virtual bool onMouseWheel(Event* ev, Unit* u) { return false; }
 		virtual bool onFocusGained(Event* ev, Unit* u) { return false; }
 		virtual bool onFocusLost(Event* ev, Unit* u) { return false; }
@@ -535,7 +536,8 @@ namespace rhea
 		bool handleMouseLeave(Event* ev, Unit* sender);
 		bool handleMouseMove(Event* ev, Unit* sender);
 		bool handleMousePressed(Event* ev, Unit* sender);
-		bool handleMouseReleased(Event* ev, Unit* sender);	
+		bool handleMouseReleased(Event* ev, Unit* sender);
+		bool handleMouseDoubleClicked(Event* ev, Unit* sender);
 		bool handleMouseWheel(Event* ev, Unit* sender);
 		bool handleFocusGained(Event* ev, Unit* sender);
 		bool handleFocusLost(Event* ev, Unit* sender);

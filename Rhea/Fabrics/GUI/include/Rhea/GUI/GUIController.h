@@ -39,7 +39,7 @@ namespace rhea
 		void ready();
 
 		// viewport size event handler
-		bool onViewportSize(Event* ev, Unit* unit);
+		bool onViewportSize(Event* ev, Unit* unit) override;
 
 		// show event handler
 		bool onShow(Event* ev, Unit* unit);

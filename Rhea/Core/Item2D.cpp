@@ -54,9 +54,9 @@ namespace rhea
 	{
 		Unit::ready();
 
-		registerEventHandler("viewport_size", this, std::bind(&Item2D::onViewportSize, this, std::placeholders::_1, std::placeholders::_2));
+		registerEventHandler("size", this, [this](Event* ev, Unit* sender) { return onViewportSize(ev, sender); });
 
-		if (m_bg_color.a > 0.0f || m_values.find("texture") != m_values.end()) {
+		if (m_bg_color.a > 0.0f || m_bg_image || m_values.find("texture") != m_values.end()) {
 			// background color or image was set
 
 			if (m_values.find("texture") != m_values.end()) {
@@ -78,8 +78,8 @@ namespace rhea
 
 	bool Item2D::onViewportSize(Event* ev, Unit* sender)
 	{
-		SizeEvent* size_ev = static_cast<SizeEvent*>(ev);
-		if (size_ev) {
+		if (ev && ev->isEvent("size")) {
+			SizeEvent* size_ev = static_cast<SizeEvent*>(ev);
 			int width = size_ev->width;
 			int height = size_ev->height;
 			if (width != m_viewport_width || height != m_viewport_height) {

@@ -128,8 +128,6 @@ namespace rhea
 				w->setToplevel(true);
 			}
 		}
-	
-		registerEventHandler("viewport_size", this, std::bind(&GUIController::onViewportSize, this, std::placeholders::_1, std::placeholders::_2));
 
 		registerEventHandler("scene_show", this, std::bind(&GUIController::onShow, this, std::placeholders::_1, std::placeholders::_2));
 		registerEventHandler("scene_hide", this, std::bind(&GUIController::onHide, this, std::placeholders::_1, std::placeholders::_2));
@@ -163,22 +161,15 @@ namespace rhea
 
 	bool GUIController::onViewportSize(Event* ev, Unit* unit)
 	{
-		if (ev) {
+		if (ev && ev->isEvent("size")) {
 			SizeEvent* e = static_cast<SizeEvent*>(ev);
 			int width = e->width;
 			int height = e->height;
 			if (width != m_viewport_width || height != m_viewport_height) {
 				m_viewport_width = width;
 				m_viewport_height = height;
-				// send event to all children to update their size
-				sendEventChildren("viewport_size", ev);
 				return onGuiUpdate(ev, unit);
 			}
-		}
-		else {
-			SizeEvent e(this, m_viewport_width, m_viewport_height);
-			sendEventChildren("viewport_size", &e);
-			return onGuiUpdate(&e, unit);
 		}
 		return false;
 	}
@@ -321,7 +312,12 @@ namespace rhea
 				m_drag_widget = nullptr;
 			}
 			break;
-
+		case InputEventType::MouseButtonDoubleClicked:
+			if (m_captured) {
+				e->setTarget(m_captured);
+				m_captured->bubbleEvent("mouse_double_click", e);
+			}
+			break;
 		case InputEventType::MouseWheel:
 			if (m_captured) {
 				e->setTarget(m_captured);
@@ -778,7 +774,7 @@ namespace rhea
 			return;
 		}
 		in_calculating = true;
-		ScopedTimer timer("RecalculateStyle:UpdateStyle", 5000.0f);
+		ScopedTimer timer("RecalculateStyle:UpdateStyle", 50000.0f);
 #endif
 		if (m_style_engine)
 			RecalculateStyleTree(m_style_engine.get());

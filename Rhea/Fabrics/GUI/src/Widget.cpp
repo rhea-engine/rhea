@@ -1188,6 +1188,10 @@ namespace rhea
 			return onMouseClicked(e, u);
 			});
 
+		registerEventHandler("mouse_double_click", this, [this](Event* event, Unit* unit)->bool {
+			return onMouseDoubleClicked(event, unit);
+			});
+
 		registerEventHandler("mouse_wheel", this, [this](Event* e, Unit* u)->bool {
 			return onMouseWheel(e, u);
 			});
@@ -1279,6 +1283,11 @@ namespace rhea
 	{
 		setWidgetState(WidgetState::kActive, false);
 		return onMouseReleased(ev, sender);
+	}
+
+	bool Widget::handleMouseDoubleClicked(Event* ev, Unit* sender)
+	{
+		return onMouseDoubleClicked(ev, sender);
 	}
 
 	bool Widget::handleMouseWheel(Event* ev, Unit* sender)

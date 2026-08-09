@@ -418,8 +418,6 @@ namespace rhea
 			if (*it)
 				(*it)->destroy();
 		}
-
-		detachFromParent();
 	    
 	    // empty containers
 	    m_children.clear();

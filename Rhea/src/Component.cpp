@@ -30,6 +30,10 @@ namespace rhea
 			return;
 
 		m_destroying = true;
+
+		if (m_parent)
+			m_parent->removeChild(this);
+
 		onDestroy();
 		delete this;
 	}

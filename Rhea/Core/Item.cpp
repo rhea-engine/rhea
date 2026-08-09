@@ -79,6 +79,13 @@ namespace rhea
 		}
 	}
 
+	void Item::ensureVisualComponent()
+	{
+		if (!getComponent<VisualComponent>()) {
+			addComponentUnique<VisualComponent>("visual_component");
+		}
+	}
+
 	void Item::ready()
 	{
 		Unit::ready();

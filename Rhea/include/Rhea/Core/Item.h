@@ -91,9 +91,10 @@ namespace rhea
 		//RenderComponent* getRenderComponent() {	return getComponent<RenderComponent>(); }
 
 		// visibility
-		virtual void hide() { if (getComponent<VisualComponent>()) getComponent<VisualComponent>()->hide(); }
-		virtual void show() { if (getComponent<VisualComponent>()) getComponent<VisualComponent>()->show(); }
+		virtual void hide() { ensureVisualComponent(); getComponent<VisualComponent>()->hide(); }
+		virtual void show() { ensureVisualComponent(); getComponent<VisualComponent>()->show(); }
 		bool isVisible() { if (getComponent<VisualComponent>()) return getComponent<VisualComponent>()->isVisible(); else return false; }
+		void ensureVisualComponent();
 
 		// physics
 		PhysicsBody* getPhysicsBody() const { return m_physics_body; }

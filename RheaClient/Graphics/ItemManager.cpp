@@ -249,10 +249,9 @@ namespace rhea::client {
 		if (!rc) return true;
 
 		// Unregister from GraphicsService
-		if (rc->ctx) {
-			// Use the service's unregister method
-			m_service->unregisterItemFromContext(item, rc->ctx);
-		}
+
+		// Use the service's unregister method
+		m_service->unregisterItemFromContext(item, rc->ctx);
 
 		// Destroy GPU resources
 		if (rc->hasRenderable()) {

@@ -126,20 +126,27 @@ namespace rhea
 			return true;
 		}
 
-		item->traverse([&](std::string&, Component* c) {
-			if (auto* childItem = doCast<Item>(c)) {
-				if (m_is_active) {
-					c->onDeactivate();
-				}
-				m_items.erase(
-					std::remove(m_items.begin(), m_items.end(), childItem),
-					m_items.end()
-				);
-				Event e("scene_item_removed", item);
-				sendEvent("scene_item_removed", &e);
-			}
+		std::vector<Item*> removed_items;
+
+		// gather the items to be removed
+		item->traverse([&removed_items](std::string&, Component* c) {
+			if (auto* childItem = doCast<Item>(c))
+				removed_items.push_back(childItem);
 			return true;
 			});
+
+		// remove children first from render tree.
+		for (auto it = removed_items.rbegin(); it != removed_items.rend(); ++it) {
+			Item* childItem = *it;
+
+			if (m_is_active) {
+				childItem->onDeactivate();
+			}
+			m_items.erase(std::remove(m_items.begin(), m_items.end(), childItem), m_items.end());
+			Event e("scene_item_removed", childItem);
+			sendEvent("scene_item_removed", &e);
+		}
+
 		return false;
 	}
 

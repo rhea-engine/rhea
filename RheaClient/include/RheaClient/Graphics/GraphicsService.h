@@ -67,6 +67,8 @@ namespace rhea::client {
 		bool onInput(rhea::Event* ev, rhea::Unit* unit);
 		bool onAddItem(rhea::Event* ev, rhea::Unit* unit);
 		bool onRemoveItem(rhea::Event* ev, rhea::Unit* unit);
+		bool onAddItemRecursive(rhea::Event* ev, rhea::Unit* unit);
+		bool onRemoveItemRecursive(rhea::Event* ev, rhea::Unit* unit);
 		
 		// request fullscreen
 		void ToggleFullscreen();

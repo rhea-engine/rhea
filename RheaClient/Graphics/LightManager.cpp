@@ -111,11 +111,17 @@ namespace rhea::client
 				rc->ctx->removeLight(rc->light);
 			}
 
+			// unregister from context if still registered
+			m_service->unregisterItemFromContext(light, rc->ctx);
+
 			m_service->getEngine()->getRenderWorld()->destroyLight(rc->light);
 			rc->light = poseidon::InvalidLight;
 		}
-
-		rc->ctx = nullptr;
+		else {
+			// unregister from context if still registered
+			m_service->unregisterItemFromContext(light, rc->ctx);
+		}
+		
 		return false;
 	}
 

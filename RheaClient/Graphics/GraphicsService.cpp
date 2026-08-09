@@ -100,9 +100,10 @@ namespace rhea::client {
 	bool GraphicsService::addElement(rhea::Unit* unit)
 	{
 		// find manager for type name in manager list
-		auto it = m_managers.find(unit->getType());
-		if (it != m_managers.end()) {
-			GraphicsManager* mgr = it->second.get();
+		auto* mgr = getManager(unit->getType());
+		if (!mgr && doCast<rhea::Item>(unit))
+			mgr = getManager<rhea::Item>();
+		if (mgr) {
 			mgr->Ensure(m_core.get(), unit);
 			return true;
 		}
@@ -114,7 +115,46 @@ namespace rhea::client {
 		m_platform = platform_service;
 	}
 
-	bool GraphicsService::onAddItem(rhea::Event* ev, rhea::Unit* unit)
+	bool GraphicsService::onAddItem(rhea::Event* event, rhea::Unit* sender)
+	{
+		auto* item = doCast<rhea::Item>(event->getTarget());
+		auto* scene = doCast<rhea::Scene>(sender);
+
+		if (!item)
+			return false;
+
+		if (!addElement(item)) {
+			LOG(LOG_ERROR) << "Could not prepare graphics for " << item->getPath();
+			return false;
+		}
+
+		poseidon::RenderContext* context = nullptr;
+
+		std::string own_context = item->getValueString("rendercontext", "");
+
+		if (!own_context.empty()) {
+			context = m_main_window->getDefaultViewport()->getRenderContext(own_context);
+		}
+		else if (auto* parent_item = doCast<rhea::Item>(item->getParent())) {
+			if (auto* parent_rc = parent_item->getComponent<RenderComponent>()) {
+				context = parent_rc->ctx;
+			}
+		}
+		else if (scene) {
+			std::string scene_context = scene->getValueString("rendercontext", "default");
+			context = m_main_window->getDefaultViewport()->getRenderContext(scene_context);
+		}
+
+		if (!context) {
+			LOG(LOG_ERROR) << "No render context for item " << item->getPath();
+			return false;
+		}
+
+		registerItemToContext(item, context);
+		return false;
+	}
+
+	bool GraphicsService::onAddItemRecursive(rhea::Event* ev, rhea::Unit* unit)
 	{
 		rhea::Unit* root = doCast<rhea::Unit>(ev->getTarget());	
 		if (!root) return false;
@@ -122,7 +162,10 @@ namespace rhea::client {
 		root->traverse([&](std::string& name, rhea::Component* c)->bool {
 
 			if (rhea::Item* item = doCast<rhea::Item>(c)) {
-				getManager<rhea::Item>()->Ensure(m_core.get(), item);
+				if (!addElement(item)) {
+					LOG(LOG_ERROR) << "Could not prepare graphics for " << item->getPath();
+					return false;
+				}
 
 				// add to render context if parented to scene
 				rhea::Scene* scene = doCast<rhea::Scene>(item->getParent());
@@ -211,7 +254,24 @@ namespace rhea::client {
 		registerItemToContextRecursive(item, context);
 	}
 
-	bool GraphicsService::onRemoveItem(rhea::Event* ev, rhea::Unit* unit)
+	bool GraphicsService::onRemoveItem(rhea::Event* event, rhea::Unit*)
+	{
+		auto* item = doCast<rhea::Item>(event->getTarget());
+
+		if (!item)
+			return false;
+
+		auto* rc = item->getComponent<RenderComponent>();
+
+		if (rc)
+			unregisterItemFromContext(item, rc->ctx);
+		else
+			unregisterItemFromContext(item, nullptr);
+
+		return false;
+	}
+
+	bool GraphicsService::onRemoveItemRecursive(rhea::Event* ev, rhea::Unit* unit)
 	{
 		rhea::Unit* root = doCast<rhea::Unit>(ev->getTarget());
 		if (!root) return false;
@@ -410,17 +470,20 @@ namespace rhea::client {
 			LOG(LOG_ERROR) << "no graphics scene manager defined.";
 			return;
 		}
-
-		scene->registerEventHandler("scene_item_added", this, std::bind(&GraphicsService::onAddItem, this, std::placeholders::_1, std::placeholders::_2));
-		scene->registerEventHandler("scene_item_removed", this, std::bind(&GraphicsService::onRemoveItem, this, std::placeholders::_1, std::placeholders::_2));
-		scene->registerEventHandler("scene_show", this, [&](rhea::Event* ev, rhea::Unit* unit)->bool {
+		if (!hasEventHandler("scene_item_added", this))
+			scene->registerEventHandler("scene_item_added", this, std::bind(&GraphicsService::onAddItem, this, std::placeholders::_1, std::placeholders::_2));
+		if (!hasEventHandler("scene_item_removed", this))
+			scene->registerEventHandler("scene_item_removed", this, std::bind(&GraphicsService::onRemoveItem, this, std::placeholders::_1, std::placeholders::_2));
+		if (!hasEventHandler("scene_show", this))
+			scene->registerEventHandler("scene_show", this, [&](rhea::Event* ev, rhea::Unit* unit)->bool {
 			showScene(doCast<rhea::Scene>(ev->getTarget()));
 			return false;
-			});
-		scene->registerEventHandler("scene_hide", this, [&](rhea::Event* ev, rhea::Unit* unit)->bool {
+				});
+		if (!hasEventHandler("scene_hide", this))
+			scene->registerEventHandler("scene_hide", this, [&](rhea::Event* ev, rhea::Unit* unit)->bool {
 			hideScene(doCast<rhea::Scene>(ev->getTarget()));
 			return false;
-			});
+				});
 	}
 
 	void GraphicsService::onSceneDeactivate(rhea::Scene* scene)
@@ -430,7 +493,7 @@ namespace rhea::client {
 			return;
 		}
 
-		m_scenes.erase(std::remove(m_scenes.begin(), m_scenes.end(), scene));
+		m_scenes.erase(std::remove(m_scenes.begin(), m_scenes.end(), scene), m_scenes.end());
 	}
 
 	void GraphicsService::showScene(rhea::Scene* scene)
@@ -457,7 +520,7 @@ namespace rhea::client {
 			return;
 		}
 
-		// Add all children and their subtree to the render context
+		// Add all scene items to the render context
 		scene->children([&](std::string& name, rhea::Component* c)->bool {
 			rhea::Item* item = doCast<rhea::Item>(c);
 			if (!item)
@@ -571,11 +634,23 @@ namespace rhea::client {
 								gfxCamMgr->syncCameraProjection(getEngine(), context->getCameraHandle(), nullptr, (float)viewport_width, (float)viewport_height);
 							}
 							// send resize event to all items of this context - they may need to update render targets or similar
-							rhea::SizeEvent size_ev(nullptr, viewport_width, viewport_height);
 							auto it = m_context_items.find(context);
 							if (it != m_context_items.end()) {
-								for (auto& item : it->second) {
-									item->sendEvent("viewport_size", &size_ev);
+								const std::vector<rhea::Item*> snapshot = it->second;
+								for (auto& item : snapshot) {
+									auto current_it = m_context_items.find(context);
+									if (current_it == m_context_items.end())
+										break;
+
+									const auto& current_items = current_it->second;
+									if (std::find(
+										current_items.begin(),
+										current_items.end(),
+										item) == current_items.end()) {
+										continue;
+									}
+									rhea::SizeEvent size_ev(item, viewport_width, viewport_height);
+									item->sendEvent("size", &size_ev);
 								}
 							}
 						}
@@ -672,7 +747,14 @@ namespace rhea::client {
 		if (rc) {
 			render_node_id = context->registerOrderNode(rc->gfx_node_id, parent_id);
 
+			if (rc->ctx && rc->ctx != context) {
+				LOG(LOG_WARNING) << "Silently moving item between render contexts: " << 
+					item->getPath() << 
+					". Use unregisterItemFromContext() first to avoid this warning.";
+				unregisterItemFromContext(item, rc->ctx);
+			}
 			rc->ctx = context;
+
 			if (rc->hasRenderable())
 				context->attachRenderable(render_node_id, rc->renderable);
 			if (rc->hasLight())
@@ -714,11 +796,11 @@ namespace rhea::client {
 
 	void GraphicsService::unregisterItemFromContext(rhea::Item* item, poseidon::RenderContext* context)
 	{
-		if (!item || !context) return;
+		if (!item) abort();
 
 		auto* rc = item->getComponent<rhea::client::RenderComponent>();
 		// Detach renderable from context
-		if (rc && rc->ctx == context) {
+		if (rc && context && rc->ctx == context) {
 			
 				poseidon::RenderNodeId node_id = context->findNodeForSource(rc->gfx_node_id);
 				if (node_id != poseidon::InvalidRenderNode) {
@@ -734,17 +816,35 @@ namespace rhea::client {
 
 				rc->ctx = nullptr;			
 		}
+		else {
+			// safety check if in any other contexts
+			for (auto& [ctx, items] : m_context_items) {
+				auto it = std::find(items.begin(), items.end(), item);
+				if (it != items.end()) {
+					items.erase(it);
+					if (rc)
+						LOG(LOG_WARNING) << "GraphicsService: removed deleted item from other context '" << ctx->getName() << "', "
+						<< (rc->ctx ? " (rc->ctx: " + rc->ctx->getName() + ")" : "rc->ctx was null");
+					else
+						LOG(LOG_WARNING) << "GraphicsService: removed deleted item from context '" << ctx->getName() << "' without render component";
+				}
+			}
+		}
 
 		// Remove from registry
-		auto it = m_context_items.find(context);
-		if (it != m_context_items.end()) {
-			auto& items = it->second;
-			items.erase(std::remove(items.begin(), items.end(), item), items.end());
+		if (context) {
+			auto it = m_context_items.find(context);
+			if (it != m_context_items.end()) {
+				auto& items = it->second;
+				items.erase(std::remove(items.begin(), items.end(), item), items.end());
 
-			// Clean up empty entries
-			if (items.empty()) {
-				m_context_items.erase(it);
+				// Clean up empty entries
+				if (items.empty()) {
+					m_context_items.erase(it);
+				}
 			}
+			else
+				LOG(LOG_DEBUG) << "GraphicsService::unregisterItemFromContext: context '" << context->getName() << "' not found in registry";
 		}
 	}
 

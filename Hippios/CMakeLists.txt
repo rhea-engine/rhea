@@ -28,6 +28,34 @@ option(HIPPIOS_USE_WIN32 "Use Win32 window system" ON)
 set(SDL_SHARED OFF CACHE BOOL "" FORCE)
 set(SDL_STATIC ON CACHE BOOL "" FORCE)
 
+if (HIPPIOS_USE_SDL)
+
+	if(NOT TARGET SDL3::SDL3)
+		if (RHEA_FETCH_MISSING_DEPENDENCIES)
+			find_package(SDL3 CONFIG QUIET)
+
+			if(NOT TARGET SDL3::SDL3)
+				include(FetchContent)
+	        
+				FetchContent_Declare(
+					SDL3
+					GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
+					GIT_TAG release-3.4.12
+					GIT_SHALLOW    TRUE
+					GIT_PROGRESS   TRUE
+					SYSTEM
+					FIND_PACKAGE_ARGS CONFIG
+				)
+				FetchContent_MakeAvailable(SDL3)
+			endif()
+		else()
+			find_package(SDL3 CONFIG REQUIRED)
+		endif()
+	endif()
+	# use static version of SDL3 to avoid forcing users to have SDL3 dlls in their system. Also, we don't need dynamic features of SDL3, and static linking is simpler for distribution.
+	target_link_libraries(Hippios PUBLIC SDL3::SDL3)
+endif()
+
 # Disable D3D11 and Win32 windows automatically on non-Windows
 if(NOT WIN32)
     set(HIPPIOS_USE_D3D11 OFF CACHE BOOL "Use DirectX11 renderer" FORCE)
@@ -101,32 +129,4 @@ endif()
 
 if(NOT DEFINED RHEA_FETCH_MISSING_DEPENDENCIES)
     option(RHEA_FETCH_MISSING_DEPENDENCIES "Download missing third-party dependencies" ON)
-endif()
-
-if (HIPPIOS_USE_SDL)
-
-	if(NOT TARGET SDL3::SDL3)
-		if (RHEA_FETCH_MISSING_DEPENDENCIES)
-			find_package(SDL3 CONFIG QUIET)
-
-			if(NOT TARGET SDL3::SDL3)
-				include(FetchContent)
-	        
-				FetchContent_Declare(
-					SDL3
-					GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
-					GIT_TAG release-3.4.12
-					GIT_SHALLOW    TRUE
-					GIT_PROGRESS   TRUE
-					SYSTEM
-					FIND_PACKAGE_ARGS CONFIG
-				)
-				FetchContent_MakeAvailable(SDL3)
-			endif()
-		else()
-			find_package(SDL3 CONFIG REQUIRED)
-		endif()
-	endif()
-	# use static version of SDL3 to avoid forcing users to have SDL3 dlls in their system. Also, we don't need dynamic features of SDL3, and static linking is simpler for distribution.
-	target_link_libraries(Hippios PUBLIC SDL3::SDL3)
 endif()

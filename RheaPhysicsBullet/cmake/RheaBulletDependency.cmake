@@ -54,11 +54,19 @@ function(rhea_require_bullet)
     )
 
     if(TARGET BulletDynamics)
+        if(BULLET_PHYSICS_SOURCE_DIR)
+            target_include_directories(
+                RheaBulletDependencies
+                INTERFACE
+                "${BULLET_PHYSICS_SOURCE_DIR}/src"
+            )
+        endif()
+
         target_link_libraries(
             RheaBulletDependencies
             INTERFACE
                 BulletDynamics
-                BulletSoftBody
+            BulletSoftBody
                 BulletCollision
                 LinearMath
         )

@@ -48,6 +48,7 @@
 #include <Rhea/EventInput.h>
 #include <Rhea/Core/Avatar.h>
 #include <Rhea/Resources/Resources.h>
+#include <Rhea/Resources/ResourceLibrary.h>
 #include <Rhea/Resources/Collection.h>
 #include <Rhea/Core/Shader.h>
 #include <Rhea/Core/WorldService.h>
@@ -178,6 +179,7 @@ namespace rhea
 		simpleparser::Type::registerType<Scene>("//meworla/scene");
 		m_resource_loader.registerLoader<SceneLoader>("application/vnd.meworla.scene");
 		simpleparser::Type::registerType<Resources>("//meworla/resources");
+		ResourceLibrary::_register_ResourceLibrary();
 		simpleparser::Type::registerType<Transform>("//meworla/transform");
 		Item::_register_Item();
 		simpleparser::Type::registerType<Mesh>("//meworla/mesh");				

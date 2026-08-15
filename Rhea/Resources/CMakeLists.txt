@@ -4,6 +4,6 @@ add_library (RheaResources "Resource.cpp" "ResourceService.cpp" "ResourceLoader.
 "TextResource.cpp" "Resources.cpp" "Collection.cpp" "VertexBuffer.cpp" 
  "VertexBufferStandard.cpp"  "VertexBufferSkeletal.cpp"
 "ImageResource.cpp" "CubeMap.cpp"
-"TextLoader.cpp")
+"TextLoader.cpp" "ResourceLibrary.cpp")
 
 target_link_libraries(RheaResources PRIVATE Meworla::Orion Rhea::Core)

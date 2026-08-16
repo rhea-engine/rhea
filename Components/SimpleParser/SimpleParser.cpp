@@ -137,8 +137,11 @@ namespace simpleparser
 					return Error::PARSE_OK;
 				}
 				break;
+			case '\'':
 			case '"':
 			{
+				char start_char = buf[reader];
+
 				reader++;
 				if (reader == buflen)
 					return Error::PARSE_UNTERMINATED_STRING;
@@ -147,7 +150,7 @@ namespace simpleparser
 				while (reader < buflen) {
 					char c = buf[reader++];
 
-					if (c == '"') {
+					if (c == start_char) {
 						token.value = value;
 						token.type = TokenType::TOKEN_STRING;
 						return Error::PARSE_OK;

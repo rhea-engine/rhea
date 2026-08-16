@@ -326,38 +326,36 @@ namespace rhea
 			return m_outer_size;
 
 		// apply modifiers
+		// inner_size is the size available for content (children)
+		// outer_size is the size added by modifiers (padding, border, etc)
 		for (auto it = m_modifiers.begin(); it < m_modifiers.end(); ++it) {
 			(*it)->apply(this, inner_size, m_size, outer_size, margin);
 		}
+		bool auto_width = m_size.x < 0.0f;
+		bool auto_height = m_size.y < 0.0f;
 
 		// get the content without modifiers from the concrete widget
-		Vector2 content_size = innerSize(inner_size);
+		Vector2 inrinsic_content_size = innerSize(inner_size);
 
 		// content size 
-		// is the resulting inner size (TODO handle overflow?)
-		m_content_size = content_size;
+		// is the resulting inner size
+		m_content_size = inrinsic_content_size;
 
 		// box size
-		// if m_size is set it is the size of the box
+		// if m_size is set it is the size of the box, if space remains, add it to resulting content size
 		// else we use the contents size and add extra space from padding and borders etc but not margin
-		m_size.x = (m_size.x >= 0.0f) ? m_size.x : content_size.x + outer_size.x;
-		m_size.y = (m_size.y >= 0.0f) ? m_size.y : content_size.y + outer_size.y;
+		if (!auto_width)
+			m_content_size.x = std::max(0.0f, m_size.x - outer_size.x);
+		else
+			m_size.x = inrinsic_content_size.x + outer_size.x;
+		if (!auto_height)
+			m_content_size.y = std::max(0.0f, m_size.y - outer_size.y);
+		else
+			m_size.y = inrinsic_content_size.y + outer_size.y;
 
 		// depending on box model?
 		// outer size is size plus margin
 		m_outer_size = m_size + margin;
-
-		// enlarge size and m_outer_size if child is larger than size;
-		float content_delta_x = content_size.x - m_size.x;
-		if (content_delta_x > 0.0f) {
-			m_size.x = content_size.x;
-			m_outer_size.x += content_delta_x;
-		}
-		float content_delta_y = content_size.y - m_size.y;
-		if (content_delta_y > 0.0f) {
-			m_size.y = content_size.y;
-			m_outer_size.y += content_delta_y;
-		}
 
 		// clamp report to the constraint size
 		if (m_outer_size.x > size_constraints.x)

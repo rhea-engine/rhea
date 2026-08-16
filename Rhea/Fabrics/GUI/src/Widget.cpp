@@ -1366,4 +1366,41 @@ namespace rhea
 		}			
 	}
 
+	void Widget::defineSlot(std::string name, bool multiple)
+	{
+		m_slots[name] = SlotDefinition{ multiple, {} };
+	}
+
+	void Widget::undefineSlot(std::string name)
+	{
+		m_slots.erase(name);
+	}
+
+	bool Widget::assignToSlot(std::string slot_name, Widget* child)
+	{
+		auto it = m_slots.find(slot_name);
+		if (it == m_slots.end() || !child) {
+			LOG(LOG_WARNING) << "Widget: " << getPathName() << " does not have a slot named '" << slot_name << "'";
+			return false;
+		}
+
+		if (!it->second.multiple && !it->second.contents.empty()) {
+			LOG(LOG_WARNING) << "Widget: " << getPathName() << " slot '" << slot_name << "' does not allow multiple children";
+			return false;
+		}
+
+		it->second.contents.push_back(child);
+		
+		return addToSlot(slot_name, child);		
+	}
+
+	bool Widget::addToSlot(std::string slot_name, Widget* child)
+	{
+		return addChild(child);
+	}
+	
+	bool Widget::removeFromSlot(std::string slot_name, Widget* child)
+	{
+		return removeChild(child);
+	}
 }

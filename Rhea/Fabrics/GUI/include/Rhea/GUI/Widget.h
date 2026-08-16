@@ -38,8 +38,7 @@ namespace rhea
 		 */
 		Widget(std::string path_name) :
 			Widget(path_name, "//meworla/gui/widget")
-		{
-		}
+		{ }
 
 		/**
 		 * @brief Constructs a Widget with a given path name and type name.
@@ -65,6 +64,7 @@ namespace rhea
 			m_essential_size_valid(false),
 			m_widget_states(0)
 		{
+			defineSlot("content", false);
 		}
 
 		~Widget() override;
@@ -237,179 +237,249 @@ namespace rhea
 		 */
 		void setAlignment(std::string justify_content, std::string align_items);
 
-		 /**
-		  * @brief Sets the styles of the widget.
-		  * @param styles The styles to set.
-		  */
-		 void setStyles(CssRuleSet& styles);
+		/**
+		 * @brief Sets the styles of the widget.
+		 * @param styles The styles to set.
+		 */
+		void setStyles(CssRuleSet& styles);
 
-		 /**
-		  * @brief Set the style using a css string that gets parsed into a rule set.
-		  */
-		 void setStyleValue(StylePropertyId id, std::string css_string);
+		/**
+		 * @brief Set the style using a css string that gets parsed into a rule set.
+		 */
+		void setStyleValue(StylePropertyId id, std::string css_string);
 
-		 /**
-		  * @brief Sets a style property of the widget.
-		  * @param id The style property ID.
-		  * @param value The style property value.
-		  */
-		 void setStyle(StylePropertyId id, std::vector<CssValue> value);
+		/**
+		 * @brief Sets a style property of the widget.
+		 * @param id The style property ID.
+		 * @param value The style property value.
+		 */
+		void setStyle(StylePropertyId id, std::vector<CssValue> value);
 
-		 /**
-		  * @brief Gets a style property of the widget.
-		  * @param style The style property ID.
-		  * @return The style property value.
-		  */
-		 const std::vector<CssValue>& getStyle(StylePropertyId style) const;
+		/**
+		 * @brief Gets a style property of the widget.
+		 * @param style The style property ID.
+		 * @return The style property value.
+		 */
+		const std::vector<CssValue>& getStyle(StylePropertyId style) const;
 
-		 /**
-		  * @brief Sets a style property of the widget using a string value.
-		  * @param id The style property ID.
-		  * @param value The string value.
-		  */
-		 void setStyle(StylePropertyId id, std::string value);
+		/**
+		 * @brief Sets a style property of the widget using a string value.
+		 * @param id The style property ID.
+		 * @param value The string value.
+		 */
+		void setStyle(StylePropertyId id, std::string value);
 
-		 /**
-		  * @brief Sets a style property of the widget using a numeric value.
-		  * @param id The style property ID.
-		  * @param value The numeric value.
-		  */
-		 void setStyle(StylePropertyId id, int value);
+		/**
+		 * @brief Sets a style property of the widget using a numeric value.
+		 * @param id The style property ID.
+		 * @param value The numeric value.
+		 */
+		void setStyle(StylePropertyId id, int value);
 
-		 /**
-		  * @brief Sets a style property of the widget using a dimension value.
-		  * @param id The style property ID.
-		  * @param value The numeric value.
-		  * @param dim The dimension unit.
-		  */
-		 void setStyle(StylePropertyId id, int value, std::string dim);
+		/**
+		 * @brief Sets a style property of the widget using a dimension value.
+		 * @param id The style property ID.
+		 * @param value The numeric value.
+		 * @param dim The dimension unit.
+		 */
+		void setStyle(StylePropertyId id, int value, std::string dim);
 
-		 /**
-		  * @brief Gets the CSS selector for the widget.
-		  * @return The CSS selector.
-		  */
-		 virtual const std::string getSelector() { return m_selector; }
-		 void setSelector(const std::string& selector) { m_selector = selector; }
+		/**
+		 * @brief Gets the CSS selector for the widget.
+		 * @return The CSS selector.
+		 */
+		virtual const std::string getSelector() { return m_selector; }
+		void setSelector(const std::string& selector) { m_selector = selector; }
 
-		 /**
-		  * @brief Gets the font size of the widget.
-		  * @return The font size.
-		  */
-		 float getFontSize() { return m_font_size; }
+		/**
+		 * @brief Gets the font size of the widget.
+		 * @return The font size.
+		 */
+		float getFontSize() { return m_font_size; }
 
-		 /**
-		  * @brief Sets the widget to be at the top level (not a child of another widget).
-		  * @param top True if the widget is at the top level, false otherwise.
-		  */
-		 void setToplevel(bool top) { m_top_window = top; }
+		/**
+		 * @brief Sets the widget to be at the top level (not a child of another widget).
+		 * @param top True if the widget is at the top level, false otherwise.
+		 */
+		void setToplevel(bool top) { m_top_window = top; }
 
-		 /**
-		  * @brief Shows the widget.
-		  */
-		 void show() override;
+		/**
+		 * @brief Shows the widget.
+		 */
+		void show() override;
 
-		 /**
-		  * @brief Makes the widget visible without sending an event.
-		  */
-		 void makeVisible();
+		/**
+		 * @brief Makes the widget visible without sending an event.
+		 */
+		void makeVisible();
 
-		 /**
-		  * @brief Hides the widget.
-		  */
-		 void hide() override;
+		/**
+		 * @brief Hides the widget.
+		 */
+		void hide() override;
 
-		 /**
-		  * @brief Makes the widget invisible without sending an event.
-		  */
-		 void makeInvisible();
+		/**
+		 * @brief Makes the widget invisible without sending an event.
+		 */
+		void makeInvisible();
 
-		 /**
-		  * @brief Captures the lowest widget at the given position.
-		  * @param x The x-coordinate.
-		  * @param y The y-coordinate.
-		  * @return The captured widget.
-		  */
-		 Widget* capture(int x, int y);
+		/**
+		 * @brief Captures the lowest widget at the given position.
+		 * @param x The x-coordinate.
+		 * @param y The y-coordinate.
+		 * @return The captured widget.
+		 */
+		Widget* capture(int x, int y);
 
-		 /**
-		  * @brief Gets the widget or widget parent that is focusable.
-		  * @return The focus target widget.
-		  */
-		 Widget* getFocusTarget();		 
+		/**
+		 * @brief Gets the widget or widget parent that is focusable.
+		 * @return The focus target widget.
+		 */
+		Widget* getFocusTarget();
 
-		 bool isTopLevel() const { return m_top_window; }
+		bool isTopLevel() const { return m_top_window; }
 
-		 math::Color getTextColor() const { return m_text_color; }
+		math::Color getTextColor() const { return m_text_color; }
 
-		 /**
-		  * @brief Sends a bound event to the widget.
-		  * @param binding The event binding.
-		  * @param ev The event instance.
-		  */
-		 void sendBoundEvent(std::string binding, Event* ev);
+		/**
+		 * @brief Sends a bound event to the widget.
+		 * @param binding The event binding.
+		 * @param ev The event instance.
+		 */
+		void sendBoundEvent(std::string binding, Event* ev);
 
-		 /**
-		  * @brief Sets a user pointer for the widget.
-		  * @param ptr The user pointer.
-		  */
-		 void setUserPtr(void* ptr) { m_user_ptr = ptr; }
+		/**
+		 * @brief Sets a user pointer for the widget.
+		 * @param ptr The user pointer.
+		 */
+		void setUserPtr(void* ptr) { m_user_ptr = ptr; }
 
-		 /**
-		  * @brief Gets the user pointer of the widget.
-		  * @return The user pointer.
-		  */
-		 void* getUserPtr() { return m_user_ptr; }
+		/**
+		 * @brief Gets the user pointer of the widget.
+		 * @return The user pointer.
+		 */
+		void* getUserPtr() { return m_user_ptr; }
 
-		 /**
-		  * @brief Enum class representing the various states a widget can have.
-		  */
-		 enum class WidgetState {
-			 kNormal = 0,
-			 kHover = 1 << 0,
-			 kActive = 1 << 1,
-			 kFocus = 1 << 2,
-			 kDisabled = 1 << 3,
-			 kDefault = 1 << 4
-		 };
+		/**
+		 * @brief Enum class representing the various states a widget can have.
+		 */
+		enum class WidgetState {
+			kNormal = 0,
+			kHover = 1 << 0,
+			kActive = 1 << 1,
+			kFocus = 1 << 2,
+			kDisabled = 1 << 3,
+			kDefault = 1 << 4
+		};
 
-		 /**
-		  * @brief Sets the state of the widget.
-		  * @param state The state to set.
-		  * @param enable True to enable the state, false to disable it.
-		  */
-		 void setWidgetState(WidgetState state, bool enable);
+		/**
+		 * @brief Sets the state of the widget.
+		 * @param state The state to set.
+		 * @param enable True to enable the state, false to disable it.
+		 */
+		void setWidgetState(WidgetState state, bool enable);
 
-		 /**
-		  * @brief Checks if the widget has a specific state.
-		  * @param state The state to check.
-		  * @return True if the widget has the state, false otherwise.
-		  */
-		 bool hasWidgetState(WidgetState state) const { return (m_widget_states & static_cast<int>(state)) != 0; }
+		/**
+		 * @brief Checks if the widget has a specific state.
+		 * @param state The state to check.
+		 * @return True if the widget has the state, false otherwise.
+		 */
+		bool hasWidgetState(WidgetState state) const { return (m_widget_states & static_cast<int>(state)) != 0; }
 
-		 /**
-		  * @brief Gets the current widget states bitmask.
-		  * @return The widget states bitmask.
-		  */
-		 int getWidgetStates() const { return m_widget_states; }
+		/**
+		 * @brief Gets the current widget states bitmask.
+		 * @return The widget states bitmask.
+		 */
+		int getWidgetStates() const { return m_widget_states; }
 
-		 virtual bool isFocusable() const { return false; }
-		 virtual bool acceptsTextInput() const { return false; }
-		 virtual bool isTabStop() const { return isFocusable(); }
+		virtual bool isFocusable() const { return false; }
+		virtual bool acceptsTextInput() const { return false; }
+		virtual bool isTabStop() const { return isFocusable(); }
 
-		 bool hasFocus() const { return (m_widget_states & static_cast<int>(WidgetState::kFocus)) != 0; }
+		bool hasFocus() const { return (m_widget_states & static_cast<int>(WidgetState::kFocus)) != 0; }
 
-		 bool isDefault() const { return (m_widget_states & static_cast<int>(WidgetState::kDefault)) != 0; }
+		bool isDefault() const { return (m_widget_states & static_cast<int>(WidgetState::kDefault)) != 0; }
 
-		 // Flag for Runtime-State (Disabled/Enabled)
-		 void setEnabled(bool enabled) { 
-			 setWidgetState(WidgetState::kDisabled, !enabled); 
-		 }
+		// Flag for Runtime-State (Disabled/Enabled)
+		void setEnabled(bool enabled) {
+			setWidgetState(WidgetState::kDisabled, !enabled);
+		}
 
-		 bool isEnabled() const { 
-			 return !hasWidgetState(WidgetState::kDisabled); 
-		 }
+		bool isEnabled() const {
+			return !hasWidgetState(WidgetState::kDisabled);
+		}
 
-		 virtual void dumpDebugInfo(int indent = 0);
+		virtual void dumpDebugInfo(int indent = 0);
+
+		// slot definitions
+		struct SlotDefinition
+		{
+			bool multiple = false;
+			std::vector<Widget*> contents;
+		};
+
+		// define a slot container
+		void defineSlot(std::string name, bool multiple = false);
+		// undefine a slot container
+		void undefineSlot(std::string name);
+
+		// widget specific handler to add content to a slot container
+		virtual bool addToSlot(std::string slot_name, Widget* child);
+		// remove content from a slot container
+		virtual bool removeFromSlot(std::string slot_name, Widget* child);
+
+		// assign content to a slot container (removes from other slots) and call addToSlot
+		bool assignToSlot(std::string slot_name, Widget* child);
+		
+		// get all slot contents for a given slot name
+		const std::vector<Widget*>& slotContents(std::string_view slot) const {
+			static std::vector<Widget*> empty;
+			auto it = m_slots.find(std::string(slot));
+			if (it != m_slots.end())
+				return it->second.contents;
+			return empty;
+		}
+
+		// has this slot content?
+		bool hasSlotContent(std::string slot) const {
+			auto it = m_slots.find(std::string(slot));
+			if (it != m_slots.end())
+				return !it->second.contents.empty();
+			return false;
+		}
+
+		// helper functions for easier setup
+		template<class T>
+		T* emplaceChild(std::string name, std::unordered_map<std::string, std::string> attributes = {}, std::unordered_map<std::string, Variant> values = {})
+		{
+			T* child = simpleparser::Type::create<T>(std::move(name));
+
+			if (!child)
+				return nullptr;
+
+			child->setup(m_app, std::move(attributes), std::move(values));
+
+			if (!addChild(child)) {
+				child->destroy();
+				return nullptr;
+			}
+
+			return child;
+		}
+
+		template<class T>
+		T* emplaceContent(std::string name, std::string slot = "content", std::unordered_map<std::string, std::string> attributes = {}, std::unordered_map<std::string, Variant> values = {})
+		{
+			T* child = emplaceChild<T>(std::move(name), std::move(attributes), std::move(values));
+
+			if (!child)
+				return nullptr;
+
+			// Assign the child to the specified slot
+			assignToSlot(slot, child);
+
+			return child;
+		}
 
 	protected:
 
@@ -509,6 +579,9 @@ namespace rhea
 
 		// Event handler cache
 		std::string m_onClick;
+
+		// slot containers
+		std::unordered_map<std::string, SlotDefinition> m_slots;
 
 		// Widget states bitmask
 		int m_widget_states;

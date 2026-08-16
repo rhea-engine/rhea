@@ -17,18 +17,7 @@ namespace rhea
 
 	void Button::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{
-		Widget::setup(app, attributes, values);
-
-		std::unordered_map<std::string, std::string> attr;
-		std::unordered_map<std::string, Variant> val;
-
-		val["text"] = getValue("text", "");
-		if (m_values.find("font") != m_values.end())
-			val["font"] = getValue("font");
-
-		// add a label
-		m_label = (Label*)m_app->getUnitTree()->createUnit(getPathName() + "_label", "//meworla/gui/label", attr, val);
-		addChild(m_label);
+		Widget::setup(app, attributes, values);		
 
 		if (!m_alignment)
 			m_alignment = std::make_unique<LayoutAlignment>(LayoutAlignment::JustifyContent::CENTER, Alignment::AlignItems::CENTER);
@@ -36,6 +25,7 @@ namespace rhea
 
 	void Button::setText(std::string text)
 	{
+		m_default_label_text = text;
 		if (m_label)
 			m_label->setText(text);
 	}
@@ -100,32 +90,61 @@ namespace rhea
 
 	void Button::onSetPosition()
 	{
-		// for now we assume only one child is possible
-		// currently the label
+		const auto& content = slotContents("content");
+		if (content.empty())
+			return;
 
-		// Calculate the anchor position for the label
+		// button does only handle one child
+		Widget* child = content.front();
+		if (!child)
+			return;
+
+		// Calculate the anchor position for the child
 		// This is the top-left of the content area
-		Vector2 label_anchor = m_position + m_content_position;
-		
-		if (m_child_alignment)
-		{
-			// Apply alignment to calculate offset within content area
-			Vector2 labelOuterSize = m_label->getOuterSize();
-			m_child_alignment->apply(m_size, labelOuterSize, label_anchor);
-		}
+		Vector2 child_anchor = m_position + m_content_position;
+		Vector2 child_size = child->getOuterSize();
 
 		if (m_alignment)
 		{
-			// Apply alignment to calculate offset within content area
-			Vector2 labelOuterSize = m_label->getOuterSize();
-			AxisLayout layout = m_alignment->justify(m_size.x, labelOuterSize.x, 1);
-			label_anchor.x += layout.offset;
-			float align_layout = m_alignment->align(m_size.y, labelOuterSize.y);
-			label_anchor.y += align_layout;
+			// Apply alignment to calculate offset within content area			
+			AxisLayout horizontal = m_alignment->justify(m_content_size.x, child_size.x, 1);
+			child_anchor.x += horizontal.offset;
+			float align_layout = m_alignment->align(m_content_size.y, child_size.y);
+			child_anchor.y += align_layout;
 		}
 
 		// setPosition expects an anchor position
 		// The label's base_position (if any) will be added inside setPosition()
-		m_label->setPosition(label_anchor);
+		child->setPosition(child_anchor);
+	}
+
+	void Button::createDefaultContent()
+	{
+		if (!hasSlotContent("content"))
+			createDefaultLabel();
+	}
+
+	void Button::createDefaultLabel()
+	{
+		if (m_label)
+			return;
+
+		std::unordered_map<std::string, Variant> val;
+		val["text"] = getValue("text", "");
+		if (m_values.find("font") != m_values.end())
+			val["font"] = getValue("font");
+
+		// add a label
+		m_label = m_app->getUnitTree()->createUnit<Label>(getPathName() + "_label", {}, val);
+		if (!m_label) {
+			LOG(LOG_ERROR) << "Button: Failed to create default label";
+			return;
+		}
+		
+		assignToSlot("content", m_label);
+
+		if (m_default_label_text != "")
+			m_label->setText(m_default_label_text);
+
 	}
 }

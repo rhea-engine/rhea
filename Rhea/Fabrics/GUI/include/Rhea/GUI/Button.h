@@ -42,8 +42,12 @@ namespace rhea
 
 		virtual bool isFocusable() const override { return true; }
 
+		void createDefaultContent() override;
+
 	protected:
 		Label* m_label;
+		void createDefaultLabel();
+		std::string m_default_label_text;
 	};
 }
 

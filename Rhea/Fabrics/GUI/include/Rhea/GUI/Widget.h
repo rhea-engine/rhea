@@ -481,6 +481,11 @@ namespace rhea
 			return child;
 		}
 
+		// composing default content and layout
+		virtual void createDefaultContent() {}
+		virtual bool buildDefaultLayout() { return true; }
+		virtual bool bindLayout(Widget* root) { return true; }
+
 	protected:
 
 		/**
@@ -582,6 +587,11 @@ namespace rhea
 
 		// slot containers
 		std::unordered_map<std::string, SlotDefinition> m_slots;
+
+		// composed state
+		bool ensureComposed();
+		void distributeSlotContent();
+		bool m_composed = false;
 
 		// Widget states bitmask
 		int m_widget_states;

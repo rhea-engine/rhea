@@ -151,6 +151,11 @@ namespace rhea
 
 	void Widget::ready()
 	{
+		if (!ensureComposed()) {
+			LOG(LOG_ERROR) << "Failed to compose widget " << getPath();
+			return;
+		}
+
 		// prepare material
 		Item2D::ready();
 
@@ -1402,5 +1407,32 @@ namespace rhea
 	bool Widget::removeFromSlot(std::string slot_name, Widget* child)
 	{
 		return removeChild(child);
+	}
+
+	bool Widget::ensureComposed()
+	{
+		if (m_composed)
+			return true;
+
+		createDefaultContent();
+
+		if (!buildDefaultLayout())
+			return false;
+
+		distributeSlotContent();
+
+		m_composed = true;
+		return true;
+	}
+
+	void Widget::distributeSlotContent()
+	{
+		for (auto& [name, definition] : m_slots) {
+			// copy, because addToSlot() can reparent.
+			auto contents = definition.contents;
+
+			for (Widget* child : contents)
+				addToSlot(name, child);
+		}
 	}
 }

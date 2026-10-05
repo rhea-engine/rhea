@@ -15,17 +15,14 @@ namespace rhea
 {
 	class Button : public Widget
 	{
-		MECLASS(Button, Widget)
+		RECLASS(Button, Widget, "//meworla/gui/button")
 	public:
-		Button(std::string path_name) :
-			Button(path_name, "//meworla/gui/button")
-		{}
 		Button(std::string path_name, std::string type_name) :
 			Widget(path_name, type_name),
 			m_label(nullptr)
 		{}
 
-		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
+		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);		
 
 		void setText(std::string text);
 
@@ -35,15 +32,19 @@ namespace rhea
 		bool onKeyPressed(Event* ev, Unit* unit) override;
 
 		// sizing
-		void onSetPosition();
+		void onSetPosition() override;
 
 		// styling
 		const std::string getSelector() { return "Button"; }
 
 		virtual bool isFocusable() const override { return true; }
 
+		void createDefaultContent() override;
+
 	protected:
 		Label* m_label;
+		void createDefaultLabel();
+		std::string m_default_label_text;
 	};
 }
 

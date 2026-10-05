@@ -24,6 +24,7 @@
 #include <Rhea/Text/TextWidget.h>
 #include <Rhea/GUI/Spacer.h>
 #include <Rhea/GUI/ScrollView.h>
+#include <Rhea/GUI/Toolbar.h>
 
 namespace rhea
 {
@@ -42,10 +43,11 @@ namespace rhea
 		// basic widgets
 		simpleparser::Type::registerType<Label>("//meworla/gui/label");
 		simpleparser::Type::registerType<TextInput>("//meworla/gui/textinput");
-		simpleparser::Type::registerType<Button>("//meworla/gui/button");
+		Button::_register_Button();
 		simpleparser::Type::registerType<Dialog>("//meworla/gui/dialog");
 		simpleparser::Type::registerType<ListWidget>("//meworla/gui/list");
 		simpleparser::Type::registerType<ListWidgetItem>("//meworla/gui/listitem");
+		Toolbar::_register_Toolbar();
 
 		// general gui types
 		simpleparser::Type::registerType<GUIController>("//meworla/gui");

@@ -126,6 +126,7 @@ namespace rhea
 
 		// find child with given name
 		Component* getChild(std::string name);
+		Component* getChild(std::string name) const;
 
 		// find by path
 		Component* find(std::string path, bool create = false);

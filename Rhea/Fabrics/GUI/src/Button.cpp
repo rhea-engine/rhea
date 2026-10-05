@@ -19,9 +19,12 @@ namespace rhea
 	{
 		Widget::setup(app, attributes, values);		
 
+		if (m_values.find("text") != m_values.end())
+			m_default_label_text = getValueString("text");
+
 		if (!m_alignment)
 			m_alignment = std::make_unique<LayoutAlignment>(LayoutAlignment::JustifyContent::CENTER, Alignment::AlignItems::CENTER);
-	}
+	}	
 
 	void Button::setText(std::string text)
 	{
@@ -130,7 +133,7 @@ namespace rhea
 			return;
 
 		std::unordered_map<std::string, Variant> val;
-		val["text"] = getValue("text", "");
+		val["text"] = m_default_label_text;
 		if (m_values.find("font") != m_values.end())
 			val["font"] = getValue("font");
 

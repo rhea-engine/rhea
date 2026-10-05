@@ -43,7 +43,7 @@ namespace rhea
 		// basic widgets
 		simpleparser::Type::registerType<Label>("//meworla/gui/label");
 		simpleparser::Type::registerType<TextInput>("//meworla/gui/textinput");
-		simpleparser::Type::registerType<Button>("//meworla/gui/button");
+		Button::_register_Button();
 		simpleparser::Type::registerType<Dialog>("//meworla/gui/dialog");
 		simpleparser::Type::registerType<ListWidget>("//meworla/gui/list");
 		simpleparser::Type::registerType<ListWidgetItem>("//meworla/gui/listitem");

@@ -8,6 +8,7 @@ if(TARGET GTest::gtest)
     #add_executable(SimpleParser_Compile_test "tests/SimpleParser.compile.cpp" "Variant.cpp" "Type.cpp" "Method.cpp")
 
     add_executable(SimpleParser_test "tests/SimpleParser.test.cpp")
+    target_include_directories(SimpleParser_test PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}")
     target_link_libraries(SimpleParser_test 
         PRIVATE 
         SimpleParser

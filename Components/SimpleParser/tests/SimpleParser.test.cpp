@@ -207,6 +207,67 @@ namespace simpleparser
 		EXPECT_EQ(static_cast<std::string>(token.value), "Hello World");
 	}
 
+	TEST(SimpleParserTest, QuotedStringDelimitersAndEscapes)
+	{
+		struct TestCase {
+			std::string input;
+			std::string expected;
+		};
+		TestCase cases[] = {
+			{"'Hello World'", "Hello World"},
+			{"''", ""},
+			{"\"\"", ""},
+			{"'say \"hello\"'", "say \"hello\""},
+			{"\"it's valid\"", "it's valid"},
+			{R"('it\'s valid')", "it's valid"},
+			{R"("say \"hello\"")", "say \"hello\""},
+			{R"('path\\file\n\r\t')", "path\\file\n\r\t"},
+			{R"("path\\file\n\r\t")", "path\\file\n\r\t"},
+		};
+		for (auto& test_case : cases) {
+			SCOPED_TRACE(test_case.input);
+			SimpleParser parser;
+			size_t reader = 0;
+			int line = 1;
+			Token token;
+			ASSERT_EQ(parser.nextToken(test_case.input.data(), reader, test_case.input.size(), line, token, false),
+				SimpleParser::Error::PARSE_OK);
+			EXPECT_EQ(token.type, TokenType::TOKEN_STRING);
+			EXPECT_EQ(static_cast<std::string>(token.value), test_case.expected);
+			EXPECT_EQ(reader, test_case.input.size());
+		}
+	}
+
+	TEST(SimpleParserTest, UnterminatedQuotedStrings)
+	{
+		std::string cases[] = {"'", "\"", "'unterminated", "\"unterminated", "'mismatched\"", "\"mismatched'", "'trailing\\", "\"trailing\\"};
+		for (auto& input : cases) {
+			SCOPED_TRACE(input);
+			SimpleParser parser;
+			size_t reader = 0;
+			int line = 1;
+			Token token;
+			EXPECT_EQ(parser.nextToken(input.data(), reader, input.size(), line, token, false),
+				SimpleParser::Error::PARSE_UNTERMINATED_STRING);
+		}
+	}
+
+	TEST(SimpleParserTest, AdjacentQuotedStrings)
+	{
+		std::string input = "'first'\"second\"";
+		SimpleParser parser;
+		size_t reader = 0;
+		int line = 1;
+		Token token;
+		ASSERT_EQ(parser.nextToken(input.data(), reader, input.size(), line, token, false), SimpleParser::Error::PARSE_OK);
+		EXPECT_EQ(static_cast<std::string>(token.value), "first");
+		EXPECT_EQ(reader, 7u);
+		ASSERT_EQ(parser.nextToken(input.data(), reader, input.size(), line, token, false), SimpleParser::Error::PARSE_OK);
+		EXPECT_EQ(token.type, TokenType::TOKEN_STRING);
+		EXPECT_EQ(static_cast<std::string>(token.value), "second");
+		EXPECT_EQ(reader, input.size());
+	}
+
 	TEST(SimpleParserTest, TokenizeOperators)
 	{
 		struct TestCase {
@@ -301,7 +362,7 @@ namespace simpleparser
 		
 		auto err = parser.nextToken(const_cast<char*>(input.c_str()), reader, input.length(), line, token, false);
 		
-		EXPECT_EQ(err, SimpleParser::Error::PARSE_ERR);
+		EXPECT_EQ(err, SimpleParser::Error::PARSE_UNTERMINATED_STRING);
 	}
 
 	// ========================================
@@ -319,19 +380,17 @@ namespace simpleparser
 			"key3=3.14\n";
 		
 		IniFileParser parser;
-		auto result = parser.parse(const_cast<char*>(ini.c_str()), ini.length());
+		std::vector<IniFileParser::Section> sections;
+		EXPECT_EQ(parser.parse(ini.data(), ini.size(), sections), 2);
 		
-		EXPECT_EQ(result.error, IniFileParser::Error::OK);
-		EXPECT_EQ(result.sections.size(), 2);
-		
-		EXPECT_TRUE(result.sections.find("Section1") != result.sections.end());
-		EXPECT_TRUE(result.sections.find("Section2") != result.sections.end());
-		
-		auto& section1 = result.sections["Section1"];
+		ASSERT_EQ(sections.size(), 2u);
+		EXPECT_EQ(sections[0].section_name, "Section1");
+		EXPECT_EQ(sections[1].section_name, "Section2");
+		auto& section1 = sections[0].values;
 		EXPECT_EQ(static_cast<std::string>(section1["key1"]), "value1");
 		EXPECT_EQ(static_cast<int>(section1["key2"]), 42);
 		
-		auto& section2 = result.sections["Section2"];
+		auto& section2 = sections[1].values;
 		EXPECT_FLOAT_EQ(static_cast<float>(section2["key3"]), 3.14f);
 	}
 
@@ -344,16 +403,33 @@ namespace simpleparser
 			"key=value\n";
 		
 		IniFileParser parser;
-		auto result = parser.parse(const_cast<char*>(ini.c_str()), ini.length());
+		std::vector<IniFileParser::Section> sections;
+		EXPECT_EQ(parser.parse(ini.data(), ini.size(), sections), 1);
 		
-		EXPECT_EQ(result.error, IniFileParser::Error::OK);
-		EXPECT_EQ(result.sections.size(), 1);
-		EXPECT_EQ(static_cast<std::string>(result.sections["Section"]["key"]), "value");
+		ASSERT_EQ(sections.size(), 1u);
+		EXPECT_EQ(sections[0].section_name, "Section");
+		EXPECT_EQ(static_cast<std::string>(sections[0].values["key"]), "value");
 	}
 
 	// ========================================
 	// CssParser Tests (Basic)
 	// ========================================
+
+	TEST(CssParserTest, ParseQuotedUrl)
+	{
+		for (const std::string& input : {std::string("url('//gui_sandbox/plus.png')"), std::string("url(\"//gui_sandbox/plus.png\")")}) {
+			SCOPED_TRACE(input);
+			CssParser parser;
+			std::vector<CssParser::Property> properties;
+			ASSERT_TRUE(parser.ParsePropertyValue(input, properties));
+			ASSERT_EQ(properties.size(), 2u);
+			EXPECT_EQ(properties[0].id, CssParser::PropertyId::kFunction);
+			EXPECT_EQ(properties[0].value.toString(), "url");
+			EXPECT_EQ(properties[1].id, CssParser::PropertyId::kString);
+			EXPECT_EQ(properties[1].anchestor, 0);
+			EXPECT_EQ(properties[1].value.toString(), "//gui_sandbox/plus.png");
+		}
+	}
 
 	TEST(CssParserTest, ParseSimpleCss)
 	{
@@ -364,13 +440,18 @@ namespace simpleparser
 			"}\n";
 		
 		CssParser parser;
-		auto result = parser.parse(const_cast<char*>(css.c_str()), css.length());
-		
-		EXPECT_EQ(result.error, CssParser::Error::OK);
-		EXPECT_TRUE(result.rules.find(".class1") != result.rules.end());
-		
-		auto& rule = result.rules[".class1"];
-		EXPECT_EQ(static_cast<std::string>(rule["property1"]), "value1");
+		std::vector<CssParser::Entry> entries;
+		EXPECT_EQ(parser.parse(css.data(), css.size(), entries), 1);
+
+		ASSERT_EQ(entries.size(), 1u);
+		ASSERT_EQ(entries[0].selector.size(), 1u);
+		ASSERT_EQ(entries[0].selector[0].sequence.size(), 1u);
+		EXPECT_EQ(entries[0].selector[0].sequence[0].type, CssParser::SimpleSelectorType::kClass);
+		EXPECT_EQ(entries[0].selector[0].sequence[0].name, "class1");
+		auto& properties = entries[0].properties;
+		ASSERT_EQ(properties.count("property1"), 1u);
+		ASSERT_EQ(properties.at("property1").size(), 1u);
+		EXPECT_EQ(properties.at("property1")[0].value.toString(), "value1");
 	}
 
 	// ========================================

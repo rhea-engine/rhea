@@ -115,13 +115,15 @@ namespace rhea
 		if (m_font == font)
 			return;
 
-		m_font = font;		
-
-		if (m_font) {
-			m_font->ready();
-			Material* font_material = m_font->getMaterial();
+		if (font) {
+			font->ready();
+			Material* font_material = font->getMaterial();
 			if (!font_material) {
-				LOG(LOG_ERROR) << "TextWidget: Font '" << m_font->getPathName() << "' has no material";
+				LOG(LOG_ERROR) << "TextWidget: Font '" << font->getPathName() << "' has no material";
+				return;
+			}
+			if (!font_material->getShader()) {
+				LOG(LOG_ERROR) << "TextWidget: Font '" << font->getPathName() << "' has no shader";
 				return;
 			}
 			if (!m_text_material) {
@@ -166,6 +168,8 @@ namespace rhea
 			}
 		}
 
+		// Commit the font only after validation so failed assignments can be retried.
+		m_font = font;
 		markTextDirty();
 	}
 	

@@ -120,6 +120,10 @@ namespace rhea
 		if (m_font) {
 			m_font->ready();
 			Material* font_material = m_font->getMaterial();
+			if (!font_material) {
+				LOG(LOG_ERROR) << "TextWidget: Font '" << m_font->getPathName() << "' has no material";
+				return;
+			}
 			if (!m_text_material) {
 				// TODO(text): Cache immutable materials by font and color so widgets
 				// with the same style can share one. Vertex color is a possible

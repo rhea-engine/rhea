@@ -415,7 +415,7 @@ namespace rhea
 		struct SlotDefinition
 		{
 			bool multiple = false;
-			std::vector<Widget*> contents;
+			std::vector<std::string> content_names;
 		};
 
 		// define a slot container
@@ -427,26 +427,37 @@ namespace rhea
 		virtual bool addToSlot(std::string slot_name, Widget* child);
 		// remove content from a slot container
 		virtual bool removeFromSlot(std::string slot_name, Widget* child);
+		// resolve a widget from a slot container
+		virtual Widget* resolveSlotWidget(std::string_view slot_name, std::string_view content_name) const;
 
-		// assign content to a slot container (removes from other slots) and call addToSlot
+		// assign content to a slot container and call addToSlot
+		// To move content between slots, first call unassignFromSlot() and then assignToSlot().
 		bool assignToSlot(std::string slot_name, Widget* child);
-		
+
+		// remove content from slot
+		bool unassignFromSlot(std::string slot_name, Widget* child);
+
 		// get all slot contents for a given slot name
-		const std::vector<Widget*>& slotContents(std::string_view slot) const {
-			static std::vector<Widget*> empty;
-			auto it = m_slots.find(std::string(slot));
-			if (it != m_slots.end())
-				return it->second.contents;
-			return empty;
+		std::vector<Widget*> slotContents(std::string_view slot_name) const {
+			std::vector<Widget*> contents;
+
+			auto it = m_slots.find(std::string(slot_name));
+			if (it == m_slots.end())
+				return contents;
+
+			contents.reserve(it->second.content_names.size());
+
+			for (const auto& name : it->second.content_names) {
+				Widget* child = resolveSlotWidget(slot_name, name);
+				if (child)
+					contents.push_back(child);
+			}
+
+			return contents;			
 		}
 
 		// has this slot content?
-		bool hasSlotContent(std::string slot) const {
-			auto it = m_slots.find(std::string(slot));
-			if (it != m_slots.end())
-				return !it->second.contents.empty();
-			return false;
-		}
+		bool hasSlotContent(std::string_view slot) const;
 
 		// helper functions for easier setup
 		template<class T>
@@ -476,7 +487,11 @@ namespace rhea
 				return nullptr;
 
 			// Assign the child to the specified slot
-			assignToSlot(slot, child);
+			if (!assignToSlot(slot, child)) {
+				child->detachFromParent();
+				child->destroy();
+				return nullptr;
+			}
 
 			return child;
 		}
@@ -637,4 +652,4 @@ namespace rhea
 	};
 }
 
-#endif // !RHEA_GUI_WINDOW_H
+#endif // !RHEA_GUI_WIDGET_H

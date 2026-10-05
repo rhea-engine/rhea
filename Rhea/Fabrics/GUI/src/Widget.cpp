@@ -38,8 +38,7 @@
 namespace rhea
 {
 	Widget::~Widget()
-	{		
-	}
+	{}
 
 	void Widget::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{
@@ -185,8 +184,8 @@ namespace rhea
 	}
 
 	void Widget::setOnClicked(const std::string& target)
-	{		
-		m_onClick = target;	
+	{
+		m_onClick = target;
 	}
 
 	bool Widget::onClicked(Event* ev, Unit* unit)
@@ -296,7 +295,7 @@ namespace rhea
 			invalidateRender();
 		}
 	}
-	
+
 	void Widget::onSetPosition()
 	{
 		for (auto it = m_children.begin(); it != m_children.end(); ++it) {
@@ -624,7 +623,7 @@ namespace rhea
 				break;
 			}
 			case StylePropertyId::kAlignItems:
-				{
+			{
 				std::string align_items = values[0].value.toString();
 				if (!m_alignment)
 					m_alignment = std::make_unique<LayoutAlignment>(LayoutAlignment::JustifyContent::START, Alignment::AlignItems::START);
@@ -704,7 +703,7 @@ namespace rhea
 			}
 		}
 
-		ApplyTextureSizing();		
+		ApplyTextureSizing();
 
 		recreateModifiers(base_position, base_size, position_types);
 
@@ -1105,7 +1104,7 @@ namespace rhea
 		// if we are not a top window we try our parents
 		if (!m_top_window) {
 			Widget* parent_widget = doCast<Widget>(m_parent);
-			while(parent_widget) {
+			while (parent_widget) {
 				if (parent_widget->isFocusable())
 					return parent_widget;
 				parent_widget = doCast<Widget>(parent_widget->m_parent);
@@ -1157,7 +1156,7 @@ namespace rhea
 
 	void Widget::clearLayoutDirtyRecursive()
 	{
-		m_layout_dirty = false;		
+		m_layout_dirty = false;
 
 		for (auto it = m_children.begin(); it != m_children.end(); ++it) {
 			Widget* w = doCast<Widget>(it->second);
@@ -1172,7 +1171,7 @@ namespace rhea
 		// Mouse Enter/Leave for :hover
 
 		registerEventHandler("mouse_enter", this, [this](Event* e, Unit* u)->bool {
-			return handleMouseEnter(e, u);			
+			return handleMouseEnter(e, u);
 			});
 		registerEventHandler("mouse_leave", this, [this](Event* e, Unit* u)->bool {
 			return handleMouseLeave(e, u);
@@ -1184,10 +1183,10 @@ namespace rhea
 			return handleMousePressed(e, u);
 			});
 		registerEventHandler("mouse_btn_up", this, [this](Event* e, Unit* u)->bool {
-			return handleMouseReleased(e, u);			
+			return handleMouseReleased(e, u);
 			});
 
-		registerEventHandler("mouse_click", this, [this](Event* e, Unit* u)->bool {			
+		registerEventHandler("mouse_click", this, [this](Event* e, Unit* u)->bool {
 			return onMouseClicked(e, u);
 			});
 
@@ -1368,7 +1367,7 @@ namespace rhea
 			if (w) {
 				w->dumpDebugInfo(indent + 2);
 			}
-		}			
+		}
 	}
 
 	void Widget::defineSlot(std::string name, bool multiple)
@@ -1389,24 +1388,87 @@ namespace rhea
 			return false;
 		}
 
-		if (!it->second.multiple && !it->second.contents.empty()) {
+		// remove dangling content names that are no longer children of this widget
+		auto& names = it->second.content_names;
+		names.erase(
+			std::remove_if(names.begin(), names.end(), [&](const std::string& name) {
+				return resolveSlotWidget(slot_name, name) == nullptr;
+				}),
+			names.end());
+
+		const std::string child_name = child->getPathName();
+		if (std::find(names.begin(), names.end(), child_name) != names.end())
+			return true; // already assigned to this slot
+
+		// check if we may add this child to the slot (if multiple is false, we can only have one child in the slot)
+		if (!it->second.multiple && !it->second.content_names.empty()) {
 			LOG(LOG_WARNING) << "Widget: " << getPathName() << " slot '" << slot_name << "' does not allow multiple children";
 			return false;
 		}
 
-		it->second.contents.push_back(child);
-		
-		return addToSlot(slot_name, child);		
+		it->second.content_names.push_back(child_name);
+
+		bool ret = addToSlot(slot_name, child);
+		if (!ret) {
+			LOG(LOG_WARNING) << "Widget: " << getPathName() << " failed to add child '" << child_name << "' to slot '" << slot_name << "'";
+			// remove from slot contents if addToSlot failed
+			it->second.content_names.pop_back();
+		}
+		invalidateLayout();
+		return ret;
+	}
+
+	bool Widget::unassignFromSlot(std::string slot_name, Widget* child)
+	{
+		auto it = m_slots.find(slot_name);
+		if (it == m_slots.end() || !child) {
+			LOG(LOG_WARNING) << "Widget: " << getPathName() << " does not have a slot named '" << slot_name << "'";
+			return false;
+		}
+		auto& content_names = it->second.content_names;
+		auto child_it =
+			std::find(content_names.begin(), content_names.end(), child->getPathName());
+
+		if (child_it == content_names.end())
+			return false;
+
+		if (!removeFromSlot(slot_name, child))
+			return false;
+
+		content_names.erase(child_it);
+		invalidateLayout();
+		return true;
+	}
+
+	Widget* Widget::resolveSlotWidget(std::string_view slot_name, std::string_view content_name) const
+	{
+		Widget* result = nullptr;
+		result = doCast<Widget>(getChild(std::string(content_name)));
+		return result;
 	}
 
 	bool Widget::addToSlot(std::string slot_name, Widget* child)
 	{
-		return addChild(child);
+		return child && (child->getParent() == this || addChild(child));
 	}
-	
+
 	bool Widget::removeFromSlot(std::string slot_name, Widget* child)
 	{
 		return removeChild(child);
+	}
+
+	bool Widget::hasSlotContent(std::string_view slot_name) const
+	{
+		auto it = m_slots.find(std::string(slot_name));
+		if (it == m_slots.end())
+			return false;
+
+		for (const auto& name : it->second.content_names) {
+			if (resolveSlotWidget(slot_name, name))
+				return true;
+		}
+
+		return false;
 	}
 
 	bool Widget::ensureComposed()
@@ -1429,10 +1491,13 @@ namespace rhea
 	{
 		for (auto& [name, definition] : m_slots) {
 			// copy, because addToSlot() can reparent.
-			auto contents = definition.contents;
+			auto content_names = definition.content_names;
 
-			for (Widget* child : contents)
-				addToSlot(name, child);
+			for (const auto& child_name : content_names) {
+				Widget* child = doCast<Widget>(getChild(child_name));
+				if (child)
+					addToSlot(name, child);
+			}
 		}
 	}
 }

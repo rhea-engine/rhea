@@ -245,6 +245,15 @@ namespace rhea
 		return nullptr;
 	}
 
+	Component* Unit::getChild(std::string name) const
+	{
+		auto it = m_children.find(name);
+		if (it != m_children.end()) {
+			return it->second;
+		}
+		return nullptr;
+	}
+
 	void Unit::setName(std::string name)
 	{
 		m_path = name;

@@ -31,6 +31,8 @@ namespace rhea
 		math::Vector2 innerSize(math::Vector2 size_constraints) override;
 
 		bool addToSlot(std::string slot, Widget* child) override;
+		bool removeFromSlot(std::string slot, Widget* child) override;
+		Widget* resolveSlotWidget(std::string_view slot_name, std::string_view content_name) const override;
 		void addStart(rhea::Widget* widget);
 		void addFill(rhea::Widget* widget);
 		void addEnd(rhea::Widget* widget);

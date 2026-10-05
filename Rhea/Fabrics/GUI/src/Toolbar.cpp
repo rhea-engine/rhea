@@ -47,36 +47,24 @@ namespace rhea
 	{
 		if (!widget)
 			return;
-		assignToSlot("start", widget);
-		if (!m_start_container)
-			return;
-
-		m_start_container->addChild(widget);
-		invalidateLayout();
+		if (assignToSlot("start", widget))
+			invalidateLayout();
 	}
 
 	void Toolbar::addFill(rhea::Widget* widget)
 	{
 		if (!widget)
 			return;
-		assignToSlot("fill", widget);
-		if (!m_fill_container)
-			return;
-
-		m_fill_container->addChild(widget);
-		invalidateLayout();
+		if (assignToSlot("fill", widget))
+			invalidateLayout();
 	}
 
 	void Toolbar::addEnd(rhea::Widget* widget)
 	{
 		if (!widget)
 			return;
-		assignToSlot("end", widget);
-		if (!m_end_container)
-			return;
-
-		m_end_container->addChild(widget);
-		invalidateLayout();
+		if (assignToSlot("end", widget))
+			invalidateLayout();
 	}
 
 	bool Toolbar::addToSlot(std::string slot, Widget* child)
@@ -94,9 +82,33 @@ namespace rhea
 		return child->getParent() == this || addChild(child);
 	}
 
+	bool Toolbar::removeFromSlot(std::string slot, Widget* child)
+	{
+		if (slot == "start" && m_start_container)
+			return m_start_container->removeChild(child);
+		if (slot == "fill" && m_fill_container)
+			return m_fill_container->removeChild(child);
+		if (slot == "end" && m_end_container)
+			return m_end_container->removeChild(child);
+		return Widget::removeFromSlot(slot, child);
+	}
+
+	Widget* Toolbar::resolveSlotWidget(std::string_view slot_name, std::string_view content_name) const
+	{
+		if (slot_name == "start" && m_start_container)
+			return doCast<Widget>(m_start_container->getChild(std::string(content_name)));
+		if (slot_name == "fill" && m_fill_container)
+			return doCast<Widget>(m_fill_container->getChild(std::string(content_name)));
+		if (slot_name == "end" && m_end_container)
+			return doCast<Widget>(m_end_container->getChild(std::string(content_name)));
+		return Widget::resolveSlotWidget(slot_name, content_name);
+	}
+
 	bool Toolbar::buildDefaultLayout()
 	{
-		if (m_start_container)
+		if (m_start_container &&
+			m_fill_container &&
+			m_end_container)
 			return true;
 
 		m_start_container =	emplaceChild<RowWidget>("_start");

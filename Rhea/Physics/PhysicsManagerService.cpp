@@ -56,10 +56,7 @@ namespace rhea
 	PhysicsService* PhysicsManagerService::createPhysicsService(const std::string& backend_id)
 	{
 		auto it = m_backend_creators.find(backend_id);
-		if (it == m_backend_creators.end()) {
-			it = m_backend_creators.find("none");
-			if (it == m_backend_creators.end()) return nullptr;
-		}
+		if (it == m_backend_creators.end()) return nullptr;		
 
 		m_phy_service = it->second(m_app);         // m_app from Service base
 		m_phy_service->setup(m_app);
@@ -85,7 +82,7 @@ namespace rhea
 
 				std::string backend = "none";
 				if (!context || (!context->world) && (!context->standaloneScene)) {
-					LOG(LOG_ERROR) << "WorldService has no world. Physics will be disabled.";
+					LOG(LOG_ERROR) << "WorldService has no world and no scene. Physics will be disabled.";
 					return rhea::WorldService::PrepareError::PhysicsInitializationFailed;
 				}
 				std::string phy = "none";
@@ -96,18 +93,22 @@ namespace rhea
 				if (phy == std::string("world") || phy == std::string("bullet")) {
 					backend = "world";
 				}
-				else if (phy == std::string("none")) {
-					backend = "none";
+				else if (phy == std::string("null")) {
+					backend = "null";
 				}
 				else if (!phy.empty()) {
 					// allow future backends by id, e.g. "physx"
 					backend = phy;
 				}
+
+				// if no physics backend is specified or explicitly disabled with "none", we return early and do not initialize physics
+				return rhea::WorldService::PrepareError::None;
+
 				// create service by id (manager handles fallback to "none" if unknown/unavailable)
 				rhea::PhysicsService* physics = createPhysicsService(backend);
 				if (!physics) {
-					// last-resort fallback if the manager doesn't already do it
-					physics = createPhysicsService("none");
+					LOG(LOG_ERROR) << "Failed to create physics service for backend: " << backend;
+					return rhea::WorldService::PrepareError::PhysicsInitializationFailed;
 				}
 				if (physics) {
 					physics->onInit();

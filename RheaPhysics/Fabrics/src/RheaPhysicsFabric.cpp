@@ -29,7 +29,7 @@ namespace rhea::physics
         }
 
         // register null backend
-        mgr->registerBackend("none", [](rhea::Application* app)->std::unique_ptr<rhea::PhysicsService> {
+        mgr->registerBackend("null", [](rhea::Application* app)->std::unique_ptr<rhea::PhysicsService> {
             return std::make_unique<rhea::physics::NullPhysicsService>("PhysicsService", "//meworla/service");			
             });
 

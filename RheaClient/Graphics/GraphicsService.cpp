@@ -748,8 +748,8 @@ namespace rhea::client {
 			render_node_id = context->registerOrderNode(rc->gfx_node_id, parent_id);
 
 			if (rc->ctx && rc->ctx != context) {
-				LOG(LOG_WARNING) << "Silently moving item between render contexts: " << 
-					item->getPath() << 
+				LOG(LOG_WARNING) << "Silently moving item between render contexts: " <<
+					item->getPath() <<
 					". Use unregisterItemFromContext() first to avoid this warning.";
 				unregisterItemFromContext(item, rc->ctx);
 			}
@@ -759,7 +759,7 @@ namespace rhea::client {
 				context->attachRenderable(render_node_id, rc->renderable);
 			if (rc->hasLight())
 				context->addLight(rc->light);
-			
+
 			// Track items in this context - avoid duplicates
 			auto& items = m_context_items[context];
 			if (std::find(items.begin(), items.end(), item) == items.end()) {
@@ -782,16 +782,24 @@ namespace rhea::client {
 				gc = item->getComponent<rhea::client::GraphicsComponent>();
 			}
 			render_node_id = context->registerOrderNode(gc->gfx_node_id, parent_id);
-			gc->ctx = context;			
+			gc->ctx = context;
 			//LOG(LOG_DEBUG) << "Registered item '" << item->getPath() << "' to render context '" << context->getName() << "', gc-node id: " << gc->gfx_node_id << ", rendernode id: " << render_node_id << ", parent id: " << parent_id;
 		}
-		if (render_node_id != poseidon::InvalidRenderNode) {
-			// set visibility
-			auto* vis = item->getComponent<rhea::VisualComponent>();
-			if (vis) {
-				context->setVisibility(render_node_id, vis->isVisible());
-			}
+		if (render_node_id == poseidon::InvalidRenderNode) {
+			// failed
+			return;
 		}
+
+		// set visibility
+		auto* vis = item->getComponent<rhea::VisualComponent>();
+		if (vis) {
+			context->setVisibility(render_node_id, vis->isVisible());
+		}
+
+		// send size event
+		hippios::ViewportDesc* viewport_size = context->getSize();
+		rhea::SizeEvent size_ev(item, viewport_size->w, viewport_size->h);
+		item->sendEvent("size", &size_ev);
 	}
 
 	void GraphicsService::unregisterItemFromContext(rhea::Item* item, poseidon::RenderContext* context)

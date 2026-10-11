@@ -7,6 +7,7 @@
 
 #include <memory>
 #include <unordered_map>
+#include <unordered_set>
 
 #include <Psio/Log.h>
 #include <SimpleParser/Type.h>
@@ -129,10 +130,22 @@ namespace rhea
 
 	void SceneResource::buildInstance(const InstanceRequest& request, InstanceHandler handler)
 	{
+		std::unordered_set<std::string> node_ids;
+		for (const auto& node : m_definition.nodes) {
+			if (!node_ids.insert(node.node_id).second) {
+				LOG(LOG_ERROR) << "Duplicate scene component: " << node.node_id;
+				if (handler)
+					handler(ReqError::DATA_INVALID, nullptr);
+				return;
+			}
+		}
+
 		std::unordered_map<std::string, Component*> instances;
 		std::vector<PendingUnitConfig> pending_configs;
 		std::vector<PendingSceneInstance> pending_instances;
 		ResourceList resources(m_app);
+		std::vector<PendingSceneInstance> ready_instances;
+		ResourceList ready_resources(m_app);
 
 		const std::string root_name = request.name.empty() ? m_definition.root.name : request.name;
 		Unit* root = doCast<Unit>(simpleparser::Type::create(root_name, m_definition.root.type_name));
@@ -179,10 +192,20 @@ namespace rhea
 					handler(ReqError::DATA_INVALID, nullptr);
 				return;
 			}
-			definition_parent->addChild(component_it->second);
+			if (!definition_parent->addChild(component_it->second)) {
+				LOG(LOG_ERROR) << "Failed to attach scene component " << node.node_id;
+				for (const auto& config : pending_configs) {
+					if (!config.component->getParent())
+						config.component->destroy();
+				}
+				root->destroy();
+				if (handler)
+					handler(ReqError::DATA_INVALID, nullptr);
+				return;
+			}
 		}
 
-		auto collect_references = [this, &resources, &pending_instances](
+		auto collect_references = [this, &request, &instances, &resources, &pending_instances, &ready_resources, &ready_instances](
 			const std::string& owner_id, Component* owner) {
 				for (const auto& reference : owner->getReferences()) {
 					const std::string id = reference.value.toString();
@@ -190,10 +213,20 @@ namespace rhea
 						continue;
 
 					const std::string resolved_id = id[1] == '/' ? id : m_scene_root + id;
+					// References to configured nodes are resolved when this tree is attached.
+					const std::string local_prefix = request.basepath + "/";
+					if (!request.basepath.empty() && resolved_id.compare(0, local_prefix.size(), local_prefix) == 0 &&
+						reference.usage == Component::ResourceUsage::Load &&
+						instances.find(resolved_id.substr(local_prefix.size())) != instances.end())
+						continue;
+
 					const std::string key = owner_id + "_" + reference.name + "_" + resolved_id;
-					resources.push(key, resolved_id, reference.type);
+					const bool ensure_ready = reference.usage == Component::ResourceUsage::EnsureReady;
+					auto& resource_list = ensure_ready ? ready_resources : resources;
+					auto& pending_list = ensure_ready ? ready_instances : pending_instances;
+					resource_list.push(key, resolved_id, reference.type);
 					if (reference.usage != Component::ResourceUsage::Load) {
-						pending_instances.push_back({
+						pending_list.push_back({
 							key,
 							doCast<Unit>(owner),
 							"",
@@ -217,25 +250,48 @@ namespace rhea
 			return;
 		}
 
-		resource_service->loadAsync(resources,
-			[this, root, pending = std::move(pending_instances), handler](ResourceList* loaded, Error* error) mutable {
+		auto load_remaining = [this, root, resource_service, resources, pending_instances, handler]() mutable {
+			resource_service->loadAsync(resources,
+				[this, root, pending = std::move(pending_instances), handler](ResourceList* loaded, Error* error) mutable {
+					if (error) {
+						root->destroy();
+						if (handler)
+							handler(ReqError::DATA_INVALID, nullptr);
+						return;
+					}
+
+					instantiatePendingScenes(*loaded, std::move(pending),
+						[root, handler](ReqError result) {
+							if (result != ReqError::OK) {
+								root->destroy();
+								if (handler)
+									handler(result, nullptr);
+								return;
+							}
+							if (handler)
+								handler(ReqError::OK, root);
+						});
+				});
+		};
+
+		// Materialize libraries before resolving references to their configured nodes.
+		resource_service->loadAsync(ready_resources,
+			[this, root, pending = std::move(ready_instances), load_remaining, handler](ResourceList* loaded, Error* error) mutable {
 				if (error) {
 					root->destroy();
 					if (handler)
 						handler(ReqError::DATA_INVALID, nullptr);
 					return;
 				}
-
 				instantiatePendingScenes(*loaded, std::move(pending),
-					[root, handler](ReqError result) {
+					[root, load_remaining, handler](ReqError result) mutable {
 						if (result != ReqError::OK) {
 							root->destroy();
 							if (handler)
 								handler(result, nullptr);
 							return;
 						}
-						if (handler)
-							handler(ReqError::OK, root);
+						load_remaining();
 					});
 			});
 	}

@@ -102,7 +102,8 @@ namespace rhea
 				}
 
 				// if no physics backend is specified or explicitly disabled with "none", we return early and do not initialize physics
-				return rhea::WorldService::PrepareError::None;
+				if (backend == "none")
+					return rhea::WorldService::PrepareError::None;
 
 				// create service by id (manager handles fallback to "none" if unknown/unavailable)
 				rhea::PhysicsService* physics = createPhysicsService(backend);

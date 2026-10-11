@@ -189,10 +189,16 @@ namespace psio
     {
     public:
         ~WinDirectoryHandle() {
-            FindClose(hFind);
+            if (hFind != INVALID_HANDLE_VALUE) {
+                FindClose(hFind);
+            }
         }
+
+		bool hasEntries() const override {
+			return hFind != INVALID_HANDLE_VALUE;
+		}
         
-        WIN32_FIND_DATA ffd;
+        WIN32_FIND_DATA ffd = {};
         HANDLE hFind = INVALID_HANDLE_VALUE;
     };
 
@@ -202,7 +208,7 @@ namespace psio
         path += "/*.*";
 
         fh->hFind = FindFirstFileA(path.c_str(), &fh->ffd);
-        if (fh->hFind == INVALID_HANDLE_VALUE) {
+        if (fh->hFind == INVALID_HANDLE_VALUE && GetLastError() != ERROR_FILE_NOT_FOUND) {
             delete fh;
             return nullptr;
         }
@@ -213,7 +219,9 @@ namespace psio
     int Fs::readEntry(DirectoryHandle* handle, FileAttributes* attributes)
     {
         WinDirectoryHandle* fh = static_cast<WinDirectoryHandle*>(handle);
-        
+		if (fh->hFind == INVALID_HANDLE_VALUE) {
+			return -1;
+		}
         attributes->name = fh->ffd.cFileName;
         WIN32_FIND_DATA ffd = fh->ffd;
         if (fh->ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
@@ -231,7 +239,24 @@ namespace psio
     bool Fs::nextEntry(DirectoryHandle* handle) 
     {
         WinDirectoryHandle* fh = static_cast<WinDirectoryHandle*>(handle);
+		if (fh->hFind == INVALID_HANDLE_VALUE) {
+			return false;
+		}
         return FindNextFileA(fh->hFind, &fh->ffd);
     }
 
+	bool Fs::rename(const std::string& old_path, const std::string& new_path)
+	{
+		return MoveFileA(old_path.c_str(), new_path.c_str()) != 0;
+	}
+
+	bool Fs::removeFile(const std::string& path)
+	{
+		return DeleteFileA(path.c_str()) != 0;
+	}
+
+	bool Fs::removeDirectory(const std::string& path)
+	{
+		return RemoveDirectoryA(path.c_str()) != 0;
+	}	
 }

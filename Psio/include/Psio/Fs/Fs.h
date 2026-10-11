@@ -59,6 +59,18 @@ namespace psio
 
 		static bool createDirectory(const std::string& path);
 
+		// rename a file or directory
+		static bool rename(const std::string& old_path, const std::string& new_path);
+
+		// remove files only
+		static bool removeFile(const std::string& path);
+
+		// remove empty directories only
+		static bool removeDirectory(const std::string& path);
+
+		// remove Diretory and all its contents recursively
+		static bool removeDirectoryTree(const std::string& path);
+
 		static const int READ = 1;
 		static const int WRITE = 2;
 		static const int BINARY = 4;
@@ -76,6 +88,7 @@ namespace psio
 		class DirectoryHandle {
 		public:
 			virtual ~DirectoryHandle() {}
+			virtual bool hasEntries() const = 0;
 		};
 		static DirectoryHandle* openDirectory(std::string path);
 		static int readEntry(DirectoryHandle* handle, FileAttributes* attributes);

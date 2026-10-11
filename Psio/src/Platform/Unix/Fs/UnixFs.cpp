@@ -184,6 +184,10 @@ namespace psio
             if (dir)
                 closedir(dir);
         }
+
+		bool hasEntries() constoverride {
+			return entry != nullptr;
+		}
         
         DIR* dir = nullptr;
         struct dirent* entry = nullptr;
@@ -202,11 +206,7 @@ namespace psio
         }
         
         // Read first entry
-        fh->entry = readdir(fh->dir);
-        if (fh->entry == nullptr) {
-            delete fh;
-            return nullptr;
-        }
+        fh->entry = readdir(fh->dir);        
         
         return fh;
     }
@@ -242,4 +242,41 @@ namespace psio
         return fh->entry != nullptr;
     }
 
+	bool Fs::closeDirectory(DirectoryHandle* handle)
+	{
+		UnixDirectoryHandle* fh = static_cast<UnixDirectoryHandle*>(handle);
+		if (fh->dir) {
+			closedir(fh->dir);
+			fh->dir = nullptr;
+		}
+		delete fh;
+		return true;
+	}
+
+	bool Fs::rename(const std::string& old_path, const std::string& new_path)
+	{
+		if (::rename(old_path.c_str(), new_path.c_str()) != 0) {
+			LOG(LOG_ERROR) << "could not rename file: " << strerror(errno);
+			return false;
+		}
+		return true;
+	}
+
+	bool Fs::removeFile(const std::string& path)
+	{
+		if (unlink(path.c_str()) != 0) {
+			LOG(LOG_ERROR) << "could not remove file: " << strerror(errno);
+			return false;
+		}
+		return true;
+	}
+
+	bool Fs::removeDirectory(const std::string& path)
+	{
+		if (rmdir(path.c_str()) != 0) {
+			LOG(LOG_ERROR) << "could not remove directory: " << strerror(errno);
+			return false;
+		}
+		return true;
+	}	
 }

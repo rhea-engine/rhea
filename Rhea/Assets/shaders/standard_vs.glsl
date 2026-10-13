@@ -33,7 +33,8 @@ void main()
     vec4 worldPos = world_matrix * position;
     gl_Position = VP * worldPos;
 
-    v_normal = normalize(mat3(transpose(inverse_matrix)) * a_normal);
+    // The CPU supplies the inverse-transpose normal matrix.
+    v_normal = normalize(mat3(inverse_matrix) * a_normal);
     v_tangent = normalize(mat3(world_matrix) * a_tangent);
     v_bitangent = normalize(cross(v_tangent, v_normal));
 

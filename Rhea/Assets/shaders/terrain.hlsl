@@ -55,7 +55,7 @@ VS_OUTPUT VShader(float4 position : POSITION, float3 normal : NORMAL, float2 tex
 	VS_OUTPUT output;
 	
     float3 worldPos = mul(position, worldMatrix);
-    output.normal = normalize(mul(normal, (float3x3) transpose(invModel)));
+    output.normal = normalize(mul(normal, (float3x3) invModel));
     output.position = mul(float4(worldPos, 1.0), VP);
     output.tex = tex;
     output.positionWS = float4(worldPos, 1.0);

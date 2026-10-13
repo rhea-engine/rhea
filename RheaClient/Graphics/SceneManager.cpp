@@ -8,6 +8,7 @@
 #include <Poseidon/FrameRenderer.h>
 #include <Poseidon/Material.h>
 #include <Poseidon/Shader.h>
+#include <Poseidon/RenderContext.h>
 #include <Math/Matrix3x4.h>
 #include <Math/Matrix4.h>
 
@@ -40,6 +41,15 @@ namespace rhea::client {
 		}
 
 		m_core = core;
+		if (auto* context = getRenderContext(core, "default")) {
+			// Reset on activation so a scene does not inherit the previous ambient light.
+			context->setAmbient(math::Color(0.0f, 0.0f, 0.0f, 1.0f));
+			scene->children([&](std::string&, rhea::Component* component) {
+				if (auto* lighting = doCast<rhea::Lighting>(component))
+					context->setAmbient(lighting->getAmbient());
+				return true;
+			});
+		}
 		auto* state = scene->getComponent<SceneRenderState>();
 		const bool first_initialization = state == nullptr;
 

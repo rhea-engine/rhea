@@ -123,7 +123,7 @@ uint4 jointIndices : JOINTS, float4 jointWeights : WEIGHTS)
     float4 worldPos = mul(skinnedPosition, worldMatrix);
     output.position = mul(worldPos, VP);
     output.positionWS = worldPos;
-    output.normal = normalize(mul(skinnedNormal, (float3x3) transpose(invModel)));
+    output.normal = normalize(mul(skinnedNormal, (float3x3) invModel));
     output.tex = tex;
 
     output.tangent = normalize(mul(skinnedTangent, (float3x3) worldMatrix)).xyz;

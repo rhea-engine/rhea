@@ -29,7 +29,7 @@ void main()
     vec4 worldPos = worldMatrix * position;
     gl_Position = VP * worldPos;
 
-    v_normal = normalize(mat3(transpose(invModel)) * a_normal);
+    v_normal = normalize(mat3(invModel) * a_normal);
     v_tex = a_texcoord;
     v_positionWS = worldPos;
 }

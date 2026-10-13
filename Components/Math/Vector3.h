@@ -161,6 +161,8 @@ namespace math
 			// From Sam Hocevar's article "Quaternion from two vectors:
 			// the final version"
 			float a = sqrt(((const Vector3*)this)->squaredLength() * dest.squaredLength());
+			if (a == 0.0f)
+				return Quaternion::IDENTITY;
 			float b = a + dest.dotProduct(*this);
 			Vector3 axis;
 
@@ -177,6 +179,7 @@ namespace math
 			}
 
 			Quaternion q(b, axis.x, axis.y, axis.z);
+			q.normalize();
 			return q;
 		}
 

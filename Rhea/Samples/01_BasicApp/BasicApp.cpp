@@ -1,4 +1,4 @@
-/*
+ /*
  * Copyright (c) 2019-2026 Meworla
  *
  * Licensed under the MIT License.
@@ -16,7 +16,10 @@
 #include <Rhea/EventInput.h>
 #include <Rhea/Input/InputEvent.h>
 #include <Rhea/Resources/ResourceList.h>
-#include <Rhea/Resources/ResourceService.h>
+#include <Rhea/Error.h>
+#include <Psio/Log.h>
+#include <cmath>
+#include <Math/Math.h>
 #include <Rhea/Realm.h>
 #include <Rhea/Core/Material.h>
 #include <Rhea/Core/Shader.h>
@@ -29,99 +32,107 @@ class BasicApp : public rhea::Application
 {
 private:
     rhea::Scene* m_scene = nullptr;
+    rhea::Item* m_cube = nullptr;
+    float m_cube_angle = 0.0f;
+    rhea::ResourceList m_resources{this};
 
 public:
     void setup() override
     {
         Application::setup();
 
-        // add graphics service
-        // load core resources
-        rhea::ResourceList res_list(this);
+        // Application::setup() has already instantiated the standard shader.
+        m_resources.push("kies_texture", "//basic_app/kies.png", "//meworla/texture");
+        m_resources.load([this](rhea::Error* error) {
+            if (error) {
+                LOG(LOG_ERROR) << "Failed to load BasicApp assets: " << error->getText();
+                m_exiting = true;
+                return;
+            }
+            auto* shader = doCast<rhea::Shader>(getUnitTree()->find("//rhea/shaders/standard", "", false));
+            auto* texture = doCast<rhea::ImageResource>(m_resources.get("kies_texture"));
+            if (!shader || !texture) {
+                LOG(LOG_ERROR) << "BasicApp requires the standard shader and kies.png. Check the Data directory.";
+                m_exiting = true;
+                return;
+            }
+            createScene(shader, texture);
+        });
+    }
 
-        // load shaders
-        res_list.push("standard_shader", "//rhea/shaders/standard.shader", "//meworla/shader");        
-
-        // note: for locally installed resources this is actually synchronous
-        static_cast<rhea::ResourceService*>(getService("resources"))->loadAsync(res_list, nullptr);
-
+private:
+    void createScene(rhea::Shader* shader, rhea::ImageResource* texture)
+    {
         // Create a minimal scene
         m_scene = simpleparser::Type::create<rhea::Scene>("scene");
-        m_scene->setup(this);
+        m_scene->setup(this, {}, {});
 
-        // add the realm
-        std::string realm_name = "basic_app";
-        rhea::Unit* realm_unit = (rhea::Unit*)new rhea::Realm(realm_name);
-        m_unit_tree->addChild(realm_unit);
-
+        // Resource loading has already created the application asset realm.
+        rhea::Unit* realm_unit = doCast<rhea::Unit>(m_unit_tree->find("//basic_app", "", false));
         realm_unit->addChild(m_scene);
-
-        rhea::ResourceList res_list2(this);
-        res_list2.push("kies_texture", "//basic_app/kies.png", "//meworla/texture");
-        static_cast<rhea::ResourceService*>(getService("resources"))->loadAsync(res_list2, nullptr);
 
         // Create camera
         //rhea::Camera* camera = m_scene->createUnit<rhea::Camera>("MainCamera");
         rhea::Camera* camera = simpleparser::Type::create<rhea::Camera>("MainCamera");
-        camera->setPosition(math::Vector3(0, 2, -5));
-        camera->setLookAt(math::Vector3(0, 0, 0), math::Vector3::UNIT_Z);
         camera->setup(this, {}, {});
+        camera->setLocalPosition(math::Vector3(0, 2, -7.5f));
+        camera->setLookAt(math::Vector3(0, 0, 0), math::Vector3::UNIT_Z);
         //m_scene->setMainCamera(camera);
         m_scene->addChild(camera);
 
         
         rhea::DirectionalLight* light = simpleparser::Type::create<rhea::DirectionalLight>("MainLight");
-        //light->setDirection(math::Vector3(-0.5f, -1.0f, -0.5f));
-        light->setDirection(math::Vector3(0.5f, 1.0f, 0.5f));
-        light->setColor(math::Vector3(1.0f, 1.0f, 1.0f));
-        light->setDiffuse(math::Quaternion(1.0f, 1.0f, 1.0f, 1.0f));
+        light->setup(this, {}, {});
+        light->setDirection(math::Vector3(-0.5f, -1.0f, 0.5f).normalizedCopy());
+        light->setColor(math::Color(1.0f, 1.0f, 1.0f, 1.0f));
+        light->setDiffuse(math::Color(1.0f, 1.0f, 1.0f, 1.0f));
         m_scene->addChild(light);
                 
         rhea::Lighting* lighting = simpleparser::Type::create<rhea::Lighting>("MainLighting");
-        lighting->setAmbient(math::Quaternion(0.8f, 0.8f, 0.8f, 1.0f));
+        lighting->setAmbient(math::Color(0.25f, 0.25f, 0.25f, 1.0f));
         lighting->setup(this, {}, {});
         m_scene->addChild(lighting);
         
         // Create cube
         //rhea::Item* cube = m_scene->createUnit<rhea::Item>("Cube");
         rhea::Item* cube = simpleparser::Type::create<rhea::Item>("Cube01");
+        m_cube = cube;
+        cube->setup(this, {}, {});
+		cube->setLocalPosition(math::Vector3(0, 0, 0));
+
 
         // Add visual component (for rendering)
         cube->addComponentUnique<rhea::VisualComponent>("visual");
 
         // Add mesh component
-        rhea::MeshComponent* meshComp = cube->addComponentUnique<rhea::MeshComponent>("mesh");
+        rhea::MeshComponent* mesh_component = cube->addComponentUnique<rhea::MeshComponent>("mesh");
 
         // Create a simple procedural mesh
-        rhea::CubeMesh* cubeMesh = simpleparser::Type::create<rhea::CubeMesh>("cube_mesh");
-        cube->addChild(cubeMesh);
-        cubeMesh->createMesh();
-        meshComp->setMesh(cubeMesh);
+        rhea::CubeMesh* cube_mesh = simpleparser::Type::create<rhea::CubeMesh>("cube_mesh");
+        cube_mesh->setup(this, {}, {});
+        cube->addChild(cube_mesh);
+        cube_mesh->createMesh();
+        mesh_component->setMesh(cube_mesh);
         m_scene->addChild(cube);
 
         rhea::Material* material = simpleparser::Type::create<rhea::Material>("cube_material");
-        material->setup(this);
-        rhea::Shader* shader_res = doCast<rhea::Shader>(getUnitTree()->find("//rhea/shaders/standard", "", false));
-        material->setValue("shader", "standard");
-        if (shader_res) {
-            material->setShaderRes(shader_res);
-        }
-        // Material with red color
-        // Set colors
-        material->setColor(0, math::Vector4(0.8f, 0.1f, 0.1f, 1.0f)); // Diffuse: Red
-        material->setColor(1, math::Vector4(0.2f, 0.0f, 0.0f, 1.0f)); // Ambient: Dark red
-        material->setColor(2, math::Vector4(1.0f, 0.5f, 0.5f, 1.0f)); // Specular: Light red/pink
-        material->setFloat(0, 32.0f); // Shininess for highlights
-        rhea::ImageResource* image_res = doCast<rhea::ImageResource>(m_unit_tree->find("//basic_app/kies.png", "", false));
-        material->setTexture(0, image_res); // Add texture
+        material->setup(this, {}, {});
+        material->setShader(shader);
+        material->setColor(shader->getInputSlotId("AMBIENT"), math::Color(1.0f, 1.0f, 1.0f, 1.0f));
+        material->setColor(shader->getInputSlotId("DIFFUSE"), math::Color(1.0f, 1.0f, 1.0f, 1.0f));
+        material->setColor(shader->getInputSlotId("SPECULAR"), math::Color(0.1f, 0.1f, 0.1f, 1.0f));
+        material->setFloat(shader->getInputSlotId("SHININESS"), 32.0f);
+        material->setTexture(shader->getTextureSlotId("BASECOLOR"), texture);
 
         m_scene->addChild(material);
-        cubeMesh->setMaterial(material);
+        cube_mesh->setMaterial(material);
 
         m_scene->ready();
         m_scene->show();
+        LOG(LOG_INFO) << "BasicApp scene ready: kies.png (" << texture->width << " x " << texture->height << ").";
     }
 
+public:
     bool onInput(rhea::EventInput* e, rhea::Unit* unit) override
     {
         rhea::InputEvent evt = e->getEvent();
@@ -142,6 +153,13 @@ public:
 
     bool onFrameBegin() override
     {
+        if (m_cube) {
+            const float delta_seconds = static_cast<float>(elapsed_ticks) / 1000000.0f;
+            m_cube_angle = std::fmod(m_cube_angle + 30.0f * delta_seconds, 360.0f);
+            rhea::Position position = m_cube->getTransform()->getLocalPosition();
+            position.setRotation(math::Quaternion(m_cube_angle * math::degToRad, math::Vector3::UNIT_Y));
+            m_cube->setLocalPosition(position);
+        }
         return false;
     }
 

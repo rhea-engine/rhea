@@ -80,8 +80,8 @@ namespace psio
 		struct FileAttributes
 		{
 			std::string name;
-			size_t size;
-			bool is_dir;
+			size_t size = 0;
+			bool is_dir = false;
 
 		};
 

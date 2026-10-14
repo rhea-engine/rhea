@@ -185,7 +185,7 @@ namespace psio
                 closedir(dir);
         }
 
-		bool hasEntries() constoverride {
+		bool hasEntries() const override {
 			return entry != nullptr;
 		}
         
@@ -241,17 +241,6 @@ namespace psio
         fh->entry = readdir(fh->dir);
         return fh->entry != nullptr;
     }
-
-	bool Fs::closeDirectory(DirectoryHandle* handle)
-	{
-		UnixDirectoryHandle* fh = static_cast<UnixDirectoryHandle*>(handle);
-		if (fh->dir) {
-			closedir(fh->dir);
-			fh->dir = nullptr;
-		}
-		delete fh;
-		return true;
-	}
 
 	bool Fs::rename(const std::string& old_path, const std::string& new_path)
 	{

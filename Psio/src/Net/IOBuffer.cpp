@@ -7,14 +7,14 @@
 
 #include <Psio/Net/IOBuffer.h>
 
-#include <malloc.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 namespace psio
 {
 	IOBuffer::IOBuffer(size_t size)
 	{
-		m_buffer = (char*)malloc(size);
+		m_buffer = (char*)std::malloc(size);
 		m_size = size;
 		m_offset = 0;
 		m_write_offset = 0;
@@ -23,14 +23,14 @@ namespace psio
 	IOBuffer::~IOBuffer()
 	{
 		if (m_buffer)
-			free(m_buffer);
+			std::free(m_buffer);
 	}
 
 	void IOBuffer::Write(const char* chunk, size_t size)
 	{
 		if (m_size < m_write_offset + size)
 			Grow(size);
-		memcpy(m_buffer + m_write_offset, chunk, size);
+		std::memcpy(m_buffer + m_write_offset, chunk, size);
 		m_write_offset += size;
 	}
 
@@ -38,9 +38,9 @@ namespace psio
 	{
 		char* newbuf;
 		if (!m_buffer)
-			newbuf = (char*)malloc(size);
+			newbuf = (char*)std::malloc(size);
 		else
-			newbuf = (char*)realloc(m_buffer, m_size + size);
+			newbuf = (char*)std::realloc(m_buffer, m_size + size);
 		if (newbuf) {
 			m_size += size;
 			m_buffer = newbuf;

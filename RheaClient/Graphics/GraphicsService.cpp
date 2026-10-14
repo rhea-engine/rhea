@@ -403,8 +403,7 @@ namespace rhea::client {
 		res_list.push("lines_shader", "//rhea/shaders/lines.shader", "//meworla/shader");
 
 		// skybox		
-		hippios::DepthStencilStateDesc dss;
-		std::memset(&dss, 0, sizeof(dss));
+		hippios::DepthStencilStateDesc dss{};
 		dss.depth_enable = true;
 		dss.depth_write_mask = hippios::DepthWriteMask::DEPTH_WRITE_ALL;
 		dss.depth_func = hippios::ComparisonFunction::COMPARE_LESS_EQUAL;

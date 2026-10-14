@@ -13,7 +13,8 @@
 #include <Rhea/Unit.h>
 #include <Rhea/Resources/VertexBuffer.h>
 #include <Rhea/Resources/VertexAttribute.h>
-//#include <Rhea/Animation/Skeleton.h>
+#include <cstdint>
+#include <unordered_map>
 
 namespace rhea
 {

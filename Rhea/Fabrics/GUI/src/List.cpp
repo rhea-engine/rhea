@@ -11,6 +11,7 @@
 #include <Rhea/UnitTree.h>
 #include <Psio/Input/Keyboard.h>
 #include <Rhea/EventInput.h>
+#include <algorithm>
 
 namespace rhea
 {

@@ -6,6 +6,7 @@
  */
 
 #include "Poseidon/Window.h"
+#include <algorithm>
 #include <memory>
 #include <Hippios/Renderer.h>
 #include <Psio/Log.h>

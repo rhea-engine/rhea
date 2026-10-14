@@ -33,6 +33,7 @@
 #include <Psio/Input/Keyboard.h>
 #include <Rhea/GUI/Styles/DefaultStyleSheet.h>
 #include <Psio/ScopedTimer.h>
+#include <algorithm>
 
 namespace rhea
 {

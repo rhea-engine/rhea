@@ -8,6 +8,7 @@
 #define NOMINMAX
 #include <Rhea/GUI/Widget.h>
 #include <cassert>
+#include <algorithm>
 #include <Psio/Log.h>
 
 #include <Rhea/GUI/WidgetEvent.h>

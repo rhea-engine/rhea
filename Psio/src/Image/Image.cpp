@@ -10,17 +10,18 @@
 #include <stb_image.h>
 
 #include <cassert>
-
-using std::string;
+#include <cstdio>
+#include <cstring>
+#include <string>
 
 namespace poseidon
 {
-	bool Image::load(const string& file_name)
+	bool Image::load(const std::string& file_name)
 	{
-		string extension_s;
+		std::string extension_s;
 
 		size_t pos = file_name.find_last_of('.');
-		if (pos != string::npos && pos < (file_name.length() - 1))
+		if (pos != std::string::npos && pos < (file_name.length() - 1))
 		{
 			extension_s = file_name.substr(pos + 1);
 		}

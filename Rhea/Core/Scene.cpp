@@ -15,6 +15,7 @@
 #include "Rhea/Application.h"
 #include "Rhea/UnitTree.h"
 #include <Psio/Log.h>
+#include <algorithm>
 
 namespace rhea
 {

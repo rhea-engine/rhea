@@ -10,6 +10,7 @@
 
 #include <sstream>
 #include <fstream>
+#include <string>
 
 // LOG Macros
 

@@ -8,6 +8,7 @@
 #include <time.h>       /* time_t, struct tm, time, localtime, strftime */
 #include <stdio.h>
 #include <stdarg.h>
+#include <string>
 
 #include <Psio/Log.h>
 

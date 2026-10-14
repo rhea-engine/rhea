@@ -33,6 +33,7 @@
 #include <Poseidon/RenderWorld.h>
 #include "TransformListener.h"
 #include <Rhea/Animation/AnimationComponent.h>
+#include <algorithm>
 
 namespace rhea::client {
 	GraphicsItemManager::~GraphicsItemManager()

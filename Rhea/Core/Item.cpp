@@ -12,6 +12,7 @@
 #include <Psio/Log.h>
 #include <Math/Math.h>
 #include <Rhea/Components/MeshComponent.h>
+#include <algorithm>
 
 namespace rhea
 {

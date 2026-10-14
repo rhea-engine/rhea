@@ -9,8 +9,7 @@
 #define RHEA_PHYSICS_PHYSICSBODYDESC_H
 
 #include <string>
-//#include <unordered_map>
-//#include <Rhea/Unit.h>
+#include <cstdint>
 
 namespace rhea
 {
@@ -21,13 +20,9 @@ namespace rhea
         bool kinematic = false;
         bool trigger = false;
 
-        // Optional: filtering
+        // filtering
         uint16_t group = 1;
         uint16_t mask = 0xFFFF;
-
-        // Optional: per-item overrides (string->variant)
-        // If you already have Variant: use that instead of reinventing.
-        //std::unordered_map<std::string, Variant> params;
     };
 }
 #endif // !RHEA_PHYSICS_PHYSICSBODYDESC_H

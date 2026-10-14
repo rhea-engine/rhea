@@ -10,6 +10,7 @@
 #include <Orion/FileStream.h>
 #include <Orion/ResourceStream.h>
 #include <Orion/RealmRequest.h>
+#include <algorithm>
 
 namespace orion
 {

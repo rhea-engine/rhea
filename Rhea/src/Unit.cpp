@@ -7,7 +7,7 @@
 
 #include "Rhea/Unit.h"
 #include "SimpleParser/Method.h"
-#include <unordered_set>
+#include <algorithm>
 #include <Psio/Log.h>
 
 using simpleparser::Type;

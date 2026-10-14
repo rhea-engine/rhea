@@ -1,9 +1,9 @@
-﻿# Rhea
+# Rhea
 
-A modular C++ virtual word and game engine framework designed for flexibility, composability, and explicit engine boundaries.
+A modular C++ virtual world and game engine framework designed for flexibility, composability, and explicit engine boundaries.
 
 Rhea may be used as a standalone engine or as a collection of libraries integrated into other projects. 
-With using the CMake build system, Rhea can be built and linked as a single library or as a set of independent modules.
+Using the CMake build system, Rhea can be built and linked as a single library or as a set of independent modules.
 
 ---
 
@@ -24,8 +24,20 @@ With using the CMake build system, Rhea can be built and linked as a single libr
 >
 > APIs may change frequently.
 > Documentation and examples are still evolving.
+>
+> An editor is planned but is not included in the initial public release.
 
 ---
+
+## Who Rhea is for
+
+Rhea targets C++ developers who want to build their own 3D applications and compose or extend the engine's subsystems. The first public release is intended for experimentation and feedback. API compatibility is not yet guaranteed.
+
+## Start here
+
+1. **Build and modify BasicApp:** follow the [Getting Started guide](docs/GETTING_STARTED.md) to explore a small application with a scene, camera, light, and textured cube.
+2. **Explore scenes with Ceto:** use the scene viewer as the next demonstration of the engine. A public scene package and a verified walkthrough are still being prepared.
+3. **Study a larger application:** Novara is an external, more complex example. It is planned to become public alongside the SDK; it is not required for Getting Started.
 
 ## Architecture
 
@@ -92,6 +104,16 @@ Headless applications can use the engine without the client and rendering layers
 
 ---
 
+## Supported platforms
+
+| Platform | Status | Tested |
+|---|---|---|
+| Windows | Supported | Visual Studio 2026, Win 11, D3D11, OpenGL |
+| Linux | Supported | WSL Ubuntu 22.04, OpenGL |
+| macOS | Planned | not tested |
+
+Specific compiler versions and graphics backend combinations will be documented as part of release validation.
+
 ## Requirements
 
 The common build requirements are:
@@ -123,10 +145,11 @@ cmake -S . -B out/build \
 
 Disabling the type registry does not disable Fabric registry generation. Python is therefore still required for an Engine build.
 
-A renderer-only Poseidon build does not require the Rhea registries and should not require Python.
+A renderer-only configuration through this top-level SDK currently also initializes the Fabric registry and therefore requires Python.
 
-Optional native dependencies include SDL3, Bullet Physics, OpenSSL, and Vorbis. Depending on the selected configuration, 
-they can be supplied by the host system, vcpkg, or the supported FetchContent fallbacks.
+nlohmann/json is required by the top-level build. SDL3 and Bullet Physics are required when their integrations are enabled, as they are by default. CMake first looks for installed packages and downloads these libraries if missing, unless `RHEA_FETCH_MISSING_DEPENDENCIES=OFF`. OpenSSL is optional, is never automatically downloaded, and enables TLS only when found. Vorbis is bundled by default for audio.
+
+See [Build dependencies](docs/DEPENDENCIES.md) for the dependency table, feature switches, and complete vcpkg configuration examples.
 
 ---
 
@@ -214,59 +237,9 @@ set(
 
 If no enabled profile is specified, all registered Fabrics are enabled.
 
----## Using Rhea with add_subdirectory
-
-Place Rhea in your project, for example as a Git submodule, filesystem link, or local checkout:
-
-```text
-MyGame/
-├─ external/
-│  └─ rhea/
-├─ src/
-└─ CMakeLists.txt
-```
-
-Then add it from your game's `CMakeLists.txt`:
-
-```cmake
-cmake_minimum_required(VERSION 3.24)
-project(MyGame LANGUAGES C CXX)
-
-set(RHEA_SDK_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/rhea")
-
-include("${RHEA_SDK_DIR}/Rhea/cmake/rhea_project.cmake")
-
-add_subdirectory("${RHEA_SDK_DIR}")
-
-add_executable(MyGame
-    src/main.cpp
-)
-
-target_link_libraries(MyGame PRIVATE
-    Rhea::Core
-    Rhea::Client
-    RheaFabrics
-)
-
-rhea_project_end()
-```
-
-Additional packages that register Fabrics must be added before `rhea_project_end()`.
-
-## Selecting Fabrics
-
-A project may provide an `enabled.json` file and select it before including Rhea:
-
-```cmake
-set(
-    RHEA_ENABLED_PROFILE_JSON
-    "${CMAKE_CURRENT_SOURCE_DIR}/enabled.json"
-)
-```
-
-If no enabled profile is specified, all registered Fabrics are enabled.
-
 ## Using with FetchContent
+
+The example below must be pinned to a published tag or commit before use. The first release tag is still to be confirmed.
 
 ```cmake
 include(FetchContent)
@@ -274,7 +247,7 @@ include(FetchContent)
 FetchContent_Declare(
     Rhea
     GIT_REPOSITORY https://github.com/rhea-engine/rhea.git
-    GIT_TAG v0.9.0
+    GIT_TAG <published-tag-or-commit>
 )
 
 FetchContent_MakeAvailable(Rhea)
@@ -332,3 +305,5 @@ Planned improvements include:
 ## License
 
 MIT License
+
+

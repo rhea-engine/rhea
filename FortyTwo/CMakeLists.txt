@@ -24,6 +24,7 @@ add_executable (fortytwo "FortyTwo.cpp" "World.h" "World.cpp" "FortyTwo.h" "Acco
 target_link_libraries(fortytwo PRIVATE Meworla::Psio Meworla::Orion Rhea::Core RheaFabrics Meworla::Hermes nlohmann_json::nlohmann_json)
 
 # Tests
+if(RHEA_BUILD_TESTS)
 
 add_executable(f42_test "World.test.cpp" "World.cpp"
 "Accounts/User.cpp" "Accounts/AccountService.h" "Accounts/AccountService.cpp" "Accounts/Provider.h" "Accounts/ProviderScene.h"
@@ -31,8 +32,9 @@ add_executable(f42_test "World.test.cpp" "World.cpp"
 "Authorization/Authorization.h" "Authorization/AuthorizationService.cpp" "Authorization/AuthorizationService.h" "Authorization/AuthorizationTrust.h" 
 "Authorization/AuthorizationTrust.cpp" "Authorization/AuthInfo.h" "Authorization/AuthorizationSession.h" "Authorization/AuthorizationSession.cpp"
 "Authorization/AuthBackend.h" "Authorization/AuthBackendFile.h" "Authorization/AuthBackendFile.cpp" "AuthHandler.cpp" "AuthHandler.h" "ConnectionHandler.h" "ConnectionHandler.cpp")
-target_link_libraries(f42_test PRIVATE Meworla::Psio Meworla::Orion Rhea::Core RheaFabrics Meworla::Hermes nlohmann_json::nlohmann_json gtest_main gmock_main)
+target_link_libraries(f42_test PRIVATE Meworla::Psio Meworla::Orion Rhea::Core RheaFabrics Meworla::Hermes nlohmann_json::nlohmann_json GTest::gtest_main GTest::gmock_main)
 if(WIN32)
 	target_link_libraries(f42_test PRIVATE Winmm wsock32 Ws2_32.lib)
 endif()
 add_test(f42_test ${CMAKE_CURRENT_BINARY_DIR}/f42_test)
+endif()

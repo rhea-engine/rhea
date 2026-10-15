@@ -11,15 +11,15 @@ add_library(Meworla::Hermes ALIAS Hermes)
 target_include_directories(Hermes PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 # GTest
-if (TARGET GTest::gtest)
+if (RHEA_BUILD_TESTS AND TARGET GTest::gtest)
 file(GLOB_RECURSE test_sources
     ${CMAKE_CURRENT_SOURCE_DIR}/*.test.cpp)
 add_executable(hermes_test ${test_sources} "src/Messages/MessageLogin.cpp" "src/Messages/MessageConnect.cpp" 
 	"src/Messages/MessageLoginFailed.cpp" "src/Messages/MessageCreateUser.cpp" "src/Messages/MessageCreateAvatar.cpp" 
 	"src/ServerStream.test.cpp" )
-target_link_libraries(hermes_test gtest_main gmock_main Hermes Psio)
+target_link_libraries(hermes_test GTest::gtest_main GTest::gmock_main Hermes Psio)
 if(WIN32)
 	target_link_libraries(hermes_test Winmm wsock32 Ws2_32.lib)
 endif()
-add_test(psio_test ${CMAKE_CURRENT_BINARY_DIR}/psio_test)
+add_test(NAME hermes_test COMMAND hermes_test)
 endif()

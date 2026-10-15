@@ -22,7 +22,7 @@ Rhea does not install these tools. Verify availability with `cmake --version`, `
 | Bullet | Engine physics and the Bullet implementation are enabled; both enabled by default | Installed package first (config, then CMake's FindBullet module); 
 otherwise downloads Git commit `d3afe76132fc76b0f9b2359cbaef47a3766e7fbb` | `RHEA_BUILD_BULLET=OFF`; or disable all physics with `RHEA_BUILD_PHYSICS=OFF` |
 | OpenSSL | TLS support is desired; lookup enabled by default | Installed package only; if missing, configuration continues with TLS disabled | `RHEA_ENABLE_OPENSSL=OFF` |
-| GoogleTest | `RHEA_BUILD_TESTS=ON`, the default for a top-level build | Installed package lookup, with a download fallback to `v1.17.0` | `RHEA_BUILD_TESTS=OFF` |
+| GoogleTest | `RHEA_BUILD_TESTS=ON`; disabled by default | Installed package lookup, with a download fallback to `v1.17.0` | `RHEA_BUILD_TESTS=OFF` |
 | miniaudio, stb, tinygltf, tinyobjloader, glad | Their respective modules are built | Sources already included in the repository | Select the relevant modules/backends |
 | libogg/libvorbis | Audio and Vorbis decoding are enabled; enabled by default | Sources included in the repository by default; external `Vorbis` package if `RHEA_AUDIO_USE_BUNDLED_VORBIS=OFF` | `RHEA_AUDIO_ENABLE_VORBIS=OFF`, or `RHEA_BUILD_AUDIO=OFF` |
 

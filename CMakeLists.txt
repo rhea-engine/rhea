@@ -44,7 +44,7 @@ if(RHEA_BUILD_SAMPLES AND NOT RHEA_BUILD_CLIENT)
     message(FATAL_ERROR "RHEA_BUILD_SAMPLES requires RHEA_BUILD_CLIENT.")
 endif()
 option(POSEIDON_BUILD_SAMPLES "Build Poseidon samples (low-level renderer)" ${PROJECT_IS_TOP_LEVEL})
-option(RHEA_BUILD_TESTS "Build Rhea tests" ${PROJECT_IS_TOP_LEVEL})
+option(RHEA_BUILD_TESTS "Build Rhea tests" OFF)
 
 # build options
 option(RHEA_FETCH_MISSING_DEPENDENCIES "Download missing third-party dependencies" ON)
@@ -85,7 +85,9 @@ if(RHEA_BUILD_TESTS)
 
     # For Windows: Prevent overriding the parent project's compiler/linker settings
     set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-    FetchContent_MakeAvailable(googletest)
+    if(NOT TARGET GTest::gtest)
+        FetchContent_MakeAvailable(googletest)
+    endif()
 endif()
             
 # json library

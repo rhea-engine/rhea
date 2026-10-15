@@ -169,6 +169,20 @@ cmake -S . -B build
 cmake --build build
 ```
 
+Tests are disabled by default (`RHEA_BUILD_TESTS=OFF`). The Windows (D3D11/OpenGL) and WSL Linux (OpenGL) validation reported above covered the engine and BasicApp with tests disabled; it does not establish that the automated test suite passes.
+
+To explicitly build and run tests in a separate build directory:
+
+```bash
+cmake -S . -B build-tests -DRHEA_BUILD_TESTS=ON -DRHEA_BUILD_APPS=OFF
+cmake --build build-tests --config Debug
+ctest --test-dir build-tests -C Debug --output-on-failure --timeout 60
+```
+
+Tests require GoogleTest and GoogleMock. CMake uses an installed GoogleTest package or downloads it when `RHEA_FETCH_MISSING_DEPENDENCIES=ON`. TLS socket tests are included only when OpenSSL support is available. Some network tests require external services.
+
+For an existing build directory, explicitly pass `-DRHEA_BUILD_TESTS=OFF` to disable a previously cached `ON` setting.
+
 Build engine samples:
 
 ```bash

@@ -3,7 +3,7 @@ add_library(Meworla::SimpleParser ALIAS SimpleParser)
 target_compile_features(SimpleParser PUBLIC cxx_std_17)
 
 # Tests
-if(TARGET GTest::gtest)
+if(RHEA_BUILD_TESTS AND TARGET GTest::gtest)
 
     #add_executable(SimpleParser_Compile_test "tests/SimpleParser.compile.cpp" "Variant.cpp" "Type.cpp" "Method.cpp")
 

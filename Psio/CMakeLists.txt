@@ -116,15 +116,18 @@ if(PSIO_ENABLE_OPENSSL)
 endif()
 
 # GTest
-if (TARGET GTest::gtest)
+if (RHEA_BUILD_TESTS AND TARGET GTest::gtest)
 file(GLOB_RECURSE test_sources
     CONFIGURE_DEPENDS
     ${CMAKE_CURRENT_SOURCE_DIR}/tests/*_test.cpp
 )
+if(NOT PSIO_ENABLE_OPENSSL OR NOT OpenSSL_FOUND)
+    list(FILTER test_sources EXCLUDE REGEX "/SSLSocket_test\\.cpp$")
+endif()
 add_executable(psio_test ${test_sources})
-target_link_libraries(psio_test gtest_main gmock_main Psio)
+target_link_libraries(psio_test GTest::gtest_main GTest::gmock_main Psio)
 if(WIN32)
 	target_link_libraries(psio_test Winmm wsock32 Ws2_32.lib)
 endif()
 add_test(psio_test ${CMAKE_CURRENT_BINARY_DIR}/psio_test)
-endif() 
+endif()

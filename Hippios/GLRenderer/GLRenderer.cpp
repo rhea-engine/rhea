@@ -30,8 +30,10 @@
 #elif defined(__linux__)
 //#include "GlxContext.h"
 #endif
+#if HIPPIOS_HAS_SDL
 #include "GLSwapChainSDL.h"
 #include "SdlContext.h"
+#endif
 
 namespace hippios
 {
@@ -58,9 +60,11 @@ namespace hippios
 			m_context = std::make_unique<WglContext>(this);
 			break;
 #endif // _WIN32
+#if HIPPIOS_HAS_SDL
 		case WindowBackend::SDL:
 			m_context = std::make_unique<SdlGlContext>(this);
 			break;
+#endif
 #ifdef __linux__
 		case WindowBackend::X11:
 			//m_context = std::make_unique<GlxContext>();

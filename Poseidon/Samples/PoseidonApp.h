@@ -23,6 +23,7 @@ class PoseidonApp
 protected:
     psio::Engine* m_psio = nullptr;
     poseidon::Core* m_core = nullptr;
+    poseidon::Window* m_window = nullptr;
     
     int m_width = 1152;
     int m_height = 864;

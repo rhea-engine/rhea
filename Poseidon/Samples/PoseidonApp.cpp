@@ -6,7 +6,9 @@
  */
 
 #include "PoseidonApp.h"
-#include <Psio/Window.h>
+#include <Psio/Window/Window.h>
+#include <Psio/Input/InputEvent.h>
+#include <Psio/Input/Keyboard.h>
 #include <Poseidon/FrameRenderer.h>
 #include <Psio/Log.h>
 
@@ -24,23 +26,11 @@ void PoseidonApp::init(const char* title, int width, int height)
 
     // Initialize Psio (Window + Input)
     m_psio = new psio::Engine();
-    m_psio->init();
-
-    // Create window
-    psio::WindowDesc desc;
-    desc.title = title;
-    desc.width = m_width;
-    desc.height = m_height;
-    desc.fullscreen = false;
-    m_psio->createWindow(desc);
-
-    // Initialize Hippios (Graphics Backend: D3D11/OpenGL)
-    m_hippios = new hippios::Engine();
-    m_hippios->init(m_psio->getWindow());
-
     // Initialize Poseidon (Renderer)
     m_core = new poseidon::Core();
-    m_core->init(m_hippios);
+    m_core->init(m_psio, "auto");
+    m_window = m_core->createWindow(title, m_width, m_height, "main");
+    m_core->initializeRenderStates();
     
     LOG(LOG_INFO) << "PoseidonApp initialized: " << title;
 }
@@ -59,19 +49,19 @@ int PoseidonApp::run()
         lastTicks = currentTicks;
 
         // Handle input
-        psio::InputEvent evt;
-        while (m_psio->pollEvent(evt))
+        m_psio->iterateInput();
+        while (auto evt = m_psio->pollInput())
         {
-            if (evt.isQuit())
+            if (evt->getId() == psio::InputEventId::WMGR_QUIT)
             {
                 m_running = false;
                 break;
             }
             
-            if (!onInput(evt))
+            if (!onInput(*evt))
             {
                 // Default: ESC to quit
-                if (evt.isKeyPressed(psio::Key::CODE_ESCAPE))
+                if (evt->getId() == psio::InputEventId::KEY_PRESSED && static_cast<psio::KeyInputEvent*>(evt.get())->getKeyCode() == psio::Key::CODE_ESC)
                 {
                     LOG(LOG_INFO) << "ESC pressed - exiting";
                     m_running = false;
@@ -86,10 +76,10 @@ int PoseidonApp::run()
         update(deltaTime);
 
         // Render
-        m_core->beginFrame();
+        m_core->getFrameRenderer()->advanceTime(deltaTime);
         render();
-        m_core->endFrame();
-        m_hippios->present();
+
+
     }
 
     return 0;
@@ -97,22 +87,17 @@ int PoseidonApp::run()
 
 void PoseidonApp::shutdown()
 {
+    delete m_window;
+    m_window = nullptr;
     if (m_core)
     {
         delete m_core;
         m_core = nullptr;
     }
     
-    if (m_hippios)
-    {
-        m_hippios->shutdown();
-        delete m_hippios;
-        m_hippios = nullptr;
-    }
-    
     if (m_psio)
     {
-        m_psio->shutdown();
+
         delete m_psio;
         m_psio = nullptr;
     }

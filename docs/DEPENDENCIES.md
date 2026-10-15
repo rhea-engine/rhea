@@ -7,7 +7,7 @@ The examples target BasicApp and keep tests and Ceto disabled.
 
 - A C++17 compiler and platform SDK. On Windows, select Visual Studio's **Desktop development with C++** workload, including MSVC, a Windows SDK, and **C++ CMake tools for Windows**. Run commands in a Developer PowerShell or Developer Command Prompt.
 - CMake 3.24 or newer.
-- Python 3 for Fabric registry generation. Disabling `RHEA_GENERATE_TYPE_REGISTRY` does not remove this requirement. The current top-level SDK also initializes the Fabric registry for renderer-only configurations, so Python is required there too.
+- Python 3 for Fabric registry generation when building the Rhea Engine. Disabling `RHEA_GENERATE_TYPE_REGISTRY` does not remove this requirement. Renderer-only configurations (`RHEA_BUILD_ENGINE=OFF`) do not generate a Fabric registry and do not require Python.
 - Git to clone the repository and for Git-based dependency downloads.
 - Ninja only if you select a Ninja generator or the supplied Ninja presets.
 

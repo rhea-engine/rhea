@@ -128,7 +128,7 @@ endif()
 
 set(RHEA_SDK_OWNS_FABRIC_REGISTRY FALSE)
 
-if(NOT COMMAND rhea_register_fabric)
+if(RHEA_BUILD_ENGINE AND NOT COMMAND rhea_register_fabric)
     include("${CMAKE_CURRENT_SOURCE_DIR}/Rhea/cmake/rhea_fabrics.cmake")
     rhea_fabrics_begin()
     set(RHEA_SDK_OWNS_FABRIC_REGISTRY TRUE)
@@ -138,6 +138,7 @@ if(RHEA_BUILD_ENGINE OR RHEA_BUILD_RENDERER)
     if(NOT TARGET Meworla::Components)
         add_subdirectory(Components)
     endif()
+    add_subdirectory(Psio)
 endif()
 
 if(RHEA_BUILD_RENDERER)
@@ -146,7 +147,6 @@ if(RHEA_BUILD_RENDERER)
 endif()
 
 if (RHEA_BUILD_ENGINE)
-    add_subdirectory(Psio)
     add_subdirectory(Orion)
     add_subdirectory(Rhea)
     

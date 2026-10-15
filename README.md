@@ -145,7 +145,7 @@ cmake -S . -B out/build \
 
 Disabling the type registry does not disable Fabric registry generation. Python is therefore still required for an Engine build.
 
-A renderer-only configuration through this top-level SDK currently also initializes the Fabric registry and therefore requires Python.
+A renderer-only configuration (`RHEA_BUILD_ENGINE=OFF`) does not initialize the Fabric registry and does not require Python.
 
 nlohmann/json is required by the top-level build. SDL3 and Bullet Physics are required when their integrations are enabled, as they are by default. CMake first looks for installed packages and downloads these libraries if missing, unless `RHEA_FETCH_MISSING_DEPENDENCIES=OFF`. OpenSSL is optional, is never automatically downloaded, and enables TLS only when found. Vorbis is bundled by default for audio.
 
@@ -276,6 +276,8 @@ target_link_libraries(MyGame PRIVATE Rhea::Core)
 Sample engine applications are available in the `Rhea/Samples/` directory.
 
 Sample renderer applications are available in the `Poseidon/Samples/` directory.
+
+See the [Poseidon sample guide](Poseidon/Samples/README.md) for a renderer-only build, backend selection, assets, and controls.
 
 Build samples with:
 

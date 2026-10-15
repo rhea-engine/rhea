@@ -1,84 +1,29 @@
-/*
- * Copyright (c) 2019-2026 Meworla
- *
- * Licensed under the MIT License.
- * See LICENSE file in the project root for full license information.
- */
-
-#include "../PoseidonApp.h"
-#include <Poseidon/Mesh.h>
-#include <Poseidon/Material.h>
-#include <Poseidon/Shader.h>
-#include <Poseidon/Viewport.h>
-#include <Poseidon/FrameRenderer.h>
-#include <Hippios/VertexBuffer.h>
-#include <Psio/Log.h>
+/* Copyright (c) 2019-2026 Meworla. MIT License; see LICENSE in the project root. */
+#include "../SampleScene.h"
 
 using namespace poseidon::samples;
 
-/**
- * @brief Minimal Triangle Sample
- *
- * Zeigt:
- * - Einfachste Poseidon-Geometrie (3 Vertices)
- * - Shader laden
- * - Material erstellen
- * - Mesh mit Vertex-Farben
- */
-class TriangleSample : public PoseidonApp
-{
-private:
-    poseidon::Mesh* m_mesh = nullptr;
-    poseidon::Material* m_material = nullptr;
-
+class TriangleSample : public PoseidonApp {
 public:
-    void setup() override
-    {
-        LOG(LOG_INFO) << "Setting up Triangle sample...";
-
-        // Erstelle Shader
-        poseidon::Shader* shader = getCore()->createShader("basic");
-        if (!shader->loadFromFile("Data/Rhea/shaders/shader.hlsl", "VShader", "PShader"))
-        {
-            LOG(LOG_ERROR) << "Failed to load shader!";
-            m_running = false;
-            return;
-        }
-
-        // Erstelle Material
-        m_material = getCore()->createMaterial();
-        m_material->setShader(shader);
-
-        // Erstelle Mesh
-        m_mesh = new poseidon::Mesh();
-        m_mesh->setViewport(getCore()->getFrameRenderer()->getViewport());
-
-        // Triangle vertices (Position + Color)
-        hippios::vertex vertices[] = {
-            { 0.0f,  0.5f, 0.0f, {1.0f, 0.0f, 0.0f, 1.0f} },   // Top (Red)
-            { 0.45f, -0.5f, 0.0f, {0.0f, 1.0f, 0.0f, 1.0f} },  // Right (Green)
-            {-0.45f, -0.5f, 0.0f, {0.0f, 0.0f, 1.0f, 1.0f} }   // Left (Blue)
+    void setup() override {
+        m_scene.init(getCore(), getContext(), createSampleShader("triangle", false));
+        const SampleVertex vertices[] = {
+            {{0, 0.8f, 0}, {1, 0, 0, 1}, {0.5f, 0}},
+            {{0.8f, -0.6f, 0}, {0, 1, 0, 1}, {1, 1}},
+            {{-0.8f, -0.6f, 0}, {0, 0, 1, 1}, {0, 1}},
         };
-
-        m_mesh->setVertices(sizeof(hippios::vertex), 3, vertices);
-		unsigned long indices[] = { 0, 1, 2 };
-		m_mesh->setMesh(0, sizeof(unsigned long), 3, indices, m_material);
-
-        // Add to scene
-        getCore()->getFrameRenderer()->getViewport()->getRenderContext("default")->addRenderChild(m_mesh);
-
-        LOG(LOG_INFO) << "Triangle setup complete";
+        const uint32_t indices[] = {0, 1, 2};
+        auto mesh = std::make_unique<poseidon::Mesh>();
+        mesh->setViewport(getViewport());
+        mesh->setVertices(sizeof(SampleVertex), 3, vertices);
+        mesh->setMesh(0, sizeof(uint32_t), 1, indices, m_scene.material.get());
+        m_scene.setMesh(std::move(mesh));
     }
-
-    void render() override
-    {
-        getCore()->iterate();
+    void update(float delta_time) override {
+        m_scene.setCamera(math::Vector3(0, 0, -3), static_cast<float>(getWidth()) / getHeight());
     }
+private:
+    SampleScene m_scene;
 };
 
-int main()
-{
-    TriangleSample app;
-    app.init("Poseidon Sample 01: Colored Triangle");
-    return app.run();
-}
+int main(int argc, char** argv) { return runSample<TriangleSample>(argc, argv, "Poseidon 01: Colored Triangle"); }

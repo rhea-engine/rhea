@@ -67,3 +67,15 @@ set_target_properties(Poseidon_Sample_03_TexturedCube PROPERTIES
     VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
     FOLDER "Samples/Poseidon"
 )
+
+foreach(sample_target IN ITEMS Poseidon_Sample_01_Triangle Poseidon_Sample_02_Cube Poseidon_Sample_03_TexturedCube)
+    add_custom_command(TARGET ${sample_target} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory
+            "${CMAKE_CURRENT_SOURCE_DIR}/assets"
+            "$<TARGET_FILE_DIR:${sample_target}>/Data/PoseidonSamples"
+        VERBATIM
+    )
+    set_target_properties(${sample_target} PROPERTIES
+        VS_DEBUGGER_WORKING_DIRECTORY "$<TARGET_FILE_DIR:${sample_target}>"
+    )
+endforeach()

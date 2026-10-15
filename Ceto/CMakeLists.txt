@@ -4,7 +4,7 @@ add_executable (Ceto "Ceto.h" "Ceto.cpp" "UserPrefs.h" "UserPrefs.cpp")
 #include(../rhea.cmake)
 
 # add the renderer engine
-target_link_libraries(Ceto RheaEngine nlohmann_json::nlohmann_json)
+target_link_libraries(Ceto Rhea::Core Rhea::Client RheaFabrics nlohmann_json::nlohmann_json)
 #RheaPhysicsDebug
 
 # add a headless app for testing

@@ -37,10 +37,9 @@ function(rhea_require_bullet)
 
        FetchContent_Declare(
             Bullet
-            GIT_REPOSITORY https://github.com/bulletphysics/bullet3.git
-            GIT_TAG        master
-            GIT_SHALLOW    TRUE
-            GIT_PROGRESS   TRUE
+            URL https://github.com/bulletphysics/bullet3/archive/d3afe76132fc76b0f9b2359cbaef47a3766e7fbb.tar.gz
+			URL_HASH SHA256=4CA2348C70ECDB675C8AFF566569FB6A50C04D7C19ACC8C045950D5429AFAC93
+			DOWNLOAD_EXTRACT_TIMESTAMP FALSE
         )
 
         FetchContent_MakeAvailable(Bullet)

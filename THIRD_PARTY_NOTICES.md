@@ -110,7 +110,7 @@ FetchContent, depending on the selected configuration:
 | Dependency | Version or constraint | Purpose |
 |---|---:|---|
 | SDL | 3.4.12 | Window, input, and platform integration |
-| Bullet Physics | master | Optional physics implementation |
+| Bullet Physics | d3afe76132fc76b0f9b2359cbaef47a3766e7fbb | Optional physics implementation |
 | nlohmann/json | 3.12.0 | JSON parsing |
 | GoogleTest | 1.17.0 | Tests only |
 | OpenSSL | system-provided version | Optional TLS support |

@@ -9,10 +9,10 @@
 #include <gmock/gmock.h>
 
 #include <string>
-#include "SSLSocket.h"
-#include "TCPSocket.h"
-#include "../Network.h"
-#include "SocketAddress.h"
+#include <Psio/Net/Socket/SSLSocket.h>
+#include <Psio/Net/Socket/TCPSocket.h>
+#include <Psio/Net/Network.h>
+#include <Psio/Net/Socket/SocketAddress.h>
 
 namespace psio
 {
@@ -20,8 +20,8 @@ namespace psio
 	public:
 		SSLSocketTest()
 		{
-			net = new Network(nullptr);
-			net->Init();
+			net = engine.getNet();
+
 		}
 		~SSLSocketTest() {
 			if (sock)
@@ -29,6 +29,7 @@ namespace psio
 		}
 
 	protected:
+		Engine engine;
 		Network* net;
 		SSLSocket* sock;
 		std::unique_ptr<TCPSocket> tp_sock;

@@ -8,10 +8,10 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
-#include "UrlRequest.h"
-#include "UrlResponse.h"
-#include "../Socket/Socket_test.h"
-#include "../Http/HttpNetworkTransaction.h"
+#include <Psio/Net/UrlRequest/UrlRequest.h>
+#include <Psio/Net/UrlRequest/UrlResponse.h>
+#include <Psio/Net/Socket/Socket_test.h>
+#include <Psio/Net/Http/HttpNetworkTransaction.h>
 
 using testing::_;
 using testing::MockFunction;
@@ -102,11 +102,10 @@ namespace psio {
 
 	// test if simple get transaction works
 	TEST_F(UrlRequestTest, SimpleGet) {
-		Engine engine;
-		FakeNetwork network(&engine);
-		engine.setNetwork(&network);
-		FakeSocket* sock = new FakeSocket(&network);
-		network.SetSocket(sock);
+		auto* network = new FakeNetwork(&engine);
+		engine.setNetwork(network);
+		FakeSocket* sock = new FakeSocket(network);
+		network->SetSocket(sock);
 		m_transaction = new HttpNetworkTransaction(&engine);
 
 		char testbuf[] = "test";

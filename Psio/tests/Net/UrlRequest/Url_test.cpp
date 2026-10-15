@@ -8,7 +8,7 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
-#include "Url.h"
+#include <Psio/Net/UrlRequest/Url.h>
 
 namespace psio {
 

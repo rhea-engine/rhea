@@ -9,11 +9,11 @@
 #include <gmock/gmock.h>
 #include <cstring>
 
-#include "../Socket/Socket_test.h"
-#include "HttpStream.h"
-#include "HttpRequest.h"
+#include <Psio/Net/Socket/Socket_test.h>
+#include <Psio/Net/Http/HttpStream.h>
+#include <Psio/Net/Http/HttpRequest.h>
 #include <algorithm>
-#undef min;
+#undef min
 
 using testing::_;
 using testing::MockFunction;
@@ -38,7 +38,6 @@ namespace psio
 
 		void TearDown() override {
 			delete stream;
-			delete network;
 			delete buf;
 		}
 
@@ -149,6 +148,7 @@ namespace psio
 
 	protected:
 		Engine engine;
+		Engine real_engine;
 		Network* network = nullptr;
 		FakeSocket *sock = nullptr;
 		std::unique_ptr<FakeSocket> f_sock;
@@ -341,8 +341,7 @@ namespace psio
 		// override with real network
 		delete sock;
 		sock = nullptr;
-		delete network;
-		network = new Network(&engine);
+		network = real_engine.getNet();
 		char answer[] = "HTTP/1.1 200 OK\r\n\r\nsomebody\n";
 		bool written = false;
 

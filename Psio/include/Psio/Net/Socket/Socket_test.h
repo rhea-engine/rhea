@@ -126,6 +126,8 @@ namespace psio {
 		FakeNetwork(Engine* engine) :
 			Network(engine)
 		{}
+		void Init() override {}
+		int SysErr(int err) override { return err; }
 		TCPSocket* CreateTCPSocket() override
 		{
 			return m_sock;

@@ -9,8 +9,8 @@
 #include <gmock/gmock.h>
 
 #include <string>
-#include "TCPSocket.h"
-#include "../Network.h"
+#include <Psio/Net/Socket/TCPSocket.h>
+#include <Psio/Net/Network.h>
 
 // testing tcp socket
 // run a lokal server from the test
@@ -20,8 +20,8 @@ namespace psio
 	public:
 		TCPSocketTest()
 		{
-			net = new Network(nullptr);
-			net->Init();
+			net = engine.getNet();
+
 		}
 		~TCPSocketTest() {
 			if (sock)
@@ -47,6 +47,7 @@ namespace psio
 		}
 		bool Received(char* testbuf, int len) { return !strncmp(r_buffer->reader(), testbuf, len); }
 		TCPSocket* sock = nullptr;
+		Engine engine;
 		Network* net;
 		int tot_connected = 0;
 		bool started = false;

@@ -143,9 +143,10 @@ namespace rhea
 		std::unordered_map<std::string, Component*> instances;
 		std::vector<PendingUnitConfig> pending_configs;
 		std::vector<PendingSceneInstance> pending_instances;
-		ResourceList resources(m_app);
+		const ResourceContext context{ m_context_root, m_scene_root };
+		ResourceList resources(m_app, context);
 		std::vector<PendingSceneInstance> ready_instances;
-		ResourceList ready_resources(m_app);
+		ResourceList ready_resources(m_app, context);
 
 		const std::string root_name = request.name.empty() ? m_definition.root.name : request.name;
 		Unit* root = doCast<Unit>(simpleparser::Type::create(root_name, m_definition.root.type_name));
@@ -212,7 +213,7 @@ namespace rhea
 					if (id.size() <= 1 || id[0] != '/')
 						continue;
 
-					const std::string resolved_id = id[1] == '/' ? id : m_scene_root + id;
+					const std::string resolved_id = id[1] == '/' ? id : m_context_root + id;
 					// References to configured nodes are resolved when this tree is attached.
 					const std::string local_prefix = request.basepath + "/";
 					if (!request.basepath.empty() && resolved_id.compare(0, local_prefix.size(), local_prefix) == 0 &&
@@ -236,9 +237,11 @@ namespace rhea
 				}
 			};
 
+		root->resolveReferences(m_context_root, m_scene_root);
 		collect_references("scene", root);
 		for (const auto& config : pending_configs) {
 			config.component->setup(m_app, config.attributes, config.values);
+			config.component->resolveReferences(m_context_root, m_scene_root);
 			collect_references(config.section_name, config.component);
 		}
 
@@ -250,7 +253,7 @@ namespace rhea
 			return;
 		}
 
-		auto load_remaining = [this, root, resource_service, resources, pending_instances, handler]() mutable {
+		auto load_remaining = [this, root, resource_service, resources = std::move(resources), pending_instances, handler]() mutable {
 			resource_service->loadAsync(resources,
 				[this, root, pending = std::move(pending_instances), handler](ResourceList* loaded, Error* error) mutable {
 					if (error) {

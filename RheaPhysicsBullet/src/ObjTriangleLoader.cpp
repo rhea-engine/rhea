@@ -40,7 +40,7 @@ bool ExtractTrianglesFromScene(rhea::Application* app, rhea::Item* item, Triangl
     }
 
     // 2) Resolve mesh unit
-    rhea::Mesh* meshUnit = mc->meshRef().resolve(app->getUnitTree());
+    rhea::Mesh* meshUnit = app->getUnitTree()->resolve(mc->meshRef());
     if (!meshUnit) {
         LOG(LOG_ERROR) << "ExtractTrianglesFromScene: mesh unit not found: " << mc->meshRef().id();
         return false;

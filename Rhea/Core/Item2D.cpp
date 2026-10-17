@@ -148,7 +148,7 @@ namespace rhea
 	void Item2D::setBackgroundImage(Ref<ImageResource> tex_ref)
 	{
 		m_bg_image_ref = tex_ref;
-		ImageResource* tex = tex_ref.resolve(m_app->getUnitTree());
+		ImageResource* tex = m_app->getUnitTree()->resolve(m_bg_image_ref);
 		setBackgroundImage(tex);
 	}
 

@@ -11,6 +11,7 @@
 #include <Rhea/Core/Item.h>
 #include <Rhea/Core/ActiveUnit.h>
 #include <Psio/Input/InputEvent.h>
+#include <Rhea/Core/SceneResource.h>
 #include <memory>
 
 namespace rhea
@@ -24,6 +25,7 @@ namespace rhea
 			m_target(NULL),
 			ActiveUnit(path_name, type_name)
 		{}
+		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, simpleparser::Variant> values) override;
 
 		// handle input event (after Input Map was applied)
 		virtual bool onInput(Event* ev, Unit* unit) = 0;
@@ -38,8 +40,16 @@ namespace rhea
 		// get the target
 		Item* getTarget() { return m_target; }
 
+		// get and set the default character for this controller
+		Ref<SceneResource> getDefaultCharacter() const { return m_default_character; }
+		void setDefaultCharacter(const Ref<SceneResource>& resource) { m_default_character = resource; }
+
+		// type initialization
+		static void initializeType(simpleparser::Type* type);
+
 	protected:
 		Item* m_target;
+		Ref<SceneResource> m_default_character;
 	};
 }
 #endif // !RHEA_CONTROLLER_H

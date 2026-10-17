@@ -473,18 +473,32 @@ namespace rhea
 		return ret;
 	}
 
-	void Application::loadResource(const std::string resource_id, std::string type_name, std::function<void(Component*, ReqError error)> handler)
+	void Application::loadResource(const std::string& resource_id, const std::string& type_name, std::function<void(Component*, ReqError error)> handler)
 	{
-		log("loading resource: " + resource_id);
-		orion::ResourceRequest* req = m_fs->getResourceByRid(resource_id);
-		req->resolve([this, handler, resource_id](orion::ResourceRequest* req, int err) {
+		loadResource(resource_id, {}, type_name, handler);
+	}
+
+
+	void Application::loadResource(const std::string& resource_id, const ResourceContext& context, const std::string& type_name, std::function<void(Component*, ReqError error)> handler)
+	{
+		std::string rid = context.normalizeResourceId(resource_id);
+
+		log("loading resource: " + rid);
+		orion::ResourceRequest* req = m_fs->getResourceByRid(rid);
+		req->resolve([this, handler, context, rid, resource_id](orion::ResourceRequest* req, int err) {
 
 			if (err == orion::ResourceRequest::Error::OK) {
 
 				// we got the resource
 
-				// get the realm parent unit (or create it if it doesn't exists) 
+				// store current context and set the new one for the resource
 				std::string realm_name = req->getRealmName();
+				ResourceContext loaded_context = context;
+				loaded_context.source_directory = "//" + req->getRealmName() + req->getParentPath();
+				if (loaded_context.context_root.empty())
+					loaded_context.context_root = loaded_context.source_directory;
+
+				// get the realm parent unit (or create it if it doesn't exists)
 				Component* realm_unit = m_unit_tree->find(realm_name, false);
 				if (!realm_unit) {
 					// add the realm
@@ -520,7 +534,7 @@ namespace rhea
 				// get from request
 				std::string mime = req->getMimeType();
 				if (mime.length()) {
-					if (m_resource_loader.load(req->getBasename(), this, mime, req, [this, handler, parent_unit, resource_id](ReqError err, Component* component) {
+					if (m_resource_loader.load(req->getBasename(), this, mime, req, loaded_context, [this, handler, parent_unit, resource_id](ReqError err, Component* component) {
 
 						// add it to tree
 						if (component) {

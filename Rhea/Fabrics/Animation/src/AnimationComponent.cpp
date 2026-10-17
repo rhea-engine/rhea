@@ -3,6 +3,7 @@
 #include <Psio/Log.h>
 #include <Rhea/Application.h>
 #include <Rhea/Animation/AnimationState.h>
+#include <Rhea/UnitTree.h>
 
 namespace rhea
 {
@@ -19,7 +20,7 @@ namespace rhea
 			LOG(LOG_ERROR) << "AnimationComponent: animatorRef is empty";
 			return;
 		}
-		m_animator = m_animator_ref.resolve(m_app->getUnitTree());
+		m_animator = m_app->getUnitTree()->resolve(m_animator_ref);
 		if (!m_animator) {
 			LOG(LOG_ERROR) << "AnimationComponent: animator " << m_animator_ref.id() << " not found";
 			return;
@@ -36,7 +37,7 @@ namespace rhea
 
 				if (!m_mesh) {
 					Ref<Mesh> m_mesh_ref = mc ? mc->meshRef() : Ref<Mesh>();
-					m_mesh = m_mesh_ref.resolve(m_app->getUnitTree());
+					m_mesh = m_app->getUnitTree()->resolve(m_mesh_ref);
 					if (!m_mesh) {
 						LOG(LOG_ERROR) << "Animation for " << m_parent->getPath() << ": mesh " << m_mesh_ref.id() << " not found";
 						return;

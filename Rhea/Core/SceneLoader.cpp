@@ -20,17 +20,16 @@
 
 namespace rhea
 {	
-	void SceneLoader::load(std::string name, Application* app, orion::ResourceRequest* req, Resource::LoadedHandler handler)
+	void SceneLoader::load(std::string name, Application* app, orion::ResourceRequest* req, ResourceContext& context, Resource::LoadedHandler handler)
 	{
 		psio::Stream* rs = req->getStream();
 		psio::IOBuffer* buf = new psio::IOBuffer(64 * 1024);
-		rs->onEnd([req, handler, buf, app, name](size_t buflen) {
-			std::string scene_root = "//" + req->getRealmName() + req->getParentPath();
-			SceneResource::SceneDefinition scene_def = parseIniFile(name, scene_root, buf->reader(), buflen);
+		rs->onEnd([req, handler, buf, app, name, context](size_t buflen) {
+			SceneResource::SceneDefinition scene_def = parseIniFile(name, buf->reader(), buflen);
 			SceneResource* scene_res = new SceneResource(name);
 			if (scene_res) {
 				scene_res->setup(app);
-				scene_res->setDefinition(scene_def, scene_root);
+				scene_res->setDefinition(scene_def, context.source_directory, context.context_root);
 				handler(ReqError::OK, scene_res);
 			}
 			delete buf;
@@ -42,7 +41,7 @@ namespace rhea
 		rs->ReadAsync(buf);
 	}
 
-	SceneResource::SceneDefinition SceneLoader::parseIniFile(std::string name, const std::string& scene_root, char* buf, size_t buflen)
+	SceneResource::SceneDefinition SceneLoader::parseIniFile(std::string name, char* buf, size_t buflen)
 	{
 		std::unique_ptr<simpleparser::IniFileParser> parser = std::make_unique<simpleparser::IniFileParser>();
 		std::vector<simpleparser::IniFileParser::Section> sections;

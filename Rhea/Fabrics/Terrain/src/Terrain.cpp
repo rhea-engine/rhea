@@ -135,8 +135,7 @@ namespace rhea
 
 	Unit* Terrain::getHeightmap()
 	{
-		Unit* map = doCast<Unit>(m_app->getUnitTree()->find(m_values["heightmap"].toString()));
-		return map;
+		return doCast<Unit>(m_app->getUnitTree()->find(m_values["heightmap"].toString(), m_attributes["basepath"], false));
 	}
 
 	math::Vector3 Terrain::calculateNormal(int x, int y)
@@ -162,7 +161,7 @@ namespace rhea
 		Item::ready();
 
 		if (m_values.find("heightmap") != m_values.end()) {
-			Unit* map = doCast<Unit>(m_app->getUnitTree()->find(m_values["heightmap"].toString(), m_attributes["basepath"], false));
+			Unit* map = getHeightmap();
 			if (map) {
 				
 				unsigned char* buf = nullptr;

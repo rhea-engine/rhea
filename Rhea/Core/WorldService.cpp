@@ -47,9 +47,13 @@ namespace rhea
 
 			SceneResource* scene_resource = doCast<SceneResource>(component);
 			if (error == ReqError::OK && scene_resource) {
+				const ResourceContext context{
+					scene_resource->getContextRoot(),
+					scene_resource->getSceneRoot()
+				};
 				// instance the world
 				Unit* parent = doCast<Unit>(m_app->getUnitTree()->find(scene_resource->getSceneRoot()));
-				scene_resource->spawn(parent, [this, rid, open_generation, handler](ReqError error, Unit* unit) {
+				scene_resource->spawn(parent, [this, rid, open_generation, handler, context](ReqError error, Unit* unit) {
 					if (open_generation != m_open_generation) {
 						if (handler) {
 							handler(OpenError::RequestCanceled);
@@ -69,7 +73,7 @@ namespace rhea
 						m_state = State::Ready;
 					}
 					LOG(LOG_INFO) << "Loaded world: " << rid;
-					onWorldLoaded(open_generation, rid, unit, handler);
+					onWorldLoaded(open_generation, rid, context, unit, handler);
 					});
 			}
 			else {
@@ -82,8 +86,9 @@ namespace rhea
 			});
 	}
 
-	void WorldService::beginSession()
+	void WorldService::beginSession(const ResourceContext& context)
 	{
+		m_session_context = context;
 		WorldSessionChangedEvent event(this, m_world, m_session_generation, m_session_generation + 1);
 
 		++m_session_generation;
@@ -105,20 +110,33 @@ namespace rhea
 			}
 		}
 	}
-
-	void WorldService::loadScene(std::string resource_id, LoadSceneHandler handler)
+	void WorldService::loadScene(const std::string& resource_id, LoadSceneHandler handler)
 	{
+		loadScene(resource_id, m_session_context, handler);
+	}
+
+	void WorldService::loadScene(const std::string& resource_id, const ResourceContext& context, LoadSceneHandler handler)
+	{
+		if (resource_id.empty()) {
+			LOG(LOG_ERROR) << "Invalid resource id: " << resource_id << " (empty)";
+			if (handler) {
+				handler(nullptr, OpenError::ResourceNotFound);
+			}
+			return;
+		}
+		std::string rid = context.normalizeResourceId(resource_id);
+
 		// check if the scene is already loaded
 		for (auto& pair : m_managed_scenes) {
 			ManagedScene& managed_scene = pair.second;
-			if (managed_scene.resource_id == resource_id && managed_scene.session_generation == m_session_generation) {
+			if (managed_scene.resource_id == rid && managed_scene.session_generation == m_session_generation) {
 				if (handler) {
 					handler(managed_scene.scene, OpenError::None);
 				}
 				return;
 			}
 		}
-		SceneLoadKey key{ m_session_generation, resource_id };
+		SceneLoadKey key{ m_session_generation, rid };
 		auto [it, inserted] = m_pending_scene_loads.try_emplace(key);
 		if (handler) {
 			it->second.handlers.push_back(handler);
@@ -128,23 +146,41 @@ namespace rhea
 			return; // Resource already being loaded, handler will be called when loading is complete
 
 		const uint64_t session_generation = m_session_generation;
-		m_app->loadResource(resource_id, "//meworla/scene", [this, resource_id, handler, session_generation](Component* component, ReqError error) {
+		m_app->loadResource(rid, context, "//meworla/scene", [this, rid, handler, session_generation](Component* component, ReqError error) {
 			SceneResource* scene_resource = doCast<SceneResource>(component);
 
+			OpenError result = OpenError::None;
+
 			if (error != ReqError::OK || !scene_resource) {
-				LOG(LOG_ERROR) << "Failed to load scene: " << static_cast<int>(error) << " (" << resource_id << ")";
-				handler(nullptr, OpenError::ResourceNotFound);
+				LOG(LOG_ERROR) << "Failed to load scene: " << static_cast<int>(error) << " (" << rid << ")";
+				result = OpenError::ResourceNotFound;
+			}
+
+			Unit* parent = nullptr;
+			if (result == OpenError::None) {
+				parent = doCast<Unit>(m_app->getUnitTree()->find(scene_resource->getSceneRoot()));
+				if (!parent) {
+					LOG(LOG_ERROR) << "Failed to find scene root: " << scene_resource->getSceneRoot() << " (" << rid << ")";
+					result = OpenError::InvalidSceneType;
+				}
+			}
+
+			if (result != OpenError::None) {
+				// Call all pending handlers with the error
+				SceneLoadKey key{ session_generation, rid };
+				auto it = m_pending_scene_loads.find(key);
+				if (it == m_pending_scene_loads.end())
+					return;
+
+				auto pending = std::move(it->second);
+				m_pending_scene_loads.erase(it);
+
+				for (auto& handler : pending.handlers)
+					handler(nullptr, result);
 				return;
 			}
 
-			Unit* parent = doCast<Unit>(m_app->getUnitTree()->find(scene_resource->getSceneRoot()));
-			if (!parent) {
-				LOG(LOG_ERROR) << "Failed to find scene root: " << scene_resource->getSceneRoot() << " (" << resource_id << ")";
-				handler(nullptr, OpenError::InvalidSceneType);
-				return;
-			}
-
-			scene_resource->spawn(parent, [this, resource_id, session_generation](ReqError error, Unit* component) {
+			scene_resource->spawn(parent, [this, rid, session_generation](ReqError error, Unit* component) {
 
 				Scene* scene = doCast<Scene>(component);
 				OpenError result = OpenError::None;
@@ -155,18 +191,18 @@ namespace rhea
 				else {
 
 					if (error == ReqError::OK) {
-						LOG(LOG_DEBUG) << "Loaded scene: " << resource_id;
+						LOG(LOG_DEBUG) << "Loaded scene: " << rid;
 
 						if (scene) {
-							ManagedScene& managed_scene = ensureManagedScene(scene, resource_id, SceneRole::Regular, nullptr);
+							ManagedScene& managed_scene = ensureManagedScene(scene, rid, SceneRole::Regular, nullptr);
 						}
 						else {
-							LOG(LOG_ERROR) << "Loaded component is not a scene: " << resource_id;
+							LOG(LOG_ERROR) << "Loaded component is not a scene: " << rid;
 							result = OpenError::InvalidSceneType;
 						}
 					}
 					else {
-						LOG(LOG_ERROR) << "Failed to load scene: " << static_cast<int>(error) << " (" << resource_id << ")";
+						LOG(LOG_ERROR) << "Failed to load scene: " << static_cast<int>(error) << " (" << rid << ")";
 						result = OpenError::ResourceNotFound;
 					}
 				}
@@ -184,7 +220,7 @@ namespace rhea
 						});
 				}
 
-				SceneLoadKey key{ session_generation, resource_id };
+				SceneLoadKey key{ session_generation, rid };
 				auto it = m_pending_scene_loads.find(key);
 				if (it == m_pending_scene_loads.end())
 					return;
@@ -198,13 +234,19 @@ namespace rhea
 			});
 	}
 
-	void WorldService::activateScene(std::string& resource_id, SceneRole role, Scene* owner_scene, OpenHandler handler)
+	void WorldService::activateScene(const std::string& resource_id, SceneRole role, Scene* owner_scene, OpenHandler handler)
 	{
-		loadScene(resource_id, [this, resource_id, role, owner_scene, handler](Scene* next_scene, OpenError error) {
+		activateScene(resource_id, m_session_context, role, owner_scene, handler);
+	}
+
+	void WorldService::activateScene(const std::string& resource_id, const ResourceContext& context, SceneRole role, Scene* owner_scene, OpenHandler handler)
+	{
+		loadScene(resource_id, context, [this, resource_id, role, owner_scene, handler, context](Scene* next_scene, OpenError error) {
 			if (error == OpenError::None) {
 				if (next_scene) {
 					// prepare the scene if not already prepared
-					ManagedScene& managed_scene = ensureManagedScene(next_scene, resource_id, role, owner_scene);
+					std::string rid = context.normalizeResourceId(resource_id);
+					ManagedScene& managed_scene = ensureManagedScene(next_scene, rid, role, owner_scene);
 					m_managed_scenes[next_scene].role = role;
 					m_managed_scenes[next_scene].owner_scene = owner_scene;
 					if (!managed_scene.isPrepared()) {
@@ -242,20 +284,26 @@ namespace rhea
 			});
 	}
 
-	bool WorldService::deactivateScene(std::string& resource_id)
+	bool WorldService::deactivateScene(const std::string& resource_id)
+	{
+		return deactivateScene(resource_id, m_session_context);
+	}
+
+	bool WorldService::deactivateScene(const std::string& resource_id, const ResourceContext& context)
 	{
 		// find the loaded scene
+		std::string rid = context.normalizeResourceId(resource_id);
 		Scene* scene_to_deactivate = nullptr;
 		for (auto& pair : m_managed_scenes) {
 			ManagedScene& managed_scene = pair.second;
-			if (managed_scene.resource_id == resource_id && managed_scene.session_generation == m_session_generation) {
+			if (managed_scene.resource_id == rid && managed_scene.session_generation == m_session_generation) {
 				scene_to_deactivate = managed_scene.scene;
 				break;
 			}
 		}
 		if (scene_to_deactivate) {
 			if (scene_to_deactivate == m_primary_scene) {
-				LOG(LOG_WARNING) << "Cannot deactivate primary scene: " << resource_id;
+				LOG(LOG_WARNING) << "Cannot deactivate primary scene: " << rid;
 				return false;
 			}
 			scene_to_deactivate->deactivate();
@@ -263,14 +311,14 @@ namespace rhea
 			return true;
 		}
 		else {
-			LOG(LOG_WARNING) << "Scene not found for deactivation: " << resource_id;
+			LOG(LOG_WARNING) << "Scene not found for deactivation: " << rid;
 		}
 		return false;
 	}
 
 	void rhea::WorldService::transitionToScene(const TransitionRequest& request, OpenHandler handler)
 	{
-		loadScene(request.target_resource_id, [this, request, handler](Scene* next_scene, OpenError error) {
+		loadScene(request.target_resource_id, m_session_context, [this, request, handler](Scene* next_scene, OpenError error) {
 			if (error == OpenError::None) {
 				// find the loaded scene
 				if (next_scene) {
@@ -340,7 +388,7 @@ namespace rhea
 		}
 	}
 
-	void WorldService::onWorldLoaded(uint64_t open_generation, std::string request_id, Component* component, OpenHandler handler)
+	void WorldService::onWorldLoaded(uint64_t open_generation, std::string request_id, const ResourceContext& context, Component* component, OpenHandler handler)
 	{
 		// get start scene
 		World* world = doCast<World>(component);
@@ -352,9 +400,9 @@ namespace rhea
 				}
 				return;
 			}
-			beginSession();
+			beginSession(context);
 			m_world = world;
-			loadStartScene(world, open_generation, handler);
+			loadStartScene(world, context, open_generation, handler);
 		}
 		else if (doCast<Scene>(component)) {
 			// if the loaded component is a scene, we can use it directly
@@ -367,7 +415,7 @@ namespace rhea
 				}
 				return;
 			}
-			beginSession();
+			beginSession(context);
 			m_world = nullptr;
 
 			ManagedScene& managed_scene = ensureManagedScene(scene, request_id, SceneRole::Regular, nullptr);
@@ -391,7 +439,7 @@ namespace rhea
 		}
 
 	}
-	void WorldService::loadStartScene(World* world, uint64_t requestId, OpenHandler handler)
+	void WorldService::loadStartScene(World* world, const ResourceContext& context, uint64_t requestId, OpenHandler handler)
 	{
 		std::string start = m_world->getValueString("startscene", "");
 
@@ -403,7 +451,7 @@ namespace rhea
 			return;
 		}
 
-		// first search within the already loaded world.scene.
+				// first search within the already loaded world.scene.
 		Scene* embedded = doCast<Scene>(m_world->find(start, m_world->getPath(), false));
 		if (embedded) {
 			ManagedScene& managed_scene = ensureManagedScene(embedded, m_world->getPath() + "/" + start, SceneRole::Regular, nullptr);
@@ -413,7 +461,7 @@ namespace rhea
 		}
 
 		// Otherwise, load as an external resource ID.
-		loadScene(start, [this, requestId, start, handler](Scene* next_scene, OpenError error) {
+		loadScene(start, context, [this, requestId, start, handler](Scene* next_scene, OpenError error) {
 
 			if (requestId != m_open_generation) {
 				if (handler)

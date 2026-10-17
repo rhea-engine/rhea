@@ -38,7 +38,7 @@ namespace rhea
 			return true;
 
 		if (!m_mesh && m_mesh_ref) {
-			m_mesh = m_mesh_ref.resolve(m_app->getUnitTree());
+			m_mesh = m_app->getUnitTree()->resolve(m_mesh_ref);
 			if (!m_mesh) {
 				LOG(LOG_ERROR) << "Animator " << m_pathname << ": mesh " << m_mesh_ref.id() << " not found";
 			}
@@ -54,7 +54,7 @@ namespace rhea
 		}
 
 		if (m_skeleton_ref) {
-			m_skeleton = m_skeleton_ref.resolve(m_app->getUnitTree());
+			m_skeleton = m_app->getUnitTree()->resolve(m_skeleton_ref);
 			if (!m_skeleton) {
 				LOG(LOG_ERROR) << "Animator " << m_pathname << ": skeleton " << m_skeleton_ref.id() << " not found";
 				return false;

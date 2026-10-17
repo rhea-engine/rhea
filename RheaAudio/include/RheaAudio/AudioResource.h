@@ -45,7 +45,7 @@ namespace rhea::audio
 
         void ready();
 
-        static void load(std::string name, Application* app, orion::ResourceRequest* req, Resource::LoadedHandler);
+        static void load(std::string name, Application* app, orion::ResourceRequest* req, ResourceContext& context, Resource::LoadedHandler);
 
         virtual AudioLoadMode getLoadMode() const { return DECODE_FULLY; }
 

@@ -34,6 +34,8 @@
 #include "TransformListener.h"
 #include <Rhea/Animation/AnimationComponent.h>
 #include <algorithm>
+#include <Rhea/Application.h>
+#include <Rhea/UnitTree.h>
 
 namespace rhea::client {
 	GraphicsItemManager::~GraphicsItemManager()
@@ -102,7 +104,7 @@ namespace rhea::client {
 				return false; 
 			}
 
-			mesh = mc->meshRef().resolve(app->getUnitTree());
+			mesh = app->getUnitTree()->resolve(mc->meshRef());
 			
 			if (!mesh) {
 				// Mesh not found yet - Handlers are registered, wait for update
@@ -175,7 +177,7 @@ namespace rhea::client {
 			// Try to resolve the mesh again
 			rhea::Application* app = m_service->getApplication();
 			if (app) {
-				mesh = mc->meshRef().resolve(app->getUnitTree());
+				mesh = app->getUnitTree()->resolve(mc->meshRef());
 				if (mesh) {
 					mc->setMesh(mesh);
 					mesh->ready();

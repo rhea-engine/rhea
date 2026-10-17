@@ -70,7 +70,7 @@ namespace rhea
 		return true;
 	}
 
-	void GltfLoader::load_impl(std::string name, Application* app, orion::ResourceRequest* req, Resource::LoadedHandler handler, bool is_binary)
+	void GltfLoader::load_impl(std::string name, Application* app, orion::ResourceRequest* req, ResourceContext& context, Resource::LoadedHandler handler, bool is_binary)
 	{
 		if (req) {
 

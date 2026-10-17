@@ -11,6 +11,7 @@
 #include <Psio/Input/InputEvent.h>
 #include <Orion/Orion.h>
 #include <Orion/ResourceRequest.h>
+#include <Rhea/Resources/ResourceContext.h>
 #include "Resources/ResourceLoader.h"
 #include "FabricSystem.h"
 #include "Graphics/Window.h"
@@ -135,7 +136,8 @@ namespace rhea
 		virtual void onResourceFailed(orion::ResourceRequest::Error reason);
 
 		// get a resource and load it as type
-		void loadResource(const std::string resource_id, std::string type_name, std::function<void(Component*, ReqError error)> handler);
+		void loadResource(const std::string& resource_id, const std::string& type_name, std::function<void(Component*, ReqError error)> handler);
+		void loadResource(const std::string& resource_id, const ResourceContext& context, const std::string& type_name, std::function<void(Component*, ReqError error)> handler);
 
 		// get the resource loader
 		ResourceLoader* getResourceLoader() { return &m_resource_loader; }

@@ -5,9 +5,10 @@
  * See LICENSE file in the project root for full license information.
  */
 
-#include "Rhea/Component.h"
-#include "Rhea/Unit.h"
+#include <Rhea/Component.h>
+#include <Rhea/Unit.h>
 #include <SimpleParser/Method.h>
+#include <Rhea/Resources/ResourceContext.h>
 
 namespace rhea
 {
@@ -104,9 +105,51 @@ namespace rhea
 		m_values[name] = val;
 	}
 
+	void Component::resolveReferences(const std::string& context_root, const std::string& source_root)
+	{
+		const ResourceContext context{ context_root, source_root };
+
+		for (auto* type = getType(); type; type = type->getParent()) {
+			const auto properties_it = s_resource_properties.find(type);
+			if (properties_it == s_resource_properties.end())
+				continue;
+
+			for (const auto& property : properties_it->second) {
+				const std::string id = property.get_id(*this);
+
+				// Preserve empty IDs, local object references and explicit realms.
+				if (id.empty() || id[0] != '/' || id.compare(0, 2, "//") == 0)
+					continue;
+
+				property.set_id(*this, context.normalizeResourceId(id));
+			}
+		}
+	}
+
 	std::vector<Component::ResourceReference> Component::getReferences()
 	{
-		return std::vector<ResourceReference>();
+		std::vector<ResourceReference> references;
+
+		for (auto* type = getType(); type; type = type->getParent()) {
+			const auto properties_it = s_resource_properties.find(type);
+			if (properties_it == s_resource_properties.end())
+				continue;
+
+			for (const auto& property : properties_it->second) {
+				const std::string id = property.get_id(*this);
+				if (id.empty())
+					continue;
+
+				references.push_back({
+					property.name,
+					property.resource_type,
+					id,
+					property.usage
+					});
+			}
+		}
+
+		return references;
 	}
 
 	Component* Component::instance(const std::string& name) 
@@ -183,5 +226,5 @@ namespace rhea
 		return m_parent->isAncestor(u2);
 	}
 
-
+	std::unordered_map<simpleparser::Type*, std::vector<Component::ResourceProperty>> Component::s_resource_properties;
 }

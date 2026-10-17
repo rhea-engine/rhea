@@ -62,10 +62,11 @@ namespace rhea {
 				else if (res.resource) {
 					// exists in res list						
 					m_resources[key].status = Resource::Status::LOADED;
+					m_resources[key].resource = res.resource;
 					decrementToLoadAndCheckIfZero(handler, nullptr);
 				}
 				else {
-					m_app->loadResource(res.id, res.type, [&, res, key, handler](Component* component, orion::ResourceRequest::Error err) {
+					m_app->loadResource(res.id, m_resource_context, res.type, [&, res, key, handler](Component* component, orion::ResourceRequest::Error err) {
 						Unit* resource = doCast<Unit>(component);
 						if (resource) {
 							if (err != orion::ResourceRequest::Error::OK) {

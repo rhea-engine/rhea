@@ -12,6 +12,7 @@
 #include <Rhea/Controller/SpectatorController.h>
 #include <Rhea/Core/SceneResource.h>
 #include <algorithm>
+#include <Rhea/UnitTree.h>
 
 namespace rhea
 {
@@ -116,20 +117,20 @@ namespace rhea
 
 					// second subphase: if not found, try to use scene-definition or template character from the world
 					if (!character) {
-						std::string default_character_path = ctrl_info.controller->getValueString("default_character", "");
-						if (!default_character_path.empty()) {
-							SceneResource* default_character = doCast<SceneResource>(m_app->getUnitTree()->find(default_character_path));
+						Ref<SceneResource> default_character_ref = ctrl_info.controller->getDefaultCharacter();
+						if (default_character_ref) {
+							SceneResource* default_character = doCast<SceneResource>(m_app->getUnitTree()->find(default_character_ref.id()));
 							if (default_character) {
 								ReqError error;
 								character = doCast<Item>(default_character->spawnPrepared(context->target_scene, "", &error));
 								if (character) {
-									LOG(LOG_INFO) << "ControllerService: Default character spawned: " << default_character_path;
+									LOG(LOG_INFO) << "ControllerService: Default character spawned: " << default_character_ref.id();
 								}
 								else
-									LOG(LOG_ERROR) << "ControllerService: Default character failed to spawn: " << default_character_path << " with error " << (int)error;
+									LOG(LOG_ERROR) << "ControllerService: Default character failed to spawn: " << default_character_ref.id() << " with error " << (int)error;
 							}
 							else
-								LOG(LOG_ERROR) << "ControllerService: Default character not found: " << default_character_path;
+								LOG(LOG_ERROR) << "ControllerService: Default character not found: " << default_character_ref.id();
 						}
 					}
 					if (!character) {

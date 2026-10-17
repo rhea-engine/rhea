@@ -11,6 +11,7 @@
 #include <unordered_map>
 
 #include "Resource.h"
+#include <Rhea/Resources/ResourceContext.h>
 
 namespace rhea
 {
@@ -24,14 +25,15 @@ namespace rhea
 		struct ResourceInfo {
 			std::string id;
 			std::string type;
-			Resource::Status status;
-			Unit* resource;
+			Resource::Status status = Resource::Status::SETUP;
+			Unit* resource = nullptr;
 		};
 
-		ResourceList(Application* app) :
+		ResourceList(Application* app, const ResourceContext& context) :
 			m_app(app),
 			m_to_load(0),
-			m_loaded(false)
+			m_loaded(false),
+			m_resource_context(context)
 		{};
 		~ResourceList();
 
@@ -62,6 +64,7 @@ namespace rhea
 		Application* m_app;
 		int m_to_load;
 		bool m_loaded;
+		ResourceContext m_resource_context;
 
 		std::unordered_map<std::string, ResourceInfo> m_resources;
 	};

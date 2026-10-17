@@ -200,6 +200,7 @@ namespace rhea
             std::function<std::string(const Component&)> get_id;
             std::function<void(Component&, std::string)> set_id;
             std::function<void(Component&, Component&)> copy;
+            std::function<void(Component&, const std::string&)> set_base_path;
         };
 
         template<class Owner, class Target>
@@ -223,6 +224,9 @@ namespace rhea
                 [member](Component& source, Component& target) {
                     (static_cast<Owner&>(target).*member) =
                     (static_cast<Owner&>(source).*member);
+                },
+                [member](Component& component, const std::string& base_path) {
+                    (static_cast<Owner&>(component).*member).setBasePath(base_path);
                 }
                 });
         }

@@ -23,6 +23,20 @@ namespace rhea
 		m_app = app;
 		m_attributes = attributes;
 		m_values = values;
+
+		for (auto* type = getType(); type; type = type->getParent()) {
+			const auto properties_it = s_resource_properties.find(type);
+			if (properties_it == s_resource_properties.end())
+				continue;
+
+			for (const auto& property : properties_it->second) {
+				const auto value_it = m_values.find(property.name);
+				if (value_it == m_values.end())
+					continue;
+
+				property.set_id(*this, value_it->second.toString());
+			}
+		}
 	}
 
 	void Component::destroy()
@@ -114,7 +128,9 @@ namespace rhea
 			if (properties_it == s_resource_properties.end())
 				continue;
 
-			for (const auto& property : properties_it->second) {
+			for (const auto& property : properties_it->second) {				
+				property.set_base_path(*this, getAttribute("basepath"));
+
 				const std::string id = property.get_id(*this);
 
 				// Preserve empty IDs, local object references and explicit realms.

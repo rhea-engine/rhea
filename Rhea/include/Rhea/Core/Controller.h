@@ -25,8 +25,7 @@ namespace rhea
 			m_target(NULL),
 			ActiveUnit(path_name, type_name)
 		{}
-		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, simpleparser::Variant> values) override;
-
+		
 		// handle input event (after Input Map was applied)
 		virtual bool onInput(Event* ev, Unit* unit) = 0;
 

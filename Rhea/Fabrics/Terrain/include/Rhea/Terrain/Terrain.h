@@ -37,7 +37,7 @@ namespace rhea
 
 		// setup from strings
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);		
-		std::vector<ResourceReference> getReferences();
+		//std::vector<ResourceReference> getReferences();
 
 		// get height in world coords
 		float getHeight(float x, float z);
@@ -60,6 +60,8 @@ namespace rhea
 		
 		math::Vector3 calculateNormal(int x, int y);
 
+		static void initializeType(simpleparser::Type* type);	
+
 	protected:
 		// size of heightmap image
 		int m_width;
@@ -72,7 +74,15 @@ namespace rhea
 		std::unique_ptr<poseidon::Image> m_heightmap;
 		float* m_heights;
 		Material* m_material;
-		
+
+		Ref<ImageResource> m_heightmap_resource;
+		Ref<ImageResource> m_blendmap_resource;
+		Ref<ImageResource> m_texture1_resource;
+		Ref<ImageResource> m_texture2_resource;
+		Ref<ImageResource> m_texture3_resource;
+		Ref<ImageResource> m_texture4_resource;		
+		Ref<Shader> m_shader_resource;
+
 		static float barryCentric(math::Vector3 p1, math::Vector3 p2, math::Vector3 p3, float x, float z);			
 	};
 }

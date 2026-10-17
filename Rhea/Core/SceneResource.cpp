@@ -237,13 +237,17 @@ namespace rhea
 				}
 			};
 
-		root->resolveReferences(m_context_root, m_scene_root);
-		collect_references("scene", root);
-		for (const auto& config : pending_configs) {
+		for (const auto& config : pending_configs)
 			config.component->setup(m_app, config.attributes, config.values);
-			config.component->resolveReferences(m_context_root, m_scene_root);
-			collect_references(config.section_name, config.component);
-		}
+		
+		size_t owner_index = 0;
+		root->traverse([&](std::string& name, Component* component)->bool {
+			component->resolveReferences(m_context_root, m_scene_root);
+
+			const std::string owner_id = std::to_string(owner_index++) + "_" + name;
+			collect_references(owner_id, component);
+			return true;
+			});
 
 		auto* resource_service = static_cast<ResourceService*>(m_app->getService("resources"));
 		if (!resource_service) {

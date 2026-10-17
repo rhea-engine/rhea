@@ -184,7 +184,8 @@ namespace rhea
 	{
 		auto values = source->getValues();
 		values.erase("fabric");
-		target->setup(m_app, source->getAttributes(), values);	
+		target->setup(m_app, source->getAttributes(), values);
+		copyResourceProperties(*source, *target);
 	}
 
 	Component* Component::getCommonAncestor(Component* u2)
@@ -224,6 +225,18 @@ namespace rhea
 
 		// not our parent - check back up the tree
 		return m_parent->isAncestor(u2);
+	}
+	
+	void Component::copyResourceProperties(Component& source, Component& target)
+	{
+		for (auto* type = source.getType(); type; type = type->getParent()) {
+			const auto properties_it = s_resource_properties.find(type);
+			if (properties_it == s_resource_properties.end())
+				continue;
+
+			for (const auto& property : properties_it->second)
+				property.copy(source, target);
+		}
 	}
 
 	std::unordered_map<simpleparser::Type*, std::vector<Component::ResourceProperty>> Component::s_resource_properties;

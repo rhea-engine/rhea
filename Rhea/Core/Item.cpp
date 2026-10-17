@@ -59,15 +59,23 @@ namespace rhea
 				}
 			}
 		}
-	}
 
-	std::vector<Unit::ResourceReference> Item::getReferences()
-	{
-		std::vector<ResourceReference> refs = Unit::getReferences();
 		if (m_values.find("mesh") != m_values.end()) {
-			refs.push_back({ "mesh", "//meworla/mesh", m_values["mesh"] });
+			std::string mesh_id = m_values["mesh"].toString();
+			VisualComponent* visual_component = getComponent<VisualComponent>();
+			if (!visual_component) {
+				visual_component = addComponentUnique<VisualComponent>("visual_component");
+			}
+			MeshComponent* mesh_component = getComponent<MeshComponent>();
+			if (!mesh_component) {
+				mesh_component = addComponentUnique<MeshComponent>("mesh_component");
+				mesh_component->setOrigin(Component::ComponentOrigin::Configured);
+
+				// set ref only if mesh component was newly created
+				mesh_component->setMeshRef(Ref<Mesh>(mesh_id, m_attributes["basepath"]));
+			}
 		}
-		return refs;
+
 	}
 
 	void Item::ensureTransform()
@@ -95,23 +103,9 @@ namespace rhea
 
 		VisualComponent* visual_component = getComponent<VisualComponent>();
 
-		auto mesh_it = m_values.find("mesh");
-		if (mesh_it != m_values.end()) {
+		if (getComponent<MeshComponent>()) {
 			if (!visual_component) {
 				visual_component = addComponentUnique<VisualComponent>("visual_component");
-			}
-			MeshComponent* mesh_component = getComponent<MeshComponent>();
-			if (!mesh_component) {
-				mesh_component = addComponentUnique<MeshComponent>("mesh_component");
-			}
-			// only set ref
-			mesh_component->setMeshRef(Ref<Mesh>(mesh_it->second.toString(), m_attributes["basepath"]));
-		}
-		else {
-			if (getComponent<MeshComponent>()) {
-				if (!visual_component) {
-					visual_component = addComponentUnique<VisualComponent>("visual_component");
-				}
 			}
 		}
 

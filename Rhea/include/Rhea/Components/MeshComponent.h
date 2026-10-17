@@ -35,22 +35,7 @@ namespace rhea
 			if (m_parent && !m_parent->getComponent<MeshComponent>()) {
 				m_parent->addComponent(this);
 			}
-		}
-
-        std::vector<ResourceReference> getReferences() override
-        {
-            auto it = m_values.find("meshRef");
-
-            if (it == m_values.end())
-                return {};
-
-            return { {
-                "meshRef",
-                "//meworla/mesh",
-                it->second,
-                ResourceUsage::Load
-            } };
-        }
+		}       
 
         // Asset reference (unresolved)
         const Ref<Mesh>& meshRef() const { return m_meshRef; }
@@ -61,6 +46,11 @@ namespace rhea
         // Resolved asset
         Mesh* getMesh() const { return m_mesh; }
         void setMesh(Mesh* m) { m_mesh = m; }
+
+        static void initializeType(simpleparser::Type* type)
+        {
+            registerResourceProperty(type, "meshRef", &MeshComponent::m_meshRef, "//meworla/mesh", ResourceUsage::Load);
+        }
 
     private:
         // Unresolved reference

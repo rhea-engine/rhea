@@ -199,6 +199,7 @@ namespace rhea
 
             std::function<std::string(const Component&)> get_id;
             std::function<void(Component&, std::string)> set_id;
+            std::function<void(Component&, Component&)> copy;
         };
 
         template<class Owner, class Target>
@@ -218,9 +219,14 @@ namespace rhea
                 },
                 [member](Component& component, std::string id) {
                     (static_cast<Owner&>(component).*member).setId(std::move(id));
+                },
+                [member](Component& source, Component& target) {
+                    (static_cast<Owner&>(target).*member) =
+                    (static_cast<Owner&>(source).*member);
                 }
                 });
         }
+        static void copyResourceProperties(Component& source, Component& target);
 
         static std::unordered_map<simpleparser::Type*, std::vector<ResourceProperty>> s_resource_properties;
     };

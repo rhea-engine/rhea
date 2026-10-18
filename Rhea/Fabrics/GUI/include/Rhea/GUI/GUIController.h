@@ -14,6 +14,7 @@
 namespace rhea
 {
 	class Dialog;
+	class Font;
 
 	class GUIController : public Widget
 	{
@@ -33,7 +34,7 @@ namespace rhea
 
 		// setup from strings
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
-		std::vector<ResourceReference> getReferences();
+		static void initializeType(simpleparser::Type* type);
 
 		// ready event handler
 		void ready();
@@ -165,6 +166,9 @@ namespace rhea
 		int m_my;
 
 		std::unique_ptr<StyleEngine> m_style_engine;
+
+		Ref<StyleSheet> m_stylesheet_ref;
+		Ref<Font> m_default_font_ref;
 	};
 }
 

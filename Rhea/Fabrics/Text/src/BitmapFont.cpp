@@ -119,7 +119,8 @@ namespace rhea
 		Unit::setup(app, attributes, values);
 
 		// dependent resources
-		m_values["shader"] = "//rhea/shaders/text";
+		if (m_shader_ref.empty())
+			m_shader_ref.setId("//rhea/shaders/text");
 
 		// default values
 		m_sz = getValue("font_size", 32.0f);
@@ -128,21 +129,13 @@ namespace rhea
 		m_dim_h = getValue("bmp_height", 256.0f);
 	}
 
-	std::vector<Unit::ResourceReference> BitmapFont::getReferences()
+	void BitmapFont::initializeType(simpleparser::Type* type)
 	{
-		std::vector<ResourceReference> refs;
-		if (m_values.find("texture") != m_values.end()) {
-			refs.push_back({ "texture", "//meworla/texture", m_values["texture"] });
-		}
-		if (m_values.find("shader") != m_values.end()) {
-			refs.push_back({ "shader", "//meworla/shader", m_values["shader"] });
-		}
-		if (m_values.find("font_info") != m_values.end()) {
-			refs.push_back({ "fontinfo", "//meworla/fontinfo", m_values["font_info"] });
-		}
-		return refs;
+		registerResourceProperty(type, "texture", &BitmapFont::m_texture_ref, "//meworla/texture", ResourceUsage::Load);
+		registerResourceProperty(type, "shader", &BitmapFont::m_shader_ref, "//meworla/shader", ResourceUsage::Load);
+		registerResourceProperty(type, "font_info", &BitmapFont::m_font_info_ref, "//meworla/fontinfo", ResourceUsage::Load);
 	}
-	
+
 	void BitmapFont::ready()
 	{
 		Unit::ready();
@@ -151,152 +144,149 @@ namespace rhea
 			return;
 
 		// load and add textures
-		if (m_values.find("texture") != m_values.end())
-		{						
-			Unit* tex = doCast<Unit>(m_app->getUnitTree()->find(m_values["texture"].toString(), m_attributes["basepath"], false));
-			if (tex) {
+		ImageResource* tex = m_app->getUnitTree()->resolve(m_texture_ref);
+		if (tex) {
 
-				// create dummy material
-				m_material = new Material(m_path + "_material");
-				m_material->setup(m_app, {}, {});
-				m_material->setValue("shader", m_values["shader"]);
+			// create dummy material
+			m_material = new Material(m_path + "_material");
+			m_material->setup(m_app, {}, {});
+			m_material->setValue("shader", m_shader_ref.id());
 
-				// get the shader
-				Shader* shader_res = doCast<Shader>(m_app->getUnitTree()->find(m_values["shader"].toString(), m_attributes["basepath"], false));
-				if (shader_res) {
-					m_material->setShader(shader_res);
-				}
-				else {
-					LOG(LOG_ERROR) << "BitmapFont::ready(): Shader '" << (std::string)m_values["shader"] << "' for " << m_pathname << " not found";
-					return;
-				}
-				m_material->setTexture(0, static_cast<ImageResource*>(tex));
+			// get the shader
+			Shader* shader_res = m_app->getUnitTree()->resolve(m_shader_ref);
+			if (shader_res) {
+				m_material->setShader(shader_res);
 			}
 			else {
-				LOG(LOG_ERROR) << "BitmapFont::ready(): texture for " << m_pathname << " not found";
+				LOG(LOG_ERROR) << "BitmapFont::ready(): Shader '" << (std::string)m_shader_ref.id() << "' for " << m_pathname << " not found";
+				return;
 			}
+			m_material->setTexture(0, static_cast<ImageResource*>(tex));
+		}
+		else {
+			LOG(LOG_ERROR) << "BitmapFont::ready(): texture for " << m_pathname << " not found";
 		}
 
-		// load font description if any		
-		if (m_values.find("font_info")!=m_values.end()) {
-			TextResource* font_info = static_cast<TextResource*>(m_app->getUnitTree()->find(m_values["font_info"].toString(), m_attributes["basepath"], false));
-			if (font_info && font_info->isA("//meworla/text")) {
-				char* buf;
-				size_t buflen;
-				font_info->getRaw(&buf, &buflen);
-				if (loadBmFont(buf, buflen, m_dim_w, m_dim_h, m_sz, m_line_height,
-					m_start_letter, m_glyphs))
-					return;
 
-				std::string key;
-				std::string value;
-				size_t start = 0;
-				int state = 0;
-				bool meta = true;
+		// load font description if any				
+		TextResource* font_info = static_cast<TextResource*>(m_app->getUnitTree()->resolve(m_font_info_ref));
+		if (font_info && font_info->isA("//meworla/text")) {
+			char* buf;
+			size_t buflen;
+			font_info->getRaw(&buf, &buflen);
+			if (loadBmFont(buf, buflen, m_dim_w, m_dim_h, m_sz, m_line_height,
+				m_start_letter, m_glyphs))
+				return;
 
-				unsigned int nof_cols = 0;
-				unsigned int nof_rows = 0;
+			std::string key;
+			std::string value;
+			size_t start = 0;
+			int state = 0;
+			bool meta = true;
 
-				Glyph glyph = {
-				0,0,
-				0,0,
-				0,0,
-				0,0,
-				32.0f
-				};
+			unsigned int nof_cols = 0;
+			unsigned int nof_rows = 0;
 
-				for (size_t i = 0; i < buflen; i++) {
-					if (buf[i] == ',') {
-						if (!state) {
-							state = 1;
-							if (i > start) {
-								key = std::string(&buf[start], i - start);								
+			Glyph glyph = {
+			0,0,
+			0,0,
+			0,0,
+			0,0,
+			32.0f
+			};
+
+			for (size_t i = 0; i < buflen; i++) {
+				if (buf[i] == ',') {
+					if (!state) {
+						state = 1;
+						if (i > start) {
+							key = std::string(&buf[start], i - start);
+						}
+						else {
+							key = "";
+							printf("Error in font info file: 2\n");
+						}
+					}
+					else {
+						value = "";
+						printf("Error in font info file: 1\n");
+					}
+					start = i + 1;
+				}
+				else if (buf[i] == '\n') {
+					if (state == 1) {
+						if (i > start) {
+							value = std::string(&buf[start], i - start);
+							int val = atoi(value.c_str());
+							if (!key.compare("Image Width")) {
+								m_dim_w = val;
 							}
-							else {
-								key = "";
-								printf("Error in font info file: 2\n");
+							else if (!key.compare("Image Height")) {
+								m_dim_h = val;
 							}
+							else if (!key.compare("Cell Width")) {
+								m_cell_w = (float)val;
+							}
+							else if (!key.compare("Cell Height")) {
+								m_cell_h = (float)val;
+								m_line_height = (float)val;
+							}
+							else if (!key.compare("Font Height")) {
+								m_sz = (float)val;
+							}
+							else if (!(key.substr(0, 5).compare("Char "))) {
+								if (meta) {
+									// first char means header is read
+									meta = false;
+									nof_cols = (unsigned int)floor(m_dim_w / m_cell_w);
+									nof_rows = (unsigned int)floor(m_dim_h / m_cell_h);
+									m_glyphs.reserve((size_t)nof_cols * (size_t)nof_rows);
+								}
+								size_t len;
+								for (len = 1; len < 4; len++) {
+									if (key[5 + len] == ' ')
+										break;
+								}
+								int letter = std::atoi(key.substr(5, len).c_str());
+								if ((unsigned int)letter >= m_start_letter) {
+
+									len = 5 + len + 1;
+
+									if (!key.substr(len, 4).compare("Base")) {
+
+										int letter_fixed = letter - m_start_letter;
+										unsigned int col = (unsigned int)floor(letter_fixed % nof_cols);
+										unsigned int row = (unsigned int)floor(letter_fixed / nof_rows);
+
+										// compute position of glyph (in uv coords 0/0-1/1)
+										glyph.left = (float)((col * m_cell_w) / m_dim_w);
+										glyph.right = glyph.left + ((float)val / m_dim_w);
+										glyph.top = (float)((row * m_cell_h) / m_dim_h);
+										glyph.bottom = glyph.top + (m_sz / (float)m_dim_h);
+										glyph.width = (float)val;
+										glyph.height = m_sz;
+										glyph.advance = (float)val;
+										m_glyphs.push_back(glyph);
+									}
+								}
+							}
+
+
 						}
 						else {
 							value = "";
-							printf("Error in font info file: 1\n");
+							printf("Error in font info file: 4\n");
 						}
-						start = i + 1;
 					}
-					else if (buf[i] == '\n') {
-						if (state == 1) {
-							if (i > start) {
-								value = std::string(&buf[start], i - start);
-								int val = atoi(value.c_str());
-								if (!key.compare("Image Width")) {
-									m_dim_w = val;
-								} 
-								else if (!key.compare("Image Height")) {
-									m_dim_h = val;
-								}
-								else if (!key.compare("Cell Width")) {
-									m_cell_w = (float)val;									
-								}
-								else if (!key.compare("Cell Height")) {
-									m_cell_h = (float)val;									
-									m_line_height = (float)val;
-								}
-								else if (!key.compare("Font Height")) {
-									m_sz = (float)val;
-								}
-								else if (!(key.substr(0,5).compare("Char "))) {
-									if (meta) {
-										// first char means header is read
-										meta = false;
-										nof_cols = (unsigned int)floor(m_dim_w / m_cell_w);
-										nof_rows = (unsigned int)floor(m_dim_h / m_cell_h);
-										m_glyphs.reserve((size_t)nof_cols * (size_t)nof_rows);
-									}
-									size_t len;
-									for (len = 1; len < 4; len++) {
-										if (key[5 + len] == ' ')
-											break;
-									}
-									int letter = std::atoi(key.substr(5, len).c_str());
-									if ((unsigned int)letter >= m_start_letter) {
-										
-										len = 5 + len + 1;
-
-										if (!key.substr(len, 4).compare("Base")) {
-
-											int letter_fixed = letter - m_start_letter;
-											unsigned int col = (unsigned int)floor(letter_fixed % nof_cols);
-											unsigned int row = (unsigned int)floor(letter_fixed / nof_rows);
-
-											// compute position of glyph (in uv coords 0/0-1/1)
-											glyph.left = (float)((col * m_cell_w) / m_dim_w);
-											glyph.right = glyph.left + ((float)val / m_dim_w);
-											glyph.top = (float)((row * m_cell_h) / m_dim_h);
-											glyph.bottom = glyph.top + (m_sz / (float)m_dim_h);
-											glyph.width = (float)val;
-											glyph.height = m_sz;
-											glyph.advance = (float)val;
-											m_glyphs.push_back(glyph);
-										}
-									}
-								}
-
-
-							}
-							else {
-								value = "";
-								printf("Error in font info file: 4\n");
-							}
-						}
-						else {
-							value = "";
-							printf("Error in font info file: 3\n");
-						}
-						state = 0;
-						start = i + 1;
+					else {
+						value = "";
+						printf("Error in font info file: 3\n");
 					}
+					state = 0;
+					start = i + 1;
 				}
 			}
+
 		}
 		else {
 

@@ -258,4 +258,15 @@ namespace rhea
 	}
 
 	std::unordered_map<simpleparser::Type*, std::vector<Component::ResourceProperty>> Component::s_resource_properties;
+
+	std::string Component::normalizeReferenceId(
+		const std::string& id,
+		const ResourceContext& context) const
+	{
+		if (id.empty() || id[0] != '/' ||
+			id.compare(0, 2, "//") == 0)
+			return id;
+
+		return context.normalizeResourceId(id);
+	}
 }

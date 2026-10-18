@@ -20,6 +20,7 @@ namespace rhea
 {
     class Application;
     class Unit;
+    struct ResourceContext;
 
     class Component : public simpleparser::Variant
     {
@@ -232,8 +233,24 @@ namespace rhea
                     (static_cast<Owner&>(component).*member).setBasePath(base_path);
                 }
                 });
-        }
+        }       
         static void copyResourceProperties(Component& source, Component& target);
+
+        std::string normalizeReferenceId(
+            const std::string& id,
+            const ResourceContext& context) const;
+
+        template<class T>
+        void normalizeReference(
+            Ref<T>& reference,
+            const ResourceContext& context) const
+        {
+            const std::string base_path = getAttribute("basepath");
+            if (!base_path.empty())
+                reference.setBasePath(base_path);
+
+            reference.setId(normalizeReferenceId(reference.id(), context));
+        }
 
         static std::unordered_map<simpleparser::Type*, std::vector<ResourceProperty>> s_resource_properties;
     };

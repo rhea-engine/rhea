@@ -36,8 +36,7 @@ namespace rhea
 		~Terrain();
 
 		// setup from strings
-		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);		
-		//std::vector<ResourceReference> getReferences();
+		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);				
 
 		// get height in world coords
 		float getHeight(float x, float z);

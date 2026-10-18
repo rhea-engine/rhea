@@ -33,7 +33,9 @@ namespace rhea
 			Unit(name, type_name)
 		{}
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, simpleparser::Variant> values) override;
-		std::vector<Unit::ResourceReference> getReferences();
+		static void initializeType(simpleparser::Type* type);
+		void resolveReferences(const std::string& context_root, const std::string& source_root) override;
+		std::vector<Unit::ResourceReference> getReferences() override;
 
 		void ready() override;
 
@@ -42,8 +44,6 @@ namespace rhea
 
 		// set texture to specific slot
 		void setTexture(int slot, ImageResource* res);
-		void setShaderId(std::string shader_id) { m_shader_id = std::move(shader_id); }
-		std::string getShaderId() const { return m_shader_id; }
 
 		// set shader resource
 		void setShader(Shader* shader);
@@ -130,8 +130,7 @@ namespace rhea
 		// get an int value by id
 		int getIntVS(size_t propertyID) { if (propertyID >= 0 && propertyID < m_ints_vs.size()) return m_ints_vs[propertyID]; else return 0; }
 
-	protected:
-		std::string m_shader_id;
+	protected:		
 		Shader* m_shader;
 		std::vector<ImageResource*> m_textures;
 		std::vector<math::Color> m_colors;
@@ -142,6 +141,9 @@ namespace rhea
 		std::vector<math::Vector2> m_float2s_vs;
 		std::vector<float> m_floats_vs;
 		std::vector<int> m_ints_vs;
+
+		Ref<Shader> m_shader_ref;
+		std::map<std::string, Ref<ImageResource>> m_texture_refs;
 	};
 }
 

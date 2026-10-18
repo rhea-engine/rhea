@@ -12,6 +12,7 @@
 #include <Rhea/Resources/ImageResource.h>
 #include <Rhea/Core/Shader.h>
 #include <algorithm>
+#include <cctype>
 
 namespace rhea
 {
@@ -19,20 +20,47 @@ namespace rhea
 	{
 		Unit::setup(app, attributes, values);
 
-		m_shader_id = getValueString("shader", "//rhea/shaders/standard");
+		if (m_shader_ref.empty())
+			m_shader_ref.setId(getValueString("shader", "//rhea/shaders/standard"));
+
+		// add all referenced textures (starting with "texture_") and value is not empty
+		for (const auto& [key, value] : m_values) {
+			if (key.compare(0, 8, "texture_") != 0 || value.toString().empty())
+				continue;
+
+			std::string texture_key = key;
+			std::transform(
+				texture_key.begin(), texture_key.end(), texture_key.begin(),
+				[](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+			if (!texture_key.empty()) {
+				m_texture_refs[texture_key].setId(value.toString());
+				m_texture_refs[texture_key].setBasePath(m_attributes["basepath"]);
+			}
+		}
+	}
+
+	void Material::initializeType(simpleparser::Type* type)
+	{
+		registerResourceProperty(type, "shader", &Material::m_shader_ref, "//meworla/shader", ResourceUsage::Load);
+	}
+
+	void Material::resolveReferences(const std::string& context_root, const std::string& source_root)
+	{
+		Unit::resolveReferences(context_root, source_root);
+		const ResourceContext context{ context_root, source_root };
+		for (auto& [key, value] : m_texture_refs) {
+			if (!value.empty())
+				normalizeReference(value, context);
+		}
 	}
 
 	std::vector<Unit::ResourceReference> Material::getReferences()
 	{
-		std::vector<ResourceReference> refs;
-		if (m_values.find("shaderpath") != m_values.end()) {
-			refs.push_back({ "shaderpath", "//meworla/shader", m_values["shaderpath"] });
-		}
-		// add all referenced textures (starting with "texture_")
-		for (const auto& [key, value] : m_values) {
-			if (key.rfind("texture_", 0) == 0 && !value.toString().empty()) { // starts with "texture_" and value is not empty
-				refs.push_back({ key, "//meworla/texture", value });
-			}
+		std::vector<ResourceReference> refs = Unit::getReferences();
+		
+		// add all referenced textures 
+		for (const auto& [key, value] : m_texture_refs) {
+			refs.push_back({ key, "//meworla/texture", value.id()});
 		}
 		return refs;
 	}
@@ -41,11 +69,11 @@ namespace rhea
 	{
 		Unit::ready();
 
-		if (!m_shader && !m_shader_id.empty()) {
+		if (!m_shader_ref.empty()) {
 			// find the shader by id
-			Shader* shader = doCast<Shader>(m_app->getUnitTree()->find(m_shader_id, m_attributes["basepath"], false));
+			Shader* shader = m_app->getUnitTree()->resolve(m_shader_ref);
 			if (!shader) {
-				LOG(LOG_ERROR) << "shader not found: " << m_shader_id;
+				LOG(LOG_ERROR) << "shader not found: " << m_shader_ref.id();
 				return;
 			}
 
@@ -53,8 +81,12 @@ namespace rhea
 		}
 
 		// try to fill input slots of shader
-
+		
 		// first ps stage
+		if (!m_shader) {
+			LOG(LOG_ERROR) << "shader not set for material: " << getPathName();
+			return;
+		}
 		auto slot_names = m_shader->getInputSlotNames();
 		for (auto& slot_name : slot_names) {
 			std::string key = slot_name;
@@ -119,16 +151,17 @@ namespace rhea
 			std::string key = "texture_" + desc.propertyName;
 			std::transform(key.begin(), key.end(), key.begin(), ::tolower);
 
-			auto it = m_values.find(key);
-			if (it == m_values.end())
+			const auto texture_it = m_texture_refs.find(key);
+			if (texture_it == m_texture_refs.end())
 				continue;
 
-			auto* texture = doCast<ImageResource>(m_app->getUnitTree()->find(it->second.toString(), m_attributes["basepath"], false));
+			const auto& reference = texture_it->second;
+			auto* texture = m_app->getUnitTree()->resolve(reference);
 
 			if (texture)
 				setTexture(desc.slot, texture);
 			else
-				LOG(LOG_WARNING) << "Material texture not found: " << it->second.toString();
+				LOG(LOG_WARNING) << "Material texture not found: " << reference.id();
 		}
 	}
 

@@ -58,27 +58,6 @@ namespace rhea
 		if (m_values.find("sizeY") != m_values.end())
 			m_sizeY = m_values["sizeY"].toInt();
 	}
-#if 0
-	std::vector<Unit::ResourceReference> Terrain::getReferences()
-	{
-		std::vector<ResourceReference> refs = Item::getReferences();
-		if (m_values["heightmap"] != Variant())
-			refs.push_back({ "heightmap", "//meworla/heightmap", m_values["heightmap"] });
-		if (m_values["shader"] != Variant())
-			refs.push_back({ "shader", "//meworla/shader", m_values["shader"] });
-		if (m_values["blendmap"] != Variant())
-			refs.push_back({ "blendmap", "//meworla/texture", m_values["blendmap"] });
-		if (m_values["texture1"] != Variant())
-			refs.push_back({ "texture1", "//meworla/texture", m_values["texture1"] });
-		if (m_values["texture2"] != Variant())
-			refs.push_back({ "texture2", "//meworla/texture", m_values["texture2"] });
-		if (m_values["texture3"] != Variant())
-			refs.push_back({ "texture3", "//meworla/texture", m_values["texture3"] });
-		if (m_values["texture4"] != Variant())
-			refs.push_back({ "texture4", "//meworla/texture", m_values["texture4"] });
-		return refs;
-	}
-#endif
 
 	float Terrain::getHeight(float x, float z)
 	{

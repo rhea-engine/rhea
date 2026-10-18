@@ -20,7 +20,9 @@ namespace rhea
 {
 	class Application;
 	class ImageResource;
+	class Geometry;
 	class Material;
+	class Shader;
 
 	class Mesh : public Unit
 	{
@@ -67,14 +69,12 @@ namespace rhea
 
 		struct SubMesh {
 			std::vector<uint32_t> indices;
-			Material* material;
+			Material* material = nullptr;
 		};
 		
 		// setup from strings
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
-
-		std::vector<Unit::ResourceReference> getReferences();
-
+		
 		// ready handler
 		void ready();
 
@@ -129,6 +129,11 @@ namespace rhea
 
 		void setVertexBuffer(VertexBuffer& vertex) { m_vertex = std::move(vertex); }
 
+		static void initializeType(simpleparser::Type* type);
+
+		void setTextureRef(Ref<ImageResource> texture) { m_texture_resource = texture; }
+		void setShaderRef(Ref<Shader> shader) { m_shader_resource = shader; }
+
 	protected:
 		// default material if submesh does not define one
 		Material* m_material;
@@ -142,6 +147,10 @@ namespace rhea
 		int m_state;
 
 		bool m_is_indexed = true;
+		Ref<Shader> m_shader_resource;
+		Ref<Material> m_material_resource;
+		Ref<ImageResource> m_texture_resource;
+		Ref<Geometry> m_geometry_resource;
 
 		// Copy Constructor 
 		Mesh(const Mesh& m);

@@ -70,6 +70,7 @@ namespace rhea
 			if (!mesh_component) {
 				mesh_component = addComponentUnique<MeshComponent>("mesh_component");
 				mesh_component->setOrigin(Component::ComponentOrigin::Configured);
+				mesh_component->setAttribute("basepath", m_attributes["basepath"]);
 
 				// set ref only if mesh component was newly created
 				mesh_component->setMeshRef(Ref<Mesh>(mesh_id, m_attributes["basepath"]));

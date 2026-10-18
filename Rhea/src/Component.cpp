@@ -122,14 +122,16 @@ namespace rhea
 	void Component::resolveReferences(const std::string& context_root, const std::string& source_root)
 	{
 		const ResourceContext context{ context_root, source_root };
+		const std::string base_path = getAttribute("basepath");
 
 		for (auto* type = getType(); type; type = type->getParent()) {
 			const auto properties_it = s_resource_properties.find(type);
 			if (properties_it == s_resource_properties.end())
 				continue;
 
-			for (const auto& property : properties_it->second) {				
-				property.set_base_path(*this, getAttribute("basepath"));
+			for (const auto& property : properties_it->second) {
+				if (!base_path.empty())
+					property.set_base_path(*this, base_path);
 
 				const std::string id = property.get_id(*this);
 

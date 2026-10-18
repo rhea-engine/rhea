@@ -37,29 +37,11 @@ namespace rhea
 		Unit::setup(app, attributes, values);
 
 		// dependent resources
-		if (m_values.find("texture") != m_values.end() &&
-			m_values.find("shader") == m_values.end()) {
-			m_values["shader"] = "//rhea/shaders/standard";
+		if (!m_texture_resource.empty() && m_shader_resource.empty()) {
+			m_shader_resource.setId("//rhea/shaders/standard");
 		}
 	}
-
-	std::vector<Unit::ResourceReference> Mesh::getReferences()
-	{
-		std::vector<ResourceReference> refs;
-		if (m_values.find("geometry") != m_values.end())
-			refs.push_back({ "geometry", "//meworla/geometryloader", m_values["geometry"] });		
-		if (m_values.find("shader") != m_values.end()) {
-			refs.push_back({ "shader", "//meworla/shader", m_values["shader"] });
-		}
-		if (m_values.find("texture") != m_values.end()) {
-			refs.push_back({ "texture", "//meworla/texture", m_values["texture"] });
-		}
-		if (m_values.find("material") != m_values.end()) {
-			refs.push_back({ "material", "//meworla/material", m_values["material"] });
-		}
-		return refs;
-	}
-
+	
 	void Mesh::ready()
 	{
 		if (m_state > 1)
@@ -69,16 +51,16 @@ namespace rhea
 		Unit::ready();
 				
 		// if we have a texture we create a correspondig material
-		if (m_values.find("texture") != m_values.end())
+		if (!m_texture_resource.empty())
 		{
-			Unit* tex = nullptr;
+			ImageResource* tex = nullptr;
 
 			// if material is set explicitly we use it
-			if (m_values.find("material") != m_values.end()) {
-				m_material = doCast<Material>(m_app->getUnitTree()->find(m_values["material"].toString(), m_attributes["basepath"], false));
+			if (!m_material_resource.empty()) {
+				m_material = m_app->getUnitTree()->resolve(m_material_resource);
 			}
 
-			tex = doCast<Unit>(m_app->getUnitTree()->find(m_values["texture"].toString(), m_attributes["basepath"], false));
+			tex = m_app->getUnitTree()->resolve(m_texture_resource);
 			if (tex) {
 				if (!m_material) {
 					// if no material was set create one ad-hoc as child of this mesh
@@ -86,7 +68,7 @@ namespace rhea
 					addChild(m_material);
 				}
 				m_material->setup(m_app, {}, {});
-				m_material->setTexture(0, static_cast<ImageResource*>(tex));
+				m_material->setTexture(0, tex);
 				m_material->setValue("shader", getValue("shadername", "standard"));
 				if (m_values.find("shadername") != m_values.end()) {
 					LOG(LOG_DEBUG) << "shadername set: " << (std::string)m_values["shadername"];
@@ -96,7 +78,7 @@ namespace rhea
 				}
 
 				// get the shader				
-				Shader* shader_res = doCast<Shader>(m_app->getUnitTree()->find(m_values["shader"].toString(), m_attributes["basepath"], false));
+				Shader* shader_res = m_app->getUnitTree()->resolve(m_shader_resource);
 				if (shader_res) {
 					m_material->setShader(shader_res);
 					int diffuse_id = shader_res->getInputSlotId("DIFFUSE");
@@ -106,31 +88,31 @@ namespace rhea
 					m_state = 2;
 				}
 				else {
-					LOG(LOG_ERROR) << "Could not find shader resource: " << (std::string)m_values["shader"];
+					LOG(LOG_ERROR) << "Could not find shader resource: " << m_shader_resource.id() << " for mesh " << m_path;
 				}
 			}
 			else
-				LOG(LOG_ERROR) << "Mesh: Could not find texture " << m_attributes["basepath"] << "/" << (std::string)m_values["texture"] << " for mesh " << m_path;
+				LOG(LOG_ERROR) << "Mesh: Could not find texture " << m_texture_resource.id() << " for mesh " << m_path;
 		}	
-		else if (m_values.find("material") != m_values.end()) {
-			m_material = doCast<Material>(m_app->getUnitTree()->find(m_values["material"].toString(), m_attributes["basepath"], false));
+		else if (!m_material_resource.empty()) {
+			m_material = m_app->getUnitTree()->resolve(m_material_resource);
 			if (m_submeshes.size() > 0) {
 				m_submeshes[0].material = m_material;
 				m_state = 2;
 			}
 			else
-				LOG(LOG_ERROR) << "Mesh: No material found for mesh " << m_path << " with path " << m_attributes["basepath"] << "/" << (std::string)m_values["material"];
+				LOG(LOG_ERROR) << "Mesh: No material found for mesh " << m_path << " with id " << m_material_resource.id();
 		}
 
 		// load using geometry (normally used for import from file)
-		if (m_values.find("geometry") != m_values.end()) {
-			Geometry* geometry = doCast<Geometry>(m_app->getUnitTree()->find(m_values["geometry"].toString(), m_attributes["basepath"], false));
+		if (!m_geometry_resource.empty()) {
+			Geometry* geometry = m_app->getUnitTree()->resolve(m_geometry_resource);
 			if (geometry) {				
 				geometry->load(this);
 				m_state = 2;
 			}
 			else 
-				LOG(LOG_ERROR) << "Mesh: Could not find geometry " << m_attributes["basepath"] << "/" << (std::string)m_values["geometry"] << " for mesh " << m_path;
+				LOG(LOG_ERROR) << "Mesh: Could not find geometry " << m_geometry_resource.id() << " for mesh " << m_path;
 		}
 	}
 
@@ -223,5 +205,13 @@ namespace rhea
 			m_submeshes.resize(idx + 1);
 
 		m_submeshes[idx] = { indices, material };
+	}
+
+	void Mesh::initializeType(simpleparser::Type* type)
+	{
+		registerResourceProperty(type, "geometry", &Mesh::m_geometry_resource, "//meworla/geometryloader", ResourceUsage::Load);
+		registerResourceProperty(type, "shader", &Mesh::m_shader_resource, "//meworla/shader", ResourceUsage::Load);
+		registerResourceProperty(type, "texture", &Mesh::m_texture_resource, "//meworla/texture", ResourceUsage::Load);
+		registerResourceProperty(type, "material", &Mesh::m_material_resource, "//meworla/material", ResourceUsage::Load);
 	}
 }

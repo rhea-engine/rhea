@@ -20,15 +20,8 @@ namespace rhea
 	void Skybox::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{
 		Item::setup(app, attributes, values);
-	}
-
-	std::vector<Unit::ResourceReference> Skybox::getReferences()
-	{
-		std::vector<ResourceReference> refs = Item::getReferences();		
-		if (m_values.find("shader") != m_values.end()) {
-			refs.push_back({ "shader", "//meworla/shader", m_values["shader"] });
-		}
-		return refs;
+		if (m_shader_resource.empty())
+			m_shader_resource.setId("//rhea/shaders/skybox");
 	}
 
 	void Skybox::ready()
@@ -53,15 +46,11 @@ namespace rhea
 		if (!mesh_component->getMesh()) {
 			// add a cube as child
 			Mesh* cube = new Mesh(m_pathname + "_mesh");
+			cube->setTextureRef(m_texture_resource);			
+			cube->setShaderRef(m_shader_resource);
 			std::unordered_map<std::string, Variant> sub_values;
-			sub_values["texture"] = m_values["texture"];
-			sub_values["shader"] = "//rhea/shaders/skybox";
 			sub_values["shadername"] = "skybox";
-			cube->setup(m_app, m_attributes, sub_values);
-			
-			if (m_values.find("shader") != m_values.end()) {
-				m_values["shader"] = "//rhea/shaders/skybox";
-			}
+			cube->setup(m_app, m_attributes, sub_values);					
 
 			// set the cube vertices
 
@@ -102,7 +91,7 @@ namespace rhea
 		}
 
 		if (!mesh_component->getMesh()->getMaterial()) {
-			Material* mat = doCast<Material>(m_app->getUnitTree()->find(m_values["shader"].toString(), m_attributes["basepath"], false));
+			Material* mat = m_app->getUnitTree()->resolve(m_material_resource);
 			if (!mat) {
 				mat = new Material(m_path + "_material", "//meworla/material");
 				addChild(mat);
@@ -112,13 +101,10 @@ namespace rhea
 		}
 	}
 
-	void Skybox::onActivate()
+	void Skybox::initializeType(simpleparser::Type* type)
 	{
-		Item::onActivate();
-	}
-
-	void Skybox::onDeactivate()
-	{
-		Item::onDeactivate();
+		registerResourceProperty(type, "texture", &Skybox::m_texture_resource, "//meworla/texture", ResourceUsage::Load);
+		registerResourceProperty(type, "shader", &Skybox::m_shader_resource, "//meworla/shader", ResourceUsage::Load);
+		registerResourceProperty(type, "material", &Skybox::m_material_resource, "//meworla/material", ResourceUsage::Load);
 	}
 }

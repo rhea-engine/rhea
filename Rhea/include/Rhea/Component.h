@@ -118,6 +118,9 @@ namespace rhea
             auto it = m_attributes.find(key);
             return it != m_attributes.end() ? it->second : "";
         }
+		void setAttribute(const std::string& key, const std::string& value) {
+			m_attributes[key] = value;
+		}
 
         // Get values map
         const std::unordered_map<std::string, simpleparser::Variant>& getValues() const {

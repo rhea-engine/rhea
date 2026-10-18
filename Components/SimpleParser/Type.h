@@ -132,7 +132,9 @@ static simpleparser::Type* staticType(simpleparser::Type* newType = nullptr) { \
             newType = simpleparser::Type::Register(_URI, _MeClass::createType); \
             newType->setParent(parent);                              \
             _static_type = newType;                                  \
-            _MeClass::initializeType(_static_type);                  \
+            if (&_MeClass::initializeType != &_Inherit::initializeType) { \
+                _MeClass::initializeType(_static_type);              \
+            }                                                       \
         }  \
 	} \
 	return _static_type; \
@@ -161,7 +163,9 @@ static simpleparser::Type* staticType(simpleparser::Type* newType = nullptr) { \
             newType = simpleparser::Type::Register(_URI, _MeClass::createType); \
             newType->setParent(parent);                              \
             _static_type = newType;                                  \
-            _MeClass::initializeType(_static_type);                  \
+            if (&_MeClass::initializeType != &_Inherit::initializeType) { \
+                _MeClass::initializeType(_static_type);              \
+            }                                                       \
         }  \
 	} \
 	return _static_type; \
@@ -181,7 +185,9 @@ static simpleparser::Type* staticType(simpleparser::Type* newType = nullptr) { \
             newType = simpleparser::Type::Register(#_MeClass, _MeClass::createType); \
             newType->setParent(parent);                              \
             _static_type = newType;                                  \
-            _MeClass::initializeType(_static_type);                  \
+            if (&_MeClass::initializeType != &_Inherit::initializeType) { \
+                _MeClass::initializeType(_static_type);              \
+            }                                                       \
         }  \
 	} \
 	return _static_type; \
@@ -206,7 +212,9 @@ static simpleparser::Type* staticType(simpleparser::Type* newType = nullptr) { \
             newType = simpleparser::Type::Register(#_MeClass, _MeClass::createType); \
             newType->setParent(parent);                              \
             _static_type = newType;                                  \
-            _MeClass::initializeType(_static_type);                  \
+            if (&_MeClass::initializeType != &_Inherit::initializeType) { \
+                _MeClass::initializeType(_static_type);              \
+            }                                                       \
         }  \
 	} \
 	return _static_type; \

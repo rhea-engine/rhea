@@ -14,18 +14,15 @@
 
 namespace rhea
 {
-	std::vector<Unit::ResourceReference> GltfMesh::getReferences()
+	void GltfMesh::initializeType(simpleparser::Type* type)
 	{
-		std::vector<ResourceReference> refs;
-		if (m_values.find("path") != m_values.end())
-			refs.push_back({ "path", "//meworla/geometryloader", m_values["path"] });
-		return refs;
+		registerResourceProperty(type, "path", &GltfMesh::m_gltf_ref, "//meworla/geometryloader", ResourceUsage::Load);
 	}
 
 	bool GltfMesh::load(rhea::Mesh* mesh)
 	{
-		if (m_values.find("path") != m_values.end()) {
-			GltfScene* scene = doCast<GltfScene>(m_app->getUnitTree()->find(m_values["path"].toString(), m_attributes["basepath"], false));
+		if (!m_gltf_ref.empty()) {
+			GltfScene* scene = m_app->getUnitTree()->resolve(m_gltf_ref);
 			if (scene) {
 				return scene->load(mesh);
 			}

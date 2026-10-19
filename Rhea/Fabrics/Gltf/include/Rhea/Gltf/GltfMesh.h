@@ -10,6 +10,7 @@
 
 #include <Rhea/Unit.h>
 #include <Rhea/Core/Geometry.h>
+#include <Rhea/Gltf/GltfScene.h>
 
 namespace rhea
 {
@@ -22,10 +23,13 @@ namespace rhea
 
 		virtual ~GltfMesh()
 		{}
-
-		std::vector<Unit::ResourceReference> getReferences();
+		
+		static void initializeType(simpleparser::Type* type);	
 
 		bool load(rhea::Mesh* mesh);
+
+	protected:
+		Ref<GltfScene> m_gltf_ref;
 	};
 }
 #endif // !RHEA_GLTF_MESH_H

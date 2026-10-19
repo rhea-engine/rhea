@@ -36,6 +36,7 @@ namespace rhea
 		static void initializeType(simpleparser::Type* type);
 		void resolveReferences(const std::string& context_root, const std::string& source_root) override;
 		std::vector<Unit::ResourceReference> getReferences() override;
+		Material* Clone() const override;
 
 		void ready() override;
 

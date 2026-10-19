@@ -160,6 +160,18 @@ namespace rhea
 		for (size_t i = 0; i < m_submeshes.size(); ++i) {
 			Material* material = m_submeshes[i].material;
 
+			bool material_copied = false;
+
+			auto ensure_own_material = [&]() {
+				if (material_copied)
+					return;
+
+				material = material->Clone();
+				material->setName("material_override_" + std::to_string(i));
+				addChild(material);
+				material_copied = true;
+				};
+
 			if (override_material)
 				material = override_material;
 
@@ -170,6 +182,7 @@ namespace rhea
 			if (!m_diffuse_texture_refs.empty()) {
 				ImageResource* diffuse_tex = m_app->getUnitTree()->resolve(m_diffuse_texture_refs[i % m_diffuse_texture_refs.size()]);
 				if (diffuse_tex) {
+					ensure_own_material();
 					int diffuse_id = material->getShader()->getTextureSlotId("BASECOLOR");
 					material->setTexture(diffuse_id, diffuse_tex);
 				}
@@ -181,11 +194,13 @@ namespace rhea
 			}
 			else if (tex) {
 				int basecolor_id = material->getShader()->getTextureSlotId("BASECOLOR");
+				ensure_own_material();
 				material->setTexture(basecolor_id, tex);
 			}
 			if (!m_normal_texture_refs.empty()) {
 				ImageResource* normal_tex = m_app->getUnitTree()->resolve(m_normal_texture_refs[i % m_normal_texture_refs.size()]);
 				if (normal_tex) {
+					ensure_own_material();
 					int normal_id = material->getShader()->getTextureSlotId("NORMAL");
 					material->setTexture(normal_id, normal_tex);
 				}

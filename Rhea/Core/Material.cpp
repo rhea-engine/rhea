@@ -65,6 +65,32 @@ namespace rhea
 		return refs;
 	}
 
+	Material* Material::Clone() const
+	{
+		auto* result = new Material(m_pathname);
+
+		result->setup(m_app, m_attributes, m_values);
+		result->setOrigin(ComponentOrigin::Runtime);
+
+		result->m_shader_ref = m_shader_ref;
+		result->m_texture_refs = m_texture_refs;
+		result->m_shader = m_shader;
+
+		result->m_textures = m_textures;
+
+		result->m_colors = m_colors;
+		result->m_float2s = m_float2s;
+		result->m_floats = m_floats;
+		result->m_ints = m_ints;
+
+		result->m_colors_vs = m_colors_vs;
+		result->m_float2s_vs = m_float2s_vs;
+		result->m_floats_vs = m_floats_vs;
+		result->m_ints_vs = m_ints_vs;
+
+		return result;
+	}
+
 	void Material::ready()
 	{
 		Unit::ready();

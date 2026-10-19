@@ -101,8 +101,8 @@ namespace poseidon
 			if (m_mat_buffer_vs) {
 				free(m_mat_buffer_vs);  // Free if already allocated
 			}
-			m_mat_buffer_vs = (char*)malloc(shader->getMatBufSize());
-			if (m_mat_buffer_vs) memset(m_mat_buffer_vs, 0, shader->getMatBufSize());
+			m_mat_buffer_vs = static_cast<char*>(malloc(m_mat_buffer_size_vs));
+			if (m_mat_buffer_vs) memset(m_mat_buffer_vs, 0, m_mat_buffer_size_vs);
 			
 			// setup the material buffer			
 			m_material_buffer_vs = m_grahpics_core->getGraphicsBuffer("material_buffer_vs", m_mat_buffer_size_vs);

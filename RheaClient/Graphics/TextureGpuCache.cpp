@@ -13,7 +13,7 @@ namespace rhea::client {
     {
         if (!core || !img) return nullptr;
 
-        auto key = img->getPathName();
+        auto key = img->getPath();
         auto it = m_cache.find(key);
         if (it != m_cache.end()) {
             // Return the pointer to the cache entry

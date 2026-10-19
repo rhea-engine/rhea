@@ -50,7 +50,7 @@ namespace rhea {
 				decrementToLoadAndCheckIfZero(handler, nullptr);
 			}
 			else {
-				Unit* resource = doCast<Unit>(tree->find(res.id));
+				Unit* resource = res.resource ? res.resource : doCast<Unit>(tree->find(res.id));
 				if (resource) {
 
 					// exists in tree					

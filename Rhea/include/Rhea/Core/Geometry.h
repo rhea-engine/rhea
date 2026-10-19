@@ -12,15 +12,16 @@
 #include <Rhea/Core/Mesh.h>
 #include <Rhea/Resources/VertexAttribute.h>
 #include <Rhea/Resources/VertexBuffer.h>
+#include <Rhea/Resources/Resource.h>
 
 namespace rhea
 {
-	class Geometry : public Unit
+	class Geometry : public Resource
 	{
-		MECLASS_VIRTUAL(Geometry, Unit)
+		MECLASS_VIRTUAL(Geometry, Resource)
 	public:
 		Geometry(std::string path_name, std::string type_name) :
-			Unit(path_name, type_name)
+			Resource(path_name, type_name)
 		{}		
 		virtual bool load(Mesh* mesh) = 0;
 	};

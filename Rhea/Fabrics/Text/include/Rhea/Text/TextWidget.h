@@ -40,7 +40,7 @@ namespace rhea
 		// setup from strings
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
 
-		std::vector<Unit::ResourceReference> getReferences();
+		static void initializeType(simpleparser::Type* type);
 
 		// ready event handler
 		void ready();
@@ -101,6 +101,9 @@ namespace rhea
 		bool m_word_wrap;
 		bool m_multiline;
 		float m_offset_x;
+
+		Ref<Font> m_font_ref;
+		Ref<FontFamily> m_font_family_ref;
 
 		bool m_text_dirty;
 	};

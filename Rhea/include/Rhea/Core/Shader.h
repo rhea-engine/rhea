@@ -64,8 +64,7 @@ namespace rhea
 		};
 
 		// setup
-		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
-		std::vector<Unit::ResourceReference> getReferences();
+		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);		
 
 		// get shader code for specified backend and stage		
 		TextResource* getShaderCode(ShaderBackend backend, ShaderStage stage);
@@ -130,6 +129,8 @@ namespace rhea
 		// get texture slot descriptions
 		const std::vector<TextureSlotDesc>& getTextureSlots() const { return m_texture_slot_descs; }
 
+		static void initializeType(simpleparser::Type* type);
+
 	protected:
 		std::string m_depth_stencil_state;
 		bool m_alpha_blending;
@@ -156,6 +157,11 @@ namespace rhea
 
 		// texture slot descriptions
 		std::vector<TextureSlotDesc> m_texture_slot_descs;
+
+		Ref<TextResource> m_shader_code_hlsl;		
+		Ref<TextResource> m_shader_code_glsl_vs;
+		Ref<TextResource> m_shader_code_glsl_fs;
+		Ref<TextResource> m_code; // fallback if no hlsl or glsl code is provided
 	};
 }
 

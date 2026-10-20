@@ -32,35 +32,23 @@ namespace rhea
 		m_size.x = values["w"];
 		m_size.y = values["h"];
 
-		if (m_values.find("shader") == m_values.end()) {
+		if (m_shader_resource.empty()) {
 			// set a default
-			m_values["shader"] = "//rhea/shaders/widget";
+			m_shader_resource.setId("//rhea/shaders/widget");
 		}
 	}
 
-	std::vector<Unit::ResourceReference> Item2D::getReferences()
-	{
-		std::vector<ResourceReference> refs = {};//Item::getReferences();
-		if (m_values.find("texture") != m_values.end()) {
-			refs.push_back({ "texture", "//meworla/texture", m_values["texture"] });
-		}
-		if (m_values.find("shader") != m_values.end()) {
-			refs.push_back({ "shader", "//meworla/shader", m_values["shader"] });
-		}
-		return refs;
-	}
-	
 	void Item2D::ready()
 	{
 		Unit::ready();
 
 		registerEventHandler("size", this, [this](Event* ev, Unit* sender) { return onViewportSize(ev, sender); });
 
-		if (m_bg_color.a > 0.0f || m_bg_image || m_values.find("texture") != m_values.end()) {
+		if (m_bg_color.a > 0.0f || m_bg_image || !m_bg_image_ref.empty()) {
 			// background color or image was set
 
-			if (m_values.find("texture") != m_values.end()) {
-				ImageResource* tex = doCast<ImageResource>(m_app->getUnitTree()->find(m_values["texture"].toString(), m_attributes["basepath"], false));
+			if (!m_bg_image_ref.empty()) {
+				ImageResource* tex = doCast<ImageResource>(m_app->getUnitTree()->resolve(m_bg_image_ref));
 				if (tex) {
 					// make sure texture is ready
 					tex->ready();
@@ -68,7 +56,7 @@ namespace rhea
 					m_bg_image = tex;
 				}
 				else {
-					LOG(LOG_ERROR) << "texture for item2d set but not found: " << (std::string)m_values["texture"];
+					LOG(LOG_ERROR) << "texture for item2d set but not found: " << (std::string)m_bg_image_ref.id();
 				}
 			}
 			m_material_dirty = true;
@@ -148,7 +136,7 @@ namespace rhea
 	void Item2D::setBackgroundImage(Ref<ImageResource> tex_ref)
 	{
 		m_bg_image_ref = tex_ref;
-		ImageResource* tex = tex_ref.resolve(m_app->getUnitTree());
+		ImageResource* tex = m_app->getUnitTree()->resolve(m_bg_image_ref);
 		setBackgroundImage(tex);
 	}
 
@@ -188,12 +176,12 @@ namespace rhea
 		m_material->setValue("shader", "widget");
 
 		// get the shader
-		Shader* shader_res = doCast<Shader>(m_app->getUnitTree()->find(m_values["shader"].toString(), m_attributes["basepath"], false));
+		Shader* shader_res = doCast<Shader>(m_app->getUnitTree()->resolve(m_shader_resource));
 		if (shader_res) {
 			m_material->setShader(shader_res);
 		}
 		else {
-			LOG(LOG_ERROR) << "item2d::ready(): Shader '" << (std::string)m_values["shader"] << "' for " << m_pathname << " not found";
+			LOG(LOG_ERROR) << "item2d::ready(): Shader '" << (std::string)m_shader_resource.id() << "' for " << m_pathname << " not found";
 			return;
 		}
 
@@ -278,5 +266,11 @@ namespace rhea
 				}
 			}
 		}
+	}
+
+	void Item2D::initializeType(simpleparser::Type* type)
+	{
+		registerResourceProperty(type, "texture", &Item2D::m_bg_image_ref, "//meworla/texture", ResourceUsage::Load);
+		registerResourceProperty(type, "shader", &Item2D::m_shader_resource, "//meworla/shader", ResourceUsage::Load);
 	}
 }

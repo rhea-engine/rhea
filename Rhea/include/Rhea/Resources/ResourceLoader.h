@@ -9,13 +9,18 @@
 #define RHEA_RESOURCELOADER_H
 
 #include <Rhea/Resources/Resource.h>
+#include <Rhea/Resources/ResourceContext.h>
+#include <unordered_map>
+#include <functional>
 
 namespace rhea
 {
+	class Application;
+
 	class ResourceLoader
 	{
 	public:
-		typedef std::function<void(std::string, Application* app, orion::ResourceRequest*, Resource::LoadedHandler)> LoadFunc;
+		typedef std::function<void(std::string, Application* app, orion::ResourceRequest*, ResourceContext&, Resource::LoadedHandler)> LoadFunc;
 
 		// call initialize and register loader by class
 		template <class T>
@@ -28,7 +33,7 @@ namespace rhea
 
 		// load a resource
 		// returns false if no loader found
-		bool load(std::string name, Application* app, std::string mime_type, orion::ResourceRequest* req, Resource::LoadedHandler handler);
+		bool load(std::string name, Application* app, std::string mime_type, orion::ResourceRequest* req, ResourceContext& context, Resource::LoadedHandler handler);
 
 	protected:
 

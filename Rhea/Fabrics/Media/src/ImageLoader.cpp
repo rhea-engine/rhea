@@ -16,7 +16,7 @@
 
 namespace rhea
 {
-	void ImageLoader::load(std::string name, Application* app, orion::ResourceRequest* req, Resource::LoadedHandler handler)
+	void ImageLoader::load(std::string name, Application* app, orion::ResourceRequest* req, ResourceContext& context, Resource::LoadedHandler handler)
 	{
 		if (req) {
 

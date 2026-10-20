@@ -34,7 +34,9 @@ add_library(RheaBase "src/Unit.cpp" "src/UnitTree.cpp" "src/Realm.cpp" "src/Disp
 "include/Rhea/Components/PhysicsDataComponent.h" "Components/PhysicsDataComponent.cpp"
 "include/Rhea/Components/ColliderComponent.h" "Components/ColliderComponent.cpp" "include/Rhea/Core/World.h" "Core/World.cpp" 
 "include/Rhea/Components/ActiveComponent.h" "include/Rhea/Core/Trigger.h" "Core/Trigger.cpp" 
-"include/Rhea/Core/Area.h" "Core/AreaService.cpp" "Core/Area.cpp" "include/Rhea/Core/AreaService.h" "include/Rhea/Core/AreaComponent.h" "Core/AreaComponent.cpp" "include/Rhea/Core/SceneEntryPoint.h" "Core/SceneResource.cpp" "include/Rhea/Core/SceneInstance.h")
+"include/Rhea/Core/Area.h" "Core/AreaService.cpp" "Core/Area.cpp" "include/Rhea/Core/AreaService.h"
+"include/Rhea/Core/AreaComponent.h" "Core/AreaComponent.cpp" "Core/Controller.cpp" "include/Rhea/Core/SceneEntryPoint.h" "Core/SceneResource.cpp"
+"include/Rhea/Core/SceneInstance.h")
 add_library(Rhea::Core ALIAS RheaBase)
 
 target_link_libraries(RheaBase PUBLIC Meworla::Math Meworla::Orion SimpleParser RheaResources Psio)

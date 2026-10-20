@@ -10,6 +10,7 @@
 
 #include "FontFamily.h"
 #include <map>
+#include <unordered_map>
 
 namespace rhea
 {
@@ -22,14 +23,15 @@ namespace rhea
 			FontFamily(name, type_name)
 		{}
 
-		void setup(Application* app, std::unordered_map<std::string, std::string> attributes,
-			std::unordered_map<std::string, Variant> values) override;
-		std::vector<Unit::ResourceReference> getReferences() override;
+		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values) override;
+		std::vector<Unit::ResourceReference> getReferences() override;		
+		void resolveReferences(const std::string& context_root, const std::string& source_root) override;
+		void instanceSetup(Component* source, Component* target, InstantiationContext& context) override;
 		void ready() override;
 		Font* resolve(float requested_size) override;
 
 	private:
-		std::map<float, std::string> m_font_paths;
+		std::map<float, Ref<Font>> m_font_refs;
 		std::map<float, Font*> m_fonts;
 		float m_default_size;
 	};

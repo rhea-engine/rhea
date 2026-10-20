@@ -7,7 +7,6 @@
 #ifndef RHEA_REF_H
 #define RHEA_REF_H
 
-#include <Rhea/UnitTree.h>
 #include <SimpleParser/Type.h>
 #include <string_view>
 
@@ -29,13 +28,6 @@ namespace rhea
 
 		const std::string& basePath() const { return m_base_path; }
 		void setBasePath(std::string base_path) { m_base_path = std::move(base_path); }
-
-		T* resolve(UnitTree* tree) const { 
-			if (m_base_path.empty())
-				return doCast<T>(tree->find(m_id)); 
-			else
-				return doCast<T>(tree->find(m_id, m_base_path, false));
-		}
 
 		std::string_view typeName() const {
 			if (auto type = simpleparser::Type::get(m_id))

@@ -29,13 +29,13 @@ namespace rhea
 		// setup from strings
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
 
-		std::vector<Unit::ResourceReference> getReferences();
-
 		// ready handler
 		void ready();
 
 		// get info about a glyph
 		Glyph* getGlyph(unsigned int letter);
+
+		static void initializeType(simpleparser::Type* type);
 
 	protected:
 		int m_dim_w;
@@ -44,6 +44,10 @@ namespace rhea
 		float m_cell_h;
 		unsigned int m_start_letter;
 		std::vector<Glyph> m_glyphs;
+
+		Ref<Shader> m_shader_ref;
+		Ref<ImageResource> m_texture_ref;
+		Ref<TextResource> m_font_info_ref;
 	};
 }
 

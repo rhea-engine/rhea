@@ -15,13 +15,15 @@
 #define TINYGLTF_NO_INCLUDE_JSON
 #define TINYGLTF_NO_INCLUDE_STB_IMAGE
 #define TINYGLTF_NO_STB_IMAGE
-#define TINIGLTF_NO_FS
+#define TINYGLTF_NO_FS
+#include <fstream>
 #include <stb_image.h>
 #include <nlohmann/json.hpp>
 #include <tiny_gltf_loader/tiny_gltf.h>
 #include <Math/Vector2.h>
 #include <Math/Vector3.h>
 #include <Rhea/Animation/Skeleton.h>
+#include <Rhea/Resources/TextResource.h>
 
 namespace rhea
 {
@@ -48,9 +50,8 @@ namespace rhea
 
 		void ready() override;
 
-		// for loading the base
-		std::vector<Unit::ResourceReference> getReferences();
-
+		static void initializeType(simpleparser::Type* type);
+		
 		void SetModel(tinygltf::Model model) { m_model = model; }
 
 		// Instantiate the scenes children to the scene given
@@ -95,6 +96,9 @@ namespace rhea
 
 		// Map GLTF node indices to bone indices
 		std::unordered_map<int, int> m_nodeIndexToBoneIndex;
+
+		Ref<TextResource> m_gltf_ref;
+		Ref<Shader> m_shader_ref;
 	};
 }
 

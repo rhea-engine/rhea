@@ -28,7 +28,11 @@ namespace rhea
 		m_submeshes(m.m_submeshes),
 		m_isDynamic(m.m_isDynamic),
 		m_vertex(m.m_vertex),
-		m_state(m.m_state)
+		m_state(m.m_state),
+		m_texture_ref(m.m_texture_ref),
+		m_shader_ref(m.m_shader_ref),
+		m_material_ref(m.m_material_ref),
+		m_geometry_ref(m.m_geometry_ref)
 	{
 	}
 
@@ -36,102 +40,211 @@ namespace rhea
 	{
 		Unit::setup(app, attributes, values);
 
-		// dependent resources
-		if (m_values.find("texture") != m_values.end() &&
-			m_values.find("shader") == m_values.end()) {
-			m_values["shader"] = "//rhea/shaders/standard";
+		const auto value_it = m_values.find("diffuse_tex");
+		if (value_it != m_values.end()) {
+			const auto& textures = value_it->second;
+
+			for (size_t i = 0; i < textures.size(); ++i)
+				m_diffuse_texture_refs.emplace_back(textures[i].toString());
+		}
+		const auto normal_value_it = m_values.find("normal_tex");
+		if (normal_value_it != m_values.end()) {
+			const auto& textures = normal_value_it->second;
+
+			for (size_t i = 0; i < textures.size(); ++i)
+				m_normal_texture_refs.emplace_back(textures[i].toString());
 		}
 	}
 
-	std::vector<Unit::ResourceReference> Mesh::getReferences()
+
+	void Mesh::resolveReferences(const std::string& context_root, const std::string& source_root)
 	{
-		std::vector<ResourceReference> refs;
-		if (m_values.find("geometry") != m_values.end())
-			refs.push_back({ "geometry", "//meworla/geometryloader", m_values["geometry"] });		
-		if (m_values.find("shader") != m_values.end()) {
-			refs.push_back({ "shader", "//meworla/shader", m_values["shader"] });
+		Unit::resolveReferences(context_root, source_root);
+
+		const ResourceContext context{ context_root, source_root };
+
+		for (auto& texture : m_diffuse_texture_refs)
+			normalizeReference(texture, context);
+		for (auto& texture : m_normal_texture_refs)
+			normalizeReference(texture, context);
+	}
+
+	std::vector<Component::ResourceReference> Mesh::getReferences()
+	{
+		auto references = Unit::getReferences();
+
+		for (size_t i = 0; i < m_diffuse_texture_refs.size(); ++i) {
+			if (!m_diffuse_texture_refs[i].empty()) {
+				references.push_back({
+					"diffuse_tex_" + std::to_string(i),
+					"//meworla/texture",
+					m_diffuse_texture_refs[i].id()
+					});
+			}
 		}
-		if (m_values.find("texture") != m_values.end()) {
-			refs.push_back({ "texture", "//meworla/texture", m_values["texture"] });
+
+		for (size_t i = 0; i < m_normal_texture_refs.size(); ++i) {
+			if (!m_normal_texture_refs[i].empty()) {
+				references.push_back({
+					"normal_tex_" + std::to_string(i),
+					"//meworla/texture",
+					m_normal_texture_refs[i].id()
+					});
+			}
 		}
-		if (m_values.find("material") != m_values.end()) {
-			refs.push_back({ "material", "//meworla/material", m_values["material"] });
+
+		return references;
+	}
+
+	void Mesh::instanceSetup(Component* source, Component* target, InstantiationContext& context)
+	{
+		Unit::instanceSetup(source, target, context);
+
+		const auto* source_mesh = doCast<Mesh>(source);
+		auto* target_mesh = doCast<Mesh>(target);
+
+		target_mesh->m_diffuse_texture_refs = source_mesh->m_diffuse_texture_refs;
+		target_mesh->m_normal_texture_refs = source_mesh->m_normal_texture_refs;
+	}
+	
+	Material* Mesh::getDefaultMaterial()
+	{
+		if (m_material)
+			return m_material;
+
+		if (m_shader_ref.empty())
+			m_shader_ref.setId("//rhea/shaders/standard");
+		
+		if (!m_app) {
+			LOG(LOG_ERROR) << "Mesh: Application not set for mesh " << m_path << ". Did you call setup()?";
+			return nullptr;
 		}
-		return refs;
+
+		Material* material = new Material(m_path + "_material");
+		addChild(material);
+		material->setup(m_app, getAttributes(), { {"shader", m_shader_ref.id()}});
+		Shader* shader_res = m_app->getUnitTree()->resolve(m_shader_ref);
+		if (!shader_res) {
+			LOG(LOG_ERROR) << "Mesh: Could not find shader " << m_shader_ref.id() << " for mesh " << m_path;
+			material->destroy();
+			return nullptr;
+		}
+		material->setShader(shader_res);
+		int diffuse_id = shader_res->getInputSlotId("DIFFUSE");
+		int emmission_id = shader_res->getInputSlotId("EMISSIVE");
+		material->setColor(diffuse_id, math::Color(0.8f, 0.8f, 0.8f, 1.0f));
+		material->setColor(emmission_id, math::Color(0.0f, 0.0f, 0.0f, 1.0f));
+
+		m_material = material;
+		return m_material;
 	}
 
 	void Mesh::ready()
 	{
-		if (m_state > 1)
+		if (!m_app) {
+			LOG(LOG_ERROR) << "Mesh: Application not set for mesh " << m_path << ". Did you call setup()?";
 			return;
+		}
+
+		if (m_state > 1) {
+			DLOG(LOG_DEBUG) << "Mesh : Already ready, skipping " << m_path;
+			return;
+		}
 		m_state = 1; // set to preparing
 
 		Unit::ready();
-				
-		// if we have a texture we create a correspondig material
-		if (m_values.find("texture") != m_values.end())
-		{
-			Unit* tex = nullptr;
-
-			// if material is set explicitly we use it
-			if (m_values.find("material") != m_values.end()) {
-				m_material = doCast<Material>(m_app->getUnitTree()->find(m_values["material"].toString(), m_attributes["basepath"], false));
-			}
-
-			tex = doCast<Unit>(m_app->getUnitTree()->find(m_values["texture"].toString(), m_attributes["basepath"], false));
-			if (tex) {
-				if (!m_material) {
-					// if no material was set create one ad-hoc as child of this mesh
-					m_material = new Material(m_path + "_material");
-					addChild(m_material);
-				}
-				m_material->setup(m_app, {}, {});
-				m_material->setTexture(0, static_cast<ImageResource*>(tex));
-				m_material->setValue("shader", getValue("shadername", "standard"));
-				if (m_values.find("shadername") != m_values.end()) {
-					LOG(LOG_DEBUG) << "shadername set: " << (std::string)m_values["shadername"];
-				}
-				if (m_submeshes.size() > 0) {
-					m_submeshes[0].material = m_material;
-				}
-
-				// get the shader				
-				Shader* shader_res = doCast<Shader>(m_app->getUnitTree()->find(m_values["shader"].toString(), m_attributes["basepath"], false));
-				if (shader_res) {
-					m_material->setShader(shader_res);
-					int diffuse_id = shader_res->getInputSlotId("DIFFUSE");
-					m_material->setColor(diffuse_id, math::Color(1.0f,1.0f,1.0f,1.0f));
-				    int basecolor_id = shader_res->getTextureSlotId("BASECOLOR");
-					m_material->setTexture(basecolor_id, static_cast<ImageResource*>(tex));
-					m_state = 2;
-				}
-				else {
-					LOG(LOG_ERROR) << "Could not find shader resource: " << (std::string)m_values["shader"];
-				}
-			}
-			else
-				LOG(LOG_ERROR) << "Mesh: Could not find texture " << m_attributes["basepath"] << "/" << (std::string)m_values["texture"] << " for mesh " << m_path;
-		}	
-		else if (m_values.find("material") != m_values.end()) {
-			m_material = doCast<Material>(m_app->getUnitTree()->find(m_values["material"].toString(), m_attributes["basepath"], false));
-			if (m_submeshes.size() > 0) {
-				m_submeshes[0].material = m_material;
-				m_state = 2;
-			}
-			else
-				LOG(LOG_ERROR) << "Mesh: No material found for mesh " << m_path << " with path " << m_attributes["basepath"] << "/" << (std::string)m_values["material"];
-		}
 
 		// load using geometry (normally used for import from file)
-		if (m_values.find("geometry") != m_values.end()) {
-			Geometry* geometry = doCast<Geometry>(m_app->getUnitTree()->find(m_values["geometry"].toString(), m_attributes["basepath"], false));
-			if (geometry) {				
+		if (!m_geometry_ref.empty()) {
+			Geometry* geometry = m_app->getUnitTree()->resolve(m_geometry_ref);
+			if (geometry) {
 				geometry->load(this);
 				m_state = 2;
 			}
-			else 
-				LOG(LOG_ERROR) << "Mesh: Could not find geometry " << m_attributes["basepath"] << "/" << (std::string)m_values["geometry"] << " for mesh " << m_path;
+			else
+				LOG(LOG_ERROR) << "Mesh: Could not find geometry " << m_geometry_ref.id() << " for mesh " << m_path;
 		}
+
+		// if material is set explicitly we use it
+		if (!m_material_ref.empty()) {
+			m_material = m_app->getUnitTree()->resolve(m_material_ref);
+		}
+
+		// override texture applies to all submeshes, if set
+		ImageResource* tex = m_app->getUnitTree()->resolve(m_texture_ref);
+				
+		Material* override_material = nullptr;
+		if (!m_material_ref.empty())
+			override_material = m_app->getUnitTree()->resolve(m_material_ref);
+
+		// set the override
+		for (size_t i = 0; i < m_submeshes.size(); ++i) {
+			Material* material = m_submeshes[i].material;
+
+			bool material_copied = false;
+
+			auto ensure_own_material = [&]()->bool {
+				if (material_copied)
+					return true;
+
+				auto* copy = material->Clone();
+				copy->setName("material_override_" + std::to_string(i));
+				if (!addChild(copy, true)) {
+					LOG(LOG_ERROR) << "Mesh "<< getPath() << ": Failed to add child material " << copy->getPath();
+					copy->destroy();
+					return false;
+				}
+				material = copy;
+				material_copied = true;
+				return true;
+				};
+
+			if (override_material)
+				material = override_material;
+
+			if (!material)
+				material = getDefaultMaterial();
+
+			// apply texture overrides.
+			if (!m_diffuse_texture_refs.empty()) {
+				ImageResource* diffuse_tex = m_app->getUnitTree()->resolve(m_diffuse_texture_refs[i % m_diffuse_texture_refs.size()]);
+				if (diffuse_tex) {
+					if (!ensure_own_material())
+						continue;
+					int diffuse_id = material->getShader()->getTextureSlotId("BASECOLOR");
+					material->setTexture(diffuse_id, diffuse_tex);
+				}
+				else {
+					LOG(LOG_WARNING) << "Mesh '" << getPath() << "': diffuse texture override not found: "
+						<< m_diffuse_texture_refs[i % m_diffuse_texture_refs.size()].id()
+						<< " (basePath=" << m_diffuse_texture_refs[i % m_diffuse_texture_refs.size()].basePath() << ")";
+				}
+			}
+			else if (tex) {
+				int basecolor_id = material->getShader()->getTextureSlotId("BASECOLOR");
+				if (!ensure_own_material())
+					continue;
+				material->setTexture(basecolor_id, tex);
+			}
+			if (!m_normal_texture_refs.empty()) {
+				ImageResource* normal_tex = m_app->getUnitTree()->resolve(m_normal_texture_refs[i % m_normal_texture_refs.size()]);
+				if (normal_tex) {
+					if (!ensure_own_material())
+						continue;
+					int normal_id = material->getShader()->getTextureSlotId("NORMAL");
+					material->setTexture(normal_id, normal_tex);
+				}
+				else {
+					LOG(LOG_WARNING) << "Mesh '" << getPath() << "': normal texture override not found: "
+						<< m_normal_texture_refs[i % m_normal_texture_refs.size()].id()
+						<< " (basePath=" << m_normal_texture_refs[i % m_normal_texture_refs.size()].basePath() << ")";
+				}
+			}
+
+			m_submeshes[i].material = material;
+		}
+
+		m_state = 2; // set to ready
 	}
 
 	void Mesh::setMaterial(Material* material)
@@ -223,5 +336,13 @@ namespace rhea
 			m_submeshes.resize(idx + 1);
 
 		m_submeshes[idx] = { indices, material };
+	}
+
+	void Mesh::initializeType(simpleparser::Type* type)
+	{
+		registerResourceProperty(type, "geometry", &Mesh::m_geometry_ref, "//meworla/geometryloader", ResourceUsage::Prepare);
+		registerResourceProperty(type, "shader", &Mesh::m_shader_ref, "//meworla/shader", ResourceUsage::Load);
+		registerResourceProperty(type, "texture", &Mesh::m_texture_ref, "//meworla/texture", ResourceUsage::Load);
+		registerResourceProperty(type, "material", &Mesh::m_material_ref, "//meworla/material", ResourceUsage::Load);
 	}
 }

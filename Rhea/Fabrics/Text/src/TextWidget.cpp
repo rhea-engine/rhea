@@ -31,16 +31,10 @@ namespace rhea
 		m_multiline = getValue("multiline", true);
 	}
 
-	std::vector<Unit::ResourceReference> TextWidget::getReferences()
-	{
-		std::vector<ResourceReference> refs = Item2D::getReferences();
-		if (m_values.find("font") != m_values.end()) {
-			refs.push_back({ "font", "//meworla/bitmapfont", m_values["font"] });
-		}
-		if (m_values.find("font_family") != m_values.end()) {
-			refs.push_back({ "font_family", "//meworla/fontfamily", m_values["font_family"] });
-		}
-		return refs;
+	void TextWidget::initializeType(simpleparser::Type* type)
+	{		
+		registerResourceProperty(type, "font", &TextWidget::m_font_ref, "//meworla/bitmapfont", ResourceUsage::Load);
+		registerResourceProperty(type, "font_family", &TextWidget::m_font_family_ref, "//meworla/fontfamily", ResourceUsage::Load);
 	}
 
 	void TextWidget::ready()
@@ -55,20 +49,19 @@ namespace rhea
 		visual_component->setRenderPhase(RenderPhase::Overlay);
 
 		// A family takes precedence over the legacy direct font reference.
-		if (m_values.find("font_family") != m_values.end())
+		if (!m_font_family_ref.empty())
 		{
-			FontFamily* family = doCast<FontFamily>(m_app->getUnitTree()->find(
-				m_values["font_family"].toString(), m_attributes["basepath"], false));
+			FontFamily* family = m_app->getUnitTree()->resolve(m_font_family_ref);
 			if (!family)
-				LOG(LOG_ERROR) << "TextWidget: Font family '" << (std::string)m_values["font_family"] << "' not found";
+				LOG(LOG_ERROR) << "TextWidget: Font family '" << (std::string)m_font_family_ref.id() << "' not found";
 			else
 				setFontFamily(family);
 		}
-		else if (m_values.find("font") != m_values.end())
+		else if (!m_font_ref.empty())
 		{
-			Font* font = doCast<Font>(m_app->getUnitTree()->find(m_values["font"].toString(), m_attributes["basepath"], false));
+			Font* font = m_app->getUnitTree()->resolve(m_font_ref);
 			if (!font)
-				LOG(LOG_ERROR) << "TextWidget: Font '" << (std::string)m_values["font"] << "' not found";
+				LOG(LOG_ERROR) << "TextWidget: Font '" << (std::string)m_font_ref.id() << "' not found";
 			else
 				setFont(font);
 		}

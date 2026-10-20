@@ -112,7 +112,7 @@ namespace psio
         return "";
     }
 
-    std::string Fs::getHomeDir(bool create)
+    std::string Fs::getHomeDir()
     {
         if (m_home.length())
             return m_home;
@@ -125,12 +125,10 @@ namespace psio
         else
             m_home = ".";
 
-        m_home += "\\Meworla";
-        if (!fileExists(m_home) && create) {
-            int check = _mkdir(m_home.c_str());
-            if (check) {
-                LOG(LOG_ERROR) << "could not create data folder in users home: " << errno;
-            }
+       
+        if (!fileExists(m_home)) {
+            LOG(LOG_ERROR) << "could not get users home";
+            return "";
         }
 
         return m_home;

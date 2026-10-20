@@ -392,7 +392,7 @@ namespace rhea::client {
 			});
 
 		// load core resources
-		rhea::ResourceList res_list(m_app);
+		rhea::ResourceList res_list(m_app, {});
 
 		// load shaders
 		res_list.push("standard_shader", "//rhea/shaders/standard.shader", "//meworla/shader");

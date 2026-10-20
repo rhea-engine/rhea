@@ -13,7 +13,7 @@
 
 namespace rhea {
 	
-	void CssLoader::load(std::string name, Application* app, orion::ResourceRequest* req, Resource::LoadedHandler handler)
+	void CssLoader::load(std::string name, Application* app, orion::ResourceRequest* req, ResourceContext& context, Resource::LoadedHandler handler)
 	{
 		psio::Stream* rs = req->getStream();
 		psio::IOBuffer* buf = new psio::IOBuffer(64 * 1024);
@@ -32,7 +32,7 @@ namespace rhea {
 				css->setStyle(entries);
 
 				// resource to load?
-				ResourceList res_list(app);
+				ResourceList res_list(app, context);
 				std::vector<Unit::ResourceReference> references = css->getReferences();
 				for (auto ref_it = references.begin(); ref_it != references.end(); ++ref_it) {					
 					res_list.push(ref_it->name, ref_it->value.toString(), ref_it->type);

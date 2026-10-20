@@ -143,9 +143,10 @@ namespace rhea
 		std::unordered_map<std::string, Component*> instances;
 		std::vector<PendingUnitConfig> pending_configs;
 		std::vector<PendingSceneInstance> pending_instances;
-		ResourceList resources(m_app);
+		const ResourceContext context{ m_context_root, m_scene_root };
+		ResourceList resources(m_app, context);
 		std::vector<PendingSceneInstance> ready_instances;
-		ResourceList ready_resources(m_app);
+		ResourceList ready_resources(m_app, context);
 
 		const std::string root_name = request.name.empty() ? m_definition.root.name : request.name;
 		Unit* root = doCast<Unit>(simpleparser::Type::create(root_name, m_definition.root.type_name));
@@ -206,25 +207,57 @@ namespace rhea
 		}
 
 		auto collect_references = [this, &request, &instances, &resources, &pending_instances, &ready_resources, &ready_instances](
-			const std::string& owner_id, Component* owner) {
+			const std::string& owner_id, Component* owner)->bool {
 				for (const auto& reference : owner->getReferences()) {
 					const std::string id = reference.value.toString();
-					if (id.size() <= 1 || id[0] != '/')
+					if (id.size() <= 1)
 						continue;
 
-					const std::string resolved_id = id[1] == '/' ? id : m_scene_root + id;
-					// References to configured nodes are resolved when this tree is attached.
-					const std::string local_prefix = request.basepath + "/";
-					if (!request.basepath.empty() && resolved_id.compare(0, local_prefix.size(), local_prefix) == 0 &&
-						reference.usage == Component::ResourceUsage::Load &&
-						instances.find(resolved_id.substr(local_prefix.size())) != instances.end())
-						continue;
+					bool is_local = id[0] != '/';
+					std::string resolved_id;
+					Unit* target = nullptr;
+					if (is_local) {
+						// Local objects already exist; only additional lifecycle work
+						// requires an entry in the resource list.
+						if (reference.usage == Component::ResourceUsage::Load)
+							// Local object references are instantiated when the tree is attached.
+							continue;
 
+						// Find the configured object in this instance.
+						auto target_it = instances.find(id);
+						target = target_it == instances.end() ? nullptr : doCast<Unit>(target_it->second);
+
+						if (!target) {
+							LOG(LOG_ERROR) << "Local resource reference not found: " << id << " for " << owner_id;
+							return false;
+						}
+
+						resolved_id = request.basepath + "/" + id;
+					}
+					else {
+						resolved_id = id[1] == '/' ? id : m_context_root + id;
+						// Also recognize absolute references into this instance.
+						const std::string local_prefix = request.basepath + "/";
+						if (!request.basepath.empty() && resolved_id.compare(0, local_prefix.size(), local_prefix) == 0) {
+							const auto target_it = instances.find(resolved_id.substr(local_prefix.size()));
+
+							if (target_it != instances.end()) {
+								target = doCast<Unit>(target_it->second);
+
+								if (reference.usage == Component::ResourceUsage::Load)
+									continue;
+
+								if (!target)
+									return false;
+							}
+						}
+							
+					}
 					const std::string key = owner_id + "_" + reference.name + "_" + resolved_id;
 					const bool ensure_ready = reference.usage == Component::ResourceUsage::EnsureReady;
 					auto& resource_list = ensure_ready ? ready_resources : resources;
 					auto& pending_list = ensure_ready ? ready_instances : pending_instances;
-					resource_list.push(key, resolved_id, reference.type);
+					resource_list.push(key, resolved_id, reference.type, false, target);
 					if (reference.usage != Component::ResourceUsage::Load) {
 						pending_list.push_back({
 							key,
@@ -234,12 +267,27 @@ namespace rhea
 							});
 					}
 				}
+				return true;
 			};
 
-		collect_references("scene", root);
-		for (const auto& config : pending_configs) {
+		for (const auto& config : pending_configs)
 			config.component->setup(m_app, config.attributes, config.values);
-			collect_references(config.section_name, config.component);
+		
+		size_t owner_index = 0;
+		bool references_valid = true;
+		root->traverse([&](std::string& name, Component* component)->bool {
+			component->resolveReferences(m_context_root, m_scene_root);
+
+			const std::string owner_id = std::to_string(owner_index++) + "_" + name;
+			references_valid = collect_references(owner_id, component);
+			return references_valid;
+			});
+
+		if (!references_valid) {
+			root->destroy();
+			if (handler)
+				handler(ReqError::DATA_INVALID, nullptr);
+			return;
 		}
 
 		auto* resource_service = static_cast<ResourceService*>(m_app->getService("resources"));
@@ -250,7 +298,7 @@ namespace rhea
 			return;
 		}
 
-		auto load_remaining = [this, root, resource_service, resources, pending_instances, handler]() mutable {
+		auto load_remaining = [this, root, resource_service, resources = std::move(resources), pending_instances, handler]() mutable {
 			resource_service->loadAsync(resources,
 				[this, root, pending = std::move(pending_instances), handler](ResourceList* loaded, Error* error) mutable {
 					if (error) {
@@ -311,19 +359,19 @@ namespace rhea
 			size_t remaining = 0;
 			bool completed = false;
 			CompletionHandler complete;
+			ReqError final_error = ReqError::OK;
 
 			void finishOne(ReqError error)
 			{
 				if (completed)
 					return;
-				if (error != ReqError::OK) {
-					completed = true;
-					complete(error);
-					return;
+				// store the first error encountered, but continue processing the rest
+				if (final_error == ReqError::OK && error != ReqError::OK) {
+					final_error = error;
 				}
 				if (--remaining == 0) {
 					completed = true;
-					complete(ReqError::OK);
+					complete(final_error);
 				}
 			}
 		};

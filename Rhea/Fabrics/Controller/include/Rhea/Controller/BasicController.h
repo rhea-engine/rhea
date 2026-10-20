@@ -23,7 +23,6 @@ namespace rhea
 			Controller(path_name, type_name)
 		{}
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, simpleparser::Variant> values) override;
-		std::vector<Component::ResourceReference> getReferences();
 
 		void ready() override;
 

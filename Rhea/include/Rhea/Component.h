@@ -14,11 +14,13 @@
 
 #include <SimpleParser/Type.h>
 #include <SimpleParser/Variant.h>
+#include <Rhea/Ref.h>
 
 namespace rhea
 {
     class Application;
     class Unit;
+    struct ResourceContext;
 
     class Component : public simpleparser::Variant
     {
@@ -89,7 +91,10 @@ namespace rhea
         std::string getValueString(std::string name, std::string default_val) const;
         // set a value
         void setValue(std::string name, simpleparser::Variant val);
-		// get refernced resources - returns a list of resources that are referenced by this component
+		//  resolve references in values - replaces any value that is a reference with the actual value
+        virtual void resolveReferences(const std::string& context_root, const std::string& source_root);
+
+        // get referenced resources - returns a list of resources that are referenced by this component
         enum class ResourceUsage {
             Load,           // only load
 			Prepare,        // prepare for usage
@@ -114,6 +119,9 @@ namespace rhea
             auto it = m_attributes.find(key);
             return it != m_attributes.end() ? it->second : "";
         }
+		void setAttribute(const std::string& key, const std::string& value) {
+			m_attributes[key] = value;
+		}
 
         // Get values map
         const std::unordered_map<std::string, simpleparser::Variant>& getValues() const {
@@ -186,6 +194,65 @@ namespace rhea
         // runtime or configuration origin?
 		// used to determine if the component should be instanced or not
 		ComponentOrigin m_origin = ComponentOrigin::Runtime;
+
+		// resource property metadata
+        struct ResourceProperty {
+            std::string name;
+            std::string resource_type;
+            ResourceUsage usage;
+
+            std::function<std::string(const Component&)> get_id;
+            std::function<void(Component&, std::string)> set_id;
+            std::function<void(Component&, Component&)> copy;
+            std::function<void(Component&, const std::string&)> set_base_path;
+        };
+
+        template<class Owner, class Target>
+        static void registerResourceProperty(
+            simpleparser::Type* type,
+            std::string name,
+            Ref<Target> Owner::* member,
+            std::string resource_type,
+            ResourceUsage usage)
+        {
+            s_resource_properties[type].push_back({
+                std::move(name),
+                std::move(resource_type),
+                usage,
+                [member](const Component& component) {
+                    return (static_cast<const Owner&>(component).*member).id();
+                },
+                [member](Component& component, std::string id) {
+                    (static_cast<Owner&>(component).*member).setId(std::move(id));
+                },
+                [member](Component& source, Component& target) {
+                    (static_cast<Owner&>(target).*member) =
+                    (static_cast<Owner&>(source).*member);
+                },
+                [member](Component& component, const std::string& base_path) {
+                    (static_cast<Owner&>(component).*member).setBasePath(base_path);
+                }
+                });
+        }       
+        static void copyResourceProperties(Component& source, Component& target);
+
+        std::string normalizeReferenceId(
+            const std::string& id,
+            const ResourceContext& context) const;
+
+        template<class T>
+        void normalizeReference(
+            Ref<T>& reference,
+            const ResourceContext& context) const
+        {
+            const std::string base_path = getAttribute("basepath");
+            if (!base_path.empty())
+                reference.setBasePath(base_path);
+
+            reference.setId(normalizeReferenceId(reference.id(), context));
+        }
+
+        static std::unordered_map<simpleparser::Type*, std::vector<ResourceProperty>> s_resource_properties;
     };
 }
 #endif // !RHEA_COMPONENT_H

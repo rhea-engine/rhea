@@ -20,7 +20,9 @@ namespace rhea
 {
 	class Application;
 	class ImageResource;
+	class Geometry;
 	class Material;
+	class Shader;
 
 	class Mesh : public Unit
 	{
@@ -67,13 +69,15 @@ namespace rhea
 
 		struct SubMesh {
 			std::vector<uint32_t> indices;
-			Material* material;
+			Material* material = nullptr;
 		};
 		
 		// setup from strings
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
-
-		std::vector<Unit::ResourceReference> getReferences();
+		
+		void resolveReferences(const std::string& context_root, const std::string& source_root) override;
+		std::vector<ResourceReference> getReferences() override;
+		void instanceSetup(Component* source, Component* target, InstantiationContext& context) override;
 
 		// ready handler
 		void ready();
@@ -107,7 +111,7 @@ namespace rhea
 		size_t getNumSubmeshes() { return m_submeshes.size(); }
 
 		// get default Material
-		Material* getDefaultMaterial() { return m_material; }
+		Material* getDefaultMaterial();
 
 		// return pointers to the buffers
 		template<typename VertexBufferType>
@@ -129,6 +133,11 @@ namespace rhea
 
 		void setVertexBuffer(VertexBuffer& vertex) { m_vertex = std::move(vertex); }
 
+		static void initializeType(simpleparser::Type* type);
+
+		void setTextureRef(Ref<ImageResource> texture) { m_texture_ref = texture; }
+		void setShaderRef(Ref<Shader> shader) { m_shader_ref = shader; }
+
 	protected:
 		// default material if submesh does not define one
 		Material* m_material;
@@ -142,6 +151,12 @@ namespace rhea
 		int m_state;
 
 		bool m_is_indexed = true;
+		Ref<Shader> m_shader_ref;
+		Ref<ImageResource> m_texture_ref;
+		Ref<Material> m_material_ref;
+		Ref<Geometry> m_geometry_ref;
+		std::vector<Ref<ImageResource>> m_diffuse_texture_refs; // override for diffuse texture references
+		std::vector<Ref<ImageResource>> m_normal_texture_refs; // override for normal texture references
 
 		// Copy Constructor 
 		Mesh(const Mesh& m);

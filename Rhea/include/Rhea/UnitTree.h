@@ -13,6 +13,7 @@
 #include <functional>
 
 #include "Unit.h"
+#include "Ref.h"
 
 namespace rhea
 {
@@ -55,6 +56,18 @@ namespace rhea
 		// get a binding via path
 		Binding getBinding(std::string binding_desc, std::string base);
 
+		template<class T>
+		T* resolve(const Ref<T>& reference)
+		{
+			if (reference.empty())
+				return nullptr;
+
+			if (reference.basePath().empty())
+				return doCast<T>(find(reference.id()));
+
+			return doCast<T>(
+				find(reference.id(), reference.basePath(), false));
+		}
 	};
 }
 

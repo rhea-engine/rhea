@@ -32,14 +32,14 @@ namespace rhea
 		}
 	}
 
-	bool Unit::addChild(Component* child)
+	bool Unit::addChild(Component* child, bool silent)
 	{		
 		// check if child is valid and not already a child of this unit
 		if (!child || child->getParent() == this)
 			return false;
 		// check if a child with the same name already exists
 		if (m_children.find(child->getPathName()) != m_children.end()) {
-			LOG(LOG_ERROR) << "Child with name " << child->getPathName() << " already exists.";
+			if (!silent) LOG(LOG_ERROR) << "Child with name " << child->getPathName() << " already exists.";
 			return false;
 		}
 		// if the child has a parent, remove it from its parent
@@ -52,7 +52,8 @@ namespace rhea
 		// everything in order, so we can add the child to the children map and ordered children vector
 		child->setParent(this);
 		m_children[child->getPathName()] = child;
-		m_ordered_children.push_back(child);		
+		m_ordered_children.push_back(child);
+		updatePath();
 		child->onParented();
 		return true;
 	}
@@ -99,6 +100,17 @@ namespace rhea
 				m_unique_components.erase(it);
 			}
 			type = type->getParent();
+		}
+	}
+
+	void Unit::updatePath()
+	{
+		m_path = m_parent ? m_parent->getPath() + "/" + getPathName() : getPathName();
+		for (auto& child : m_ordered_children) {
+			Unit* u_child = doCast<Unit>(child);
+			if (u_child) {
+				u_child->updatePath();
+			}
 		}
 	}
 	

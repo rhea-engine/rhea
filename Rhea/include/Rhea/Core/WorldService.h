@@ -14,6 +14,10 @@
 #include <Rhea/Application.h>
 #include <Rhea/Event.h>
 #include <Rhea/Core/SceneEntryPoint.h>
+#include <Rhea/Resources/ResourceContext.h>
+#include <unordered_map>
+#include <string>
+#include <functional>
 
 namespace rhea
 {
@@ -190,12 +194,15 @@ namespace rhea
 		void openWorld(std::string& resource_id, OpenHandler handler = nullptr);
 		// scene lifecycle management
 		// load a scene without transitioning to it
-		void loadScene(std::string resource_id, LoadSceneHandler handler = nullptr);
+		void loadScene(const std::string& resource_id, LoadSceneHandler handler = nullptr);
+		void loadScene(const std::string& resource_id, const ResourceContext& context, LoadSceneHandler handler = nullptr);
 		// activate a scene without transitioning to it
-		void activateScene(std::string& resource_id, SceneRole role = SceneRole::Regular, Scene* owner_scene = nullptr, OpenHandler handler = nullptr);
+		void activateScene(const std::string& resource_id, SceneRole role = SceneRole::Regular, Scene* owner_scene = nullptr, OpenHandler handler = nullptr);
+		void activateScene(const std::string& resource_id, const ResourceContext& context, SceneRole role = SceneRole::Regular, Scene* owner_scene = nullptr, OpenHandler handler = nullptr);
 		// deactivate a scene
 		// return false if scene was primary scene and cannot be deactivated
-		bool deactivateScene(std::string& resource_id);
+		bool deactivateScene(const std::string& resource_id);
+		bool deactivateScene(const std::string& resource_id, const ResourceContext& context);
 		// transition to a scene
 		void transitionToScene(const TransitionRequest& request, OpenHandler handler = nullptr);
 
@@ -228,11 +235,11 @@ namespace rhea
 		void onSceneActivate(Scene* scene);
 		void onSceneDeactivate(Scene* scene);
 
-		void beginSession();
+		void beginSession(const ResourceContext& context);
 		void deactivatePreviousSession();
-		void onWorldLoaded(uint64_t open_generation, std::string request_id, Component* component, OpenHandler handler);
+		void onWorldLoaded(uint64_t open_generation, const std::string request_id, const ResourceContext& context, Component* component, OpenHandler handler);
 
-		void loadStartScene(World* world, uint64_t open_generation, OpenHandler handler);
+		void loadStartScene(World* world, const ResourceContext& context, uint64_t open_generation, OpenHandler handler);
 		// activate loaded scene and make it primary scene
 		void doTransitionScene(Scene* scene, const TransitionRequest& request, OpenHandler handler);
 
@@ -254,6 +261,7 @@ namespace rhea
 		// prevent stale results from async world load requests
 		uint64_t m_open_generation = 0;
 		uint64_t m_session_generation = 0;
+		ResourceContext m_session_context{};
 
 		// pending scene loads
 		struct SceneLoadKey

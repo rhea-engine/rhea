@@ -44,8 +44,6 @@ namespace rhea
 		// setup from strings
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
 
-		std::vector<Unit::ResourceReference> getReferences();
-
 		// ready event handler
 		void ready();
 
@@ -79,6 +77,8 @@ namespace rhea
 		int getViewportWidth() { return m_viewport_width; }
 		int getViewportHeight() { return m_viewport_height; }
 
+		static void initializeType(simpleparser::Type* type);
+
 	protected:
 		// dimensions in screen space
 		
@@ -97,6 +97,7 @@ namespace rhea
 		// background image
 		ImageResource* m_bg_image;
 		Ref<ImageResource> m_bg_image_ref;
+		Ref<Shader> m_shader_resource;
 
 		bool m_material_dirty;
 		// update (or create) the material if material is dirty

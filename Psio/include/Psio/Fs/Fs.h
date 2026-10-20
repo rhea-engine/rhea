@@ -40,9 +40,8 @@ namespace psio
 		// set the app data dir manually
 		void setAppDataDir(std::string app_dir);
 
-		// get users home directory
-		// this is used if a user create its own projects
-		std::string getHomeDir(bool create = false);
+		// get users home directory		
+		std::string getHomeDir();
 
 		// set the home dir manually
 		void setHomeDir(std::string home_dir);

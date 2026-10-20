@@ -58,17 +58,15 @@ namespace rhea
 			m_properties[StylePropertyId::kColor].push_back({ CssValueId::kNumeric, 255.0f });
 			m_properties[StylePropertyId::kColor].push_back({ CssValueId::kNumeric, 255.0f });
 		}
+
+		if (m_default_font_ref.empty())
+			m_default_font_ref.setId("//rhea/fonts/Inter.scene");
 	}
 
-	std::vector<Unit::ResourceReference> GUIController::getReferences()
+	void GUIController::initializeType(simpleparser::Type* type)
 	{
-		std::vector<ResourceReference> refs = Widget::getReferences();
-		if (m_values.find("stylesheet") != m_values.end()) {
-			refs.push_back({ "stylesheet", "text/css", m_values["stylesheet"] });
-		}
-		// add default fonts
-		refs.push_back({ "inter", "meworla/scene", "//rhea/fonts/inter.scene", ResourceUsage::EnsureReady });
-		return refs;
+		registerResourceProperty(type, "stylesheet", &GUIController::m_stylesheet_ref, "text/css", ResourceUsage::Load);
+		registerResourceProperty(type, "default_font", &GUIController::m_default_font_ref, "meworla/scene", ResourceUsage::EnsureReady);
 	}
 
 	void GUIController::ready()
@@ -107,12 +105,12 @@ namespace rhea
 				realm->addChild(default_css);
 		}
 		
-		if (m_values.find("stylesheet") != m_values.end()) {
-			StyleSheet* css = doCast<StyleSheet>(m_app->getUnitTree()->find(m_values["stylesheet"].toString(), m_attributes["basepath"], false));
+		if (!m_stylesheet_ref.empty()) {
+			StyleSheet* css = m_app->getUnitTree()->resolve(m_stylesheet_ref);
 			if (css)
 				m_style_engine->AppendStylesheet(css);
 			else
-				LOG(LOG_ERROR) << "Failed to load stylesheet: " << m_values["stylesheet"].toString(); 
+				LOG(LOG_ERROR) << "Failed to load stylesheet: " << m_stylesheet_ref.id(); 
 		}
 		else {
 			LOG(LOG_ERROR) << "No stylesheet defined for GUI Controller";

@@ -23,37 +23,55 @@ namespace rhea
 		Unit::setup(app, attributes, values);
 		m_default_size = getValue("default_size", 0.0f);
 
-		for (const auto& value : m_values) {
-			if (value.first.compare(0, 5, "font_") != 0)
-				continue;
+		if (m_font_refs.empty()) {
+			for (const auto& value : m_values) {
+				if (value.first.compare(0, 5, "font_") != 0)
+					continue;
 
-			char* end = nullptr;
-			const float size = std::strtof(value.first.c_str() + 5, &end);
-			if (end && *end == '\0' && size > 0.0f)
-				m_font_paths[size] = value.second.toString();
+				char* end = nullptr;
+				const float size = std::strtof(value.first.c_str() + 5, &end);
+				if (end && *end == '\0' && size > 0.0f)
+					m_font_refs[size] = Ref<Font>(value.second.toString(), m_attributes["basepath"]);
+			}
 		}
 	}
 
 	std::vector<Unit::ResourceReference> BitmapFontFamily::getReferences()
 	{
-		std::vector<ResourceReference> refs;
-		for (const auto& font : m_font_paths)
-			refs.push_back({ "font_" + std::to_string(font.first), "//meworla/bitmapfont", font.second });
+		std::vector<ResourceReference> refs = FontFamily::getReferences();
+		for (const auto& font : m_font_refs)
+			refs.push_back({ "font_" + std::to_string(font.first), "//meworla/bitmapfont", font.second.id() });
 		return refs;
+	}
+
+	void BitmapFontFamily::resolveReferences(const std::string& context_root, const std::string& source_root)
+	{
+		FontFamily::resolveReferences(context_root, source_root);
+		const ResourceContext context{ context_root, source_root };
+		for (auto& font : m_font_refs)
+			normalizeReference(font.second, context);
+	}
+
+	void BitmapFontFamily::instanceSetup(Component* source, Component* target, InstantiationContext& context)
+	{
+		FontFamily::instanceSetup(source, target, context);
+
+		const auto* source_font_family = doCast<BitmapFontFamily>(source);
+		auto* target_font_family = doCast<BitmapFontFamily>(target);
+
+		target_font_family->m_font_refs = source_font_family->m_font_refs;
 	}
 
 	void BitmapFontFamily::ready()
 	{
 		Unit::ready();
 		m_fonts.clear();
-		for (const auto& variant : m_font_paths) {
-			Font* font = doCast<Font>(m_app->getUnitTree()->find(
-				variant.second, m_attributes["basepath"], false));
+		for (const auto& variant : m_font_refs) {
+			Font* font = m_app->getUnitTree()->resolve(variant.second);
 			if (font)
 				m_fonts[variant.first] = font;
 			else
-				LOG(LOG_ERROR) << "BitmapFontFamily::ready(): Font '" << variant.second
-					<< "' for " << m_pathname << " not found";
+				LOG(LOG_ERROR) << "BitmapFontFamily::ready(): Font '" << variant.second.id() << "' for " << m_pathname << " not found";
 		}
 	}
 

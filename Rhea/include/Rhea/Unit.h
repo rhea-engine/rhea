@@ -49,7 +49,8 @@ namespace rhea
 
 		// add a child resource
 		// returns false if the a child with the same name already exists
-		bool addChild(Component* child);
+		// if silent is true no log is generated
+		bool addChild(Component* child, bool silent = false);
 
 		// remove a child
 		// returns false if the child was not found or the child was not a child of this unit
@@ -217,6 +218,7 @@ namespace rhea
 		
 	protected:		
 		std::string m_path;		
+		void updatePath();
 
 		// the children of the unit - this may be components
 		std::unordered_map<std::string, Component*> m_children;

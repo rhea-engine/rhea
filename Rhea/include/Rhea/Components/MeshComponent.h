@@ -26,31 +26,11 @@ namespace rhea
             Component(name, type_name),
             m_mesh(nullptr)
         {}
-        void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, simpleparser::Variant> values) override {
-            Component::setup(app, attributes, values);
-            if (m_values.find("meshRef") != m_values.end())
-                m_meshRef = Ref<Mesh>(m_values["meshRef"].toString(), m_attributes["basepath"]);
-        }
 		void onParented() override {
 			if (m_parent && !m_parent->getComponent<MeshComponent>()) {
 				m_parent->addComponent(this);
 			}
-		}
-
-        std::vector<ResourceReference> getReferences() override
-        {
-            auto it = m_values.find("meshRef");
-
-            if (it == m_values.end())
-                return {};
-
-            return { {
-                "meshRef",
-                "//meworla/mesh",
-                it->second,
-                ResourceUsage::Load
-            } };
-        }
+		}       
 
         // Asset reference (unresolved)
         const Ref<Mesh>& meshRef() const { return m_meshRef; }
@@ -61,6 +41,11 @@ namespace rhea
         // Resolved asset
         Mesh* getMesh() const { return m_mesh; }
         void setMesh(Mesh* m) { m_mesh = m; }
+
+        static void initializeType(simpleparser::Type* type)
+        {
+            registerResourceProperty(type, "meshRef", &MeshComponent::m_meshRef, "//meworla/mesh", ResourceUsage::Load);
+        }
 
     private:
         // Unresolved reference

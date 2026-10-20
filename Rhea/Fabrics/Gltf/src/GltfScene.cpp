@@ -31,6 +31,9 @@ namespace rhea
 		if (m_instance)
 			return m_instance->load(mesh);
 
+		if (!m_app)
+			m_app = mesh->getApplication();
+
 		// check if we have at least one scene
 		if (!m_model.scenes.size())
 		{
@@ -40,16 +43,17 @@ namespace rhea
 		m_has_skeleton = !m_model.skins.empty();
 
 		// get the default shader
-		std::string shader_name = "";
 		Shader* shader_res = nullptr;
 		if (!m_has_skeleton) {
-			shader_name = mesh->getValueString("shadername", "//rhea/shaders/standard");
-			shader_res = doCast<Shader>(m_app->getUnitTree()->find(shader_name, m_attributes["basepath"], false));
-			
+			if (m_shader_ref.empty())
+				m_shader_ref.setId("//rhea/shaders/standard");
+			shader_res = m_app->getUnitTree()->resolve(m_shader_ref);
+
 		}
 		else {
-			shader_name = mesh->getValueString("shadername", "//rhea/shaders/skeletal");
-			shader_res = doCast<Shader>(m_app->getUnitTree()->find(shader_name, m_attributes["basepath"], false));
+			if (m_shader_ref.empty())
+				m_shader_ref.setId("//rhea/shaders/skeletal");
+			shader_res = m_app->getUnitTree()->resolve(m_shader_ref);
 
 			// add the skeleton
 			Skeleton* skel = new Skeleton("skeleton", "//meworla/skeleton");
@@ -71,7 +75,7 @@ namespace rhea
 
 		}
 		if (!shader_res) {
-			LOG(LOG_ERROR) << "Could not find shader resource: " << shader_name;
+			LOG(LOG_ERROR) << "Could not find shader resource: " << m_shader_ref.id();
 			return false;
 		}
 
@@ -87,118 +91,58 @@ namespace rhea
 		int basecolor_id = shader_res->getTextureSlotId("BASECOLOR");
 		int normal_id = shader_res->getTextureSlotId("NORMAL");
 
-		if (m_app)
-			m_app = mesh->getApplication();
-
-		// prepare diffuse maps (from mesh options)
-		std::vector<ImageResource*> diffuse_maps;
-		Variant diffuse_tex = mesh->getValue("diffuse_tex");
-		if (diffuse_tex.isArray()) {
-			for (int i = 0; i < diffuse_tex.size(); i++) {
-				ImageResource* tex = doCast<ImageResource>(m_app->getUnitTree()->find(diffuse_tex[i].toString(), mesh->getBasePath(), false));
-				diffuse_maps.push_back(tex);
-			}
-		}
-		// prepare normal maps (from mesh options)
-		std::vector<ImageResource*> normal_maps;
-		Variant normal_tex = mesh->getValue("normal_tex");
-		if (normal_tex.isArray()) {
-			for (int i = 0; i < normal_tex.size(); i++) {
-				ImageResource* tex = doCast<ImageResource>(m_app->getUnitTree()->find(normal_tex[i].toString(), m_attributes["basepath"], false));
-				normal_maps.push_back(tex);
-			}
-		}
-		Variant override_materials = mesh->getValue("material");
-
-		if (override_materials.isArray()) {
-			// TODO make overriding of material possible
-			for (int i = 0; i < override_materials.size(); i++) {
-				Material* mat = doCast<Material>(m_app->getUnitTree()->find(override_materials[i].toString(), mesh->getBasePath(), false));
-				// note: if mat is null the default material will be used
-				m_materials.push_back(mat);
-			}
-		}
-		else if (m_model.materials.size() > 0) {
-
-			// create the materials from gltf file
-			for (const auto& material : m_model.materials) {
-				Material* mat = new Material(material.name);
-				// set shader
-				mat->setShader(shader_res);
-				mat->setValue("shader", shader_name);
-
-				// set material values
-
-				// traditional shader - fill as good as possible
-				// pbr to traditional ambient - not implemented
-				//mat->setColor(ambient_id, math::Vector3(material.ambient[0], material.ambient[1], material.ambient[2]));
-				// pbr to traditional specular - not implemented
-				//mat->setColor(specular_id, math::Vector3(material.specular[0], material.specular[1], material.specular[2]));
-				math::Color diffuse(
-					(float)material.pbrMetallicRoughness.baseColorFactor[0],
-					(float)material.pbrMetallicRoughness.baseColorFactor[1],
-					(float)material.pbrMetallicRoughness.baseColorFactor[2]
-				);
-				mat->setColor(diffuse_id, diffuse);
-				math::Color emmissive(
-					(float)material.emissiveFactor[0],
-					(float)material.emissiveFactor[1],
-					(float)material.emissiveFactor[2]
-				);
-				mat->setColor(emmission_id, emmissive);
-
-				// file baseColor texture
-				if (material.pbrMetallicRoughness.baseColorTexture.index >= 0) {
-					int textureIndex = material.pbrMetallicRoughness.baseColorTexture.index;
-					if (textureIndex > -1) {
-						// try override
-						if (diffuse_maps.size() > textureIndex)
-							mat->setTexture(basecolor_id, diffuse_maps[textureIndex]);
-						else {
-							auto tex = m_images.find(textureIndex);
-							if (tex != m_images.end()) {
-								mat->setTexture(basecolor_id, tex->second);
-							}
-						}
-					}
-				}
-				// fill normal maps (if any)
-				int normalIndex = material.normalTexture.index;
-				if (normalIndex > -1) {
-					// try override
-					if (normal_maps.size() > normalIndex)
-						mat->setTexture(normal_id, normal_maps[normalIndex]);
-					else {
-						auto tex = m_images.find(normalIndex);
-						if (tex != m_images.end()) {
-							mat->setTexture(normal_id, tex->second);
-						}
-					}
-				}
-
-				addChild(mat);
-				m_materials.push_back(mat);
-			}
-		}
-		else {
-			// no materials were defined - neither in gltf file nor in mesh options
-			// add a default material
-			Material* mat = new Material("default");
+		// create the materials from gltf file
+		for (const auto& material : m_model.materials) {
+			Material* mat = new Material(material.name);
 			// set shader
 			mat->setShader(shader_res);
-			mat->setValue("shader", shader_name);
+			mat->setValue("shader", shader_res->getPathName());
 
-			mat->setColor(diffuse_id, math::Color(0.8f, 0.8f, 0.8f));
-			mat->setColor(emmission_id, math::Color(0.0f, 0.0f, 0.0f));
+			// set material values
 
-			if (diffuse_maps.size() > 0)
-				mat->setTexture(basecolor_id, diffuse_maps[0]);
-			if (normal_maps.size() > 0)
-				mat->setTexture(normal_id, normal_maps[0]);
+			// traditional shader - fill as good as possible
+			// pbr to traditional ambient - not implemented
+			//mat->setColor(ambient_id, math::Vector3(material.ambient[0], material.ambient[1], material.ambient[2]));
+			// pbr to traditional specular - not implemented
+			//mat->setColor(specular_id, math::Vector3(material.specular[0], material.specular[1], material.specular[2]));
+			math::Color diffuse(
+				(float)material.pbrMetallicRoughness.baseColorFactor[0],
+				(float)material.pbrMetallicRoughness.baseColorFactor[1],
+				(float)material.pbrMetallicRoughness.baseColorFactor[2]
+			);
+			mat->setColor(diffuse_id, diffuse);
+			math::Color emmissive(
+				(float)material.emissiveFactor[0],
+				(float)material.emissiveFactor[1],
+				(float)material.emissiveFactor[2]
+			);
+			mat->setColor(emmission_id, emmissive);
+
+			// file baseColor texture
+			if (material.pbrMetallicRoughness.baseColorTexture.index >= 0) {
+				int texture_index = material.pbrMetallicRoughness.baseColorTexture.index;
+				if (texture_index > -1) {
+					const int image_index = m_model.textures[texture_index].source;
+					auto tex = m_images.find(image_index);
+					if (tex != m_images.end()) {
+						mat->setTexture(basecolor_id, tex->second);
+					}
+				}
+			}
+			// fill normal maps (if any)
+			int normal_index = material.normalTexture.index;
+			if (normal_index > -1) {
+				const int image_index = m_model.textures[normal_index].source;
+				auto tex = m_images.find(image_index);
+				if (tex != m_images.end()) {
+					mat->setTexture(normal_id, tex->second);
+				}
+			}
 
 			addChild(mat);
 			m_materials.push_back(mat);
 		}
+
 
 		// if default scene is defined use it - else use first scene
 		int default_scene = m_model.defaultScene > -1 ? m_model.defaultScene : 0;
@@ -226,7 +170,7 @@ namespace rhea
 		);
 		std::vector<math::Matrix4> inverseBindMatrices;
 		if (skin.inverseBindMatrices != -1) {
-			
+
 			const tinygltf::Accessor& accessor = m_model.accessors[skin.inverseBindMatrices];
 			if (accessor.componentType != TINYGLTF_COMPONENT_TYPE_FLOAT || accessor.type != TINYGLTF_TYPE_MAT4) {
 				LOG(LOG_ERROR) << "Error: Inverse bind matrices are not in the expected format!";
@@ -235,8 +179,8 @@ namespace rhea
 			const tinygltf::BufferView& bufferView = m_model.bufferViews[accessor.bufferView];
 			const tinygltf::Buffer& buffer = m_model.buffers[bufferView.buffer];
 			const float* data = reinterpret_cast<const float*>(buffer.data.data() + bufferView.byteOffset + accessor.byteOffset);
-			size_t stride = (bufferView.byteStride > 0) ? bufferView.byteStride : sizeof(float) * 16;	
-						
+			size_t stride = (bufferView.byteStride > 0) ? bufferView.byteStride : sizeof(float) * 16;
+
 			size_t matrixCount = accessor.count;
 			inverseBindMatrices.resize(matrixCount);
 			for (int i = 0; i < matrixCount; ++i) {
@@ -260,7 +204,7 @@ namespace rhea
 
 			if (!node.matrix.empty()) {
 				// If the node has a matrix, use it directly (GLTF stores this in column-major order)
-				localTransform = math::Matrix4(node.matrix.data());				
+				localTransform = math::Matrix4(node.matrix.data());
 			}
 			else {
 				// Otherwise, construct the matrix from translation, rotation, and scale
@@ -279,11 +223,11 @@ namespace rhea
 					rotation.normalize();
 				}
 				if (node.scale.size() < 3)
-					scale = math::Vector3(1.0f,1.0f,1.0f);
+					scale = math::Vector3(1.0f, 1.0f, 1.0f);
 				else
 					scale = math::Vector3((float)node.scale[0], (float)node.scale[1], (float)node.scale[2]);
 
-				localTransform = math::Matrix4::compose(translation, rotation, scale); 				
+				localTransform = math::Matrix4::compose(translation, rotation, scale);
 			}
 			if (!handedness_transform)
 				bone.local_transform = localTransform;
@@ -301,9 +245,9 @@ namespace rhea
 					LOG(LOG_DEBUG) << "Translation: " << node.translation[0] << ", " << node.translation[1] << ", " << node.translation[2];
 				if (node.rotation.size() >= 4) {
 					LOG(LOG_DEBUG) << "Rotation: " << node.rotation[3] << ", " << node.rotation[0] << ", " << node.rotation[1] << ", " << node.rotation[2];
-					Quaternion rotation = Quaternion((float)node.rotation[3], (float)node.rotation[0], (float)node.rotation[2], (float)node.rotation[2]);					
+					Quaternion rotation = Quaternion((float)node.rotation[3], (float)node.rotation[0], (float)node.rotation[2], (float)node.rotation[2]);
 					rotation.normalize();
-					math::Matrix3 rotationMatrix = rotation.RotationMatrix();				
+					math::Matrix3 rotationMatrix = rotation.RotationMatrix();
 				}
 				if (node.scale.size() >= 3)
 					LOG(LOG_DEBUG) << "Scale: " << node.scale[0] << ", " << node.scale[1] << ", " << node.scale[2];
@@ -326,7 +270,7 @@ namespace rhea
 					skeleton->getBones()[parentBoneIndex].addChild(childBoneIndex);
 				}
 			}
-		}	
+		}
 	}
 
 	void GltfScene::CreateAnimations(rhea::Mesh* mesh)
@@ -432,13 +376,10 @@ namespace rhea
 		}
 	}
 
-	std::vector<Unit::ResourceReference> GltfScene::getReferences()
+	void GltfScene::initializeType(simpleparser::Type* type)
 	{
-		std::vector<ResourceReference> refs;
-		if (m_values.find("path") != m_values.end()) {
-			refs.push_back({ "path", "//meworla/gltf+json", m_values["path"] });
-		}
-		return refs;
+		registerResourceProperty(type, "path", &GltfScene::m_gltf_ref, "//meworla/gltf+json", ResourceUsage::Load);
+		registerResourceProperty(type, "shader", &GltfScene::m_shader_ref, "//meworla/shader", ResourceUsage::Load);
 	}
 
 	void GltfScene::Instantiate(Unit* owner)
@@ -450,7 +391,7 @@ namespace rhea
 		}
 	}
 
-	std::vector<unsigned long> GltfScene::ExtractIndices(const tinygltf::Accessor& accessor) 
+	std::vector<unsigned long> GltfScene::ExtractIndices(const tinygltf::Accessor& accessor)
 	{
 		std::vector<unsigned long> indices;
 
@@ -646,7 +587,7 @@ namespace rhea
 							else {
 								LOG(LOG_ERROR) << "Error: Unsupported jointAccessor->componentType: " << jointAccessor->componentType;
 							}
-							
+
 							// handle weights							
 
 							const tinygltf::BufferView& weightView = m_model.bufferViews[weightAccessor->bufferView];
@@ -654,7 +595,7 @@ namespace rhea
 							const float* weightData = reinterpret_cast<const float*>(&weightBuffer.data[weightView.byteOffset + weightAccessor->byteOffset]);
 
 							float total_weight = 0.0f;
-							for (int b = 0; b < 4; ++b) {								
+							for (int b = 0; b < 4; ++b) {
 								v.weights[b] = weightData[4 * j + b]; // Assuming weights correspond to joints
 								total_weight += v.weights[b];
 							}
@@ -705,7 +646,7 @@ namespace rhea
 					u_mesh->addSubmesh(mat, indices_uint32);
 				}
 			}
-		}	
+		}
 
 		// Handle child nodes.
 		for (size_t i = 0; i < node.children.size(); i++) {

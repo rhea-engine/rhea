@@ -13,6 +13,7 @@
 #include "Rhea/Core/Mesh.h"
 #include <Math/Vector3.h>
 #include <Math/Vector2.h>
+#include <Rhea/Resources/TextResource.h>
 
 namespace rhea
 {
@@ -22,12 +23,13 @@ namespace rhea
 	{
 		MECLASS(ObjLoader, Geometry)
 	public:	
-		ObjLoader(std::string path_name, std::string type_name) :
-			Geometry(path_name, type_name)
-		{}		
+		ObjLoader(std::string path_name, std::string type_name);
+		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
 		bool load(rhea::Mesh* mesh);
 
-		std::vector<Unit::ResourceReference> getReferences();
+		void resolveReferences(const std::string& context_root, const std::string& source_root);
+		static void initializeType(simpleparser::Type* type);
+		void prepare(PrepareHandler handler) override;
 	
 		struct Vertex {
 			math::Vector3 position;
@@ -39,7 +41,18 @@ namespace rhea
 			bool operator==(const Vertex& other) const {
 				return position.equals(other.position)/* && normal.equals(other.normal)*/ && uv.equals(other.uv)/* && color.equals(other.color) */;
 			}
-		};		
+		};
+	protected:
+		Ref<TextResource> m_obj_ref;
+		Ref<TextResource> m_mtl_ref;
+		Ref<Shader> m_shader_ref;
+
+	private:
+		struct ParsedData;
+		std::unique_ptr<ParsedData> m_parsed_data;
+
+		std::vector<std::string> m_resolved_diffuse_id;
+		std::vector<std::string> m_resolved_normal_id;
 	};
 }
 

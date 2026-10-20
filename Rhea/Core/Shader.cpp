@@ -122,49 +122,24 @@ namespace rhea
 			m_texture_slot_descs.push_back({ "BASECOLOR", "BaseColorTexture", 0 });
 		}
 		m_num_texture_slots = (int)m_texture_slot_descs.size();
-	}
-
-	std::vector<Unit::ResourceReference> rhea::Shader::getReferences()
-	{
-		std::vector<ResourceReference> refs = std::vector<Unit::ResourceReference>();
-
-		if (m_values.find("code_hlsl") != m_values.end()) {
-			refs.push_back({ "code_hlsl", "//meworla/text", m_values["code_hlsl"] });
-		}
-		if (m_values.find("code_glsl_vs") != m_values.end()) {
-			refs.push_back({ "code_glsl_vs", "//meworla/text", m_values["code_glsl_vs"] });
-		}
-		if (m_values.find("code_glsl_fs") != m_values.end()) {
-			refs.push_back({ "code_glsl_fs", "//meworla/text", m_values["code_glsl_fs"] });
-		}
-
-		if (m_values.find("code") != m_values.end()) {
-			refs.push_back({ "code", "//meworla/shader", m_values["code"] });
-		}
-		return refs;
-	}
+	}	
 
 	TextResource* rhea::Shader::getShaderCode(ShaderBackend backend, ShaderStage stage)
 	{
 		std::string key;
 
 		if (backend == ShaderBackend::D3D11) {
-			key = "code_hlsl";
+			return m_app->getUnitTree()->resolve(m_shader_code_hlsl);
 		}
 		else if (backend == ShaderBackend::OpenGL) {
-			key = (stage == ShaderStage::Vertex) ? "code_glsl_vs" : "code_glsl_fs";
+			if (stage == ShaderStage::Vertex) {
+				return m_app->getUnitTree()->resolve(m_shader_code_glsl_vs);
+			} else {
+				return m_app->getUnitTree()->resolve(m_shader_code_glsl_fs);
+			}
 		}
 
-		// fallback to legacy "code"
-		if (key.empty() || m_values.find(key) == m_values.end()) {
-			if (m_values.find("code") == m_values.end())
-				return nullptr;
-			key = "code";
-		}
-
-		return doCast<TextResource>(
-			m_app->getUnitTree()->find(m_values[key].toString(), m_attributes["basepath"], false)
-		);
+		return m_app->getUnitTree()->resolve(m_code);		
 	}
 
 	std::string rhea::Shader::getEntryPoint(ShaderBackend backend, ShaderStage stage) const
@@ -182,13 +157,18 @@ namespace rhea
 	{
 		std::string key;
 		if (backend == ShaderBackend::D3D11) {
-			key = "code_hlsl";
+			return !m_shader_code_hlsl.empty();
+		}
+		else if (backend == ShaderBackend::OpenGL) {
+			if (stage == ShaderStage::Vertex) {
+				return !m_shader_code_glsl_vs.empty();
+			} else {
+				return !m_shader_code_glsl_fs.empty();
+			}
 		}
 		else {
-			key = (stage == ShaderStage::Vertex) ? "code_glsl_vs" : "code_glsl_fs";
+			return !m_code.empty();
 		}
-
-		return m_values.find(key) != m_values.end();
 	}
 
 	int Shader::getVertexSize()
@@ -214,5 +194,13 @@ namespace rhea
 			int dummy = getVertexSize();
 		}
 		return m_vertex_elements;
+	}
+
+	void Shader::initializeType(simpleparser::Type* type)
+	{
+		registerResourceProperty(type, "code_hlsl", &Shader::m_shader_code_hlsl, "//meworla/text", ResourceUsage::Load);
+		registerResourceProperty(type, "code_glsl_vs", &Shader::m_shader_code_glsl_vs, "//meworla/text", ResourceUsage::Load);
+		registerResourceProperty(type, "code_glsl_fs", &Shader::m_shader_code_glsl_fs, "//meworla/text", ResourceUsage::Load);
+		registerResourceProperty(type, "code", &Shader::m_code, "//meworla/text", ResourceUsage::Load);
 	}
 }

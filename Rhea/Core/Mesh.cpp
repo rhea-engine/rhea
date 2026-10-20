@@ -104,7 +104,10 @@ namespace rhea
 		if (m_shader_ref.empty())
 			m_shader_ref.setId("//rhea/shaders/standard");
 		
-
+		if (!m_app) {
+			LOG(LOG_ERROR) << "Mesh: Application not set for mesh " << m_path << ". Did you call setup()?";
+			return nullptr;
+		}
 
 		Material* material = new Material(m_path + "_material");
 		addChild(material);
@@ -127,8 +130,15 @@ namespace rhea
 
 	void Mesh::ready()
 	{
-		if (m_state > 1)
+		if (!m_app) {
+			LOG(LOG_ERROR) << "Mesh: Application not set for mesh " << m_path << ". Did you call setup()?";
 			return;
+		}
+
+		if (m_state > 1) {
+			DLOG(LOG_DEBUG) << "Mesh : Already ready, skipping " << m_path;
+			return;
+		}
 		m_state = 1; // set to preparing
 
 		Unit::ready();
@@ -162,14 +172,20 @@ namespace rhea
 
 			bool material_copied = false;
 
-			auto ensure_own_material = [&]() {
+			auto ensure_own_material = [&]()->bool {
 				if (material_copied)
-					return;
+					return true;
 
-				material = material->Clone();
-				material->setName("material_override_" + std::to_string(i));
-				addChild(material);
+				auto* copy = material->Clone();
+				copy->setName("material_override_" + std::to_string(i));
+				if (!addChild(copy, true)) {
+					LOG(LOG_ERROR) << "Mesh "<< getPath() << ": Failed to add child material " << copy->getPath();
+					copy->destroy();
+					return false;
+				}
+				material = copy;
 				material_copied = true;
+				return true;
 				};
 
 			if (override_material)
@@ -182,7 +198,8 @@ namespace rhea
 			if (!m_diffuse_texture_refs.empty()) {
 				ImageResource* diffuse_tex = m_app->getUnitTree()->resolve(m_diffuse_texture_refs[i % m_diffuse_texture_refs.size()]);
 				if (diffuse_tex) {
-					ensure_own_material();
+					if (!ensure_own_material())
+						continue;
 					int diffuse_id = material->getShader()->getTextureSlotId("BASECOLOR");
 					material->setTexture(diffuse_id, diffuse_tex);
 				}
@@ -194,13 +211,15 @@ namespace rhea
 			}
 			else if (tex) {
 				int basecolor_id = material->getShader()->getTextureSlotId("BASECOLOR");
-				ensure_own_material();
+				if (!ensure_own_material())
+					continue;
 				material->setTexture(basecolor_id, tex);
 			}
 			if (!m_normal_texture_refs.empty()) {
 				ImageResource* normal_tex = m_app->getUnitTree()->resolve(m_normal_texture_refs[i % m_normal_texture_refs.size()]);
 				if (normal_tex) {
-					ensure_own_material();
+					if (!ensure_own_material())
+						continue;
 					int normal_id = material->getShader()->getTextureSlotId("NORMAL");
 					material->setTexture(normal_id, normal_tex);
 				}
@@ -213,6 +232,8 @@ namespace rhea
 
 			m_submeshes[i].material = material;
 		}
+
+		m_state = 2; // set to ready
 	}
 
 	void Mesh::setMaterial(Material* material)

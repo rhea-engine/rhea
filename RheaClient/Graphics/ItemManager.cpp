@@ -112,7 +112,6 @@ namespace rhea::client {
 			}
 			
 			mc->setMesh(mesh);
-			mesh->ready();
 		}
 
 		// create GPU mesh

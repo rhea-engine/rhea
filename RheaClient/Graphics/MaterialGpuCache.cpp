@@ -7,30 +7,40 @@
 
 #include <RheaClient/Graphics/MaterialGpuCache.h>
 #include <Rhea/Resources/ImageResource.h>
+#include <Rhea/Core/Shader.h>
+#include <Psio/Log.h>
 
 namespace rhea::client {
 	poseidon::Material* MaterialGpuCache::getOrCreate(poseidon::Core* core, rhea::Material* material, const Builder& builder)
 	{
         auto key = material->getPath();
-        std::string desiredShader = material->getValueString("shader");
+#ifdef _DEBUG
+        if (key.substr(0,2) != "//")
+			DLOG(LOG_DEBUG) << "MaterialGpuCache::getOrCreate: material path '" << key << "' does not start with '//', this may cause cache misses";
+#endif
+        std::string desiredShader;
+		Shader* shader = material->getShader();
+        if (shader)
+			desiredShader = shader->getPathName();
+        else
+            desiredShader = material->getValueString("shader");
         auto desiredTexKeys = collectTexKeys(material);
 
-        auto it = m_entries.find(key);
-        bool fresh = false;
+        auto [it, inserted] = m_entries.try_emplace(key);
+        auto& entry = it->second;
 
-        if (it == m_entries.end() || it->second.textureKeys != desiredTexKeys || it->second.shaderName != desiredShader) {
-            Entry e;
-            e.mat.reset(core->createMaterial());
-            std::string mat_name = material->getPathName();
-            core->registerMaterial(mat_name, e.mat.get());   // is this needed?
-            e.shaderName = desiredShader;
-            e.textureKeys = desiredTexKeys;
-            it = m_entries.insert_or_assign(key, std::move(e)).first;
-            fresh = true;
-        }
+        if (inserted)
+            entry.mat.reset(core->createMaterial());
 
-        if (!builder(core, material, it->second.mat.get(), fresh)) return nullptr;
-        return it->second.mat.get(); 
+        const bool changed = inserted || entry.textureKeys != desiredTexKeys || entry.shaderName != desiredShader;
+
+        if (!builder(core, material, entry.mat.get(), changed))
+            return nullptr;
+
+        entry.textureKeys = std::move(desiredTexKeys);
+        entry.shaderName = desiredShader;
+
+        return entry.mat.get();
 	}
 
     std::vector<std::string> MaterialGpuCache::collectTexKeys(rhea::Material* material)

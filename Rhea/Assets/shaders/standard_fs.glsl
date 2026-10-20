@@ -76,7 +76,7 @@ struct LightingResult
 LightingResult DoDirectionalLight(Light light, vec3 View, vec4 P, vec3 N)
 {
     LightingResult result;
-    vec3 L = -light.DirectionType.xyz;
+    vec3 L = normalize(-light.DirectionType.xyz);
     result.Diffuse = DoDiffuse(light, L, N);
     result.Specular = DoSpecularPhong(light, View, L, N);
     return result;
@@ -185,11 +185,10 @@ void main()
     LightingResult lit = ComputeLighting(v_positionWS, finalNormal);
 
     vec3 finalColor =
-        (mat_emissive.rgb
-        + mat_ambient.rgb * ambient.rgb
-        + mat_diffuse.rgb * lit.Diffuse.rgb
-        + mat_specular.rgb * lit.Specular.rgb)
-        * diffuseSample.rgb;
+        mat_emissive.rgb
+        + mat_ambient.rgb * ambient.rgb * diffuseSample.rgb
+        + mat_diffuse.rgb * lit.Diffuse.rgb * diffuseSample.rgb
+        + mat_specular.rgb * lit.Specular.rgb;
 
     FragColor = vec4(finalColor, diffuseSample.a);
 }

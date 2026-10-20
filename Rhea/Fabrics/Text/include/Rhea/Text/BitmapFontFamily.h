@@ -26,6 +26,7 @@ namespace rhea
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values) override;
 		std::vector<Unit::ResourceReference> getReferences() override;		
 		void resolveReferences(const std::string& context_root, const std::string& source_root) override;
+		void instanceSetup(Component* source, Component* target, InstantiationContext& context) override;
 		void ready() override;
 		Font* resolve(float requested_size) override;
 

@@ -95,6 +95,17 @@ namespace rhea
 
 		return references;
 	}
+
+	void Mesh::instanceSetup(Component* source, Component* target, InstantiationContext& context)
+	{
+		Unit::instanceSetup(source, target, context);
+
+		const auto* source_mesh = doCast<Mesh>(source);
+		auto* target_mesh = doCast<Mesh>(target);
+
+		target_mesh->m_diffuse_texture_refs = source_mesh->m_diffuse_texture_refs;
+		target_mesh->m_normal_texture_refs = source_mesh->m_normal_texture_refs;
+	}
 	
 	Material* Mesh::getDefaultMaterial()
 	{

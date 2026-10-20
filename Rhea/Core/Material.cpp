@@ -91,6 +91,16 @@ namespace rhea
 		return result;
 	}
 
+	void Material::instanceSetup(Component* source, Component* target, InstantiationContext& context)
+	{
+		Unit::instanceSetup(source, target, context);
+
+		const auto* source_material = doCast<Material>(source);
+		auto* target_material = doCast<Material>(target);
+
+		target_material->m_texture_refs = source_material->m_texture_refs;
+	}
+
 	void Material::ready()
 	{
 		Unit::ready();

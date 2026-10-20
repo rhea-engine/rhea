@@ -52,6 +52,16 @@ namespace rhea
 			normalizeReference(font.second, context);
 	}
 
+	void BitmapFontFamily::instanceSetup(Component* source, Component* target, InstantiationContext& context)
+	{
+		FontFamily::instanceSetup(source, target, context);
+
+		const auto* source_font_family = doCast<BitmapFontFamily>(source);
+		auto* target_font_family = doCast<BitmapFontFamily>(target);
+
+		target_font_family->m_font_refs = source_font_family->m_font_refs;
+	}
+
 	void BitmapFontFamily::ready()
 	{
 		Unit::ready();

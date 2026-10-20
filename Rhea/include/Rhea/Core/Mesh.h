@@ -77,6 +77,7 @@ namespace rhea
 		
 		void resolveReferences(const std::string& context_root, const std::string& source_root) override;
 		std::vector<ResourceReference> getReferences() override;
+		void instanceSetup(Component* source, Component* target, InstantiationContext& context) override;
 
 		// ready handler
 		void ready();

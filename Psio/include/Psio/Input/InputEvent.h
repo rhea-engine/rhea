@@ -171,6 +171,7 @@ namespace psio
 		void updateHash(int raw) override;
 
 		void setPos(int x, int y);
+		// Wheel deltas use 120 units per notch on every platform.
 		void setDelta(int wheelY, int wheelX);
 
 		int getX() const { return m_x; }

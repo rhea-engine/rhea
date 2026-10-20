@@ -134,11 +134,26 @@ namespace hippios
 	void GLRenderTarget::setActive()
 	{
 		glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
+		static_cast<GLRenderer*>(m_renderer)->setRenderTargetHeight(m_height);
 	}
 
 	void GLRenderTarget::clearPass()
 	{
 		glBindFramebuffer(GL_FRAMEBUFFER, m_framebuffer);
+
+		// Clear the entire target independently of the previous GUI draw state.
+		const GLboolean scissor_enabled = glIsEnabled(GL_SCISSOR_TEST);
+		GLboolean depth_mask;
+		GLboolean color_mask[4];
+		GLint stencil_front_mask;
+		GLint stencil_back_mask;
+		glGetBooleanv(GL_DEPTH_WRITEMASK, &depth_mask);
+		glGetBooleanv(GL_COLOR_WRITEMASK, color_mask);
+		glGetIntegerv(GL_STENCIL_WRITEMASK, &stencil_front_mask);
+		glGetIntegerv(GL_STENCIL_BACK_WRITEMASK, &stencil_back_mask);
+		glDisable(GL_SCISSOR_TEST);
+		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+		glStencilMask(~GLuint(0));
 
 		// Ensure depth writes are enabled — glClear respects glDepthMask.
 		// Without this, if the previous frame's last PSO had depth writes
@@ -148,6 +163,13 @@ namespace hippios
 
 		glClearColor(0.0f, 0.0f, 0.5f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+		// Preserve state expected by the pipeline-state cache.
+		glDepthMask(depth_mask);
+		glColorMask(color_mask[0], color_mask[1], color_mask[2], color_mask[3]);
+		glStencilMaskSeparate(GL_FRONT, static_cast<GLuint>(stencil_front_mask));
+		glStencilMaskSeparate(GL_BACK, static_cast<GLuint>(stencil_back_mask));
+		if (scissor_enabled)
+		    glEnable(GL_SCISSOR_TEST);
 	}
 
 	void GLRenderTarget::setViewport(ViewportDesc* desc)

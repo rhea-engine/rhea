@@ -13,6 +13,7 @@
 #include <Psio/Window/Window.h>
 
 #include <SDL3/SDL.h>
+#include <cmath>
 #include <memory>
 #include "../../../Input/InputEventBuilder.h"
 
@@ -106,10 +107,12 @@ namespace psio
             case SDL_EVENT_MOUSE_WHEEL:
             {
                 SDL_Keymod mods = SDL_GetModState();
+                // MouseWheelEvent uses 120 units per notch, matching Win32.
+                constexpr float wheel_units_per_notch = 120.0f;
                 addEvent(BuildMouseWheelEvent(
                     InputEventId::MOUSE_WHEEL,
-                    static_cast<int>(evt.wheel.y),  // wheelY (positive = up, negative = down)
-                    static_cast<int>(evt.wheel.x),  // wheelX (positive = right, negative left)
+                    static_cast<int>(std::lround(evt.wheel.y * wheel_units_per_notch)),
+                    static_cast<int>(std::lround(evt.wheel.x * wheel_units_per_notch)),
                     evt.wheel.mouse_x,               // mouse position X
                     evt.wheel.mouse_y,               // moouse position Y
                     (mods & SDL_KMOD_SHIFT) != 0,

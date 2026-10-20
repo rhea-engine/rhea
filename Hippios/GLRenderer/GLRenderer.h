@@ -52,6 +52,7 @@ namespace hippios
 		void setStencilState(StencilState* state, int stencil_ref) override;
 		
 		void setScissor(int x, int y, int width, int height) override;
+		void setRenderTargetHeight(int height) { m_render_target_height = height; }
 
 		SamplerState* createSampler(const SamplerDesc& desc) override;
 		void setSampler(int slot, SamplerState* sampler, ShaderStage stage) override;
@@ -83,6 +84,7 @@ namespace hippios
 
 	private:
 		WindowBackend m_backend = WindowBackend::Unknown;
+		int m_render_target_height = 0;
 
 		std::unique_ptr<GlContext> m_context;
 

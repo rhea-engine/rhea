@@ -525,7 +525,8 @@ namespace hippios
 		if (width > 0 && height > 0)
 		{
 			glEnable(GL_SCISSOR_TEST);
-			glScissor(x, y, width, height);
+			// GUI clipping uses a top-left origin; OpenGL scissor uses bottom-left.
+			glScissor(x, m_render_target_height - y - height, width, height);
 		}
 		else
 		{

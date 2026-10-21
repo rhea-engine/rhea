@@ -95,9 +95,14 @@ namespace rhea
 			}
             return offset;
 		}
+
+        void setGap(float gap) { m_gap = gap; }
+        float getGap() const { return m_gap; }
+
     protected:
 		JustifyContent m_justify_content;
 		Alignment::AlignItems m_align_items;
+        float m_gap = 0.0f;
     };
 }
 #endif // !RHEA_GUI_LAYOUTALIGNMENT_H

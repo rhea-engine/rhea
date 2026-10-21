@@ -35,7 +35,7 @@ namespace rhea {
 			case AlignItems::START:
 				break;
 			case AlignItems::END:
-				position.x = padding.x;
+				position.x += padding.x;
 				break;
 			case AlignItems::CENTER:
 				position.x += (padding.x / 2);
@@ -45,7 +45,7 @@ namespace rhea {
 			case AlignItems::START:
 				break;
 			case AlignItems::END:
-				position.y = padding.y;
+				position.y += padding.y;
 				break;
 			case AlignItems::CENTER:
 				position.y += (padding.y / 2);

@@ -224,6 +224,26 @@ namespace rhea
 		return nullptr;
 	}
 
+	Component* Unit::findByName(const std::string& name)
+	{
+		// myself?
+		if (getPathName() == name)
+			return this;
+		for (auto it = m_children.begin(); it != m_children.end(); ++it) {
+			Component* c = it->second;
+			if (c->getPathName() == name)
+				return c;
+			Unit* u = doCast<Unit>(c);
+			if (u) {
+				Component* ret = u->findByName(name);
+				if (ret)
+					return ret;
+			}
+		}
+		// not found
+		return nullptr;
+	}
+
 	std::vector<Component*> Unit::getAllComponents() const
 	{
 		std::vector<Component*> components;

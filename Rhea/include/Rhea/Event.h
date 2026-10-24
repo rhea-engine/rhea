@@ -35,7 +35,7 @@ namespace rhea
 		void setTarget(Unit* target) { m_target = target; }
 
 		void stopPropagation() { m_is_stopped = true; }
-		bool isPropagationStoppped() { return m_is_stopped; }
+		bool isPropagationStopped() { return m_is_stopped; }
 
 	protected:
 		std::string m_name;

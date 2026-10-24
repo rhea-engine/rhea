@@ -406,14 +406,14 @@ namespace rhea
 					// TODO: make the event list configurable
 					EventInput e("input", evt, actions);
 					m_unit_tree->sendEvent("input", &e);
-					if (!e.isPropagationStoppped())
+					if (!e.isPropagationStopped())
 						m_unit_tree->sendEvent("gui_input", &e);
-					if (!e.isPropagationStoppped())
+					if (!e.isPropagationStopped())
 						m_unit_tree->sendEvent("unhandled_input", &e);
-					if (!e.isPropagationStoppped())
+					if (!e.isPropagationStopped())
 						m_unit_tree->sendEvent("scene_input", &e);
 
-					if (!e.isPropagationStoppped())
+					if (!e.isPropagationStopped())
 						ret = onInput(&e, nullptr);
 				}
 			}

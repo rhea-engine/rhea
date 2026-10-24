@@ -30,7 +30,7 @@ void rhea::ColumnWidget::onSetPosition()
 		}
 	}
 
-	AxisLayout layout = m_alignment->justify(m_size.y, m_children_size, widgets.size());
+	AxisLayout layout = m_alignment->justify(m_content_size.y, m_children_size, widgets.size());
 
 	cur_position.y += layout.offset;
 
@@ -47,8 +47,7 @@ void rhea::ColumnWidget::onSetPosition()
 		// apply alignment
 		Vector2 child_position = cur_position;
 
-		if (m_child_alignment)
-			m_child_alignment->apply(slot_size, child_outer_size, child_position);
+		child_position.x += m_alignment->align(m_content_size.x, child_outer_size.x);
 		w->setPosition(child_position);
 
 		// advance to next slot

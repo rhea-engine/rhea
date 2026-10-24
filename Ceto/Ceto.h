@@ -19,6 +19,8 @@
 
 using std::string;
 
+class OpenBrowser;
+
 class Ceto : public rhea::Application
 {
 public:
@@ -37,6 +39,7 @@ public:
 	void setHomeScene(string scene);
 	bool onFrameEnd();
 	void onScene(rhea::Scene* scene) override;
+	void hideOpenBrowserDialog();
 
 protected:
 	string m_home_scene;
@@ -51,7 +54,6 @@ protected:
 	bool onRealmSelect(rhea::Event* ev, rhea::Unit* unit);
 	bool onRealmSearch(rhea::Event* ev, rhea::Unit* unit);
 	void showAlert(std::string text);
-	void setRealmSelectDialog();
 	void openScene(std::string scene_name);
 	
 	// shortcut helpers
@@ -68,6 +70,7 @@ protected:
 	rhea::Scene* m_current_scene = nullptr;
 	// cache of gui controller
 	rhea::GUIController* m_gui_controller;
+	OpenBrowser* m_realm_dialog = nullptr;
 
 	float m_current_time;
 

@@ -1,5 +1,5 @@
 # Define the main app
-add_executable (Ceto "Ceto.h" "Ceto.cpp" "UserPrefs.h" "UserPrefs.cpp")
+add_executable (Ceto "Ceto.h" "Ceto.cpp" "UserPrefs.h" "UserPrefs.cpp" "Gui/OpenBrowser.h" "Gui/OpenBrowser.cpp")
 
 # add the renderer engine
 target_link_libraries(Ceto Rhea::Core Rhea::Client RheaFabrics nlohmann_json::nlohmann_json)

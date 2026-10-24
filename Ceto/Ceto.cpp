@@ -45,6 +45,8 @@
 #include <Rhea/Controller/ControllerService.h>
 #include <Rhea/Core/SceneResource.h>
 
+#include "Gui/OpenBrowser.h"
+
 bool Ceto::onQuit(rhea::Event* ev, rhea::Unit* unit)
 {
 	ev->stopPropagation();
@@ -163,20 +165,10 @@ bool Ceto::onRealmSearch(rhea::Event* ev, rhea::Unit* unit)
 	return false;
 }
 
-void Ceto::setRealmSelectDialog()
-{
-	// show dialog
-	rhea::Widget* w = doCast<rhea::Widget>(m_unit_tree->find("//ceto/cetogui/gui/realms"));
-	if (w) {
-		m_gui_controller->openDialog((rhea::Dialog*)w);
-	}
-}
-
 void Ceto::openScene(std::string scene_name)
 {
-	rhea::Widget* w = doCast<rhea::Widget>(m_unit_tree->find("//ceto/cetogui/gui/realms"));
-	if (w) {
-		m_gui_controller->closeDialog((rhea::Dialog*)w);
+	if (m_realm_dialog) {
+		m_gui_controller->closeDialog(m_realm_dialog);
 	}
 	m_home_scene = scene_name;
 
@@ -188,6 +180,8 @@ void Ceto::setup()
 {
 	addDefaultWindow();
 	m_windows[0].views[0].layers.push_back({"HUD",0,0,m_windows[0].width, m_windows[0].height});
+
+	OpenBrowser::_register_OpenBrowser();
 
 	// register contoller service
 	if (!getService("controller")) {
@@ -289,9 +283,8 @@ void Ceto::setScene(bool mark_preferences)
 		{
 			if (error.isError()) {
 				log("Ceto: Could not open scene");
-				rhea::Widget* w = doCast<rhea::Widget>(m_unit_tree->find("//ceto/cetogui/gui/realms"));
-				if (w) {
-					m_gui_controller->closeDialog((rhea::Dialog*)w);
+				if (m_realm_dialog) {
+					m_gui_controller->closeDialog(m_realm_dialog);
 				}
 				showAlert("Could not open world");
 				return;
@@ -339,6 +332,8 @@ void Ceto::loadMainGUI()
 				rhea::Scene* gui = doCast<rhea::Scene>(res);
 				if (gui && !r_err.isError()) {
 
+					// show the gui
+
 					gui->show();
 					m_gui = gui;
 					m_gui_controller = doCast<rhea::GUIController>(gui->find("gui"));
@@ -360,12 +355,44 @@ void Ceto::loadMainGUI()
 					}
 					gui->registerEventHandler("quit", this, std::bind(&Ceto::onQuit, this, std::placeholders::_1, std::placeholders::_2));
 
-					// realm selection
-					setRealmSelectDialog();
+					// realm selection dialog (open browser)
 
-					// register open
-					gui->registerEventHandler("open", this, std::bind(&Ceto::onRealmSelect, this, std::placeholders::_1, std::placeholders::_2));
-					gui->registerEventHandler("search", this, std::bind(&Ceto::onRealmSearch, this, std::placeholders::_1, std::placeholders::_2));
+					auto* open_browser_res = doCast<rhea::SceneResource>(m_unit_tree->find("//ceto/openbrowser.scene"));
+					if (open_browser_res && m_gui_controller) {
+						open_browser_res->spawn(m_gui_controller, "openbrowser", [this](rhea::ErrorReport error, rhea::Unit* instance) {
+							m_realm_dialog = doCast<OpenBrowser>(instance);
+							if (error.isError() || !m_realm_dialog) {
+								log("Could not create open browser");
+								return;
+							}
+							m_realm_dialog->setOpenHandler([this](const std::string& address) {
+								openScene(address);
+								});
+							m_realm_dialog->setRecentWorlds(m_userprefs.lastUsed());
+							std::vector<OpenBrowser::BrowserPlace> places;
+							places = {
+								{ "Most Recent", "//recent/", OpenBrowser::BrowserPlaceKind::Internal },
+								{ "User",        "//user/",   OpenBrowser::BrowserPlaceKind::Location },
+								{ "Local",       "//local/",  OpenBrowser::BrowserPlaceKind::Location },
+							};
+							std::unordered_map<std::string, bool> realms;
+							realms["recent"] = true;
+							realms["user"] = true;
+							realms["local"] = true;
+							for (auto it = m_userprefs.lastUsed().begin(); it != m_userprefs.lastUsed().end(); it++) {
+								std::string realm_name = m_realm_dialog->getRealmName(*it);
+								if (realms.find(realm_name) == realms.end()) {
+									realms[realm_name] = true;
+									places.push_back({ realm_name, "//" + realm_name + "/", OpenBrowser::BrowserPlaceKind::Location});
+								}
+							}
+							m_realm_dialog->setPlaces(places);
+							m_realm_dialog->navigateTo("//recent/");
+
+							// open the open browser
+							m_gui_controller->openDialog(m_realm_dialog);
+							});
+					}
 				}
 				else {
 					log("instantiating of gui failed");
@@ -427,6 +454,13 @@ void Ceto::onScene(rhea::Scene* scene)
 	m_current_scene = scene;
 }
 
+void Ceto::hideOpenBrowserDialog()
+{
+	if (m_realm_dialog) {
+		m_gui_controller->closeDialog(m_realm_dialog);
+	}
+}
+
 int main(int argc, char* argv[])
 {
 	Ceto* app = new Ceto();
@@ -469,10 +503,7 @@ int main(int argc, char* argv[])
 	app->loadMainGUI();
 		
 	if (scene_set) {
-		rhea::Widget* w = doCast<rhea::Widget>(app->getUnitTree()->find("//ceto/cetogui/gui/realms"));
-		if (w) {
-			w->hide();
-		}
+		app->hideOpenBrowserDialog();
 		app->setScene();
 	}
 

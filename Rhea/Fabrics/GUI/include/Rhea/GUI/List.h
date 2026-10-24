@@ -44,7 +44,9 @@ namespace rhea
 		// list item selected
 		bool onSelected(Event* ev, Unit* unit);
 		// handle action event
-		bool onClicked(Event* ev, Unit* unit);
+		bool onActivated(Event* ev, Unit* unit);
+		// handle click event
+		bool onMouseClicked(Event* ev, Unit* unit);
 		
 		// move the current position
 		void onSetPosition();
@@ -64,6 +66,7 @@ namespace rhea
 
 	protected:
 		void moveActive(int direction);
+		void selectItem(ListWidgetItem* item);
 		UnitTree::Binding m_data_binding;
 		std::vector<ListWidgetItem*> m_list_items; // list item
 		ListWidgetItem* m_selected_item; // currently selected item

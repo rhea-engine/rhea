@@ -55,25 +55,19 @@ namespace rhea
 	bool ListWidgetItem::onMouseClicked(Event* ev, Unit* unit)
 	{
 		// consume the mouse event
-		ev->stopPropagation();
+		ev->stopPropagation();		
 		// send clicked event
 		Event my_ev = Event("clicked", this);
 		bubbleEvent("clicked", &my_ev);
 		return false;
 	}
 
-	bool ListWidgetItem::onKeyPressed(Event* ev, Unit* unit)
+	bool ListWidgetItem::onMouseDoubleClicked(Event* ev, Unit* unit)
 	{
-		EventInput* inputEv = dynamic_cast<EventInput*>(ev);
-		if (!inputEv)
-			return false;
-		InputEvent e = inputEv->getEvent();
+		ev->stopPropagation();
 
-		if (e.key == Key::Enter || e.key == Key::Space) {
-			onMouseReleased(ev, unit);
-			return true;
-		}
-
-		return false;
+		Event activated_event("activated", this);
+		bubbleEvent("activated", &activated_event);
+		return true;
 	}
 }

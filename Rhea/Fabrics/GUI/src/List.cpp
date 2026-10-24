@@ -35,16 +35,6 @@ namespace rhea
 		m_list_items.push_back(item);
 		item->ready();
 
-		if (!m_selected_item)
-			if (m_selected_value.empty()) {
-				m_selected_item = item;				
-				m_selected_value = value;
-			}
-			else if (m_selected_value.compare(value) == 0) {
-				m_selected_item = item;
-				m_selected_value = value;	
-			}
-
 		invalidateLayout();
 	}
 
@@ -62,6 +52,7 @@ namespace rhea
 		// clear cache
 		m_list_items.clear();
 		m_selected_item = nullptr;
+		m_selected_value.clear();
 
 		for (ListWidgetItem* w : to_del) {
 			removeChild(w);
@@ -86,7 +77,8 @@ namespace rhea
 		}
 
 		registerEventHandler("selected", this, std::bind(&ListWidget::onSelected, this, std::placeholders::_1, std::placeholders::_2));
-		registerEventHandler("clicked", this, std::bind(&ListWidget::onClicked, this, std::placeholders::_1, std::placeholders::_2));
+		registerEventHandler("activated", this, std::bind(&ListWidget::onActivated, this, std::placeholders::_1, std::placeholders::_2));
+		registerEventHandler("clicked", this, std::bind(&ListWidget::onMouseClicked, this, std::placeholders::_1, std::placeholders::_2));
 	}
 
 	void ListWidget::onFrame(float delta)
@@ -107,6 +99,9 @@ namespace rhea
 		if (items != Variant()) {
 			// changed?
 			bool changed = false;
+			// store current selection by value			
+			if (m_selected_item)
+				m_selected_value = (std::string)m_selected_item->getValue("value");
 
 			if (m_list_items.size()) {
 				if (m_list_items.size() == items.length()) {
@@ -118,66 +113,94 @@ namespace rhea
 				else
 					changed = true;
 				if (changed) {
-
-					// iterate over children and delete all listwidgetitems
-					std::vector<ListWidgetItem*> to_del;
-					for (auto it = m_children.begin(); it != m_children.end(); ++it) {
-						ListWidgetItem* w = doCast<ListWidgetItem>(it->second);
-						if (w) {
-							to_del.push_back(w);
-						}
-					}
-					for (ListWidgetItem* w : to_del) {
-						removeChild(w);
-						delete w;
-					}
-					// clear list
-					m_list_items.clear();					
+					clear();									
 				}
 			}
 			else
 				changed = true;
 			if (changed) {
+				m_selected_item = nullptr;
 				for (int i = 0; i < items.length(); i++) {
 					Variant item = items[i];
 					addItem(item.toString(), item.toString());
+				}
+				if (!m_selected_value.empty()) {
+					// restore selection by value
+					for (ListWidgetItem* item : m_list_items) {
+						if (item->getValueString("value") == m_selected_value) {
+							selectItem(item);
+							break;
+						}
+					}
 				}
 			}
 		}
 	}
 
+	void ListWidget::selectItem(ListWidgetItem* item)
+	{
+		if (item == m_selected_item)
+			return;
+
+		if (m_selected_item) {
+			m_selected_item->setWidgetState(Widget::WidgetState::kFocus, false);
+		}
+		m_selected_item = item;
+		m_selected_value = item ? item->getValueString("value") : "";
+
+		if (item)
+			item->setWidgetState(WidgetState::kFocus, true);
+		invalidateLayout();
+
+
+		Event change_ev = Event("selection_changed", m_selected_item);
+		sendEvent("selection_changed", &change_ev);
+
+		if (!change_ev.isPropagationStopped() && m_values.find("onSelected") != m_values.end()) {
+			sendBoundEvent(m_values["onSelected"].toString(), &change_ev);
+		}
+	}
+
 	bool ListWidget::onSelected(Event* ev, Unit* unit)
 	{
-		if (m_values.find("onSelected") != m_values.end()) {
-			sendBoundEvent(m_values["onSelected"].toString(), ev);
-		}
+		ev->stopPropagation();		
 
 		// selected item in list is the event target
 		ListWidgetItem* item = doCast<ListWidgetItem>(ev->getTarget());
-		if (item && m_selected_item != item) {
-			if (m_selected_item) {
-				m_selected_item->setWidgetState(Widget::WidgetState::kFocus, false);
-			}
-			if (item) {
-				item->setWidgetState(Widget::WidgetState::kFocus, true);				
-			}
-			m_selected_item = item;
-			m_selected_value = item->getValueString("value");
-			invalidateLayout();
-		}
-
+		selectItem(item);
 		return false;
 	}
 
-	bool ListWidget::onClicked(Event* ev, Unit* unit)
+	bool ListWidget::onActivated(Event* ev, Unit* unit)
 	{
-		if (m_values.find("onClicked") != m_values.end()) {
-			sendBoundEvent(m_values["onClicked"].toString(), ev);
+		ev->stopPropagation();
+
+		Event my_ev = Event("item_activated", ev->getTarget());
+		sendEvent("item_activated", &my_ev);
+
+		if (!my_ev.isPropagationStopped() && m_values.find("onActivated") != m_values.end()) {
+			sendBoundEvent(m_values["onActivated"].toString(), &my_ev);
 		}
 
-		if (m_values.find("action") != m_values.end()) {
-			sendEvent(m_values["action"].toString(), ev);
+		if (!my_ev.isPropagationStopped() && m_values.find("action") != m_values.end()) {
+			sendEvent(m_values["action"].toString(), &my_ev);
 		}
+		return false;
+	}
+
+	bool ListWidget::onMouseClicked(Event* ev, Unit* unit)
+	{
+		ev->stopPropagation();
+
+		ListWidgetItem* item = doCast<ListWidgetItem>(ev->getTarget());
+
+		Event click_ev = Event("item_clicked", item);
+		sendEvent("item_clicked", &click_ev);
+
+		if (!click_ev.isPropagationStopped() && m_values.find("onClicked") != m_values.end()) {
+			sendBoundEvent(m_values["onClicked"].toString(), &click_ev);
+		}
+
 		return false;
 	}
 
@@ -216,13 +239,7 @@ namespace rhea
 	bool ListWidget::onFocusGained(Event* ev, Unit* unit)
 	{
 		Widget::onFocusGained(ev, unit);
-		if (!m_selected_item && m_list_items.size()) {
-			m_selected_item = m_list_items[0];
-			m_selected_value = m_selected_item->getValueString("value");
-			m_selected_item->setWidgetState(Widget::WidgetState::kFocus, true);
-			invalidateLayout();
-		}
-		else if (m_selected_item) {
+		if (m_selected_item) {
 			m_selected_item->setWidgetState(Widget::WidgetState::kFocus, true);
 			invalidateLayout();
 		}
@@ -251,24 +268,25 @@ namespace rhea
 
 		switch (e.key) {
 		case Key::Up:
-			moveActive(-1);
-			ev->stopPropagation();
+		
+			ev->stopPropagation();			
+			moveActive(-1);			
 			return true;
-
+		
 		case Key::Down:
-			moveActive(1);
-			ev->stopPropagation();
+		
+			ev->stopPropagation();		
+			moveActive(1);			
 			return true;
-
+		
 		case Key::Enter:
 		case Key::Space:
 		{
+			ev->stopPropagation();
 			if (m_selected_item) {
-				// send clicked event
-				Event my_ev = Event("clicked", m_selected_item);
-				onClicked(&my_ev, m_selected_item);
-				ev->stopPropagation();
-				return true;
+				// send activated event
+				Event my_ev = Event("activated", m_selected_item);
+				onActivated(&my_ev, m_selected_item);
 			}
 			return true;
 		}
@@ -281,12 +299,13 @@ namespace rhea
 	{
 		if (m_list_items.empty())
 			return;
-
-		auto it = std::find(m_list_items.begin(), m_list_items.end(), m_selected_item);
 		
-		int current_index = 0;
-		if (it != m_list_items.end()) {
-			current_index = static_cast<int>(std::distance(m_list_items.begin(), it));
+		int current_index = -1;
+		if (m_selected_item) {
+			auto it = std::find(m_list_items.begin(), m_list_items.end(), m_selected_item);
+			if (it != m_list_items.end()) {
+				current_index = static_cast<int>(std::distance(m_list_items.begin(), it));
+			}
 		}
 		
 		int new_index = current_index + direction;
@@ -299,21 +318,6 @@ namespace rhea
 			new_index = static_cast<int>(m_list_items.size()) - 1;  // Stay at the last element
 		}
 		
-		// No change needed if we're at the end
-		if (new_index == current_index)
-			return;
-		
-		ListWidgetItem* old_selected = m_selected_item;
-		m_selected_item = m_list_items[new_index];
-		m_selected_value = m_selected_item->getValueString("value");
-		
-		if (old_selected) {
-			old_selected->setWidgetState(Widget::WidgetState::kFocus, false);
-		}
-		
-		if (m_selected_item) {
-			m_selected_item->setWidgetState(Widget::WidgetState::kFocus, true);
-			invalidateLayout();
-		}
+		selectItem(m_list_items[new_index]);	
 	}
 }

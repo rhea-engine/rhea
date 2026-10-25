@@ -35,6 +35,23 @@ namespace orion
 		// call UrlRequest
 		m_request->OnResponse([handler](psio::UrlResponse* res) {
 			// got a response
+		
+			// check for http error
+			int code = res->GetResponseCode();
+			if (code < 200 || code >= 300) {
+				if (handler) {
+					if (code == 404) {
+						handler(nullptr, Error(Error::RESOURCE_NOT_FOUND));
+					} else if (code == 403) {
+						handler(nullptr, Error(Error::NO_ACCESS));
+					} else if (code == 401) {
+						handler(nullptr, Error(Error::NO_AUTH));
+					} else {
+						handler(nullptr, Error(Error::DATA_INVALID));
+					}
+				}
+				return;
+			}
 			// try reading the body in IOBuffer buf
 			psio::IOBuffer* buf = new psio::IOBuffer(64 * 1024);
 			res->onEnd([buf, handler](size_t bytes_read) {
@@ -45,21 +62,21 @@ namespace orion
 				try {
 					nlohmann::json j = nlohmann::json::parse(response);
 					Realm* realm = new Realm(j.get<Realm>());
-					handler(realm, 0);
+					handler(realm, Error::OK);
 				}
 				catch (const nlohmann::json::exception& e) {
-					handler(nullptr, -1);
+					handler(nullptr, Error::DATA_INVALID);
 				}
 				});
 			res->onError([buf, handler](int err) {
 				// failed with an error
 				delete buf;
-				handler(nullptr, err);
+				handler(nullptr, translateTransportError(err));
 				});
 			res->ReadAsync(buf);
 			});
 		m_request->OnError([handler](int err) {
-			handler(nullptr, err);
+			handler(nullptr, translateTransportError(err));
 			});
 		if (m_iris.size() < 1) {
 			m_iris.push_back("http://localhost/iris/realms");

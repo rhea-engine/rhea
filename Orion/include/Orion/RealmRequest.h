@@ -10,6 +10,7 @@
 
 #include <Psio/Net/UrlRequest/UrlRequest.h>
 #include <Orion/Realm.h>
+#include <Orion/RequestError.h>
 
 #include <string>
 #include <deque>
@@ -25,7 +26,7 @@ namespace orion
 		RealmRequest(Orion* orion, std::deque<std::string>& iris);
 		~RealmRequest();
 
-		typedef std::function<void(Realm*, int error)> RealmHandler;
+		typedef std::function<void(Realm*, orion::Error error)> RealmHandler;
 
 		// Lookup a realm - call handler with realm or error
 		// the realm is not allocated and will be freed on destruction of the client

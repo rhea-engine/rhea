@@ -62,7 +62,7 @@ namespace rhea {
 		m_status = Status::LOADED;
 	}
 
-	rhea::Error translateLoadError(orion::ResourceRequest::Error error, const std::string& rid)
+	rhea::Error translateLoadError(orion::Error error, const std::string& rid)
 	{
 		using Error = rhea::Error;
 		using Code = Error::Code;
@@ -104,6 +104,17 @@ namespace rhea {
 		case ReqError::NOT_IMPLEMENTED:
 			code = Code::UNAVAILABLE;
 			message = "The requested operation is not implemented.";
+			break;
+		case ReqError::TRANSPORT_ERROR:
+			code = Code::RESOURCE_ERROR;
+			message = "Resource transport failed.";
+			break;
+		case ReqError::CANCELED:
+			code = Code::CANCELED;
+			message = "Resource request was canceled.";
+			break;
+		case ReqError::UNKNOWN_ERROR:
+			message = "An unknown resource request error occurred.";
 			break;
 		default:
 			message = "Resource loading did not complete successfully.";

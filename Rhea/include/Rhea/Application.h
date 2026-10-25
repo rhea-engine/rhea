@@ -20,8 +20,6 @@
 #include <unordered_map>
 #include <memory>
 
-using ReqError = orion::ResourceRequest::Error;
-
 namespace rhea
 {	
 	class Unit;
@@ -133,7 +131,7 @@ namespace rhea
 		// close the app
 		virtual void close();
 
-		virtual void onResourceFailed(orion::ResourceRequest::Error reason);
+		virtual void onResourceFailed(orion::Error reason);
 
 		// get a resource and load it as type
 		void loadResource(const std::string& resource_id, const std::string& type_name, std::function<void(Component*, Error error)> handler);

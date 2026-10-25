@@ -300,7 +300,7 @@ namespace rhea
 		m_services["platform"]->setValue("AppDir", simpleparser::Variant(path));
 	}
 
-	void Application::onResourceFailed(orion::ResourceRequest::Error reason)
+	void Application::onResourceFailed(orion::Error reason)
 	{
 		LOG(LOG_ERROR) << "Resource loading failed";
 	}
@@ -485,9 +485,9 @@ namespace rhea
 
 		log("loading resource: " + rid);
 		orion::ResourceRequest* req = m_fs->getResourceByRid(rid);
-		req->resolve([this, handler, context, rid, resource_id](orion::ResourceRequest* req, int err) {
+		req->resolve([this, handler, context, rid, resource_id](orion::ResourceRequest* req, orion::Error err) {
 
-			if (err == orion::ResourceRequest::Error::OK) {
+			if (err == orion::Error::OK) {
 
 				// we got the resource
 
@@ -614,7 +614,7 @@ namespace rhea
 			}
 			else
 				if (handler)
-					handler(NULL, translateLoadError(static_cast<ReqError>(err), rid));
+					handler(NULL, translateLoadError(err, rid));
 			});
 	}
 

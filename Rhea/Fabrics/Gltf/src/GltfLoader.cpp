@@ -244,10 +244,10 @@ namespace rhea
             for (const auto& path : paths) {
                 const std::string rid = state->context.normalizeResourceId(path);
                 auto* dependency = state->app->getFS()->getResourceByRid(rid);
-                dependency->resolve([state, path, rid](orion::ResourceRequest* resolved, int error) {
-                    if (error != orion::ResourceRequest::Error::OK) {
+                dependency->resolve([state, path, rid](orion::ResourceRequest* resolved, orion::Error error) {
+                    if (error != orion::Error::OK) {
                         LOG(LOG_ERROR) << "Could not load glTF dependency: " << rid;
-                        Error result = translateLoadError(static_cast<orion::ResourceRequest::Error>(error), rid);
+                        Error result = translateLoadError(error, rid);
                         result.addContext("referenced_by", state->resource_id);
                         state->finishAsset(result);
                         return;

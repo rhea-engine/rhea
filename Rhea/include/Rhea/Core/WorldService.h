@@ -36,7 +36,7 @@ namespace rhea
 			Ready,
 			Transitioning
 		};
-
+		/*
 		enum class OpenError
 		{
 			None,
@@ -56,7 +56,7 @@ namespace rhea
 			MissingCamera,
 			InvalidController
 		};
-
+		*/
 		enum class SceneRole
 		{
 			Regular,
@@ -72,7 +72,7 @@ namespace rhea
 			Prepared,
 			Active
 		};
-
+		/*
 		enum class TransitionError
 		{
 			None,
@@ -84,7 +84,7 @@ namespace rhea
 			ActivationFailed,
 			RequestCanceled
 		};
-
+		*/
 		struct WorldPrepareContext
 		{
 			World* world = nullptr;
@@ -182,12 +182,12 @@ namespace rhea
 		// init event
 		virtual void onInit();
 
-		using OpenHandler = std::function<void(OpenError)>;
-		using LoadSceneHandler = std::function<void(Scene*, OpenError)>;
-		using TransitionCompletion = std::function<void(TransitionError)>;
+		using OpenHandler = std::function<void(Error)>;
+		using LoadSceneHandler = std::function<void(Scene*, Error)>;
+		using TransitionCompletion = std::function<void(Error)>;
 
-		using WorldPrepareHandler = std::function<PrepareError(WorldPrepareContext*)>;
-		using ScenePrepareHandler = std::function<PrepareError(ScenePrepareContext*)>;
+		using WorldPrepareHandler = std::function<Error(WorldPrepareContext*)>;
+		using ScenePrepareHandler = std::function<Error(ScenePrepareContext*)>;
 		using TransitionHandler = std::function<void(SceneTransitionContext*, TransitionCompletion)>;
 
 
@@ -243,8 +243,8 @@ namespace rhea
 		// activate loaded scene and make it primary scene
 		void doTransitionScene(Scene* scene, const TransitionRequest& request, OpenHandler handler);
 
-		PrepareError prepareScene(Scene* next_scene, SceneRole role, Scene* owner_scene = nullptr);
-		PrepareError prepareWorld(World* world, Scene* standalone_scene = nullptr);
+		Error prepareScene(Scene* next_scene, SceneRole role, Scene* owner_scene = nullptr);
+		Error prepareWorld(World* world, Scene* standalone_scene = nullptr);
 		void prepareSceneTransition(Scene* source_scene, Scene* target_scene, SceneEntryPoint* entry_point, const TransitionRequest& request, TransitionCompletion completion);
 		void prepareSceneTransitionAsync(std::shared_ptr<SceneTransitionContext> context, size_t handlerIndex, TransitionCompletion complete);
 

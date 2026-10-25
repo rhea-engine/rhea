@@ -501,7 +501,8 @@ void Ceto::setup()
 	m_unit_tree->addChild(mat);
 
 	auto* worlds = doCast<rhea::WorldService>(getService("world"));
-	worlds->addWorldPrepareHandler([this, worlds](rhea::WorldService::WorldPrepareContext* context) -> rhea::WorldService::PrepareError
+
+	worlds->addWorldPrepareHandler([this, worlds](rhea::WorldService::WorldPrepareContext* context) -> rhea::Error
 		{
 			if (context->world)
 				m_focused_controller = context->world->findByType<rhea::Controller>();
@@ -509,11 +510,11 @@ void Ceto::setup()
 				m_focused_controller = context->standaloneScene->findByType<rhea::Controller>();
 			else
 				m_focused_controller = nullptr;
-			return rhea::WorldService::PrepareError::None;
+			return rhea::Error();
 		});
 	worlds->addSceneTransitionHandler([this, worlds](rhea::WorldService::SceneTransitionContext* context, rhea::WorldService::TransitionCompletion completion) -> void
 		{
-			completion(rhea::WorldService::TransitionError::None);
+			completion(rhea::Error());
 		});
 	auto* ctrl_srv = getService<rhea::ControllerService>();
 	ctrl_srv->addPlacementHandler([this, ctrl_srv](rhea::ControllerService::PlacementContext& context) -> rhea::ControllerService::PlacementResult
@@ -545,9 +546,9 @@ void Ceto::setScene(bool mark_preferrences)
 
 	auto* worlds = doCast<rhea::WorldService>(getService("world"));
 
-	worlds->openWorld(m_home_scene,	[this, worlds](rhea::WorldService::OpenError error)
+	worlds->openWorld(m_home_scene,	[this, worlds](rhea::Error error)
 		{
-			if (error != rhea::WorldService::OpenError::None) {
+			if (error.isError()) {
 				log("Ceto: Could not open scene");
 				rhea::Widget* w = doCast<rhea::Widget>(m_unit_tree->find("//local/cetogui/gui/realms"));
 				if (w) {

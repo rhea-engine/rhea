@@ -12,40 +12,68 @@
 #include <Rhea/Resources/ResourceService.h>
 
 namespace rhea {
-	
+
 	void CssLoader::load(std::string name, Application* app, orion::ResourceRequest* req, ResourceContext& context, Resource::LoadedHandler handler)
 	{
 		psio::Stream* rs = req->getStream();
 		psio::IOBuffer* buf = new psio::IOBuffer(64 * 1024);
-		rs->onEnd([&, buf, handler](size_t buflen) {
-			if (buflen) {
-				std::unique_ptr<simpleparser::CssParser> parser = std::make_unique<simpleparser::CssParser>();
-				std::vector<simpleparser::CssParser::Entry> entries;
+		std::string res_id = "//" + req->getRealmName() + req->getPath();
+		rs->onEnd([app, name, buf, context, handler, res_id](size_t buflen) {
+			StyleSheet* css = simpleparser::Type::create<StyleSheet>(name);
+			std::unordered_map<std::string, std::string> attributes;
+			std::unordered_map<std::string, Variant> values;
+			css->setup(app, attributes, values);
 
-				int nof_entries = parser->parse(buf->reader(), buflen, entries);
+			if (!buflen) {
+				delete buf;
+				if (handler)
+					handler(Error(), css);
+				return;
+			}
 
-				// how to find the target?
-				StyleSheet* css = simpleparser::Type::create<StyleSheet>(name);
-				std::unordered_map<std::string, std::string> attributes;
-				std::unordered_map<std::string, Variant> values;
-				css->setup(app, attributes, values);
-				css->setStyle(entries);
+			std::unique_ptr<simpleparser::CssParser> parser = std::make_unique<simpleparser::CssParser>();
+			std::vector<simpleparser::CssParser::Entry> entries;
 
-				// resource to load?
-				ResourceList res_list(app, context);
-				std::vector<Unit::ResourceReference> references = css->getReferences();
-				for (auto ref_it = references.begin(); ref_it != references.end(); ++ref_it) {					
-					res_list.push(ref_it->name, ref_it->value.toString(), ref_it->type);
+			int nof_entries = parser->parse(buf->reader(), buflen, entries);
+			if (!nof_entries)
+			{
+				// TODO check if parse error or empty file
+				delete buf;
+				if (handler)
+					handler(Error(), css);
+				return;
+			}
+
+			// how to find the target?
+
+			css->setStyle(entries);
+
+			// resource to load?
+			ResourceList res_list(app, context);
+			std::vector<Unit::ResourceReference> references = css->getReferences();
+			for (auto ref_it = references.begin(); ref_it != references.end(); ++ref_it) {
+				res_list.push(ref_it->name, ref_it->value.toString(), ref_it->type);
+			}
+			delete buf;
+			static_cast<ResourceService*>(app->getService("resources"))->loadAsync(res_list, [css, handler](ResourceList* rh, Error* err) {
+				if (err && err->isError()) {
+					delete css;
+					if (handler)
+						handler(*err, nullptr);
 				}
-				static_cast<ResourceService*>(app->getService("resources"))->loadAsync(res_list, [css, handler](ResourceList* rh, Error* err) {
-					handler(ReqError::OK, css);
-					});			
-			}			
+				else {
+					if (handler)
+						handler(Error(), css);
+				}
+				});
 			});
-		rs->onError([buf, handler](int err) {
+		rs->onError([buf, handler, res_id](int err) {
 			if (err) {
 				delete buf;
-				handler(ReqError::DATA_INVALID, nullptr);
+				Error error(Error::Code::RESOURCE_ERROR, "Could not read CSS resource", res_id);
+				error.addContext("streamerror", std::to_string(err));
+				if (handler)
+					handler(error, nullptr);
 			}
 			});
 		rs->ReadAsync(buf);

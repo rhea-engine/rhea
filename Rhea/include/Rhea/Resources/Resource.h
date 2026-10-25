@@ -38,8 +38,8 @@ namespace rhea
 			CONFIG_ERR,
 			DATA_INVALID
 		};
-		typedef std::function<void(ReqError)> ReadyHandler;
-		typedef std::function<void(ReqError, Unit*)> LoadedHandler;
+		typedef std::function<void(rhea::Error)> ReadyHandler;
+		typedef std::function<void(rhea::Error, Unit*)> LoadedHandler;
 
 		Resource(std::string basename, std::string type_name) :
 			m_buf(nullptr),

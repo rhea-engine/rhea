@@ -24,12 +24,14 @@ namespace rhea
 	{
 		psio::Stream* rs = req->getStream();
 		psio::IOBuffer* buf = new psio::IOBuffer(64 * 1024);
-		rs->onEnd([req, handler, buf, app, name, context](size_t buflen) {
+		std::string res_id = "//" + req->getRealmName() + req->getPath();
+		rs->onEnd([req, handler, buf, app, name, context, res_id](size_t buflen) {
 			SceneResource::SceneDefinition scene_def;
 			Error err = parseIniFile(name, buf->reader(), buflen, scene_def);
 			if (err.isError()) {
+				err.setResourceId(res_id);
 				if (handler)
-					handler(ReqError::DATA_INVALID, nullptr);
+					handler(err, nullptr);
 				delete buf;
 				return;
 			}
@@ -38,13 +40,17 @@ namespace rhea
 				scene_res->setup(app);
 				const std::string source_resource_id = "//" + req->getRealmName() + req->getPath();
 				scene_res->setDefinition(scene_def, context.source_directory, context.context_root, source_resource_id);
-				handler(ReqError::OK, scene_res);
+				handler(rhea::Error(), scene_res);
 			}
 			delete buf;
 			});
-		rs->onError([buf, handler](int err) {
+		rs->onError([buf, handler, res_id](int err) {
 			delete buf;
-			handler(ReqError::DATA_INVALID, nullptr);
+			Error error(Error::Code::RESOURCE_ERROR, "Could not read scene resource.", res_id);
+			error.addContext("stream_error", std::to_string(err));
+
+			if (handler)
+				handler(error, nullptr);
 			});
 		rs->ReadAsync(buf);
 	}
@@ -80,6 +86,7 @@ namespace rhea
 		
 		// get all resources packed in this file 
 	
+		Error result;
 		for (auto section : sections) {
 			if (section.section_name == "scene")
 				continue;
@@ -105,6 +112,12 @@ namespace rhea
 			node.attributes = section.attributes;
 			if (section.values.find("type") == section.values.end()) {
 				LOG(LOG_ERROR) << "Type name not set for resource: " << section.section_name;
+				if (!result.isError()) {
+					Error type_err(Error::Code::INVALID_DATA, "Type name not set for resource: " + section.section_name, section.section_name);
+					type_err.addContext("node", section.section_name);
+					type_err.addContext("property", "type");
+					result = type_err;
+				}
 				continue;
 			}
 			node.type_name = section.values["type"].toString();
@@ -113,6 +126,9 @@ namespace rhea
 			scene_def.nodes.push_back(node);
 		}
 
+		if (result.isError()) {
+			return result;
+		}
 		definition = scene_def;
 		return Error();
 	}

@@ -21,7 +21,7 @@ namespace rhea {
 
 	void Resource::load(orion::ResourceRequest* req, ReadyHandler handler)
 	{
-		handler(ReqError::OK);
+		handler(rhea::Error());
 	}
 
 	void Resource::buildInstance(const InstanceRequest&, InstanceHandler handler)

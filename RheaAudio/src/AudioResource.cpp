@@ -53,8 +53,9 @@ namespace rhea::audio
 
 			psio::Stream* rs = req->getStream();
 			psio::IOBuffer* buf = new psio::IOBuffer(64 * 1024);
+			std::string res_id = "//" + req->getRealmName() + req->getPath();
 			rs->SetMode(psio::Fs::READ | psio::Fs::BINARY);
-			rs->onEnd([buf, app, name, mime,handler](size_t buflen) {
+			rs->onEnd([buf, app, name, mime, res_id, handler](size_t buflen) {
 
 				if (buflen > 0) {
 					Resource* res = nullptr;
@@ -75,22 +76,34 @@ namespace rhea::audio
 						res->setRaw(buf->Remaining(), dest);
 						res->setup(app);
 					}
+					else {
+						delete buf;
+						delete res;
+						if (handler)
+							handler(Error(Error::Code::UNAVAILABLE, "Could not allocate memory for audio resource", res_id), nullptr);
+						return;
+					}
 					delete buf;
-					handler(ReqError::OK, res);
+					if (handler)
+						handler(Error(), res);
 				}
 				else {
 					delete buf;
-					handler(ReqError::DATA_INVALID, nullptr);
+					if (handler)
+						handler(Error(Error::Code::RESOURCE_ERROR, "Could not read audio resource", res_id), nullptr);
 				}
 				});
-			rs->onError([buf, handler](int err) {
+			rs->onError([buf, res_id, handler](int err) {
 				delete buf;
-				handler(ReqError::DATA_INVALID, nullptr);
+				Error error(Error::Code::RESOURCE_ERROR, "Could not read audio resource", res_id);
+				error.addContext("stream_error", std::to_string(err));
+				if (handler)
+					handler(error, nullptr);
 				});
 			rs->ReadAsync(buf);
 		}
 		else {
-			handler(ReqError::RESOURCE_NOT_FOUND, nullptr);
+			handler(Error(Error::Code::NOT_FOUND, "Resource not found"), nullptr);
 		}
 	}
 

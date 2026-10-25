@@ -82,16 +82,16 @@ namespace rhea
 	}
 
 	void Application::init(int argc, char* argv[])
-	{		
+	{
 		// set log severity
 #ifdef _DEBUG
 		Log::logger().setLevel(LOG_DEBUG);
 #else
 		Log::logger().setLevel(LOG_INFO);
 #endif // DEBUG
-		
+
 		// register core types
-		simpleparser::Type::registerType<Component>("//core/types/component"); 
+		simpleparser::Type::registerType<Component>("//core/types/component");
 		simpleparser::Type::registerType<Unit>("//core/types/unit");
 		simpleparser::Type::registerType<UnitTree>("//core/unittree");
 		simpleparser::Type::registerType<Collection>("//core/collection");
@@ -136,7 +136,7 @@ namespace rhea
 			setAppDir(app_dir.c_str());
 		}
 
-		// load config file		
+		// load config file
 		config->loadFromFile("config.ini");
 
 		// log-level from config
@@ -164,7 +164,7 @@ namespace rhea
 
 		Service* phy_mgr = (PhysicsManagerService*)simpleparser::Type::create("PhysicsManagerService", "//meworla/physicsmanagerservice");
 		phy_mgr->setup(this);
-		m_services["physics_mgr"] = phy_mgr;		
+		m_services["physics_mgr"] = phy_mgr;
 
 		Service* res_service = (Service*)simpleparser::Type::create("ResourceService", "//meworla/resourceservice");
 		m_services["resources"] = res_service;
@@ -182,7 +182,7 @@ namespace rhea
 		ResourceLibrary::_register_ResourceLibrary();
 		simpleparser::Type::registerType<Transform>("//meworla/transform");
 		Item::_register_Item();
-		simpleparser::Type::registerType<Mesh>("//meworla/mesh");				
+		simpleparser::Type::registerType<Mesh>("//meworla/mesh");
 		simpleparser::Type::registerType<Shader>("//meworla/shader");
 		simpleparser::Type::registerType<Lighting>("//meworla/lighting");
 		Light::_register_Light();
@@ -199,7 +199,7 @@ namespace rhea
 		auto* area_srv = new AreaService("area");
 		area_srv->setup(this);
 		m_services["area"] = area_srv;
-		Trigger::_register_Trigger();	
+		Trigger::_register_Trigger();
 		ImageResource::_register_ImageResource();
 		simpleparser::Type::registerType<ImageResource>("//meworla/texture");
 		CubeMap::_register_CubeMap();
@@ -210,7 +210,7 @@ namespace rhea
 		orion::MIME::RegisterExtenstion("text/fontinfo", "fnt");
 
 		//GUIController::Register(this);
-		
+
 		simpleparser::Type::registerType<Geometry>("//meworla/geometry");
 
 		// register mime type for shader
@@ -273,11 +273,11 @@ namespace rhea
 		}
 		m_windows.push_back(default_window);
 		m_windows[0].views.push_back({ "default", 0,0,default_window.width,default_window.height });
-		m_windows[0].views[0].layers.push_back({ "default", 0,0,default_window.width,default_window.height });	
+		m_windows[0].views[0].layers.push_back({ "default", 0,0,default_window.width,default_window.height });
 	}
 
 	void Application::setup()
-	{	
+	{
 		// if no window and no view was defined we create a default one
 		if (!m_windows.size()) {
 			addDefaultWindow();
@@ -286,7 +286,7 @@ namespace rhea
 		for (auto it = m_services.begin(); it != m_services.end(); ++it)
 		{
 			Service* s = it->second;
-			s->onInit();			
+			s->onInit();
 		}
 	}
 
@@ -336,8 +336,8 @@ namespace rhea
 	int Application::loop()
 	{
 		// start the loop
-		int ret = 0;	
-		psio::Engine* psio = static_cast<PlatformService*>(m_services["platform"])->getEngine();			
+		int ret = 0;
+		psio::Engine* psio = static_cast<PlatformService*>(m_services["platform"])->getEngine();
 
 		int iterations_per_second = 60;
 		float frame_slice = 1.0f / iterations_per_second;
@@ -366,10 +366,10 @@ namespace rhea
 			float elapsed_s = static_cast<float>(elapsed_ticks) / 1000000.0f;
 			last_ticks = current_ticks;
 
-			// compute fps					
+			// compute fps
 			fps = 1 / elapsed_s; // fps for current frame
 			elapsed_fs += elapsed_s;
-			//  show all 
+			//  show all
 			if (elapsed_fs > 1.0f) {
 				fps = (frames - fps_count) / elapsed_fs;
 				elapsed_fs = 0.0f;
@@ -418,10 +418,10 @@ namespace rhea
 				}
 			}
 
-			// 3.2 Run io and network updates (e.g., sync data, process packets)			
+			// 3.2 Run io and network updates (e.g., sync data, process packets)
 			psio->RunNet();
 			m_fs->poll();
-			
+
 			// 4. Call pre-physics updates for all services (elapsed time is frame-based)
 			for (auto it = m_services.begin(); it != m_services.end(); ++it) {
 				if (it->second->onPrePhysics(elapsed_s))
@@ -448,14 +448,14 @@ namespace rhea
 
 			// idle
 			uint64_t idle_begin = psio->getTicks();
-			
+
 			// idle(elapsed_s)
 
 			// 6. Call frame-based updates for all services - physics is done
 			for (auto it = m_services.begin(); it != m_services.end(); ++it) {
 				if (it->second->onFrame(elapsed_s))
 					ret = true;
-			}			
+			}
 
 			// 7. Perform any final updates (e.g., rendering, cleanup)
 			for (auto it = m_services.begin(); it != m_services.end(); ++it) {
@@ -544,15 +544,15 @@ namespace rhea
 				// get from request
 				std::string mime = req->getMimeType();
 				if (mime.length()) {
-					if (m_resource_loader.load(req->getBasename(), this, mime, req, loaded_context, [this, handler, parent_unit, rid](ReqError err, Component* component) {
+					if (m_resource_loader.load(req->getBasename(), this, mime, req, loaded_context, [this, handler, parent_unit, rid](Error err, Component* component) {
 
-						if (err != ReqError::OK) {
+						if (err.isError()) {
 							if (component) {
 								LOG(LOG_ERROR) << "LoadResource(" << rid << "): Failed to load component " << component->getPathName();
 								delete component;
 							}
 							if (handler)
-								handler(NULL, translateLoadError(err, rid));
+								handler(NULL, err);
 							return;
 						}
 
@@ -588,14 +588,14 @@ namespace rhea
 				Resource* component = new Resource(req->getBasename(), "//meworla/resource");
 
 				// call load of unit
-				component->load(req, [parent_unit, component, handler, rid](ReqError err) {
-					if (err != ReqError::OK) {
+				component->load(req, [parent_unit, component, handler, rid](Error err) {
+					if (err.isError()) {
 						std::string path = component->getPathName();
 						delete component;
 						LOG(LOG_ERROR) << "LoadResource(" << rid << "): Failed to load component " << path;
 						if (!handler)
 							return;
-						return handler(NULL, translateLoadError(err, rid));
+						return handler(NULL, err);
 					}
 
 					// add it to tree

@@ -19,9 +19,11 @@ namespace rhea
 	{
 		if (req) {
 
+			std::string res_id = "//" + req->getRealmName() + req->getPath();
+
 			psio::Stream* rs = req->getStream();
 			psio::IOBuffer* buf = new psio::IOBuffer(64 * 1024);
-			rs->onEnd([buf,app,name,handler](size_t buflen) {
+			rs->onEnd([buf,app,name,handler,res_id](size_t buflen) {
 
 				if (buflen > 0) {
 					TextResource* res = new TextResource(name, "//meworla/text");
@@ -31,22 +33,35 @@ namespace rhea
 						res->setRaw(buf->Remaining(), dest);
 						res->setup(app);
 					}
+					else {
+						delete buf;
+						delete res;
+						if (handler)
+							handler(rhea::Error(Error::Code::UNAVAILABLE, "Could not allocate memory for text resource", res_id), nullptr);
+						return;
+					}
 					delete buf;
-					handler(ReqError::OK, res);
+					if (handler)
+						handler(rhea::Error(), res);
 				}
 				else {
 					delete buf;
-					handler(ReqError::DATA_INVALID, nullptr);
+					if (handler)
+						handler(rhea::Error(Error::Code::INVALID_DATA, "Invalid data", res_id), nullptr);
 				}
 				});
-			rs->onError([buf, handler](int err) {
+			rs->onError([buf, handler, res_id](int err) {
 				delete buf;
-				handler(ReqError::DATA_INVALID, nullptr);
+				Error error(Error::Code::RESOURCE_ERROR, "Could not read text resource", res_id);
+				error.addContext("stream_error", std::to_string(err));
+				if (handler)
+					handler(error, nullptr);
 				});
 			rs->ReadAsync(buf);
 		}
 		else {
-			handler(ReqError::RESOURCE_NOT_FOUND, nullptr);
+			if (handler)
+				handler(rhea::Error(Error::Code::NOT_FOUND, "Resource not found", name), nullptr);
 		}
 	}
 }

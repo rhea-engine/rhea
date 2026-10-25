@@ -81,7 +81,7 @@ namespace rhea {
 						else {
 							LOG(LOG_ERROR) << "Could not load resource " << res.id << ": " << orion::ResourceRequest::getErrorMessage(err);
 							m_resources[key].status = Resource::Status::DATA_INVALID;
-							Error errmsg(Error::Type::RESOURCE_ERROR, orion::ResourceRequest::getErrorMessage(err));
+							Error errmsg(Error::Code::RESOURCE_ERROR, orion::ResourceRequest::getErrorMessage(err));
 							decrementToLoadAndCheckIfZero(handler, &errmsg);							
 						}
 						});

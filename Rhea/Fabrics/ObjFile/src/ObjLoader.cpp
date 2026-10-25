@@ -160,7 +160,7 @@ namespace rhea
 				if (error) {
 					//handler(ReqError::DATA_INVALID);
 					//return;
-					LOG(LOG_ERROR) << "Error loading textures: " << error->getText();
+					LOG(LOG_ERROR) << "Error loading textures: " << error->getMessage();
 				}
 
 				// Store the loaded textures with their material assignment.

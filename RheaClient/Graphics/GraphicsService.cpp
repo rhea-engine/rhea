@@ -413,7 +413,7 @@ namespace rhea::client {
 		// note: for locally installed resources this is actually synchronous
 		res_list.load([this](rhea::Error* err){
 			if (err) {
-				LOG(LOG_ERROR) << "Error loading core shader resources: " << err->getText();
+				LOG(LOG_ERROR) << "Error loading core shader resources: " << err->getMessage();
 			}
 			else {
 				LOG(LOG_INFO) << "Core shader resources loaded successfully.";

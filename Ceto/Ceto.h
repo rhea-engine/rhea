@@ -33,7 +33,7 @@ public:
 		m_current_time(0.0f)
 	{}
 	void setup();
-	void setScene(bool mark_preferences = true);
+	void openScene(std::string scene_name, bool mark_preferences = true);
 	bool checkLocalScene(std::string realm_name, std::string path);
 	void loadMainGUI();
 	void setHomeScene(string scene);
@@ -54,7 +54,7 @@ protected:
 	bool onRealmSelect(rhea::Event* ev, rhea::Unit* unit);
 	bool onRealmSearch(rhea::Event* ev, rhea::Unit* unit);
 	void showAlert(std::string text);
-	void openScene(std::string scene_name);
+	bool onAlertClose(rhea::Event* ev, rhea::Unit* unit);
 	
 	// shortcut helpers
 	bool handleAppShortcuts(const rhea::InputEvent& evt);
@@ -71,6 +71,7 @@ protected:
 	// cache of gui controller
 	rhea::GUIController* m_gui_controller;
 	OpenBrowser* m_realm_dialog = nullptr;
+	rhea::Dialog* m_alert_dialog = nullptr;
 
 	float m_current_time;
 

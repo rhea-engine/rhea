@@ -165,17 +165,6 @@ bool Ceto::onRealmSearch(rhea::Event* ev, rhea::Unit* unit)
 	return false;
 }
 
-void Ceto::openScene(std::string scene_name)
-{
-	if (m_realm_dialog) {
-		m_gui_controller->closeDialog(m_realm_dialog);
-	}
-	m_home_scene = scene_name;
-
-	// open the scene
-	setScene();	
-}
-
 void Ceto::setup()
 {
 	addDefaultWindow();
@@ -264,60 +253,86 @@ void Ceto::setup()
 		});
 }
 
-void Ceto::setScene(bool mark_preferences)
+void Ceto::openScene(std::string scene_name, bool mark_preferences)
 {
-	if (mark_preferences) {
-		m_userprefs.lastUsed(m_home_scene);
-
-		std::string s = m_userprefs.toJSON();
-		std::unique_ptr<orion::FileResourceStream> stream = std::make_unique<orion::FileResourceStream>(m_userpref_path);
-		stream->SetMode(psio::Fs::WRITE);
-		stream->Open();
-		stream->Write(s.c_str(), s.size());
-		stream->Close();
-	}
-
 	auto* worlds = doCast<rhea::WorldService>(getService("world"));
 
-	worlds->openWorld(m_home_scene,	[this, worlds](rhea::ErrorReport error)
-		{
-			if (error.isError()) {
-				log("Ceto: Could not open scene");
-				if (m_realm_dialog) {
-					m_gui_controller->closeDialog(m_realm_dialog);
-				}
-				showAlert("Could not open world");
-				return;
-			}
-			
-			// set origin info
-			rhea::Unit* engine = doCast<rhea::Unit>(m_unit_tree->getChild("engine"));
-			if (engine)
-				engine->setValue("origin", m_home_scene);
+	worlds->openWorld(scene_name, [this, scene_name, mark_preferences, worlds](rhea::ErrorReport error) {
 
+		if (error.isError()) {
+			LOG(LOG_ERROR) << "Ceto: Could not open scene: " << scene_name;
+			showAlert("Could not open world");
+			return;
+		}
 
-			// hide GUI background
-			rhea::GUIController* w = doCast<rhea::GUIController>(m_unit_tree->find("//ceto/cetogui/gui"));
-			if (w) {
-				w->setStyle(rhea::StylePropertyId::kBackgroundImage, "none");
-				w->UpdateStyle();
-			}
+		if (m_realm_dialog) {
+			m_gui_controller->closeDialog(m_realm_dialog);
+		}
+		m_home_scene = scene_name;
 
-			inScene = true;
+		// set origin info
+		rhea::Unit* engine = doCast<rhea::Unit>(m_unit_tree->getChild("engine"));
+		if (engine)
+			engine->setValue("origin", m_home_scene);
+
+		if (mark_preferences) {
+			m_userprefs.lastUsed(m_home_scene);
+
+			std::string s = m_userprefs.toJSON();
+			std::unique_ptr<orion::FileResourceStream> stream = std::make_unique<orion::FileResourceStream>(m_userpref_path);
+			stream->SetMode(psio::Fs::WRITE);
+			stream->Open();
+			stream->Write(s.c_str(), s.size());
+			stream->Close();
+		}
+
+		// hide GUI background
+		rhea::GUIController* w = doCast<rhea::GUIController>(m_unit_tree->find("//ceto/cetogui/gui"));
+		if (w) {
+			w->setStyle(rhea::StylePropertyId::kBackgroundImage, "none");
+			w->UpdateStyle();
+		}
+
+		inScene = true;
 		});
-	
 }
 
 void Ceto::showAlert(std::string text)
 {
-	// set the text
-	m_gui->setValue("alert", text);
-	 
-	// show dialog
-	rhea::Widget* w = doCast<rhea::Widget>(m_unit_tree->find("//ceto/cetogui/gui/alert"));
-	if (w) {
-		w->show();
+	if (!m_gui_controller)
+		return;
+
+	if (!m_alert_dialog) {
+		rhea::Widget* w = doCast<rhea::Widget>(m_unit_tree->findByName("alert"));
+		if (w) {
+			m_alert_dialog = doCast<rhea::Dialog>(w);
+		}
+
+		if (!m_alert_dialog)
+			return;
+
+		m_gui->registerEventHandler("close_alert", this, std::bind(&Ceto::onAlertClose, this, std::placeholders::_1, std::placeholders::_2));
 	}
+
+	rhea::Label* label = doCast<rhea::Label>(m_alert_dialog->findByName("info"));
+	if (!label)
+		return;
+
+	// set the text
+	label->setText(text);
+
+	// show dialog
+	m_gui_controller->openDialog(m_alert_dialog);
+}
+
+bool Ceto::onAlertClose(rhea::Event* ev, rhea::Unit* unit)
+{
+	if (!m_alert_dialog)
+		return false;
+
+	m_gui_controller->closeDialog(m_alert_dialog);
+
+	return false;
 }
 
 void Ceto::loadMainGUI()
@@ -466,7 +481,7 @@ int main(int argc, char* argv[])
 	Ceto* app = new Ceto();
 	app->setAppname("Ceto");
 	int argi = 1;
-	bool scene_set = false;
+	std::string set_scene;
 
 	app->init(argc, argv);
 
@@ -476,13 +491,13 @@ int main(int argc, char* argv[])
 		std::string scene = config->getValueString("scene", "");
 		if (scene != "") {
 			app->setHomeScene(scene);
-			scene_set = true;
+			set_scene = scene;
 		}
 	}
 
 	app->setup();
 
-	if (!scene_set) {
+	if (set_scene.empty()) {
 
 		// try world scene in root
 		if (app->checkLocalScene("", "world.scene"))
@@ -502,9 +517,9 @@ int main(int argc, char* argv[])
 	}
 	app->loadMainGUI();
 		
-	if (scene_set) {
+	if (!set_scene.empty()) {
 		app->hideOpenBrowserDialog();
-		app->setScene();
+		app->openScene(set_scene);
 	}
 
 	app->loop();	

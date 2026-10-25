@@ -95,22 +95,18 @@ cssclass="btn"
 
 [gui/alert]
 type="//meworla/gui/dialog"
-w=380
-h=100
 
-[gui/alert/info]
+[gui/alert/content]
+type="//meworla/gui/column"
+cssclass="alert-content"
+
+[gui/alert/content/info]
 type="//meworla/gui/label"
 text="info"
-x=20
-y=10
-w=280
-h=40
+cssclass="alertinfo"
 
-[gui/alert/ok]
+[gui/alert/content/ok]
 type="//meworla/gui/button"
 text="OK"
-x=180
-y=60
-h=30
-w=40
-action="submit"
+cssclass="btn"
+action="close_alert"

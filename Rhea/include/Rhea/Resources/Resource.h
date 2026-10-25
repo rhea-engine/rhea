@@ -76,11 +76,11 @@ namespace rhea
 			std::string basepath;
 		};
 
-		using InstanceHandler = std::function<void(ReqError, Unit*)>;
+		using InstanceHandler = std::function<void(Error, Unit*)>;
 		virtual void buildInstance(const InstanceRequest& request, InstanceHandler handler);
 		virtual void ensureReady(InstanceHandler handler);
 
-		using PrepareHandler = std::function<void(ReqError)>;
+		using PrepareHandler = std::function<void(Error)>;
 		virtual void prepare(PrepareHandler handler);
 		bool isPrepared() const { return m_prepared; }
 

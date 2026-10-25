@@ -596,9 +596,9 @@ void Ceto::loadMainGUI()
 		rhea::SceneResource* scene_res = doCast<rhea::SceneResource>(res);
 		if (scene_res && !r_err.isError()) {
 			rhea::Unit* parent = doCast<rhea::Unit>(m_unit_tree->find(scene_res->getSceneRoot()));
-			scene_res->spawn(parent, [&](ReqError r_err, rhea::Unit* res) {
+			scene_res->spawn(parent, [&](rhea::Error r_err, rhea::Unit* res) {
 				rhea::Scene* gui = doCast<rhea::Scene>(res);
-				if (gui && r_err == ReqError::OK) {
+				if (gui && !r_err.isError()) {
 
 					gui->show();
 					m_gui = gui;

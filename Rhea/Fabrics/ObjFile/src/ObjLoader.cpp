@@ -95,13 +95,13 @@ namespace rhea
 			}
 			else {
 				DLOG(LOG_DEBUG) << "Obj not found in objloader. Path was: " << m_obj_ref.id();
-				handler(ReqError::RESOURCE_NOT_FOUND);
+				handler(Error(Error::Code::NOT_FOUND, "Obj not found"));
 				return;
 			}
 		}
 		else {
 			LOG(LOG_ERROR) << "Could not open " << m_pathname << ": Obj file not defined.";
-			handler(ReqError::RESOURCE_NOT_FOUND);
+			handler(Error(Error::Code::NOT_FOUND, "Obj file not defined"));
 			return;
 		}
 
@@ -113,7 +113,7 @@ namespace rhea
 
 		if (!ret) {
 			LOG(LOG_ERROR) << "Could not parse obj file: " << reader.Error();
-			handler(ReqError::DATA_INVALID);
+			handler(Error(Error::Code::INVALID_DATA, "Could not parse obj file: " + reader.Error()));
 			return;
 		}
 
@@ -165,7 +165,7 @@ namespace rhea
 
 				// Store the loaded textures with their material assignment.
 				m_prepared = true;
-				handler(ReqError::OK);
+				handler(Error());
 			});
 	}
 

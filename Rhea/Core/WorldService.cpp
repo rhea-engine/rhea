@@ -53,16 +53,16 @@ namespace rhea
 				};
 				// instance the world
 				Unit* parent = doCast<Unit>(m_app->getUnitTree()->find(scene_resource->getSceneRoot()));
-				scene_resource->spawn(parent, [this, rid, open_generation, handler, context](ReqError error, Unit* unit) {
+				scene_resource->spawn(parent, [this, rid, open_generation, handler, context](Error error, Unit* unit) {
 					if (open_generation != m_open_generation) {
 						if (handler) {
 							handler(Error(Error::Code::CANCELED, "Request canceled"));
 						}
 						return; // stale result
 					}
-					if (error != ReqError::OK) {
+					if (error.isError()) {
 						if (handler) {
-							handler(Error(Error::Code::INVALID_DEFINITION, "Invalid scene type"));
+							handler(error);
 						}
 						return;
 					}
@@ -161,7 +161,7 @@ namespace rhea
 				LOG(LOG_ERROR) << "Failed to load scene: " << static_cast<int>(error.getCode()) << " (" << rid << ")";
 				result = error;
 			}
-			if (!scene_resource) {
+			else if (!scene_resource) {
 				LOG(LOG_ERROR) << "Resource is not a scene resource: " << rid;
 				result = Error(Error::Code::UNSUPPORTED_FORMAT, "Resource is not a scene resource");
 			}
@@ -190,7 +190,7 @@ namespace rhea
 				return;
 			}
 
-			scene_resource->spawn(parent, [this, rid, session_generation](ReqError error, Unit* component) {
+			scene_resource->spawn(parent, [this, rid, session_generation](Error error, Unit* component) {
 
 				Scene* scene = doCast<Scene>(component);
 				Error result;
@@ -200,7 +200,7 @@ namespace rhea
 				}
 				else {
 
-					if (error == ReqError::OK) {
+					if (!error.isError()) {
 						LOG(LOG_DEBUG) << "Loaded scene: " << rid;
 
 						if (scene) {
@@ -212,8 +212,8 @@ namespace rhea
 						}
 					}
 					else {
-						LOG(LOG_ERROR) << "Failed to load scene: " << static_cast<int>(error) << " (" << rid << ")";
-						result = Error(Error::Code::NOT_FOUND, "Resource not found");
+						LOG(LOG_ERROR) << "Failed to load scene: " << static_cast<int>(error.getCode()) << " (" << rid << ")";
+						result = error;
 					}
 				}
 
@@ -403,10 +403,11 @@ namespace rhea
 		// get start scene
 		World* world = doCast<World>(component);
 		if (world) {
-			if (prepareWorld(world).isError()) {
+			Error error = prepareWorld(world);
+			if (error.isError()) {
 				m_state = m_primary_scene ? State::Ready : State::Idle;
 				if (handler) {
-					handler(Error(Error::Code::INVALID_DEFINITION, "Invalid world type"));
+					handler(error);
 				}
 				return;
 			}
@@ -418,10 +419,11 @@ namespace rhea
 			// if the loaded component is a scene, we can use it directly
 			LOG(LOG_INFO) << "Loaded scene: " << request_id;
 			Scene* scene = doCast<Scene>(component);
-			if (prepareWorld(nullptr, scene).isError()) {
+			Error error = prepareWorld(nullptr, scene);
+			if (error.isError()) {
 				m_state = State::Idle;
 				if (handler) {
-					handler(Error(Error::Code::INVALID_DEFINITION, "Invalid world type"));
+					handler(error);
 				}
 				return;
 			}

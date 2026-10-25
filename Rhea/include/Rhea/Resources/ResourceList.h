@@ -12,6 +12,7 @@
 
 #include "Resource.h"
 #include <Rhea/Resources/ResourceContext.h>
+#include <Rhea/Error.h>
 
 namespace rhea
 {
@@ -64,6 +65,7 @@ namespace rhea
 		Application* m_app;
 		int m_to_load;
 		bool m_loaded;
+		Error m_load_error;
 		ResourceContext m_resource_context;
 
 		std::unordered_map<std::string, ResourceInfo> m_resources;

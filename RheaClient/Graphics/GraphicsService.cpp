@@ -424,9 +424,9 @@ namespace rhea::client {
 		for (auto& [key, res] : res_list.getAllComponents()) {
 			SceneResource* shader_res = doCast<SceneResource>(res.resource);
 			if (shader_res) {
-				shader_res->spawn(parent, [](ReqError err, Unit* unit){
-					if (err != ReqError::OK) {
-						LOG(LOG_DEBUG) << "Shader resource could not be spawned: " << unit->getPathName() << " (error: " << static_cast<int>(err) << ")";
+				shader_res->spawn(parent, [](Error err, Unit* unit){
+					if (err.isError()) {
+						LOG(LOG_DEBUG) << "Shader resource could not be spawned: " << unit->getPathName() << " (error: " << static_cast<int>(err.getCode()) << ")";
 					}
 					});
 			}

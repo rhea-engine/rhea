@@ -27,19 +27,19 @@ namespace rhea {
 	void Resource::buildInstance(const InstanceRequest&, InstanceHandler handler)
 	{
 		if (handler)
-			handler(ReqError::NOT_IMPLEMENTED, nullptr);
+			handler(Error(Error::Code::UNAVAILABLE, "The requested operation is not implemented."), nullptr);
 	}
 
 	void Resource::ensureReady(InstanceHandler handler)
 	{
 		if (handler)
-			handler(ReqError::OK, this);
+			handler(Error(), this);
 	}
 	
 	void Resource::prepare(PrepareHandler handler)
 	{
 		m_prepared = true;
-		handler(ReqError::OK);
+		handler(Error());
 	}
 
 	void Resource::setRaw(size_t buflen, char* buf)

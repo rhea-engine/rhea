@@ -13,7 +13,7 @@
 #include <cassert>
 
 namespace rhea {
-	
+
 	ResourceList::~ResourceList()
 	{
 		// decrement all references on loaded resources
@@ -34,6 +34,7 @@ namespace rhea {
 
 		size_t item_size = m_resources.size();
 		m_to_load = (int)item_size;
+		m_load_error = Error();
 		if (!item_size) {
 			// no external resources -> immediately succeed
 			m_loaded = true;
@@ -52,7 +53,6 @@ namespace rhea {
 			else {
 				Unit* resource = res.resource ? res.resource : doCast<Unit>(tree->find(res.id));
 				if (resource) {
-
 					// exists in tree					
 					m_resources[key].status = Resource::Status::LOADED;
 					m_resources[key].resource = resource;
@@ -68,11 +68,7 @@ namespace rhea {
 				else {
 					m_app->loadResource(res.id, m_resource_context, res.type, [&, res, key, handler](Component* component, Error err) {
 						Unit* resource = doCast<Unit>(component);
-						if (resource) {
-							if (err.isError()) {
-								LOG(LOG_ERROR) << "Could not load resource " << res.id << ": " << err.getMessage();
-							}
-
+						if (resource && !err.isError()) {
 							m_resources[key].status = Resource::Status::LOADED;
 							m_resources[key].resource = resource;
 							resource->incRef();
@@ -81,8 +77,7 @@ namespace rhea {
 						else {
 							LOG(LOG_ERROR) << "Could not load resource " << res.id << ": " << err.getMessage();
 							m_resources[key].status = Resource::Status::DATA_INVALID;
-							Error errmsg(Error::Code::RESOURCE_ERROR, err.getMessage());
-							decrementToLoadAndCheckIfZero(handler, &errmsg);							
+							decrementToLoadAndCheckIfZero(handler, &err);
 						}
 						});
 				}
@@ -91,12 +86,17 @@ namespace rhea {
 	}
 
 	bool ResourceList::decrementToLoadAndCheckIfZero(Unit::ReadyHandler handler, Error* err) {
-		if (--m_to_load == 0) {
-			m_loaded = true;
-			handler(err);
-			return true;
+		if (err && err->isError()) {
+			m_load_error = *err;
 		}
-		return false;
+		if (--m_to_load != 0)
+			return false;
+
+		m_loaded = true;
+		if (handler)
+			handler(m_load_error.isError() ? &m_load_error : nullptr);
+
+		return true;
 	}
 	
 	void ResourceList::push(std::string key, std::string id, std::string type, bool replace, Unit* unit)

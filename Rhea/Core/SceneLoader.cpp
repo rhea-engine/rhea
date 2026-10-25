@@ -25,11 +25,19 @@ namespace rhea
 		psio::Stream* rs = req->getStream();
 		psio::IOBuffer* buf = new psio::IOBuffer(64 * 1024);
 		rs->onEnd([req, handler, buf, app, name, context](size_t buflen) {
-			SceneResource::SceneDefinition scene_def = parseIniFile(name, buf->reader(), buflen);
+			SceneResource::SceneDefinition scene_def;
+			Error err = parseIniFile(name, buf->reader(), buflen, scene_def);
+			if (err.isError()) {
+				if (handler)
+					handler(ReqError::DATA_INVALID, nullptr);
+				delete buf;
+				return;
+			}
 			SceneResource* scene_res = new SceneResource(name);
 			if (scene_res) {
 				scene_res->setup(app);
-				scene_res->setDefinition(scene_def, context.source_directory, context.context_root);
+				const std::string source_resource_id = "//" + req->getRealmName() + req->getPath();
+				scene_res->setDefinition(scene_def, context.source_directory, context.context_root, source_resource_id);
 				handler(ReqError::OK, scene_res);
 			}
 			delete buf;
@@ -41,7 +49,7 @@ namespace rhea
 		rs->ReadAsync(buf);
 	}
 
-	SceneResource::SceneDefinition SceneLoader::parseIniFile(std::string name, char* buf, size_t buflen)
+	Error SceneLoader::parseIniFile(std::string name, char* buf, size_t buflen, SceneResource::SceneDefinition &definition)
 	{
 		std::unique_ptr<simpleparser::IniFileParser> parser = std::make_unique<simpleparser::IniFileParser>();
 		std::vector<simpleparser::IniFileParser::Section> sections;
@@ -50,7 +58,7 @@ namespace rhea
 
 		if (!entries) {
 			LOG(LOG_ERROR) << "Failed to parse scene file: " << name;
-			return SceneResource::SceneDefinition();
+			return Error(Error::Code::INVALID_DATA, "Failed to parse scene file: " + name, name);
 		}		
 		SceneResource::SceneDefinition scene_def;
 
@@ -105,7 +113,8 @@ namespace rhea
 			scene_def.nodes.push_back(node);
 		}
 
-		return scene_def;
+		definition = scene_def;
+		return Error();
 	}
 
 	

@@ -121,13 +121,13 @@ namespace rhea
 						if (default_character_ref) {
 							SceneResource* default_character = doCast<SceneResource>(m_app->getUnitTree()->find(default_character_ref.id()));
 							if (default_character) {
-								ReqError error;
+								Error error;
 								character = doCast<Item>(default_character->spawnPrepared(context->target_scene, "", &error));
 								if (character) {
 									LOG(LOG_INFO) << "ControllerService: Default character spawned: " << default_character_ref.id();
 								}
 								else
-									LOG(LOG_ERROR) << "ControllerService: Default character failed to spawn: " << default_character_ref.id() << " with error " << (int)error;
+									LOG(LOG_ERROR) << "ControllerService: Default character failed to spawn: " << default_character_ref.id() << " with error " << (int)error.getCode();
 							}
 							else
 								LOG(LOG_ERROR) << "ControllerService: Default character not found: " << default_character_ref.id();

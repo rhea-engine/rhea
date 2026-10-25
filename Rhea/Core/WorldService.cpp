@@ -31,65 +31,12 @@ namespace rhea
 			});
 	}
 
-	rhea::Error translateLoadError(ReqError error, const std::string& rid)
-	{
-		using Error = rhea::Error;
-		using Code = Error::Code;
-
-		Code code = Code::RESOURCE_ERROR;
-		std::string message;
-
-		switch (error) {
-		case ReqError::OK:
-			return {};
-		case ReqError::REALM_NOT_FOUND:
-			code = Code::NOT_FOUND;
-			message = "Realm could not be resolved.";
-			break;
-		case ReqError::RESOURCE_NOT_FOUND:
-			code = Code::NOT_FOUND;
-			message = "Resource was not found.";
-			break;
-		case ReqError::PATH_NOT_FOUND:
-			code = Code::NOT_FOUND;
-			message = "Resource path was not found.";
-			break;
-		case ReqError::NO_AUTH:
-			code = Code::AUTHENTICATION_FAILED;
-			message = "Authentication is required or has failed.";
-			break;
-		case ReqError::NO_ACCESS:
-			code = Code::ACCESS_DENIED;
-			message = "Access to the resource was denied.";
-			break;
-		case ReqError::CONFIG_ERR:
-			code = Code::INVALID_DEFINITION;
-			message = "Resource configuration is invalid.";
-			break;
-		case ReqError::DATA_INVALID:
-			code = Code::INVALID_DATA;
-			message = "Resource data is invalid.";
-			break;
-		case ReqError::NOT_IMPLEMENTED:
-			code = Code::UNAVAILABLE;
-			message = "The requested operation is not implemented.";
-			break;
-		default:
-			message = "Resource loading did not complete successfully.";
-			break;
-		}
-
-		Error result(code, message, rid);
-		result.addContext("request_error", std::to_string(static_cast<int>(error)));
-		return result;
-	}
-
-	void WorldService::openWorld(std::string& rid, OpenHandler handler)
+	void WorldService::openWorld(const std::string& rid, OpenHandler handler)
 	{
 		const uint64_t open_generation = ++m_open_generation;
 		m_state = State::LoadingWorld;
 
-		m_app->loadResource(rid, "//meworla/world", [this, rid, open_generation, handler](Component* component, ReqError error) {
+		m_app->loadResource(rid, "//meworla/world", [this, rid, open_generation, handler](Component* component, Error error) {
 
 			if (open_generation != m_open_generation) {
 				if (handler) {
@@ -99,7 +46,7 @@ namespace rhea
 			}
 
 			SceneResource* scene_resource = doCast<SceneResource>(component);
-			if (error == ReqError::OK && scene_resource) {
+			if (!error.isError() && scene_resource) {
 				const ResourceContext context{
 					scene_resource->getContextRoot(),
 					scene_resource->getSceneRoot()
@@ -132,14 +79,13 @@ namespace rhea
 			else {
 				m_state = State::Idle;
 				if (handler) {
-					if (error == ReqError::OK && !scene_resource) {
+					if (!error.isError() && !scene_resource) {
 						LOG(LOG_ERROR) << "Failed to load world: Resource is not a scene resource: " << rid;
 						handler(Error(Error::Code::UNSUPPORTED_FORMAT, "Resource is not a scene resource", rid));
 					}
 					else {
-						Error result = translateLoadError(error, rid);
-						LOG(LOG_ERROR) << "Failed to load world: " << static_cast<int>(error) << " (" << rid << ")";
-						handler(result);
+						LOG(LOG_ERROR) << "Failed to load world: " << static_cast<int>(error.getCode()) << " (" << rid << ")";
+						handler(error);
 					}
 				}
 			}
@@ -206,14 +152,18 @@ namespace rhea
 			return; // Resource already being loaded, handler will be called when loading is complete
 
 		const uint64_t session_generation = m_session_generation;
-		m_app->loadResource(rid, context, "//meworla/scene", [this, rid, handler, session_generation](Component* component, ReqError error) {
+		m_app->loadResource(rid, context, "//meworla/scene", [this, rid, handler, session_generation](Component* component, Error error) {
 			SceneResource* scene_resource = doCast<SceneResource>(component);
 
 			Error result;
 
-			if (error != ReqError::OK || !scene_resource) {
-				LOG(LOG_ERROR) << "Failed to load scene: " << static_cast<int>(error) << " (" << rid << ")";
-				result = Error(Error::Code::NOT_FOUND, "Resource not found");
+			if (error.isError()) {
+				LOG(LOG_ERROR) << "Failed to load scene: " << static_cast<int>(error.getCode()) << " (" << rid << ")";
+				result = error;
+			}
+			if (!scene_resource) {
+				LOG(LOG_ERROR) << "Resource is not a scene resource: " << rid;
+				result = Error(Error::Code::UNSUPPORTED_FORMAT, "Resource is not a scene resource");
 			}
 
 			Unit* parent = nullptr;

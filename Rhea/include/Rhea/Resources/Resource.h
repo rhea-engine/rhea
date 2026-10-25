@@ -19,6 +19,8 @@ using ReqError = orion::ResourceRequest::Error;
 
 namespace rhea
 {
+	Error translateLoadError(orion::ResourceRequest::Error error, const std::string& resource_id);
+
 	// a resource is a unit that holds some data structure and may be loaded from remote	
 	class Resource : public Unit
 	{

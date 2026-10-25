@@ -36,27 +36,7 @@ namespace rhea
 			Ready,
 			Transitioning
 		};
-		/*
-		enum class OpenError
-		{
-			None,
-			ResourceNotFound,
-			InvalidWorldType,
-			InvalidStartScene,
-			InvalidSceneType,
-			StartSceneLoadFailed,
-			EntryPointNotFound,
-			RequestCanceled
-		};
 
-		enum class PrepareError
-		{
-			None,
-			PhysicsInitializationFailed,
-			MissingCamera,
-			InvalidController
-		};
-		*/
 		enum class SceneRole
 		{
 			Regular,
@@ -72,19 +52,7 @@ namespace rhea
 			Prepared,
 			Active
 		};
-		/*
-		enum class TransitionError
-		{
-			None,
-			AlreadyTransitioning,
-			ResourceNotFound,
-			InvalidSceneType,
-			PreparationFailed,
-			EntryPointNotFound,
-			ActivationFailed,
-			RequestCanceled
-		};
-		*/
+		
 		struct WorldPrepareContext
 		{
 			World* world = nullptr;
@@ -190,8 +158,7 @@ namespace rhea
 		using ScenePrepareHandler = std::function<Error(ScenePrepareContext*)>;
 		using TransitionHandler = std::function<void(SceneTransitionContext*, TransitionCompletion)>;
 
-
-		void openWorld(std::string& resource_id, OpenHandler handler = nullptr);
+		void openWorld(const std::string& resource_id, OpenHandler handler = nullptr);
 		// scene lifecycle management
 		// load a scene without transitioning to it
 		void loadScene(const std::string& resource_id, LoadSceneHandler handler = nullptr);

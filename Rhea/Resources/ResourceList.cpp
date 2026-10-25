@@ -66,11 +66,11 @@ namespace rhea {
 					decrementToLoadAndCheckIfZero(handler, nullptr);
 				}
 				else {
-					m_app->loadResource(res.id, m_resource_context, res.type, [&, res, key, handler](Component* component, orion::ResourceRequest::Error err) {
+					m_app->loadResource(res.id, m_resource_context, res.type, [&, res, key, handler](Component* component, Error err) {
 						Unit* resource = doCast<Unit>(component);
 						if (resource) {
-							if (err != orion::ResourceRequest::Error::OK) {
-								LOG(LOG_ERROR) << "Could not load resource " << res.id << ": " << orion::ResourceRequest::getErrorMessage(err);
+							if (err.isError()) {
+								LOG(LOG_ERROR) << "Could not load resource " << res.id << ": " << err.getMessage();
 							}
 
 							m_resources[key].status = Resource::Status::LOADED;
@@ -79,9 +79,9 @@ namespace rhea {
 							decrementToLoadAndCheckIfZero(handler, nullptr);
 						}
 						else {
-							LOG(LOG_ERROR) << "Could not load resource " << res.id << ": " << orion::ResourceRequest::getErrorMessage(err);
+							LOG(LOG_ERROR) << "Could not load resource " << res.id << ": " << err.getMessage();
 							m_resources[key].status = Resource::Status::DATA_INVALID;
-							Error errmsg(Error::Code::RESOURCE_ERROR, orion::ResourceRequest::getErrorMessage(err));
+							Error errmsg(Error::Code::RESOURCE_ERROR, err.getMessage());
 							decrementToLoadAndCheckIfZero(handler, &errmsg);							
 						}
 						});

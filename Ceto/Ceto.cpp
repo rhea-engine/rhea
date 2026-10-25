@@ -592,9 +592,9 @@ void Ceto::loadMainGUI()
 {
 	// load the apps gui			
 	std::string app_gui = "//local/cetogui.scene";
-	loadResource(app_gui, "//meworla/scene", [&](rhea::Component* res, ReqError r_err) {
+	loadResource(app_gui, "//meworla/scene", [&](rhea::Component* res, rhea::Error r_err) {
 		rhea::SceneResource* scene_res = doCast<rhea::SceneResource>(res);
-		if (scene_res && r_err == ReqError::OK) {
+		if (scene_res && !r_err.isError()) {
 			rhea::Unit* parent = doCast<rhea::Unit>(m_unit_tree->find(scene_res->getSceneRoot()));
 			scene_res->spawn(parent, [&](ReqError r_err, rhea::Unit* res) {
 				rhea::Scene* gui = doCast<rhea::Scene>(res);

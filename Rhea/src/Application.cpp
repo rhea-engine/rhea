@@ -473,13 +473,13 @@ namespace rhea
 		return ret;
 	}
 
-	void Application::loadResource(const std::string& resource_id, const std::string& type_name, std::function<void(Component*, ReqError error)> handler)
+	void Application::loadResource(const std::string& resource_id, const std::string& type_name, std::function<void(Component*, Error error)> handler)
 	{
 		loadResource(resource_id, {}, type_name, handler);
 	}
 
 
-	void Application::loadResource(const std::string& resource_id, const ResourceContext& context, const std::string& type_name, std::function<void(Component*, ReqError error)> handler)
+	void Application::loadResource(const std::string& resource_id, const ResourceContext& context, const std::string& type_name, std::function<void(Component*, Error error)> handler)
 	{
 		std::string rid = context.normalizeResourceId(resource_id);
 
@@ -506,27 +506,37 @@ namespace rhea
 					if (!m_unit_tree->addChild(realm_unit)) {
 						LOG(LOG_ERROR) << "LoadResource(" << resource_id << "): Failed to add realm " << realm_name;
 						delete realm_unit;
-						return handler(NULL, ReqError::DATA_INVALID);
+						if (handler)
+							handler(NULL, Error(Error::Code::INVALID_DATA, "Failed to add realm " + realm_name, rid));
+						return;
 					}
 				}
 
 				// find the unit parent and create the folders if necessary
 				std::string parentpath = realm_name + req->getParentPath();
 				Unit* parent_unit = doCast<Unit>(m_unit_tree->find(parentpath, true));
-				if (!parent_unit)
+				if (!parent_unit) {
 					// should not happen
-					return handler(NULL, ReqError::PATH_NOT_FOUND);
+					if (handler)
+						handler(NULL, Error(Error::Code::NOT_FOUND, "Parent unit not found: " + parentpath, rid));
+					return;
+				}
 
 				if (req->getStream()->IsDir()) {
 					// sepcial case for directory
 					Collection* collection = new Collection(req->getBasename(), "//core/collection");
 					collection->readFromStream(req->getStream());
 					if (!parent_unit->addChild(collection)) {
-						LOG(LOG_ERROR) << "LoadResource(" << resource_id << "): Failed to add collection " << collection->getPathName() << " to parent " << parent_unit->getPath();
+						std::string path = collection->getPathName();
+						LOG(LOG_ERROR) << "LoadResource(" << resource_id << "): Failed to add collection " << path << " to parent " << parent_unit->getPath();
 						delete collection;
-						return handler(NULL, ReqError::DATA_INVALID);
+						if (handler)
+							handler(NULL, Error(Error::Code::INVALID_DATA, "Failed to add collection " + path + " to parent " + parent_unit->getPath(), rid));
+						return;
 					}
-					return handler(collection, ReqError::OK);
+					if (handler)
+						handler(collection, Error());
+					return;
 				}
 
 				// call loader for resource mime type
@@ -534,44 +544,77 @@ namespace rhea
 				// get from request
 				std::string mime = req->getMimeType();
 				if (mime.length()) {
-					if (m_resource_loader.load(req->getBasename(), this, mime, req, loaded_context, [this, handler, parent_unit, resource_id](ReqError err, Component* component) {
+					if (m_resource_loader.load(req->getBasename(), this, mime, req, loaded_context, [this, handler, parent_unit, rid](ReqError err, Component* component) {
 
-						// add it to tree
-						if (component) {
-							if (!parent_unit->addChild(component)) {
-								LOG(LOG_ERROR) << "LoadResource(" << resource_id << "): Failed to add component " << component->getPathName() << " to parent " << parent_unit->getPath();
+						if (err != ReqError::OK) {
+							if (component) {
+								LOG(LOG_ERROR) << "LoadResource(" << rid << "): Failed to load component " << component->getPathName();
 								delete component;
-								return handler(NULL, ReqError::DATA_INVALID);
 							}
+							if (handler)
+								handler(NULL, translateLoadError(err, rid));
+							return;
 						}
 
-						handler(component, err);
+						if (!component) {
+							if (handler) {
+								handler(nullptr, Error(Error::Code::INVALID_DATA, "Resource loader returned no component.", rid));
+							}
+							return;
+						}
+
+						// add it to tree
+						if (!parent_unit->addChild(component)) {
+							std::string path = component->getPathName();
+							LOG(LOG_ERROR) << "LoadResource(" << rid << "): Failed to add component " << path << " to parent " << parent_unit->getPath();
+							delete component;
+							if (handler)
+								handler(NULL, Error(Error::Code::INVALID_DATA, "Failed to add component " + path + " to parent " + parent_unit->getPath(), rid));
+							return;
+						}
+
+						if (handler)
+							handler(component, Error());
 						}))
 						return;
 						log("No loader for mime type " + mime);
 				}
 				else
-					log("No mime type for " + resource_id);
+					log("No mime type for " + rid);
 
 				// this is only called for unhandled or unknown mime types
 
 				// create a generic resource unit
 				Resource* component = new Resource(req->getBasename(), "//meworla/resource");
 
-				// add it to tree
-				if (!parent_unit->addChild(component)) {
-					LOG(LOG_ERROR) << "LoadResource(" << resource_id << "): Failed to add component " << component->getPathName() << " to parent " << parent_unit->getPath();
-					delete component;
-					return handler(NULL, ReqError::DATA_INVALID);
-				}
-
 				// call load of unit
-				component->load(req, [&, handler](ReqError err) {
-					handler(component, err);
+				component->load(req, [parent_unit, component, handler, rid](ReqError err) {
+					if (err != ReqError::OK) {
+						std::string path = component->getPathName();
+						delete component;
+						LOG(LOG_ERROR) << "LoadResource(" << rid << "): Failed to load component " << path;
+						if (!handler)
+							return;
+						return handler(NULL, translateLoadError(err, rid));
+					}
+
+					// add it to tree
+					if (!parent_unit->addChild(component)) {
+						std::string path = component->getPathName();
+						LOG(LOG_ERROR) << "LoadResource(" << rid << "): Failed to add component " << path << " to parent " << parent_unit->getPath();
+						delete component;
+						if (!handler)
+							return;
+						return handler(NULL, Error(Error::Code::INVALID_DATA, "Failed to add component " + path + " to parent " + parent_unit->getPath(), rid));
+					}
+
+					if (handler)
+						handler(component, Error());
 					});
 			}
 			else
-				handler(NULL, static_cast<ReqError>(err));
+				if (handler)
+					handler(NULL, translateLoadError(static_cast<ReqError>(err), rid));
 			});
 	}
 

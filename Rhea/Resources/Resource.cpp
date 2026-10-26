@@ -26,20 +26,23 @@ namespace rhea {
 
 	void Resource::buildInstance(const InstanceRequest&, InstanceHandler handler)
 	{
-		if (handler)
-			handler(Error(Error::Code::UNAVAILABLE, "The requested operation is not implemented."), nullptr);
+		if (handler) {
+			ErrorReport report;
+			report.addError(Error(Error::Code::UNAVAILABLE, "The requested operation is not implemented.", m_path));
+			handler(report, nullptr);
+		}
 	}
 
 	void Resource::ensureReady(InstanceHandler handler)
 	{
 		if (handler)
-			handler(Error(), this);
+			handler(ErrorReport(), this);
 	}
 	
 	void Resource::prepare(PrepareHandler handler)
 	{
 		m_prepared = true;
-		handler(Error());
+		handler(ErrorReport());
 	}
 
 	void Resource::setRaw(size_t buflen, char* buf)
@@ -71,49 +74,49 @@ namespace rhea {
 		std::string message;
 
 		switch (error) {
-		case ReqError::OK:
+		case orion::Error::OK:
 			return {};
-		case ReqError::REALM_NOT_FOUND:
+		case orion::Error::REALM_NOT_FOUND:
 			code = Code::NOT_FOUND;
 			message = "Realm could not be resolved.";
 			break;
-		case ReqError::RESOURCE_NOT_FOUND:
+		case orion::Error::RESOURCE_NOT_FOUND:
 			code = Code::NOT_FOUND;
 			message = "Resource was not found.";
 			break;
-		case ReqError::PATH_NOT_FOUND:
+		case orion::Error::PATH_NOT_FOUND:
 			code = Code::NOT_FOUND;
 			message = "Resource path was not found.";
 			break;
-		case ReqError::NO_AUTH:
+		case orion::Error::NO_AUTH:
 			code = Code::AUTHENTICATION_FAILED;
 			message = "Authentication is required or has failed.";
 			break;
-		case ReqError::NO_ACCESS:
+		case orion::Error::NO_ACCESS:
 			code = Code::ACCESS_DENIED;
 			message = "Access to the resource was denied.";
 			break;
-		case ReqError::CONFIG_ERR:
+		case orion::Error::CONFIG_ERR:
 			code = Code::INVALID_DEFINITION;
 			message = "Resource configuration is invalid.";
 			break;
-		case ReqError::DATA_INVALID:
+		case orion::Error::DATA_INVALID:
 			code = Code::INVALID_DATA;
 			message = "Resource data is invalid.";
 			break;
-		case ReqError::NOT_IMPLEMENTED:
+		case orion::Error::NOT_IMPLEMENTED:
 			code = Code::UNAVAILABLE;
 			message = "The requested operation is not implemented.";
 			break;
-		case ReqError::TRANSPORT_ERROR:
+		case orion::Error::TRANSPORT_ERROR:
 			code = Code::RESOURCE_ERROR;
 			message = "Resource transport failed.";
 			break;
-		case ReqError::CANCELED:
+		case orion::Error::CANCELED:
 			code = Code::CANCELED;
 			message = "Resource request was canceled.";
 			break;
-		case ReqError::UNKNOWN_ERROR:
+		case orion::Error::UNKNOWN_ERROR:
 			message = "An unknown resource request error occurred.";
 			break;
 		default:

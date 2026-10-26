@@ -42,7 +42,7 @@ namespace rhea
 		void detachFromParent();
 
 		// async prepare
-		typedef std::function<void(Error*)> ReadyHandler;
+		typedef std::function<void(ErrorReport)> ReadyHandler;
 
 		// ready signal - all dependant units are prepared and we now finalize for usage, recursive to children
 		void ready() override;

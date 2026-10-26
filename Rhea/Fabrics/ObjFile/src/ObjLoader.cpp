@@ -159,18 +159,20 @@ namespace rhea
 
 		auto* resource_service = m_app->getService<ResourceService>();
 		resource_service->loadAsync(textures,
-			[this, handler](ResourceList* loaded, Error* error) {
-				if (error) {
-					LOG(LOG_ERROR) << "Error loading textures: " << error->getMessage();
+			[this, handler](ResourceList* loaded, ErrorReport error) {
+				if (error.isError()) {
+					for (auto err : error.errors) {
+						LOG(LOG_ERROR) << "Error loading textures: " << err.getMessage();
+					}
 					if (handler)
-						handler(*error);
+						handler(error);
 					return;
 				}
 
 				// Store the loaded textures with their material assignment.
 				m_prepared = true;
 				if (handler)
-					handler(Error());
+					handler(error);
 			});
 	}
 

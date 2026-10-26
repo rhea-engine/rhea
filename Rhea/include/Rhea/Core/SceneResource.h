@@ -35,8 +35,8 @@ namespace rhea
 			std::vector<NodeDefinition> nodes;
 		};
 
-		using SpawnHandler = std::function<void(Error, Unit*)>;
-		using MaterializeHandler = std::function<void(Error, Unit*)>;
+		using SpawnHandler = std::function<void(ErrorReport, Unit*)>;
+		using MaterializeHandler = std::function<void(ErrorReport, Unit*)>;
 
 		SceneResource(std::string name, std::string type_name) :
 			Resource(name, type_name)
@@ -87,7 +87,7 @@ namespace rhea
 		Unit* spawnPrepared(
 			Unit* parent,
 			const std::string& name,
-			Error* error = nullptr);
+			ErrorReport* error = nullptr);
 
 		// Build a complete detached tree without calling ready().
 		void buildInstance(const InstanceRequest& request, InstanceHandler handler) override;
@@ -104,7 +104,7 @@ namespace rhea
 			std::string instance_name;
 			Component::ResourceUsage usage = Component::ResourceUsage::Load;
 		};
-		using CompletionHandler = std::function<void(Error)>;
+		using CompletionHandler = std::function<void(ErrorReport)>;
 
 		void instantiatePendingScenes(
 			ResourceList& resources,
@@ -115,7 +115,7 @@ namespace rhea
 		std::vector<MaterializeHandler> m_waiting_materialize_handlers;
 		Unit* m_materialized_instance = nullptr;
 
-		void completeMaterialization(Error error, Unit* instance);
+		void completeMaterialization(ErrorReport error, Unit* instance);
 
 		enum class PrepareState {
 			Unprepared,

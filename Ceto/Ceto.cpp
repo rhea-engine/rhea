@@ -546,7 +546,7 @@ void Ceto::setScene(bool mark_preferrences)
 
 	auto* worlds = doCast<rhea::WorldService>(getService("world"));
 
-	worlds->openWorld(m_home_scene,	[this, worlds](rhea::Error error)
+	worlds->openWorld(m_home_scene,	[this, worlds](rhea::ErrorReport error)
 		{
 			if (error.isError()) {
 				log("Ceto: Could not open scene");
@@ -592,11 +592,11 @@ void Ceto::loadMainGUI()
 {
 	// load the apps gui			
 	std::string app_gui = "//local/cetogui.scene";
-	loadResource(app_gui, "//meworla/scene", [&](rhea::Component* res, rhea::Error r_err) {
+	loadResource(app_gui, "//meworla/scene", [&](rhea::Component* res, rhea::ErrorReport r_err) {
 		rhea::SceneResource* scene_res = doCast<rhea::SceneResource>(res);
 		if (scene_res && !r_err.isError()) {
 			rhea::Unit* parent = doCast<rhea::Unit>(m_unit_tree->find(scene_res->getSceneRoot()));
-			scene_res->spawn(parent, [&](rhea::Error r_err, rhea::Unit* res) {
+			scene_res->spawn(parent, [&](rhea::ErrorReport r_err, rhea::Unit* res) {
 				rhea::Scene* gui = doCast<rhea::Scene>(res);
 				if (gui && !r_err.isError()) {
 

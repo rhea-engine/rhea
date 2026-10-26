@@ -150,12 +150,12 @@ namespace rhea
 		// init event
 		virtual void onInit();
 
-		using OpenHandler = std::function<void(Error)>;
-		using LoadSceneHandler = std::function<void(Scene*, Error)>;
-		using TransitionCompletion = std::function<void(Error)>;
+		using OpenHandler = std::function<void(ErrorReport)>;
+		using LoadSceneHandler = std::function<void(Scene*, ErrorReport)>;
+		using TransitionCompletion = std::function<void(ErrorReport)>;
 
-		using WorldPrepareHandler = std::function<Error(WorldPrepareContext*)>;
-		using ScenePrepareHandler = std::function<Error(ScenePrepareContext*)>;
+		using WorldPrepareHandler = std::function<ErrorReport(WorldPrepareContext*)>;
+		using ScenePrepareHandler = std::function<ErrorReport(ScenePrepareContext*)>;
 		using TransitionHandler = std::function<void(SceneTransitionContext*, TransitionCompletion)>;
 
 		void openWorld(const std::string& resource_id, OpenHandler handler = nullptr);
@@ -204,14 +204,14 @@ namespace rhea
 
 		void beginSession(const ResourceContext& context);
 		void deactivatePreviousSession();
-		void onWorldLoaded(uint64_t open_generation, const std::string request_id, const ResourceContext& context, Component* component, OpenHandler handler);
+		void onWorldLoaded(uint64_t open_generation, const std::string request_id, const ResourceContext& context, ErrorReport report, Component* component, OpenHandler handler);
 
-		void loadStartScene(World* world, const ResourceContext& context, uint64_t open_generation, OpenHandler handler);
+		void loadStartScene(World* world, const ResourceContext& context, uint64_t open_generation, ErrorReport report, OpenHandler handler);
 		// activate loaded scene and make it primary scene
-		void doTransitionScene(Scene* scene, const TransitionRequest& request, OpenHandler handler);
+		void doTransitionScene(Scene* scene, const TransitionRequest& request, ErrorReport report, OpenHandler handler);
 
-		Error prepareScene(Scene* next_scene, SceneRole role, Scene* owner_scene = nullptr);
-		Error prepareWorld(World* world, Scene* standalone_scene = nullptr);
+		ErrorReport prepareScene(Scene* next_scene, SceneRole role, Scene* owner_scene = nullptr);
+		ErrorReport prepareWorld(World* world, Scene* standalone_scene = nullptr);
 		void prepareSceneTransition(Scene* source_scene, Scene* target_scene, SceneEntryPoint* entry_point, const TransitionRequest& request, TransitionCompletion completion);
 		void prepareSceneTransitionAsync(std::shared_ptr<SceneTransitionContext> context, size_t handlerIndex, TransitionCompletion complete);
 

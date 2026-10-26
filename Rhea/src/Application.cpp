@@ -473,15 +473,22 @@ namespace rhea
 		return ret;
 	}
 
-	void Application::loadResource(const std::string& resource_id, const std::string& type_name, std::function<void(Component*, Error error)> handler)
+	void Application::loadResource(const std::string& resource_id, const std::string& type_name, std::function<void(Component*, ErrorReport error)> handler)
 	{
 		loadResource(resource_id, {}, type_name, handler);
 	}
 
 
-	void Application::loadResource(const std::string& resource_id, const ResourceContext& context, const std::string& type_name, std::function<void(Component*, Error error)> handler)
+	void Application::loadResource(const std::string& resource_id, const ResourceContext& context, const std::string& type_name, std::function<void(Component*, ErrorReport error)> handler)
 	{
 		std::string rid = context.normalizeResourceId(resource_id);
+
+		// check if already loaded
+		if (auto* resource = doCast<Resource>(m_unit_tree->find(rid, false))) {
+			if (handler)
+				handler(resource, ErrorReport{});
+			return;
+		}
 
 		log("loading resource: " + rid);
 		orion::ResourceRequest* req = m_fs->getResourceByRid(rid);
@@ -544,7 +551,7 @@ namespace rhea
 				// get from request
 				std::string mime = req->getMimeType();
 				if (mime.length()) {
-					if (m_resource_loader.load(req->getBasename(), this, mime, req, loaded_context, [this, handler, parent_unit, rid](Error err, Component* component) {
+					if (m_resource_loader.load(req->getBasename(), this, mime, req, loaded_context, [this, handler, parent_unit, rid](ErrorReport err, Component* component) {
 
 						if (err.isError()) {
 							if (component) {
@@ -558,7 +565,8 @@ namespace rhea
 
 						if (!component) {
 							if (handler) {
-								handler(nullptr, Error(Error::Code::INVALID_DATA, "Resource loader returned no component.", rid));
+								err.addError(Error(Error::Code::INVALID_DATA, "Resource loader returned no component.", rid));
+								handler(nullptr, err);
 							}
 							return;
 						}
@@ -568,13 +576,14 @@ namespace rhea
 							std::string path = component->getPathName();
 							LOG(LOG_ERROR) << "LoadResource(" << rid << "): Failed to add component " << path << " to parent " << parent_unit->getPath();
 							delete component;
+							err.addError(Error(Error::Code::INVALID_DATA, "Failed to add component " + path + " to parent " + parent_unit->getPath(), rid));
 							if (handler)
-								handler(NULL, Error(Error::Code::INVALID_DATA, "Failed to add component " + path + " to parent " + parent_unit->getPath(), rid));
+								handler(NULL, err);
 							return;
 						}
 
 						if (handler)
-							handler(component, Error());
+							handler(component, err);
 						}))
 						return;
 						log("No loader for mime type " + mime);
@@ -588,14 +597,15 @@ namespace rhea
 				Resource* component = new Resource(req->getBasename(), "//meworla/resource");
 
 				// call load of unit
-				component->load(req, [parent_unit, component, handler, rid](Error err) {
-					if (err.isError()) {
+				component->load(req, [parent_unit, component, handler, rid](ErrorReport result) {
+
+					if (result.isError()) {
 						std::string path = component->getPathName();
 						delete component;
 						LOG(LOG_ERROR) << "LoadResource(" << rid << "): Failed to load component " << path;
 						if (!handler)
 							return;
-						return handler(NULL, err);
+						return handler(NULL, result);
 					}
 
 					// add it to tree
@@ -605,11 +615,12 @@ namespace rhea
 						delete component;
 						if (!handler)
 							return;
-						return handler(NULL, Error(Error::Code::INVALID_DATA, "Failed to add component " + path + " to parent " + parent_unit->getPath(), rid));
+						result.addError(Error(Error::Code::INVALID_DATA, "Failed to add component " + path + " to parent " + parent_unit->getPath(), rid));
+						return handler(NULL, result);
 					}
 
 					if (handler)
-						handler(component, Error());
+						handler(component, result);
 					});
 			}
 			else

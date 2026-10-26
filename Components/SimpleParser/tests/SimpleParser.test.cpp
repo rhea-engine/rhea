@@ -381,7 +381,7 @@ namespace simpleparser
 		
 		IniFileParser parser;
 		std::vector<IniFileParser::Section> sections;
-		EXPECT_EQ(parser.parse(ini.data(), ini.size(), sections), 2);
+		EXPECT_EQ(parser.parse(ini.data(), ini.size(), sections), IniFileParser::Error::PARSE_OK);
 		
 		ASSERT_EQ(sections.size(), 2u);
 		EXPECT_EQ(sections[0].section_name, "Section1");
@@ -404,7 +404,7 @@ namespace simpleparser
 		
 		IniFileParser parser;
 		std::vector<IniFileParser::Section> sections;
-		EXPECT_EQ(parser.parse(ini.data(), ini.size(), sections), 1);
+		EXPECT_EQ(parser.parse(ini.data(), ini.size(), sections), IniFileParser::Error::PARSE_OK);
 		
 		ASSERT_EQ(sections.size(), 1u);
 		EXPECT_EQ(sections[0].section_name, "Section");
@@ -441,7 +441,7 @@ namespace simpleparser
 		
 		CssParser parser;
 		std::vector<CssParser::Entry> entries;
-		EXPECT_EQ(parser.parse(css.data(), css.size(), entries), 1);
+		EXPECT_EQ(parser.parse(css.data(), css.size(), entries), CssParser::Error::PARSE_OK);
 
 		ASSERT_EQ(entries.size(), 1u);
 		ASSERT_EQ(entries[0].selector.size(), 1u);

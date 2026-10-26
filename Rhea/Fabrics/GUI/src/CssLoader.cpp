@@ -55,15 +55,15 @@ namespace rhea {
 				res_list.push(ref_it->name, ref_it->value.toString(), ref_it->type);
 			}
 			delete buf;
-			static_cast<ResourceService*>(app->getService("resources"))->loadAsync(res_list, [css, handler](ResourceList* rh, Error* err) {
-				if (err && err->isError()) {
+			static_cast<ResourceService*>(app->getService("resources"))->loadAsync(res_list, [css, handler](ResourceList* rh, ErrorReport err) {
+				if (err.isError()) {
 					delete css;
 					if (handler)
-						handler(*err, nullptr);
+						handler(err, nullptr);
 				}
 				else {
 					if (handler)
-						handler(Error(), css);
+						handler(err, css);
 				}
 				});
 			});

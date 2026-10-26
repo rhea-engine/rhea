@@ -14,19 +14,14 @@ namespace rhea {
 		if (resreq.size()) {
 			std::shared_ptr<ResourceList> rreq = std::make_shared<ResourceList>(resreq);
 
-			rreq->load([this, rreq, onLoaded](rhea::Error* err) {
+			rreq->load([this, rreq, onLoaded](rhea::ErrorReport err) {
 				if (onLoaded) {
-					if (!err) {
-						onLoaded(rreq.get(), nullptr);
-					}
-					else {
-						onLoaded(rreq.get(), err);
-					}
+					onLoaded(rreq.get(), err);
 				}
 				});
 		}
 		else {
-			onLoaded(&resreq, nullptr);
+			onLoaded(&resreq, ErrorReport());
 		}
 	}
 }

@@ -42,13 +42,16 @@ namespace rhea
 	void SceneResource::spawn(Unit* parent, const std::string& name, SpawnHandler handler)
 	{
 		if (!parent) {
-			if (handler)
-				handler(Error(Error::Code::NOT_FOUND, "Parent unit not found.", m_source_resource_id), nullptr);
+			if (handler) {
+				ErrorReport error;
+				error.addError(Error(Error::Code::NOT_FOUND, "Parent unit not found.", m_source_resource_id));
+				handler(error, nullptr);
+			}
 			return;
 		}
 
 		if (m_prepare_state == PrepareState::Prepared) {
-			Error error;
+			ErrorReport error;
 
 			Unit* instance = spawnPrepared(parent, name, &error);
 
@@ -63,7 +66,7 @@ namespace rhea
 		const std::string root_name = request.name.empty() ? m_definition.root.name : request.name;
 		request.basepath = parent->getPath() + "/" + root_name;
 
-		buildInstance(request, [this, parent, handler](Error error, Unit* root) {
+		buildInstance(request, [this, parent, handler](ErrorReport error, Unit* root) {
 			if (error.isError()) {
 				if (handler)
 					handler(error, nullptr);
@@ -72,13 +75,15 @@ namespace rhea
 
 			if (!parent->addChild(root)) {
 				root->destroy();
-				if (handler)
-					handler(Error(Error::Code::INVALID_DATA, "Failed to add child unit.", m_source_resource_id), nullptr);
+				if (handler) {
+					error.addError(Error(Error::Code::INVALID_DATA, "Failed to add child unit.", m_source_resource_id));
+					handler(error, nullptr);
+				}
 				return;
 			}
 			root->ready();
 			if (handler)
-				handler(Error(), root);
+				handler(error, root);
 			});
 	}
 
@@ -86,7 +91,7 @@ namespace rhea
 	{
 		if (m_materialized_instance) {
 			if (handler)
-				handler(Error(), m_materialized_instance);
+				handler(ErrorReport(), m_materialized_instance);
 			return;
 		}
 
@@ -101,7 +106,7 @@ namespace rhea
 		const std::string root_name = request.name.empty() ? m_definition.root.name : request.name;
 		request.basepath = m_scene_root + "/" + root_name;
 
-		buildInstance(request, [this](Error error, Unit* root) {
+		buildInstance(request, [this](ErrorReport error, Unit* root) {
 			if (error.isError()) {
 				completeMaterialization(error, nullptr);
 				return;
@@ -110,21 +115,23 @@ namespace rhea
 			Unit* canonical_parent = doCast<Unit>(m_app->getUnitTree()->find(m_scene_root));
 			if (!canonical_parent) {
 				root->destroy();
-				completeMaterialization(Error(Error::Code::NOT_FOUND, "Parent unit not found.", m_source_resource_id), nullptr);
+				error.addError(Error(Error::Code::NOT_FOUND, "Parent unit not found.", m_source_resource_id));
+				completeMaterialization(error, nullptr);
 				return;
 			}
 
 			if (!canonical_parent->addChild(root)) {
 				root->destroy();
-				completeMaterialization(Error(Error::Code::INVALID_DATA, "Failed to add child unit.", m_source_resource_id), nullptr);
+				error.addError(Error(Error::Code::INVALID_DATA, "Failed to add child unit.", m_source_resource_id));
+				completeMaterialization(error, nullptr);
 				return;
 			}
 			root->ready();
-			completeMaterialization(Error(), root);
+			completeMaterialization(error, root);
 			});
 	}
 
-	void SceneResource::completeMaterialization(Error error, Unit* instance)
+	void SceneResource::completeMaterialization(ErrorReport error, Unit* instance)
 	{
 		m_materializing = false;
 		if (!error.isError())
@@ -144,8 +151,9 @@ namespace rhea
 		for (const auto& node : m_definition.nodes) {
 			if (!node_ids.insert(node.node_id).second) {
 				LOG(LOG_ERROR) << "Duplicate scene component: " << node.node_id;
-				Error error(Error::Code::INVALID_DATA, "Duplicate scene component: " + node.node_id, m_source_resource_id);
-				error.addContext("node", node.node_id);
+				ErrorReport error;
+				error.addError(Error(Error::Code::INVALID_DATA, "Duplicate scene component: " + node.node_id, m_source_resource_id));
+				error.errors.back().addContext("node", node.node_id);
 				if (handler)
 					handler(error, nullptr);
 				return;
@@ -160,20 +168,48 @@ namespace rhea
 		std::vector<PendingSceneInstance> ready_instances;
 		ResourceList ready_resources(m_app, context);
 
+		// check types
+		ErrorReport type_error;
+		if (!simpleparser::Type::get(m_definition.root.type_name)) {
+			Error error(Error::Code::UNKNOWN_TYPE, "Type is not registered: " + m_definition.root.type_name, m_source_resource_id);
+			error.addContext("node", m_definition.root.name);
+			error.addContext("type", m_definition.root.type_name);
+			type_error.addError(error);
+		}
+		for (const auto& node : m_definition.nodes) {
+			if (simpleparser::Type::get(node.type_name))
+				continue;
+			Error error(Error::Code::UNKNOWN_TYPE, "Type is not registered: " + node.type_name, m_source_resource_id);
+			error.addContext("node", node.node_id);
+			error.addContext("type", node.type_name);
+			type_error.addError(error);
+		}
+		if (type_error.isError()) {
+			if (handler)
+				handler(std::move(type_error), nullptr);
+			return;
+		}
+
 		const std::string root_name = request.name.empty() ? m_definition.root.name : request.name;
 		Component* root_component = doCast<Component>(simpleparser::Type::create(root_name, m_definition.root.type_name));
 		if (!root_component) {
 			LOG(LOG_ERROR) << "Failed to create component of type " << m_definition.root.type_name;
-			if (handler)
-				handler(Error(Error::Code::INVALID_DEFINITION, "Type is not registered: " + m_definition.root.type_name, m_source_resource_id), nullptr);
+			if (handler) {
+				ErrorReport error;
+				error.addError(Error(Error::Code::INVALID_DEFINITION, "Type is not registered: " + m_definition.root.type_name, m_source_resource_id));
+				handler(error, nullptr);
+			}
 			return;
 		}
 		Unit* root = doCast<Unit>(root_component);
 		if (!root) {
 			delete root_component;
 			LOG(LOG_ERROR) << "Root component is not a Unit: " << m_definition.root.name;
-			if (handler)
-				handler(Error(Error::Code::INVALID_DATA, "Root component is not a Unit: " + m_definition.root.name, m_source_resource_id), nullptr);
+			if (handler) {
+				ErrorReport error;
+				error.addError(Error(Error::Code::INVALID_DATA, "Root component is not a Unit: " + m_definition.root.name, m_source_resource_id));
+				handler(std::move(error), nullptr);
+			}
 			return;
 		}
 
@@ -184,18 +220,30 @@ namespace rhea
 		instances[""] = root;
 		instances[m_definition.root.name] = root;
 
+		auto destroy_instances = [&]() {
+			std::vector<Component*> detached_roots;
+
+			for (const auto& config : pending_configs) {
+				if (!config.component->getParent())
+					detached_roots.push_back(config.component);
+			}
+
+			for (Component* component : detached_roots)
+				component->destroy();
+
+			root->destroy();
+			};
+
 		// Create every configured component before establishing relationships.
+		ErrorReport create_error;
 		for (const auto& node : m_definition.nodes) {
 			Component* component = doCast<Component>(simpleparser::Type::create(node.name, node.type_name));
 			if (!component) {
 				LOG(LOG_ERROR) << "Failed to create component of type " << node.type_name;
-				root->destroy();
-				Error error(Error::Code::INVALID_DEFINITION, "Type is not registered: " + node.type_name, m_source_resource_id);
-				error.addContext("node", node.node_id);
-				error.addContext("type", node.type_name);
-				if (handler)
-					handler(error, nullptr);
-				return;
+				create_error.addError(Error(Error::Code::INVALID_DEFINITION, "Failed to instantiate type: " + node.type_name, m_source_resource_id));
+				create_error.errors.back().addContext("node", node.node_id);
+				create_error.errors.back().addContext("type", node.type_name);
+				continue;
 			}
 
 			component->setOrigin(Component::ComponentOrigin::Configured);
@@ -204,33 +252,38 @@ namespace rhea
 			attributes["basepath"] = request.basepath;
 			pending_configs.push_back({ component, node.node_id, attributes, node.values });
 		}
+		if (create_error.isError()) {
+			destroy_instances();
+			if (handler)
+				handler(create_error, nullptr);
+			return;
+		}
 
 		// Attach the configured tree. All referenced parents must be Units.
+		ErrorReport attach_errors;
 		for (const auto& node : m_definition.nodes) {
 			auto component_it = instances.find(node.node_id);
 			auto parent_it = instances.find(node.parent_id);
 			Unit* definition_parent = parent_it == instances.end() ? nullptr : doCast<Unit>(parent_it->second);
 			if (!definition_parent || component_it == instances.end()) {
 				LOG(LOG_ERROR) << "Failed to find parent for component " << node.node_id;
-				root->destroy();
-				if (handler)
-					handler(Error(Error::Code::INVALID_DATA, "Failed to find parent for component " + node.node_id, m_source_resource_id), nullptr);
-				return;
+				attach_errors.addError(Error(Error::Code::INVALID_DATA, "Failed to find parent for component " + node.node_id, m_source_resource_id));
+				continue;
 			}
 			if (!definition_parent->addChild(component_it->second)) {
 				LOG(LOG_ERROR) << "Failed to attach scene component " << node.node_id;
-				for (const auto& config : pending_configs) {
-					if (!config.component->getParent())
-						config.component->destroy();
-				}
-				root->destroy();
-				if (handler)
-					handler(Error(Error::Code::INVALID_DATA, "Failed to attach scene component " + node.node_id, m_source_resource_id), nullptr);
-				return;
+				attach_errors.addError(Error(Error::Code::INVALID_DATA, "Failed to attach scene component " + node.node_id, m_source_resource_id));
+				continue;
 			}
 		}
+		if (attach_errors.isError()) {
+			destroy_instances();
+			if (handler)
+				handler(attach_errors, nullptr);
+			return;
+		}
 
-		Error references_error;
+		ErrorReport references_error;
 		auto collect_references = [this, &request, &instances, &resources, &pending_instances, &ready_resources, &ready_instances, &references_error](
 			const std::string& owner_id, Component* owner)->bool {
 				for (const auto& reference : owner->getReferences()) {
@@ -254,10 +307,11 @@ namespace rhea
 
 						if (!target) {
 							LOG(LOG_ERROR) << "Local resource reference not found: " << id << " for " << owner_id;
-							references_error = Error(Error::Code::INVALID_DATA, "Local resource reference not found: " + id, m_source_resource_id);
-							references_error.addContext("reference", id);
-							references_error.addContext("node", owner_id);
-							references_error.addContext("property", reference.name);
+							Error reference_error = Error(Error::Code::INVALID_DATA, "Local resource reference not found: " + id, m_source_resource_id);
+							reference_error.addContext("reference", id);
+							reference_error.addContext("node", owner_id);
+							reference_error.addContext("property", reference.name);
+							references_error.addError(reference_error);
 							return false;
 						}
 
@@ -276,8 +330,11 @@ namespace rhea
 								if (reference.usage == Component::ResourceUsage::Load)
 									continue;
 
-								if (!target)
+								if (!target) {
+									Error reference_error = Error(Error::Code::INVALID_DATA, "Target is not a unit: " + id, m_source_resource_id);
+									references_error.addError(reference_error);
 									return false;
+								}
 							}
 						}
 							
@@ -318,63 +375,66 @@ namespace rhea
 		if (!references_valid) {
 			root->destroy();
 			if (handler)
-				if (references_error.isError())
-					handler(references_error, nullptr);
-				else
-					handler(Error(Error::Code::INVALID_DATA, "Invalid references in scene resource.", m_source_resource_id), nullptr);
+				handler(references_error, nullptr);
 			return;
 		}
 
 		auto* resource_service = static_cast<ResourceService*>(m_app->getService("resources"));
 		if (!resource_service) {
 			root->destroy();
-			if (handler)
-				handler(Error(Error::Code::INVALID_DATA, "Resource service not available.", m_source_resource_id), nullptr);
+			if (handler) {
+				ErrorReport error;
+				error.addError(Error(Error::Code::INVALID_DATA, "Resource service not available.", m_source_resource_id));
+				handler(std::move(error), nullptr);
+			}
 			return;
 		}
 
-		auto load_remaining = [this, root, resource_service, resources = std::move(resources), pending_instances, handler]() mutable {
+		auto load_remaining = [this, root, resource_service, resources = std::move(resources), pending_instances, handler](ErrorReport report) mutable {
 			resource_service->loadAsync(resources,
-				[this, root, pending = std::move(pending_instances), handler](ResourceList* loaded, Error* error) mutable {
-					if (error) {
+				[this, root, pending = std::move(pending_instances), handler, report](ResourceList* loaded, ErrorReport error) mutable {
+					report.merge(std::move(error));
+					if (report.isError()) {
 						root->destroy();
 						if (handler)
-							handler(*error, nullptr);
+							handler(std::move(report), nullptr);
 						return;
 					}
 
 					instantiatePendingScenes(*loaded, std::move(pending),
-						[root, handler](Error result) {
-							if (result.isError()) {
+						[root, report, handler](ErrorReport result) mutable {
+							report.merge(std::move(result));
+							if (report.isError()) {
 								root->destroy();
 								if (handler)
-									handler(result, nullptr);
+									handler(std::move(report), nullptr);
 								return;
 							}
 							if (handler)
-								handler(Error(), root);
+								handler(std::move(report), root);
 						});
 				});
 		};
 
 		// Materialize libraries before resolving references to their configured nodes.
 		resource_service->loadAsync(ready_resources,
-			[this, root, pending = std::move(ready_instances), load_remaining, handler](ResourceList* loaded, Error* error) mutable {
-				if (error) {
+			[this, root, pending = std::move(ready_instances), load_remaining, handler](ResourceList* loaded, ErrorReport error) mutable {
+				if (error.isError()) {
 					root->destroy();
 					if (handler)
-						handler(*error, nullptr);
+						handler(error, nullptr);
 					return;
 				}
 				instantiatePendingScenes(*loaded, std::move(pending),
-					[root, load_remaining, handler](Error result) mutable {
+					[root, error, load_remaining, handler](ErrorReport result) mutable {
+						error.merge(result);
 						if (result.isError()) {
 							root->destroy();
 							if (handler)
-								handler(result, nullptr);
+								handler(error, nullptr);
 							return;
 						}
-						load_remaining();
+						load_remaining(std::move(error));
 					});
 			});
 	}
@@ -385,7 +445,7 @@ namespace rhea
 		CompletionHandler complete)
 	{
 		if (pending.empty()) {
-			complete(Error());
+			complete(ErrorReport());
 			return;
 		}
 
@@ -394,20 +454,18 @@ namespace rhea
 			size_t remaining = 0;
 			bool completed = false;
 			CompletionHandler complete;
-			Error final_error = Error();
+			ErrorReport report = ErrorReport();
 
-			void finishOne(Error error)
+			void finishOne(ErrorReport error)
 			{
 				if (completed)
 					return;
 				
-				// store the first error encountered, but continue processing the rest
-				if (!final_error.isError() && error.isError()) {
-					final_error = error;
-				}
+				report.merge(std::move(error));
+
 				if (--remaining == 0) {
 					completed = true;
-					complete(final_error);
+					complete(std::move(report));
 				}
 			}
 		};
@@ -419,28 +477,32 @@ namespace rhea
 		for (const auto& item : pending) {
 			auto* resource = doCast<Resource>(resources[item.resource_key]);
 			if (!resource) {
-				state->finishOne(Error(Error::Code::INVALID_DATA, "Resource not found: " + item.resource_key, m_source_resource_id));
+				ErrorReport report;
+				report.addError(Error(Error::Code::NOT_FOUND, "Resource not found: " + item.resource_key, m_source_resource_id));
+				state->finishOne(std::move(report));
 				continue;
 			}
 
 			switch (item.usage) {
 			case Component::ResourceUsage::Load:
-				state->finishOne(Error());
+				state->finishOne(ErrorReport());
 				break;
 			case Component::ResourceUsage::Prepare:
-				resource->prepare([state](Error error) {
+				resource->prepare([state](ErrorReport error) {
 					state->finishOne(error);
 					});
 				break;
 			case Component::ResourceUsage::EnsureReady:
-				resource->ensureReady([state](Error error, Unit*) {
+				resource->ensureReady([state](ErrorReport error, Unit*) {
 					state->finishOne(error);
 					});
 				break;
 
 			case Component::ResourceUsage::Instantiate: {
 				if (!item.parent) {
-					state->finishOne(Error(Error::Code::INVALID_DATA, "Parent not found.", m_source_resource_id));
+					ErrorReport report;
+					report.addError(Error(Error::Code::INVALID_DEFINITION, "Parent not found.", m_source_resource_id));
+					state->finishOne(std::move(report));
 					break;
 				}
 				InstanceRequest request;
@@ -449,14 +511,17 @@ namespace rhea
 					request.name = doCast<SceneResource>(resource)->getDefinition().root.name;
 				request.basepath = item.parent->getPath() + "/" + request.name;
 				resource->buildInstance(request,
-					[state, parent = item.parent, source_resource_id = m_source_resource_id](Error error, Unit* instance) {
-						if (!error.isError() && instance) {
-							if (!parent->addChild(instance)) {
+					[state, parent = item.parent, source_resource_id = m_source_resource_id](ErrorReport report, Unit* instance) {
+						if (!report.isError()) {
+							if (!instance) {
+								report.addError(Error(Error::Code::INVALID_DATA, "Resource returned no instance.", source_resource_id));
+							}
+							else if (!parent->addChild(instance)) {
 								instance->destroy();
-								error = Error(Error::Code::INVALID_DATA, "Failed to add child unit.", source_resource_id);
+								report.addError(Error(Error::Code::INVALID_DATA, "Failed to add child unit.", source_resource_id));
 							}
 						}
-						state->finishOne(error);
+						state->finishOne(std::move(report));
 					});
 				break;
 			}
@@ -468,7 +533,7 @@ namespace rhea
 	{
 		if (m_prepare_state == PrepareState::Prepared) {
 			if (handler)
-				handler(Error());
+				handler(ErrorReport());
 			return;
 		}
 
@@ -484,7 +549,7 @@ namespace rhea
 		InstanceRequest request;
 		request.name = "";
 
-		buildInstance(request, [this](Error error, Unit* root) {
+		buildInstance(request, [this](ErrorReport error, Unit* root) {
 			if (error.isError()) {
 				if (root)
 					root->destroy();
@@ -496,7 +561,8 @@ namespace rhea
 				m_prepare_state = PrepareState::Prepared;
 				m_prepared = true;
 			}
-			for (auto& h : m_prepare_handlers) {
+			auto handlers = std::move(m_prepare_handlers);
+			for (auto& h : handlers) {
 				h(error);
 			}
 			m_prepare_handlers.clear();
@@ -506,17 +572,20 @@ namespace rhea
 	Unit* SceneResource::spawnPrepared(
 		Unit* parent,
 		const std::string& name,
-		Error* error)
+		ErrorReport* error)
 	{
+		if (error)
+			*error = ErrorReport{};
+
 		if (m_prepare_state != PrepareState::Prepared || !m_prepared_prototype) {
 			if (error)
-				*error = Error(Error::Code::UNAVAILABLE, "Instance is not prepared.", m_source_resource_id); // PENDING?
+				error->addError(Error(Error::Code::UNAVAILABLE, "Instance is not prepared.", m_source_resource_id)); // PENDING?
 			return nullptr;
 		}
 
 		if (!parent) {
 			if (error)
-				*error = Error(Error::Code::NOT_FOUND, "Parent not found.", m_source_resource_id);
+				error->addError(Error(Error::Code::NOT_FOUND, "Parent not found.", m_source_resource_id));
 			return nullptr;
 		}
 
@@ -528,20 +597,17 @@ namespace rhea
 
 		if (!instance) {
 			if (error)
-				*error = Error(Error::Code::INVALID_DATA, "Instance not found.", m_source_resource_id);
+				error->addError(Error(Error::Code::INVALID_DATA, "Instance not found.", m_source_resource_id));
 			return nullptr;
 		}
 
 		if (!parent->addChild(instance)) {
 			instance->destroy();
 			if (error)
-				*error = Error(Error::Code::INVALID_DATA, "Failed to add child unit.", m_source_resource_id);
+				error->addError(Error(Error::Code::INVALID_DATA, "Failed to add child unit.", m_source_resource_id));
 			return nullptr;
 		}
 		instance->ready();
-
-		if (error)
-			*error = Error();
 
 		return instance;
 	}

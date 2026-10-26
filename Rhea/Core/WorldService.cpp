@@ -36,33 +36,35 @@ namespace rhea
 		const uint64_t open_generation = ++m_open_generation;
 		m_state = State::LoadingWorld;
 
-		m_app->loadResource(rid, "//meworla/world", [this, rid, open_generation, handler](Component* component, Error error) {
-
+		m_app->loadResource(rid, "//meworla/world", [this, rid, open_generation, handler](Component* component, ErrorReport report) {
 			if (open_generation != m_open_generation) {
 				if (handler) {
-					handler(Error(Error::Code::CANCELED, "Request canceled"));
+					report.addError(Error(Error::Code::CANCELED, "Request canceled"));
+					handler(report);
 				}
 				return; // stale result
 			}
 
 			SceneResource* scene_resource = doCast<SceneResource>(component);
-			if (!error.isError() && scene_resource) {
+			if (!report.isError() && scene_resource) {
 				const ResourceContext context{
 					scene_resource->getContextRoot(),
 					scene_resource->getSceneRoot()
 				};
 				// instance the world
 				Unit* parent = doCast<Unit>(m_app->getUnitTree()->find(scene_resource->getSceneRoot()));
-				scene_resource->spawn(parent, [this, rid, open_generation, handler, context](Error error, Unit* unit) {
+				scene_resource->spawn(parent, [this, rid, open_generation, report, handler, context](ErrorReport result, Unit* unit) mutable {
+					report.merge(std::move(result));
 					if (open_generation != m_open_generation) {
 						if (handler) {
-							handler(Error(Error::Code::CANCELED, "Request canceled"));
+							report.addError(Error(Error::Code::CANCELED, "Request canceled"));
+							handler(report);
 						}
 						return; // stale result
 					}
-					if (error.isError()) {
+					if (report.isError()) {
 						if (handler) {
-							handler(error);
+							handler(std::move(report));
 						}
 						return;
 					}
@@ -73,19 +75,20 @@ namespace rhea
 						m_state = State::Ready;
 					}
 					LOG(LOG_INFO) << "Loaded world: " << rid;
-					onWorldLoaded(open_generation, rid, context, unit, handler);
+					onWorldLoaded(open_generation, rid, context, report, unit, handler);
 					});
 			}
 			else {
 				m_state = State::Idle;
 				if (handler) {
-					if (!error.isError() && !scene_resource) {
+					if (!report.isError() && !scene_resource) {
 						LOG(LOG_ERROR) << "Failed to load world: Resource is not a scene resource: " << rid;
-						handler(Error(Error::Code::UNSUPPORTED_FORMAT, "Resource is not a scene resource", rid));
+						report.addError(Error(Error::Code::UNSUPPORTED_FORMAT, "Resource is not a scene resource", rid));
+						handler(report);
 					}
 					else {
-						LOG(LOG_ERROR) << "Failed to load world: " << static_cast<int>(error.getCode()) << " (" << rid << ")";
-						handler(error);
+						LOG(LOG_ERROR) << "Failed to load world: " << rid;
+						handler(report);
 					}
 				}
 			}
@@ -123,10 +126,12 @@ namespace rhea
 
 	void WorldService::loadScene(const std::string& resource_id, const ResourceContext& context, LoadSceneHandler handler)
 	{
+		ErrorReport report{};
 		if (resource_id.empty()) {
 			LOG(LOG_ERROR) << "Invalid resource id: " << resource_id << " (empty)";
 			if (handler) {
-				handler(nullptr, Error(Error::Code::NOT_FOUND, "Resource not found"));
+				report.addError(Error(Error::Code::INVALID_ARGUMENT, "Resource id is empty"));
+				handler(nullptr, std::move(report));
 			}
 			return;
 		}
@@ -137,7 +142,7 @@ namespace rhea
 			ManagedScene& managed_scene = pair.second;
 			if (managed_scene.resource_id == rid && managed_scene.session_generation == m_session_generation) {
 				if (handler) {
-					handler(managed_scene.scene, Error());
+					handler(managed_scene.scene, report);
 				}
 				return;
 			}
@@ -152,30 +157,29 @@ namespace rhea
 			return; // Resource already being loaded, handler will be called when loading is complete
 
 		const uint64_t session_generation = m_session_generation;
-		m_app->loadResource(rid, context, "//meworla/scene", [this, rid, handler, session_generation](Component* component, Error error) {
+		m_app->loadResource(rid, context, "//meworla/scene", [this, rid, handler, session_generation, report](Component* component, ErrorReport result) mutable {
 			SceneResource* scene_resource = doCast<SceneResource>(component);
 
-			Error result;
+			report.merge(std::move(result));
 
-			if (error.isError()) {
-				LOG(LOG_ERROR) << "Failed to load scene: " << static_cast<int>(error.getCode()) << " (" << rid << ")";
-				result = error;
+			if (report.isError()) {
+				LOG(LOG_ERROR) << "Failed to load scene: " << rid;
 			}
 			else if (!scene_resource) {
 				LOG(LOG_ERROR) << "Resource is not a scene resource: " << rid;
-				result = Error(Error::Code::UNSUPPORTED_FORMAT, "Resource is not a scene resource");
+				report.addError(Error(Error::Code::UNSUPPORTED_FORMAT, "Resource is not a scene resource", rid));
 			}
 
 			Unit* parent = nullptr;
-			if (!result.isError()) {
+			if (!report.isError()) {
 				parent = doCast<Unit>(m_app->getUnitTree()->find(scene_resource->getSceneRoot()));
 				if (!parent) {
 					LOG(LOG_ERROR) << "Failed to find scene root: " << scene_resource->getSceneRoot() << " (" << rid << ")";
-					result = Error(Error::Code::INVALID_DEFINITION, "Invalid scene type");
+					report.addError(Error(Error::Code::INVALID_DEFINITION, "Invalid scene type", rid));
 				}
 			}
 
-			if (result.isError()) {
+			if (report.isError()) {
 				// Call all pending handlers with the error
 				SceneLoadKey key{ session_generation, rid };
 				auto it = m_pending_scene_loads.find(key);
@@ -186,21 +190,22 @@ namespace rhea
 				m_pending_scene_loads.erase(it);
 
 				for (auto& handler : pending.handlers)
-					handler(nullptr, result);
+					handler(nullptr, report);
 				return;
 			}
 
-			scene_resource->spawn(parent, [this, rid, session_generation](Error error, Unit* component) {
+			scene_resource->spawn(parent, [this, rid, report, session_generation](ErrorReport result, Unit* component) mutable {
+
+				report.merge(std::move(result));
 
 				Scene* scene = doCast<Scene>(component);
-				Error result;
 
 				if (session_generation != m_session_generation) {
-					result = Error(Error::Code::CANCELED, "Request canceled");
+					report.addError(Error(Error::Code::CANCELED, "Request canceled"));
 				}
 				else {
 
-					if (!error.isError()) {
+					if (!report.isError()) {
 						LOG(LOG_DEBUG) << "Loaded scene: " << rid;
 
 						if (scene) {
@@ -208,16 +213,15 @@ namespace rhea
 						}
 						else {
 							LOG(LOG_ERROR) << "Loaded component is not a scene: " << rid;
-							result = Error(Error::Code::INVALID_DEFINITION, "Invalid scene type");
+							report.addError(Error(Error::Code::INVALID_DEFINITION, "Invalid scene type"));
 						}
 					}
 					else {
-						LOG(LOG_ERROR) << "Failed to load scene: " << static_cast<int>(error.getCode()) << " (" << rid << ")";
-						result = error;
+						LOG(LOG_ERROR) << "Failed to load scene: " << rid;
 					}
 				}
 
-				if (!result.isError()) {
+				if (!report.isError()) {
 
 					// register all scene entry points
 					scene->children([this, scene](std::string& name, Component* child) -> bool {
@@ -239,7 +243,7 @@ namespace rhea
 				m_pending_scene_loads.erase(it);
 
 				for (auto& handler : pending.handlers)
-					handler(scene, result);
+					handler(scene, report);
 				});
 			});
 	}
@@ -251,7 +255,7 @@ namespace rhea
 
 	void WorldService::activateScene(const std::string& resource_id, const ResourceContext& context, SceneRole role, Scene* owner_scene, OpenHandler handler)
 	{
-		loadScene(resource_id, context, [this, resource_id, role, owner_scene, handler, context](Scene* next_scene, Error error) {
+		loadScene(resource_id, context, [this, resource_id, role, owner_scene, handler, context](Scene* next_scene, ErrorReport error) {
 			if (!error.isError()) {
 				if (next_scene) {
 					// prepare the scene if not already prepared
@@ -260,10 +264,11 @@ namespace rhea
 					m_managed_scenes[next_scene].role = role;
 					m_managed_scenes[next_scene].owner_scene = owner_scene;
 					if (!managed_scene.isPrepared()) {
-						Error prepareError = prepareScene(next_scene, managed_scene.role, managed_scene.owner_scene);
-						if (prepareError.isError()) {
+						ErrorReport prepareError = prepareScene(next_scene, managed_scene.role, managed_scene.owner_scene);
+						error.merge(std::move(prepareError));
+						if (error.isError()) {
 							if (handler) {
-								handler(prepareError);
+								handler(error);
 							}
 							return;
 						}
@@ -275,13 +280,13 @@ namespace rhea
 					next_scene->show();
 
 					if (handler) {
-						handler(Error());
+						handler(error);
 					}
 				}
 				else {
 					LOG(LOG_ERROR) << "Activation failed: scene not found after loading: " << resource_id;
 					if (handler) {
-						handler(Error(Error::Code::INVALID_DEFINITION, "Invalid scene type"));
+						handler(error);
 					}
 				}
 			}
@@ -328,16 +333,16 @@ namespace rhea
 
 	void rhea::WorldService::transitionToScene(const TransitionRequest& request, OpenHandler handler)
 	{
-		loadScene(request.target_resource_id, m_session_context, [this, request, handler](Scene* next_scene, Error error) {
+		loadScene(request.target_resource_id, m_session_context, [this, request, handler](Scene* next_scene, ErrorReport error) {
 			if (!error.isError()) {
 				// find the loaded scene
 				if (next_scene) {
-					doTransitionScene(next_scene, request, handler);
+					doTransitionScene(next_scene, request, error, handler);
 				}
 				else {
 					LOG(LOG_ERROR) << "Transition failed: scene not found after loading: " << request.target_resource_id;
 					if (handler) {
-						handler(Error(Error::Code::INVALID_DEFINITION, "Invalid scene type"));
+						handler(error);
 					}
 				}
 			}
@@ -398,32 +403,34 @@ namespace rhea
 		}
 	}
 
-	void WorldService::onWorldLoaded(uint64_t open_generation, std::string request_id, const ResourceContext& context, Component* component, OpenHandler handler)
+	void WorldService::onWorldLoaded(uint64_t open_generation, std::string request_id, const ResourceContext& context, ErrorReport report, Component* component, OpenHandler handler)
 	{
 		// get start scene
 		World* world = doCast<World>(component);
 		if (world) {
-			Error error = prepareWorld(world);
-			if (error.isError()) {
+			ErrorReport error = prepareWorld(world);
+			report.merge(std::move(error));
+			if (report.isError()) {
 				m_state = m_primary_scene ? State::Ready : State::Idle;
 				if (handler) {
-					handler(error);
+					handler(report);
 				}
 				return;
 			}
 			beginSession(context);
 			m_world = world;
-			loadStartScene(world, context, open_generation, handler);
+			loadStartScene(world, context, open_generation, report, handler);
 		}
 		else if (doCast<Scene>(component)) {
 			// if the loaded component is a scene, we can use it directly
 			LOG(LOG_INFO) << "Loaded scene: " << request_id;
 			Scene* scene = doCast<Scene>(component);
-			Error error = prepareWorld(nullptr, scene);
-			if (error.isError()) {
+			ErrorReport error = prepareWorld(nullptr, scene);
+			report.merge(std::move(error));
+			if (report.isError()) {
 				m_state = State::Idle;
 				if (handler) {
-					handler(error);
+					handler(report);
 				}
 				return;
 			}
@@ -432,7 +439,7 @@ namespace rhea
 
 			ManagedScene& managed_scene = ensureManagedScene(scene, request_id, SceneRole::Regular, nullptr);
 			managed_scene.lifecycle_managed = true;
-			doTransitionScene(scene, TransitionRequest{}, handler);
+			doTransitionScene(scene, TransitionRequest{}, report, handler);
 		}
 		else if (doCast<Collection>(component)) {
 			// user tried to open directory
@@ -446,19 +453,21 @@ namespace rhea
 			LOG(LOG_ERROR) << "Loaded scene is not a world or a scene: " << request_id;
 			m_state = State::Idle;
 			if (handler) {
-				handler(Error(Error::Code::INVALID_DEFINITION, "Invalid world type"));
+				report.addError(Error(Error::Code::INVALID_DEFINITION, "Invalid world type"));
+				handler(report);
 			}
 		}
 
 	}
-	void WorldService::loadStartScene(World* world, const ResourceContext& context, uint64_t requestId, OpenHandler handler)
+	void WorldService::loadStartScene(World* world, const ResourceContext& context, uint64_t requestId, ErrorReport report, OpenHandler handler)
 	{
 		std::string start = m_world->getValueString("startscene", "");
 
 		if (start.empty()) {
 			LOG(LOG_ERROR) << "World has no startscene";
 			if (handler) {
-				handler(Error(Error::Code::INVALID_DEFINITION, "World has no startscene"));
+				report.addError(Error(Error::Code::INVALID_DEFINITION, "World has no startscene"));
+				handler(report);
 			}
 			return;
 		}
@@ -468,66 +477,71 @@ namespace rhea
 		if (embedded) {
 			ManagedScene& managed_scene = ensureManagedScene(embedded, m_world->getPath() + "/" + start, SceneRole::Regular, nullptr);
 			managed_scene.lifecycle_managed = true;
-			doTransitionScene(embedded, TransitionRequest{}, handler);
+			doTransitionScene(embedded, TransitionRequest{}, report, handler);
 			return;
 		}
 
 		// Otherwise, load as an external resource ID.
-		loadScene(start, context, [this, requestId, start, handler](Scene* next_scene, Error error) {
-
+		loadScene(start, context, [this, requestId, start, report, handler](Scene* next_scene, ErrorReport error) mutable {
+			report.merge(std::move(error));
 			if (requestId != m_open_generation) {
+				report.addError(Error(Error::Code::CANCELED, "Request canceled"));
 				if (handler)
-					handler(Error(Error::Code::CANCELED, "Request canceled"));
+					handler(report);
 				return;
 			}
 
-			if (!error.isError()) {
+			if (!report.isError()) {
 				if (next_scene) {
-					doTransitionScene(next_scene, TransitionRequest{}, handler);
+					doTransitionScene(next_scene, TransitionRequest{}, report, handler);
 				}
 				else {
 					LOG(LOG_ERROR) << "Start scene not found after loading: " << start;
+					report.addError(Error(Error::Code::INVALID_DEFINITION, "Invalid start scene"));
 					if (handler) {
-						handler(Error(Error::Code::INVALID_DEFINITION, "Invalid start scene"));
+						handler(report);
 					}
 				}
 			}
 			else {
-				LOG(LOG_ERROR) << "Failed to load start scene: " << static_cast<int>(error.getCode()) << " (" << start << ")";
+				LOG(LOG_ERROR) << "Failed to load start scene: " << start;
 				if (handler) {
-					handler(error);
+					handler(report);
 				}
 			}
 			});
 	}
 
-	void WorldService::doTransitionScene(Scene* scene, const TransitionRequest& request, OpenHandler handler)
+	void WorldService::doTransitionScene(Scene* scene, const TransitionRequest& request, ErrorReport report, OpenHandler handler)
 	{
 		if (m_state == State::Transitioning) {
+			report.addError(Error(Error::Code::CANCELED, "Request canceled"));
 			if (handler)
-				handler(Error(Error::Code::CANCELED, "Request canceled"));
+				handler(report);
 			return;
 		}
 
 		if (m_managed_scenes.find(scene) == m_managed_scenes.end()) {
 			LOG(LOG_ERROR) << "Scene is not managed by WorldService: " << scene->getPathName();
 			if (handler) {
-				handler(Error(Error::Code::INVALID_DEFINITION, "Invalid scene type"));
+				report.addError(Error(Error::Code::INVALID_DEFINITION, "Invalid scene type"));
+				handler(report);
 			}
 			return;
 		}
 		else if (scene == m_primary_scene) {
 			LOG(LOG_WARNING) << "Scene is already the primary scene: " << scene->getPathName();
 			if (handler) {
-				handler(Error(Error::Code::NONE, "No error"));
+				handler(report);
 			}
 			return;
 		}
 		else if (m_managed_scenes[scene].state == SceneLifecycleState::Loaded) {
-			Error prepareError = prepareScene(scene, SceneRole::Regular);
+			ErrorReport prepareError = prepareScene(scene, SceneRole::Regular);
+			report.merge(std::move(prepareError));
 			if (prepareError.isError()) {
 				if (handler) {
-					handler(prepareError);
+					handler(report);
 				}
 				return;
 			}
@@ -544,8 +558,9 @@ namespace rhea
 			if (it == m_managed_scenes[scene].entry_points.end()) {
 				LOG(LOG_ERROR) << "Entry point not found in scene: " << request.entry_point;
 				m_state = previous_state;
+				report.addError(Error(Error::Code::INVALID_DEFINITION, "Entry point not found"));
 				if (handler) {
-					handler(Error(Error::Code::INVALID_DEFINITION, "Entry point not found"));
+					handler(report);
 				}
 				return;
 			}
@@ -557,11 +572,12 @@ namespace rhea
 		}
 
 		// prepare the transition to the new scene
-		prepareSceneTransition(m_primary_scene, scene, entry_point, request, [this, scene, previous_state, handler](Error error) {
-			if (error.isError()) {
+		prepareSceneTransition(m_primary_scene, scene, entry_point, request, [this, scene, previous_state, report, handler](ErrorReport error) mutable {
+			report.merge(std::move(error));
+			if (report.isError()) {
 				m_state = previous_state;
 				if (handler) {
-					handler(error);
+					handler(report);
 				}
 				return;
 			}
@@ -593,31 +609,31 @@ namespace rhea
 			sendEvent("primary_scene_changed", &event);
 
 			if (handler)
-				handler(Error());
+				handler(report);
 			});
 	}
 
-	Error WorldService::prepareScene(Scene* next_scene, SceneRole role, Scene* owner_scene)
+	ErrorReport WorldService::prepareScene(Scene* next_scene, SceneRole role, Scene* owner_scene)
 	{
 		ScenePrepareContext context = { m_world, m_primary_scene, next_scene, role, owner_scene };
+		ErrorReport report{};
 		for (ScenePrepareHandler& preparer : m_scene_prepare_handlers) {
-			Error error = preparer(&context);
-			if (error.isError())
-				return error;
+			ErrorReport error = preparer(&context);
+			report.merge(std::move(error));
 		}
 
-		return Error();
+		return report;
 	}
 
-	Error WorldService::prepareWorld(World* world, Scene* standalone_scene)
+	ErrorReport WorldService::prepareWorld(World* world, Scene* standalone_scene)
 	{
 		WorldPrepareContext context = { world, standalone_scene };
+		ErrorReport report{};
 		for (WorldPrepareHandler& preparer : m_world_prepare_handlers) {
-			Error error = preparer(&context);
-			if (error.isError())
-				return error;
+			ErrorReport error = preparer(&context);
+			report.merge(std::move(error));
 		}
-		return Error();
+		return report;
 	}
 
 	void WorldService::prepareSceneTransition(
@@ -628,7 +644,7 @@ namespace rhea
 		TransitionCompletion completion)
 	{
 		auto context = std::make_shared<SceneTransitionContext>(SceneTransitionContext{ m_world, source_scene, target_scene, entry_point, request });
-		prepareSceneTransitionAsync(context, 0, [completion](Error error) {
+		prepareSceneTransitionAsync(context, 0, [completion](ErrorReport error) {
 			completion(error);
 			});
 	}
@@ -652,7 +668,7 @@ namespace rhea
 			[this,
 			context,
 			handlerIndex,
-			complete](Error error) mutable {
+			complete](ErrorReport error) mutable {
 				if (error.isError()) {
 					complete(error);
 					return;
@@ -661,7 +677,10 @@ namespace rhea
 				prepareSceneTransitionAsync(
 					context,
 					handlerIndex + 1,
-					std::move(complete));
+					[complete, report = std::move(error)](ErrorReport next_report) mutable {
+						report.merge(std::move(next_report));
+						complete(std::move(report));
+					});
 			});
 	}
 

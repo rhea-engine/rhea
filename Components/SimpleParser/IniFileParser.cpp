@@ -243,7 +243,7 @@ namespace simpleparser
 		REGFILE_COMMENT
 	};
 
-	int IniFileParser::parse(char* buf, size_t buflen, std::vector<IniFileParser::Section>& sections)
+	IniFileParser::Error IniFileParser::parse(char* buf, size_t buflen, std::vector<IniFileParser::Section>& sections)
 	{
 		Token next_token;
 		Error err;
@@ -264,9 +264,9 @@ namespace simpleparser
 				break;
 			else {
 				printf("%s in line %d\n", getErrMsg(err), line);
-				return entries;
+				return err;
 			}
 		}
-		return entries;
+		return Error::PARSE_OK;
 	}
 }

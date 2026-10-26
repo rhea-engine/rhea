@@ -16,8 +16,6 @@
 
 #include "../Unit.h"
 
-using ReqError = orion::Error;
-
 namespace rhea
 {
 	Error translateLoadError(orion::Error error, const std::string& resource_id);
@@ -39,8 +37,8 @@ namespace rhea
 			CONFIG_ERR,
 			DATA_INVALID
 		};
-		typedef std::function<void(rhea::Error)> ReadyHandler;
-		typedef std::function<void(rhea::Error, Unit*)> LoadedHandler;
+		typedef std::function<void(rhea::ErrorReport)> ReadyHandler;
+		typedef std::function<void(rhea::ErrorReport, Unit*)> LoadedHandler;
 
 		Resource(std::string basename, std::string type_name) :
 			m_buf(nullptr),
@@ -77,11 +75,11 @@ namespace rhea
 			std::string basepath;
 		};
 
-		using InstanceHandler = std::function<void(Error, Unit*)>;
+		using InstanceHandler = std::function<void(ErrorReport, Unit*)>;
 		virtual void buildInstance(const InstanceRequest& request, InstanceHandler handler);
 		virtual void ensureReady(InstanceHandler handler);
 
-		using PrepareHandler = std::function<void(Error)>;
+		using PrepareHandler = std::function<void(ErrorReport)>;
 		virtual void prepare(PrepareHandler handler);
 		bool isPrepared() const { return m_prepared; }
 

@@ -34,11 +34,11 @@ namespace rhea {
 
 		size_t item_size = m_resources.size();
 		m_to_load = (int)item_size;
-		m_load_error = Error();
+		m_load_errors = ErrorReport();
 		if (!item_size) {
 			// no external resources -> immediately succeed
 			m_loaded = true;
-			handler(nullptr);
+			handler(m_load_errors);
 			return;
 		}
 		UnitTree* tree = m_app->getUnitTree();
@@ -66,18 +66,21 @@ namespace rhea {
 					decrementToLoadAndCheckIfZero(handler, nullptr);
 				}
 				else {
-					m_app->loadResource(res.id, m_resource_context, res.type, [&, res, key, handler](Component* component, Error err) {
+					m_app->loadResource(res.id, m_resource_context, res.type, [&, res, key, handler](Component* component, ErrorReport err) {
 						Unit* resource = doCast<Unit>(component);
 						if (resource && !err.isError()) {
 							m_resources[key].status = Resource::Status::LOADED;
 							m_resources[key].resource = resource;
 							resource->incRef();
-							decrementToLoadAndCheckIfZero(handler, nullptr);
+							decrementToLoadAndCheckIfZero(handler, &err);
 						}
 						else {
-							LOG(LOG_ERROR) << "Could not load resource " << res.id << ": " << err.getMessage();
+							if (!err.isError())
+								err.addError(Error(Error::Code::INVALID_DATA, "Loaded component is not a resource unit.", m_resource_context.normalizeResourceId(res.id)));
+							LOG(LOG_ERROR) << "Could not load resource " << res.id;
 							m_resources[key].status = Resource::Status::DATA_INVALID;
 							decrementToLoadAndCheckIfZero(handler, &err);
+
 						}
 						});
 				}
@@ -85,16 +88,16 @@ namespace rhea {
 		}
 	}
 
-	bool ResourceList::decrementToLoadAndCheckIfZero(Unit::ReadyHandler handler, Error* err) {
-		if (err && err->isError()) {
-			m_load_error = *err;
+	bool ResourceList::decrementToLoadAndCheckIfZero(Unit::ReadyHandler handler, ErrorReport* err) {
+		if (err) {
+			m_load_errors.merge(*err);
 		}
 		if (--m_to_load != 0)
 			return false;
 
 		m_loaded = true;
 		if (handler)
-			handler(m_load_error.isError() ? &m_load_error : nullptr);
+			handler(m_load_errors);
 
 		return true;
 	}

@@ -1,4 +1,4 @@
-/*	
+/*
  * Copyright (c) 2019-2026 Meworla
  *
  * Licensed under the MIT License.
@@ -11,10 +11,11 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <utility>
 
 namespace rhea
 {
-	
+
 	class Error
 	{
 	public:
@@ -26,6 +27,7 @@ namespace rhea
 			UNSUPPORTED_FORMAT,
 			INVALID_DEFINITION,
 			INVALID_DATA,
+			INVALID_ARGUMENT,
 			UNKNOWN_TYPE,
 			DEPENDENCY_FAILED,
 			CANCELED,
@@ -51,11 +53,11 @@ namespace rhea
 		bool isError() const { return m_code != Code::NONE; }
 
 		// get error type
-		Code getCode() { return m_code; }
+		Code getCode() const { return m_code; }
 
 		// get message of error
 		const std::string& getMessage() { return m_message; }
-		
+
 		// get how severe the error is
 		int getSeverness() { return m_severness; }
 
@@ -78,6 +80,57 @@ namespace rhea
 		std::string m_resource_id;
 		std::vector<Context> m_context;
 		std::shared_ptr<const Error> m_cause;
+	};
+
+	enum struct ErrorStatus {
+		SUCCESS,
+		FAILURE,
+		CANCELED,
+	};
+
+	struct ErrorReport
+	{
+		ErrorReport() = default;
+		ErrorReport(Error error) {
+			addError(error);
+		}
+
+		ErrorStatus status = ErrorStatus::SUCCESS;
+		std::vector<Error> errors;
+
+		void addError(const Error& error) {
+			if (!error.isError())
+				return;
+			errors.push_back(error);
+			if (error.getCode() == Error::Code::CANCELED) {
+				if (status == ErrorStatus::SUCCESS)
+					status = ErrorStatus::CANCELED;
+			}
+			else {
+				status = ErrorStatus::FAILURE;
+			}
+		}
+
+		bool isError() const {
+			return status != ErrorStatus::SUCCESS;
+		}
+
+		bool isCanceled() const {
+			return status == ErrorStatus::CANCELED;
+		}
+
+		void merge(ErrorReport report)
+		{
+			// Failure takes precedence over cancellation.
+			if (report.status == ErrorStatus::FAILURE)
+				status = ErrorStatus::FAILURE;
+			else if (report.status == ErrorStatus::CANCELED
+				&& status == ErrorStatus::SUCCESS)
+				status = ErrorStatus::CANCELED;
+
+			for (auto& error : report.errors)
+				errors.push_back(std::move(error));
+		}
 	};
 }
 

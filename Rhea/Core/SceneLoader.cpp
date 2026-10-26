@@ -60,9 +60,9 @@ namespace rhea
 		std::unique_ptr<simpleparser::IniFileParser> parser = std::make_unique<simpleparser::IniFileParser>();
 		std::vector<simpleparser::IniFileParser::Section> sections;
 
-		int entries = parser->parse(buf, buflen, sections);
+		simpleparser::IniFileParser::Error err = parser->parse(buf, buflen, sections);
 
-		if (!entries) {
+		if (err != simpleparser::IniFileParser::Error::PARSE_OK) {
 			LOG(LOG_ERROR) << "Failed to parse scene file: " << name;
 			return Error(Error::Code::INVALID_DATA, "Failed to parse scene file: " + name, name);
 		}		

@@ -25,7 +25,7 @@ void rhea::ColumnWidget::onSetPosition()
 	std::vector<Widget*> widgets;
 	for (auto it = m_ordered_children.begin(); it != m_ordered_children.end(); ++it) {
 		Widget* w = doCast<Widget>(*it);
-		if (w) {
+		if (w && w->isVisible()) {
 			widgets.push_back(w);
 		}
 	}
@@ -63,7 +63,7 @@ Vector2 rhea::ColumnWidget::innerSize(Vector2 size_constraints)
 
 	for (auto* child : m_ordered_children) {
 		Widget* widget = doCast<Widget>(child);
-		if (!widget)
+		if (!widget || !widget->isVisible())
 			continue;
 
 		if (child_count > 0) {
@@ -93,7 +93,7 @@ void rhea::ColumnWidget::innerGetMinSize(Vector2 size_constraints, Vector2& min_
 
 	for (auto* child : m_ordered_children) {
 		Widget* widget = doCast<Widget>(child);
-		if (!widget)
+		if (!widget || !widget->isVisible())
 			continue;
 
 		if (child_count > 0) {

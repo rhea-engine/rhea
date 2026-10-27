@@ -49,3 +49,34 @@ Locate `Ceto.exe` under `out/build/x64-release-vcpkg` and run it with its adjace
 with the file browser. This is a local release-build check, not yet a complete
 redistributable package: verify runtime DLL requirements and test on a clean
 Windows system before publishing.
+
+## Create a ZIP package
+
+Enable packaging in the same Release preset. Choose the intended version; the
+version below is an example. The samples path must contain `Courtyard/world.scene`.
+It can point to a separate copy of the examples outside the engine clone.
+
+```powershell
+cmake --preset x64-release-vcpkg `
+  -DRHEA_PACKAGE_CETO=ON `
+  -DCETO_PACKAGE_VERSION=0.1.2-rc1 `
+  -DCETO_PACKAGE_SAMPLES_DIR="C:/path/to/Examples"
+
+cmake --build out/build/x64-release-vcpkg --target ceto-package
+```
+
+The target builds Ceto and creates
+`out/build/x64-release-vcpkg/packages/Ceto-0.1.2-rc1-windows-x64.zip`.
+Repeat the build command after code or resource changes to create a new package.
+
+The ZIP includes the executable, resolved non-system DLL dependencies, the MSVC
+redistributable runtime files discovered by CMake, Data/ceto, Data/rhea,
+Data/samples/Courtyard, startup instructions, and license texts. With vcpkg, the
+installed ports' copyright files are included as well. It excludes unrelated
+build output and SDK installation components. CPack reports unresolved runtime
+dependencies as errors instead of silently creating a package without them.
+
+Extract into a fresh directory and start Ceto.exe by double-clicking. Select
+Samples, Courtyard, then world.scene. A test on another Windows
+system without development tools remains necessary before publishing; packaging
+alone does not verify that the application runs there.

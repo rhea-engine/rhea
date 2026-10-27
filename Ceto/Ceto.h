@@ -20,6 +20,7 @@
 using std::string;
 
 class OpenBrowser;
+class AlertDialog;
 
 class Ceto : public rhea::Application
 {
@@ -60,6 +61,7 @@ protected:
 	bool handleAppShortcuts(const rhea::InputEvent& evt);
 	void openQuitDialog();
 	void openRealmDialog();
+	void openDetailsDialog(rhea::ErrorReport report);
 
 	// user preferences
 	UserPrefs m_userprefs;
@@ -71,7 +73,8 @@ protected:
 	// cache of gui controller
 	rhea::GUIController* m_gui_controller;
 	OpenBrowser* m_realm_dialog = nullptr;
-	rhea::Dialog* m_alert_dialog = nullptr;
+	AlertDialog* m_alert_dialog = nullptr;
+	rhea::Dialog* m_details_dialog = nullptr;
 
 	float m_current_time;
 

@@ -46,6 +46,7 @@
 #include <Rhea/Core/SceneResource.h>
 
 #include "Gui/OpenBrowser.h"
+#include "Gui/AlertDialog.h"
 
 bool Ceto::onQuit(rhea::Event* ev, rhea::Unit* unit)
 {
@@ -123,6 +124,35 @@ void Ceto::openRealmDialog()
 	}
 }
 
+void Ceto::openDetailsDialog(rhea::ErrorReport report)
+{
+	if (!m_gui_controller || !m_details_dialog)
+		return;
+
+	std::string title = "Could not open world";
+	rhea::Label* title_label = doCast<rhea::Label>(m_details_dialog->findByName("title"));
+	if (title_label) {
+		title_label->setText(title);
+	}
+
+	rhea::Label* message_label = doCast<rhea::Label>(m_details_dialog->findByName("message"));
+	if (message_label) {
+		message_label->setText("The world could not be opened due to the following errors:");
+	}
+
+	std::string message;
+	for (auto& err : report.errors) {
+		message += "\n\n" + err.getMessage() + "\n" + err.getResourceId();
+	}
+
+	rhea::Label* label = doCast<rhea::Label>(m_details_dialog->findByName("details_text"));
+	if (label) {
+		label->setText(message);
+	}
+
+	m_gui_controller->openDialog(m_details_dialog);
+}
+
 bool Ceto::onRealmSelect(rhea::Event* ev, rhea::Unit* unit)
 {
 	ev->stopPropagation();
@@ -171,6 +201,7 @@ void Ceto::setup()
 	m_windows[0].views[0].layers.push_back({"HUD",0,0,m_windows[0].width, m_windows[0].height});
 
 	OpenBrowser::_register_OpenBrowser();
+	AlertDialog::_register_AlertDialog();
 
 	// register contoller service
 	if (!getService("controller")) {
@@ -261,7 +292,44 @@ void Ceto::openScene(std::string scene_name, bool mark_preferences)
 
 		if (error.isError()) {
 			LOG(LOG_ERROR) << "Ceto: Could not open scene: " << scene_name;
-			showAlert("Could not open world");
+
+			if (!m_alert_dialog || error.isCanceled())
+				return;
+
+			AlertDialog::Content content;
+			content.title = "Could not open world";
+			if (error.errors.size() == 1) {
+				rhea::Error err = error.errors[0];
+				content.message = err.getMessage() + "\n" + err.getResourceId();
+				content.actions = {
+					{ "ok", "OK", true }
+				};
+			} else {
+				content.message = std::to_string(error.errors.size()) + " problems occurred while loading this world.";
+				content.actions = {
+					{ "details", "Details...", false },
+					{ "ok", "OK", true }
+				};
+			}
+			content.default_action = "ok";
+			content.cancel_action = "ok";
+
+			if (m_alert_dialog->configure(std::move(content), [this, error](std::string action_id) {
+					if (action_id == "details")
+						openDetailsDialog(error);
+				}))
+			{
+				m_gui_controller->openDialog(m_alert_dialog);
+			}
+			return;
+
+
+			std::string message = "Could not open world.";
+
+			for (auto& err : error.errors) {
+				message += "\n\nError: " + err.getMessage() + "\n" + err.getResourceId();
+			}
+			showAlert(message);
 			return;
 		}
 
@@ -305,7 +373,7 @@ void Ceto::showAlert(std::string text)
 	if (!m_alert_dialog) {
 		rhea::Widget* w = doCast<rhea::Widget>(m_unit_tree->findByName("alert"));
 		if (w) {
-			m_alert_dialog = doCast<rhea::Dialog>(w);
+			m_alert_dialog = doCast<AlertDialog>(w);
 		}
 
 		if (!m_alert_dialog)
@@ -406,6 +474,26 @@ void Ceto::loadMainGUI()
 
 							// open the open browser
 							m_gui_controller->openDialog(m_realm_dialog);
+							});
+					}
+
+					m_alert_dialog = doCast<AlertDialog>(m_unit_tree->find("//ceto/cetogui/gui/alert"));
+					if (!m_alert_dialog) {
+						log("no alert dialog found");
+					}
+
+					m_details_dialog = doCast<rhea::Dialog>(m_unit_tree->find("//ceto/cetogui/gui/details"));
+					if (!m_details_dialog) {
+						log("no details dialog found");
+					}
+					else {
+						m_details_dialog->registerEventHandler("submitted", this, [this](rhea::Event* ev, rhea::Unit* unit) {
+							m_gui_controller->closeDialog(m_details_dialog);
+							return false;
+						});
+						m_details_dialog->registerEventHandler("canceled", this, [this](rhea::Event* ev, rhea::Unit* unit) {
+							m_gui_controller->closeDialog(m_details_dialog);
+							return false;
 							});
 					}
 				}

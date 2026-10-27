@@ -9,6 +9,7 @@
 #define ORION_RESOURCEREQUEST_H
 
 #include <string>
+#include <functional>
 
 #include <Orion/Realm.h>
 #include <Psio/Net/UrlRequest/UrlRequest.h>

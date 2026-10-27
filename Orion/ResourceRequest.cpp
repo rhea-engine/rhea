@@ -8,6 +8,7 @@
 #include <Orion/Orion.h>
 #include <Orion/ResourceRequest.h>
 #include <Orion/FileStream.h>
+#include <Orion/FileCollection.h>
 #include <Orion/Mime.h>
 #include <Psio/Log.h>
 #include <Orion/UrlResponseStream.h>
@@ -244,6 +245,11 @@ namespace orion
 
 	Error ResourceRequest::doCacheResolve(Error result)
 	{
+		if (m_realm_name == "file") {
+			m_next_state = State::REALM_RESOLVE;
+			return Error::OK;
+		}
+
 		m_stream = m_orion->getResourceFromCache(m_realm_name, m_path);
 		if (m_stream) {
 			m_next_state = State::RESOURCE_RESOLVE_COMPLETED;
@@ -276,6 +282,12 @@ namespace orion
 			m_realm_resolved = true;
 			m_realm = r;
 			return Error::OK;
+		}
+
+		// if file realm is not defined dont allow it to be resolved
+		if (m_realm_name == "file") {
+			m_next_state = State::RESOLVE_FAILED;
+			return Error::REALM_NOT_FOUND;
 		}
 
 		// get data from realms manager via lookup
@@ -361,18 +373,23 @@ namespace orion
 		if (m_realm) {
 			std::string path;
 
-			if (m_realm->isLocalPath()) {
-				// build the full local path
-				std::string full_path = m_realm->getResourceUrl();
-				if (full_path.size() && full_path.back() != '/' && full_path.back() != '\\')
-					full_path += '/';
-				if (m_path.size() && m_path[0] == '/')
-					full_path += m_path.substr(1);
-				else
-					full_path += m_path;
+			if (m_realm->isLocalPath() || m_realm->getType() == Realm::RealmType::FileSystem) {
+#if defined(_WIN32)
+				if (m_realm->getType() == Realm::RealmType::FileSystem && m_path == "/") {
+					m_stream = std::make_unique<FileCollection>(psio::Fs::getLogicalDrives());
+					m_next_state = State::RESOURCE_RESOLVE_COMPLETED;
+					onIOComplete(Error::OK);
+					return Error::IO_PENDING;
+				}
+#endif
+				std::string native_path;
+				const Error error = m_realm->resolveFilePath(m_path, native_path);
+				if (error != Error::OK) {
+					m_next_state = State::UNSET;
+					return error;
+				}
 
-				// Open as local file
-				m_stream = FileResourceStream::getStream(full_path);
+				m_stream = FileResourceStream::getStream(native_path);
 				if (!m_stream) {
 					m_next_state = State::UNSET;
 					return Error::RESOURCE_NOT_FOUND;

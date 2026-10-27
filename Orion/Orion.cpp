@@ -40,7 +40,8 @@ namespace orion
 			m_caches.push_back(std::make_unique<ResolveLocal>(search_dir));
 			m_realms->addRealm(new Realm("user", search_dir, Realm::RealmType::LocalPath));
 		}
-		m_realms->addRealm(new Realm("localhost", "", Realm::RealmType::LocalPath)); // special realm for local system
+		// add filesystem realm for direct access to local files
+		m_realms->addRealm(new Realm("file", "", Realm::RealmType::FileSystem));
 	}
 
 	void Orion::addLocalRealm(std::string name, std::string path)

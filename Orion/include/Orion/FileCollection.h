@@ -19,6 +19,7 @@ namespace orion
 	{
 	public:
 		FileCollection(std::string path);
+		FileCollection(std::vector<std::string> directories);
 		~FileCollection();
 
 		Entry* nextEntry();
@@ -56,6 +57,8 @@ namespace orion
 
 	protected:
 		std::unique_ptr<psio::Fs::DirectoryHandle> m_handle;
+		std::vector<std::string> m_directories;
+		size_t m_directory_index = 0;
 	};
 }
 

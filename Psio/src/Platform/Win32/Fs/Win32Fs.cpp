@@ -200,6 +200,17 @@ namespace psio
         HANDLE hFind = INVALID_HANDLE_VALUE;
     };
 
+    std::vector<std::string> Fs::getLogicalDrives()
+    {
+        std::vector<std::string> drives;
+        const DWORD drive_mask = GetLogicalDrives();
+        for (unsigned int index = 0; index < 26; ++index) {
+            if (drive_mask & (DWORD(1) << index))
+                drives.push_back(std::string(1, static_cast<char>('A' + index)) + ":");
+        }
+        return drives;
+    }
+
     Fs::DirectoryHandle* Fs::openDirectory(std::string path)
     {        
         WinDirectoryHandle *fh = new WinDirectoryHandle();

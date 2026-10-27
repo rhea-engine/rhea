@@ -456,12 +456,16 @@ void Ceto::loadMainGUI()
 							places = {
 								{ "Most Recent", "//recent/", OpenBrowser::BrowserPlaceKind::Internal },
 								{ "User",        "//user/",   OpenBrowser::BrowserPlaceKind::Location },
-								{ "Local",       "//local/",  OpenBrowser::BrowserPlaceKind::Location },
 							};
+							if (m_fs->hasLocalDir()) {
+								places.push_back({ "Local", "//local/", OpenBrowser::BrowserPlaceKind::Location });
+							}
+							places.push_back({ "Computer", "//file/", OpenBrowser::BrowserPlaceKind::Location });
 							std::unordered_map<std::string, bool> realms;
 							realms["recent"] = true;
 							realms["user"] = true;
 							realms["local"] = true;
+							realms["file"] = true;
 							for (auto it = m_userprefs.lastUsed().begin(); it != m_userprefs.lastUsed().end(); it++) {
 								std::string realm_name = m_realm_dialog->getRealmName(*it);
 								if (realms.find(realm_name) == realms.end()) {

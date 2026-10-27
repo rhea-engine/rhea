@@ -129,7 +129,25 @@ namespace orion
 
 	void Orion::setLocalDir(std::string dirname)
 	{
-		m_caches.push_back(std::make_unique<ResolveLocal>(dirname, true));
+		// remove old local dir resolver if it exists
+		for (auto it = m_caches.begin(); it != m_caches.end(); ++it) {
+			ResolveLocal* resolver = static_cast<ResolveLocal*>(it->get());
+			if (resolver && resolver->getBasicAddress() == m_local_dir) {
+				m_caches.erase(it);
+				m_local_dir.clear();
+				break;
+			}
+		}
+
+		if (!dirname.empty()) {
+			m_caches.push_back(std::make_unique<ResolveLocal>(dirname, true));
+			m_local_dir = dirname;
+		}
+	}
+
+	bool Orion::hasLocalDir()
+	{
+		return !m_local_dir.empty();
 	}
 
 	Orion::~Orion()

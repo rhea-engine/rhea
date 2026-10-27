@@ -64,6 +64,9 @@ namespace orion
 		// set a local dir manually
 		void setLocalDir(std::string dirname);
 
+		// do we have a local dir
+		bool hasLocalDir();
+
 		// set a custom realm
 		void addLocalRealm(std::string name, std::string path);
 
@@ -88,6 +91,9 @@ namespace orion
 
 		// list of current read requests
 		std::vector<std::unique_ptr<ResourceRequest>> m_requests;
+
+		// do we have a local dir
+		std::string m_local_dir;
 	};
 }
 

@@ -23,4 +23,9 @@ namespace orion
 	{
 		return false;
 	}
+
+	std::string ResourceCache::getBasicAddress() const
+	{
+		return "orion://resourcecache";
+	}
 }

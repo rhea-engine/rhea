@@ -24,6 +24,9 @@ namespace orion
 
 		bool checkResourceExists(std::string realm_name, std::string resource_path);
 
+		// return configured path
+		std::string getBasicAddress() const override { return m_path; }
+
 	protected:
 		std::string m_path;
 		bool m_is_local;

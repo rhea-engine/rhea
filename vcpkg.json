@@ -1,0 +1,10 @@
+{
+  "name": "rhea",
+  "version-string": "0.1.0",
+  "dependencies": [
+    "bullet3",
+    "openssl",
+    "sdl3",
+    "nlohmann-json"
+  ]
+}

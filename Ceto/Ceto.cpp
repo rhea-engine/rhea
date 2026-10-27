@@ -461,11 +461,21 @@ void Ceto::loadMainGUI()
 								places.push_back({ "Local", "//local/", OpenBrowser::BrowserPlaceKind::Location });
 							}
 							places.push_back({ "Computer", "//file/", OpenBrowser::BrowserPlaceKind::Location });
+							std::string samples_path = m_fs->getFs()->getInstallDataDir();
+							if (samples_path.length()) {
+								samples_path += "/samples";
+								if (psio::Fs::fileExists(samples_path)) {
+									m_fs->addLocalRealm("samples", samples_path);
+									places.push_back({ "Samples", "//samples/", OpenBrowser::BrowserPlaceKind::Location });
+								}
+							}
 							std::unordered_map<std::string, bool> realms;
+							realms["ceto"] = true;
 							realms["recent"] = true;
 							realms["user"] = true;
 							realms["local"] = true;
 							realms["file"] = true;
+							realms["samples"] = true;
 							for (auto it = m_userprefs.lastUsed().begin(); it != m_userprefs.lastUsed().end(); it++) {
 								std::string realm_name = m_realm_dialog->getRealmName(*it);
 								if (realms.find(realm_name) == realms.end()) {

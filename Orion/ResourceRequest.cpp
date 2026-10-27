@@ -13,6 +13,7 @@
 #include <Orion/UrlResponseStream.h>
 
 #include <iostream>
+#include <algorithm>
 
 namespace orion
 {	
@@ -21,14 +22,15 @@ namespace orion
 	{
 	}
 
-	ResourceRequest::ResourceRequest(std::string rid, Orion* orion, std::string type) :
+	ResourceRequest::ResourceRequest(std::string rid, Orion* orion, std::string type, std::string base_address) :
 		m_orion(orion),
 		m_mime_type(type),
 		m_realm_name(""),
 		m_path(""),
-		m_request(nullptr)
+		m_request(nullptr),
+		m_base_address(base_address)
 	{		
-		parseRid(rid);
+		m_error = parseRid(rid);
 	}
 
 	ResourceRequest::~ResourceRequest()
@@ -76,42 +78,109 @@ namespace orion
 		return false;
 	}
 	
-	Error ResourceRequest::parseRid(const std::string rid)
+	Error ResourceRequest::parseRid(std::string rid)
 	{
-		size_t pathpos;
-		size_t realmpos = 2;
+		std::replace(m_base_address.begin(), m_base_address.end(), '\\', '/');
+		std::replace(rid.begin(), rid.end(), '\\', '/');
+
+		// fallback for errors
+		m_error = Error::DATA_INVALID;
+
+		auto getRealm = [](std::string rid) -> std::string {
+			if (rid.compare(0, 2, "//") != 0)
+				return std::string();
+			size_t realmpos = 2;
+			size_t pathpos = rid.find_first_of("/", realmpos);
+			if (pathpos != std::string::npos)
+				return rid.substr(realmpos, pathpos - realmpos);
+			else
+				return rid.substr(realmpos);
+			};
 
 		// check if we have a realm part - if not we resolve it as local path
-		if (rid.size() < 2 || (rid.compare(0, 2, "//") && rid.compare(0, 2, "\\\\")))
-		{
-			m_realm_name = "localhost";
-			m_path = rid;
-			return Error::OK;
+		if (rid.compare(0, 2, "//") != 0) {
+			if (m_base_address.empty())
+				return Error::DATA_INVALID;
+
+			if (rid.empty())
+				return Error::DATA_INVALID;
+
+			if (rid.front() == '/') {
+				// Keep the base realm and replace its entire path.
+				std::string base_realm = getRealm(m_base_address);
+				if (base_realm.empty())
+					return Error::DATA_INVALID;
+				rid = "//" + base_realm + rid;
+			}
+			else {
+				// Append rid to the base directory.
+				std::string relative_path = rid;
+				rid = m_base_address;
+				if (rid.back() != '/')
+					rid += '/';
+				rid += relative_path;
+			}
 		}
 
 		// split the realm part
-		pathpos = rid.find_first_of("\\/", realmpos);
-		if (pathpos != std::string::npos)
-		{
-			m_realm_name = rid.substr(realmpos, pathpos-realmpos);
-			m_path = rid.substr(pathpos);
-			// find basename
-			size_t basepos = m_path.find_last_of("\\/");
-			if (basepos != std::string::npos) {
-				m_basename = m_path.substr(basepos + 1);
-				m_container_path = m_path.substr(0, basepos);
+		m_realm_name = getRealm(rid);
+		m_path = rid.substr(2 + m_realm_name.length());
+
+		// normalize '.' and '..' in the path
+		std::vector<std::string> segments;
+		const bool trailing_slash = !m_path.empty() && m_path.back() == '/';
+
+		size_t begin = 0;
+		while (begin < m_path.size()) {
+			size_t end = m_path.find('/', begin);
+			if (end == std::string::npos)
+				end = m_path.size();
+
+			const std::string segment = m_path.substr(begin, end - begin);
+
+			if (segment == "..") {
+				size_t root_depth = 0;
+
+#if defined(_WIN32)
+				if (m_realm_name == "file")
+					root_depth = !segments.empty() && segments[0] == "unc" ? 3 : 1;
+#endif
+
+				if (segments.size() <= root_depth)
+					return Error::DATA_INVALID;
+
+				segments.pop_back();
 			}
-		}
-		else {
-			// no path, only realm
-			m_realm_name = rid.substr(realmpos);
-			m_path = "";
+			else if (!segment.empty() && segment != ".") {
+				segments.push_back(segment);
+			}
+
+			begin = end + 1;
 		}
 
-		// if realm is empty use 'local'
+		m_path = "/";
+		for (const auto& segment : segments) {
+			if (m_path.back() != '/')
+				m_path += '/';
+
+			m_path += segment;
+		}
+
+		if (trailing_slash && m_path.back() != '/')
+			m_path += '/';
+
+		// find basename
+		size_t basepos = m_path.find_last_of("/");
+		if (basepos != std::string::npos) {
+			m_basename = m_path.substr(basepos + 1);
+			m_container_path = m_path.substr(0, basepos);
+		}
+
+		// if realm is empty return error
 		if (m_realm_name.empty())
-			m_realm_name = "local";
+			return Error::DATA_INVALID;
 
+		m_error = Error::OK;
 		return Error::OK;
 	}
 
@@ -253,6 +322,13 @@ namespace orion
 	{
 		m_next_state = State::CACHE_RESOLVE;
 		m_handler = handler;
+		if (m_error != Error::OK) {
+			m_next_state = State::RESOLVE_FAILED;
+			if (m_handler) {
+				m_handler(this, m_error);
+			}
+			return m_error;
+		}
 		Error result = ResolveLoop(Error::OK);
 		if (result != Error::IO_PENDING && m_handler) {
 			m_handler(this, result);

@@ -32,7 +32,7 @@ namespace orion
 		typedef std::function<void(ResourceRequest*, orion::Error)> RequestHandler;
 
 		ResourceRequest(std::string rid, Orion *orion);
-		ResourceRequest(std::string rid, Orion* orion, std::string type);
+		ResourceRequest(std::string rid, Orion* orion, std::string type, std::string base_address = {});
 		~ResourceRequest();
 
 		// get realm name
@@ -65,7 +65,7 @@ namespace orion
 		// the resolver does only lookup the realm, the rest is considered to be a path, where the server is responsible
 		// special realm is "local"
 		// return 0 on success, negative on error
-		Error parseRid(const std::string rid);
+		Error parseRid(std::string rid);
 
 		// resolve the realm
 		// calls orion::onRealmResolved with itself as parameter
@@ -107,6 +107,7 @@ namespace orion
 		std::string m_path;
 		std::string m_container_path;
 		std::string m_basename;
+		std::string m_base_address;
 		Realm* m_realm = NULL;
 		bool m_resolved = false;
 		bool m_realm_resolved = false;

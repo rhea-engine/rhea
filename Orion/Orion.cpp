@@ -74,12 +74,12 @@ namespace orion
 		return NULL;
 	}
 
-	ResourceRequest* Orion::getResourceByRid(const std::string rid)
+	ResourceRequest* Orion::getResourceByRid(const std::string& rid, const std::string& base_address)
 	{
 		std::unique_ptr<ResourceRequest> res_id;
 		
 		// parse the rid and try to resolve it
-		res_id = std::make_unique<ResourceRequest>(rid, this);
+		res_id = std::make_unique<ResourceRequest>(rid, this, "", base_address);
 		m_requests.push_back(std::move(res_id));
 		return m_requests.back().get();
 	}

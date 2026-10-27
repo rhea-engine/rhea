@@ -76,6 +76,8 @@ namespace psio
 		static const int BINARY = 4;
 		static const int APPEND = 8;
 
+		static std::string getExecutableDir();
+
 		// directory functions
 		struct FileAttributes
 		{

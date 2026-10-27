@@ -265,5 +265,44 @@ namespace psio
 			return false;
 		}
 		return true;
-	}	
+	}
+
+	std::string Fs::getExecutableDir()
+	{
+#if defined(__APPLE__)
+        uint32_t size = 0;
+        _NSGetExecutablePath(nullptr, &size);
+
+        if (size == 0)
+            return {};
+
+        std::vector<char> buffer(size);
+        if (_NSGetExecutablePath(buffer.data(), &size) != 0)
+            return {};
+
+        std::error_code error;
+        auto executable_path = std::filesystem::canonical(
+            std::filesystem::path(buffer.data()), error);
+
+        if (error)
+            return {};
+
+        return executable_path.parent_path();
+
+#elif defined(__linux__)
+		char buf[PATH_MAX];
+		ssize_t len = readlink("/proc/self/exe", buf, sizeof(buf) - 1);
+		if (len != -1) {
+			buf[len] = '\0';
+			std::string res = buf;
+			size_t pos = res.find_last_of("/");
+			if (pos != std::string::npos) {
+				res = res.substr(0, pos);
+				return res;
+			}
+		}
+#else
+        return {};
+#endif
+    }
 }

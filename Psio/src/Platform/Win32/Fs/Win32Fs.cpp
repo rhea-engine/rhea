@@ -267,5 +267,16 @@ namespace psio
 	bool Fs::removeDirectory(const std::string& path)
 	{
 		return RemoveDirectoryA(path.c_str()) != 0;
-	}	
+	}
+
+	std::string Fs::getExecutableDir()
+	{
+		char buf[MAX_PATH];
+		if (GetModuleFileNameA(NULL, buf, MAX_PATH) > 0) {
+			std::string res = buf;
+			res = res.substr(0, res.find_last_of("\\/"));
+			return res;
+		}
+		return "";
+	}
 }

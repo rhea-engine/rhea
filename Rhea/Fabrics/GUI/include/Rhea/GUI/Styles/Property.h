@@ -31,6 +31,7 @@ namespace rhea
 		kOverflow,
 		kAlignItems,
 		kJustifyContent,
+		kGap,
 		kPaddingTop,
 		kPaddingLeft,
 		kPaddingBottom,

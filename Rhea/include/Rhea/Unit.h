@@ -150,6 +150,7 @@ namespace rhea
 			return nullptr;
 		}
 		Unit* findByType(std::string type_name);
+		Component* findByName(const std::string& name);
 
 		// find parent by type
 		template <class T>

@@ -18,19 +18,6 @@ if(ENABLE_DEV_TOOLS)
     add_definitions(-DCETO_DEV_TOOLS)
 endif()
 
-add_custom_command(TARGET Ceto POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-                ${CMAKE_CURRENT_SOURCE_DIR}/Assets
-                $<TARGET_FILE_DIR:Ceto>/Data/ceto)
-
-# meworla default modules and assets
-add_custom_command(TARGET Ceto POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory
-                ${CMAKE_SOURCE_DIR}/Modules/Assets
-                $<TARGET_FILE_DIR:Ceto>/Data/meworla)
-
-## add render engine assets
-add_custom_command(TARGET Ceto POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-        ${CMAKE_SOURCE_DIR}/Rhea/Assets
-        $<TARGET_FILE_DIR:Ceto>/Data/rhea)
+include("${CMAKE_CURRENT_SOURCE_DIR}/../Rhea/cmake/rhea_assets.cmake")
+rhea_copy_assets(Ceto "${CMAKE_CURRENT_SOURCE_DIR}/Assets" "ceto")
+rhea_copy_assets(Ceto "${RHEA_ASSETS_DIR}" "rhea")

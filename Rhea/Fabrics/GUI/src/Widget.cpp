@@ -701,6 +701,20 @@ namespace rhea
 				}
 				break;
 			}
+			case StylePropertyId::kGap:
+			{
+				if (!m_alignment)
+					m_alignment = std::make_unique<LayoutAlignment>(LayoutAlignment::JustifyContent::START, Alignment::AlignItems::START);
+				float gap_value = values[0].value.toFloat();
+				if (gap_value < 0.0f)
+					gap_value = 0.0f;
+
+				if (m_alignment->getGap() != gap_value) {
+					m_alignment->setGap(gap_value);
+					layout_changed = true;
+				}
+				break;
+			}
 			}
 		}
 

@@ -28,6 +28,7 @@ namespace rhea
 		const CssProperty overflow{ StylePropertyId::kOverflow, "overflow", false, false };
 		const CssProperty alignItems{ StylePropertyId::kAlignItems, "align-items", false, false };
 		const CssProperty justifyContent{ StylePropertyId::kJustifyContent, "justify-content", false, false };
+        const CssProperty gap{ StylePropertyId::kGap, "gap", false, false };
         const CssProperty paddingTop{ StylePropertyId::kPaddingTop, "padding-top", false, false };
         const CssProperty paddingLeft{ StylePropertyId::kPaddingLeft, "padding-left", false, false };
         const CssProperty paddingBottom{ StylePropertyId::kPaddingBottom, "padding-bottom", false, false };
@@ -49,11 +50,12 @@ namespace rhea
         &overflow,
         &alignItems,
         &justifyContent,
-        &padding,
+        &gap,
         &paddingTop,
         &paddingLeft,
         &paddingBottom,
         &paddingRight,
+        &padding,
         } };
 
     std::unordered_map<std::string, StylePropertyId> kCssPropertyNames;
@@ -66,12 +68,13 @@ namespace rhea
         {CssValueId::kNumeric, "0"},     // kTop default.
         {CssValueId::kIdentifier, "auto"},  // kWidth default.
         {CssValueId::kIdentifier,"auto"},   // kHeight default.
-		{CssValueId::kString, "visible"}, // kOverflow default
-		{CssValueId::kIdentifier, "normal"}, // kAlignItems default
-		{CssValueId::kIdentifier, "normal"}, // kJustifyItems default
         {CssValueId::kString, ""}, // font default
         {CssValueId::kNumeric, "16"}, // font-size default
         {CssValueId::kIdentifier, "black"}, // color
+		{CssValueId::kString, "visible"}, // kOverflow default
+		{CssValueId::kIdentifier, "normal"}, // kAlignItems default
+		{CssValueId::kIdentifier, "normal"}, // kJustifyContent default
+        {CssValueId::kNumeric, "0"}, // kGap default    
         {CssValueId::kNumeric, "0"}, // padding-top default
         {CssValueId::kNumeric, "0"}, // padding-left default
         {CssValueId::kNumeric, "0"}, // padding-bottom default

@@ -60,7 +60,7 @@ namespace rhea
 		}
 
 		if (m_default_font_ref.empty())
-			m_default_font_ref.setId("//rhea/fonts/Inter.scene");
+			m_default_font_ref.setId("//rhea/fonts/inter.scene");
 	}
 
 	void GUIController::initializeType(simpleparser::Type* type)

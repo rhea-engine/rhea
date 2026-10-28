@@ -21,8 +21,30 @@ namespace orion
 	{
 	}
 
+	FileCollection::FileCollection(std::vector<std::string> directories) :
+		m_directories(std::move(directories))
+	{
+		m_state = StreamState::STREAM_OPEN;
+	}
+
 	Collection::Entry* FileCollection::nextEntry()
 	{
+		while (m_state == StreamState::STREAM_OPEN && m_directory_index < m_directories.size()) {
+			Entry* entry = new Entry();
+			entry->name = m_directories[m_directory_index++];
+			entry->is_dir = true;
+			if (m_directory_index == m_directories.size())
+				Close();
+			if (m_filter && !m_filter(*entry)) {
+				delete entry;
+				continue;
+			}
+			return entry;
+		}
+		if (!m_handle) {
+			Close();
+			return nullptr;
+		}
 		while (m_handle && m_state == StreamState::STREAM_OPEN) {
 			Entry* entry = nullptr;
 			psio::Fs::FileAttributes attributes;

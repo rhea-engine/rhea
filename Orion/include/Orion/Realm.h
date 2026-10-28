@@ -11,20 +11,23 @@
 #include <string>
 #include <ctime>
 
+#include <Orion/RequestError.h>
+
 namespace orion
 {
 	class Realm
 	{
 	public:
 		enum class RealmType {
-			URL,        // HTTP/HTTPS URLs
-			LocalPath   // locla path mappings
+			URL,		// HTTP/HTTPS URLs
+			LocalPath,   // local path mappings
+			FileSystem,  // local file system access
 		};
 
 		Realm(): m_ttl(time(NULL)), m_realm_type(RealmType::URL) {}		
 		Realm(std::string name);
 		Realm(std::string name, std::string resource_url, time_t ttl);
-		Realm(std::string name, std::string local_path, RealmType type);  // Neuer Konstruktor
+		Realm(std::string name, std::string local_path, RealmType type);
 
 		// default copy/assign is fine
 		Realm(const Realm&) = default;
@@ -46,6 +49,9 @@ namespace orion
 		std::time_t getTTL() const { return m_ttl; }
 		RealmType getType() const { return m_realm_type; }
 		bool isLocalPath() const { return m_realm_type == RealmType::LocalPath; }
+
+		// normalize a resource path to a native path
+		Error resolveFilePath(const std::string& resource_path, std::string& native_path) const;
 
 	private:
 		std::string m_name;

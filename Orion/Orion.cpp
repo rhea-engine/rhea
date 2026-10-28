@@ -40,7 +40,8 @@ namespace orion
 			m_caches.push_back(std::make_unique<ResolveLocal>(search_dir));
 			m_realms->addRealm(new Realm("user", search_dir, Realm::RealmType::LocalPath));
 		}
-		m_realms->addRealm(new Realm("localhost", "", Realm::RealmType::LocalPath)); // special realm for local system
+		// add filesystem realm for direct access to local files
+		m_realms->addRealm(new Realm("file", "", Realm::RealmType::FileSystem));
 	}
 
 	void Orion::addLocalRealm(std::string name, std::string path)
@@ -74,12 +75,12 @@ namespace orion
 		return NULL;
 	}
 
-	ResourceRequest* Orion::getResourceByRid(const std::string rid)
+	ResourceRequest* Orion::getResourceByRid(const std::string& rid, const std::string& base_address)
 	{
 		std::unique_ptr<ResourceRequest> res_id;
 		
 		// parse the rid and try to resolve it
-		res_id = std::make_unique<ResourceRequest>(rid, this);
+		res_id = std::make_unique<ResourceRequest>(rid, this, "", base_address);
 		m_requests.push_back(std::move(res_id));
 		return m_requests.back().get();
 	}
@@ -129,7 +130,25 @@ namespace orion
 
 	void Orion::setLocalDir(std::string dirname)
 	{
-		m_caches.push_back(std::make_unique<ResolveLocal>(dirname, true));
+		// remove old local dir resolver if it exists
+		for (auto it = m_caches.begin(); it != m_caches.end(); ++it) {
+			ResolveLocal* resolver = static_cast<ResolveLocal*>(it->get());
+			if (resolver && resolver->getBasicAddress() == m_local_dir) {
+				m_caches.erase(it);
+				m_local_dir.clear();
+				break;
+			}
+		}
+
+		if (!dirname.empty()) {
+			m_caches.push_back(std::make_unique<ResolveLocal>(dirname, true));
+			m_local_dir = dirname;
+		}
+	}
+
+	bool Orion::hasLocalDir()
+	{
+		return !m_local_dir.empty();
 	}
 
 	Orion::~Orion()

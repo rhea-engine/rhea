@@ -21,7 +21,13 @@ namespace orion
 
 	Realm* Realms::getRealmCached(std::string name)
 	{
-		std::vector<Realm*>::iterator it;
+		if (name == "file") {
+			for (Realm* realm : m_realms) {
+				if (realm->getName() == "file" && realm->getType() == Realm::RealmType::FileSystem)
+					return realm;
+			}
+			return nullptr;
+		}
 
 		// check if realm is installed locally
 		if (m_orion->checkResourceFromCache(name, "")) {
@@ -37,28 +43,27 @@ namespace orion
 		}
 
 		// get from file realm list
-		for (auto it = m_file_realms.begin(); it != m_file_realms.end(); ++it)
+		for (Realm* realm : m_file_realms)
 		{
-			Realm* r = *it;
-			if (!name.compare(r->getName())) {
-				return r;
+			if (!name.compare(realm->getName())) {
+				return realm;
 			}
 		}
 
 		// get from server realm list
-		for (auto it = m_realms.begin(); it != m_realms.end(); ++it)
+		for (Realm* realm : m_realms)
 		{
-			Realm* r = *it;
-			if (r->isExpired()) {
-				delete r;
-				m_realms.erase(it);
-			}
-			else
-				if (!name.compare(r->getName()))
-					return r;
+			if (!name.compare(realm->getName()))
+				if (realm->isExpired()) {
+					delete realm;
+					m_realms.erase(std::remove(m_realms.begin(), m_realms.end(), realm), m_realms.end());
+					return nullptr;
+				}
+				else
+					return realm;
 		}
 		// not found in cache
-		return NULL;
+		return nullptr;
 	}
 
 	void Realms::LoadFileRealms()

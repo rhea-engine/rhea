@@ -19,6 +19,7 @@ namespace orion
 	public:
 		virtual std::unique_ptr<ResourceStream> getResource(std::string realm_name, std::string resource_path) = 0;
 		virtual bool checkResourceExists(std::string realm_name, std::string resource_path) = 0;
+		virtual std::string getBasicAddress() const = 0;
 	};
 }
 

@@ -44,7 +44,7 @@ endif()
 
 install(DIRECTORY "${ceto_source_dir}/Ceto/Assets/"
     DESTINATION Data/ceto COMPONENT CetoRuntime)
-install(DIRECTORY "${RHEA_ASSETS_DIR}/"
+install(DIRECTORY "${ceto_source_dir}/Rhea/Assets/"
     DESTINATION Data/rhea COMPONENT CetoRuntime)
 install(DIRECTORY "${CETO_PACKAGE_SAMPLES_DIR}/Courtyard"
     DESTINATION Data/samples COMPONENT CetoRuntime)

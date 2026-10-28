@@ -20,6 +20,9 @@ Using the CMake build system, Rhea can be built and linked as a single library o
 
 ## Status
 
+See the [v0.2.0 release notes](docs/releases/v0.2.0.md) for Ceto packaging,
+engine changes, migration guidance, and validation limits.
+
 > ⚠️ Rhea is currently experimental and under active development.
 >
 > APIs may change frequently.

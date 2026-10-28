@@ -59,14 +59,14 @@ It can point to a separate copy of the examples outside the engine clone.
 ```powershell
 cmake --preset x64-release-vcpkg `
   -DRHEA_PACKAGE_CETO=ON `
-  -DCETO_PACKAGE_VERSION=0.1.2-rc1 `
+  -DCETO_PACKAGE_VERSION=0.2.0 `
   -DCETO_PACKAGE_SAMPLES_DIR="C:/path/to/Examples"
 
 cmake --build out/build/x64-release-vcpkg --target ceto-package
 ```
 
 The target builds Ceto and creates
-`out/build/x64-release-vcpkg/packages/Ceto-0.1.2-rc1-windows-x64.zip`.
+`out/build/x64-release-vcpkg/packages/Ceto-0.2.0-windows-x64.zip`.
 Repeat the build command after code or resource changes to create a new package.
 
 The ZIP includes the executable, resolved non-system DLL dependencies, the MSVC

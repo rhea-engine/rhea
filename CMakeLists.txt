@@ -208,3 +208,8 @@ endif()
 if(RHEA_SDK_OWNS_FABRIC_REGISTRY)
     rhea_fabrics_end()
 endif()
+
+option(RHEA_PACKAGE_CETO "Enable the standalone Windows x64 Ceto ZIP package" OFF)
+if(RHEA_PACKAGE_CETO)
+    include("${CMAKE_CURRENT_SOURCE_DIR}/Ceto/cmake/CetoPackage.cmake")
+endif()

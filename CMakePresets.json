@@ -65,6 +65,20 @@
       }
     },
     {
+      "name": "x64-release-vcpkg",
+      "displayName": "Ceto Release with vcpkg",
+      "inherits": "x64-release",
+      "toolchainFile": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET": "x64-windows-static-md",
+        "RHEA_FETCH_MISSING_DEPENDENCIES": "OFF",
+        "RHEA_BUILD_APPS": "ON",
+        "RHEA_BUILD_SAMPLES": "OFF",
+        "POSEIDON_BUILD_SAMPLES": "OFF",
+        "RHEA_BUILD_TESTS": "OFF"
+      }
+    },
+    {
       "name": "x64-release",
       "displayName": "x64 Release",
       "inherits": "x64-debug",

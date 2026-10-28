@@ -9,6 +9,7 @@
 #define PSIO_FS_H
 
 #include <string>
+#include <vector>
 #include <stdio.h>
 
 namespace psio
@@ -75,6 +76,8 @@ namespace psio
 		static const int BINARY = 4;
 		static const int APPEND = 8;
 
+		static std::string getExecutableDir();
+
 		// directory functions
 		struct FileAttributes
 		{
@@ -90,6 +93,10 @@ namespace psio
 			virtual bool hasEntries() const = 0;
 		};
 		static DirectoryHandle* openDirectory(std::string path);
+#if defined(_WIN32)
+		// Drive letters without trailing separators, including mapped network drives.
+		static std::vector<std::string> getLogicalDrives();
+#endif
 		static int readEntry(DirectoryHandle* handle, FileAttributes* attributes);
 		static bool nextEntry(DirectoryHandle* handle);
 

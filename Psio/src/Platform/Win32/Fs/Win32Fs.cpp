@@ -200,6 +200,17 @@ namespace psio
         HANDLE hFind = INVALID_HANDLE_VALUE;
     };
 
+    std::vector<std::string> Fs::getLogicalDrives()
+    {
+        std::vector<std::string> drives;
+        const DWORD drive_mask = GetLogicalDrives();
+        for (unsigned int index = 0; index < 26; ++index) {
+            if (drive_mask & (DWORD(1) << index))
+                drives.push_back(std::string(1, static_cast<char>('A' + index)) + ":");
+        }
+        return drives;
+    }
+
     Fs::DirectoryHandle* Fs::openDirectory(std::string path)
     {        
         WinDirectoryHandle *fh = new WinDirectoryHandle();
@@ -256,5 +267,16 @@ namespace psio
 	bool Fs::removeDirectory(const std::string& path)
 	{
 		return RemoveDirectoryA(path.c_str()) != 0;
-	}	
+	}
+
+	std::string Fs::getExecutableDir()
+	{
+		char buf[MAX_PATH];
+		if (GetModuleFileNameA(NULL, buf, MAX_PATH) > 0) {
+			std::string res = buf;
+			res = res.substr(0, res.find_last_of("\\/"));
+			return res;
+		}
+		return "";
+	}
 }

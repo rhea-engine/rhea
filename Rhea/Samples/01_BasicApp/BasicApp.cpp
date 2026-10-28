@@ -34,7 +34,7 @@ private:
     rhea::Scene* m_scene = nullptr;
     rhea::Item* m_cube = nullptr;
     float m_cube_angle = 0.0f;
-    rhea::ResourceList m_resources{this};
+    rhea::ResourceList m_resources{this, {}};
 
 public:
     void setup() override
@@ -43,9 +43,10 @@ public:
 
         // Application::setup() has already instantiated the standard shader.
         m_resources.push("kies_texture", "//basic_app/kies.png", "//meworla/texture");
-        m_resources.load([this](rhea::Error* error) {
-            if (error) {
-                LOG(LOG_ERROR) << "Failed to load BasicApp assets: " << error->getText();
+        m_resources.load([this](rhea::ErrorReport report) {
+            if (report.isError()) {
+                for (auto& error : report.errors)
+                    LOG(LOG_ERROR) << "Failed to load BasicApp assets: " << error.getMessage();
                 m_exiting = true;
                 return;
             }

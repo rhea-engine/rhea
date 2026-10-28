@@ -19,6 +19,9 @@
 
 using std::string;
 
+class OpenBrowser;
+class AlertDialog;
+
 class Ceto : public rhea::Application
 {
 public:
@@ -29,17 +32,15 @@ public:
 		m_debug_text(nullptr),
 		m_exiting(false),
 		m_current_time(0.0f)
-#if defined(CETO_DEV_TOOLS)
-		, m_dev_test_counter(1)
-#endif
 	{}
 	void setup();
-	void setScene(bool mark_preferrences = true);
+	void openScene(std::string scene_name, bool mark_preferences = true);
 	bool checkLocalScene(std::string realm_name, std::string path);
 	void loadMainGUI();
 	void setHomeScene(string scene);
 	bool onFrameEnd();
 	void onScene(rhea::Scene* scene) override;
+	void hideOpenBrowserDialog();
 
 protected:
 	string m_home_scene;
@@ -54,26 +55,13 @@ protected:
 	bool onRealmSelect(rhea::Event* ev, rhea::Unit* unit);
 	bool onRealmSearch(rhea::Event* ev, rhea::Unit* unit);
 	void showAlert(std::string text);
-	void setRealmSelectDialog();
-	void openScene(std::string scene_name);
+	bool onAlertClose(rhea::Event* ev, rhea::Unit* unit);
 	
 	// shortcut helpers
 	bool handleAppShortcuts(const rhea::InputEvent& evt);
 	void openQuitDialog();
 	void openRealmDialog();
-
-#if defined(CETO_DEV_TOOLS)
-	bool handleDevShortcuts(const rhea::InputEvent& evt);
-
-	rhea::Widget* getMainGuiRoot() const;
-	void devToggleSceneAnimation();
-	void devAddTestLabel();
-	void devAddTestWidget();
-	void devAddTestButton();
-	void devAddTestDialog();
-
-	int m_dev_test_counter;
-#endif
+	void openDetailsDialog(rhea::ErrorReport report);
 
 	// user preferences
 	UserPrefs m_userprefs;
@@ -84,6 +72,9 @@ protected:
 	rhea::Scene* m_current_scene = nullptr;
 	// cache of gui controller
 	rhea::GUIController* m_gui_controller;
+	OpenBrowser* m_realm_dialog = nullptr;
+	AlertDialog* m_alert_dialog = nullptr;
+	rhea::Dialog* m_details_dialog = nullptr;
 
 	float m_current_time;
 

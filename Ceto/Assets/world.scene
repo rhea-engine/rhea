@@ -2,4 +2,4 @@
 name="ceto"
 
 [assets]
-gui="//local/cetogui.scene"
+gui="//ceto/cetogui.scene"

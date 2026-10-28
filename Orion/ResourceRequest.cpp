@@ -16,12 +16,12 @@
 
 namespace orion
 {	
-	ResourceRequest::ResourceRequest(string rid, Orion *orion) : 
+	ResourceRequest::ResourceRequest(std::string rid, Orion *orion) : 
 		ResourceRequest(rid, orion, "")
 	{
 	}
 
-	ResourceRequest::ResourceRequest(string rid, Orion* orion, std::string type) :
+	ResourceRequest::ResourceRequest(std::string rid, Orion* orion, std::string type) :
 		m_orion(orion),
 		m_mime_type(type),
 		m_realm_name(""),
@@ -44,12 +44,12 @@ namespace orion
 		else return false;
 	}
 
-	string ResourceRequest::getParentPath()
+	std::string ResourceRequest::getParentPath()
 	{
 		return m_container_path;
 	}
 
-	string ResourceRequest::getBasename()
+	std::string ResourceRequest::getBasename()
 	{
 		return m_basename;
 	}
@@ -75,30 +75,8 @@ namespace orion
 	{
 		return false;
 	}
-
-	std::string ResourceRequest::getErrorMessage(Error err)
-	{
-		switch (err) {
-		case Error::OK:
-			return "OK";
-		case Error::IO_PENDING:
-			return "Data is pending";
-		case Error::REALM_NOT_FOUND:
-			return "Realm not found";
-		case Error::RESOURCE_NOT_FOUND:
-			return "Resource not found";
-		case Error::NOT_IMPLEMENTED:
-			return "Not implemented";
-		case Error::NO_ACCESS:
-			return "Permission denied";
-		case Error::NO_AUTH:
-			return "Authentication failed";
-		default:
-			return "General error";
-		}
-	}
 	
-	ResourceRequest::Error ResourceRequest::parseRid(const string rid)
+	Error ResourceRequest::parseRid(const std::string rid)
 	{
 		size_t pathpos;
 		size_t realmpos = 2;
@@ -151,7 +129,7 @@ namespace orion
 		return m_mime_type;
 	}
 	
-	int ResourceRequest::ResolveLoop(int result)
+	Error ResourceRequest::ResolveLoop(Error result)
 	{
 		do
 		{
@@ -189,13 +167,13 @@ namespace orion
 		return result;
 	}
 
-	ResourceRequest::Error ResourceRequest::resolveRealm(Orion* orion)
+	Error ResourceRequest::resolveRealm(Orion* orion)
 	{
 		m_orion = orion;
 		return Error::OK;
 	}
 
-	int ResourceRequest::doCacheResolve(int result)
+	Error ResourceRequest::doCacheResolve(Error result)
 	{
 		m_stream = m_orion->getResourceFromCache(m_realm_name, m_path);
 		if (m_stream) {
@@ -207,7 +185,7 @@ namespace orion
 		return Error::OK;
 	}
 
-	int ResourceRequest::doResolveRealm(int result)
+	Error ResourceRequest::doResolveRealm(Error result)
 	{
 		m_next_state = State::REALM_RESOLVE_COMPLETED;
 
@@ -232,23 +210,28 @@ namespace orion
 		}
 
 		// get data from realms manager via lookup
-		int ret = m_orion->getRealms()->getRealm(m_realm_name, [&](Realm* realm, int error) {
+		Error ret = m_orion->getRealms()->getRealm(m_realm_name, [&](Realm* realm, orion::Error error) {
 			// got a result
-			if (!error) {
+			if (error == orion::Error::OK) {
 				m_realm_resolved = true;
 				m_realm = realm;
 
 			}
 			onIOComplete(error);
 			});
-		if (!ret)
+		if (ret == Error::OK)
 			return Error::OK;
 		else
 			return Error::IO_PENDING;
 	}
 
-	int ResourceRequest::doResolveRealmCompleted(int result)
+	Error ResourceRequest::doResolveRealmCompleted(Error result)
 	{
+		if (result != Error::OK) {
+			m_next_state = State::RESOLVE_FAILED;
+			return result;
+		}
+
 		//  get the realm if not resolved already 
 		if (!m_realm_resolved) {
 			Realm* r = m_orion->getRealms()->getRealmCached(m_realm_name);
@@ -266,18 +249,18 @@ namespace orion
 		return Error::OK;
 	}
 
-	int ResourceRequest::resolve(RequestHandler handler)
+	Error ResourceRequest::resolve(RequestHandler handler)
 	{
 		m_next_state = State::CACHE_RESOLVE;
 		m_handler = handler;
-		int result = ResolveLoop(Error::OK);
+		Error result = ResolveLoop(Error::OK);
 		if (result != Error::IO_PENDING && m_handler) {
 			m_handler(this, result);
 		}
 		return result;
 	}
 
-	void ResourceRequest::onIOComplete(int result)
+	void ResourceRequest::onIOComplete(Error result)
 	{
 		result = ResolveLoop(result);
 		if (result != Error::IO_PENDING && m_handler) {
@@ -285,7 +268,7 @@ namespace orion
 		}
 	}
 
-	int ResourceRequest::doResolveResource(int result)
+	Error ResourceRequest::doResolveResource(Error result)
 	{
 		// safety check
 		if (!m_realm_resolved)
@@ -300,7 +283,7 @@ namespace orion
 
 		// Resource from net
 		if (m_realm) {
-			string path;
+			std::string path;
 
 			if (m_realm->isLocalPath()) {
 				// build the full local path
@@ -343,13 +326,19 @@ namespace orion
 				// caller doesn't know about response codes
 				// if not 2xx call with error
 				int code = res->GetResponseCode();
-				int err = 0;
+				Error err = Error::OK;
 				if (code == 404)
 					err = Error::RESOURCE_NOT_FOUND;
+				else if (code == 403)
+					err = Error::NO_ACCESS;
+				else if (code == 401)
+					err = Error::NO_AUTH;
+				else if (code < 200 || code >= 300)
+					err = Error::DATA_INVALID;
 				onIOComplete(err);
 				});
 			m_request->OnError([&](int err) {
-				onIOComplete(err);
+				onIOComplete(translateTransportError(err));
 				});
 			// GET the resource
 			m_request->Get(path);
@@ -361,17 +350,17 @@ namespace orion
 		return Error::NOT_IMPLEMENTED;
 	}
 
-	int ResourceRequest::doResolveResourceCompleted(int result)
+	Error ResourceRequest::doResolveResourceCompleted(Error result)
 	{
 		m_next_state = State::UNSET;		
-		return Error::OK;
+		return result;
 	}
 
-	int ResourceRequest::doResolveResourceFailed(int result)
+	Error ResourceRequest::doResolveResourceFailed(Error result)
 	{		
 		m_next_state = State::UNSET;
 
 		// the request may be deleted -> exit loop
-		return Error::RESOURCE_NOT_FOUND;
+		return result;
 	}
 }

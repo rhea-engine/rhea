@@ -12,13 +12,14 @@
 #include <vector>
 
 #include <Orion/ResourceRequest.h>
+#include <Orion/RequestError.h>
 
 #include "../Unit.h"
 
-using ReqError = orion::ResourceRequest::Error;
-
 namespace rhea
 {
+	Error translateLoadError(orion::Error error, const std::string& resource_id);
+
 	// a resource is a unit that holds some data structure and may be loaded from remote	
 	class Resource : public Unit
 	{
@@ -36,8 +37,8 @@ namespace rhea
 			CONFIG_ERR,
 			DATA_INVALID
 		};
-		typedef std::function<void(ReqError)> ReadyHandler;
-		typedef std::function<void(ReqError, Unit*)> LoadedHandler;
+		typedef std::function<void(rhea::ErrorReport)> ReadyHandler;
+		typedef std::function<void(rhea::ErrorReport, Unit*)> LoadedHandler;
 
 		Resource(std::string basename, std::string type_name) :
 			m_buf(nullptr),
@@ -74,11 +75,11 @@ namespace rhea
 			std::string basepath;
 		};
 
-		using InstanceHandler = std::function<void(ReqError, Unit*)>;
+		using InstanceHandler = std::function<void(ErrorReport, Unit*)>;
 		virtual void buildInstance(const InstanceRequest& request, InstanceHandler handler);
 		virtual void ensureReady(InstanceHandler handler);
 
-		using PrepareHandler = std::function<void(ReqError)>;
+		using PrepareHandler = std::function<void(ErrorReport)>;
 		virtual void prepare(PrepareHandler handler);
 		bool isPrepared() const { return m_prepared; }
 

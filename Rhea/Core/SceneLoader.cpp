@@ -24,33 +24,47 @@ namespace rhea
 	{
 		psio::Stream* rs = req->getStream();
 		psio::IOBuffer* buf = new psio::IOBuffer(64 * 1024);
-		rs->onEnd([req, handler, buf, app, name, context](size_t buflen) {
-			SceneResource::SceneDefinition scene_def = parseIniFile(name, buf->reader(), buflen);
+		std::string res_id = "//" + req->getRealmName() + req->getPath();
+		rs->onEnd([req, handler, buf, app, name, context, res_id](size_t buflen) {
+			SceneResource::SceneDefinition scene_def;
+			Error err = parseIniFile(name, buf->reader(), buflen, scene_def);
+			if (err.isError()) {
+				err.setResourceId(res_id);
+				if (handler)
+					handler(err, nullptr);
+				delete buf;
+				return;
+			}
 			SceneResource* scene_res = new SceneResource(name);
 			if (scene_res) {
 				scene_res->setup(app);
-				scene_res->setDefinition(scene_def, context.source_directory, context.context_root);
-				handler(ReqError::OK, scene_res);
+				const std::string source_resource_id = "//" + req->getRealmName() + req->getPath();
+				scene_res->setDefinition(scene_def, context.source_directory, context.context_root, source_resource_id);
+				handler(rhea::Error(), scene_res);
 			}
 			delete buf;
 			});
-		rs->onError([buf, handler](int err) {
+		rs->onError([buf, handler, res_id](int err) {
 			delete buf;
-			handler(ReqError::DATA_INVALID, nullptr);
+			Error error(Error::Code::RESOURCE_ERROR, "Could not read scene resource.", res_id);
+			error.addContext("stream_error", std::to_string(err));
+
+			if (handler)
+				handler(error, nullptr);
 			});
 		rs->ReadAsync(buf);
 	}
 
-	SceneResource::SceneDefinition SceneLoader::parseIniFile(std::string name, char* buf, size_t buflen)
+	Error SceneLoader::parseIniFile(std::string name, char* buf, size_t buflen, SceneResource::SceneDefinition &definition)
 	{
 		std::unique_ptr<simpleparser::IniFileParser> parser = std::make_unique<simpleparser::IniFileParser>();
 		std::vector<simpleparser::IniFileParser::Section> sections;
 
-		int entries = parser->parse(buf, buflen, sections);
+		simpleparser::IniFileParser::Error err = parser->parse(buf, buflen, sections);
 
-		if (!entries) {
+		if (err != simpleparser::IniFileParser::Error::PARSE_OK) {
 			LOG(LOG_ERROR) << "Failed to parse scene file: " << name;
-			return SceneResource::SceneDefinition();
+			return Error(Error::Code::INVALID_DATA, "Failed to parse scene file: " + name, name);
 		}		
 		SceneResource::SceneDefinition scene_def;
 
@@ -72,6 +86,7 @@ namespace rhea
 		
 		// get all resources packed in this file 
 	
+		Error result;
 		for (auto section : sections) {
 			if (section.section_name == "scene")
 				continue;
@@ -97,6 +112,12 @@ namespace rhea
 			node.attributes = section.attributes;
 			if (section.values.find("type") == section.values.end()) {
 				LOG(LOG_ERROR) << "Type name not set for resource: " << section.section_name;
+				if (!result.isError()) {
+					Error type_err(Error::Code::INVALID_DATA, "Type name not set for resource: " + section.section_name, section.section_name);
+					type_err.addContext("node", section.section_name);
+					type_err.addContext("property", "type");
+					result = type_err;
+				}
 				continue;
 			}
 			node.type_name = section.values["type"].toString();
@@ -105,7 +126,11 @@ namespace rhea
 			scene_def.nodes.push_back(node);
 		}
 
-		return scene_def;
+		if (result.isError()) {
+			return result;
+		}
+		definition = scene_def;
+		return Error();
 	}
 
 	

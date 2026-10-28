@@ -23,7 +23,7 @@ namespace rhea
 	void ControllerService::onInit()
 	{
 		auto* worlds = doCast<WorldService>(m_app->getService("world"));
-		worlds->addWorldPrepareHandler([this, worlds](rhea::WorldService::WorldPrepareContext* context) -> rhea::WorldService::PrepareError
+		worlds->addWorldPrepareHandler([this, worlds](rhea::WorldService::WorldPrepareContext* context) -> rhea::Error
 			{
 				// deactivate old controllers
 				for (auto& ctrl_info : m_controllers) {
@@ -37,7 +37,7 @@ namespace rhea
 				rhea::Controller* ctrl = nullptr;
 				if (!context->world) {
 					LOG(LOG_ERROR) << "ControllerService: World not found";
-					return rhea::WorldService::PrepareError::InvalidController;
+					return rhea::Error(rhea::Error::Code::UNAVAILABLE, "ControllerService: World not found");
 				}
 				// get controller folder from the world, if it exists
 				std::string controller_folder = context->world->getValueString("controllers", "");
@@ -73,9 +73,9 @@ namespace rhea
 				}
 				if (m_controllers.empty()) {
 					LOG(LOG_INFO) << "ControllerService: No controller found in world " << context->world->getPathName();
-					return rhea::WorldService::PrepareError::None;
+					return rhea::Error();
 				}
-				return rhea::WorldService::PrepareError::None;
+				return rhea::Error();
 			});
 
 		worlds->addSceneTransitionHandler([this, worlds](rhea::WorldService::SceneTransitionContext* context, rhea::WorldService::TransitionCompletion completion) -> void
@@ -121,13 +121,13 @@ namespace rhea
 						if (default_character_ref) {
 							SceneResource* default_character = doCast<SceneResource>(m_app->getUnitTree()->find(default_character_ref.id()));
 							if (default_character) {
-								ReqError error;
-								character = doCast<Item>(default_character->spawnPrepared(context->target_scene, "", &error));
+								ErrorReport report;
+								character = doCast<Item>(default_character->spawnPrepared(context->target_scene, "", &report));
 								if (character) {
 									LOG(LOG_INFO) << "ControllerService: Default character spawned: " << default_character_ref.id();
 								}
 								else
-									LOG(LOG_ERROR) << "ControllerService: Default character failed to spawn: " << default_character_ref.id() << " with error " << (int)error;
+									LOG(LOG_ERROR) << "ControllerService: Default character failed to spawn: " << default_character_ref.id();
 							}
 							else
 								LOG(LOG_ERROR) << "ControllerService: Default character not found: " << default_character_ref.id();
@@ -189,7 +189,7 @@ namespace rhea
 						}
 						if (placement == PlacementResult::Failed) {
 							LOG(LOG_WARNING) << "ControllerService: Placement handler failed for player_slot " << ctrl_info.player_slot;
-							completion(rhea::WorldService::TransitionError::EntryPointNotFound);
+							completion(rhea::Error(rhea::Error::Code::UNAVAILABLE, "ControllerService: Placement handler failed for player_slot " + std::to_string(ctrl_info.player_slot)));
 							break;
 						}
 					}
@@ -218,7 +218,7 @@ namespace rhea
 						}
 					}
 				}
-				completion(rhea::WorldService::TransitionError::None);
+				completion(rhea::Error());
 			});
 	}
 

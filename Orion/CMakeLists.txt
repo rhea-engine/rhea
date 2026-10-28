@@ -15,7 +15,7 @@ if(NOT TARGET nlohmann_json::nlohmann_json)
 endif()
 
 add_library(Orion STATIC Orion.cpp Realm.cpp Realms.cpp ResourceRequest.cpp ResourceCache.cpp FileStream.cpp 
-"Mime.cpp" "RealmRequest.cpp" "ResolveLocal.cpp"
+"Mime.cpp" "RealmRequest.cpp" "ResolveLocal.cpp" RequestError.cpp
  "UrlResponseStream.cpp"  "FileCollection.cpp" "RealmJson.h" "RealmJson.cpp")
 add_library(Meworla::Orion ALIAS Orion)
 target_link_libraries(Orion PRIVATE Meworla::Psio nlohmann_json::nlohmann_json)

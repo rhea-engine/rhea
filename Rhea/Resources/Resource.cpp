@@ -21,25 +21,28 @@ namespace rhea {
 
 	void Resource::load(orion::ResourceRequest* req, ReadyHandler handler)
 	{
-		handler(ReqError::OK);
+		handler(rhea::Error());
 	}
 
 	void Resource::buildInstance(const InstanceRequest&, InstanceHandler handler)
 	{
-		if (handler)
-			handler(ReqError::NOT_IMPLEMENTED, nullptr);
+		if (handler) {
+			ErrorReport report;
+			report.addError(Error(Error::Code::UNAVAILABLE, "The requested operation is not implemented.", m_path));
+			handler(report, nullptr);
+		}
 	}
 
 	void Resource::ensureReady(InstanceHandler handler)
 	{
 		if (handler)
-			handler(ReqError::OK, this);
+			handler(ErrorReport(), this);
 	}
 	
 	void Resource::prepare(PrepareHandler handler)
 	{
 		m_prepared = true;
-		handler(ReqError::OK);
+		handler(ErrorReport());
 	}
 
 	void Resource::setRaw(size_t buflen, char* buf)
@@ -61,4 +64,69 @@ namespace rhea {
 		}
 		m_status = Status::LOADED;
 	}
+
+	rhea::Error translateLoadError(orion::Error error, const std::string& rid)
+	{
+		using Error = rhea::Error;
+		using Code = Error::Code;
+
+		Code code = Code::RESOURCE_ERROR;
+		std::string message;
+
+		switch (error) {
+		case orion::Error::OK:
+			return {};
+		case orion::Error::REALM_NOT_FOUND:
+			code = Code::NOT_FOUND;
+			message = "Realm could not be resolved.";
+			break;
+		case orion::Error::RESOURCE_NOT_FOUND:
+			code = Code::NOT_FOUND;
+			message = "Resource was not found.";
+			break;
+		case orion::Error::PATH_NOT_FOUND:
+			code = Code::NOT_FOUND;
+			message = "Resource path was not found.";
+			break;
+		case orion::Error::NO_AUTH:
+			code = Code::AUTHENTICATION_FAILED;
+			message = "Authentication is required or has failed.";
+			break;
+		case orion::Error::NO_ACCESS:
+			code = Code::ACCESS_DENIED;
+			message = "Access to the resource was denied.";
+			break;
+		case orion::Error::CONFIG_ERR:
+			code = Code::INVALID_DEFINITION;
+			message = "Resource configuration is invalid.";
+			break;
+		case orion::Error::DATA_INVALID:
+			code = Code::INVALID_DATA;
+			message = "Resource data is invalid.";
+			break;
+		case orion::Error::NOT_IMPLEMENTED:
+			code = Code::UNAVAILABLE;
+			message = "The requested operation is not implemented.";
+			break;
+		case orion::Error::TRANSPORT_ERROR:
+			code = Code::RESOURCE_ERROR;
+			message = "Resource transport failed.";
+			break;
+		case orion::Error::CANCELED:
+			code = Code::CANCELED;
+			message = "Resource request was canceled.";
+			break;
+		case orion::Error::UNKNOWN_ERROR:
+			message = "An unknown resource request error occurred.";
+			break;
+		default:
+			message = "Resource loading did not complete successfully.";
+			break;
+		}
+
+		Error result(code, message, rid);
+		result.addContext("request_error", std::to_string(static_cast<int>(error)));
+		return result;
+	}
+
 }

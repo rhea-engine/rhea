@@ -95,13 +95,15 @@ namespace rhea
 			}
 			else {
 				DLOG(LOG_DEBUG) << "Obj not found in objloader. Path was: " << m_obj_ref.id();
-				handler(ReqError::RESOURCE_NOT_FOUND);
+				if (handler)
+					handler(Error(Error::Code::NOT_FOUND, "Obj not found", m_obj_ref.id()));
 				return;
 			}
 		}
 		else {
-			LOG(LOG_ERROR) << "Could not open " << m_pathname << ": Obj file not defined.";
-			handler(ReqError::RESOURCE_NOT_FOUND);
+			LOG(LOG_ERROR) << "Could not open " << m_path << ": Obj file not defined.";
+			if (handler)
+				handler(Error(Error::Code::INVALID_DEFINITION, "Obj file not defined", m_path));
 			return;
 		}
 
@@ -113,7 +115,8 @@ namespace rhea
 
 		if (!ret) {
 			LOG(LOG_ERROR) << "Could not parse obj file: " << reader.Error();
-			handler(ReqError::DATA_INVALID);
+			if (handler)
+				handler(Error(Error::Code::INVALID_DATA, "Could not parse obj file: " + reader.Error(), m_obj_ref.id()));
 			return;
 		}
 
@@ -156,16 +159,20 @@ namespace rhea
 
 		auto* resource_service = m_app->getService<ResourceService>();
 		resource_service->loadAsync(textures,
-			[this, handler](ResourceList* loaded, Error* error) {
-				if (error) {
-					//handler(ReqError::DATA_INVALID);
-					//return;
-					LOG(LOG_ERROR) << "Error loading textures: " << error->getText();
+			[this, handler](ResourceList* loaded, ErrorReport error) {
+				if (error.isError()) {
+					for (auto err : error.errors) {
+						LOG(LOG_ERROR) << "Error loading textures: " << err.getMessage();
+					}
+					if (handler)
+						handler(error);
+					return;
 				}
 
 				// Store the loaded textures with their material assignment.
 				m_prepared = true;
-				handler(ReqError::OK);
+				if (handler)
+					handler(error);
 			});
 	}
 

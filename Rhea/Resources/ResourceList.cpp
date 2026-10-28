@@ -13,7 +13,7 @@
 #include <cassert>
 
 namespace rhea {
-	
+
 	ResourceList::~ResourceList()
 	{
 		// decrement all references on loaded resources
@@ -34,10 +34,11 @@ namespace rhea {
 
 		size_t item_size = m_resources.size();
 		m_to_load = (int)item_size;
+		m_load_errors = ErrorReport();
 		if (!item_size) {
 			// no external resources -> immediately succeed
 			m_loaded = true;
-			handler(nullptr);
+			handler(m_load_errors);
 			return;
 		}
 		UnitTree* tree = m_app->getUnitTree();
@@ -52,7 +53,6 @@ namespace rhea {
 			else {
 				Unit* resource = res.resource ? res.resource : doCast<Unit>(tree->find(res.id));
 				if (resource) {
-
 					// exists in tree					
 					m_resources[key].status = Resource::Status::LOADED;
 					m_resources[key].resource = resource;
@@ -66,23 +66,21 @@ namespace rhea {
 					decrementToLoadAndCheckIfZero(handler, nullptr);
 				}
 				else {
-					m_app->loadResource(res.id, m_resource_context, res.type, [&, res, key, handler](Component* component, orion::ResourceRequest::Error err) {
+					m_app->loadResource(res.id, m_resource_context, res.type, [&, res, key, handler](Component* component, ErrorReport err) {
 						Unit* resource = doCast<Unit>(component);
-						if (resource) {
-							if (err != orion::ResourceRequest::Error::OK) {
-								LOG(LOG_ERROR) << "Could not load resource " << res.id << ": " << orion::ResourceRequest::getErrorMessage(err);
-							}
-
+						if (resource && !err.isError()) {
 							m_resources[key].status = Resource::Status::LOADED;
 							m_resources[key].resource = resource;
 							resource->incRef();
-							decrementToLoadAndCheckIfZero(handler, nullptr);
+							decrementToLoadAndCheckIfZero(handler, &err);
 						}
 						else {
-							LOG(LOG_ERROR) << "Could not load resource " << res.id << ": " << orion::ResourceRequest::getErrorMessage(err);
+							if (!err.isError())
+								err.addError(Error(Error::Code::INVALID_DATA, "Loaded component is not a resource unit.", m_resource_context.normalizeResourceId(res.id)));
+							LOG(LOG_ERROR) << "Could not load resource " << res.id;
 							m_resources[key].status = Resource::Status::DATA_INVALID;
-							Error errmsg(Error::Type::RESOURCE_ERROR, orion::ResourceRequest::getErrorMessage(err));
-							decrementToLoadAndCheckIfZero(handler, &errmsg);							
+							decrementToLoadAndCheckIfZero(handler, &err);
+
 						}
 						});
 				}
@@ -90,13 +88,18 @@ namespace rhea {
 		}
 	}
 
-	bool ResourceList::decrementToLoadAndCheckIfZero(Unit::ReadyHandler handler, Error* err) {
-		if (--m_to_load == 0) {
-			m_loaded = true;
-			handler(err);
-			return true;
+	bool ResourceList::decrementToLoadAndCheckIfZero(Unit::ReadyHandler handler, ErrorReport* err) {
+		if (err) {
+			m_load_errors.merge(*err);
 		}
-		return false;
+		if (--m_to_load != 0)
+			return false;
+
+		m_loaded = true;
+		if (handler)
+			handler(m_load_errors);
+
+		return true;
 	}
 	
 	void ResourceList::push(std::string key, std::string id, std::string type, bool replace, Unit* unit)

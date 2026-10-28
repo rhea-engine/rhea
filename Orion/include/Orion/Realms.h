@@ -17,6 +17,7 @@
 
 #include <Orion/Realm.h>
 #include <Orion/Event.h>
+#include <Orion/RequestError.h>
 
 namespace orion
 {
@@ -27,13 +28,13 @@ namespace orion
 	{
 	public:
 
-		typedef std::function<void(Realm*, int err)> ResolveHandler;
+		typedef std::function<void(Realm*, orion::Error err)> ResolveHandler;
 
 		Realms(Orion* orion);
 		// get realm from cached realm list
 		Realm* getRealmCached(std::string name);
 		// get realm asynchronously from server
-		int getRealm(std::string name, ResolveHandler handler);
+		Error getRealm(std::string name, ResolveHandler handler);
 		// add realm to realm list
 		void addRealm(Realm* realm);
 		// Reload realms.conf if it has changed

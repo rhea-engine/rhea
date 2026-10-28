@@ -99,14 +99,15 @@ namespace rhea
             size_t remaining = 0;
             bool binary = false;
             bool completed = false;
-            ReqError error = ReqError::OK;
+            Error error = Error();
+            std::string resource_id;
 
             void parse()
             {
                 if (completed)
                     return;
                 completed = true;
-                if (error != ReqError::OK) {
+                if (error.isError()) {
                     handler(error, nullptr);
                     return;
                 }
@@ -155,16 +156,19 @@ namespace rhea
                 if (!message.empty())
                     LOG(LOG_ERROR) << message;
                 if (!success) {
-                    handler(ReqError::DATA_INVALID, nullptr);
+                    Error err(Error::Code::INVALID_DATA, "Failed to load glTF resource: " + message, resource_id);
+                    if (handler)
+                        handler(err, nullptr);
                     return;
                 }
                 scene->SetModel(std::move(model));
-                handler(ReqError::OK, scene.release());
+                if (handler)
+                    handler(Error(), scene.release());
             }
 
-            void finishAsset(ReqError result)
+            void finishAsset(Error result)
             {
-                if (result != ReqError::OK && error == ReqError::OK)
+                if (result.isError() && !error.isError())
                     error = result;
                 if (--remaining == 0)
                     parse();
@@ -176,7 +180,9 @@ namespace rhea
         ResourceContext& context, Resource::LoadedHandler handler, bool is_binary)
     {
         if (!req || !req->getStream()) {
-            handler(ReqError::RESOURCE_NOT_FOUND, nullptr);
+            const std::string resource_id = req ? "//" + req->getRealmName() + req->getPath() : context.normalizeResourceId(name);
+            if (handler)
+                handler(Error(Error::Code::NOT_FOUND, "Resource stream not found", resource_id), nullptr);
             return;
         }
 
@@ -187,6 +193,7 @@ namespace rhea
         state->binary = is_binary;
         state->scene = std::make_unique<GltfScene>(name, "//meworla/gltf");
         state->scene->setup(app, {}, {});
+		state->resource_id = "//" + req->getRealmName() + req->getPath();
 
         auto* stream = req->getStream();
         auto buffer = std::make_shared<psio::IOBuffer>(stream->getLength() ? stream->getLength() : 64 * 1024);
@@ -194,7 +201,7 @@ namespace rhea
         stream->onEnd([state, buffer](size_t) {
             state->source.assign(buffer->reader(), buffer->reader() + buffer->Remaining());
             if (state->source.empty() || state->source.size() > (std::numeric_limits<unsigned int>::max)()) {
-                state->error = ReqError::DATA_INVALID;
+                state->error = Error(Error::Code::INVALID_DATA, "glTF resource is empty or exceeds the supported size", state->resource_id);
                 state->parse();
                 return;
             }
@@ -219,7 +226,7 @@ namespace rhea
             }
             catch (const std::exception& error) {
                 LOG(LOG_ERROR) << "Could not inspect glTF dependencies: " << error.what();
-                state->error = ReqError::DATA_INVALID;
+                state->error = Error(Error::Code::INVALID_DATA, "Failed to load glTF resource: " + std::string(error.what()), state->resource_id);
                 state->parse();
                 return;
             }
@@ -237,10 +244,12 @@ namespace rhea
             for (const auto& path : paths) {
                 const std::string rid = state->context.normalizeResourceId(path);
                 auto* dependency = state->app->getFS()->getResourceByRid(rid);
-                dependency->resolve([state, path, rid](orion::ResourceRequest* resolved, int error) {
-                    if (error != orion::ResourceRequest::Error::OK) {
+                dependency->resolve([state, path, rid](orion::ResourceRequest* resolved, orion::Error error) {
+                    if (error != orion::Error::OK) {
                         LOG(LOG_ERROR) << "Could not load glTF dependency: " << rid;
-                        state->finishAsset(ReqError::RESOURCE_NOT_FOUND);
+                        Error result = translateLoadError(error, rid);
+                        result.addContext("referenced_by", state->resource_id);
+                        state->finishAsset(result);
                         return;
                     }
                     auto* asset_stream = resolved->getStream();
@@ -250,18 +259,23 @@ namespace rhea
                     asset_stream->onEnd([state, path, asset_buffer](size_t) {
                         state->assets.at(path).assign(asset_buffer->reader(),
                             asset_buffer->reader() + asset_buffer->Remaining());
-                        state->finishAsset(ReqError::OK);
+                        state->finishAsset(Error());
+
                     });
-                    asset_stream->onError([state, rid, asset_buffer](int) {
-                        LOG(LOG_ERROR) << "Could not read glTF dependency: " << rid;
-                        state->finishAsset(ReqError::DATA_INVALID);
+                    asset_stream->onError([state, rid, asset_buffer](int err) {
+                        LOG(LOG_ERROR) << "Could not read glTF dependency: " << rid << " (stream error: " << err << ")";
+                        Error result(Error::Code::RESOURCE_ERROR, "Could not read glTF dependency", rid);
+						result.addContext("referenced_by", state->resource_id);
+						result.addContext("stream_error", std::to_string(err));
+                        state->finishAsset(result);
                     });
                     asset_stream->ReadAsync(asset_buffer.get());
                 });
             }
         });
-        stream->onError([state, buffer](int) {
-            state->error = ReqError::DATA_INVALID;
+        stream->onError([state, buffer](int stream_error) {
+            state->error = Error(Error::Code::RESOURCE_ERROR, "Could not read glTF resource", state->resource_id);
+            state->error.addContext("stream_error", std::to_string(stream_error));
             state->parse();
         });
         stream->ReadAsync(buffer.get());

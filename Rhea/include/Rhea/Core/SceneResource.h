@@ -9,6 +9,7 @@
 #define RHEA_SCENERESOURCE_H
 
 #include <Rhea/Resources/Resource.h>
+#include <Rhea/Error.h>
 
 namespace rhea
 {
@@ -34,8 +35,8 @@ namespace rhea
 			std::vector<NodeDefinition> nodes;
 		};
 
-		using SpawnHandler = std::function<void(ReqError, Unit*)>;
-		using MaterializeHandler = std::function<void(ReqError, Unit*)>;
+		using SpawnHandler = std::function<void(ErrorReport, Unit*)>;
+		using MaterializeHandler = std::function<void(ErrorReport, Unit*)>;
 
 		SceneResource(std::string name, std::string type_name) :
 			Resource(name, type_name)
@@ -46,12 +47,15 @@ namespace rhea
 			return m_definition;
 		}
 
-		void setDefinition(SceneDefinition definition, const std::string& scene_root, const std::string& context_root)
+		void setDefinition(SceneDefinition definition, const std::string& scene_root, const std::string& context_root, const std::string& source_resource_id)
 		{
 			m_definition = std::move(definition);
 			m_scene_root = scene_root;
 			m_context_root = context_root;
+			m_source_resource_id = source_resource_id;
 		}
+
+		const std::string& getSourceResourceId() const { return m_source_resource_id; }
 
 		std::string getSceneRoot() const
 		{
@@ -83,13 +87,14 @@ namespace rhea
 		Unit* spawnPrepared(
 			Unit* parent,
 			const std::string& name,
-			ReqError* error = nullptr);
+			ErrorReport* error = nullptr);
 
 		// Build a complete detached tree without calling ready().
 		void buildInstance(const InstanceRequest& request, InstanceHandler handler) override;
 
 	private:
 		SceneDefinition m_definition;
+		std::string m_source_resource_id; // Resolved source file, independent of instance names.
 		std::string m_scene_root; // Directory of this scene file
 		std::string m_context_root; // Root inherited from the entry context
 
@@ -99,7 +104,7 @@ namespace rhea
 			std::string instance_name;
 			Component::ResourceUsage usage = Component::ResourceUsage::Load;
 		};
-		using CompletionHandler = std::function<void(ReqError)>;
+		using CompletionHandler = std::function<void(ErrorReport)>;
 
 		void instantiatePendingScenes(
 			ResourceList& resources,
@@ -110,7 +115,7 @@ namespace rhea
 		std::vector<MaterializeHandler> m_waiting_materialize_handlers;
 		Unit* m_materialized_instance = nullptr;
 
-		void completeMaterialization(ReqError error, Unit* instance);
+		void completeMaterialization(ErrorReport error, Unit* instance);
 
 		enum class PrepareState {
 			Unprepared,

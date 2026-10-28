@@ -501,7 +501,8 @@ void Ceto::setup()
 	m_unit_tree->addChild(mat);
 
 	auto* worlds = doCast<rhea::WorldService>(getService("world"));
-	worlds->addWorldPrepareHandler([this, worlds](rhea::WorldService::WorldPrepareContext* context) -> rhea::WorldService::PrepareError
+
+	worlds->addWorldPrepareHandler([this, worlds](rhea::WorldService::WorldPrepareContext* context) -> rhea::Error
 		{
 			if (context->world)
 				m_focused_controller = context->world->findByType<rhea::Controller>();
@@ -509,11 +510,11 @@ void Ceto::setup()
 				m_focused_controller = context->standaloneScene->findByType<rhea::Controller>();
 			else
 				m_focused_controller = nullptr;
-			return rhea::WorldService::PrepareError::None;
+			return rhea::Error();
 		});
 	worlds->addSceneTransitionHandler([this, worlds](rhea::WorldService::SceneTransitionContext* context, rhea::WorldService::TransitionCompletion completion) -> void
 		{
-			completion(rhea::WorldService::TransitionError::None);
+			completion(rhea::Error());
 		});
 	auto* ctrl_srv = getService<rhea::ControllerService>();
 	ctrl_srv->addPlacementHandler([this, ctrl_srv](rhea::ControllerService::PlacementContext& context) -> rhea::ControllerService::PlacementResult
@@ -545,9 +546,9 @@ void Ceto::setScene(bool mark_preferrences)
 
 	auto* worlds = doCast<rhea::WorldService>(getService("world"));
 
-	worlds->openWorld(m_home_scene,	[this, worlds](rhea::WorldService::OpenError error)
+	worlds->openWorld(m_home_scene,	[this, worlds](rhea::ErrorReport error)
 		{
-			if (error != rhea::WorldService::OpenError::None) {
+			if (error.isError()) {
 				log("Ceto: Could not open scene");
 				rhea::Widget* w = doCast<rhea::Widget>(m_unit_tree->find("//local/cetogui/gui/realms"));
 				if (w) {
@@ -591,13 +592,13 @@ void Ceto::loadMainGUI()
 {
 	// load the apps gui			
 	std::string app_gui = "//local/cetogui.scene";
-	loadResource(app_gui, "//meworla/scene", [&](rhea::Component* res, ReqError r_err) {
+	loadResource(app_gui, "//meworla/scene", [&](rhea::Component* res, rhea::ErrorReport r_err) {
 		rhea::SceneResource* scene_res = doCast<rhea::SceneResource>(res);
-		if (scene_res && r_err == ReqError::OK) {
+		if (scene_res && !r_err.isError()) {
 			rhea::Unit* parent = doCast<rhea::Unit>(m_unit_tree->find(scene_res->getSceneRoot()));
-			scene_res->spawn(parent, [&](ReqError r_err, rhea::Unit* res) {
+			scene_res->spawn(parent, [&](rhea::ErrorReport r_err, rhea::Unit* res) {
 				rhea::Scene* gui = doCast<rhea::Scene>(res);
-				if (gui && r_err == ReqError::OK) {
+				if (gui && !r_err.isError()) {
 
 					gui->show();
 					m_gui = gui;

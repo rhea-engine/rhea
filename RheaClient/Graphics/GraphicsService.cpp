@@ -411,9 +411,12 @@ namespace rhea::client {
 		res_list.push("skybox_shader", "//rhea/shaders/skybox.shader", "//meworla/shader");
 
 		// note: for locally installed resources this is actually synchronous
-		res_list.load([this](rhea::Error* err){
-			if (err) {
-				LOG(LOG_ERROR) << "Error loading core shader resources: " << err->getText();
+		res_list.load([this](rhea::ErrorReport err){
+			if (err.isError()) {
+				LOG(LOG_ERROR) << "Error loading core shader resources: ";
+				for (auto& e : err.errors) {
+					LOG(LOG_ERROR) << "  - " << e.getMessage() << " (resource: " << e.getResourceId() << ")";
+				}
 			}
 			else {
 				LOG(LOG_INFO) << "Core shader resources loaded successfully.";
@@ -424,9 +427,12 @@ namespace rhea::client {
 		for (auto& [key, res] : res_list.getAllComponents()) {
 			SceneResource* shader_res = doCast<SceneResource>(res.resource);
 			if (shader_res) {
-				shader_res->spawn(parent, [](ReqError err, Unit* unit){
-					if (err != ReqError::OK) {
-						LOG(LOG_DEBUG) << "Shader resource could not be spawned: " << unit->getPathName() << " (error: " << static_cast<int>(err) << ")";
+				shader_res->spawn(parent, [resource_id = res.id](ErrorReport err, Unit* unit){
+					if (err.isError()) {
+						LOG(LOG_DEBUG) << "Shader resource could not be spawned: " << resource_id;
+						for (auto& e : err.errors) {
+							LOG(LOG_DEBUG) << "  - " << e.getMessage() << " (resource: " << e.getResourceId() << ")";
+						}
 					}
 					});
 			}

@@ -113,7 +113,7 @@ namespace orion
 		delete res;
 	}
 
-	int Realms::getRealm(std::string name, ResolveHandler handler)
+	Error Realms::getRealm(std::string name, ResolveHandler handler)
 	{
 		// no check of realms list - we assume that was done before by the client
 		
@@ -129,9 +129,9 @@ namespace orion
 			m_requests[name].handlers.push_back(handler);
 			
 			// start the request
-			req->Lookup(name, [&, name](Realm *realm, int error) {
+			req->Lookup(name, [&, name](Realm *realm, orion::Error error) {
 				// store the realm
-				if (!error) {
+				if (error == orion::Error::OK) {
 					addRealm(realm);
 				}
 
@@ -149,7 +149,7 @@ namespace orion
 		}
 
 		// data is pending
-		return -1;
+		return Error::IO_PENDING;
 	}
 
 	void Realms::addRealm(Realm* realm)

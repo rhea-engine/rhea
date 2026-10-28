@@ -76,14 +76,14 @@ namespace rhea
 		// register in worldservice to be called during world prepare
 		WorldService* world_service = doCast<WorldService>(m_app->getService("world"));
 		if (world_service) {
-			world_service->addWorldPrepareHandler([this](rhea::WorldService::WorldPrepareContext* context) -> rhea::WorldService::PrepareError {
+			world_service->addWorldPrepareHandler([this](rhea::WorldService::WorldPrepareContext* context) -> rhea::Error {
 				
 				// initialize physics
 
 				std::string backend = "none";
 				if (!context || (!context->world) && (!context->standaloneScene)) {
 					LOG(LOG_ERROR) << "WorldService has no world and no scene. Physics will be disabled.";
-					return rhea::WorldService::PrepareError::PhysicsInitializationFailed;
+					return rhea::Error(rhea::Error::Code::UNAVAILABLE, "WorldService has no world and no scene. Physics will be disabled.");
 				}
 				std::string phy = "none";
 				if (context->world)
@@ -103,21 +103,21 @@ namespace rhea
 
 				// if no physics backend is specified or explicitly disabled with "none", we return early and do not initialize physics
 				if (backend == "none")
-					return rhea::WorldService::PrepareError::None;
+					return rhea::Error();
 
 				// create service by id (manager handles fallback to "none" if unknown/unavailable)
 				rhea::PhysicsService* physics = createPhysicsService(backend);
 				if (!physics) {
 					LOG(LOG_ERROR) << "Failed to create physics service for backend: " << backend;
-					return rhea::WorldService::PrepareError::PhysicsInitializationFailed;
+					return rhea::Error(rhea::Error::Code::UNAVAILABLE, "Failed to create physics service for backend: " + backend);
 				}
 				if (physics) {
 					physics->onInit();
 					m_app->setPhysicsService(physics);
-					return rhea::WorldService::PrepareError::None;
+					return rhea::Error();
 				}
 
-				return WorldService::PrepareError::PhysicsInitializationFailed;
+				return rhea::Error(rhea::Error::Code::UNAVAILABLE, "Physics initialization failed");
 				});
 		}
 	}

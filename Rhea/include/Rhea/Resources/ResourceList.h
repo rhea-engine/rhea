@@ -12,6 +12,7 @@
 
 #include "Resource.h"
 #include <Rhea/Resources/ResourceContext.h>
+#include <Rhea/Error.h>
 
 namespace rhea
 {
@@ -39,7 +40,7 @@ namespace rhea
 
 		void load(Unit::ReadyHandler handler);
 
-		bool decrementToLoadAndCheckIfZero(Unit::ReadyHandler handler, Error* err);
+		bool decrementToLoadAndCheckIfZero(Unit::ReadyHandler handler, ErrorReport* err);
 
 		// add a resource info to the list
 		void push(std::string key, std::string id, std::string type, bool replace = false, Unit* unit = nullptr);
@@ -64,6 +65,7 @@ namespace rhea
 		Application* m_app;
 		int m_to_load;
 		bool m_loaded;
+		ErrorReport m_load_errors;
 		ResourceContext m_resource_context;
 
 		std::unordered_map<std::string, ResourceInfo> m_resources;

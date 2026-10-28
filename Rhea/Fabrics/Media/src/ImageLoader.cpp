@@ -22,8 +22,9 @@ namespace rhea
 
 			psio::IOBuffer* buf = new psio::IOBuffer(64 * 1024);
 			psio::Stream* rs = req->getStream();
+			std::string res_id = "//" + req->getRealmName() + req->getPath();
 			rs->SetMode(psio::Fs::READ | psio::Fs::BINARY);
-			rs->onEnd([name, app, buf, handler](size_t bytes_read) {
+			rs->onEnd([name, app, buf, handler, res_id](size_t bytes_read) {
 				ImageResource* img = new ImageResource(name);
 				char* dest = (char*)malloc(buf->Remaining());
 				if (dest) {
@@ -31,17 +32,30 @@ namespace rhea
 					img->setRaw(buf->Remaining(), dest);
 					img->setup(app);
 				}
+				else {
+					delete img;
+					delete buf;
+					if (handler)
+						handler(rhea::Error(Error::Code::UNAVAILABLE, "Could not allocate memory for image resource", res_id), nullptr);
+					return;
+				}
 				delete buf;
-				handler(ReqError::OK, img);
+				if (handler)
+					handler(Error(), img);
 				});
-			rs->onError([buf, handler](int err) {
+			rs->onError([buf, handler, res_id](int err) {
 				delete buf;
-				handler(ReqError::DATA_INVALID, nullptr);
+				Error error(Error::Code::RESOURCE_ERROR, "Could not read image resource", res_id);
+				error.addContext("stream_error", std::to_string(err));
+				if (handler)
+					handler(error, nullptr);
 				});
 			rs->ReadAsync(buf);
 		}
 		else {
-			handler(ReqError::RESOURCE_NOT_FOUND, nullptr);
+			Error error(Error::Code::NOT_FOUND, "Resource not found.");
+			if (handler)
+				handler(error, nullptr);
 		}
 	}
 }

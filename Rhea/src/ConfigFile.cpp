@@ -26,8 +26,8 @@ namespace rhea
 				size_t len = buf->Remaining();
 				simpleparser::IniFileParser* parser = new simpleparser::IniFileParser();
 				std::vector<simpleparser::IniFileParser::Section> sections;
-				int err = parser->parse((char*)ptr, len, sections);
-				if (err == (int)simpleparser::IniFileParser::Error::PARSE_OK) {
+				simpleparser::IniFileParser::Error err = parser->parse((char*)ptr, len, sections);
+				if (err == simpleparser::IniFileParser::Error::PARSE_OK) {
 					for (auto& section : sections) {
 						std::string key = section.section_name;
 						// attributes have no meaning for the config file yet

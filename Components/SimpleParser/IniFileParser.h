@@ -46,7 +46,7 @@ namespace simpleparser
 		};
 
 		// parse a buffer into sections
-		int parse(char* buf, size_t buflen, std::vector<IniFileParser::Section>& sections);
+		Error parse(char* buf, size_t buflen, std::vector<IniFileParser::Section>& sections);
 
 		// get english error message
 		char* getErrMsg(Error err);

@@ -22,7 +22,7 @@ namespace rhea
 			Service("ResourceManager", type_name)
 		{}
 
-		typedef std::function<void(ResourceList*, Error*)> OnLoadHandler;
+		typedef std::function<void(ResourceList*, ErrorReport)> OnLoadHandler;
 
 		void loadAsync(ResourceList& resreq, OnLoadHandler onLoaded);
 

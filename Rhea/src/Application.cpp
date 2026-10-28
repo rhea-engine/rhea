@@ -82,16 +82,16 @@ namespace rhea
 	}
 
 	void Application::init(int argc, char* argv[])
-	{		
+	{
 		// set log severity
 #ifdef _DEBUG
 		Log::logger().setLevel(LOG_DEBUG);
 #else
 		Log::logger().setLevel(LOG_INFO);
 #endif // DEBUG
-		
+
 		// register core types
-		simpleparser::Type::registerType<Component>("//core/types/component"); 
+		simpleparser::Type::registerType<Component>("//core/types/component");
 		simpleparser::Type::registerType<Unit>("//core/types/unit");
 		simpleparser::Type::registerType<UnitTree>("//core/unittree");
 		simpleparser::Type::registerType<Collection>("//core/collection");
@@ -136,7 +136,7 @@ namespace rhea
 			setAppDir(app_dir.c_str());
 		}
 
-		// load config file		
+		// load config file
 		config->loadFromFile("config.ini");
 
 		// log-level from config
@@ -164,7 +164,7 @@ namespace rhea
 
 		Service* phy_mgr = (PhysicsManagerService*)simpleparser::Type::create("PhysicsManagerService", "//meworla/physicsmanagerservice");
 		phy_mgr->setup(this);
-		m_services["physics_mgr"] = phy_mgr;		
+		m_services["physics_mgr"] = phy_mgr;
 
 		Service* res_service = (Service*)simpleparser::Type::create("ResourceService", "//meworla/resourceservice");
 		m_services["resources"] = res_service;
@@ -182,7 +182,7 @@ namespace rhea
 		ResourceLibrary::_register_ResourceLibrary();
 		simpleparser::Type::registerType<Transform>("//meworla/transform");
 		Item::_register_Item();
-		simpleparser::Type::registerType<Mesh>("//meworla/mesh");				
+		simpleparser::Type::registerType<Mesh>("//meworla/mesh");
 		simpleparser::Type::registerType<Shader>("//meworla/shader");
 		simpleparser::Type::registerType<Lighting>("//meworla/lighting");
 		Light::_register_Light();
@@ -199,7 +199,7 @@ namespace rhea
 		auto* area_srv = new AreaService("area");
 		area_srv->setup(this);
 		m_services["area"] = area_srv;
-		Trigger::_register_Trigger();	
+		Trigger::_register_Trigger();
 		ImageResource::_register_ImageResource();
 		simpleparser::Type::registerType<ImageResource>("//meworla/texture");
 		CubeMap::_register_CubeMap();
@@ -210,7 +210,7 @@ namespace rhea
 		orion::MIME::RegisterExtenstion("text/fontinfo", "fnt");
 
 		//GUIController::Register(this);
-		
+
 		simpleparser::Type::registerType<Geometry>("//meworla/geometry");
 
 		// register mime type for shader
@@ -273,11 +273,11 @@ namespace rhea
 		}
 		m_windows.push_back(default_window);
 		m_windows[0].views.push_back({ "default", 0,0,default_window.width,default_window.height });
-		m_windows[0].views[0].layers.push_back({ "default", 0,0,default_window.width,default_window.height });	
+		m_windows[0].views[0].layers.push_back({ "default", 0,0,default_window.width,default_window.height });
 	}
 
 	void Application::setup()
-	{	
+	{
 		// if no window and no view was defined we create a default one
 		if (!m_windows.size()) {
 			addDefaultWindow();
@@ -286,7 +286,7 @@ namespace rhea
 		for (auto it = m_services.begin(); it != m_services.end(); ++it)
 		{
 			Service* s = it->second;
-			s->onInit();			
+			s->onInit();
 		}
 	}
 
@@ -300,7 +300,7 @@ namespace rhea
 		m_services["platform"]->setValue("AppDir", simpleparser::Variant(path));
 	}
 
-	void Application::onResourceFailed(orion::ResourceRequest::Error reason)
+	void Application::onResourceFailed(orion::Error reason)
 	{
 		LOG(LOG_ERROR) << "Resource loading failed";
 	}
@@ -336,8 +336,8 @@ namespace rhea
 	int Application::loop()
 	{
 		// start the loop
-		int ret = 0;	
-		psio::Engine* psio = static_cast<PlatformService*>(m_services["platform"])->getEngine();			
+		int ret = 0;
+		psio::Engine* psio = static_cast<PlatformService*>(m_services["platform"])->getEngine();
 
 		int iterations_per_second = 60;
 		float frame_slice = 1.0f / iterations_per_second;
@@ -366,10 +366,10 @@ namespace rhea
 			float elapsed_s = static_cast<float>(elapsed_ticks) / 1000000.0f;
 			last_ticks = current_ticks;
 
-			// compute fps					
+			// compute fps
 			fps = 1 / elapsed_s; // fps for current frame
 			elapsed_fs += elapsed_s;
-			//  show all 
+			//  show all
 			if (elapsed_fs > 1.0f) {
 				fps = (frames - fps_count) / elapsed_fs;
 				elapsed_fs = 0.0f;
@@ -418,10 +418,10 @@ namespace rhea
 				}
 			}
 
-			// 3.2 Run io and network updates (e.g., sync data, process packets)			
+			// 3.2 Run io and network updates (e.g., sync data, process packets)
 			psio->RunNet();
 			m_fs->poll();
-			
+
 			// 4. Call pre-physics updates for all services (elapsed time is frame-based)
 			for (auto it = m_services.begin(); it != m_services.end(); ++it) {
 				if (it->second->onPrePhysics(elapsed_s))
@@ -448,14 +448,14 @@ namespace rhea
 
 			// idle
 			uint64_t idle_begin = psio->getTicks();
-			
+
 			// idle(elapsed_s)
 
 			// 6. Call frame-based updates for all services - physics is done
 			for (auto it = m_services.begin(); it != m_services.end(); ++it) {
 				if (it->second->onFrame(elapsed_s))
 					ret = true;
-			}			
+			}
 
 			// 7. Perform any final updates (e.g., rendering, cleanup)
 			for (auto it = m_services.begin(); it != m_services.end(); ++it) {
@@ -473,21 +473,28 @@ namespace rhea
 		return ret;
 	}
 
-	void Application::loadResource(const std::string& resource_id, const std::string& type_name, std::function<void(Component*, ReqError error)> handler)
+	void Application::loadResource(const std::string& resource_id, const std::string& type_name, std::function<void(Component*, ErrorReport error)> handler)
 	{
 		loadResource(resource_id, {}, type_name, handler);
 	}
 
 
-	void Application::loadResource(const std::string& resource_id, const ResourceContext& context, const std::string& type_name, std::function<void(Component*, ReqError error)> handler)
+	void Application::loadResource(const std::string& resource_id, const ResourceContext& context, const std::string& type_name, std::function<void(Component*, ErrorReport error)> handler)
 	{
 		std::string rid = context.normalizeResourceId(resource_id);
 
+		// check if already loaded
+		if (auto* resource = doCast<Resource>(m_unit_tree->find(rid, false))) {
+			if (handler)
+				handler(resource, ErrorReport{});
+			return;
+		}
+
 		log("loading resource: " + rid);
 		orion::ResourceRequest* req = m_fs->getResourceByRid(rid);
-		req->resolve([this, handler, context, rid, resource_id](orion::ResourceRequest* req, int err) {
+		req->resolve([this, handler, context, rid, resource_id](orion::ResourceRequest* req, orion::Error err) {
 
-			if (err == orion::ResourceRequest::Error::OK) {
+			if (err == orion::Error::OK) {
 
 				// we got the resource
 
@@ -506,27 +513,37 @@ namespace rhea
 					if (!m_unit_tree->addChild(realm_unit)) {
 						LOG(LOG_ERROR) << "LoadResource(" << resource_id << "): Failed to add realm " << realm_name;
 						delete realm_unit;
-						return handler(NULL, ReqError::DATA_INVALID);
+						if (handler)
+							handler(NULL, Error(Error::Code::INVALID_DATA, "Failed to add realm " + realm_name, rid));
+						return;
 					}
 				}
 
 				// find the unit parent and create the folders if necessary
 				std::string parentpath = realm_name + req->getParentPath();
 				Unit* parent_unit = doCast<Unit>(m_unit_tree->find(parentpath, true));
-				if (!parent_unit)
+				if (!parent_unit) {
 					// should not happen
-					return handler(NULL, ReqError::PATH_NOT_FOUND);
+					if (handler)
+						handler(NULL, Error(Error::Code::NOT_FOUND, "Parent unit not found: " + parentpath, rid));
+					return;
+				}
 
 				if (req->getStream()->IsDir()) {
 					// sepcial case for directory
 					Collection* collection = new Collection(req->getBasename(), "//core/collection");
 					collection->readFromStream(req->getStream());
 					if (!parent_unit->addChild(collection)) {
-						LOG(LOG_ERROR) << "LoadResource(" << resource_id << "): Failed to add collection " << collection->getPathName() << " to parent " << parent_unit->getPath();
+						std::string path = collection->getPathName();
+						LOG(LOG_ERROR) << "LoadResource(" << resource_id << "): Failed to add collection " << path << " to parent " << parent_unit->getPath();
 						delete collection;
-						return handler(NULL, ReqError::DATA_INVALID);
+						if (handler)
+							handler(NULL, Error(Error::Code::INVALID_DATA, "Failed to add collection " + path + " to parent " + parent_unit->getPath(), rid));
+						return;
 					}
-					return handler(collection, ReqError::OK);
+					if (handler)
+						handler(collection, Error());
+					return;
 				}
 
 				// call loader for resource mime type
@@ -534,44 +551,81 @@ namespace rhea
 				// get from request
 				std::string mime = req->getMimeType();
 				if (mime.length()) {
-					if (m_resource_loader.load(req->getBasename(), this, mime, req, loaded_context, [this, handler, parent_unit, resource_id](ReqError err, Component* component) {
+					if (m_resource_loader.load(req->getBasename(), this, mime, req, loaded_context, [this, handler, parent_unit, rid](ErrorReport err, Component* component) {
 
-						// add it to tree
-						if (component) {
-							if (!parent_unit->addChild(component)) {
-								LOG(LOG_ERROR) << "LoadResource(" << resource_id << "): Failed to add component " << component->getPathName() << " to parent " << parent_unit->getPath();
+						if (err.isError()) {
+							if (component) {
+								LOG(LOG_ERROR) << "LoadResource(" << rid << "): Failed to load component " << component->getPathName();
 								delete component;
-								return handler(NULL, ReqError::DATA_INVALID);
 							}
+							if (handler)
+								handler(NULL, err);
+							return;
 						}
 
-						handler(component, err);
+						if (!component) {
+							if (handler) {
+								err.addError(Error(Error::Code::INVALID_DATA, "Resource loader returned no component.", rid));
+								handler(nullptr, err);
+							}
+							return;
+						}
+
+						// add it to tree
+						if (!parent_unit->addChild(component)) {
+							std::string path = component->getPathName();
+							LOG(LOG_ERROR) << "LoadResource(" << rid << "): Failed to add component " << path << " to parent " << parent_unit->getPath();
+							delete component;
+							err.addError(Error(Error::Code::INVALID_DATA, "Failed to add component " + path + " to parent " + parent_unit->getPath(), rid));
+							if (handler)
+								handler(NULL, err);
+							return;
+						}
+
+						if (handler)
+							handler(component, err);
 						}))
 						return;
 						log("No loader for mime type " + mime);
 				}
 				else
-					log("No mime type for " + resource_id);
+					log("No mime type for " + rid);
 
 				// this is only called for unhandled or unknown mime types
 
 				// create a generic resource unit
 				Resource* component = new Resource(req->getBasename(), "//meworla/resource");
 
-				// add it to tree
-				if (!parent_unit->addChild(component)) {
-					LOG(LOG_ERROR) << "LoadResource(" << resource_id << "): Failed to add component " << component->getPathName() << " to parent " << parent_unit->getPath();
-					delete component;
-					return handler(NULL, ReqError::DATA_INVALID);
-				}
-
 				// call load of unit
-				component->load(req, [&, handler](ReqError err) {
-					handler(component, err);
+				component->load(req, [parent_unit, component, handler, rid](ErrorReport result) {
+
+					if (result.isError()) {
+						std::string path = component->getPathName();
+						delete component;
+						LOG(LOG_ERROR) << "LoadResource(" << rid << "): Failed to load component " << path;
+						if (!handler)
+							return;
+						return handler(NULL, result);
+					}
+
+					// add it to tree
+					if (!parent_unit->addChild(component)) {
+						std::string path = component->getPathName();
+						LOG(LOG_ERROR) << "LoadResource(" << rid << "): Failed to add component " << path << " to parent " << parent_unit->getPath();
+						delete component;
+						if (!handler)
+							return;
+						result.addError(Error(Error::Code::INVALID_DATA, "Failed to add component " + path + " to parent " + parent_unit->getPath(), rid));
+						return handler(NULL, result);
+					}
+
+					if (handler)
+						handler(component, result);
 					});
 			}
 			else
-				handler(NULL, static_cast<ReqError>(err));
+				if (handler)
+					handler(NULL, translateLoadError(err, rid));
 			});
 	}
 

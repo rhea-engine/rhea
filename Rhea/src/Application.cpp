@@ -490,11 +490,23 @@ namespace rhea
 		return ret;
 	}
 
+	void Application::finishResourceLoad(const std::string& rid, Component* component, ErrorReport report)
+	{
+		auto it = m_pending_resource_loads.find(rid);
+		if (it == m_pending_resource_loads.end())
+			return;
+
+		auto handlers = std::move(it->second);
+		m_pending_resource_loads.erase(it);
+
+		for (auto& handler : handlers)
+			handler(component, report);
+	}
+
 	void Application::loadResource(const std::string& resource_id, const std::string& type_name, std::function<void(Component*, ErrorReport error)> handler)
 	{
 		loadResource(resource_id, {}, type_name, handler);
 	}
-
 
 	void Application::loadResource(const std::string& resource_id, const ResourceContext& context, const std::string& type_name, std::function<void(Component*, ErrorReport error)> handler)
 	{
@@ -506,10 +518,18 @@ namespace rhea
 				handler(resource, ErrorReport{});
 			return;
 		}
+		
+		auto [it, first_request] = m_pending_resource_loads.try_emplace(rid);
+
+		if (handler)
+			it->second.push_back(std::move(handler));
+
+		if (!first_request)
+			return; // already loading, handler will be called when done
 
 		log("loading resource: " + rid);
 		orion::ResourceRequest* req = m_fs->getResourceByRid(rid);
-		req->resolve([this, handler, context, rid, resource_id](orion::ResourceRequest* req, orion::Error err) {
+		req->resolve([this, context, rid, resource_id](orion::ResourceRequest* req, orion::Error err) {
 
 			if (err == orion::Error::OK) {
 
@@ -530,8 +550,7 @@ namespace rhea
 					if (!m_unit_tree->addChild(realm_unit)) {
 						LOG(LOG_ERROR) << "LoadResource(" << resource_id << "): Failed to add realm " << realm_name;
 						delete realm_unit;
-						if (handler)
-							handler(NULL, Error(Error::Code::INVALID_DATA, "Failed to add realm " + realm_name, rid));
+						finishResourceLoad(rid, NULL, Error(Error::Code::INVALID_DATA, "Failed to add realm " + realm_name, rid));
 						return;
 					}
 				}
@@ -541,8 +560,7 @@ namespace rhea
 				Unit* parent_unit = doCast<Unit>(m_unit_tree->find(parentpath, true));
 				if (!parent_unit) {
 					// should not happen
-					if (handler)
-						handler(NULL, Error(Error::Code::NOT_FOUND, "Parent unit not found: " + parentpath, rid));
+					finishResourceLoad(rid, NULL, Error(Error::Code::NOT_FOUND, "Parent unit not found: " + parentpath, rid));
 					return;
 				}
 
@@ -554,12 +572,10 @@ namespace rhea
 						std::string path = collection->getPathName();
 						LOG(LOG_ERROR) << "LoadResource(" << resource_id << "): Failed to add collection " << path << " to parent " << parent_unit->getPath();
 						delete collection;
-						if (handler)
-							handler(NULL, Error(Error::Code::INVALID_DATA, "Failed to add collection " + path + " to parent " + parent_unit->getPath(), rid));
+						finishResourceLoad(rid, NULL, Error(Error::Code::INVALID_DATA, "Failed to add collection " + path + " to parent " + parent_unit->getPath(), rid));
 						return;
 					}
-					if (handler)
-						handler(collection, Error());
+					finishResourceLoad(rid, collection, Error());
 					return;
 				}
 
@@ -568,23 +584,20 @@ namespace rhea
 				// get from request
 				std::string mime = req->getMimeType();
 				if (mime.length()) {
-					if (m_resource_loader.load(req->getBasename(), this, mime, req, loaded_context, [this, handler, parent_unit, rid](ErrorReport err, Component* component) {
+					if (m_resource_loader.load(req->getBasename(), this, mime, req, loaded_context, [this, parent_unit, rid](ErrorReport err, Component* component) {
 
 						if (err.isError()) {
 							if (component) {
 								LOG(LOG_ERROR) << "LoadResource(" << rid << "): Failed to load component " << component->getPathName();
 								delete component;
 							}
-							if (handler)
-								handler(NULL, err);
+							finishResourceLoad(rid, NULL, err);
 							return;
 						}
 
 						if (!component) {
-							if (handler) {
-								err.addError(Error(Error::Code::INVALID_DATA, "Resource loader returned no component.", rid));
-								handler(nullptr, err);
-							}
+							err.addError(Error(Error::Code::INVALID_DATA, "Resource loader returned no component.", rid));
+							finishResourceLoad(rid, NULL, err);
 							return;
 						}
 
@@ -594,13 +607,11 @@ namespace rhea
 							LOG(LOG_ERROR) << "LoadResource(" << rid << "): Failed to add component " << path << " to parent " << parent_unit->getPath();
 							delete component;
 							err.addError(Error(Error::Code::INVALID_DATA, "Failed to add component " + path + " to parent " + parent_unit->getPath(), rid));
-							if (handler)
-								handler(NULL, err);
+							finishResourceLoad(rid, NULL, err);
 							return;
 						}
 
-						if (handler)
-							handler(component, err);
+						finishResourceLoad(rid, component, err);
 						}))
 						return;
 						log("No loader for mime type " + mime);
@@ -614,15 +625,13 @@ namespace rhea
 				Resource* component = new Resource(req->getBasename(), "//meworla/resource");
 
 				// call load of unit
-				component->load(req, [parent_unit, component, handler, rid](ErrorReport result) {
+				component->load(req, [this, parent_unit, component, rid](ErrorReport result) {
 
 					if (result.isError()) {
 						std::string path = component->getPathName();
 						delete component;
 						LOG(LOG_ERROR) << "LoadResource(" << rid << "): Failed to load component " << path;
-						if (!handler)
-							return;
-						return handler(NULL, result);
+						return finishResourceLoad(rid, NULL, result);
 					}
 
 					// add it to tree
@@ -630,19 +639,15 @@ namespace rhea
 						std::string path = component->getPathName();
 						LOG(LOG_ERROR) << "LoadResource(" << rid << "): Failed to add component " << path << " to parent " << parent_unit->getPath();
 						delete component;
-						if (!handler)
-							return;
 						result.addError(Error(Error::Code::INVALID_DATA, "Failed to add component " + path + " to parent " + parent_unit->getPath(), rid));
-						return handler(NULL, result);
+						return finishResourceLoad(rid, NULL, result);
 					}
 
-					if (handler)
-						handler(component, result);
+					return finishResourceLoad(rid, component, result);
 					});
 			}
 			else
-				if (handler)
-					handler(NULL, translateLoadError(err, rid));
+				finishResourceLoad(rid, NULL, translateLoadError(err, rid));
 			});
 	}
 

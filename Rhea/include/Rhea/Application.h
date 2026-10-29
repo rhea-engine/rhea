@@ -177,7 +177,7 @@ namespace rhea
 		PhysicsService* m_physics = nullptr;
 		Service* m_wold_service = nullptr;
 		IInputService* m_input_service = nullptr;
-
+		ConfigFile* m_config = nullptr;
 		// Windows
 		std::vector<Window> m_windows;
 

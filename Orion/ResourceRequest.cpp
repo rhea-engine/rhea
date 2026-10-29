@@ -12,6 +12,7 @@
 #include <Orion/Mime.h>
 #include <Psio/Log.h>
 #include <Orion/UrlResponseStream.h>
+#include <Orion/Realms.h>
 
 #include <iostream>
 #include <algorithm>
@@ -35,7 +36,8 @@ namespace orion
 	}
 
 	ResourceRequest::~ResourceRequest()
-	{		
+	{
+		m_stream.reset();
 		if (m_request)
 			delete m_request;
 	}
@@ -277,10 +279,9 @@ namespace orion
 		}
 
 		// try to get cached value
-		Realm* r = m_orion->getRealms()->getRealmCached(m_realm_name);
-		if (r) {
+		Error err = m_orion->getRealms()->getRealmCached(m_realm_name, m_realm);
+		if (err == Error::OK) {
 			m_realm_resolved = true;
-			m_realm = r;
 			return Error::OK;
 		}
 
@@ -291,7 +292,7 @@ namespace orion
 		}
 
 		// get data from realms manager via lookup
-		Error ret = m_orion->getRealms()->getRealm(m_realm_name, [&](Realm* realm, orion::Error error) {
+		Error ret = m_orion->getRealms()->getRealm(m_realm_name, [&](Realm realm, orion::Error error) {
 			// got a result
 			if (error == orion::Error::OK) {
 				m_realm_resolved = true;
@@ -315,14 +316,13 @@ namespace orion
 
 		//  get the realm if not resolved already 
 		if (!m_realm_resolved) {
-			Realm* r = m_orion->getRealms()->getRealmCached(m_realm_name);
-			if (!r) {
+			Error err = m_orion->getRealms()->getRealmCached(m_realm_name, m_realm);
+			if (err != Error::OK) {
 				// if we cant find the realm in the cache the lookup failed
 				// fail permanently
 				m_next_state = State::RESOLVE_FAILED;
 				return Error::REALM_NOT_FOUND;
 			}
-			m_realm = r;
 		}
 
 		// TODO call callbacks if any
@@ -370,12 +370,12 @@ namespace orion
 		}
 
 		// Resource from net
-		if (m_realm) {
+		if (m_realm.getType() != Realm::RealmType::Unset) {
 			std::string path;
 
-			if (m_realm->isLocalPath() || m_realm->getType() == Realm::RealmType::FileSystem) {
+			if (m_realm.isLocalPath() || m_realm.getType() == Realm::RealmType::FileSystem) {
 #if defined(_WIN32)
-				if (m_realm->getType() == Realm::RealmType::FileSystem && m_path == "/") {
+				if (m_realm.getType() == Realm::RealmType::FileSystem && m_path == "/") {
 					m_stream = std::make_unique<FileCollection>(psio::Fs::getLogicalDrives());
 					m_next_state = State::RESOURCE_RESOLVE_COMPLETED;
 					onIOComplete(Error::OK);
@@ -383,7 +383,7 @@ namespace orion
 				}
 #endif
 				std::string native_path;
-				const Error error = m_realm->resolveFilePath(m_path, native_path);
+				const Error error = m_realm.resolveFilePath(m_path, native_path);
 				if (error != Error::OK) {
 					m_next_state = State::UNSET;
 					return error;
@@ -399,7 +399,7 @@ namespace orion
 				return Error::IO_PENDING;
 			}
 
-			path = m_realm->getResourceUrl();
+			path = m_realm.getResourceUrl();
 			if (path == "") {
 				return Error::DATA_INVALID;
 			}
@@ -412,13 +412,11 @@ namespace orion
 			// Request the resource
 			m_request = new psio::UrlRequest(m_orion->getIO());
 
-			m_request->OnResponse([&](psio::UrlResponse* res) {
-				std::unique_ptr<psio::UrlResponse> resp;
-				resp.reset(res);
-				m_stream = std::make_unique<UrlResponseStream>(std::move(resp));
+			m_request->OnResponse([&](psio::UrlResponse* resp) {
+				m_stream = std::make_unique<UrlResponseStream>(resp);
 				// caller doesn't know about response codes
 				// if not 2xx call with error
-				int code = res->GetResponseCode();
+				int code = resp->GetResponseCode();
 				Error err = Error::OK;
 				if (code == 404)
 					err = Error::RESOURCE_NOT_FOUND;

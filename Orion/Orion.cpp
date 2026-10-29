@@ -12,6 +12,7 @@
 #include <Orion/ResourceStream.h>
 #include <Orion/Realm.h>
 #include <Orion/ResolveLocal.h>
+#include <Orion/Realms.h>
 
 namespace orion
 {	
@@ -28,25 +29,25 @@ namespace orion
 		search_dir = m_fs->getInstallDataDir();
 		if (search_dir != "") {
 			m_caches.push_back(std::make_unique<ResolveLocal>(search_dir));
-			m_realms->addRealm(new Realm("system", search_dir, Realm::RealmType::LocalPath));
+			m_realms->addRealm(Realm("system", search_dir, Realm::RealmType::LocalPath));
 		}
 		search_dir = m_fs->getAppDataDir();
 		if (search_dir != "") {
 			m_caches.push_back(std::make_unique<ResolveLocal>(search_dir));
-			m_realms->addRealm(new Realm("appdata", search_dir, Realm::RealmType::LocalPath));
+			m_realms->addRealm(Realm("appdata", search_dir, Realm::RealmType::LocalPath));
 		}
 		search_dir = m_fs->getHomeDir();		
 		if (search_dir != "") {
 			m_caches.push_back(std::make_unique<ResolveLocal>(search_dir));
-			m_realms->addRealm(new Realm("user", search_dir, Realm::RealmType::LocalPath));
+			m_realms->addRealm(Realm("user", search_dir, Realm::RealmType::LocalPath));
 		}
 		// add filesystem realm for direct access to local files
-		m_realms->addRealm(new Realm("file", "", Realm::RealmType::FileSystem));
+		m_realms->addRealm(Realm("file", "", Realm::RealmType::FileSystem));
 	}
 
 	void Orion::addLocalRealm(std::string name, std::string path)
 	{
-		m_realms->addRealm(new Realm(name, path, Realm::RealmType::LocalPath));
+		m_realms->addRealm(Realm(name, path, Realm::RealmType::LocalPath));
 	}
 
 	bool Orion::poll()

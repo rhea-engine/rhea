@@ -51,8 +51,10 @@ namespace orion
 	}
 
 	bool Realm::isExpired() const
-	{		
-		return (std::time(NULL) - m_ttl) < 0;
+	{
+		if (m_realm_type == RealmType::LocalPath || m_realm_type == RealmType::FileSystem)
+			return false;
+		return (std::time(NULL) - m_ttl) >= 0;
 	}
 
 	orion::Error Realm::resolveFilePath(const std::string& resource_path, std::string& native_path) const

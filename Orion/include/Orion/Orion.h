@@ -14,7 +14,6 @@
 
 #include <Orion/Collection.h>
 #include <Psio/Fs/Fs.h>
-#include <Orion/Realms.h>
 #include <Psio/Psio.h>
 #include <Orion/ResolverInterface.h>
 
@@ -22,6 +21,7 @@ namespace orion
 {	
 	class ResourceCache;
 	class ResourceRequest;
+	class Realms;
 
 	class Orion
 	{
@@ -48,7 +48,7 @@ namespace orion
 		void close(ResourceRequest* req);
 
 		// callback for resolved resource
-		int resolve(std::string rid, ResourceRequest** resourceId);		
+		int resolve(std::string rid, ResourceRequest** resourceId);	
 		// Fs getter
 		psio::Fs* getFs() { return m_fs; }
 
@@ -56,7 +56,7 @@ namespace orion
 		psio::Engine* getIO() { return m_engine; }
 
 		// get realm from realm list
-		Realms* getRealms();		
+		Realms* getRealms();
 
 		// set an app dir manually
 		void setAppDir(std::string dirname);

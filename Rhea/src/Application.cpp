@@ -11,6 +11,7 @@
 #include "Orion/Orion.h"
 #include "Orion/ResourceStream.h"
 #include "Orion/ResourceRequest.h"
+#include <Orion/Realms.h>
 #include <Orion/Mime.h>
 #include "Psio/Psio.h"
 #include "Psio/Log.h"
@@ -118,32 +119,32 @@ namespace rhea
 		m_unit_tree.reset((UnitTree*)simpleparser::Type::create("/", "//core/unittree"));
 		m_unit_tree->setup(this);
 
-		ConfigFile* config = simpleparser::Type::create<ConfigFile>("config");
-		config->setup(this);
-		m_unit_tree->addChild(config);
-		config->fromCommandLineArgs(argc, argv);
+		m_config = simpleparser::Type::create<ConfigFile>("config");
+		m_config->setup(this);
+		m_unit_tree->addChild(m_config);
+		m_config->fromCommandLineArgs(argc, argv);
 
 		Service* psio = (PlatformService*)simpleparser::Type::create("PlatformService", "//meworla/platformservice");
-		std::string psio_backend = config->getValueString("platform.backend", "auto");
+		std::string psio_backend = m_config->getValueString("platform.backend", "auto");
 		psio->setValue("backend", psio_backend);
 		psio->setup(this);
 		m_services["platform"] = psio;
 
 		m_fs = new orion::Orion(static_cast<PlatformService*>(psio)->getEngine(), m_appname);
 
-		std::string app_dir = config->getValueString("appdir", "");
+		std::string app_dir = m_config->getValueString("appdir", "");
 		if (!app_dir.empty()) {
 			setAppDir(app_dir.c_str());
 		}
 
 		// load config file
-		config->loadFromFile("config.ini");
+		m_config->loadFromFile("config.ini");
 
 		// log-level from config
 #ifdef _DEBUG
-		std::string log_level = config->getValueString("log.level", "debug");
+		std::string log_level = m_config->getValueString("log.level", "debug");
 #else
-		std::string log_level = config->getValueString("log.level", "info");
+		std::string log_level = m_config->getValueString("log.level", "info");
 #endif
 		std::transform(log_level.begin(), log_level.end(), log_level.begin(), ::tolower);
 		if (log_level == "debug")
@@ -278,6 +279,22 @@ namespace rhea
 
 	void Application::setup()
 	{
+		// finalize configuration and setup services
+		std::string realms_config = m_config->getValueString("realms.config", "");
+		std::vector<orion::RealmConfigFile> config_files;
+		if (realms_config.size())
+			config_files.push_back({ realms_config, false });
+		config_files.push_back({ m_fs->getFs()->getAppDataDir() + "/realms.conf", true });
+		config_files.push_back({ m_fs->getFs()->getHomeDir() + "/realms.conf", true });
+		auto result = m_fs->getRealms()->loadConfigFiles(config_files);
+		if (!result.success) {			
+			LOG(LOG_WARNING) << "Realms configuration failed to load";
+			for (const auto& diag : result.diagnostics) {
+				LOG(LOG_WARNING) << "Realm config error: " << diag.message;
+			}
+			exit(-1);
+		}
+
 		// if no window and no view was defined we create a default one
 		if (!m_windows.size()) {
 			addDefaultWindow();

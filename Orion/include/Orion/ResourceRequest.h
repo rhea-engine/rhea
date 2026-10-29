@@ -38,7 +38,7 @@ namespace orion
 
 		// get realm name
 		std::string getRealmName() { return m_realm_name; }
-		Realm* getRealm() { return m_realm; }
+		Realm* getRealm() { return &m_realm; }
 
 		// get full path without realm
 		std::string getPath() { return m_path; }
@@ -109,7 +109,7 @@ namespace orion
 		std::string m_container_path;
 		std::string m_basename;
 		std::string m_base_address;
-		Realm* m_realm = NULL;
+		Realm m_realm;
 		bool m_resolved = false;
 		bool m_realm_resolved = false;
 		std::unique_ptr<ResourceStream> m_stream;

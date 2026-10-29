@@ -19,12 +19,13 @@ namespace orion
 	{
 	public:
 		enum class RealmType {
+			Unset,
 			URL,		// HTTP/HTTPS URLs
 			LocalPath,   // local path mappings
 			FileSystem,  // local file system access
 		};
 
-		Realm(): m_ttl(time(NULL)), m_realm_type(RealmType::URL) {}		
+		Realm(): m_ttl(time(NULL)), m_realm_type(RealmType::Unset) {}		
 		Realm(std::string name);
 		Realm(std::string name, std::string resource_url, time_t ttl);
 		Realm(std::string name, std::string local_path, RealmType type);
@@ -32,6 +33,14 @@ namespace orion
 		// default copy/assign is fine
 		Realm(const Realm&) = default;
 		Realm& operator=(const Realm&) = default;
+
+		friend bool operator==(const Realm& lhs, const Realm& rhs) { return lhs.m_name == rhs.m_name && 
+			lhs.m_resource_url == rhs.m_resource_url && 
+			lhs.m_content_type == rhs.m_content_type && 
+			lhs.m_ttl == rhs.m_ttl && 
+			lhs.m_realm_type == rhs.m_realm_type; 
+		}
+		friend bool operator!=(const Realm& lhs, const Realm& rhs) { return !(lhs == rhs); }
 
 		void setResourceUrl(std::string url);
 		void setContentType(std::string contentType);

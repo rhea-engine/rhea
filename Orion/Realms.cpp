@@ -8,9 +8,9 @@
 #include <Orion/Realms.h>
 #include <Orion/Orion.h>
 #include <Orion/FileStream.h>
-#include <Orion/ResourceStream.h>
 #include <Orion/RealmRequest.h>
 #include <algorithm>
+#include <cctype>
 
 namespace orion
 {
@@ -19,67 +19,97 @@ namespace orion
 		LoadIrisServers();
 	}
 
-	Realm* Realms::getRealmCached(std::string name)
+	RealmConfigResult Realms::loadConfigFiles(const std::vector<RealmConfigFile>& files)
+	{
+		RealmConfigResult result{};
+		result.success = true;
+
+		// Build a replacement configuration without changing the active one.
+		std::unordered_map<std::string, Realm> next_realms;
+
+		for (const RealmConfigFile& file : files) {
+			RealmConfigDiagnostic diag = LoadFileRealms(file.path, next_realms);
+
+			if (diag.error == RealmConfigError::None)
+				continue;
+
+			if (diag.error == RealmConfigError::NotFound && file.optional)
+				continue;
+
+			result.success = false;
+			result.diagnostics.push_back(std::move(diag));
+		}
+		if (result.success) {
+			m_config_realms.swap(next_realms);
+			m_config_files = files;
+		}
+
+		return result;
+	}
+
+
+	Error Realms::getRealmCached(std::string name, Realm& realm)
 	{
 		if (name == "file") {
-			for (Realm* realm : m_realms) {
-				if (realm->getName() == "file" && realm->getType() == Realm::RealmType::FileSystem)
-					return realm;
+			if (m_resolved_realms.find(name) != m_resolved_realms.end() && m_resolved_realms[name].getType() == Realm::RealmType::FileSystem) {
+				realm = m_resolved_realms[name];
+				return Error::OK;
+
 			}
-			return nullptr;
+			return Error::PATH_NOT_FOUND;
 		}
 
 		// check if realm is installed locally
 		if (m_orion->checkResourceFromCache(name, "")) {
-			Realm* r = new Realm(name);
-			m_realms.push_back(r);
-			return r;
-		}
-
-		// Only load file_realms once on the first call
-		if (!m_file_realms_loaded) {
-			LoadFileRealms();
-			m_file_realms_loaded = true;
+			m_resolved_realms[name] = Realm(name);
+			realm = m_resolved_realms[name];
+			return Error::OK;
 		}
 
 		// get from file realm list
-		for (Realm* realm : m_file_realms)
-		{
-			if (!name.compare(realm->getName())) {
-				return realm;
-			}
+		auto it = m_config_realms.find(name);
+		if (it != m_config_realms.end()) {
+			realm = it->second;
+			return Error::OK;
 		}
 
 		// get from server realm list
-		for (Realm* realm : m_realms)
-		{
-			if (!name.compare(realm->getName()))
-				if (realm->isExpired()) {
-					delete realm;
-					m_realms.erase(std::remove(m_realms.begin(), m_realms.end(), realm), m_realms.end());
-					return nullptr;
+		if (m_resolved_realms.find(name) != m_resolved_realms.end()) {
+
+			Realm* cached_realm = &m_resolved_realms[name];
+			if (!name.compare(cached_realm->getName())) {
+				if (cached_realm->isExpired()) {
+					m_resolved_realms.erase(name);
+					return Error::PATH_NOT_FOUND;
 				}
-				else
-					return realm;
+				else {
+					realm = *cached_realm;
+					return Error::OK;
+				}
+			}
 		}
 		// not found in cache
-		return nullptr;
+		return Error::PATH_NOT_FOUND;
 	}
 
-	void Realms::LoadFileRealms()
+	RealmConfigDiagnostic Realms::LoadFileRealms(const std::string& path, std::unordered_map<std::string, Realm>& target)
 	{
-		std::string path = m_orion->getFs()->getInstallDataDir();
-		path += std::string("/Meworla/Core/realms.conf");
+		RealmConfigDiagnostic diag{};
 		
-		if (!psio::Fs::fileExists(path))
-			return;
+		if (!psio::Fs::fileExists(path)) {
+			diag.error = RealmConfigError::NotFound;
+			diag.message = "File not found";
+			return diag;
+		}
 
 		FileResourceStream* res = new FileResourceStream(path);
+		res->SetMode(psio::Fs::READ);
 		res->Open();
-		m_realms_lastmod = res->getLastmod();
+		int line_number = 0;
 
 		while (!res->eof()) {
 			std::string s = res->getLine();
+			line_number++;
 
 			// remove leading whitespace
 			s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
@@ -96,32 +126,29 @@ namespace orion
 				std::string realmname = s.substr(0, pos);
 				std::string url = s.substr(pos + 1, std::string::npos);
 				
-				Realm* realm = nullptr;
 				if (url.find("file://") == 0) {
 					// Entferne file:// Prefix
 					std::string localPath = url.substr(7);
-					realm = new Realm(realmname, localPath, Realm::RealmType::LocalPath);
+					target[realmname] = Realm(realmname, localPath, Realm::RealmType::LocalPath);
 				}
 				else if (url.length() > 0 && (url[0] == '/' || url[0] == '\\' || 
 						(url.length() > 2 && url[1] == ':'))) {
 					// Absoluter Pfad
-					realm = new Realm(realmname, url, Realm::RealmType::LocalPath);
+					target[realmname] = Realm(realmname, url, Realm::RealmType::LocalPath);
 				}
 				else {
 					// Standard URL
-					realm = new Realm(realmname, url, Realm::RealmType::URL);
+					target[realmname] = Realm(realmname, url, Realm::RealmType::URL);
 				}
-				
-				m_file_realms.push_back(realm);
 			}
 		}
 		delete res;
+
+		return diag;
 	}
 
 	Error Realms::getRealm(std::string name, ResolveHandler handler)
 	{
-		// no check of realms list - we assume that was done before by the client
-		
 		// alredy a request for this realm name pending?
 		auto it = m_requests.find(name);
 		if (it != m_requests.end()) {
@@ -136,19 +163,33 @@ namespace orion
 			// start the request
 			req->Lookup(name, [&, name](Realm *realm, orion::Error error) {
 				// store the realm
-				if (error == orion::Error::OK) {
-					addRealm(realm);
+				if (error == orion::Error::OK && realm != nullptr) {
+					auto [it, inserted] = m_resolved_realms.insert_or_assign(name, *realm);
+
+					delete realm;
+					realm = &it->second;
 				}
 
 				// call all handlers
-				for (auto it = m_requests[name].handlers.begin(); it != m_requests[name].handlers.end(); ++it) {
-					ResolveHandler result_handler = *it;
-					result_handler(realm, error);
+				auto it = m_requests.find(name);
+				if (it == m_requests.end())
+					return;
+
+				Realm result;
+				if (error == Error::OK) {
+					if (realm)
+						result = *realm;
+					else
+						error = Error::DATA_INVALID;
 				}
 
-				RealmRequest* req = m_requests[name].request;
-				m_requests[name].request = nullptr;
+				auto handlers = std::move(it->second.handlers);
+				RealmRequest* req = it->second.request;
 				m_requests.erase(name);
+				for (auto& handler : handlers) {
+					if (handler)
+						handler(result, error);
+				}
 				delete req;
 				});			
 		}
@@ -157,9 +198,9 @@ namespace orion
 		return Error::IO_PENDING;
 	}
 
-	void Realms::addRealm(Realm* realm)
+	void Realms::addRealm(const Realm& realm)
 	{
-		m_realms.push_back(realm);
+		m_resolved_realms[realm.getName()] = realm;
 	}
 	
 	void Realms::LoadIrisServers()
@@ -190,32 +231,9 @@ namespace orion
 		}
 	}
 
-	void Realms::reloadFileRealms()
+	RealmConfigResult Realms::reloadConfigFiles()
 	{
-	    std::string path = m_orion->getFs()->getInstallDataDir();
-	    path += std::string("/Meworla/Core/realms.conf");
-	    
-	    if (!psio::Fs::fileExists(path))
-	        return;
-
-	    FileResourceStream* res = new FileResourceStream(path);
-	    res->Open();
-	    
-	    // Only reload if the file has changed
-	    if (m_realms_lastmod >= res->getLastmod()) {
-	        delete res;
-	        return;
-	    }
-	    
-	    m_realms_lastmod = res->getLastmod();
-	    
-	    // Clear old file realms
-	    for (auto it = m_file_realms.begin(); it != m_file_realms.end(); ++it)
-	        delete *it;
-	    m_file_realms.clear();
-	    
-	    // Re-parse...
-	    delete res;
-		LoadFileRealms();
+		const auto files = m_config_files;
+		return loadConfigFiles(files);
 	}
 }

@@ -82,6 +82,7 @@ if(PSIO_ENABLE_SDL)
         src/Platform/SDL/Input/SDLInput.cpp
         src/Platform/SDL/Input/SDLKeyTranslation.cpp
         src/Platform/SDL/Window/SDLWindow.cpp
+        src/Platform/SDL/Window/SDLClipboard.cpp
     )
 endif()
 
@@ -90,13 +91,13 @@ if (WIN32)
 	target_sources(Psio PRIVATE 
 	"src/Platform/Win32/Window/Win32Window.cpp" "src/Platform/Win32/Input/Win32Input.cpp" "src/Platform/Win32/Input/Win32KeyTranslation.cpp" "src/Platform/Win32/Win32Timer.cpp" 
 	"src/Platform/Win32/Net/Win32TCPSocket.cpp" "src/Platform/Win32/Net/Win32Socket.cpp" "src/Platform/Win32/Win32Backend.cpp" "src/Platform/Win32/Net/Win32Network.cpp"
-	"src/Platform/Win32/Fs/Win32Fs.cpp")
+	"src/Platform/Win32/Fs/Win32Fs.cpp" "src/Platform/Win32/Window/Win32Clipboard.cpp")
 	target_link_libraries(Psio PRIVATE Winmm wsock32 ws2_32)
 elseif(UNIX)
 	target_sources(Psio PRIVATE 
 	"src/Platform/Unix/Net/UnixTCPSocket.cpp" "src/Platform/Unix/Net/UnixSocket.cpp" "src/Platform/Unix/Net/UnixNetwork.cpp"
 	"src/Platform/Unix/Fs/UnixFs.cpp" "src/Platform/Unix/UnixTimer.cpp" "src/Platform/Unix/UnixBackend.cpp"
-	"src/Platform/Unix/Input/UnixInput.cpp")
+	"src/Platform/Unix/Input/UnixInput.cpp" "src/Platform/Unix/Window/UnixClipboard.cpp")
 endif()
 
 # SSL

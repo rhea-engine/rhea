@@ -13,10 +13,12 @@
 #include <Psio/Input/Keyboard.h>
 #include <Psio/IPC/IO.h>
 #include <Psio/Fs/Fs.h>
+#include <Psio/Window/Clipboard.h>
 
 // Unix implementations
 #include "Input/UnixInput.h"
 #include "Net/UnixNetwork.h"
+#include "Window/UnixClipboard.h"
 
 namespace psio
 {
@@ -62,5 +64,10 @@ namespace psio
     uint64_t UnixBackend::GetTicks()
     {
         return Timer::getTicks();
+    }
+
+    std::unique_ptr<Clipboard> UnixBackend::CreateClipboard(Engine* engine)
+    {
+		return std::make_unique<UnixClipboard>(engine);
     }
 }

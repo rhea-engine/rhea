@@ -14,6 +14,7 @@
 #include <Psio/IPC/IO.h>
 #include <Psio/Fs/Fs.h>
 #include "Net/NullNetwork.h"
+#include "Window/SDLClipboard.h"
 
 #include <SDL3/SDL.h>
 #include <stdexcept>
@@ -63,6 +64,11 @@ namespace psio
     {
         return std::make_unique<Fs>("");
     }
+
+	std::unique_ptr<Clipboard> SDLBackend::CreateClipboard(Engine* engine)
+	{
+		return std::make_unique<SDLClipboard>(engine);
+	}
 
     uint64_t SDLBackend::GetTicks()
     {

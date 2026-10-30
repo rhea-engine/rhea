@@ -25,6 +25,7 @@ namespace psio
         std::unique_ptr<Network> CreateNetwork(Engine* engine) override;
         std::unique_ptr<IO> CreateIO(Engine* engine) override;
         std::unique_ptr<Fs> CreateFs(Engine* engine) override;
+		std::unique_ptr<Clipboard> CreateClipboard(Engine* engine) override;
 
         uint64_t GetTicks() override;
     };

@@ -19,6 +19,7 @@ namespace psio
 	class Network;
 	class IO;
 	class Fs;
+	class Clipboard;
 
     class IBackend
     {
@@ -32,6 +33,7 @@ namespace psio
         virtual std::unique_ptr<Network> CreateNetwork(Engine* engine) = 0;
         virtual std::unique_ptr<IO> CreateIO(Engine* engine) = 0;
         virtual std::unique_ptr<Fs> CreateFs(Engine* engine) = 0;
+		virtual std::unique_ptr<Clipboard> CreateClipboard(Engine* engine) = 0;
 
         virtual uint64_t GetTicks() = 0;
     };

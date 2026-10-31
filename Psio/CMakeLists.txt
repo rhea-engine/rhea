@@ -28,6 +28,13 @@ option(PSIO_ENABLE_UNIX "Enable Unix backend" ON)
 option(PSIO_ENABLE_SDL "Enable SDL backend" ON)
 option(PSIO_ENABLE_OPENSSL "Enable OpenSSL support" ON)
 
+set(PSIO_NET_LOG_LEVEL "3" CACHE STRING "Network log verbosity: 0 to 4")
+set_property(CACHE PSIO_NET_LOG_LEVEL PROPERTY STRINGS 0 1 2 3 4)
+if(NOT PSIO_NET_LOG_LEVEL MATCHES "^[0-4]$")
+    message(FATAL_ERROR "PSIO_NET_LOG_LEVEL must be an integer from 0 to 4")
+endif()
+target_compile_definitions(Psio PRIVATE PSIO_NET_LOG_LEVEL=${PSIO_NET_LOG_LEVEL})
+
 if (WIN32 AND PSIO_ENABLE_WIN32)
     target_compile_definitions(Psio PRIVATE PSIO_HAS_WIN32=1)
 endif()

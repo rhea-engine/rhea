@@ -51,8 +51,8 @@ namespace psio
 		int res = m_transaction->Start(m_request, [&, method](int err) {
 			OnTransaction(err, method);
 			});
-		if (res != -1)
-			abort();
+		if (res != Network::Err::IO_PENDING)
+			OnTransaction(res, method);
 	}
 
 	void UrlRequest::OnTransaction(int result, methods method)

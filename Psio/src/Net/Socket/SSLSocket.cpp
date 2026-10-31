@@ -9,6 +9,30 @@
 
 #include <Psio/Net/Socket/SSLSocket.h>
 
+namespace
+{
+	bool configureTrustStore(SSL_CTX* ctx, const std::string& ca_file)
+	{
+		if (!ca_file.empty()) {
+			return SSL_CTX_load_verify_locations(ctx, ca_file.c_str(), nullptr) == 1;
+		}
+
+#if defined(_WIN32)
+#if OPENSSL_VERSION_NUMBER >= 0x30200000L
+		return SSL_CTX_load_verify_store(ctx, "org.openssl.winstore:") == 1;
+#else
+		LOG(LOG_ERROR) << "System certificate store requires OpenSSL 3.2 or newer";
+		return false;
+#endif
+#elif defined(__linux__)
+		return SSL_CTX_set_default_verify_paths(ctx) == 1;
+#else
+		LOG(LOG_ERROR) << "System certificate store is not implemented on this platform";
+		return false;
+#endif
+	}
+}
+
 namespace psio
 {
 
@@ -17,9 +41,19 @@ namespace psio
 		// initialize ssl context
 		SOCKET client_fd = m_sock->GetRawSocket();
 		m_ssl = SSL_new(m_ctx);
-		SSL_set_fd(m_ssl, (int)client_fd);
+		if (!m_ssl) {
+			LOG(LOG_ERROR) << "Unable to create SSL object";
+			ERR_print_errors_fp(stderr);
+			return Network::Err::FAILED;
+		}
+		int ret = SSL_set_fd(m_ssl, (int)client_fd);
+		if (ret != 1) {
+			LOG(LOG_ERROR) << "Unable to set SSL file descriptor";
+			ERR_print_errors_fp(stderr);
+			return Network::Err::FAILED;
+		}
 
-		int ret = SSL_accept(m_ssl);
+		ret = SSL_accept(m_ssl);
 		if (ret <= 0) {
 			int ret_ssl = SSL_get_error(m_ssl, ret);
 			if (ret_ssl == SSL_ERROR_WANT_READ || ret_ssl == SSL_ERROR_WANT_WRITE) {
@@ -82,6 +116,17 @@ namespace psio
 			return nullptr;
 		}
 
+		const std::string ca_file =	m_net->GetSetting("ssl_root_ca");
+		if (!configureTrustStore(ctx, ca_file)) {
+			LOG(LOG_ERROR) << "Unable to configure TLS certificate trust";
+			ERR_print_errors_fp(stderr);
+			SSL_CTX_free(ctx);
+			return nullptr;
+		}
+
+		SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, nullptr);
+		SSL_CTX_set_verify_depth(ctx, 4);
+
 		return ctx;
 	}
 
@@ -90,7 +135,7 @@ namespace psio
 		// initialize client ssl context
 		m_ctx = createClientContext();
 		if (m_ctx == nullptr)
-			return -1;
+			return Network::Err::FAILED;
 
 		m_addr = addr;
 		m_sock = std::move(std::unique_ptr<TCPSocket>(m_net->CreateTCPSocket()));
@@ -104,7 +149,7 @@ namespace psio
 			return ret;
 		if (ret == 0)
 			return DoHandshakeLoop(ret);
-		return 0;
+		return ret;
 	}
 
 	void SSLSocket::OnHandshakeIOComplete(int result) {
@@ -149,19 +194,33 @@ namespace psio
 		if (result >= 0) {
 			m_next_state = HandshakeState::CONNECT_STATE_SSL_CONNECT;
 			m_ssl = SSL_new(m_ctx);
-			SSL_set_fd(m_ssl, (int)m_sock->GetRawSocket());
+			if (!m_ssl) {
+				LOG(LOG_ERROR) << "Unable to create SSL object";
+				ERR_print_errors_fp(stderr);
+				return Network::Err::FAILED;
+			}
+			int ret = SSL_set_fd(m_ssl, (int)m_sock->GetRawSocket());
+			if (ret != 1) {
+				LOG(LOG_ERROR) << "Unable to set SSL file descriptor";
+				ERR_print_errors_fp(stderr);
+				return Network::Err::FAILED;
+			}
 			
 			// set verification options
 
 			// set hostname for SNI
-			SSL_set_tlsext_host_name(m_ssl, m_addr.GetHost().c_str());
-
-			std::string cert_path = m_net->GetSetting("ssl_root_ca");
-			if (!SSL_CTX_load_verify_locations(m_ctx, cert_path.c_str(), nullptr)) {
-				LOG(LOG_ERROR) << "could not load cacert " << cert_path;
+			ret = SSL_set_tlsext_host_name(m_ssl, m_addr.GetHost().c_str());
+			if (ret != 1) {
+				LOG(LOG_ERROR) << "Unable to set TLS SNI hostname";
+				ERR_print_errors_fp(stderr);
+				return Network::Err::FAILED;
 			}
-			SSL_CTX_set_verify(m_ctx, SSL_VERIFY_PEER, nullptr);
-			SSL_CTX_set_verify_depth(m_ctx, 4);
+			ret = SSL_set1_host(m_ssl, m_addr.GetHost().c_str());
+			if (ret != 1) {
+				LOG(LOG_ERROR) << "Unable to set TLS hostname";
+				ERR_print_errors_fp(stderr);
+				return Network::Err::FAILED;
+			}
 			return 0;
 		}
 		else {
@@ -192,9 +251,20 @@ namespace psio
 					});
 				return Network::Err::IO_PENDING;
 			}
-			else {				
-				m_connect_complete_handler(-2);
-				// handler could destroy *this
+			else {
+				const long verify_result = SSL_get_verify_result(m_ssl);
+
+				LOG(LOG_ERROR)
+					<< "TLS handshake failed for " << m_addr.GetHost()
+					<< ", SSL error: " << ret_ssl
+					<< ", certificate verification: "
+					<< X509_verify_cert_error_string(verify_result)
+					<< " (" << verify_result << ")";
+
+				ERR_print_errors_fp(stderr);
+
+				m_connect_complete_handler(Network::Err::FAILED);
+				// Handler could destroy *this.
 				return Network::Err::IO_PENDING;
 			}
 		}
@@ -207,7 +277,7 @@ namespace psio
 			else {
 				DLOG(LOG_DEBUG) << "verfication succeeded";
 			}
-			m_next_state = m_next_state = HandshakeState::CONNECT_STATE_SSL_CONNECTED;
+			m_next_state =HandshakeState::CONNECT_STATE_SSL_CONNECTED;
 			return 0;
 		}
 	}
@@ -260,7 +330,9 @@ namespace psio
 					}
 					else {
 						buf->Consume(ret);
+#if PSIO_NET_LOG_LEVEL >= 4
 						DLOG(LOG_DEBUG) << "bytes written: " << ret;
+#endif
 						// write successful
 						m_net->UnWatch(client_fd);
 						handler(0);
@@ -276,7 +348,9 @@ namespace psio
 		else {
 			// write did not block
 			buf->Consume(ret);
+#if PSIO_NET_LOG_LEVEL >= 4
 			DLOG(LOG_DEBUG) << "bytes written(1): " << ret;
+#endif
 			return ret;
 		}
 	}
@@ -313,7 +387,9 @@ namespace psio
 						// else try again
 					}
 					else {
+#if PSIO_NET_LOG_LEVEL >= 4
 						DLOG(LOG_DEBUG) << "ssl: read " << ret << " bytes";
+#endif
 						// read successful
 						buf->Produce(ret);
 						m_net->UnWatch(client_fd);
@@ -329,7 +405,9 @@ namespace psio
 		}
 		else {
 			// read did not block
+#if PSIO_NET_LOG_LEVEL >= 4
 			DLOG(LOG_DEBUG) << "ssl: read (1) " << ret << " bytes";
+#endif
 			buf->Produce(ret);
 			return ret;
 		}

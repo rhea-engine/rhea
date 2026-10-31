@@ -133,7 +133,7 @@ namespace psio
 
 	}
 
-	void Network::SetSetting(std::string &setting, std::string &value)
+	void Network::SetSetting(const std::string &setting, const std::string &value)
 	{
 		m_settings[setting] = value;
 	}
@@ -151,7 +151,9 @@ namespace psio
 
 	void Network::Watch(SOCKET sock, int flags, bool once, CompletionHandler handler)
 	{
+#if PSIO_NET_LOG_LEVEL >= 4
 		DLOG(LOG_DEBUG) << "watch socket " << sock << " with flags " << flags;
+#endif
 		m_sockets[sock]={sock, flags, handler, once};
 	}
 
@@ -160,7 +162,9 @@ namespace psio
 		// check all file descs
 		auto it = m_sockets.find(sock);
 		if (it != m_sockets.end()) {
+#if PSIO_NET_LOG_LEVEL >= 4
 			DLOG(LOG_DEBUG) << "unwatch socket " << sock;
+#endif
 			m_sockets.erase(it);
 		}
 	}

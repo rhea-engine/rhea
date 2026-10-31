@@ -15,6 +15,7 @@
 #include <Psio/Net/Network.h>
 #include <Psio/IPC/IO.h>
 #include <Psio/Fs/Fs.h>
+#include <Psio/Window/Clipboard.h>
 #include <stdexcept>
 #include "Backend/IBackend.h"
 #ifdef PSIO_HAS_WIN32
@@ -89,6 +90,7 @@ namespace psio
 		}
 		m_io = m_backend->CreateIO(this);
 		m_fs = m_backend->CreateFs(this);
+		m_clipboard = m_backend->CreateClipboard(this);
 	}
 
 	Engine::~Engine()

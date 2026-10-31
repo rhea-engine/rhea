@@ -21,6 +21,7 @@ namespace psio
 	class IO;
 	class Fs;
 	class IBackend;
+	class Clipboard;
 
 	enum class BackendKind
 	{
@@ -79,6 +80,8 @@ namespace psio
 		// get FS subsystem
 		Fs* getFs() { return m_fs.get(); }
 
+		Clipboard* getClipboard() { return m_clipboard.get(); }
+
 		// Returns the system time, in microseconds
 		uint64_t getTicks();
 
@@ -91,6 +94,7 @@ namespace psio
 		std::unique_ptr<Network> m_net;
 		std::unique_ptr<IO> m_io;
 		std::unique_ptr<Fs> m_fs;
+		std::unique_ptr<Clipboard> m_clipboard;
 	};
 }
 #endif // !PSIO_H

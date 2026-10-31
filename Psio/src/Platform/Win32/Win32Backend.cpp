@@ -13,6 +13,7 @@
 #include <Psio/Input/Keyboard.h>
 #include <Psio/IPC/IO.h>
 #include <Psio/Fs/Fs.h>
+#include <Psio/Window/Clipboard.h>
 
 // KRITISCH: VOR allen Windows-Includes definieren!
 #ifndef WIN32_LEAN_AND_MEAN
@@ -28,6 +29,7 @@
 #include "Input/Win32Input.h"
 #include "Window/Win32Window.h"
 #include "Net/Win32Network.h"
+#include "Window/Win32Clipboard.h"
 
 namespace psio
 {
@@ -68,6 +70,11 @@ namespace psio
     std::unique_ptr<Fs> Win32Backend::CreateFs(Engine* engine)
     {
         return std::make_unique<Fs>("");
+    }
+
+    std::unique_ptr<Clipboard> Win32Backend::CreateClipboard(Engine* engine)
+    {
+		return std::make_unique<Win32Clipboard>(engine);
     }
 
     uint64_t Win32Backend::GetTicks()

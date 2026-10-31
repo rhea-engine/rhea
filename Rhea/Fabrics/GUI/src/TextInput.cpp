@@ -15,6 +15,8 @@
 #include <Psio/Input/Keyboard.h>
 #include <Rhea/EventInput.h>
 #include <Rhea/GUI/Events/SubmitEvent.h>
+#include <Rhea/Platform/PlatformService.h>
+#include <Psio/Window/Clipboard.h>
 
 namespace rhea
 {
@@ -182,6 +184,25 @@ namespace rhea
 			return false;
 
 		InputEvent e = static_cast<EventInput*>(ev)->getEvent();
+		if (e.modifiers.ctrl && e.key == Key::V) {
+			// paste from clipboard
+			std::string clip_text;
+			if (m_app->getService<PlatformService>()->getEngine()->getClipboard()->getText(clip_text)) {
+				if (!clip_text.empty()) {
+					std::string new_text = m_text.substr(0, m_pos);
+					new_text += clip_text;
+					if (m_pos < m_length)
+						new_text += m_text.substr(m_pos);
+					m_text = new_text;
+					m_pos += clip_text.size();
+					m_length += clip_text.size();
+					updateText(true);
+					updateCursor();
+				}
+			}
+			ev->stopPropagation();
+			return false;
+		}
 		switch (e.key) {
 		case Key::Left:
 			if (m_pos > 0) {

@@ -120,7 +120,7 @@ namespace rhea
 			return nullptr;
 		}
 
-		Material* material = new Material(m_path + "_material");
+		Material* material = new Material("default_material");
 		addChild(material);
 		material->setup(m_app, getAttributes(), { {"shader", m_shader_ref.id()}});
 		Shader* shader_res = m_app->getUnitTree()->resolve(m_shader_ref);

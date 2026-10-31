@@ -91,6 +91,7 @@ namespace rhea
 
 		// Materials
 		std::vector<Material*> m_materials;
+		Material* m_fallback_material = nullptr;
 
 		bool m_has_skeleton;
 

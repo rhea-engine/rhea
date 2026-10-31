@@ -78,15 +78,36 @@ namespace rhea
 			LOG(LOG_ERROR) << "Could not find shader resource: " << m_shader_ref.id();
 			return false;
 		}
+		// create a fallback material for meshes that have no material assigned
+		m_fallback_material = new Material("fallback_material");
+		m_fallback_material->setShader(shader_res);
+		m_fallback_material->setValue("shader", shader_res->getPathName());
+		const int diffuse_id = shader_res->getInputSlotId("DIFFUSE");
+		const int ambient_id = shader_res->getInputSlotId("AMBIENT");
+		const int specular_id = shader_res->getInputSlotId("SPECULAR");
+		const int emissive_id = shader_res->getInputSlotId("EMISSIVE");
+		const int shininess_id = shader_res->getInputSlotId("SHININESS");
+
+		if (diffuse_id >= 0)
+			m_fallback_material->setColor(diffuse_id, math::Color(1, 1, 1, 1));
+
+		if (ambient_id >= 0)
+			m_fallback_material->setColor(ambient_id, math::Color(0, 0, 0, 1));
+
+		if (specular_id >= 0)
+			m_fallback_material->setColor(specular_id, math::Color(0, 0, 0, 1));
+
+		if (emissive_id >= 0)
+			m_fallback_material->setColor(emissive_id, math::Color(0, 0, 0, 1));
+
+		if (shininess_id >= 0)
+			m_fallback_material->setFloat(shininess_id, 1.0f);
+		addChild(m_fallback_material);
 
 		// prepare vertex buffer
 		mesh->getVertexBuffer()->setVertexSize(shader_res->getVertexSize());
 
 		// prepare materials
-		int ambient_id = shader_res->getInputSlotId("AMBIENT");
-		int diffuse_id = shader_res->getInputSlotId("DIFFUSE");
-		int specular_id = shader_res->getInputSlotId("SPECULAR");
-		int emmission_id = shader_res->getInputSlotId("EMISSIVE");
 
 		int basecolor_id = shader_res->getTextureSlotId("BASECOLOR");
 		int normal_id = shader_res->getTextureSlotId("NORMAL");
@@ -116,7 +137,7 @@ namespace rhea
 				(float)material.emissiveFactor[1],
 				(float)material.emissiveFactor[2]
 			);
-			mat->setColor(emmission_id, emmissive);
+			mat->setColor(emissive_id, emmissive);
 
 			// file baseColor texture
 			if (material.pbrMetallicRoughness.baseColorTexture.index >= 0) {
@@ -631,14 +652,14 @@ namespace rhea
 					const tinygltf::Accessor& index_accessor = m_model.accessors[primitive.indices];
 
 					Material* mat = nullptr;
-					if (m_materials.size() > primitive.material)
+					if (primitive.material >= 0 && m_materials.size() > primitive.material)
 						mat = m_materials[primitive.material];
-					if (!mat)
-						// if no material found use default
-						mat = u_mesh->getDefaultMaterial();
 					if (!mat && m_materials.size() > 0)
 						// still no material - try index 0 for default material
 						mat = m_materials[0];
+					if (!mat)
+						// if no material found use default
+						mat = m_fallback_material;
 
 					auto indices = ExtractIndices(index_accessor);
 					// Umwandlung von std::vector<unsigned long> zu std::vector<uint32_t>

@@ -8,6 +8,7 @@
 #include <Orion/Orion.h>
 #include <Orion/ResourceRequest.h>
 #include <Orion/FileStream.h>
+#include <Orion/FileAddress.h>
 #include <Orion/FileCollection.h>
 #include <Orion/Mime.h>
 #include <Psio/Log.h>
@@ -18,21 +19,30 @@
 #include <algorithm>
 
 namespace orion
-{	
-	ResourceRequest::ResourceRequest(std::string rid, Orion *orion) : 
-		ResourceRequest(rid, orion, "")
+{
+	ResourceRequest::ResourceRequest(const ResourceAddress& address, Orion* orion, std::string mime_type) :
+		m_address(address),
+		m_orion(orion),
+		m_request(nullptr),
+		m_mime_type(mime_type)
 	{
+		setAddress(address);
 	}
 
-	ResourceRequest::ResourceRequest(std::string rid, Orion* orion, std::string type, std::string base_address) :
+	ResourceRequest::ResourceRequest(std::string rid, Orion* orion, std::string type) :
 		m_orion(orion),
 		m_mime_type(type),
 		m_realm_name(""),
 		m_path(""),
 		m_request(nullptr),
-		m_base_address(base_address)
-	{		
-		m_error = parseRid(rid);
+		m_address({})
+	{
+		AddressResult result = ResourceAddress::parse(rid);
+		if (!result.success) {
+			m_error = Error::DATA_INVALID;
+			return;
+		}
+		setAddress(result.address);
 	}
 
 	ResourceRequest::~ResourceRequest()
@@ -40,6 +50,19 @@ namespace orion
 		m_stream.reset();
 		if (m_request)
 			delete m_request;
+	}
+
+	void orion::ResourceRequest::setAddress(ResourceAddress address)
+	{
+		m_address = address;
+		m_realm_name = address.authority();
+		m_path = address.path();
+		// find basename
+		size_t basepos = m_path.find_last_of("/");
+		if (basepos != std::string::npos) {
+			m_basename = m_path.substr(basepos + 1);
+			m_container_path = m_path.substr(0, basepos);
+		}
 	}
 
 	bool orion::ResourceRequest::isCompleted()
@@ -52,11 +75,6 @@ namespace orion
 	std::string ResourceRequest::getParentPath()
 	{
 		return m_container_path;
-	}
-
-	std::string ResourceRequest::getBasename()
-	{
-		return m_basename;
 	}
 
 	bool ResourceRequest::isReading()
@@ -80,112 +98,6 @@ namespace orion
 	{
 		return false;
 	}
-	
-	Error ResourceRequest::parseRid(std::string rid)
-	{
-		std::replace(m_base_address.begin(), m_base_address.end(), '\\', '/');
-		std::replace(rid.begin(), rid.end(), '\\', '/');
-
-		// fallback for errors
-		m_error = Error::DATA_INVALID;
-
-		auto getRealm = [](std::string rid) -> std::string {
-			if (rid.compare(0, 2, "//") != 0)
-				return std::string();
-			size_t realmpos = 2;
-			size_t pathpos = rid.find_first_of("/", realmpos);
-			if (pathpos != std::string::npos)
-				return rid.substr(realmpos, pathpos - realmpos);
-			else
-				return rid.substr(realmpos);
-			};
-
-		// check if we have a realm part - if not we resolve it as local path
-		if (rid.compare(0, 2, "//") != 0) {
-			if (m_base_address.empty())
-				return Error::DATA_INVALID;
-
-			if (rid.empty())
-				return Error::DATA_INVALID;
-
-			if (rid.front() == '/') {
-				// Keep the base realm and replace its entire path.
-				std::string base_realm = getRealm(m_base_address);
-				if (base_realm.empty())
-					return Error::DATA_INVALID;
-				rid = "//" + base_realm + rid;
-			}
-			else {
-				// Append rid to the base directory.
-				std::string relative_path = rid;
-				rid = m_base_address;
-				if (rid.back() != '/')
-					rid += '/';
-				rid += relative_path;
-			}
-		}
-
-		// split the realm part
-		m_realm_name = getRealm(rid);
-		m_path = rid.substr(2 + m_realm_name.length());
-
-		// normalize '.' and '..' in the path
-		std::vector<std::string> segments;
-		const bool trailing_slash = !m_path.empty() && m_path.back() == '/';
-
-		size_t begin = 0;
-		while (begin < m_path.size()) {
-			size_t end = m_path.find('/', begin);
-			if (end == std::string::npos)
-				end = m_path.size();
-
-			const std::string segment = m_path.substr(begin, end - begin);
-
-			if (segment == "..") {
-				size_t root_depth = 0;
-
-#if defined(_WIN32)
-				if (m_realm_name == "file")
-					root_depth = !segments.empty() && segments[0] == "unc" ? 3 : 1;
-#endif
-
-				if (segments.size() <= root_depth)
-					return Error::DATA_INVALID;
-
-				segments.pop_back();
-			}
-			else if (!segment.empty() && segment != ".") {
-				segments.push_back(segment);
-			}
-
-			begin = end + 1;
-		}
-
-		m_path = "/";
-		for (const auto& segment : segments) {
-			if (m_path.back() != '/')
-				m_path += '/';
-
-			m_path += segment;
-		}
-
-		if (trailing_slash && m_path.back() != '/')
-			m_path += '/';
-
-		// find basename
-		size_t basepos = m_path.find_last_of("/");
-		if (basepos != std::string::npos) {
-			m_basename = m_path.substr(basepos + 1);
-			m_container_path = m_path.substr(0, basepos);
-		}
-
-		// if realm is empty return error
-		if (m_realm_name.empty())
-			return Error::DATA_INVALID;
-
-		m_error = Error::OK;
-		return Error::OK;
-	}
 
 	std::string ResourceRequest::getMimeType()
 	{
@@ -200,7 +112,15 @@ namespace orion
 
 		return m_mime_type;
 	}
-	
+
+	void ResourceRequest::setMimeTypeFromExtension()
+	{
+		std::string mime_res;
+		if (MIME::GetFromExtension(m_path, mime_res)) {
+			m_mime_type = mime_res;
+		}
+	}
+
 	Error ResourceRequest::ResolveLoop(Error result)
 	{
 		do
@@ -247,17 +167,12 @@ namespace orion
 
 	Error ResourceRequest::doCacheResolve(Error result)
 	{
-		if (m_realm_name == "file") {
-			m_next_state = State::REALM_RESOLVE;
-			return Error::OK;
-		}
-
 		m_stream = m_orion->getResourceFromCache(m_realm_name, m_path);
 		if (m_stream) {
 			m_next_state = State::RESOURCE_RESOLVE_COMPLETED;
 		}
 		else {
-			m_next_state = State::REALM_RESOLVE;;
+			m_next_state = State::REALM_RESOLVE;
 		}
 		return Error::OK;
 	}
@@ -269,7 +184,7 @@ namespace orion
 		// if realm already resolved do nothing
 		if (m_realm_resolved) {
 			return Error::OK;
-		}		
+		}
 
 		// local realm is always resolved
 		if (!m_realm_name.compare("local")) {
@@ -325,6 +240,8 @@ namespace orion
 			}
 		}
 
+		m_realm_resolved = true;
+
 		// TODO call callbacks if any
 		m_next_state = State::RESOURCE_RESOLVE;
 		return Error::OK;
@@ -341,6 +258,16 @@ namespace orion
 			}
 			return m_error;
 		}
+		if (m_address.has_value()) {
+			const auto scheme = m_address->scheme();
+
+			if (scheme == AddressScheme::File ||
+				scheme == AddressScheme::Http ||
+				scheme == AddressScheme::Https)
+			{
+				m_next_state = State::RESOURCE_RESOLVE;
+			}
+		}
 		Error result = ResolveLoop(Error::OK);
 		if (result != Error::IO_PENDING && m_handler) {
 			m_handler(this, result);
@@ -356,17 +283,90 @@ namespace orion
 		}
 	}
 
+	Error ResourceRequest::doRequestUrl(const std::string& url)
+	{
+		m_request = new psio::UrlRequest(m_orion->getIO());
+
+		m_request->OnResponse([&](psio::UrlResponse* resp) {
+			m_stream = std::make_unique<UrlResponseStream>(resp);
+			// caller doesn't know about response codes
+			// if not 2xx call with error
+			int code = resp->GetResponseCode();
+			Error err = Error::OK;
+			if (code == 404)
+				err = Error::RESOURCE_NOT_FOUND;
+			else if (code == 403)
+				err = Error::NO_ACCESS;
+			else if (code == 401)
+				err = Error::NO_AUTH;
+			else if (code < 200 || code >= 300)
+				err = Error::DATA_INVALID;
+			onIOComplete(err);
+			});
+		m_request->OnError([&](int err) {
+			onIOComplete(translateTransportError(err));
+			});
+		m_next_state = State::RESOURCE_RESOLVE_COMPLETED;
+
+		// GET the resource
+		m_request->Get(url);
+		return Error::IO_PENDING;
+	}
+
 	Error ResourceRequest::doResolveResource(Error result)
 	{
-		// safety check
-		if (!m_realm_resolved)
-			return Error::IO_PENDING;
+		if (result != Error::OK)
+			return result;
+
+		if (!m_address) {
+			m_next_state = State::RESOLVE_FAILED;
+			return Error::DATA_INVALID;
+		}
+
+		if (m_address->scheme() == AddressScheme::Realm && !m_realm_resolved) {
+			m_next_state = State::RESOLVE_FAILED;
+			return Error::REALM_NOT_FOUND;
+		}
+
+		if (m_address.has_value()) {
+			const auto scheme = m_address->scheme();
+
+			if (scheme == AddressScheme::Http ||
+				scheme == AddressScheme::Https)
+			{
+				return doRequestUrl(m_address->toString());
+			}
+		}
 
 		if (m_local) {
 			// if we could not find local resource with resolvers
 			// report it as missing
 			m_next_state = State::UNSET;
 			return Error::RESOURCE_NOT_FOUND;
+		}
+
+		if (m_address.has_value() && m_address.value().scheme() == orion::AddressScheme::File) {
+#if defined(_WIN32)
+			if (m_realm.getType() == Realm::RealmType::FileSystem && m_path == "/") {
+				m_stream = std::make_unique<FileCollection>(psio::Fs::getLogicalDrives());
+				m_next_state = State::RESOURCE_RESOLVE_COMPLETED;
+				return Error::OK;
+			}
+#endif
+			std::string native_path;
+			const Error error = orion::fileAddressToNativePath(*m_address, native_path);
+			if (error != Error::OK) {
+				m_next_state = State::RESOLVE_FAILED;
+				return error;
+			}
+
+			m_stream = FileResourceStream::getStream(native_path);
+			if (!m_stream) {
+				m_next_state = State::UNSET;
+				return Error::RESOURCE_NOT_FOUND;
+			}
+			m_next_state = State::RESOURCE_RESOLVE_COMPLETED;
+			return Error::OK;
 		}
 
 		// Resource from net
@@ -378,8 +378,7 @@ namespace orion
 				if (m_realm.getType() == Realm::RealmType::FileSystem && m_path == "/") {
 					m_stream = std::make_unique<FileCollection>(psio::Fs::getLogicalDrives());
 					m_next_state = State::RESOURCE_RESOLVE_COMPLETED;
-					onIOComplete(Error::OK);
-					return Error::IO_PENDING;
+					return Error::OK;
 				}
 #endif
 				std::string native_path;
@@ -395,8 +394,7 @@ namespace orion
 					return Error::RESOURCE_NOT_FOUND;
 				}
 				m_next_state = State::RESOURCE_RESOLVE_COMPLETED;
-				onIOComplete(Error::OK);
-				return Error::IO_PENDING;
+				return Error::OK;
 			}
 
 			path = m_realm.getResourceUrl();
@@ -410,30 +408,7 @@ namespace orion
 			LOG(LOG_INFO) << "Resource requested: " << path;
 
 			// Request the resource
-			m_request = new psio::UrlRequest(m_orion->getIO());
-
-			m_request->OnResponse([&](psio::UrlResponse* resp) {
-				m_stream = std::make_unique<UrlResponseStream>(resp);
-				// caller doesn't know about response codes
-				// if not 2xx call with error
-				int code = resp->GetResponseCode();
-				Error err = Error::OK;
-				if (code == 404)
-					err = Error::RESOURCE_NOT_FOUND;
-				else if (code == 403)
-					err = Error::NO_ACCESS;
-				else if (code == 401)
-					err = Error::NO_AUTH;
-				else if (code < 200 || code >= 300)
-					err = Error::DATA_INVALID;
-				onIOComplete(err);
-				});
-			m_request->OnError([&](int err) {
-				onIOComplete(translateTransportError(err));
-				});
-			// GET the resource
-			m_request->Get(path);
-			return Error::IO_PENDING;
+			return doRequestUrl(path);
 		}
 
 		// not implemented		
@@ -443,12 +418,12 @@ namespace orion
 
 	Error ResourceRequest::doResolveResourceCompleted(Error result)
 	{
-		m_next_state = State::UNSET;		
+		m_next_state = State::UNSET;
 		return result;
 	}
 
 	Error ResourceRequest::doResolveResourceFailed(Error result)
-	{		
+	{
 		m_next_state = State::UNSET;
 
 		// the request may be deleted -> exit loop

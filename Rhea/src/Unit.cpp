@@ -116,6 +116,9 @@ namespace rhea
 	
 	Component* Unit::find(std::string path, bool create)
 	{
+		// remove trailing slash
+		if (!path.empty() && path.back() == '/')
+			path.pop_back();
 		// get first dir
 		std::string subpath;
 		size_t pos = path.find("/");

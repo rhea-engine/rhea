@@ -49,10 +49,10 @@ namespace rhea
 			if (!report.isError() && scene_resource) {
 				const ResourceContext context{
 					scene_resource->getContextRoot(),
-					scene_resource->getSceneRoot()
+					scene_resource->getSceneRoot(),
 				};
 				// instance the world
-				Unit* parent = doCast<Unit>(m_app->getUnitTree()->find(scene_resource->getSceneRoot()));
+				Unit* parent = doCast<Unit>(m_app->getUnitTree()->find(scene_resource->getBaseId()));
 				scene_resource->spawn(parent, [this, rid, open_generation, report, handler, context](ErrorReport result, Unit* unit) mutable {
 					report.merge(std::move(result));
 					if (open_generation != m_open_generation) {
@@ -135,7 +135,15 @@ namespace rhea
 			}
 			return;
 		}
-		std::string rid = context.normalizeResourceId(resource_id);
+		std::string rid;
+		if (!context.normalizeResourceId(resource_id, rid)) {
+			LOG(LOG_ERROR) << "Failed to normalize resource id: " << resource_id;
+			report.addError(Error(Error::Code::INVALID_DATA, "Failed to normalize resource address: " + rid, resource_id));
+			if (handler) {
+				handler(nullptr, std::move(report));
+			}
+			return;
+		}
 
 		// check if the scene is already loaded
 		for (auto& pair : m_managed_scenes) {
@@ -172,9 +180,9 @@ namespace rhea
 
 			Unit* parent = nullptr;
 			if (!report.isError()) {
-				parent = doCast<Unit>(m_app->getUnitTree()->find(scene_resource->getSceneRoot()));
+				parent = doCast<Unit>(m_app->getUnitTree()->find(scene_resource->getBaseId()));
 				if (!parent) {
-					LOG(LOG_ERROR) << "Failed to find scene root: " << scene_resource->getSceneRoot() << " (" << rid << ")";
+					LOG(LOG_ERROR) << "Failed to find scene root: " << scene_resource->	getBaseId() << " (" << rid << ")";
 					report.addError(Error(Error::Code::INVALID_DEFINITION, "Invalid scene type", rid));
 				}
 			}
@@ -259,7 +267,14 @@ namespace rhea
 			if (!error.isError()) {
 				if (next_scene) {
 					// prepare the scene if not already prepared
-					std::string rid = context.normalizeResourceId(resource_id);
+					std::string rid;
+					if (!context.normalizeResourceId(resource_id, rid)) {
+						LOG(LOG_ERROR) << "Failed to normalize resource id: " << resource_id;
+						if (handler) {
+							handler(std::move(error));
+						}
+						return;
+					}
 					ManagedScene& managed_scene = ensureManagedScene(next_scene, rid, role, owner_scene);
 					m_managed_scenes[next_scene].role = role;
 					m_managed_scenes[next_scene].owner_scene = owner_scene;
@@ -307,7 +322,11 @@ namespace rhea
 	bool WorldService::deactivateScene(const std::string& resource_id, const ResourceContext& context)
 	{
 		// find the loaded scene
-		std::string rid = context.normalizeResourceId(resource_id);
+		std::string rid;
+		if (!context.normalizeResourceId(resource_id, rid)) {
+			LOG(LOG_ERROR) << "Failed to normalize resource id: " << resource_id;
+			return false;
+		}
 		Scene* scene_to_deactivate = nullptr;
 		for (auto& pair : m_managed_scenes) {
 			ManagedScene& managed_scene = pair.second;

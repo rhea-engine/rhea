@@ -410,7 +410,7 @@ void Ceto::loadMainGUI()
 	loadResource(app_gui, "//meworla/scene", [&](rhea::Component* res, rhea::ErrorReport r_err) {
 		rhea::SceneResource* scene_res = doCast<rhea::SceneResource>(res);
 		if (scene_res && !r_err.isError()) {
-			rhea::Unit* parent = doCast<rhea::Unit>(m_unit_tree->find(scene_res->getSceneRoot()));
+			rhea::Unit* parent = doCast<rhea::Unit>(m_unit_tree->find(scene_res->getBaseId()));
 			scene_res->spawn(parent, [&](rhea::ErrorReport r_err, rhea::Unit* res) {
 				rhea::Scene* gui = doCast<rhea::Scene>(res);
 				if (gui && !r_err.isError()) {

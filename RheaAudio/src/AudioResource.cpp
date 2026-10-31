@@ -46,7 +46,7 @@ namespace rhea::audio
 		Resource::ready();
 	}
 
-	void AudioResource::load(std::string name, Application* app, orion::ResourceRequest* req, ResourceContext& context, Resource::LoadedHandler handler)
+	void AudioResource::load(std::string name, Application* app, orion::ResourceRequest* req, ResourceContext context, Resource::LoadedHandler handler)
 	{
 		if (req) {
 			std::string mime = req->getMimeType();

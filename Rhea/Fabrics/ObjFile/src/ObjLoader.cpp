@@ -125,32 +125,70 @@ namespace rhea
 		m_parsed_data->shapes = reader.GetShapes();
 		m_parsed_data->materials = reader.GetMaterials();
 
+		std::string mtl_uri = m_mtl_ref.id();
 
+		if (mtl_uri.empty()) {
+			m_prepared = true;
+
+			if (handler)
+				handler(Error());
+
+			return;
+		}
+
+		if (mtl_uri.compare(0, 2, "//") == 0)
+			mtl_uri = "realm:" + mtl_uri;
+
+		auto mtl_address = orion::ResourceAddress::parse(mtl_uri);
+		if (!mtl_address.success) {
+			LOG(LOG_ERROR) << "Could not parse mtl file address: " << reader.Error();
+			if (handler)
+				handler(Error(Error::Code::INVALID_DATA, "Could not parse mtl file address: " + reader.Error(), m_mtl_ref.id()));
+			return;
+		}
+
+		auto texture_base = mtl_address.address.parent();
+		if (!texture_base.success) {
+			LOG(LOG_ERROR) << "Could not get parent address of mtl file: " << reader.Error();
+			if (handler)
+				handler(Error(Error::Code::INVALID_DATA, "Could not get parent address of mtl file: " + reader.Error(), m_mtl_ref.id()));
+			return;
+		}
 		ResourceContext texture_context;
 		// root path for textures is the path of the mtl file
-		texture_context.source_directory = m_mtl_ref.id().substr(0, m_mtl_ref.id().find_last_of('/'));
+		texture_context.source_directory = texture_base.address.toString();
 
 		ResourceList textures(m_app, texture_context);
 
 		int i = 0;
 		for (const auto& mat : m_parsed_data->materials) {
 			if (!mat.diffuse_texname.empty()) {
-				std::string resolved_texture_id = texture_context.normalizeResourceId(mat.diffuse_texname);
+				auto resolved = texture_base.address.resolveRelative(mat.diffuse_texname);
+				if (!resolved.success) {
+					LOG(LOG_ERROR) << "Could not resolve diffuse texture address: " << mat.diffuse_texname;
+					if (handler)
+						handler(Error(Error::Code::INVALID_DATA, "Could not resolve diffuse texture address: " + mat.diffuse_texname, m_mtl_ref.id()));
+					return;
+				}
+
+				const std::string resolved_texture_id =	resolved.address.toString();
 				m_resolved_diffuse_id.push_back(resolved_texture_id);
-				textures.push(
-					"diffuse_" + std::to_string(i),
-					resolved_texture_id,
-					"//meworla/texture");
+				textures.push("diffuse_" + std::to_string(i), resolved_texture_id, "//meworla/texture");
 			}
 			else
 				m_resolved_diffuse_id.push_back("");
 			if (!mat.normal_texname.empty()) {
-				std::string resolved_texture_id = texture_context.normalizeResourceId(mat.normal_texname);
+				auto resolved = texture_base.address.resolveRelative(mat.normal_texname);
+				if (!resolved.success) {
+					LOG(LOG_ERROR) << "Could not resolve normal texture address: " << mat.normal_texname;
+					if (handler)
+						handler(Error(Error::Code::INVALID_DATA, "Could not resolve normal texture address: " + mat.normal_texname, m_mtl_ref.id()));
+					return;
+				}
+
+				const std::string resolved_texture_id =	resolved.address.toString();
 				m_resolved_normal_id.push_back(resolved_texture_id);
-				textures.push(
-					"normal_" + std::to_string(i),
-					resolved_texture_id,
-					"//meworla/texture");
+				textures.push("normal_" + std::to_string(i), resolved_texture_id, "//meworla/texture");
 			}
 			else
 				m_resolved_normal_id.push_back("");

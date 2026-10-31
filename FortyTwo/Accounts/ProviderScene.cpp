@@ -97,7 +97,12 @@ void ProviderScene::Save(std::function<void(int)> handler)
 {
 	orion::Orion* fs = m_app->getFS();
 
-	orion::ResourceRequest* resource = fs->getResourceByRid(m_avatarlist_scene);
+	orion::AddressResult addr_result = orion::ResourceAddress::parse(m_avatarlist_scene);
+	if (!addr_result.success) {
+		DLOG(LOG_DEBUG) << "ProviderScene::Save: invalid location '" << m_avatarlist_scene << "'";
+		return;
+	}
+	orion::ResourceRequest* resource = fs->getResource(addr_result.address);
 	resource->resolve([&, handler](orion::ResourceRequest* req, int err) {
 		if (err) {
 			LOG(LOG_ERROR) << "ProviderScene: failed to resolve avatarlist scene";	

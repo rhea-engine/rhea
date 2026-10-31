@@ -15,7 +15,7 @@ namespace rhea
 {
 	class TextLoader {
 	public:
-		static void load(std::string name, Application* app, orion::ResourceRequest* req, ResourceContext& context, Resource::LoadedHandler handler);
+		static void load(std::string name, Application* app, orion::ResourceRequest* req, ResourceContext context, Resource::LoadedHandler handler);
 	};
 }
 

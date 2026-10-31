@@ -7,6 +7,7 @@
 
 #include <Orion/Realm.h>
 #include <time.h>
+#include <Orion/FileAddress.h>
 
 #include <nlohmann/json.hpp>
 
@@ -21,18 +22,18 @@ namespace orion
 
 	Realm::Realm(std::string name, std::string resource_url, std::time_t ttl)
 		: m_name(std::move(name))
-		, m_resource_url(std::move(resource_url))
 		, m_ttl(std::time(NULL) + ttl),
 		m_realm_type(RealmType::URL)
 	{
+		setResourceUrl(std::move(resource_url));
 	}
 
 	Realm::Realm(std::string name, std::string path, RealmType type)
 		: m_name(std::move(name))
-		, m_resource_url(std::move(path))
 		, m_ttl(0)
 		, m_realm_type(type)
 	{
+		setResourceUrl(std::move(path));
 	}
 
 	void Realm::setResourceUrl(std::string url)
@@ -71,64 +72,10 @@ namespace orion
 			if (m_resource_url.empty())
 				return Error::DATA_INVALID;
 
-			native_path = m_resource_url;
-
-			if (native_path.back() == '/' || native_path.back() == '\\')
-				native_path += resource_path.substr(1);
-			else
-				native_path += resource_path;
-
-			return Error::OK;
-		}
-		else if (m_realm_type == RealmType::FileSystem) {
-#if defined(_WIN32)
-			// The virtual drive overview has no native filesystem path.
-			if (resource_path == "/")
-				return Error::DATA_INVALID;
-
-			if (resource_path.compare(0, 5, "/unc/") == 0) {
-				const size_t server_begin = 5;
-				const size_t server_end = resource_path.find('/', server_begin);
-
-				if (server_end == std::string::npos || server_end == server_begin)
-					return Error::DATA_INVALID;
-
-				const size_t share_begin = server_end + 1;
-				const size_t share_end = resource_path.find('/', share_begin);
-				const size_t share_length = share_end == std::string::npos
-					? resource_path.size() - share_begin
-					: share_end - share_begin;
-
-				if (share_length == 0)
-					return Error::DATA_INVALID;
-
-				native_path = "//" + resource_path.substr(server_begin);
-				return Error::OK;
-			}
-
-			// Require /C:/... rather than the drive-relative form /C:...
-			if (resource_path.size() < 4)
-				return Error::DATA_INVALID;
-
-			const char drive = resource_path[1];
-			const bool valid_drive =
-				(drive >= 'A' && drive <= 'Z') ||
-				(drive >= 'a' && drive <= 'z');
-
-			if (!valid_drive || resource_path[2] != ':' || resource_path[3] != '/')
-				return Error::DATA_INVALID;
-
-			native_path = resource_path.substr(1);
-#else
-			native_path = resource_path;
-#endif
-
-			return Error::OK;
-
+			return resolveNativeResourcePath(m_resource_url, resource_path, native_path);
 		} else {
-			// Unknown realm type
+			// Unknown or unsupported/not applicable realm type
 			return orion::Error(orion::Error::DATA_INVALID);
 		}
-		return orion::Error();
 	}
 }

@@ -149,6 +149,8 @@ namespace rhea
 		// log some info
 		virtual void log(std::string message);
 
+		std::string resourceUriToId(const std::string& resource_id);
+
 		// get fs
 		orion::Orion* getFS() { return m_fs; }
 

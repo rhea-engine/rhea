@@ -10,6 +10,10 @@
 
 #include <Rhea/Resources/Resource.h>
 #include <Rhea/Error.h>
+#include <unordered_map>
+#include <vector>
+#include <functional>
+#include <string>
 
 namespace rhea
 {
@@ -53,6 +57,19 @@ namespace rhea
 			m_scene_root = scene_root;
 			m_context_root = context_root;
 			m_source_resource_id = source_resource_id;
+			// get base of the resource id for relative references
+			if (source_resource_id.empty()) {
+				m_base_id = "";
+			}
+			else {
+				size_t pos = source_resource_id.find_last_of("/");
+				if (pos == std::string::npos) {
+					m_base_id = "";
+				}
+				else {
+					m_base_id = source_resource_id.substr(0, pos);
+				}
+			}
 		}
 
 		const std::string& getSourceResourceId() const { return m_source_resource_id; }
@@ -65,6 +82,11 @@ namespace rhea
 		std::string getContextRoot() const
 		{
 			return m_context_root;
+		}
+
+		std::string getBaseId() const
+		{
+			return m_base_id;
 		}
 
 		// Build, attach and ready a runtime instance.
@@ -97,6 +119,7 @@ namespace rhea
 		std::string m_source_resource_id; // Resolved source file, independent of instance names.
 		std::string m_scene_root; // Directory of this scene file
 		std::string m_context_root; // Root inherited from the entry context
+		std::string m_base_id; // Base resource id for relative resource references
 
 		struct PendingSceneInstance {
 			std::string resource_key;

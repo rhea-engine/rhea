@@ -104,7 +104,7 @@ namespace rhea
 		m_materializing = true;
 		InstanceRequest request;
 		const std::string root_name = request.name.empty() ? m_definition.root.name : request.name;
-		request.basepath = m_scene_root + "/" + root_name;
+		request.basepath = m_base_id + "/" + root_name;
 
 		buildInstance(request, [this](ErrorReport error, Unit* root) {
 			if (error.isError()) {
@@ -112,7 +112,7 @@ namespace rhea
 				return;
 			}
 
-			Unit* canonical_parent = doCast<Unit>(m_app->getUnitTree()->find(m_scene_root));
+			Unit* canonical_parent = doCast<Unit>(m_app->getUnitTree()->find(m_base_id));
 			if (!canonical_parent) {
 				root->destroy();
 				error.addError(Error(Error::Code::NOT_FOUND, "Parent unit not found.", m_source_resource_id));
@@ -284,14 +284,18 @@ namespace rhea
 		}
 
 		ErrorReport references_error;
-		auto collect_references = [this, &request, &instances, &resources, &pending_instances, &ready_resources, &ready_instances, &references_error](
+		auto collect_references = [this, &context, &request, &instances, &resources, &pending_instances, &ready_resources, &ready_instances, &references_error](
 			const std::string& owner_id, Component* owner)->bool {
 				for (const auto& reference : owner->getReferences()) {
 					const std::string id = reference.value.toString();
-					if (id.size() <= 1)
+					if (id.empty())
 						continue;
 
-					bool is_local = id[0] != '/';
+					const auto colon = id.find(':');
+					const auto separator = id.find_first_of("/?#");
+					const bool has_scheme =	colon != std::string::npos && (separator == std::string::npos || colon < separator);
+					const bool is_local = id.front() != '/' && !has_scheme;
+
 					std::string resolved_id;
 					Unit* target = nullptr;
 					if (is_local) {
@@ -318,26 +322,42 @@ namespace rhea
 						resolved_id = request.basepath + "/" + id;
 					}
 					else {
-						resolved_id = id[1] == '/' ? id : m_context_root + id;
-						// Also recognize absolute references into this instance.
-						const std::string local_prefix = request.basepath + "/";
-						if (!request.basepath.empty() && resolved_id.compare(0, local_prefix.size(), local_prefix) == 0) {
-							const auto target_it = instances.find(resolved_id.substr(local_prefix.size()));
+						// Logical address for loading.
+						if (!context.normalizeResourceId(id, resolved_id)) {
+							Error error(
+								Error::Code::INVALID_DATA,
+								resolved_id, // the current API returns the error text here.
+								m_source_resource_id);
 
-							if (target_it != instances.end()) {
-								target = doCast<Unit>(target_it->second);
+							error.addContext("reference", id);
+							error.addContext("node", owner_id);
+							error.addContext("property", reference.name);
+							references_error.addError(error);
+							return false;
+						}
+						// Only realm addresses currently have this direct UnitTree mapping.
+						if (resolved_id.compare(0, 8, "realm://") == 0) {
+							const std::string tree_id =	m_app->resourceUriToId(resolved_id);
+							const std::string local_prefix = request.basepath + "/";
 
-								if (reference.usage == Component::ResourceUsage::Load)
-									continue;
+							if (!request.basepath.empty() && tree_id.compare(0, local_prefix.size(), local_prefix) == 0) {
 
-								if (!target) {
-									Error reference_error = Error(Error::Code::INVALID_DATA, "Target is not a unit: " + id, m_source_resource_id);
-									references_error.addError(reference_error);
-									return false;
+								const std::string instance_relative_id = tree_id.substr(local_prefix.size());
+								const auto target_it = instances.find(instance_relative_id);
+
+								if (target_it != instances.end()) {
+									target = doCast<Unit>(target_it->second);
+
+									if (!target) {
+										references_error.addError(Error(Error::Code::INVALID_DATA, "Target is not a unit: " + id, m_source_resource_id));
+										return false;
+									}
+
+									if (reference.usage == Component::ResourceUsage::Load)
+										continue;
 								}
 							}
 						}
-							
 					}
 					const std::string key = owner_id + "_" + reference.name + "_" + resolved_id;
 					const bool ensure_ready = reference.usage == Component::ResourceUsage::EnsureReady;

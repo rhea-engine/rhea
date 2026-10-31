@@ -39,7 +39,10 @@ namespace orion
 		ResourceRequest* getResourceByUrl(const std::string url);
 		
 		// if we have the rid we have to resolve the Resource and then get it
-		ResourceRequest* getResourceByRid(const std::string& rid, const std::string& base_address = {});
+		ResourceRequest* getResourceByRid(const std::string& rid);
+
+		// use already resolved address to get the resource
+		ResourceRequest* getResource(const ResourceAddress& address);
 
 		// get by cache
 		std::unique_ptr<ResourceStream> getResourceFromCache(const std::string realm_name, const std::string resource_path);

@@ -510,15 +510,80 @@ namespace rhea
 
 	void Application::loadResource(const std::string& resource_id, const ResourceContext& context, const std::string& type_name, std::function<void(Component*, ErrorReport error)> handler)
 	{
-		std::string rid = context.normalizeResourceId(resource_id);
+		// copy context
+		ResourceContext loaded_context = context;
+		std::string rid;
+		std::string uri = resource_id;
+
+		if (loaded_context.context_root.empty()) {
+			if (resource_id.substr(0, 2) == "//") {
+				// shorthand address for realm
+				uri = "realm:" + resource_id;
+			}
+			orion::AddressResult context_address_result = orion::ResourceAddress::parse(uri);
+			if (!context_address_result.success) {
+				handler(nullptr, Error(Error::Code::INVALID_DATA, "Invalid resource address: " + resource_id, resource_id));
+				return;
+			}
+			auto context_parent_result = context_address_result.address.parent();
+			if (!context_parent_result.success) {
+				handler(nullptr, Error(Error::Code::INVALID_DATA, "Invalid resource address: " + resource_id, resource_id));
+				return;
+			}
+
+			if (context_address_result.address.scheme() != orion::AddressScheme::Realm) {
+				// not a realm - we need a mount point realm
+				std::string realm_name = m_fs->getOrCreateProjectRealm(context_parent_result.address);
+				if (realm_name.empty()) {
+					LOG(LOG_ERROR) << "LoadResource(" << resource_id << "): Failed to get or create realm for path " << context_parent_result.address.toString();
+					handler(nullptr, Error(Error::Code::INVALID_DATA, "Failed to get or create realm for resource " + resource_id, resource_id));
+					return;
+				}
+				Realm* realm = doCast<Realm>(m_unit_tree->find(realm_name, false));
+				if (!realm) {
+					realm = new Realm(realm_name);
+					realm->setup(this, { {"path", context_parent_result.address.toString()} }, {});
+					if (!m_unit_tree->addChild(realm)) {
+						LOG(LOG_ERROR) << "LoadResource(" << resource_id << "): Failed to add realm " << realm->getPathName();
+						delete realm;
+						handler(nullptr, Error(Error::Code::INVALID_DATA, "Failed to add realm for resource " + resource_id, resource_id));
+						return;
+					}
+				}
+				loaded_context.context_root = "realm://" + realm_name + "/";
+				// path is name without the parent path, so we can use it to create the resource in the realm
+				std::string path = context_address_result.address.path();
+				if (path.size() && path.back() == '/')
+					path.pop_back();
+				rid = loaded_context.context_root + path.substr(context_parent_result.address.path().size());
+			}
+			else {
+				rid = uri;
+			}
+
+			loaded_context.source_directory = context_parent_result.address.toString();
+
+			if (loaded_context.context_root.empty()) {
+				loaded_context.context_root = loaded_context.source_directory;
+			}
+		}
+		else {
+			if (!loaded_context.normalizeResourceId(resource_id, rid)) {
+				LOG(LOG_ERROR) << "Failed to normalize resource id: " << resource_id;
+				if (handler) {
+					handler(nullptr, Error(Error::Code::INVALID_DATA, "Failed to normalize resource id: " + resource_id, resource_id));
+				}
+				return;
+			}
+		}
 
 		// check if already loaded
-		if (auto* resource = doCast<Resource>(m_unit_tree->find(rid, false))) {
+		if (auto* resource = doCast<Resource>(m_unit_tree->find(resourceUriToId(rid), false))) {
 			if (handler)
 				handler(resource, ErrorReport{});
 			return;
 		}
-		
+
 		auto [it, first_request] = m_pending_resource_loads.try_emplace(rid);
 
 		if (handler)
@@ -528,8 +593,28 @@ namespace rhea
 			return; // already loading, handler will be called when done
 
 		log("loading resource: " + rid);
-		orion::ResourceRequest* req = m_fs->getResourceByRid(rid);
-		req->resolve([this, context, rid, resource_id](orion::ResourceRequest* req, orion::Error err) {
+		orion::ResourceRequest* req = nullptr;
+
+		orion::AddressResult addr_result = orion::ResourceAddress::parse(rid);
+		if (!addr_result.success) {
+			finishResourceLoad(rid, NULL, Error(Error::Code::INVALID_DATA, "Invalid resource address: " + rid, rid));
+			return;
+		}
+		req = m_fs->getResource(addr_result.address);
+
+		// address is the complete logical resource address.
+		auto parent_result = addr_result.address.parent();
+		if (!parent_result.success) {
+			finishResourceLoad(rid, NULL, Error(Error::Code::INVALID_DATA, "Invalid resource address: " + rid, rid));
+			return;
+		}
+
+		loaded_context.source_directory = parent_result.address.toString();
+
+		if (loaded_context.context_root.empty()) {
+			loaded_context.context_root = loaded_context.source_directory;
+		}
+		req->resolve([this, loaded_context, rid, resource_id](orion::ResourceRequest* req, orion::Error err) {
 
 			if (err == orion::Error::OK) {
 
@@ -537,10 +622,6 @@ namespace rhea
 
 				// store current context and set the new one for the resource
 				std::string realm_name = req->getRealmName();
-				ResourceContext loaded_context = context;
-				loaded_context.source_directory = "//" + req->getRealmName() + req->getParentPath();
-				if (loaded_context.context_root.empty())
-					loaded_context.context_root = loaded_context.source_directory;
 
 				// get the realm parent unit (or create it if it doesn't exists)
 				Component* realm_unit = m_unit_tree->find(realm_name, false);
@@ -614,7 +695,7 @@ namespace rhea
 						finishResourceLoad(rid, component, err);
 						}))
 						return;
-						log("No loader for mime type " + mime);
+					log("No loader for mime type " + mime);
 				}
 				else
 					log("No mime type for " + rid);
@@ -659,6 +740,16 @@ namespace rhea
 	void Application::log(std::string message)
 	{
 		LOG(LOG_INFO) << message;
+	}
+
+	std::string Application::resourceUriToId(const std::string& resource_id)
+	{
+		// remove the scheme if present
+		std::string rid = resource_id;
+		if (rid.substr(0, 8) == "realm://") {
+			rid = rid.substr(6);
+		}
+		return rid;
 	}
 
 	void Application::close()

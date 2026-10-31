@@ -7,7 +7,7 @@
 
 #include <Psio/Net/Socket/ConnectorFactory.h>
 #include <Psio/Net/Socket/TCPConnector.h>
-#ifdef HAS_OPENSSL
+#ifdef PSIO_HAS_OPENSSL
 #include <Psio/Net/Socket/SSLConnector.h>
 #endif
 #include <Psio/Log.h>
@@ -25,7 +25,7 @@ namespace psio
 		if (!scheme.compare("http")) {
 			return std::make_unique<TCPConnector>(net, host, port);
 		}
-#ifdef HAS_OPENSSL
+#ifdef PSIO_HAS_OPENSSL
 		else if (!scheme.compare("https")) {
 			return std::make_unique<SSLConnector>(net, host, port);
 		}

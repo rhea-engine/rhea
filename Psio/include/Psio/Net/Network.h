@@ -40,7 +40,7 @@ namespace psio
 		void RunLoop();
 
 		// set setting
-		void SetSetting(std::string &setting, std::string &value);
+		void SetSetting(const std::string &setting, const std::string &value);
 		// get setting
 		std::string GetSetting(std::string setting);
 

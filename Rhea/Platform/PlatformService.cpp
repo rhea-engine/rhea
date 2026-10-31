@@ -7,6 +7,8 @@
 
 #include <Psio/Psio.h>
 #include <Psio/Net/Network.h>
+#include <Rhea/Application.h>
+#include <Rhea/ConfigFile.h>
 
 #include "Rhea/Platform/PlatformService.h"
 
@@ -46,9 +48,10 @@ namespace rhea
 	void PlatformService::onInit()
 	{
 		// initialize ssl settings
-		std::string appdir = m_values["AppDir"].toString();
-		std::string setting = "ssl_root_ca";
-		std::string cert = appdir + "/ssl/cacert.pem";
-		m_psio->getNet()->SetSetting(setting, cert);
+		auto* config = m_app->getConfig();
+		std::string cert_config = config->getValueString("ssl.cacert", "");
+		if (!cert_config.empty()) {
+			m_psio->getNet()->SetSetting("ssl_root_ca", cert_config);
+		}
 	}
 }

@@ -51,7 +51,7 @@ namespace rhea {
 				decrementToLoadAndCheckIfZero(handler, nullptr);
 			}
 			else {
-				Unit* resource = res.resource ? res.resource : doCast<Unit>(tree->find(res.id));
+				Unit* resource = res.resource ? res.resource : doCast<Unit>(tree->find(m_app->resourceUriToId(res.id)));
 				if (resource) {
 					// exists in tree					
 					m_resources[key].status = Resource::Status::LOADED;
@@ -76,7 +76,7 @@ namespace rhea {
 						}
 						else {
 							if (!err.isError())
-								err.addError(Error(Error::Code::INVALID_DATA, "Loaded component is not a resource unit.", m_resource_context.normalizeResourceId(res.id)));
+								err.addError(Error(Error::Code::INVALID_DATA, "Loaded component is not a resource unit.", res.id));
 							LOG(LOG_ERROR) << "Could not load resource " << res.id;
 							m_resources[key].status = Resource::Status::DATA_INVALID;
 							decrementToLoadAndCheckIfZero(handler, &err);

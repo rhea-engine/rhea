@@ -354,6 +354,9 @@ void Ceto::openScene(std::string scene_name, bool mark_preferences)
 			stream->Close();
 		}
 
+		if (m_realm_dialog)
+			m_realm_dialog->setRecentWorlds(m_userprefs.lastUsed());
+
 		// hide GUI background
 		rhea::GUIController* w = doCast<rhea::GUIController>(m_unit_tree->find("//ceto/cetogui/gui"));
 		if (w) {
@@ -410,7 +413,7 @@ void Ceto::loadMainGUI()
 	loadResource(app_gui, "//meworla/scene", [&](rhea::Component* res, rhea::ErrorReport r_err) {
 		rhea::SceneResource* scene_res = doCast<rhea::SceneResource>(res);
 		if (scene_res && !r_err.isError()) {
-			rhea::Unit* parent = doCast<rhea::Unit>(m_unit_tree->find(scene_res->getSceneRoot()));
+			rhea::Unit* parent = doCast<rhea::Unit>(m_unit_tree->find(scene_res->getBaseId()));
 			scene_res->spawn(parent, [&](rhea::ErrorReport r_err, rhea::Unit* res) {
 				rhea::Scene* gui = doCast<rhea::Scene>(res);
 				if (gui && !r_err.isError()) {
@@ -449,7 +452,13 @@ void Ceto::loadMainGUI()
 								return;
 							}
 							m_realm_dialog->setOpenHandler([this](const std::string& address) {
-								openScene(address);
+								if (address.substr(0, 7) == "//file/") {
+									// transofrm legacy address to file:
+									openScene("file:///" + address.substr(7));
+								}
+								else {
+									openScene(address);
+								}
 								});
 							m_realm_dialog->setRecentWorlds(m_userprefs.lastUsed());
 							std::vector<OpenBrowser::BrowserPlace> places;
@@ -460,7 +469,7 @@ void Ceto::loadMainGUI()
 							if (m_fs->hasLocalDir()) {
 								places.push_back({ "Local", "//local/", OpenBrowser::BrowserPlaceKind::Location });
 							}
-							places.push_back({ "Computer", "//file/", OpenBrowser::BrowserPlaceKind::Location });
+							places.push_back({ "Computer", "file:///", OpenBrowser::BrowserPlaceKind::Location });
 							std::string samples_path = m_fs->getFs()->getInstallDataDir();
 							if (samples_path.length()) {
 								samples_path += "/samples";
@@ -478,6 +487,8 @@ void Ceto::loadMainGUI()
 							realms["samples"] = true;
 							for (auto it = m_userprefs.lastUsed().begin(); it != m_userprefs.lastUsed().end(); it++) {
 								std::string realm_name = m_realm_dialog->getRealmName(*it);
+								if (realm_name.empty())
+									continue;
 								if (realms.find(realm_name) == realms.end()) {
 									realms[realm_name] = true;
 									places.push_back({ realm_name, "//" + realm_name + "/", OpenBrowser::BrowserPlaceKind::Location});
@@ -513,11 +524,17 @@ void Ceto::loadMainGUI()
 				}
 				else {
 					log("instantiating of gui failed");
+					for (auto& err : r_err.errors) {
+						log("Error: " + err.getMessage() + " - " + err.getResourceId());
+					}
 				}
 				});
 		}
 		else {
 			log("loading of gui failed");
+			for (auto& err : r_err.errors) {
+				log("Error: " + err.getMessage() + " - " + err.getResourceId());
+			}
 		}
 		});
 }

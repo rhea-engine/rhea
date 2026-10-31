@@ -26,6 +26,6 @@ namespace orion
 
 	void UrlResponseStream::Close()
 	{
-		m_stream.reset();
+		m_stream = nullptr;
 	}
 }

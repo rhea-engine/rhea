@@ -17,8 +17,8 @@ namespace orion
 	class UrlResponseStream : public ResourceStream
 	{
 	public:
-		UrlResponseStream(std::unique_ptr<psio::UrlResponse> respone) :
-			m_stream(std::move(respone))
+		UrlResponseStream(psio::UrlResponse* respone) :
+			m_stream(respone)
 		{}
 		~UrlResponseStream() {}
 
@@ -86,7 +86,7 @@ namespace orion
 		void Close();
 
 	protected:
-		std::unique_ptr<psio::UrlResponse> m_stream;
+		psio::UrlResponse* m_stream; // non-owning
 	};
 }
 

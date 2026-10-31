@@ -139,7 +139,9 @@ namespace rhea
 				if (id.empty() || id[0] != '/' || id.compare(0, 2, "//") == 0)
 					continue;
 
-				property.set_id(*this, context.normalizeResourceId(id));
+				std::string rid;
+				if (context.normalizeResourceId(id, rid))
+					property.set_id(*this, rid);
 			}
 		}
 	}
@@ -263,10 +265,12 @@ namespace rhea
 		const std::string& id,
 		const ResourceContext& context) const
 	{
-		if (id.empty() || id[0] != '/' ||
-			id.compare(0, 2, "//") == 0)
+		if (id.empty() || id[0] != '/' || id.compare(0, 2, "//") == 0)
 			return id;
 
-		return context.normalizeResourceId(id);
+		std::string rid;
+		if (context.normalizeResourceId(id, rid))
+			return rid;
+		return id;
 	}
 }

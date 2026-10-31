@@ -2,6 +2,8 @@
 #include <Psio/Log.h>
 #include <Rhea/GUI/TextInput.h>
 #include <Rhea/Application.h>
+#include <Orion/ResourceAddress.h>
+#include <algorithm>
 
 void  OpenBrowser::setup(rhea::Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, simpleparser::Variant> values)
 {
@@ -45,12 +47,20 @@ bool OpenBrowser::onEntrySelect(rhea::Event* ev, rhea::Unit* unit)
 	}
 	std::string  value = (std::string)target->getValue("value");
 
-	if (m_current_location.back() != '/')
-		m_current_location += '/';
+	const auto colon = value.find(':');
+	const auto separator = value.find_first_of("/?#");
 
-	// if value is relative add current location
-	if (value.compare(0, 2, "//") != 0)
-		value = m_current_location + value;
+	const bool has_scheme =	colon != std::string::npos && (separator == std::string::npos || colon < separator);
+	const bool is_absolute = has_scheme || value.compare(0, 2, "//") == 0;
+
+	if (!is_absolute) {
+		std::string base = m_current_location;
+
+		if (!base.empty() && base.back() != '/')
+			base += '/';
+
+		value = base + value;
+	}
 	m_selected_address = value;
 	setLocationField(m_selected_address);
 
@@ -66,11 +76,20 @@ bool OpenBrowser::onEntryActivated(rhea::Event* ev, rhea::Unit* unit)
 		return false;
 	}
 	std::string value = (std::string)target->getValue("value");
-	if (m_current_location.back() != '/')
-		m_current_location += '/';
-	// if value is relative add current location
-	if (value.compare(0, 2, "//") != 0)
-		value = m_current_location + value;
+	const auto colon = value.find(':');
+	const auto separator = value.find_first_of("/?#");
+
+	const bool has_scheme =	colon != std::string::npos && (separator == std::string::npos || colon < separator);
+	const bool is_absolute = has_scheme || value.compare(0, 2, "//") == 0;
+
+	if (!is_absolute) {
+		std::string base = m_current_location;
+
+		if (!base.empty() && base.back() != '/')
+			base += '/';
+
+		value = base + value;
+	}
 	m_selected_address = value;
 	setLocationField(m_selected_address);
 	navigateTo(m_selected_address);
@@ -82,19 +101,57 @@ bool OpenBrowser::onNavigateUp(rhea::Event* ev, rhea::Unit* unit)
 {
 	ev->stopPropagation();
 
-	// if current location is not only a realm, navigate to the parent directory
-	if (m_current_location.length() > 2) {
-		// remove trailing slash if present
-		std::string location = m_current_location;
-		if (location.back() == '/')
-			location.pop_back();
-		// find last slash
-		size_t last_slash = location.find_last_of('/');
-		if (last_slash > 1 && last_slash != std::string::npos) {
-			std::string parent_location = location.substr(0, last_slash + 1);
-			navigateTo(parent_location);
+	if (m_current_location.empty() ||
+		m_current_location == "//recent/" ||
+		m_current_location == "//realms/" ||
+		m_current_location == "file:///") {
+		return false;
+	}
+
+	std::string uri = m_current_location;
+
+	// Temporary support for existing browser places.
+	if (uri.compare(0, 7, "//file/") == 0)
+		uri = "file:///" + uri.substr(7);
+	else if (uri.compare(0, 2, "//") == 0)
+		uri = "realm:" + uri;
+
+	auto address = orion::ResourceAddress::parse(uri);
+	if (!address.success) {
+		if (m_status_label)
+			m_status_label->setText("Invalid location: " + address.error.message);
+		return false;
+	}
+
+#if defined(_WIN32)
+	if (address.address.scheme() == orion::AddressScheme::File &&
+		address.address.authority().empty()) {
+		const std::string path = address.address.path();
+
+		const bool drive_root =
+			path.size() == 4 &&
+			path[0] == '/' &&
+			((path[1] >= 'A' && path[1] <= 'Z') || (path[1] >= 'a' && path[1] <= 'z')) &&
+			path[2] == ':' &&
+			path[3] == '/';
+
+		if (drive_root) {
+			navigateTo("file:///");
+			return false;
 		}
 	}
+#endif
+
+	auto parent = address.address.parent();
+	if (!parent.success) {
+		if (m_status_label)
+			m_status_label->setText("Cannot navigate up: " + parent.error.message);
+		return false;
+	}
+
+	// Realm, HTTP and share roots have no further parent.
+	if (!(parent.address == address.address))
+		navigateTo(parent.address.toString());
 
 	return false;
 }
@@ -178,6 +235,35 @@ void OpenBrowser::navigateTo(const std::string& location)
 {
 	const auto generation = ++m_navigation_generation;
 
+#if defined(_WIN32)
+	if (location == "file:///") {
+		m_current_realm = "file:///";
+		m_current_location = "file:///";
+		m_selected_address.clear();
+		setLocationField("file:///");
+		m_entries.clear();
+
+		for (std::string drive : psio::Fs::getLogicalDrives()) {
+			std::replace(drive.begin(), drive.end(), '\\', '/');
+
+			if (!drive.empty() && drive.back() != '/')
+				drive += '/';
+
+			m_entries.push_back({
+				drive,                 // Anzeige: C:/
+				"file:///" + drive,     // Ziel: file:///C:/
+				BrowserPlaceKind::Location
+				});
+		}
+
+		if (m_status_label)
+			m_status_label->setText("");
+
+		update();
+		return;
+	}
+#endif
+
 	// get realm part of location
 	std::string realm_name = getRealmName(location);
 	const BrowserPlace* place = nullptr;
@@ -230,28 +316,34 @@ void OpenBrowser::navigateTo(const std::string& location)
 		}
 	}
 	else if (!place || place->kind == BrowserPlaceKind::Location) {
-		//search via orion
-		orion::ResourceRequest* req = m_orion->getResourceByRid(location);
+		//search via orion,
+		std::string uri = location;
+		if (uri.substr(0,7)=="//file/")
+			uri = "file:///" + uri.substr(7);
+
+		if (uri.substr(0, 2) == "//") {
+			uri = "realm:" + uri;
+		}
+		orion::AddressResult addr_result = orion::ResourceAddress::parse(uri);
+		if (!addr_result.success) {
+			DLOG(LOG_DEBUG) << "OpenBrowser: invalid location '" << uri << "'";
+			if (m_status_label)
+				m_status_label->setText("Invalid location: '" + uri + "'");
+			return;
+		}
+
+		orion::ResourceRequest* req = m_orion->getResource(addr_result.address);
 		if (!req) {
-			LOG(LOG_ERROR) << "OpenBrowser: failed to create resource request for location '" << location << "'";
+			LOG(LOG_ERROR) << "OpenBrowser: failed to create resource request for location '" << uri << "'";
 			if (m_status_label) {
-				m_status_label->setText("Failed to create resource request for location: " + location);
+				m_status_label->setText("Failed to create resource request for location: " + uri);
 			}
 			return;
 		}
 
-		if (location.empty() || location.substr(0, 2) != "//" || location.substr(0, 3) == "///") {
-			DLOG(LOG_DEBUG) << "OpenBrowser: invalid location '" << location << "'";
-			if (m_status_label)
-				m_status_label->setText("Invalid location: '" + location + "'");
-			return;
-		}
-		if (m_status_label) {
-			m_status_label->setText("Loading " + location + "...");
-		}
-		req->resolve([this, location, generation](orion::ResourceRequest* req, orion::Error err) {
+		req->resolve([this, uri, generation](orion::ResourceRequest* req, orion::Error err) {
 			if (generation != m_navigation_generation) {
-				DLOG(LOG_DEBUG) << "OpenBrowser: ignoring outdated navigation request for location '" << location << "'";
+				DLOG(LOG_DEBUG) << "OpenBrowser: ignoring outdated navigation request for location '" << uri << "'";
 				return;
 			}
 			if (err == orion::Error::OK) {
@@ -278,31 +370,31 @@ void OpenBrowser::navigateTo(const std::string& location)
 				}
 				else {
 					if (m_open_handler) {
-						m_open_handler(location);
+						m_open_handler(uri);
 						return;
 					}
 				}
-				setLocationField(location);
-				m_current_location = location;
+				setLocationField(uri);
+				m_current_location = uri;
 				m_selected_address = m_current_location;
 				update();
 			}
 			else {
-				LOG(LOG_ERROR) << "OpenBrowser: failed to resolve location '" << location << "' with error " << static_cast<int>(err);
+				LOG(LOG_ERROR) << "OpenBrowser: failed to resolve location '" << uri << "' with error " << static_cast<int>(err);
 				if (m_status_label) {
 					switch (err) {
 					case orion::Error::RESOURCE_NOT_FOUND:
-						m_status_label->setText("Location not found: " + location);
+						m_status_label->setText("Location not found: " + uri);
 						break;
 					case orion::Error::DATA_INVALID:
-						m_status_label->setText("Invalid data at location: " + location);
+						m_status_label->setText("Invalid data at location: " + uri);
 						break;
 					case orion::Error::NO_AUTH:
 					case orion::Error::NO_ACCESS:
-						m_status_label->setText("No authorization to access location: " + location);
+						m_status_label->setText("No authorization to access location: " + uri);
 						break;
 					default:
-						m_status_label->setText("Failed to load " + location);
+						m_status_label->setText("Failed to load " + uri);
 						break;
 					}
 				}
@@ -321,7 +413,7 @@ void OpenBrowser::showRecent()
 {
 	m_entries.clear();
 	for (auto& world : m_recent_worlds) {
-		if (world.empty() || world.substr(0, 2) != "//")
+		if (world.empty())
 			continue;
 		m_entries.push_back({world, world, BrowserPlaceKind::Location});
 	}
@@ -350,12 +442,13 @@ void OpenBrowser::updateRealms()
 		return;
 	}
 	m_realms_list->clear();
-	for (auto& place : m_places) {
-		if (place.address.empty() || place.address.substr(0, 2) != "//" || place.address.substr(0, 3) == "///")
+	for (const auto& place : m_places) {
+		if (place.address.empty())
 			continue;
-		if (place.name.empty())
-			place.name = place.address.substr(2, place.address.length() - 2);
-		m_realms_list->addItem(place.name, place.address);
+
+		const std::string label = place.name.empty() ? place.address : place.name;
+
+		m_realms_list->addItem(label, place.address);
 	}
 }
 

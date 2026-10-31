@@ -11,17 +11,20 @@
 #include <vector>
 #include <string>
 #include <functional>
+#include <unordered_map>
+#include <memory>
 
 #include <Orion/Collection.h>
 #include <Psio/Fs/Fs.h>
-#include <Orion/Realms.h>
 #include <Psio/Psio.h>
 #include <Orion/ResolverInterface.h>
+#include <Orion/ResourceAddress.h>
 
 namespace orion
 {	
 	class ResourceCache;
 	class ResourceRequest;
+	class Realms;
 
 	class Orion
 	{
@@ -36,7 +39,10 @@ namespace orion
 		ResourceRequest* getResourceByUrl(const std::string url);
 		
 		// if we have the rid we have to resolve the Resource and then get it
-		ResourceRequest* getResourceByRid(const std::string& rid, const std::string& base_address = {});
+		ResourceRequest* getResourceByRid(const std::string& rid);
+
+		// use already resolved address to get the resource
+		ResourceRequest* getResource(const ResourceAddress& address);
 
 		// get by cache
 		std::unique_ptr<ResourceStream> getResourceFromCache(const std::string realm_name, const std::string resource_path);
@@ -48,7 +54,7 @@ namespace orion
 		void close(ResourceRequest* req);
 
 		// callback for resolved resource
-		int resolve(std::string rid, ResourceRequest** resourceId);		
+		int resolve(std::string rid, ResourceRequest** resourceId);	
 		// Fs getter
 		psio::Fs* getFs() { return m_fs; }
 
@@ -56,7 +62,7 @@ namespace orion
 		psio::Engine* getIO() { return m_engine; }
 
 		// get realm from realm list
-		Realms* getRealms();		
+		Realms* getRealms();
 
 		// set an app dir manually
 		void setAppDir(std::string dirname);
@@ -69,6 +75,9 @@ namespace orion
 
 		// set a custom realm
 		void addLocalRealm(std::string name, std::string path);
+
+		// get or create a local realm for a physical directory
+		std::string getOrCreateProjectRealm(const ResourceAddress& physical_directory);
 
 		static const int ERR_NOTFOUND = -1;
 		static const int ERR_NOTIMPLEMENTED = -2;
@@ -94,6 +103,9 @@ namespace orion
 
 		// do we have a local dir
 		std::string m_local_dir;
+
+		std::unordered_map<std::string, std::string> m_project_realms;
+		size_t m_next_project_realm = 0;
 	};
 }
 

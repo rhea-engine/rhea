@@ -101,6 +101,7 @@ namespace rhea
             bool completed = false;
             Error error = Error();
             std::string resource_id;
+            std::unordered_map<std::string, std::string> asset_uris; // Asset key used by tinygltf -> original URI from the document.
 
             void parse()
             {
@@ -177,10 +178,14 @@ namespace rhea
     }
 
     void GltfLoader::load_impl(std::string name, Application* app, orion::ResourceRequest* req,
-        ResourceContext& context, Resource::LoadedHandler handler, bool is_binary)
+        ResourceContext context, Resource::LoadedHandler handler, bool is_binary)
     {
         if (!req || !req->getStream()) {
-            const std::string resource_id = req ? "//" + req->getRealmName() + req->getPath() : context.normalizeResourceId(name);
+            std::string resource_id;
+            if (req)
+                resource_id = "//" + req->getRealmName() + req->getPath();
+            else
+                context.normalizeResourceId(name, resource_id);
             if (handler)
                 handler(Error(Error::Code::NOT_FOUND, "Resource stream not found", resource_id), nullptr);
             return;
@@ -220,7 +225,9 @@ namespace rhea
                         std::string decoded;
                         if (!tinygltf::URIDecode(uri, &decoded, nullptr))
                             throw std::runtime_error("Invalid glTF dependency URI: " + uri);
-                        state->assets.emplace(assetKey(decoded), Bytes{});
+                        const std::string key = assetKey(decoded);
+                        state->assets.emplace(key, Bytes{});
+                        state->asset_uris.emplace(key, uri);
                     }
                 }
             }
@@ -242,8 +249,26 @@ namespace rhea
             for (const auto& entry : state->assets)
                 paths.push_back(entry.first);
             for (const auto& path : paths) {
-                const std::string rid = state->context.normalizeResourceId(path);
-                auto* dependency = state->app->getFS()->getResourceByRid(rid);
+
+                auto base_result = orion::ResourceAddress::parse(state->context.source_directory);
+                if (!base_result.success) {
+                    Error result(Error::Code::INVALID_DATA, "Invalid glTF source directory: " + base_result.error.message, state->resource_id);
+                    state->finishAsset(result);
+                    continue;
+                }
+
+                auto address_result = base_result.address.resolveRelative(state->asset_uris.at(path));
+
+                if (!address_result.success) {
+                    Error result(Error::Code::INVALID_DATA, "Invalid glTF dependency URI: " + address_result.error.message, state->asset_uris.at(path));
+                    result.addContext("referenced_by", state->resource_id);
+                    state->finishAsset(result);
+                    continue;
+                }
+
+                const std::string rid = address_result.address.toString();
+                auto* dependency = state->app->getFS()->getResource(address_result.address);
+
                 dependency->resolve([state, path, rid](orion::ResourceRequest* resolved, orion::Error error) {
                     if (error != orion::Error::OK) {
                         LOG(LOG_ERROR) << "Could not load glTF dependency: " << rid;

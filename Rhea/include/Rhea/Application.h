@@ -70,7 +70,7 @@ namespace rhea
 		 * ---------------------
 		 * Orchestrates the application's core systems, including input, networking, physics, and rendering.
 		 */
-		virtual int loop();
+		virtual int loop();		
 
 		/**
 		 * handleInput
@@ -149,6 +149,8 @@ namespace rhea
 		// log some info
 		virtual void log(std::string message);
 
+		std::string resourceUriToId(const std::string& resource_id);
+
 		// get fs
 		orion::Orion* getFS() { return m_fs; }
 
@@ -177,9 +179,13 @@ namespace rhea
 		PhysicsService* m_physics = nullptr;
 		Service* m_wold_service = nullptr;
 		IInputService* m_input_service = nullptr;
-
+		ConfigFile* m_config = nullptr;
 		// Windows
 		std::vector<Window> m_windows;
+
+		using LoadHandler = std::function<void(Component*, ErrorReport)>;
+		void finishResourceLoad(const std::string& rid, Component* component, ErrorReport report);
+		std::unordered_map<std::string, std::vector<LoadHandler>> m_pending_resource_loads;
 
 		ResourceLoader m_resource_loader;
 

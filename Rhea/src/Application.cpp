@@ -11,6 +11,7 @@
 #include "Orion/Orion.h"
 #include "Orion/ResourceStream.h"
 #include "Orion/ResourceRequest.h"
+#include <Orion/Realms.h>
 #include <Orion/Mime.h>
 #include "Psio/Psio.h"
 #include "Psio/Log.h"
@@ -118,32 +119,32 @@ namespace rhea
 		m_unit_tree.reset((UnitTree*)simpleparser::Type::create("/", "//core/unittree"));
 		m_unit_tree->setup(this);
 
-		ConfigFile* config = simpleparser::Type::create<ConfigFile>("config");
-		config->setup(this);
-		m_unit_tree->addChild(config);
-		config->fromCommandLineArgs(argc, argv);
+		m_config = simpleparser::Type::create<ConfigFile>("config");
+		m_config->setup(this);
+		m_unit_tree->addChild(m_config);
+		m_config->fromCommandLineArgs(argc, argv);
 
 		Service* psio = (PlatformService*)simpleparser::Type::create("PlatformService", "//meworla/platformservice");
-		std::string psio_backend = config->getValueString("platform.backend", "auto");
+		std::string psio_backend = m_config->getValueString("platform.backend", "auto");
 		psio->setValue("backend", psio_backend);
 		psio->setup(this);
 		m_services["platform"] = psio;
 
 		m_fs = new orion::Orion(static_cast<PlatformService*>(psio)->getEngine(), m_appname);
 
-		std::string app_dir = config->getValueString("appdir", "");
+		std::string app_dir = m_config->getValueString("appdir", "");
 		if (!app_dir.empty()) {
 			setAppDir(app_dir.c_str());
 		}
 
 		// load config file
-		config->loadFromFile("config.ini");
+		m_config->loadFromFile("config.ini");
 
 		// log-level from config
 #ifdef _DEBUG
-		std::string log_level = config->getValueString("log.level", "debug");
+		std::string log_level = m_config->getValueString("log.level", "debug");
 #else
-		std::string log_level = config->getValueString("log.level", "info");
+		std::string log_level = m_config->getValueString("log.level", "info");
 #endif
 		std::transform(log_level.begin(), log_level.end(), log_level.begin(), ::tolower);
 		if (log_level == "debug")
@@ -278,6 +279,22 @@ namespace rhea
 
 	void Application::setup()
 	{
+		// finalize configuration and setup services
+		std::string realms_config = m_config->getValueString("realms.config", "");
+		std::vector<orion::RealmConfigFile> config_files;
+		if (realms_config.size())
+			config_files.push_back({ realms_config, false });
+		config_files.push_back({ m_fs->getFs()->getAppDataDir() + "/realms.conf", true });
+		config_files.push_back({ m_fs->getFs()->getHomeDir() + "/realms.conf", true });
+		auto result = m_fs->getRealms()->loadConfigFiles(config_files);
+		if (!result.success) {			
+			LOG(LOG_WARNING) << "Realms configuration failed to load";
+			for (const auto& diag : result.diagnostics) {
+				LOG(LOG_WARNING) << "Realm config error: " << diag.message;
+			}
+			exit(-1);
+		}
+
 		// if no window and no view was defined we create a default one
 		if (!m_windows.size()) {
 			addDefaultWindow();
@@ -473,26 +490,131 @@ namespace rhea
 		return ret;
 	}
 
+	void Application::finishResourceLoad(const std::string& rid, Component* component, ErrorReport report)
+	{
+		auto it = m_pending_resource_loads.find(rid);
+		if (it == m_pending_resource_loads.end())
+			return;
+
+		auto handlers = std::move(it->second);
+		m_pending_resource_loads.erase(it);
+
+		for (auto& handler : handlers)
+			handler(component, report);
+	}
+
 	void Application::loadResource(const std::string& resource_id, const std::string& type_name, std::function<void(Component*, ErrorReport error)> handler)
 	{
 		loadResource(resource_id, {}, type_name, handler);
 	}
 
-
 	void Application::loadResource(const std::string& resource_id, const ResourceContext& context, const std::string& type_name, std::function<void(Component*, ErrorReport error)> handler)
 	{
-		std::string rid = context.normalizeResourceId(resource_id);
+		// copy context
+		ResourceContext loaded_context = context;
+		std::string rid;
+		std::string uri = resource_id;
+
+		if (loaded_context.context_root.empty()) {
+			if (resource_id.substr(0, 2) == "//") {
+				// shorthand address for realm
+				uri = "realm:" + resource_id;
+			}
+			orion::AddressResult context_address_result = orion::ResourceAddress::parse(uri);
+			if (!context_address_result.success) {
+				handler(nullptr, Error(Error::Code::INVALID_DATA, "Invalid resource address: " + resource_id, resource_id));
+				return;
+			}
+			auto context_parent_result = context_address_result.address.parent();
+			if (!context_parent_result.success) {
+				handler(nullptr, Error(Error::Code::INVALID_DATA, "Invalid resource address: " + resource_id, resource_id));
+				return;
+			}
+
+			if (context_address_result.address.scheme() != orion::AddressScheme::Realm) {
+				// not a realm - we need a mount point realm
+				std::string realm_name = m_fs->getOrCreateProjectRealm(context_parent_result.address);
+				if (realm_name.empty()) {
+					LOG(LOG_ERROR) << "LoadResource(" << resource_id << "): Failed to get or create realm for path " << context_parent_result.address.toString();
+					handler(nullptr, Error(Error::Code::INVALID_DATA, "Failed to get or create realm for resource " + resource_id, resource_id));
+					return;
+				}
+				Realm* realm = doCast<Realm>(m_unit_tree->find(realm_name, false));
+				if (!realm) {
+					realm = new Realm(realm_name);
+					realm->setup(this, { {"path", context_parent_result.address.toString()} }, {});
+					if (!m_unit_tree->addChild(realm)) {
+						LOG(LOG_ERROR) << "LoadResource(" << resource_id << "): Failed to add realm " << realm->getPathName();
+						delete realm;
+						handler(nullptr, Error(Error::Code::INVALID_DATA, "Failed to add realm for resource " + resource_id, resource_id));
+						return;
+					}
+				}
+				loaded_context.context_root = "realm://" + realm_name + "/";
+				// path is name without the parent path, so we can use it to create the resource in the realm
+				std::string path = context_address_result.address.path();
+				if (path.size() && path.back() == '/')
+					path.pop_back();
+				rid = loaded_context.context_root + path.substr(context_parent_result.address.path().size());
+			}
+			else {
+				rid = uri;
+			}
+
+			loaded_context.source_directory = context_parent_result.address.toString();
+
+			if (loaded_context.context_root.empty()) {
+				loaded_context.context_root = loaded_context.source_directory;
+			}
+		}
+		else {
+			if (!loaded_context.normalizeResourceId(resource_id, rid)) {
+				LOG(LOG_ERROR) << "Failed to normalize resource id: " << resource_id;
+				if (handler) {
+					handler(nullptr, Error(Error::Code::INVALID_DATA, "Failed to normalize resource id: " + resource_id, resource_id));
+				}
+				return;
+			}
+		}
 
 		// check if already loaded
-		if (auto* resource = doCast<Resource>(m_unit_tree->find(rid, false))) {
+		if (auto* resource = doCast<Resource>(m_unit_tree->find(resourceUriToId(rid), false))) {
 			if (handler)
 				handler(resource, ErrorReport{});
 			return;
 		}
 
+		auto [it, first_request] = m_pending_resource_loads.try_emplace(rid);
+
+		if (handler)
+			it->second.push_back(std::move(handler));
+
+		if (!first_request)
+			return; // already loading, handler will be called when done
+
 		log("loading resource: " + rid);
-		orion::ResourceRequest* req = m_fs->getResourceByRid(rid);
-		req->resolve([this, handler, context, rid, resource_id](orion::ResourceRequest* req, orion::Error err) {
+		orion::ResourceRequest* req = nullptr;
+
+		orion::AddressResult addr_result = orion::ResourceAddress::parse(rid);
+		if (!addr_result.success) {
+			finishResourceLoad(rid, NULL, Error(Error::Code::INVALID_DATA, "Invalid resource address: " + rid, rid));
+			return;
+		}
+		req = m_fs->getResource(addr_result.address);
+
+		// address is the complete logical resource address.
+		auto parent_result = addr_result.address.parent();
+		if (!parent_result.success) {
+			finishResourceLoad(rid, NULL, Error(Error::Code::INVALID_DATA, "Invalid resource address: " + rid, rid));
+			return;
+		}
+
+		loaded_context.source_directory = parent_result.address.toString();
+
+		if (loaded_context.context_root.empty()) {
+			loaded_context.context_root = loaded_context.source_directory;
+		}
+		req->resolve([this, loaded_context, rid, resource_id](orion::ResourceRequest* req, orion::Error err) {
 
 			if (err == orion::Error::OK) {
 
@@ -500,10 +622,6 @@ namespace rhea
 
 				// store current context and set the new one for the resource
 				std::string realm_name = req->getRealmName();
-				ResourceContext loaded_context = context;
-				loaded_context.source_directory = "//" + req->getRealmName() + req->getParentPath();
-				if (loaded_context.context_root.empty())
-					loaded_context.context_root = loaded_context.source_directory;
 
 				// get the realm parent unit (or create it if it doesn't exists)
 				Component* realm_unit = m_unit_tree->find(realm_name, false);
@@ -513,8 +631,7 @@ namespace rhea
 					if (!m_unit_tree->addChild(realm_unit)) {
 						LOG(LOG_ERROR) << "LoadResource(" << resource_id << "): Failed to add realm " << realm_name;
 						delete realm_unit;
-						if (handler)
-							handler(NULL, Error(Error::Code::INVALID_DATA, "Failed to add realm " + realm_name, rid));
+						finishResourceLoad(rid, NULL, Error(Error::Code::INVALID_DATA, "Failed to add realm " + realm_name, rid));
 						return;
 					}
 				}
@@ -524,8 +641,7 @@ namespace rhea
 				Unit* parent_unit = doCast<Unit>(m_unit_tree->find(parentpath, true));
 				if (!parent_unit) {
 					// should not happen
-					if (handler)
-						handler(NULL, Error(Error::Code::NOT_FOUND, "Parent unit not found: " + parentpath, rid));
+					finishResourceLoad(rid, NULL, Error(Error::Code::NOT_FOUND, "Parent unit not found: " + parentpath, rid));
 					return;
 				}
 
@@ -537,12 +653,10 @@ namespace rhea
 						std::string path = collection->getPathName();
 						LOG(LOG_ERROR) << "LoadResource(" << resource_id << "): Failed to add collection " << path << " to parent " << parent_unit->getPath();
 						delete collection;
-						if (handler)
-							handler(NULL, Error(Error::Code::INVALID_DATA, "Failed to add collection " + path + " to parent " + parent_unit->getPath(), rid));
+						finishResourceLoad(rid, NULL, Error(Error::Code::INVALID_DATA, "Failed to add collection " + path + " to parent " + parent_unit->getPath(), rid));
 						return;
 					}
-					if (handler)
-						handler(collection, Error());
+					finishResourceLoad(rid, collection, Error());
 					return;
 				}
 
@@ -551,23 +665,20 @@ namespace rhea
 				// get from request
 				std::string mime = req->getMimeType();
 				if (mime.length()) {
-					if (m_resource_loader.load(req->getBasename(), this, mime, req, loaded_context, [this, handler, parent_unit, rid](ErrorReport err, Component* component) {
+					if (m_resource_loader.load(req->getBasename(), this, mime, req, loaded_context, [this, parent_unit, rid](ErrorReport err, Component* component) {
 
 						if (err.isError()) {
 							if (component) {
 								LOG(LOG_ERROR) << "LoadResource(" << rid << "): Failed to load component " << component->getPathName();
 								delete component;
 							}
-							if (handler)
-								handler(NULL, err);
+							finishResourceLoad(rid, NULL, err);
 							return;
 						}
 
 						if (!component) {
-							if (handler) {
-								err.addError(Error(Error::Code::INVALID_DATA, "Resource loader returned no component.", rid));
-								handler(nullptr, err);
-							}
+							err.addError(Error(Error::Code::INVALID_DATA, "Resource loader returned no component.", rid));
+							finishResourceLoad(rid, NULL, err);
 							return;
 						}
 
@@ -577,16 +688,14 @@ namespace rhea
 							LOG(LOG_ERROR) << "LoadResource(" << rid << "): Failed to add component " << path << " to parent " << parent_unit->getPath();
 							delete component;
 							err.addError(Error(Error::Code::INVALID_DATA, "Failed to add component " + path + " to parent " + parent_unit->getPath(), rid));
-							if (handler)
-								handler(NULL, err);
+							finishResourceLoad(rid, NULL, err);
 							return;
 						}
 
-						if (handler)
-							handler(component, err);
+						finishResourceLoad(rid, component, err);
 						}))
 						return;
-						log("No loader for mime type " + mime);
+					log("No loader for mime type " + mime);
 				}
 				else
 					log("No mime type for " + rid);
@@ -597,15 +706,13 @@ namespace rhea
 				Resource* component = new Resource(req->getBasename(), "//meworla/resource");
 
 				// call load of unit
-				component->load(req, [parent_unit, component, handler, rid](ErrorReport result) {
+				component->load(req, [this, parent_unit, component, rid](ErrorReport result) {
 
 					if (result.isError()) {
 						std::string path = component->getPathName();
 						delete component;
 						LOG(LOG_ERROR) << "LoadResource(" << rid << "): Failed to load component " << path;
-						if (!handler)
-							return;
-						return handler(NULL, result);
+						return finishResourceLoad(rid, NULL, result);
 					}
 
 					// add it to tree
@@ -613,19 +720,15 @@ namespace rhea
 						std::string path = component->getPathName();
 						LOG(LOG_ERROR) << "LoadResource(" << rid << "): Failed to add component " << path << " to parent " << parent_unit->getPath();
 						delete component;
-						if (!handler)
-							return;
 						result.addError(Error(Error::Code::INVALID_DATA, "Failed to add component " + path + " to parent " + parent_unit->getPath(), rid));
-						return handler(NULL, result);
+						return finishResourceLoad(rid, NULL, result);
 					}
 
-					if (handler)
-						handler(component, result);
+					return finishResourceLoad(rid, component, result);
 					});
 			}
 			else
-				if (handler)
-					handler(NULL, translateLoadError(err, rid));
+				finishResourceLoad(rid, NULL, translateLoadError(err, rid));
 			});
 	}
 
@@ -637,6 +740,16 @@ namespace rhea
 	void Application::log(std::string message)
 	{
 		LOG(LOG_INFO) << message;
+	}
+
+	std::string Application::resourceUriToId(const std::string& resource_id)
+	{
+		// remove the scheme if present
+		std::string rid = resource_id;
+		if (rid.substr(0, 8) == "realm://") {
+			rid = rid.substr(6);
+		}
+		return rid;
 	}
 
 	void Application::close()

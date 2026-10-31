@@ -62,6 +62,11 @@ namespace rhea
 			if (reference.empty())
 				return nullptr;
 
+			if (reference.id().compare(0, 8, "realm://") == 0) {
+				// Absolute logical resource address -> absolute UnitTree path.
+				return doCast<T>(find(reference.id().substr(6)));
+			}
+
 			if (reference.basePath().empty())
 				return doCast<T>(find(reference.id()));
 

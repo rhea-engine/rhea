@@ -119,7 +119,7 @@ namespace rhea
 					if (!character) {
 						Ref<SceneResource> default_character_ref = ctrl_info.controller->getDefaultCharacter();
 						if (default_character_ref) {
-							SceneResource* default_character = doCast<SceneResource>(m_app->getUnitTree()->find(default_character_ref.id()));
+							SceneResource* default_character = m_app->getUnitTree()->resolve<SceneResource>(default_character_ref);
 							if (default_character) {
 								ErrorReport report;
 								character = doCast<Item>(default_character->spawnPrepared(context->target_scene, "", &report));

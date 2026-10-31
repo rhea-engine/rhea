@@ -10,10 +10,13 @@
 
 #include <string>
 #include <functional>
+#include <optional>
 
+#include <Orion/ResourceAddress.h>
 #include <Orion/Realm.h>
 #include <Psio/Net/UrlRequest/UrlRequest.h>
 #include <Orion/RequestError.h>
+#include <memory>
 
 namespace orion
 {
@@ -31,14 +34,14 @@ namespace orion
 	public:
 
 		typedef std::function<void(ResourceRequest*, orion::Error)> RequestHandler;
-
-		ResourceRequest(std::string rid, Orion *orion);
-		ResourceRequest(std::string rid, Orion* orion, std::string type, std::string base_address = {});
+		ResourceRequest() = default;
+		ResourceRequest(const ResourceAddress& address,	Orion* orion, std::string mime_type = "");
+		ResourceRequest(std::string rid, Orion* orion, std::string mime_type = "");
 		~ResourceRequest();
 
 		// get realm name
 		std::string getRealmName() { return m_realm_name; }
-		Realm* getRealm() { return m_realm; }
+		Realm* getRealm() { return &m_realm; }
 
 		// get full path without realm
 		std::string getPath() { return m_path; }
@@ -47,11 +50,16 @@ namespace orion
 		std::string getParentPath();
 
 		// get base name of request
-		std::string getBasename();
+		std::string getBasename() { return m_basename; }
+
+		// address of the resource
+		std::optional<ResourceAddress> getAddress() { return m_address; }
+		void setAddress(ResourceAddress address);
 
 		bool isResolved() { return m_resolved; }
 		ResourceStream* getStream() { return m_stream.get(); }
 		void setMimeType(std::string type) { m_mime_type = type; }
+		void setMimeTypeFromExtension();
 		std::string getMimeType();
 
 		// status info functions
@@ -59,14 +67,6 @@ namespace orion
 		bool isWriting();
 		bool isFailed() { return m_state == State::RESOLVE_FAILED; }
 		bool isCompleted();
-
-		// parse a resource identifier
-		// rid is //realm/container/node/subnode/...
-		// where container normally is an owner (but could be a directory)
-		// the resolver does only lookup the realm, the rest is considered to be a path, where the server is responsible
-		// special realm is "local"
-		// return 0 on success, negative on error
-		Error parseRid(std::string rid);
 
 		// resolve the realm
 		// calls orion::onRealmResolved with itself as parameter
@@ -103,13 +103,15 @@ namespace orion
 		Error doResolveRealm(Error result);
 		Error doResolveRealmCompleted(Error result);
 		Error doResolveResourceFailed(Error result);
+		Error doRequestUrl(const std::string& url);
+
+		std::optional<ResourceAddress> m_address;
 
 		std::string m_realm_name;
 		std::string m_path;
 		std::string m_container_path;
 		std::string m_basename;
-		std::string m_base_address;
-		Realm* m_realm = NULL;
+		Realm m_realm;
 		bool m_resolved = false;
 		bool m_realm_resolved = false;
 		std::unique_ptr<ResourceStream> m_stream;
@@ -117,7 +119,7 @@ namespace orion
 
 		int m_request_type = 0;
 
-		Orion* m_orion = NULL;
+		Orion* m_orion = nullptr;
 
 		// MIME type
 		std::string m_mime_type;
@@ -127,7 +129,7 @@ namespace orion
 
 		RequestHandler m_handler;
 
-		psio::UrlRequest* m_request;
+		psio::UrlRequest* m_request = nullptr;
 
 		// IO step
 		void onIOComplete(Error result);

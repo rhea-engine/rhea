@@ -88,9 +88,13 @@ namespace psio
             case SDL_EVENT_MOUSE_BUTTON_DOWN:
             case SDL_EVENT_MOUSE_BUTTON_UP:
             {
-                const auto id = (evt.type == SDL_EVENT_MOUSE_BUTTON_DOWN)
-                    ? InputEventId::MOUSE_BTN_PRESSED
-                    : InputEventId::MOUSE_BTN_RELEASED;
+                const bool pressed = evt.type == SDL_EVENT_MOUSE_BUTTON_DOWN;
+
+                const auto id = !pressed
+                    ? InputEventId::MOUSE_BTN_RELEASED
+                    : evt.button.clicks == 2
+                    ? InputEventId::MOUSE_BTN_DBLCLICK
+                    : InputEventId::MOUSE_BTN_PRESSED;
 
                 addEvent(BuildMouseEvent(
                     id,

@@ -47,7 +47,6 @@ namespace orion
 		return result;
 	}
 
-
 	Error Realms::getRealmCached(std::string name, Realm& realm)
 	{
 		if (name == "file") {
@@ -57,6 +56,12 @@ namespace orion
 
 			}
 			return Error::PATH_NOT_FOUND;
+		}
+
+		auto project_it = m_project_realms.find(name);
+		if (project_it != m_project_realms.end()) {
+			realm = project_it->second;
+			return Error::OK;
 		}
 
 		// check if realm is installed locally
@@ -201,6 +206,24 @@ namespace orion
 	void Realms::addRealm(const Realm& realm)
 	{
 		m_resolved_realms[realm.getName()] = realm;
+	}
+
+	void Realms::addProjectRealm(const Realm& realm)
+	{
+		m_project_realms[realm.getName()] = realm;
+	}
+
+	Realm* Realms::getRealmByPath(const std::string& physical_directory)
+	{
+		for (auto& pair : m_resolved_realms) {
+			Realm& realm = pair.second;
+			if (realm.getType() == Realm::RealmType::LocalPath) {
+				if (realm.getResourceUrl() == physical_directory) {
+					return &realm;
+				}
+			}
+		}
+		return nullptr;
 	}
 	
 	void Realms::LoadIrisServers()

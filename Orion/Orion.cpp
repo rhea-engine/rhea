@@ -13,6 +13,7 @@
 #include <Orion/Realm.h>
 #include <Orion/ResolveLocal.h>
 #include <Orion/Realms.h>
+#include <Orion/FileAddress.h>
 
 namespace orion
 {	
@@ -48,6 +49,56 @@ namespace orion
 	void Orion::addLocalRealm(std::string name, std::string path)
 	{
 		m_realms->addRealm(Realm(name, path, Realm::RealmType::LocalPath));
+	}
+
+	std::string Orion::getOrCreateProjectRealm(const ResourceAddress& physical_directory)
+	{
+		const std::string path = physical_directory.path();
+
+		// requires a validated directory address ending in '/'.
+		if (path.empty() || path.back() != '/' || physical_directory.toString().find('?') != std::string::npos)
+			return {};
+		const std::string key = physical_directory.toString();
+
+		auto existing = m_project_realms.find(key);
+		if (existing != m_project_realms.end())
+			return existing->second;
+
+		Realm::RealmType type;
+		std::string location;
+
+		switch (physical_directory.scheme()) {
+		case AddressScheme::File:
+			type = Realm::RealmType::LocalPath;
+
+			if (orion::fileAddressToNativePath(physical_directory, location) != Error::OK) {
+				return {};
+			}
+			break;
+
+		case AddressScheme::Http:
+		case AddressScheme::Https:
+			type = Realm::RealmType::URL;
+			location = physical_directory.toString();
+			break;
+
+		default:
+			return {};
+		}
+
+		std::string name;
+		Realm existing_realm;
+
+		do {
+			name = "project-realm-" + std::to_string(m_next_project_realm++);
+		} while (
+			m_realms->getRealmCached(name, existing_realm) == Error::OK);
+
+		Realm realm(name, location, type);
+		m_realms->addProjectRealm(realm);
+		m_project_realms.emplace(key, name);
+
+		return name;
 	}
 
 	bool Orion::poll()

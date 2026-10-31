@@ -72,6 +72,12 @@ namespace orion
 		// add realm to realm list
 		void addRealm(const Realm& realm);
 
+		// add project realm to realm list
+		void addProjectRealm(const Realm& realm);
+
+		// get realm by physical path
+		Realm* getRealmByPath(const std::string& physical_directory);
+
 	protected:
 		Orion* m_orion;
 
@@ -91,6 +97,9 @@ namespace orion
 
 		// Expiring results returned by the resolver service.
 		std::unordered_map<std::string, Realm> m_resolved_realms;
+
+		// Project realms that are not persisted to configuration files.
+		std::unordered_map<std::string, Realm> m_project_realms;
 
 		std::vector<RealmConfigFile> m_config_files;
 	};

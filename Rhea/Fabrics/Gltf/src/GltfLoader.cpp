@@ -101,6 +101,7 @@ namespace rhea
             bool completed = false;
             Error error = Error();
             std::string resource_id;
+            std::string dependency_base;
             std::unordered_map<std::string, std::string> asset_uris; // Asset key used by tinygltf -> original URI from the document.
 
             void parse()
@@ -194,6 +195,18 @@ namespace rhea
         state->scene = std::make_unique<GltfScene>(name, "//meworla/gltf");
         state->scene->setup(app, {}, {});
         state->resource_id = res_id;
+
+        auto effective = req->getEffectiveAddress();
+        if (!effective) {
+			state->handler(Error(Error::Code::INVALID_DATA, "Invalid resource address: " + res_id, res_id), nullptr);
+            return;
+        }
+        auto parent = effective->parent();
+        if (!parent.success) {
+			state->handler(Error(Error::Code::INVALID_DATA, "Invalid resource address: " + res_id, res_id), nullptr);
+            return;
+        }
+        state->dependency_base = parent.address.toString();
 
         auto* stream = req->getStream();
         auto buffer = std::make_shared<psio::IOBuffer>(stream->getLength() ? stream->getLength() : 64 * 1024);

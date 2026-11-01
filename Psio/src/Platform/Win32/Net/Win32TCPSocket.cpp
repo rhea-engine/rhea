@@ -280,7 +280,9 @@ namespace psio
 						ret = m_net->SysErr(err);
 						if (ret == Network::Err::IO_PENDING) {
 							// retry
-							Read(buf, handler);
+							const int retry_result = Read(buf, handler);
+							if (retry_result != Network::Err::IO_PENDING)
+								handler(retry_result);							
 							return;
 						}
 						else {							
@@ -298,10 +300,9 @@ namespace psio
 				return m_net->SysErr(err);
 			}
 		}
-		else if (ret >= 0 && handler) {
-			buf->Produce(ret);
-			handler(ret);
-			return Network::Err::IO_PENDING;
+		else if (ret >= 0) {
+			buf->Produce(ret);			
+			return ret;
 		}
 		return ret;
 	}

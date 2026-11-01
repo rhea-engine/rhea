@@ -25,8 +25,7 @@ namespace psio
 		m_handler = handler;
 		
 		int ret = DoLoop(Network::Err::OK);
-		
-		// this always returns IO_PENDING
+
 		return ret;
 	}
 
@@ -111,16 +110,16 @@ namespace psio
 	int HttpNetworkTransaction::DoCreateStream(int result)
 	{
 		m_next_state = State::HTTP_CREATE_STREAM_COMPLETE;
-		std::string host = m_request.headers["Host"];
-		unsigned short port = m_request.url.Port();
+		std::string host = m_request.url.hostname();
+		unsigned short port = m_request.url.port();
 		
 		// check if scheme is defined
-		std::string scheme = m_request.url.Scheme();
+		std::string scheme = m_request.url.scheme();
 
 		m_connector = ConnectorFactory::factory().Create(m_engine->getNet(), scheme, host, port);
 
 		if (!m_connector) {
-			LOG(LOG_ERROR) << "Scheme " << scheme << " not supported";
+			LOG(LOG_ERROR) << "HttpNetworkTransaction #" << m_id << ": Scheme " << scheme << " not supported";
 			return -2;
 		}
 		int ret = m_connector->Start([&](int result) -> void {
@@ -135,7 +134,7 @@ namespace psio
 		// stream established
 		if (result == Network::Err::OK) {
 			m_next_state = State::HTTP_BUILD_HEADERS;
-			m_stream = std::make_unique<HttpStream>(m_connector->GetSocket());
+			m_stream = std::make_unique<HttpStream>(m_connector->GetSocket(), m_id);
 			// TODO: Do we have handler for connection established?
 			//			m_handler(result);
 			return Network::Err::OK;

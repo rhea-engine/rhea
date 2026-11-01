@@ -21,12 +21,13 @@ namespace psio
 	class HttpNetworkTransaction : public HttpTransaction
 	{
 	public:
-		HttpNetworkTransaction(Engine *engine) :
+		HttpNetworkTransaction(Engine *engine, std::uint64_t id) :
 			m_engine(engine),
 			m_stream(nullptr),
 			m_user_buf(nullptr),
 			m_user_buf_len(0),
 			m_state(State::HTTP_NONE),
+			m_id(id),
 			m_next_state(State::HTTP_NONE)
 		{}
 		~HttpNetworkTransaction();
@@ -86,6 +87,8 @@ namespace psio
 		size_t m_user_buf_len;
 
 		Engine* m_engine;
+
+		std::uint64_t m_id;
 	};
 }
 

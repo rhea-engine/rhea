@@ -16,10 +16,10 @@ namespace rhea
 	class GltfLoader
 	{
 	public:
-		static void load(std::string name, Application* app, orion::ResourceRequest* req, ResourceContext context, Resource::LoadedHandler handler) {
-			load_impl(name, app, req, context, handler);
+		static void load(const std::string& name, const std::string& res_id, Application* app, orion::ResourceRequest* req, ResourceContext context, Resource::LoadedHandler handler) {
+			load_impl(name, res_id, app, req, context, handler);
 		}
-		static void load_impl(std::string name, Application* app, orion::ResourceRequest* req, ResourceContext context, Resource::LoadedHandler handler, bool is_binary = false);
+		static void load_impl(const std::string& name, const std::string& res_id, Application* app, orion::ResourceRequest* req, ResourceContext context, Resource::LoadedHandler handler, bool is_binary = false);
 	};
 }
 #endif // !RHEA_GLTF_LOADER_H

@@ -27,7 +27,7 @@ namespace rhea
 	class SceneLoader
 	{
 	public:
-		static void load(std::string name, Application* app, orion::ResourceRequest* req, ResourceContext context, Resource::LoadedHandler handler);
+		static void load(const std::string& name, const std::string& res_id, Application* app, orion::ResourceRequest* req, ResourceContext context, Resource::LoadedHandler handler);
 	private:
 		// build a SceneResource from a resource request
 		static Error parseIniFile(std::string name, char* buf, size_t buflen, SceneResource::SceneDefinition& definition);

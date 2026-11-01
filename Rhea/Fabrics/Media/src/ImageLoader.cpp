@@ -10,19 +10,19 @@
 #include <Orion/ResourceStream.h>
 #include <Psio/Fs/Fs.h>
 #include <Psio/Net/IOBuffer.h>
+#include <Psio/Log.h>
 
 #include "Rhea/Media/ImageLoader.h"
 #include "Rhea/Resources/ImageResource.h"
 
 namespace rhea
 {
-	void ImageLoader::load(std::string name, Application* app, orion::ResourceRequest* req, ResourceContext context, Resource::LoadedHandler handler)
+	void ImageLoader::load(const std::string& name, const std::string& res_id, Application* app, orion::ResourceRequest* req, ResourceContext context, Resource::LoadedHandler handler)
 	{
 		if (req) {
 
 			psio::IOBuffer* buf = new psio::IOBuffer(64 * 1024);
-			psio::Stream* rs = req->getStream();
-			std::string res_id = "//" + req->getRealmName() + req->getPath();
+			psio::Stream* rs = req->getStream();			
 			rs->SetMode(psio::Fs::READ | psio::Fs::BINARY);
 			rs->onEnd([name, app, buf, handler, res_id](size_t bytes_read) {
 				ImageResource* img = new ImageResource(name);

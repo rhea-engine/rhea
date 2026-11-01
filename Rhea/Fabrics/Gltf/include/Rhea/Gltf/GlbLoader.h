@@ -16,8 +16,8 @@ namespace rhea
 	class GlbLoader
 	{
 	public:
-		static void load(std::string name, Application* app, orion::ResourceRequest* req, ResourceContext context, Resource::LoadedHandler handler) {
-			GltfLoader::load_impl(name, app, req, context, handler, true);
+		static void load(const std::string& name, const std::string& res_id, Application* app, orion::ResourceRequest* req, ResourceContext context, Resource::LoadedHandler handler) {
+			GltfLoader::load_impl(name, res_id, app, req, context, handler, true);
 		}
 	};
 }

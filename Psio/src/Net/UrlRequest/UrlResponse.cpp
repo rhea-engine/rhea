@@ -24,7 +24,7 @@ namespace psio
 			// store to the receives buffer
 			m_buffer->Write(chunk, size);
 			// call data handler if defined
-			if (!m_data_handler) {
+			if (m_data_handler) {
 				m_data_handler(size);
 			}
 			return size;

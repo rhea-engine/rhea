@@ -15,11 +15,9 @@
 
 namespace rhea
 {
-	void TextLoader::load(std::string name, Application* app, orion::ResourceRequest* req, ResourceContext context, Resource::LoadedHandler handler)
+	void TextLoader::load(const std::string& name, const std::string& res_id, Application* app, orion::ResourceRequest* req, ResourceContext context, Resource::LoadedHandler handler)
 	{
 		if (req) {
-
-			std::string res_id = "//" + req->getRealmName() + req->getPath();
 
 			psio::Stream* rs = req->getStream();
 			psio::IOBuffer* buf = new psio::IOBuffer(64 * 1024);

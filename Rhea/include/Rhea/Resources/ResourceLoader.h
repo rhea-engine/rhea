@@ -20,11 +20,11 @@ namespace rhea
 	class ResourceLoader
 	{
 	public:
-		typedef std::function<void(std::string, Application* app, orion::ResourceRequest*, ResourceContext, Resource::LoadedHandler)> LoadFunc;
+		typedef std::function<void(const std::string&, const std::string&, Application*, orion::ResourceRequest*, ResourceContext, Resource::LoadedHandler)> LoadFunc;
 
 		// call initialize and register loader by class
 		template <class T>
-		static void registerLoader(std::string mime_type)
+		static void registerLoader(const std::string& mime_type)
 		{
 			LoadFunc loader = T::load;
 			m_loaders[mime_type] = loader;
@@ -33,7 +33,7 @@ namespace rhea
 
 		// load a resource
 		// returns false if no loader found
-		bool load(std::string name, Application* app, std::string mime_type, orion::ResourceRequest* req, const ResourceContext& context, Resource::LoadedHandler handler);
+		bool load(const std::string& name, const std::string& rid, Application* app, const std::string& mime_type, orion::ResourceRequest* req, const ResourceContext& context, Resource::LoadedHandler handler);
 
 	protected:
 

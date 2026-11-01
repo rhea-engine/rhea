@@ -12,6 +12,9 @@
 #include "UrlResponse.h"
 
 #include <functional>
+#include <string>
+#include <atomic>
+#include <cstdint>
 
 namespace psio
 {
@@ -34,6 +37,8 @@ namespace psio
 			REQUEST_GET = 1,
 			REQUEST_POST = 2
 		};
+
+		std::uint64_t id() const { return m_id; }
 
 		// callbacks
 		typedef std::function<void(UrlResponse*)> ResponseHandler;
@@ -65,6 +70,12 @@ namespace psio
 		void OnTransaction(int result, methods method);
 
 		int m_nof_redirects;
+
+		inline static std::atomic<std::uint64_t> s_next_id{ 1 };
+
+		const std::uint64_t m_id{
+			s_next_id.fetch_add(1, std::memory_order_relaxed)
+		};
 	};
 }
 

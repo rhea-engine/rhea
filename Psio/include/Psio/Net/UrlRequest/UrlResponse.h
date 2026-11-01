@@ -10,6 +10,7 @@
 
 #include <Psio/IO/Stream.h>
 #include <Psio/Net/IOBuffer.h>
+#include <Psio/Net/UrlRequest/Url.h>
 
 namespace psio
 {
@@ -18,11 +19,12 @@ namespace psio
 	class UrlResponse : public Stream
 	{
 	public:
-		UrlResponse(HttpTransaction* transaction, int response_code) :
+		UrlResponse(HttpTransaction* transaction, Url url, int response_code) :
 			m_transaction(transaction),
 			m_buffer(nullptr),
 			m_response_code(response_code),
-			m_size(0)
+			m_size(0),
+			m_effective_url(url)
 		{
 			m_state = StreamState::STREAM_OPEN;
 		}
@@ -41,11 +43,15 @@ namespace psio
 
 		size_t getLength() { return m_size; }
 
+		Url getEffectiveUrl() { return m_effective_url; }
+		void setEffectiveUrl(Url url) { m_effective_url = url; }
+
 	protected:
 		HttpTransaction* m_transaction;
 		IOBuffer* m_buffer;
 		int m_response_code;
 		size_t m_size;
+		Url m_effective_url;
 
 		// read one more chunk
 		void doReadDataLoop();

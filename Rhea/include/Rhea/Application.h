@@ -136,6 +136,7 @@ namespace rhea
 		// get a resource and load it as type
 		void loadResource(const std::string& resource_id, const std::string& type_name, std::function<void(Component*, ErrorReport error)> handler);
 		void loadResource(const std::string& resource_id, const ResourceContext& context, const std::string& type_name, std::function<void(Component*, ErrorReport error)> handler);
+		void completeLoadResource(const std::string& resource_id, const ResourceContext& context, orion::ResourceRequest* req, orion::Error err);
 
 		// get the resource loader
 		ResourceLoader* getResourceLoader() { return &m_resource_loader; }

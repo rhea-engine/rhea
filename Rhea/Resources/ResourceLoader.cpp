@@ -11,7 +11,7 @@ namespace rhea
 {
 	std::unordered_map<std::string, ResourceLoader::LoadFunc> ResourceLoader::m_loaders;
 
-	bool ResourceLoader::load(std::string name, Application* app, std::string mime_type, orion::ResourceRequest* req, const ResourceContext& context, Resource::LoadedHandler handler)
+	bool ResourceLoader::load(const std::string& name, const std::string& rid, Application* app, const std::string& mime_type, orion::ResourceRequest* req, const ResourceContext& context, Resource::LoadedHandler handler)
 	{
 		auto l = m_loaders.find(mime_type);
 		if (l == m_loaders.end()) {
@@ -25,7 +25,7 @@ namespace rhea
 		}
 
 		// call load on loader
-		l->second(name, app, req, context, handler);
+		l->second(name, rid, app, req, context, handler);
 		return true;
 	}
 }

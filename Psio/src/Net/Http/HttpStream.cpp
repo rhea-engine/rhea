@@ -39,7 +39,7 @@ namespace psio
 		m_request = request_info;
 		std::string request;
 		m_handler = handler;
-		std::string url = m_request.url.Path();
+		std::string url = m_request.url.requestTarget();
 		request = m_request.headers.GenerateRequestString(url) + m_request.headers.ToString();
 	
 		size_t request_headers_length = request.size();
@@ -57,7 +57,7 @@ namespace psio
 			return Network::Err::OK; 
 		
 		m_next_state = State::HTTPSTREAM_READ_HEADERS;
-		m_handler = NULL; // TODO synchronous is not implemented yet
+		m_handler = NULL;
 
 		int result = DoLoop(0);
 		// not everything was read
@@ -119,17 +119,27 @@ namespace psio
 			case State::HTTPSTREAM_NONE:
 				break;
 			case State::HTTPSTREAM_SEND_HEADERS:
-				DLOG(LOG_DEBUG) << "HTTPSTREAM: Sending Headers";
+#if PSIO_HTTP_LOG_LEVEL >= 4
+				DLOG(LOG_DEBUG) << "HTTPSTREAM #" << m_id << ": Sending Headers";
+#endif
 				m_error = DoSendHeaders(m_error);
 				break;
 			case State::HTTPSTREAM_SEND_HEADERS_COMPLETED:
-				DLOG(LOG_DEBUG) << "HTTPSTREAM: Sending Headers Completed";
+#if PSIO_HTTP_LOG_LEVEL >= 4
+				DLOG(LOG_DEBUG) << "HTTPSTREAM #" << m_id << ": Sending Headers Completed";
+#endif
 				m_error = DoSendHeadersComplete(m_error);
 				break;
 			case State::HTTPSTREAM_SEND_BODY:
+#if PSIO_HTTP_LOG_LEVEL >= 4
+				DLOG(LOG_DEBUG) << "HTTPSTREAM #" << m_id << ": Sending Body";
+#endif
 				m_error = DoSendBody(m_error);
 				break;
 			case State::HTTPSTREAM_SEND_BODY_COMPLETED:
+#if PSIO_HTTP_LOG_LEVEL >= 4
+				DLOG(LOG_DEBUG) << "HTTPSTREAM #" << m_id << ": Sending Body Completed";
+#endif
 				m_error = DoSendBodyComplete(m_error);
 				break;
 			case State::HTTPSTREAM_SEND_HEADERS_AND_BODY_COMPLETE:
@@ -139,7 +149,9 @@ namespace psio
 				m_error = DoReadHeaders(m_error);
 				break;
 			case State::HTTPSTREAM_READ_HEADERS_COMPLETED:
-				DLOG(LOG_DEBUG) << "HTTPSTREAM: Reading Headers Completed";
+#if PSIO_HTTP_LOG_LEVEL >= 4
+				DLOG(LOG_DEBUG) << "HTTPSTREAM #" << m_id << ": Reading Headers Completed";
+#endif
 				m_error = DoReadHeadersComplete(m_error);
 				break;
 			case State::HTTPSTREAM_READ_BODY:
@@ -155,7 +167,9 @@ namespace psio
 				m_error = DoDrainBodyComplete(m_error);
 				break;
 			case State::HTTPSTREAM_REQUEST_COMPLETED:
-				DLOG(LOG_DEBUG) << "HTTPSTREAM: Request Completed";
+#if PSIO_HTTP_LOG_LEVEL >= 4
+				DLOG(LOG_DEBUG) << "HTTPSTREAM #" << m_id << ": Request Completed";
+#endif
 				m_error = DoRequestComplete(m_error);
 				break;
 			default:

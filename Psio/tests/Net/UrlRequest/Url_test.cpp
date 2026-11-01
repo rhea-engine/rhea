@@ -15,75 +15,62 @@ namespace psio {
 	// test for empty url
 	TEST(URLTest, Empty) {
 		Url url;
-		EXPECT_TRUE(url.IsEmpty());
-		EXPECT_FALSE(url.IsValid());
+		EXPECT_TRUE(url.isEmpty());
+		EXPECT_FALSE(url.isValid());
 	}
 
 	// test for creating urls via constructor
 	TEST(URLTest, Basic) {
 
 		Url url("http://www.example.org/path/to/file");
-		EXPECT_FALSE(url.IsEmpty());
-		EXPECT_TRUE(url.IsValid());
-		EXPECT_EQ("www.example.org", url.Hostname());
-		EXPECT_EQ("http", url.Scheme());
-		EXPECT_EQ("/path/to/file", url.Path());
-		EXPECT_EQ("", url.Password());
-		EXPECT_EQ("", url.Username());
-		EXPECT_EQ(80, url.Port());
-		EXPECT_FALSE(url.IsCryptographic());
+		EXPECT_FALSE(url.isEmpty());
+		EXPECT_TRUE(url.isValid());
+		EXPECT_EQ("www.example.org", url.hostname());
+		EXPECT_EQ("http", url.scheme());
+		EXPECT_EQ("/path/to/file", url.path());
+		EXPECT_EQ("", url.password());
+		EXPECT_EQ("", url.username());
+		EXPECT_EQ(80, url.port());
+		EXPECT_FALSE(url.isCryptographic());
 	}
 
 	// test for creating https urls via constructor
 	TEST(URLTest, DetectsHttps) {
 
 		Url url("https://www.example.org/path/to/file");
-		EXPECT_FALSE(url.IsEmpty());
-		EXPECT_TRUE(url.IsValid());
-		EXPECT_EQ("www.example.org", url.Hostname());
-		EXPECT_EQ("https", url.Scheme());
-		EXPECT_EQ("/path/to/file", url.Path());
-		EXPECT_EQ("", url.Password());
-		EXPECT_EQ("", url.Username());
-		EXPECT_EQ(443, url.Port());
-		EXPECT_TRUE(url.IsCryptographic());
+		EXPECT_FALSE(url.isEmpty());
+		EXPECT_TRUE(url.isValid());
+		EXPECT_EQ("www.example.org", url.hostname());
+		EXPECT_EQ("https", url.scheme());
+		EXPECT_EQ("/path/to/file", url.path());
+		EXPECT_EQ("", url.password());
+		EXPECT_EQ("", url.username());
+		EXPECT_EQ(443, url.port());
+		EXPECT_TRUE(url.isCryptographic());
 	}
 
-	// test for creating a full url via constructor without path
-	TEST(URLTest, DetectsFullCryptoNoPath) {
+	// userinfo is not supported and must make the URL invalid
+	TEST(URLTest, RejectsUserInfoNoPath) {
 
 		Url url("https://user:pass@www.example.org:4443/");
-		EXPECT_FALSE(url.IsEmpty());
-		EXPECT_TRUE(url.IsValid());
-		EXPECT_EQ("www.example.org", url.Hostname());
-		EXPECT_EQ("https", url.Scheme());
-		EXPECT_EQ("/", url.Path());
-		EXPECT_EQ("user", url.Username());
-		EXPECT_EQ("pass", url.Password());
-		EXPECT_EQ(4443, url.Port());
-		EXPECT_TRUE(url.IsCryptographic());
+		EXPECT_FALSE(url.isEmpty());
+		EXPECT_FALSE(url.isValid());
 	}
 
-	// test for creating a full url via constructor without path
-	TEST(URLTest, DetectsFullCryptoWithPath) {
+	// userinfo is not supported and must make the URL invalid
+	TEST(URLTest, RejectsUserInfoWithPath) {
 
 		Url url("https://user:pass@www.example.org:4443/path/to/file");
-		EXPECT_FALSE(url.IsEmpty());
-		EXPECT_TRUE(url.IsValid());
-		EXPECT_EQ("www.example.org", url.Hostname());
-		EXPECT_EQ("https", url.Scheme());
-		EXPECT_EQ("/path/to/file", url.Path());
-		EXPECT_EQ("user", url.Username());
-		EXPECT_EQ("pass", url.Password());
-		EXPECT_EQ(4443, url.Port());
-		EXPECT_TRUE(url.IsCryptographic());
+		EXPECT_FALSE(url.isEmpty());
+		EXPECT_FALSE(url.isValid());
 	}
 
 	// test for empty path
 	TEST(URLTest, EmptyPath) {
 
 		Url url("http://www.example.org");
-		EXPECT_TRUE(url.IsValid());
-		EXPECT_EQ("/", url.Path());
+		EXPECT_TRUE(url.isValid());
+		EXPECT_EQ("", url.path());
+		EXPECT_EQ("/", url.requestTarget());
 	}
 }

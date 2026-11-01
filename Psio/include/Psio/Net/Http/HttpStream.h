@@ -19,9 +19,10 @@ namespace psio
 	class HttpStream {
 	public:
 		// constructor takes a connected(!) socket
-		HttpStream(std::unique_ptr<Socket> sock) :
+		HttpStream(std::unique_ptr<Socket> sock, std::uint64_t id) :
 			m_sock(std::move(sock)),
 			m_state(State::HTTPSTREAM_NONE),
+			m_id(id),
 			m_next_state(State::HTTPSTREAM_NONE),
 			m_sent_bytes(0),
 			m_received_bytes(0),
@@ -150,6 +151,8 @@ namespace psio
 		void DetectBodyLength();
 		int m_response_length;
 		bool IsBodyComplete();
+
+		std::uint64_t m_id;
 	};
 }
 

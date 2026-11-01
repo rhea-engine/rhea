@@ -22,35 +22,56 @@ namespace psio
 		{}
 		Url(const std::string& url);
 
+		// get the various components
+		const std::string& scheme() { return m_scheme; }
+		const std::string& hostname() { return m_hostname; }
+		bool hasExplicitPort() const;
+		int port() { return m_port; }
+		const std::string& path() { return m_path; }
+		const std::string& username() { return m_username; }
+		const std::string& password() { return m_password; }
+		const std::string& query() { return m_query; }
+		const std::string& fragment() { return m_fragment; }
 
-
+		// information about the url
 		// empty url?
-		bool IsEmpty() { return m_is_empty;	}
-
+		bool isEmpty() { return m_is_empty; }
 		// valid url?
-		bool IsValid() { return m_is_valid; }
+		bool isValid() { return m_is_valid; }
+		// has query
+		bool hasQuery() { return m_has_query; }
+		// has fragment
+		bool hasFragment() { return m_has_fragment; }
 
-		// get the varous components
-		std::string Hostname() { return m_hostname; }
-		std::string Scheme() { return m_scheme; }
-		int Port() { return m_port; }
-		std::string Username() { return m_username; }
-		std::string Password() { return m_password; }
-		std::string Path() { return m_path; }
-		bool IsCryptographic() { return m_is_cryptographic; }
+		bool isCryptographic() { return m_is_cryptographic; }
+
+		// composed getters
+		std::string toString() const;         // including fragment
+		std::string withoutFragment() const;
+		std::string requestTarget() const;    // Path + Query; empty Path → "/"
+		std::string hostHeader() const;       // Host[:Port], IPv6 with brackets
+
+		bool resolveReference(const std::string& reference, Url& result) const;
+
 
 	protected:
-		bool m_is_empty;
-		bool m_is_valid;
+		bool m_is_empty = true;
+		bool m_is_valid = false;
 
 		std::string m_hostname;
 		std::string m_scheme;
-		int m_port;
+		int m_port = 0;
+		bool m_has_explicit_port = false;
 		std::string m_password;
 		std::string m_username;
 		std::string m_path;
+		std::string m_query;
+		std::string m_fragment;
 
-		bool m_is_cryptographic;
+		bool m_has_query = false;
+		bool m_has_fragment = false;
+
+		bool m_is_cryptographic = false;
 	};
 }
 

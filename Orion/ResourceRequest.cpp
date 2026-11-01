@@ -169,6 +169,7 @@ namespace orion
 	{
 		m_stream = m_orion->getResourceFromCache(m_realm_name, m_path);
 		if (m_stream) {
+			m_effective_address = m_address;
 			m_next_state = State::RESOURCE_RESOLVE_COMPLETED;
 		}
 		else {
@@ -291,6 +292,13 @@ namespace orion
 			m_stream = std::make_unique<UrlResponseStream>(resp);
 			// caller doesn't know about response codes
 			// if not 2xx call with error
+			auto effective_address_result = orion::ResourceAddress::parse(resp->getEffectiveUrl().toString());
+			if (!effective_address_result.success) {
+				LOG(LOG_ERROR) << "UrlResponse effective url is invalid: " << resp->getEffectiveUrl().toString();
+				onIOComplete(Error::DATA_INVALID);
+				return;
+			}
+			m_effective_address = effective_address_result.address;
 			int code = resp->GetResponseCode();
 			Error err = Error::OK;
 			if (code == 404)
@@ -328,14 +336,12 @@ namespace orion
 			return Error::REALM_NOT_FOUND;
 		}
 
-		if (m_address.has_value()) {
-			const auto scheme = m_address->scheme();
+		const auto scheme = m_address->scheme();
 
-			if (scheme == AddressScheme::Http ||
-				scheme == AddressScheme::Https)
-			{
-				return doRequestUrl(m_address->toString());
-			}
+		if (scheme == AddressScheme::Http ||
+			scheme == AddressScheme::Https)
+		{
+			return doRequestUrl(m_address->toString());
 		}
 
 		if (m_local) {
@@ -345,11 +351,12 @@ namespace orion
 			return Error::RESOURCE_NOT_FOUND;
 		}
 
-		if (m_address.has_value() && m_address.value().scheme() == orion::AddressScheme::File) {
+		if (m_address.value().scheme() == orion::AddressScheme::File) {
 #if defined(_WIN32)
 			if (m_realm.getType() == Realm::RealmType::FileSystem && m_path == "/") {
 				m_stream = std::make_unique<FileCollection>(psio::Fs::getLogicalDrives());
 				m_next_state = State::RESOURCE_RESOLVE_COMPLETED;
+				m_effective_address = m_address;
 				return Error::OK;
 			}
 #endif
@@ -365,11 +372,12 @@ namespace orion
 				m_next_state = State::UNSET;
 				return Error::RESOURCE_NOT_FOUND;
 			}
+			m_effective_address = m_address;
 			m_next_state = State::RESOURCE_RESOLVE_COMPLETED;
 			return Error::OK;
 		}
 
-		// Resource from net
+		// realm address - we need to resolve the realm first
 		if (m_realm.getType() != Realm::RealmType::Unset) {
 			std::string path;
 
@@ -378,6 +386,8 @@ namespace orion
 				if (m_realm.getType() == Realm::RealmType::FileSystem && m_path == "/") {
 					m_stream = std::make_unique<FileCollection>(psio::Fs::getLogicalDrives());
 					m_next_state = State::RESOURCE_RESOLVE_COMPLETED;
+					AddressResult effective_address_result = orion::ResourceAddress::parse("file:///");
+					m_effective_address = effective_address_result.address;
 					return Error::OK;
 				}
 #endif
@@ -393,6 +403,17 @@ namespace orion
 					m_next_state = State::UNSET;
 					return Error::RESOURCE_NOT_FOUND;
 				}
+				if (native_path.size() && native_path[0] != '/') {
+					// if the path is not rooted we need to add a leading slash for the effective address
+					native_path = "/" + native_path;
+				}
+				AddressResult effective_address_result = orion::ResourceAddress::parse("file://" + native_path);
+				if (!effective_address_result.success) {
+					LOG(LOG_ERROR) << "Effective address is invalid: " << "file://" + native_path << "; reason: " << effective_address_result.error.message;
+					m_next_state = State::UNSET;
+					return Error::DATA_INVALID;
+				}
+				m_effective_address = effective_address_result.address;
 				m_next_state = State::RESOURCE_RESOLVE_COMPLETED;
 				return Error::OK;
 			}
@@ -405,9 +426,10 @@ namespace orion
 				path += m_path.substr(1);
 			else
 				path += m_path;
-			LOG(LOG_INFO) << "Resource requested: " << path;
 
 			// Request the resource
+			AddressResult effective_address_result = orion::ResourceAddress::parse(path);
+			m_effective_address = effective_address_result.address;
 			return doRequestUrl(path);
 		}
 

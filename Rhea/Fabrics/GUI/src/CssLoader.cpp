@@ -13,11 +13,10 @@
 
 namespace rhea {
 
-	void CssLoader::load(std::string name, Application* app, orion::ResourceRequest* req, ResourceContext context, Resource::LoadedHandler handler)
+	void CssLoader::load(const std::string& name, const std::string& res_id, Application* app, orion::ResourceRequest* req, ResourceContext context, Resource::LoadedHandler handler)
 	{
 		psio::Stream* rs = req->getStream();
-		psio::IOBuffer* buf = new psio::IOBuffer(64 * 1024);
-		std::string res_id = "//" + req->getRealmName() + req->getPath();
+		psio::IOBuffer* buf = new psio::IOBuffer(64 * 1024);		
 		rs->onEnd([app, name, buf, context, handler, res_id](size_t buflen) {
 			StyleSheet* css = simpleparser::Type::create<StyleSheet>(name);
 			std::unordered_map<std::string, std::string> attributes;

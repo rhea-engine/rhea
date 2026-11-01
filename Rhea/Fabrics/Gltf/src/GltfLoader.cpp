@@ -177,17 +177,12 @@ namespace rhea
         };
     }
 
-    void GltfLoader::load_impl(std::string name, Application* app, orion::ResourceRequest* req,
+    void GltfLoader::load_impl(const std::string& name, const std::string& res_id, Application* app, orion::ResourceRequest* req,
         ResourceContext context, Resource::LoadedHandler handler, bool is_binary)
     {
         if (!req || !req->getStream()) {
-            std::string resource_id;
-            if (req)
-                resource_id = "//" + req->getRealmName() + req->getPath();
-            else
-                context.normalizeResourceId(name, resource_id);
             if (handler)
-                handler(Error(Error::Code::NOT_FOUND, "Resource stream not found", resource_id), nullptr);
+                handler(Error(Error::Code::NOT_FOUND, "Resource stream not found", res_id), nullptr);
             return;
         }
 
@@ -198,7 +193,7 @@ namespace rhea
         state->binary = is_binary;
         state->scene = std::make_unique<GltfScene>(name, "//meworla/gltf");
         state->scene->setup(app, {}, {});
-		state->resource_id = "//" + req->getRealmName() + req->getPath();
+        state->resource_id = res_id;
 
         auto* stream = req->getStream();
         auto buffer = std::make_shared<psio::IOBuffer>(stream->getLength() ? stream->getLength() : 64 * 1024);
@@ -249,8 +244,7 @@ namespace rhea
             for (const auto& entry : state->assets)
                 paths.push_back(entry.first);
             for (const auto& path : paths) {
-
-                auto base_result = orion::ResourceAddress::parse(state->context.source_directory);
+                auto base_result = orion::ResourceAddress::parse(state->dependency_base);
                 if (!base_result.success) {
                     Error result(Error::Code::INVALID_DATA, "Invalid glTF source directory: " + base_result.error.message, state->resource_id);
                     state->finishAsset(result);

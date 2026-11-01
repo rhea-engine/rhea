@@ -52,9 +52,11 @@ namespace orion
 		// get base name of request
 		std::string getBasename() { return m_basename; }
 
-		// address of the resource
+		// requested address of the resource
 		std::optional<ResourceAddress> getAddress() { return m_address; }
 		void setAddress(ResourceAddress address);
+		// resolved address of the resource (after realm resolution)
+		std::optional<ResourceAddress>& getEffectiveAddress() { return m_effective_address; }
 
 		bool isResolved() { return m_resolved; }
 		ResourceStream* getStream() { return m_stream.get(); }
@@ -106,6 +108,7 @@ namespace orion
 		Error doRequestUrl(const std::string& url);
 
 		std::optional<ResourceAddress> m_address;
+		std::optional<ResourceAddress> m_effective_address;
 
 		std::string m_realm_name;
 		std::string m_path;

@@ -46,14 +46,13 @@ namespace rhea::audio
 		Resource::ready();
 	}
 
-	void AudioResource::load(std::string name, Application* app, orion::ResourceRequest* req, ResourceContext context, Resource::LoadedHandler handler)
+	void AudioResource::load(const std::string& name, const std::string& res_id, Application* app, orion::ResourceRequest* req, ResourceContext context, Resource::LoadedHandler handler)
 	{
 		if (req) {
 			std::string mime = req->getMimeType();
 
 			psio::Stream* rs = req->getStream();
 			psio::IOBuffer* buf = new psio::IOBuffer(64 * 1024);
-			std::string res_id = "//" + req->getRealmName() + req->getPath();
 			rs->SetMode(psio::Fs::READ | psio::Fs::BINARY);
 			rs->onEnd([buf, app, name, mime, res_id, handler](size_t buflen) {
 

@@ -20,11 +20,10 @@
 
 namespace rhea
 {	
-	void SceneLoader::load(std::string name, Application* app, orion::ResourceRequest* req, ResourceContext context, Resource::LoadedHandler handler)
+	void SceneLoader::load(const std::string& name, const std::string& res_id, Application* app, orion::ResourceRequest* req, ResourceContext context, Resource::LoadedHandler handler)
 	{
 		psio::Stream* rs = req->getStream();
 		psio::IOBuffer* buf = new psio::IOBuffer(64 * 1024);
-		std::string res_id = "//" + req->getRealmName() + req->getPath();
 		rs->onEnd([req, handler, buf, app, name, context, res_id](size_t buflen) {
 			SceneResource::SceneDefinition scene_def;
 			Error err = parseIniFile(name, buf->reader(), buflen, scene_def);
@@ -38,7 +37,7 @@ namespace rhea
 			SceneResource* scene_res = new SceneResource(name);
 			if (scene_res) {
 				scene_res->setup(app);
-				const std::string source_resource_id = "//" + req->getRealmName() + req->getPath();
+				const std::string source_resource_id = app->resourceUriToId(res_id);
 				scene_res->setDefinition(scene_def, context.source_directory, context.context_root, source_resource_id);
 				handler(rhea::Error(), scene_res);
 			}

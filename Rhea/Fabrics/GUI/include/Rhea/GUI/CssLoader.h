@@ -17,7 +17,7 @@ namespace rhea
 	class CssLoader
 	{
 	public:
-		static void load(std::string name, Application* app, orion::ResourceRequest* req, ResourceContext context, Resource::LoadedHandler handler);
+		static void load(const std::string& name, const std::string& res_id, Application* app, orion::ResourceRequest* req, ResourceContext context, Resource::LoadedHandler handler);
 	};
 }
 #endif // !RHEA_CSSLOADER_H

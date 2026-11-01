@@ -14,6 +14,7 @@
 #include <Orion/ResolveLocal.h>
 #include <Orion/Realms.h>
 #include <Orion/FileAddress.h>
+#include <algorithm>
 
 namespace orion
 {	
@@ -29,16 +30,19 @@ namespace orion
 
 		search_dir = m_fs->getInstallDataDir();
 		if (search_dir != "") {
+			std::replace(search_dir.begin(), search_dir.end(), '\\', '/');
 			m_caches.push_back(std::make_unique<ResolveLocal>(search_dir));
 			m_realms->addRealm(Realm("system", search_dir, Realm::RealmType::LocalPath));
 		}
 		search_dir = m_fs->getAppDataDir();
 		if (search_dir != "") {
+			std::replace(search_dir.begin(), search_dir.end(), '\\', '/');
 			m_caches.push_back(std::make_unique<ResolveLocal>(search_dir));
 			m_realms->addRealm(Realm("appdata", search_dir, Realm::RealmType::LocalPath));
 		}
 		search_dir = m_fs->getHomeDir();		
 		if (search_dir != "") {
+			std::replace(search_dir.begin(), search_dir.end(), '\\', '/');
 			m_caches.push_back(std::make_unique<ResolveLocal>(search_dir));
 			m_realms->addRealm(Realm("user", search_dir, Realm::RealmType::LocalPath));
 		}

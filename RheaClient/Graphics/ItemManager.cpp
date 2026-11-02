@@ -123,6 +123,17 @@ namespace rhea::client {
 		rhea::Item* item = doCast<rhea::Item>(unit);
 		if (!item) return false;
 
+		// Synchronize visibility even for items without a renderable.
+		auto* visibility_rc = item->getComponent<RenderComponent>();
+		auto* vis = item->getComponent<rhea::VisualComponent>();
+
+		if (visibility_rc && visibility_rc->ctx && vis) {
+			auto node_id = visibility_rc->ctx->findNodeForSource(
+				visibility_rc->gfx_node_id);
+			if (node_id != poseidon::InvalidRenderNode)
+				visibility_rc->ctx->setVisibility(node_id, vis->isVisible());
+		}
+
 		// Not renderable - clean up GPU resources if present
 		if (!item->isRenderable()) {
 			auto* rc = item->getComponent<RenderComponent>();

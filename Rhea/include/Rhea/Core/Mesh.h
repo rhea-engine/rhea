@@ -138,6 +138,10 @@ namespace rhea
 		void setTextureRef(Ref<ImageResource> texture) { m_texture_ref = texture; }
 		void setShaderRef(Ref<Shader> shader) { m_shader_ref = shader; }
 
+		const Ref<Geometry>& geometryRef() const {
+			return m_geometry_ref;
+		}
+
 	protected:
 		// default material if submesh does not define one
 		Material* m_material;

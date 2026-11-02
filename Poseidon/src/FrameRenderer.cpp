@@ -332,7 +332,7 @@ namespace poseidon
 				std::vector<poseidon::Texture*> texs = m_current_material->getTextures();
 				if (texs.size()) {
 					for (int i = 0; i < texs.size(); i++) {
-						m_renderer->setTexture(texs[i]->get_texture(), i);
+						m_renderer->setTexture(texs[i] ? texs[i]->get_texture() : nullptr, i);
 					}
 				} else {
 					// if no textures, unbind any previously bound textures

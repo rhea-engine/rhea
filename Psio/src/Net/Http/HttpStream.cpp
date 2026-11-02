@@ -280,21 +280,26 @@ namespace psio
 			// EOF - end the request
 			m_next_state = State::HTTPSTREAM_REQUEST_COMPLETED;
 
-			// TODO check for ssl - no truncated headers allowed
-			bool ssl = false;
-
+#if PSIO_ENABLE_HTTP09
 			// if no http status line was found treat it as a http0.9 message
-			if (!ssl && m_headers_start == std::string::npos) {
+			if (m_headers_start == std::string::npos) {
+				if (m_res_buffer->Remaining() == 0) {
+					// no data - treat it as error
+					return Network::Err::RESPONSE_HEADERS_TRUNCATED;
+				}
+				const size_t available = m_res_buffer->Remaining();
+				if (available == 0 || !strncmp_i(m_res_buffer->data(), "HTTP", std::min(available, size_t{ 4 }))) {
+					// truncated http status line
+					return Network::Err::RESPONSE_HEADERS_TRUNCATED;
+				}
 				m_next_state = State::HTTPSTREAM_NONE;
 				m_res_headers = HttpHeaders::CreateFromBuf(std::string("HTTP/0.9 200 OK"));
 				return Network::Err::OK;
 			}
-			else {
-				// truncated headers are not allowed
-				return Network::Err::RESPONSE_HEADERS_TRUNCATED;
-			}
-
-			result = Network::Err::OK;
+#endif // PSIO_ENABLE_HTTP09
+		
+			// truncated headers are not allowed
+			return Network::Err::RESPONSE_HEADERS_TRUNCATED;
 		}
 
 		// search for start of status line
@@ -316,17 +321,17 @@ namespace psio
 
 			// start of status still not found? http/0.9?
 			if (m_headers_start == std::string::npos) {
+#if PSIO_ENABLE_HTTP09
 				if (m_res_buffer->Remaining() >= 8) {
 					// not found - if 8 bytes are read assume its a http/0.9 request
-					// 4 bytes of junk and 4 bytes for "http"
+					// 4 bytes of junk and 4 bytes for not "http"
 					m_res_headers = HttpHeaders::CreateFromBuf(std::string("HTTP/0.9 200 OK"));
 					return Network::Err::OK;
 				}
-				else {
-					// no, simply too few data
-					m_next_state = State::HTTPSTREAM_READ_HEADERS;
-					return Network::Err::OK;
-				}
+#endif // PSIO_ENABLE_HTTP09
+				// no, simply too few data
+				m_next_state = State::HTTPSTREAM_READ_HEADERS;
+				return Network::Err::OK;
 			}
 		}
 

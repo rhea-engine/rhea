@@ -28,6 +28,10 @@ option(PSIO_ENABLE_UNIX "Enable Unix backend" ON)
 option(PSIO_ENABLE_SDL "Enable SDL backend" ON)
 option(PSIO_ENABLE_OPENSSL "Enable OpenSSL support" ON)
 
+option(PSIO_ENABLE_HTTP09 "Enable HTTP/0.9 support" OFF)
+target_compile_definitions(Psio PRIVATE PSIO_ENABLE_HTTP09=$<BOOL:${PSIO_ENABLE_HTTP09}>
+)
+
 set(PSIO_NET_LOG_LEVEL "3" CACHE STRING "Network log verbosity: 0 to 4")
 set_property(CACHE PSIO_NET_LOG_LEVEL PROPERTY STRINGS 0 1 2 3 4)
 if(NOT PSIO_NET_LOG_LEVEL MATCHES "^[0-4]$")

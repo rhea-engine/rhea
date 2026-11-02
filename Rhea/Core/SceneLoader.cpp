@@ -45,9 +45,9 @@ namespace rhea
 			});
 		rs->onError([buf, handler, res_id](int err) {
 			delete buf;
-			Error error(Error::Code::RESOURCE_ERROR, "Could not read scene resource.", res_id);
+			orion::Error orion_error = orion::translateTransportError(err);
+			Error error = translateLoadError(orion_error, res_id);
 			error.addContext("stream_error", std::to_string(err));
-
 			if (handler)
 				handler(error, nullptr);
 			});

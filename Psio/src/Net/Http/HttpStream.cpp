@@ -396,6 +396,9 @@ namespace psio
 
 		m_response_bytes_read += result;
 
+		if (m_body_progress_handler)
+			m_body_progress_handler(m_response_bytes_read);
+
 		if (!result || IsBodyComplete())
 			m_next_state = State::HTTPSTREAM_REQUEST_COMPLETED;
 		else

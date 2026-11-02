@@ -16,13 +16,22 @@ namespace psio
 	HttpNetworkTransaction::~HttpNetworkTransaction()
 	{
 		cancelHeaderTimer();
+		cancelBodyTimer();
 	}
 
 	void HttpNetworkTransaction::cancelHeaderTimer()
 	{
-		if (m_timer_id != 0) {
-			m_engine->getNet()->cancelTimer(m_timer_id);
-			m_timer_id = 0;
+		if (m_header_timer_id != 0) {
+			m_engine->getNet()->cancelTimer(m_header_timer_id);
+			m_header_timer_id = 0;
+		}
+	}
+
+	void HttpNetworkTransaction::cancelBodyTimer()
+	{
+		if (m_body_timer_id != 0) {
+			m_engine->getNet()->cancelTimer(m_body_timer_id);
+			m_body_timer_id = 0;
 		}
 	}
 
@@ -34,7 +43,7 @@ namespace psio
 		m_handler = handler;
 		m_waiting_for_headers = true;
 
-		m_timer_id = m_engine->getNet()->scheduleAt(m_header_deadline, [this]() {
+		m_header_timer_id = m_engine->getNet()->scheduleAt(m_header_deadline, [this]() {
 			// check if we are still in the header reading state or already aborted
 			if (m_state == State::HTTP_NONE || !m_waiting_for_headers)
 				return;
@@ -239,15 +248,47 @@ namespace psio
 	{
 		if (result == Network::Err::OK) {
 			m_next_state = State::HTTP_READ_BODY_COMPLETED;
-			return m_stream->ReadBody(m_user_buf, m_user_buf_len, [&](int result) {
+			m_body_deadline = Network::Clock::now() + m_body_timeout;
+			m_body_timer_id = m_engine->getNet()->scheduleAt(m_body_deadline, [this]() {
+				// check if we are still in the body reading state or already aborted
+				if (m_state != State::HTTP_READ_BODY)
+					return;
+				LOG(LOG_ERROR) << "HttpNetworkTransaction #" << m_id << ": Body read timeout";
+				auto handler = std::move(m_handler);
+				m_state = State::HTTP_NONE;
+				m_next_state = State::HTTP_NONE;
+				cancel();
+				if (handler)
+					handler(Network::Err::TIMEOUT);
+				else
+					LOG(LOG_ERROR) << "HttpNetworkTransaction #" << m_id << ": No handler set after timeout";
+				});
+			m_stream->setBodyProgressHandler([this](size_t bytes_read) {
+				if (m_body_timer_id == 0 || bytes_read == 0)
+					return;
+				m_body_deadline = Network::Clock::now() + m_body_timeout;
+				m_engine->getNet()->updateTimer(m_body_timer_id, m_body_deadline);
+				});
+			int result = m_stream->ReadBody(m_user_buf, m_user_buf_len, [&](int result) {
 				CallDoLoop(result);
 				});
+			if (result != Network::Err::IO_PENDING) {
+				cancelBodyTimer();
+			}
+			return result;
+		}
+		else if (result == Network::Err::IO_PENDING) {
+			m_next_state = State::HTTP_READ_BODY;
+		}
+		else {
+			m_next_state = State::HTTP_NONE;
 		}
 		return result;
 	}
 
 	int HttpNetworkTransaction::DoReadBodyComplete(int result)
 	{
+		cancelBodyTimer();
 		if (result == Network::Err::OK) {
 			m_next_state = State::HTTP_REQUEST_COMPLETED;
 		}
@@ -280,5 +321,6 @@ namespace psio
 			m_stream->cancel();
 		}
 		cancelHeaderTimer();
+		cancelBodyTimer();
 	}
 }

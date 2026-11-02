@@ -184,6 +184,14 @@ namespace psio
 		return id;
 	}
 
+	void Network::updateTimer(TimerId id, Clock::time_point deadline)
+	{
+		auto it = m_timers.find(id);
+		if (it != m_timers.end()) {
+			it->second.deadline = deadline;
+		}
+	}
+
 	void Network::cancelTimer(TimerId timer_id)
 	{
 		auto it = m_timers.find(timer_id);

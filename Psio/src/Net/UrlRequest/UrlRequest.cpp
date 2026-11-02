@@ -35,6 +35,10 @@ namespace psio
 
 		m_header_deadline = Network::Clock::now() + m_header_timeout;
 
+		// create a http transaction
+		if (!m_transaction)
+			m_transaction = new HttpNetworkTransaction(m_engine, m_id, m_header_deadline);
+
 		doRequest(url, method);
 	}
 

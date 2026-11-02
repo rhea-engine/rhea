@@ -97,7 +97,12 @@ namespace psio
 
 		void cancelHeaderTimer();
 		Network::Clock::time_point m_header_deadline;
-		Network::TimerId m_timer_id = 0;
+		Network::TimerId m_header_timer_id = 0;
+
+		void cancelBodyTimer();
+		std::chrono::milliseconds m_body_timeout{ 5000 };
+		Network::Clock::time_point m_body_deadline;
+		Network::TimerId m_body_timer_id = 0;
 	};
 }
 

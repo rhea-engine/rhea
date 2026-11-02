@@ -100,6 +100,7 @@ namespace psio
 		// timer handling
 
 		TimerId scheduleAt(Clock::time_point deadline, std::function<void()> handler);
+		void updateTimer(TimerId id, Clock::time_point deadline);
 		void dispatchExpiredTimers();
 		void cancelTimer(TimerId timer_id);
 

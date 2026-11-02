@@ -39,6 +39,7 @@ namespace psio
 		};
 
 		std::uint64_t id() const { return m_id; }
+		void setHeaderTimeout(std::chrono::milliseconds timeout) { m_header_timeout = timeout; }
 
 		// callbacks
 		typedef std::function<void(UrlResponse*)> ResponseHandler;
@@ -66,8 +67,16 @@ namespace psio
 		HttpTransaction* m_transaction;		
 		UrlResponse* m_response;
 
+		std::chrono::milliseconds m_header_timeout{ 5000 };
+
+		// timeout
+		Network::Clock::time_point m_header_deadline;
+
 		// called when the transaction is started
 		void OnTransaction(int result, methods method);
+
+		// internal starting point for the request
+		void doRequest(std::string url, methods method);
 
 		int m_nof_redirects;
 

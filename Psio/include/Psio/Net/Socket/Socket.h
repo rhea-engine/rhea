@@ -26,6 +26,8 @@ namespace psio
 		typedef std::function<void(int)> CompletionHandler;
 
 		// close the socket
+		// force close the socket, do not wait for pending data to be sent or shutdown the connection gracefully
+		// return true if the socket was closed successfully, false if there was an error
 		virtual bool Close() = 0;
 
 		// get the last error. Warning: This is a static function that calls the os for last error

@@ -40,6 +40,11 @@ namespace psio
 		*/
 		virtual int ReadBody(IOBuffer* buf, size_t chunk_len, Network::CompletionHandler handler) = 0;
 
+		/* Cancel a transaction
+		* 
+		* Close all sockets and watchers
+		*/
+		virtual void cancel() = 0;
 		/* Return the Http headers 
 		*/
 		virtual HttpHeaders* GetHeaders() = 0;

@@ -294,13 +294,28 @@ namespace psio
 
 	bool SSLSocket::Close()
 	{
-		SSL_shutdown(m_ssl);
-		SSL_free(m_ssl);
-		bool ret = false;
+		if (m_ssl) {
+			m_shutdown_initiated = true;
+			SSL_shutdown(m_ssl);
+			SSL_free(m_ssl);
+			m_ssl = nullptr;
+		}
+		bool ret = true;
 		if (m_sock) {
 			 ret = m_sock->Close();		
 		}
 		return ret;
+	}
+
+	void SSLSocket::cleanup_raw_socket()
+	{
+		if (m_ssl) {
+			SSL_free(m_ssl);
+			m_ssl = nullptr;
+		}
+		if (m_sock) {
+			m_sock->Close();
+		}
 	}
 
 	int SSLSocket::Write(IOBuffer* buf, Socket::CompletionHandler handler)

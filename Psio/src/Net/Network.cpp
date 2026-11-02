@@ -21,6 +21,8 @@ namespace psio
 {
 	void Network::RunLoop()
 	{
+		dispatchExpiredTimers();
+
 #ifdef HAVE_POLL // WSAPOLL is broken - we must use select
 
 		WSAPOLLFD fdarray = { 0 };
@@ -30,7 +32,7 @@ namespace psio
 		// check all file descs
 		auto it = pending_sockets.begin();
 		while (it != pending_sockets.end()) {
-			
+
 			sockitem item = it->second;
 
 			//Call WSAPoll for read- or writeability on connecting socket depending on flag
@@ -106,6 +108,12 @@ namespace psio
 				sockitem item = it->second;
 				SOCKET sock_fd = item.sock;
 
+				// check if socket is still valid
+				if (m_sockets.find(sock_fd) == m_sockets.end() || m_sockets[sock_fd].watch_id != item.watch_id) {
+					++it;
+					continue;
+				}
+
 				// check if socket is ready and if yes call watcher
 
 				// CHECK: Do we need different watchers?
@@ -122,7 +130,7 @@ namespace psio
 					if (item.once)
 						UnWatch(item.sock);
 
-						++it;
+					++it;
 					// data ready
 					item.handler(res);
 				}
@@ -133,7 +141,7 @@ namespace psio
 
 	}
 
-	void Network::SetSetting(const std::string &setting, const std::string &value)
+	void Network::SetSetting(const std::string& setting, const std::string& value)
 	{
 		m_settings[setting] = value;
 	}
@@ -154,7 +162,7 @@ namespace psio
 #if PSIO_NET_LOG_LEVEL >= 4
 		DLOG(LOG_DEBUG) << "watch socket " << sock << " with flags " << flags;
 #endif
-		m_sockets[sock]={sock, flags, handler, once};
+		m_sockets[sock] = { sock, flags, handler, once, m_next_watch_id++ };
 	}
 
 	void Network::UnWatch(SOCKET sock)
@@ -166,6 +174,44 @@ namespace psio
 			DLOG(LOG_DEBUG) << "unwatch socket " << sock;
 #endif
 			m_sockets.erase(it);
+		}
+	}
+
+	Network::TimerId Network::scheduleAt(Clock::time_point deadline, std::function<void()> handler)
+	{
+		TimerId id = m_next_timer_id++;
+		m_timers.emplace(id, TimerEntry{ deadline, handler });
+		return id;
+	}
+
+	void Network::cancelTimer(TimerId timer_id)
+	{
+		auto it = m_timers.find(timer_id);
+		if (it != m_timers.end()) {
+			m_timers.erase(it);
+		}
+	}
+
+	void  Network::dispatchExpiredTimers()
+	{
+		auto now = Clock::now();
+		std::vector<TimerId> expired_ids;
+
+		for (const auto& [timer_id, entry] : m_timers) {
+			if (entry.deadline <= now)
+				expired_ids.push_back(timer_id);
+		}
+
+		for (const TimerId timer_id : expired_ids) {
+			auto it = m_timers.find(timer_id);
+			if (it == m_timers.end())
+				continue; // a previous callback removed it.
+
+			auto handler = std::move(it->second.handler);
+			m_timers.erase(it);
+
+			if (handler)
+				handler();
 		}
 	}
 }

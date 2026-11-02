@@ -33,9 +33,16 @@ namespace psio
 		if (!m_on_response_handler || !m_on_error_handler)
 			return;
 
+		m_header_deadline = Network::Clock::now() + m_header_timeout;
+
+		doRequest(url, method);
+	}
+
+	void UrlRequest::doRequest(std::string url, methods method)
+	{
 		// create a http transaction
 		if (!m_transaction)
-			m_transaction = new HttpNetworkTransaction(m_engine, m_id);
+			m_transaction = new HttpNetworkTransaction(m_engine, m_id, m_header_deadline);
 
 		Url _url(url);
 		if (!_url.isValid()) {
@@ -117,7 +124,7 @@ namespace psio
 						m_transaction = nullptr;
 						delete m_response;
 						m_response = nullptr;
-						Request(new_loc, method);
+						doRequest(new_loc, method);
 						return;
 					}
 					else {

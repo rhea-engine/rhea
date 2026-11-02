@@ -81,6 +81,8 @@ namespace psio
 		void CallDoLoop(int result);
 		static size_t LocateEndOfHeadersHelper(const char* buf, size_t buf_len, size_t i, bool accept_empty_header_list);
 
+		void cancel();
+
 	protected:
 		enum class State {
 			HTTPSTREAM_NONE,

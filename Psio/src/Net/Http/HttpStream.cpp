@@ -490,5 +490,11 @@ namespace psio
 		}
 	}
 
+	void HttpStream::cancel()
+	{
+		if (m_sock) {
+			m_sock->Close();
+		}
+	}
 	
 }

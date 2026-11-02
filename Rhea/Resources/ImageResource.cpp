@@ -29,13 +29,9 @@ namespace rhea
 		Resource::setup(app, attributes, values);		
 	}
 
-	std::vector<Component::ResourceReference> ImageResource::getReferences()
+	void ImageResource::initializeType(simpleparser::Type* type)
 	{
-		std::vector<ResourceReference> refs;
-		if (m_values.find("path") != m_values.end()) {
-			refs.push_back({ "image", "//meworla/image", m_values["path"] });
-		}
-		return refs;
+		registerResourceProperty(type, "path", &ImageResource::m_image_ref, "//meworla/image", ResourceUsage::Load);
 	}
 
 	void ImageResource::ready()
@@ -47,7 +43,7 @@ namespace rhea
 
 		auto path_it = m_values.find("path");
 		if (!m_buf && path_it != m_values.end()) {
-			ImageResource* img = static_cast<ImageResource*>(m_app->getUnitTree()->find(path_it->second.toString(), m_attributes["basepath"], false));
+			ImageResource* img = m_app->getUnitTree()->resolve(m_image_ref);
 			if (img && img->m_buflen) {
 				m_buf = (char*)malloc(img->m_buflen);
 				if (m_buf && img->m_buf != nullptr) {
@@ -62,6 +58,6 @@ namespace rhea
 				LOG(LOG_ERROR) << "Failed to load image " << getPathName() << " image not found or not valid";
 				//abort();
 			}
-		}		
+		}
 	}
 }

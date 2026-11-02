@@ -9,6 +9,7 @@
 #define RHEA_IMAGE_RESOURCE
 
 #include <Rhea/Resources/Resource.h>
+#include <Rhea/Ref.h>
 
 namespace rhea
 {
@@ -31,8 +32,6 @@ namespace rhea
 		void setup(Application* app) { Resource::setup(app); }
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
 
-		std::vector<Component::ResourceReference> getReferences();
-
 		// handle ready event
 		void ready();
 
@@ -44,6 +43,11 @@ namespace rhea
 
 		int width = -1;
 		int height = -1;
+
+		static void initializeType(simpleparser::Type* type);
+
+	protected:
+		Ref<ImageResource> m_image_ref;
 	};
 }
 

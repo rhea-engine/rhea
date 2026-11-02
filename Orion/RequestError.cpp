@@ -62,4 +62,26 @@ namespace orion
 			return "General error";
 		}
 	}
+
+	Error translateHttpStatus(int status)
+	{
+		Error err = Error::UNKNOWN_ERROR;
+		if (status == 200)
+			err = Error::OK;
+		else if (status == 404)
+			err = Error::RESOURCE_NOT_FOUND;
+		else if (status == 403)
+			err = Error::NO_ACCESS;
+		else if (status == 401)
+			err = Error::NO_AUTH;
+		else if (status >= 500 && status < 600)
+			err = Error::SERVER_ERROR;
+		else if (status == 429)
+			err = Error::RATE_LIMITED;
+		else if (status >= 400 && status < 500)
+			err = Error::DATA_INVALID;
+		else
+			err = Error::UNEXPECTED_RESPONSE;
+		return err;
+	}
 }

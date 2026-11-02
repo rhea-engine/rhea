@@ -19,11 +19,17 @@ namespace orion
 		DATA_INVALID = -9,
 		TRANSPORT_ERROR = -10,
 		CANCELED = -11,
+		SERVER_ERROR = -12,
+		TIMEOUT = -13,
+		RATE_LIMITED = -14,
+		UNEXPECTED_RESPONSE = -15,
 		UNKNOWN_ERROR = -1000
 	};
 
 	// Translate Psio network statuses, not HTTP status codes or arbitrary stream errors.
 	Error translateTransportError(int error);
+
+	Error translateHttpStatus(int status);
 
 	// get an english error message for the error
 	std::string getErrorMessage(Error err);

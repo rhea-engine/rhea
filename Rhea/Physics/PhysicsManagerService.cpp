@@ -58,7 +58,15 @@ namespace rhea
 		auto it = m_backend_creators.find(backend_id);
 		if (it == m_backend_creators.end()) return nullptr;		
 
-		m_phy_service = it->second(m_app);         // m_app from Service base
+		auto phy_service = it->second(m_app);         // m_app from Service base
+		if (!phy_service) return nullptr;
+
+		if (m_phy_service) {
+			m_phy_service->shutdown();
+			m_phy_service.reset();
+		}
+
+		m_phy_service = std::move(phy_service);         // m_app from Service base
 		m_phy_service->setup(m_app);
 
 		// forward all already registered component creators

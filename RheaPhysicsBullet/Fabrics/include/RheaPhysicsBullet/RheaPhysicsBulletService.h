@@ -29,7 +29,12 @@ namespace rhea::physics::bullet
 	{
 		RECLASS(BulletPhysicsService, rhea::PhysicsService, "//meworla/bulletphysicsservice")
 	public:
-		BulletPhysicsService(std::string name, std::string type_name);		
+		BulletPhysicsService(std::string name, std::string type_name);
+		~BulletPhysicsService();
+
+		// Lifecycle functions
+		void onInit() override;
+		void shutdown() override;
 
 		// process physics with delta seconds (usually 1/60)
 		void onPhysicsStep(float delta);
@@ -47,9 +52,6 @@ namespace rhea::physics::bullet
 
 		// remove one object
 		void removeItem(rhea::Item* item);
-
-		// Service functions
-		void onInit();
 
 		// ray trace
 		Unit* ray(math::Vector3 origin, math::Vector3 direction);

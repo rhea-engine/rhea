@@ -26,6 +26,8 @@ namespace
 #endif
 #elif defined(__linux__)
 		return SSL_CTX_set_default_verify_paths(ctx) == 1;
+#elif defined(__APPLE__)
+    return SSL_CTX_load_verify_locations(ctx, "/etc/ssl/cert.pem", nullptr) == 1;
 #else
 		LOG(LOG_ERROR) << "System certificate store is not implemented on this platform";
 		return false;

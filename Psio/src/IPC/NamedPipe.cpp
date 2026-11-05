@@ -9,13 +9,13 @@
 
 #include <iostream>
 
-#ifdef __linux__
+#if defined(__linux__) || defined(__APPLE__)
 #include <string>
 #include <cstring>
 #include <sys/socket.h>
 #include <sys/un.h>
 #include <unistd.h>
-#endif // __linux__
+#endif // Linux or macOS
 
 
 namespace psio
@@ -35,7 +35,7 @@ namespace psio
 				return false;
 		}
 		return true;
-#elif defined(__linux__)
+#elif defined(__linux__) || defined(__APPLE__)
 		int m_server_socket = socket(AF_UNIX, SOCK_STREAM, 0);
 		if (m_server_socket == -1) {
 			perror("socket");
@@ -138,12 +138,12 @@ namespace psio
 		if (m_is_open) {
 #ifdef _WIN32
 			CloseHandle(m_pipe_handle);
-#elif defined(__linux__)
+#elif defined(__linux__) || defined(__APPLE__)
 			if (m_server_socket != -1)
 				close(m_server_socket);
 			if (m_remote_socket != -1)
 				close(m_remote_socket);
-#endif // __linux__
+#endif // Linux or macOS
 			m_is_open = false;
 		}
 	}

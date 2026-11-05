@@ -16,6 +16,9 @@
 #include <cstdio>
 #include <cstdlib>
 #include <climits>
+#if defined(__APPLE__)
+#include <mach-o/dyld.h>
+#endif
 #include <Psio/Log.h>
 
 using std::string;
@@ -78,18 +81,11 @@ namespace psio
             return res;
 
         // try relative to executable
-        char buf[PATH_MAX];
-        ssize_t len = readlink("/proc/self/exe", buf, sizeof(buf) - 1);
-        if (len != -1) {
-            buf[len] = '\0';
-            res = buf;
-            size_t pos = res.find_last_of("/");
-            if (pos != string::npos) {
-                res = res.substr(0, pos);
-                res += string("/Data");
-                if (Fs::fileExists(res))
-                    return res;
-            }
+        const auto executable_dir = getExecutableDir();
+        if (!executable_dir.empty()) {
+            res = executable_dir + "/Data";
+            if (Fs::fileExists(res))
+                return res;
         }
 
         // try /usr/share

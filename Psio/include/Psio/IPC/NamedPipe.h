@@ -12,7 +12,7 @@
 
 #if defined(_WIN32)
 
-#elif defined(__linux__)
+#elif defined(__linux__) || defined(__APPLE__)
 #include <unistd.h>
 #endif
 #include <string>
@@ -28,7 +28,7 @@ namespace psio
 			m_is_open(false),
 			m_pipe_handle(INVALID_HANDLE_VALUE),
 			m_pipe_name("\\\\.\\pipe\\" + prefix)
-#elif defined(__linux__)
+#elif defined(__linux__) || defined(__APPLE__)
 		NamedPipe(std::string prefix) :
 			m_is_parent(false), 
 			m_is_open(false), 
@@ -48,7 +48,7 @@ namespace psio
 		std::string m_pipe_name;
 #if defined(_WIN32)
 		HANDLE m_pipe_handle;
-#elif defined(__linux__)
+#elif defined(__linux__) || defined(__APPLE__)
 		int m_server_socket;
 		int m_remote_socket;
 #endif

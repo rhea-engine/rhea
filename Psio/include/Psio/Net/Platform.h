@@ -80,7 +80,7 @@ typedef int PIPE_HANDLE;
 #define HANDLE_PIPE_INVALID -1
 
 
-#elif defined(__linux__) || defined(IS_LINUX) || defined(IS_OSX) || defined(IS_FREEBSD)
+#elif defined(__linux__) || defined(__APPLE__) || defined(IS_LINUX) || defined(IS_OSX) || defined(IS_FREEBSD)
 /*
 *	Linux, OSX, FreeBSD
 */

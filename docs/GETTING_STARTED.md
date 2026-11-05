@@ -40,7 +40,7 @@ The sample's build rules copy these assets next to the executable:
 
 ```text
 Data/
-  basic_app/
+  basic-app/
   rhea/
 ```
 

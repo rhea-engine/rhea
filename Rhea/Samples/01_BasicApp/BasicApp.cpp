@@ -42,7 +42,7 @@ public:
         Application::setup();
 
         // Application::setup() has already instantiated the standard shader.
-        m_resources.push("kies_texture", "//basic_app/kies.png", "//meworla/texture");
+        m_resources.push("kies_texture", "//basic-app/kies.png", "//meworla/texture");
         m_resources.load([this](rhea::ErrorReport report) {
             if (report.isError()) {
                 for (auto& error : report.errors)
@@ -69,7 +69,7 @@ private:
         m_scene->setup(this, {}, {});
 
         // Resource loading has already created the application asset realm.
-        rhea::Unit* realm_unit = doCast<rhea::Unit>(m_unit_tree->find("//basic_app", "", false));
+        rhea::Unit* realm_unit = doCast<rhea::Unit>(m_unit_tree->find("//basic-app", "", false));
         realm_unit->addChild(m_scene);
 
         // Create camera

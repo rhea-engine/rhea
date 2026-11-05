@@ -11,7 +11,7 @@ target_link_libraries(Rhea_Sample_01_BasicApp PRIVATE
 add_custom_command(TARGET Rhea_Sample_01_BasicApp POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${CMAKE_CURRENT_SOURCE_DIR}/Assets
-        $<TARGET_FILE_DIR:Rhea_Sample_01_BasicApp>/Data/basic_app
+        $<TARGET_FILE_DIR:Rhea_Sample_01_BasicApp>/Data/basic-app
 )
 
 ## add render engine assets

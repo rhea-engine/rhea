@@ -43,9 +43,7 @@ namespace rhea
 
 		m_open_attempt = {
 			++m_open_generation,
-			++m_next_session_generation,
-			nullptr,
-			false
+			++m_next_session_generation
 		};
 		loadWorld(rid, m_open_attempt, handler);
 	}
@@ -141,6 +139,23 @@ namespace rhea
 		}
 	}
 
+	void WorldService::releaseSession(uint64_t session_generation, Unit* session_root)
+	{
+		if (session_generation == 0 || session_generation == m_session_generation)
+			return;
+
+		std::unordered_set<Unit*> candidates;
+		if (session_root)
+			candidates.insert(session_root);
+
+		// Registered scene instances belong to their session, even if never activated.
+		for (const auto& [scene, managed] : m_managed_scenes) {
+			if (managed.session_generation == session_generation)
+				candidates.insert(scene);
+		}
+		destroySceneRoots(candidates);
+	}
+
 	void WorldService::loadScene(const std::string& resource_id, LoadSceneHandler handler)
 	{
 		loadScene(resource_id, m_session_context, handler);
@@ -156,10 +171,7 @@ namespace rhea
 		}
 		m_open_attempt = {
 			++m_open_generation,
-			m_session_generation,
-			nullptr,
-			nullptr,
-			false
+			m_session_generation
 		};
 		doLoadScene(resource_id, m_world, m_open_attempt, context, [this, handler, attempt = m_open_attempt](Scene* scene, ErrorReport report) mutable {
 			finishAttempt(attempt, std::move(report), [handler, scene](ErrorReport report) {
@@ -449,9 +461,7 @@ namespace rhea
 
 		m_open_attempt = {
 			++m_open_generation,
-			m_session_generation,
-			nullptr,
-			false
+			m_session_generation
 		};
 
 		// load scene. the loadScene function checks if the scene is already loaded and will call the handler immediately if it is.
@@ -690,23 +700,20 @@ namespace rhea
 				}
 				uint64_t old_session_generation = m_session_generation;
 				Scene* old_scene = m_primary_scene;
+				Unit* old_root = m_world ? static_cast<Unit*>(m_world) : old_scene;
 				beginSession(resource_context, open_attempt.session);
 				doActivateWorld(world, scene);
 				m_world = doCast<World>(open_attempt.candidate_root);
 				doActivateScene(scene, SceneRole::Regular, nullptr);
 				doActivateSceneTransition(scene, TransitionRequest{}, context, open_attempt);
 				m_active_root_resource_id = m_open_attempt.resource_id;
-				finishAttempt(open_attempt, report, [this, handler, old_scene, old_session_generation](ErrorReport report) {
-					if (!report.isError()) {
-						WorldSessionChangedEvent event(this, m_world, old_session_generation, m_session_generation);						
-						PrimarySceneChangedEvent scene_event(this, m_primary_scene, old_scene, m_session_generation);
-						sendEvent("world_session_changed", &event); 
-						sendEvent("primary_scene_changed", &scene_event);
-					}
-					if (handler) {
-						handler(report);
-					}
-				});
+				// Keep the attempt open and the old scene alive during notification.
+				WorldSessionChangedEvent event(this, m_world, old_session_generation, m_session_generation);
+				PrimarySceneChangedEvent scene_event(this, m_primary_scene, old_scene, m_session_generation);
+				sendEvent("world_session_changed", &event);
+				sendEvent("primary_scene_changed", &scene_event);
+				releaseSession(old_session_generation, old_root);
+				finishAttempt(open_attempt, std::move(report), handler);
 			});
 	}
 
@@ -913,7 +920,14 @@ namespace rhea
 		if (attempt == m_open_attempt)
 			m_open_attempt.candidate_root = nullptr;
 
-		// 2. Keep only top-level roots. Children will be destroyed with their parents.
+		if (m_world && candidates.count(m_world))
+			m_world = nullptr;
+		destroySceneRoots(candidates);
+	}
+
+	void WorldService::destroySceneRoots(const std::unordered_set<Unit*>& candidates)
+	{
+		// Keep only top-level roots. Children will be destroyed with their parents.
 		std::vector<Unit*> roots;
 		for (auto* candidate : candidates) {
 			auto* parent = candidate->getParent();
@@ -952,10 +966,6 @@ namespace rhea
 			if (doomed_scenes.count(managed.owner_scene))
 				managed.owner_scene = nullptr;
 		}
-
-		// 5. Now destroy() can recursively release the subtrees.
-		if (m_world && candidates.count(m_world))
-			m_world = nullptr;
 
 		for (auto* root : roots)
 			root->destroy();

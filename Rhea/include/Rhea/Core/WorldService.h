@@ -237,6 +237,7 @@ namespace rhea
 		};
 		void finishAttempt(OpenAttempt attempt, ErrorReport report, OpenHandler handler);
 		void cleanupCandidateRoot(OpenAttempt attempt);
+		void destroySceneRoots(const std::unordered_set<Unit*>& candidates);
 
 		// handle activate and deactivate scene events
 		void onSceneActivate(Scene* scene);
@@ -244,6 +245,7 @@ namespace rhea
 
 		void beginSession(const ResourceContext& context, uint64_t next_session_generation);
 		void deactivateSession(uint64_t session_generation);
+		void releaseSession(uint64_t session_generation, Unit* session_root);
 		void loadWorld(const std::string& rid, OpenAttempt open_attempt, OpenHandler handler, bool allow_collection = true);
 		void doLoadScene(const std::string& resource_id, World* world, OpenAttempt open_attempt, const ResourceContext& context, LoadSceneHandler handler);
 
@@ -282,6 +284,8 @@ namespace rhea
 		// the next session id to use for a new openWorld
 		uint64_t m_next_session_generation = 0;
 		ResourceContext m_session_context{};
+
+		// session to be relased after the next scene transition is complete
 
 		// pending scene loads
 		struct SceneLoadKey

@@ -241,7 +241,7 @@ namespace
         EXPECT_EQ(worlds->pendingGeneration(), 0u);
         EXPECT_NE(worlds->activeSession(), previous_session);
         ASSERT_NE(worlds->getPrimaryScene(), nullptr);
-        EXPECT_NE(worlds->getPrimaryScene(), previous_scene);
+        EXPECT_EQ(worlds->managedScenesIn(previous_session), 0u);
         EXPECT_EQ(session_events, previous_session_events + 1);
         EXPECT_EQ(primary_events, previous_primary_events + 1);
 
@@ -251,6 +251,43 @@ namespace
         EXPECT_EQ(retried.calls, 1);
         EXPECT_EQ(worlds->getPrimaryScene(), committed_scene);
         EXPECT_EQ(primary_events, previous_primary_events + 1);
+    }
+
+    TEST_P(WorldLifecycleTest, ReopensPreviousWorldAfterSuccessfulSwitch)
+    {
+        const auto first_session = worlds->activeSession();
+        const auto initial_session_events = session_events;
+        const auto initial_primary_events = primary_events;
+
+        Completion switched;
+        worlds->openWorld("realm://lifecycle-test/candidate.scene", switched.handler());
+        ASSERT_EQ(switched.calls, 1);
+        ASSERT_FALSE(switched.report.isError());
+        const auto second_session = worlds->activeSession();
+        ASSERT_NE(second_session, first_session);
+        ASSERT_NE(parent->find("candidate", false), nullptr);
+        if (GetParam() == RootForm::External)
+            ASSERT_NE(parent->find("initial", false), nullptr);
+
+        EXPECT_EQ(parent->find("active_world", false), nullptr);
+        EXPECT_EQ(worlds->managedScenesIn(first_session), 0u);
+
+        Completion reopened;
+        worlds->openWorld("realm://lifecycle-test/active.scene", reopened.handler());
+        ASSERT_EQ(reopened.calls, 1);
+        ASSERT_FALSE(reopened.report.isError());
+        EXPECT_EQ(worlds->pendingGeneration(), 0u);
+        EXPECT_NE(worlds->activeSession(), first_session);
+        EXPECT_NE(worlds->activeSession(), second_session);
+        ASSERT_NE(worlds->getWorld(), nullptr);
+        EXPECT_EQ(parent->find("active_world", false), worlds->getWorld());
+        ASSERT_NE(worlds->getPrimaryScene(), nullptr);
+
+        EXPECT_EQ(worlds->managedScenesIn(second_session), 0u);
+        EXPECT_EQ(parent->find("candidate", false), nullptr);
+        EXPECT_EQ(parent->find("initial", false), nullptr);
+        EXPECT_EQ(session_events, initial_session_events + 2);
+        EXPECT_EQ(primary_events, initial_primary_events + 2);
     }
 
     INSTANTIATE_TEST_SUITE_P(

@@ -54,6 +54,8 @@ namespace rhea
 			ErrorReport error;
 
 			Unit* instance = spawnPrepared(parent, name, &error);
+			if (instance)
+				instance->ready();
 
 			if (handler)
 				handler(error, instance);
@@ -589,10 +591,7 @@ namespace rhea
 			});
 	}
 
-	Unit* SceneResource::spawnPrepared(
-		Unit* parent,
-		const std::string& name,
-		ErrorReport* error)
+	Unit* SceneResource::spawnPrepared(const std::string& name, ErrorReport* error)
 	{
 		if (error)
 			*error = ErrorReport{};
@@ -600,12 +599,6 @@ namespace rhea
 		if (m_prepare_state != PrepareState::Prepared || !m_prepared_prototype) {
 			if (error)
 				error->addError(Error(Error::Code::UNAVAILABLE, "Instance is not prepared.", m_source_resource_id)); // PENDING?
-			return nullptr;
-		}
-
-		if (!parent) {
-			if (error)
-				error->addError(Error(Error::Code::NOT_FOUND, "Parent not found.", m_source_resource_id));
 			return nullptr;
 		}
 
@@ -620,6 +613,23 @@ namespace rhea
 				error->addError(Error(Error::Code::INVALID_DATA, "Instance not found.", m_source_resource_id));
 			return nullptr;
 		}
+		return instance;
+	}
+
+	Unit* SceneResource::spawnPrepared(
+		Unit* parent,
+		const std::string& name,
+		ErrorReport* error)
+	{
+		if (!parent) {
+			if (error)
+				error->addError(Error(Error::Code::NOT_FOUND, "Parent not found.", m_source_resource_id));
+			return nullptr;
+		}
+		Unit* instance = spawnPrepared(name, error);	
+		if (!instance) {
+			return nullptr;
+		}		
 
 		if (!parent->addChild(instance)) {
 			instance->destroy();
@@ -627,8 +637,6 @@ namespace rhea
 				error->addError(Error(Error::Code::INVALID_DATA, "Failed to add child unit.", m_source_resource_id));
 			return nullptr;
 		}
-		instance->ready();
-
 		return instance;
 	}
 }

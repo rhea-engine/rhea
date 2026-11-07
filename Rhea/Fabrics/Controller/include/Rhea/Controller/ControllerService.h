@@ -10,6 +10,9 @@
 #include <Rhea/Service.h>
 #include <Rhea/Core/Controller.h>
 #include <Rhea/Core/WorldService.h>
+#include <cstdint>
+#include <functional>
+#include <vector>
 
 namespace rhea
 {
@@ -68,14 +71,47 @@ namespace rhea
 
 	private:
 		// we assume only one world is active at a time, so we can keep a list of controllers for the current world
-		std::vector<ControllerBinding> m_controllers;
-		int m_next_controller_id = 0;
+		std::vector<ControllerBinding> m_controllers;		
 		struct PlacementSlot
 		{
 			PlacementHandler handler;
 			int priority = 0;
 		};
 		std::vector<PlacementSlot> m_placement_handlers;
+
+		// transition handlers
+		void onWorldPrepare(WorldService::WorldPrepareContext* context, WorldService::PrepareCompletion completion);
+		void onWorldActivate(WorldService::WorldPrepareContext* context);
+		void onSceneTransitionPrepare(WorldService::SceneTransitionContext* context, WorldService::PrepareCompletion completion);
+		void onSceneTransitionActivate(WorldService::SceneTransitionContext* context);
+		void onDiscard(uint64_t generation);
+
+		// only one world may be loaded at a time, so we can keep track of the prepared controllers for the current world
+		struct PreparedControllers {
+			uint64_t generation = 0;
+			Scene* root = nullptr;
+			int next_controller_id = 0;
+			std::vector<ControllerBinding> bindings;
+		};
+
+		PreparedControllers m_prepared_controllers;
+
+		struct PreparedBinding {
+			Controller* controller = nullptr;
+			Item* character = nullptr;
+			bool character_is_candidate = false;
+			Camera* camera = nullptr;
+			bool camera_is_candidate = false;
+			int controller_id = -1;
+			bool reset_input = true;
+		};
+
+		struct PreparedTransition {
+			uint64_t generation = 0;
+			std::vector<PreparedBinding> bindings;
+		};
+
+		PreparedTransition m_prepared_transition;
 	};
 }
 

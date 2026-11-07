@@ -82,7 +82,7 @@ bool Ceto::onInput(rhea::EventInput* e, rhea::Unit* unit)
 	rhea::InputEvent evt = e->getEvent();
 
 	if (handleAppShortcuts(evt))
-		return true;
+		return false;
 
 	return false;
 }
@@ -91,12 +91,12 @@ bool Ceto::handleAppShortcuts(const rhea::InputEvent& evt)
 {
 	if (evt.isKeyPressed(rhea::Key::Escape)) {
 		openQuitDialog();
-		return true;
+		return false;
 	}
 
 	if (evt.isKeyPressed(rhea::Key::O)) {
 		openRealmDialog();
-		return true;
+		return false;
 	}
 
 	return false;
@@ -118,10 +118,10 @@ void Ceto::openRealmDialog()
 	if (!m_gui_controller)
 		return;
 
-	rhea::Widget* w = doCast<rhea::Widget>(m_gui_controller->find("realms"));
-	if (w) {
-		m_gui_controller->openDialog((rhea::Dialog*)w);
-	}
+	if (!m_realm_dialog)
+		return;
+
+	m_gui_controller->openDialog(m_realm_dialog);
 }
 
 void Ceto::openDetailsDialog(rhea::ErrorReport report)
@@ -268,17 +268,17 @@ void Ceto::setup()
 
 	auto* worlds = doCast<rhea::WorldService>(getService("world"));
 
-	worlds->addWorldPrepareHandler([this, worlds](rhea::WorldService::WorldPrepareContext* context) -> rhea::Error
+	worlds->addWorldActivateHandler([this, worlds](rhea::WorldService::WorldPrepareContext* context) -> rhea::Error
 		{
 			if (context->world)
 				m_focused_controller = context->world->findByType<rhea::Controller>();
-			else if (context->standaloneScene)
-				m_focused_controller = context->standaloneScene->findByType<rhea::Controller>();
+			else if (context->standalone_scene)
+				m_focused_controller = context->standalone_scene->findByType<rhea::Controller>();
 			else
 				m_focused_controller = nullptr;
 			return rhea::Error();
 		});
-	worlds->addSceneTransitionHandler([this, worlds](rhea::WorldService::SceneTransitionContext* context, rhea::WorldService::TransitionCompletion completion) -> void
+	worlds->addSceneTransitionPrepareHandler([this, worlds](rhea::WorldService::SceneTransitionContext* context, rhea::WorldService::PrepareCompletion completion) -> void
 		{
 			completion(rhea::Error());
 		});

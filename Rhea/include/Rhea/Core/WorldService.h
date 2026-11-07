@@ -16,6 +16,7 @@
 #include <Rhea/Core/SceneEntryPoint.h>
 #include <Rhea/Resources/ResourceContext.h>
 #include <unordered_map>
+#include <unordered_set>
 #include <string>
 #include <functional>
 
@@ -56,7 +57,8 @@ namespace rhea
 		struct WorldPrepareContext
 		{
 			World* world = nullptr;
-			Scene* standaloneScene = nullptr;
+			Scene* standalone_scene = nullptr;
+			uint64_t open_generation = 0;
 		};
 
 		struct ScenePrepareContext
@@ -67,6 +69,7 @@ namespace rhea
 
 			WorldService::SceneRole role = WorldService::SceneRole::External;
 			Scene* owner_scene = nullptr;
+			uint64_t open_generation = 0;
 		};
 
 		struct TransitionRequest
@@ -85,6 +88,8 @@ namespace rhea
 
 			Scene* source_scene = nullptr;
 			Scene* target_scene = nullptr;
+			uint64_t open_generation = 0;
+			bool starts_new_session = false;
 
 			SceneEntryPoint* entry_point = nullptr;
 			TransitionRequest request;
@@ -101,6 +106,7 @@ namespace rhea
 
 			std::string resource_id;
 			uint64_t session_generation = 0;
+			uint64_t candidate_generation = 0; // if the scene is a candidate for a transition, this is the generation of the transition request that made it a candidate
 
 			// lifecycle management
 			bool lifecycle_managed = false;
@@ -152,13 +158,22 @@ namespace rhea
 
 		using OpenHandler = std::function<void(ErrorReport)>;
 		using LoadSceneHandler = std::function<void(Scene*, ErrorReport)>;
-		using TransitionCompletion = std::function<void(ErrorReport)>;
+		using PrepareCompletion = std::function<void(ErrorReport)>;
 
-		using WorldPrepareHandler = std::function<ErrorReport(WorldPrepareContext*)>;
-		using ScenePrepareHandler = std::function<ErrorReport(ScenePrepareContext*)>;
-		using TransitionHandler = std::function<void(SceneTransitionContext*, TransitionCompletion)>;
+		// asynchronous prepare handlers for world and scene, called before a world or scene is activated, 
+		// and if any of them returns an error, the activation is aborted
+		using WorldPrepareHandler = std::function<void(WorldPrepareContext*, PrepareCompletion)>;
+		using ScenePrepareHandler = std::function<void(ScenePrepareContext*, PrepareCompletion)>;
+		using TransitionPrepareHandler = std::function<void(SceneTransitionContext*, PrepareCompletion)>;
+		using DiscardHandler = std::function<void(uint64_t)>;
+
+		// activation handlers for world and scene activation, synchronous, called while a world or scene is being activated
+		using WorldActivateHandler = std::function<void(WorldPrepareContext*)>;
+		using SceneActivateHandler = std::function<void(ScenePrepareContext*)>;
+		using SceneTransitionActivateHandler = std::function<void(SceneTransitionContext*)>;
 
 		void openWorld(const std::string& resource_id, OpenHandler handler = nullptr);
+		
 		// scene lifecycle management
 		// load a scene without transitioning to it
 		void loadScene(const std::string& resource_id, LoadSceneHandler handler = nullptr);
@@ -170,13 +185,13 @@ namespace rhea
 		// return false if scene was primary scene and cannot be deactivated
 		bool deactivateScene(const std::string& resource_id);
 		bool deactivateScene(const std::string& resource_id, const ResourceContext& context);
+		bool deactivateScene(Scene* scene_to_deactivate);
 		// transition to a scene
 		void transitionToScene(const TransitionRequest& request, OpenHandler handler = nullptr);
 
 		// get current state
 		World* getWorld() const { return m_world; }
 		Scene* getPrimaryScene() const { return m_primary_scene; }
-		State getState() const { return m_state; }
 		bool isPrimaryScene(const Scene* scene) const { return scene == m_primary_scene; }
 
 		// add preparation handlers
@@ -188,57 +203,96 @@ namespace rhea
 		// scene prepare handlers are called once when a scene is loaded, before it is activated
 		void addScenePrepareHandler(ScenePrepareHandler handler) { m_scene_prepare_handlers.push_back(handler); }
 
-		// handler for prepare a scene for activation, called before a scene activated		
-		// add transition handler for scene transition, called before a scene is activated, old and new are intedned as primary scene, 
+		// handler for preparing a scene for activation, called before a scene activated		
+		// add transition handler for scene transition, called before a scene is activated, old and new are intended as primary scene, 
 		// and the transition is aborted if any of the handlers returns an error
-		void addSceneTransitionHandler(TransitionHandler handler) { m_scene_transition_handlers.push_back(handler); }
+		void addSceneTransitionPrepareHandler(TransitionPrepareHandler handler) { m_scene_transition_handlers.push_back(handler); }
+
+		// world and scene activation handlers are called when a world or scene is activated, and if any of them returns an error, the activation is aborted
+		void addWorldActivateHandler(WorldActivateHandler handler) { m_world_activate_handlers.push_back(handler); }
+		void addSceneActivateHandler(SceneActivateHandler handler) { m_scene_activate_handlers.push_back(handler); }
+		void addSceneTransitionActivateHandler(SceneTransitionActivateHandler handler) { m_scene_transition_activate_handlers.push_back(handler); }
+		// discard handlers
+		void addDiscardHandler(DiscardHandler handler) { m_discard_handlers.push_back(handler); }
 
 		// every frame
 		bool onFrame(float delta) override;
 		bool onFrameFinal(float delta) override;
 
 	protected:
+		struct OpenAttempt {
+			uint64_t generation = 0;
+			uint64_t session = 0;
+			World* candidate_world = nullptr;
+			Unit* candidate_root = nullptr;
+			bool finished = false;
+			std::string resource_id;
+
+			bool operator ==(const OpenAttempt& other) const {
+				return generation == other.generation && session == other.session;
+			}
+			bool operator != (const OpenAttempt& other) const {
+				return !(*this == other);
+			}
+		};
+		void finishAttempt(OpenAttempt attempt, ErrorReport report, OpenHandler handler);
+		void cleanupCandidateRoot(OpenAttempt attempt);
+
 		// handle activate and deactivate scene events
 		void onSceneActivate(Scene* scene);
 		void onSceneDeactivate(Scene* scene);
 
-		void beginSession(const ResourceContext& context);
-		void deactivatePreviousSession();
-		void onWorldLoaded(uint64_t open_generation, const std::string request_id, const ResourceContext& context, ErrorReport report, Component* component, OpenHandler handler);
+		void beginSession(const ResourceContext& context, uint64_t next_session_generation);
+		void deactivateSession(uint64_t session_generation);
+		void loadWorld(const std::string& rid, OpenAttempt open_attempt, OpenHandler handler, bool allow_collection = true);
+		void doLoadScene(const std::string& resource_id, World* world, OpenAttempt open_attempt, const ResourceContext& context, LoadSceneHandler handler);
 
-		void loadStartScene(World* world, const ResourceContext& context, uint64_t open_generation, ErrorReport report, OpenHandler handler);
-		// activate loaded scene and make it primary scene
-		void doTransitionScene(Scene* scene, const TransitionRequest& request, ErrorReport report, OpenHandler handler);
+		// internal for open world and scene
+		void onWorldLoaded(OpenAttempt open_attempt, const std::string request_id, const ResourceContext& context, ErrorReport report, Component* component, OpenHandler handler);
+		void startInitialScene(World* world, Scene* scene, const ResourceContext& context, OpenAttempt open_attempt, ErrorReport report, OpenHandler handler);
+		
+		// prepare handlers for world and scene, called before a world or scene is activated, and if any of them returns an error, the activation is aborted
+		void prepareScene(World* world, Scene* next_scene, SceneRole role, Scene* owner_scene, PrepareCompletion complete);
+		void prepareWorld(World* world, Scene* standalone_scene, PrepareCompletion complete);
+		void prepareSceneTransition(World* world, Scene* source_scene, Scene* target_scene, OpenAttempt open_attempt, const TransitionRequest& request,
+			std::function<void(ErrorReport, SceneTransitionContext)> completion);
+		
+		// synchronous activation handlers for world and scene activation, called while a world or scene is being activated, and if any of them returns an error, the activation is aborted
+		void doActivateWorld(World* world, Scene* standalone_scene);
+		void doActivateScene(Scene* scene, SceneRole role, Scene* owner_scene = nullptr);
+		void doActivateSceneTransition(Scene* scene, const TransitionRequest& request, SceneTransitionContext& context, OpenAttempt open_attempt);
 
-		ErrorReport prepareScene(Scene* next_scene, SceneRole role, Scene* owner_scene = nullptr);
-		ErrorReport prepareWorld(World* world, Scene* standalone_scene = nullptr);
-		void prepareSceneTransition(Scene* source_scene, Scene* target_scene, SceneEntryPoint* entry_point, const TransitionRequest& request, TransitionCompletion completion);
-		void prepareSceneTransitionAsync(std::shared_ptr<SceneTransitionContext> context, size_t handlerIndex, TransitionCompletion complete);
-
-		ManagedScene& ensureManagedScene(Scene* scene, std::string resourceId, SceneRole role, Scene* owner = nullptr);
+		ManagedScene& ensureManagedScene(Scene* scene, uint64_t session_generation, std::string resourceId, SceneRole role, Scene* owner = nullptr);
 
 		World* m_world = nullptr;
 
 		// list of active scenes	
 		std::unordered_map<Scene*, ManagedScene> m_managed_scenes;
 		Scene* m_primary_scene = nullptr;
-
-		State m_state = State::Idle;
+		std::string m_active_root_resource_id;
 
 		// prevent stale results from async world load requests
+		OpenAttempt m_open_attempt;
+		std::unordered_map<uint64_t, std::vector<Scene*>> m_candidate_scenes;
+		std::unordered_set<uint64_t> m_finished_attempts;
+
 		uint64_t m_open_generation = 0;
+		// curent active session
 		uint64_t m_session_generation = 0;
+		// the next session id to use for a new openWorld
+		uint64_t m_next_session_generation = 0;
 		ResourceContext m_session_context{};
 
 		// pending scene loads
 		struct SceneLoadKey
 		{
+			uint64_t open_generation;
 			uint64_t session_generation;
 			std::string resource_id;
 
 			bool operator==(const SceneLoadKey& other) const
 			{
-				return session_generation == other.session_generation &&
+				return session_generation == other.session_generation && open_generation == other.open_generation &&
 					resource_id == other.resource_id;
 			}
 		};
@@ -252,7 +306,9 @@ namespace rhea
 		{
 			std::size_t operator()(const SceneLoadKey& key) const
 			{
-				return std::hash<uint64_t>()(key.session_generation) ^ std::hash<std::string>()(key.resource_id);
+				return std::hash<uint64_t>()(key.open_generation) ^ 
+					std::hash<uint64_t>()(key.session_generation) ^ 
+					std::hash<std::string>()(key.resource_id);
 			}
 		};
 
@@ -260,7 +316,12 @@ namespace rhea
 
 		std::vector<ScenePrepareHandler> m_scene_prepare_handlers;
 		std::vector<WorldPrepareHandler> m_world_prepare_handlers;
-		std::vector<TransitionHandler> m_scene_transition_handlers;
+		std::vector<TransitionPrepareHandler> m_scene_transition_handlers;
+
+		std::vector<WorldActivateHandler> m_world_activate_handlers;
+		std::vector<SceneActivateHandler> m_scene_activate_handlers;
+		std::vector<SceneTransitionActivateHandler> m_scene_transition_activate_handlers;
+		std::vector<DiscardHandler> m_discard_handlers;
 	};
 }
 #endif // !RHEA_WORLDSERVICE_H

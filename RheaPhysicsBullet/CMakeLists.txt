@@ -22,7 +22,7 @@ target_include_directories(RheaPhysicsBullet PUBLIC
 
 rhea_require_bullet()
 
-target_link_libraries(RheaPhysicsBullet PRIVATE Rhea::BulletDependencies)
+target_link_libraries(RheaPhysicsBullet PRIVATE Rhea::BulletDependencies rhea::ObjFile)
 
 target_link_libraries(RheaPhysicsBullet PUBLIC Meworla::RheaPhysics Rhea::Core Rhea::Terrain Meworla::Orion Rhea::TinyObj)
 

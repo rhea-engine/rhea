@@ -15,6 +15,7 @@
 #include <tiny_obj_loader/tiny_obj_loader.h>
 #include <Rhea/Components/MeshComponent.h>
 #include <Rhea/Core/Mesh.h>
+#include <Rhea/ObjFile/ObjLoader.h>
 
 bool ExtractTrianglesFromScene(rhea::Application* app, rhea::Item* item, TriangleSoup& out)
 {
@@ -46,35 +47,20 @@ bool ExtractTrianglesFromScene(rhea::Application* app, rhea::Item* item, Triangl
         return false;
     }
 
-    // 3) Mesh unit should have geometry="cube/cube_obj"
-    std::string geoRef;
-    std::string geoBasepathRef;
-    geoRef = meshUnit->getValueString("geometry");
-	geoBasepathRef = meshUnit->getBasePath();
-    if (geoRef.empty()) {
-        LOG(LOG_ERROR) << "ExtractTrianglesFromScene: mesh unit missing 'geometry' ref: " << mc->meshRef().id();
+	// 3) Resolve geometry reference from mesh unit
+    auto* geometry = app->getUnitTree()->resolve(meshUnit->geometryRef());
+    auto* obj_loader = doCast<rhea::ObjLoader>(geometry);
+    if (!obj_loader) {
+        LOG(LOG_ERROR) << "ObjTriangleLoader: geometry is not an OBJ loader: " << meshUnit->geometryRef().id();
         return false;
     }
 
-    // 4) Resolve geometry unit (your ini block [cube/cube_obj], type wavefront)
-    rhea::Unit* geoUnit = doCast<rhea::Unit>(app->getUnitTree()->find(geoRef, geoBasepathRef, false));
-    if (!geoUnit) {
-        LOG(LOG_ERROR) << "ExtractTrianglesFromScene: geometry unit not found: " << geoRef;
-        return false;
-    }
+	// 4) Resolve OBJ resource from ObjLoader
+    const auto& obj_ref = obj_loader->objectRef();
+    auto* obj = app->getUnitTree()->resolve(obj_ref);
 
-    // 5) Geometry unit should have path="//local/cube1.obj"
-    std::string objPathRef;
-    objPathRef = geoUnit->getValueString("path");
-    if (objPathRef.empty()) {
-        LOG(LOG_ERROR) << "ExtractTrianglesFromScene: geometry unit missing 'path': " << geoRef;
-        return false;
-    }
-
-    // 6) Load triangle soup from OBJ (physics-safe parser)
-    rhea::TextResource* obj = (rhea::TextResource*)app->getUnitTree()->find(objPathRef, geoBasepathRef, false);
     if (!obj) {
-        DLOG(LOG_DEBUG) << "Obj not found in objloader. Path was: " << (std::string)objPathRef;
+        LOG(LOG_ERROR) << "ObjTriangleLoader: OBJ resource not found: " << obj_ref.id();
         return false;
     }
 
@@ -127,7 +113,7 @@ bool ExtractTrianglesFromScene(rhea::Application* app, rhea::Item* item, Triangl
     }
    
     if (out.indices.empty() || out.positions.empty()) {
-        LOG(LOG_ERROR) << "ExtractTrianglesFromScene: empty triangle soup for " << objPathRef;
+        LOG(LOG_ERROR) << "ExtractTrianglesFromScene: empty triangle soup for " << obj_loader->objectRef().id();
         return false;
     }
 

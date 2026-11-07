@@ -10,6 +10,7 @@
 
 #include <Rhea/Resources/Resource.h>
 #include "Rhea/Resources/ResourceLoader.h"
+#include <Rhea/Ref.h>
 
 namespace rhea::audio
 {
@@ -41,8 +42,6 @@ namespace rhea::audio
             std::unordered_map<std::string, Variant> values
         );
 
-        std::vector<Unit::ResourceReference> getReferences();
-
         void ready();
 
         static void load(const std::string& name, const std::string& res_id, Application* app, orion::ResourceRequest* req, ResourceContext context, Resource::LoadedHandler);
@@ -54,6 +53,11 @@ namespace rhea::audio
         float durationSeconds = 0.0f;
 
 		void* backend_data = nullptr; // opaque pointer for backend-specific data (e.g., decoded audio buffer or streaming handle)
+
+        static void initializeType(simpleparser::Type* type);
+
+    protected:
+        Ref<AudioResource> m_audio_ref;
     };
 }
 

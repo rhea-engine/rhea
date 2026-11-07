@@ -24,7 +24,7 @@ namespace rhea::audio
 
 		auto path_it = m_values.find("path");
 		if (!m_buf && path_it != m_values.end()) {
-			m_proxy_resource = doCast<Resource>(m_app->getUnitTree()->find(path_it->second.toString(), m_attributes["basepath"], false));
+			m_proxy_resource = m_app->getUnitTree()->resolve(m_audio_ref);
 			if (m_proxy_resource && m_proxy_resource->getSize()) {			
 				m_status = Status::LOADED;
 			}

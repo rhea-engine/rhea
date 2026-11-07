@@ -30,6 +30,10 @@ namespace rhea
 		void resolveReferences(const std::string& context_root, const std::string& source_root);
 		static void initializeType(simpleparser::Type* type);
 		void prepare(PrepareHandler handler) override;
+
+		const Ref<TextResource>& objectRef() const {
+			return m_obj_ref;
+		}
 	
 		struct Vertex {
 			math::Vector3 position;

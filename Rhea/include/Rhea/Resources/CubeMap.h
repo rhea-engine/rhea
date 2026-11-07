@@ -9,6 +9,8 @@
 #define RHEA_FABRICS_CUBEMAP_H
 
 #include "ImageResource.h"
+#include <array>
+#include <vector>
 
 namespace rhea
 {
@@ -23,7 +25,15 @@ namespace rhea
 
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values) override;
 
-		std::vector<Component::ResourceReference> getReferences();
+		std::vector<Component::ResourceReference> getReferences() override;
+		void resolveReferences(
+			const std::string& context_root,
+			const std::string& source_root) override;
+
+		void instanceSetup(
+			Component* source,
+			Component* target,
+			InstantiationContext& context) override;
 
 		void ready() override;
 
@@ -34,6 +44,7 @@ namespace rhea
 		Resource* getImage(int index) override;
 
 	protected:
+		std::array<Ref<ImageResource>, 6> m_cubemap_refs;
 		std::vector<ImageResource*> m_images;
 		bool m_setup;
 	};

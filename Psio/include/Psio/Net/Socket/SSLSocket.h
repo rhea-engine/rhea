@@ -52,6 +52,7 @@ namespace psio
 		SSL* m_ssl;
 		std::unique_ptr <TCPSocket> m_sock;
 		SocketAddress m_addr;
+		bool m_shutdown_initiated = false;
 
 		Socket::CompletionHandler m_connect_complete_handler;
 
@@ -73,6 +74,7 @@ namespace psio
 		int DoTransportCompleted(int result);
 		int DoConnectSSL();
 		int DoSSLConnected(int result);
+		void cleanup_raw_socket();
 	};
 }
 

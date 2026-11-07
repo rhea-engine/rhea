@@ -4,6 +4,7 @@
 #include <Rhea/Application.h>
 #include <Orion/ResourceAddress.h>
 #include <algorithm>
+#include <Rhea/Resources/Resource.h>
 
 void  OpenBrowser::setup(rhea::Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, simpleparser::Variant> values)
 {
@@ -380,23 +381,11 @@ void OpenBrowser::navigateTo(const std::string& location)
 				update();
 			}
 			else {
-				LOG(LOG_ERROR) << "OpenBrowser: failed to resolve location '" << uri << "' with error " << static_cast<int>(err);
-				if (m_status_label) {
-					switch (err) {
-					case orion::Error::RESOURCE_NOT_FOUND:
-						m_status_label->setText("Location not found: " + uri);
-						break;
-					case orion::Error::DATA_INVALID:
-						m_status_label->setText("Invalid data at location: " + uri);
-						break;
-					case orion::Error::NO_AUTH:
-					case orion::Error::NO_ACCESS:
-						m_status_label->setText("No authorization to access location: " + uri);
-						break;
-					default:
-						m_status_label->setText("Failed to load " + uri);
-						break;
-					}
+				rhea::Error error = rhea::translateLoadError(err, uri);
+				LOG(LOG_ERROR) << "OpenBrowser: failed to load '" << uri << 
+					"' Error: " << error.getMessage() << " (" << static_cast<int>(err) << ")";
+				if (m_status_label) {					
+					m_status_label->setText("Failed to load " + uri + ": " + error.getMessage());
 				}
 			}
 			});

@@ -15,6 +15,10 @@
 #include <vector>
 #include <unordered_map>
 #include <string>
+#include <chrono>
+#include <cstdint>
+#include <cstddef>
+#include <cinttypes>
 
 namespace psio
 {
@@ -62,6 +66,7 @@ namespace psio
 			NOT_CONNECTED = -5,
 			FAULT = -6,
 			CONN_RESET = -7,
+			TIMEOUT = -8,
 
 			// 3xx HTTP errors
 
@@ -89,18 +94,38 @@ namespace psio
 			EXCEPT = 4
 		};
 
+		using Clock = std::chrono::steady_clock;
+		using TimerId = std::uint64_t;
+
+		// timer handling
+
+		TimerId scheduleAt(Clock::time_point deadline, std::function<void()> handler);
+		void updateTimer(TimerId id, Clock::time_point deadline);
+		void dispatchExpiredTimers();
+		void cancelTimer(TimerId timer_id);
+
 	protected:
 
 		struct sockitem {
-			SOCKET sock;
-			int flags;
+			SOCKET sock = 0;
+			int flags = 0;
 			CompletionHandler handler;
-			bool once;
+			bool once = false;
+			std::uint64_t watch_id = 0;
 		};
 
 		Engine* m_engine;
 		std::unordered_map<SOCKET, sockitem> m_sockets;
 		std::unordered_map<std::string, std::string> m_settings;
+
+		struct TimerEntry {
+			Clock::time_point deadline;
+			std::function<void()> handler;
+		};
+		std::unordered_map<TimerId, TimerEntry> m_timers;
+		TimerId m_next_timer_id = 1;
+
+		std::uint64_t m_next_watch_id = 1;
 	};
 }
 #endif // !PSIO_NET_NETWORK_H

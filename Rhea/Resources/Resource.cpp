@@ -116,10 +116,28 @@ namespace rhea {
 			code = Code::CANCELED;
 			message = "Resource request was canceled.";
 			break;
+		case orion::Error::SERVER_ERROR:
+			code = Code::RESOURCE_ERROR;
+			message = "Server error occurred while loading resource.";
+			break;
+		case orion::Error::TIMEOUT:
+			code = Code::TIMEOUT;
+			message = "Resource request timed out.";
+			break;
+		case orion::Error::RATE_LIMITED:
+			code = Code::RESOURCE_ERROR;
+			message = "Resource request was rate limited.";
+			break;
+		case orion::Error::UNEXPECTED_RESPONSE:
+			code = Code::RESOURCE_ERROR;
+			message = "Resource request returned an unexpected response.";
+			break;
 		case orion::Error::UNKNOWN_ERROR:
+			code = Code::RESOURCE_ERROR;
 			message = "An unknown resource request error occurred.";
 			break;
 		default:
+			code = Code::RESOURCE_ERROR;
 			message = "Resource loading did not complete successfully.";
 			break;
 		}

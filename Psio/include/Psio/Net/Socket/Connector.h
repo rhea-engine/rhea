@@ -29,6 +29,9 @@ namespace psio
 
 		// return the socket and transfer ownership
 		virtual std::unique_ptr<Socket> GetSocket() = 0;
+
+		// cancel the connection attempt
+		virtual void cancel() = 0;
 	};
 }
 

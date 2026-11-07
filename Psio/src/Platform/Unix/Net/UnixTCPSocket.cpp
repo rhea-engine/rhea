@@ -158,16 +158,19 @@ namespace psio
 				return Network::Err::FAILED;
 			}
 			// register listener
-			m_net->Watch(m_socket, Network::IOFLAG::WRITE | Network::IOFLAG::EXCEPT, true, [&](int result) {
-				if (result & Network::IOFLAG::EXCEPT)
-				result = Network::Err::FAILED;
-				else
-					result = Network::Err::OK;
-			result = DoConnectLoop(result);
+			m_net->Watch(m_socket, Network::IOFLAG::WRITE | Network::IOFLAG::EXCEPT, true, [&](int res) {
+				int socket_error = 0;
+				socklen_t error_size = sizeof(socket_error);
+				if (::getsockopt(m_socket, SOL_SOCKET, SO_ERROR, &socket_error, &error_size) == -1) {
+					socket_error = GetLastError();
+				}
+				int connect_result = socket_error == 0 ? Network::Err::OK : m_net->SysErr(socket_error);
+				
+				int result = DoConnectLoop(connect_result);
 
-			// call callback - this may destroy this class, therefore it must be called last
-			if (result != Network::Err::IO_PENDING)
-				m_connect_complete_handler(result);
+				// call callback - this may destroy this class, therefore it must be called last
+				if (result != Network::Err::IO_PENDING)
+					m_connect_complete_handler(result);
 				});
 			m_next_connect_state = ConnectState::CONNECT_STATE_COMPLETED;
 			return Network::Err::IO_PENDING;

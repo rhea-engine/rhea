@@ -46,4 +46,17 @@ namespace psio
 			});
 		return ret;
 	}
+
+	void SSLConnector::cancel()
+	{
+		if (m_tp_socket) {
+			m_tp_socket->Close();
+		}
+
+		if (m_socket) {
+			m_socket->Close();
+		}
+
+
+	}
 }

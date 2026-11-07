@@ -24,6 +24,8 @@ namespace psio
 		
 		std::unique_ptr<Socket> GetSocket() { return std::move(m_socket); }
 
+		void cancel() override { if (m_socket) m_socket->Close(); }
+
 	protected:
 		Network* m_net;
 		std::unique_ptr<TCPSocket> m_socket;

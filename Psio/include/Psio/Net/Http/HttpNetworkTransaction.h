@@ -21,12 +21,13 @@ namespace psio
 	class HttpNetworkTransaction : public HttpTransaction
 	{
 	public:
-		HttpNetworkTransaction(Engine *engine, std::uint64_t id) :
+		HttpNetworkTransaction(Engine *engine, std::uint64_t id, Network::Clock::time_point header_deadline) :
 			m_engine(engine),
 			m_stream(nullptr),
 			m_user_buf(nullptr),
 			m_user_buf_len(0),
 			m_state(State::HTTP_NONE),
+			m_header_deadline(header_deadline),
 			m_id(id),
 			m_next_state(State::HTTP_NONE)
 		{}
@@ -34,6 +35,8 @@ namespace psio
 
 		int Start(HttpRequest& req, Network::CompletionHandler handler) override;
 		int ReadBody(IOBuffer* buf, size_t chunk_len, Network::CompletionHandler handler) override;
+
+		void cancel() override;
 
 		HttpHeaders* GetHeaders();
 
@@ -75,6 +78,8 @@ namespace psio
 		State m_state;
 		State m_next_state;
 
+		bool m_waiting_for_headers = false;
+
 		std::unique_ptr<HttpStream> m_stream;
 		std::unique_ptr<Connector> m_connector;
 
@@ -89,6 +94,15 @@ namespace psio
 		Engine* m_engine;
 
 		std::uint64_t m_id;
+
+		void cancelHeaderTimer();
+		Network::Clock::time_point m_header_deadline;
+		Network::TimerId m_header_timer_id = 0;
+
+		void cancelBodyTimer();
+		std::chrono::milliseconds m_body_timeout{ 5000 };
+		Network::Clock::time_point m_body_deadline;
+		Network::TimerId m_body_timer_id = 0;
 	};
 }
 

@@ -15,6 +15,24 @@ namespace psio
 {
 	HttpNetworkTransaction::~HttpNetworkTransaction()
 	{
+		cancelHeaderTimer();
+		cancelBodyTimer();
+	}
+
+	void HttpNetworkTransaction::cancelHeaderTimer()
+	{
+		if (m_header_timer_id != 0) {
+			m_engine->getNet()->cancelTimer(m_header_timer_id);
+			m_header_timer_id = 0;
+		}
+	}
+
+	void HttpNetworkTransaction::cancelBodyTimer()
+	{
+		if (m_body_timer_id != 0) {
+			m_engine->getNet()->cancelTimer(m_body_timer_id);
+			m_body_timer_id = 0;
+		}
 	}
 
 	int HttpNetworkTransaction::Start(HttpRequest& req, Network::CompletionHandler handler)
@@ -23,8 +41,30 @@ namespace psio
 		m_next_state = State::HTTP_CREATE_STREAM;
 		m_request = req;
 		m_handler = handler;
-		
+		m_waiting_for_headers = true;
+
+		m_header_timer_id = m_engine->getNet()->scheduleAt(m_header_deadline, [this]() {
+			// check if we are still in the header reading state or already aborted
+			if (m_state == State::HTTP_NONE || !m_waiting_for_headers)
+				return;
+
+			LOG(LOG_ERROR) << "HttpNetworkTransaction #" << m_id << ": Header read timeout";
+
+			auto handler = std::move(m_handler);
+			m_state = State::HTTP_NONE;
+			m_next_state = State::HTTP_NONE;
+			cancel();
+
+			if (handler)
+				handler(Network::Err::TIMEOUT);
+			else
+				LOG(LOG_ERROR) << "HttpNetworkTransaction #" << m_id << ": No handler set after timeout";
+			});
+
 		int ret = DoLoop(Network::Err::OK);
+		if (ret != Network::Err::IO_PENDING) {
+			cancelHeaderTimer();
+		}
 
 		return ret;
 	}
@@ -101,7 +141,7 @@ namespace psio
 			default:
 				break;
 			}
-				
+
 		} while ((m_error != Network::Err::IO_PENDING) && (m_state != State::HTTP_NONE));
 
 		return m_error;
@@ -112,7 +152,7 @@ namespace psio
 		m_next_state = State::HTTP_CREATE_STREAM_COMPLETE;
 		std::string host = m_request.url.hostname();
 		unsigned short port = m_request.url.port();
-		
+
 		// check if scheme is defined
 		std::string scheme = m_request.url.scheme();
 
@@ -200,6 +240,7 @@ namespace psio
 	int HttpNetworkTransaction::DoReadHeadersComplete(int result)
 	{
 		// end of the start part of the state machine
+		m_waiting_for_headers = false;
 		return result;
 	}
 
@@ -207,15 +248,47 @@ namespace psio
 	{
 		if (result == Network::Err::OK) {
 			m_next_state = State::HTTP_READ_BODY_COMPLETED;
-			return m_stream->ReadBody(m_user_buf, m_user_buf_len, [&](int result) {
+			m_body_deadline = Network::Clock::now() + m_body_timeout;
+			m_body_timer_id = m_engine->getNet()->scheduleAt(m_body_deadline, [this]() {
+				// check if we are still in the body reading state or already aborted
+				if (m_state != State::HTTP_READ_BODY)
+					return;
+				LOG(LOG_ERROR) << "HttpNetworkTransaction #" << m_id << ": Body read timeout";
+				auto handler = std::move(m_handler);
+				m_state = State::HTTP_NONE;
+				m_next_state = State::HTTP_NONE;
+				cancel();
+				if (handler)
+					handler(Network::Err::TIMEOUT);
+				else
+					LOG(LOG_ERROR) << "HttpNetworkTransaction #" << m_id << ": No handler set after timeout";
+				});
+			m_stream->setBodyProgressHandler([this](size_t bytes_read) {
+				if (m_body_timer_id == 0 || bytes_read == 0)
+					return;
+				m_body_deadline = Network::Clock::now() + m_body_timeout;
+				m_engine->getNet()->updateTimer(m_body_timer_id, m_body_deadline);
+				});
+			int result = m_stream->ReadBody(m_user_buf, m_user_buf_len, [&](int result) {
 				CallDoLoop(result);
 				});
+			if (result != Network::Err::IO_PENDING) {
+				cancelBodyTimer();
+			}
+			return result;
+		}
+		else if (result == Network::Err::IO_PENDING) {
+			m_next_state = State::HTTP_READ_BODY;
+		}
+		else {
+			m_next_state = State::HTTP_NONE;
 		}
 		return result;
 	}
 
 	int HttpNetworkTransaction::DoReadBodyComplete(int result)
 	{
+		cancelBodyTimer();
 		if (result == Network::Err::OK) {
 			m_next_state = State::HTTP_REQUEST_COMPLETED;
 		}
@@ -229,12 +302,25 @@ namespace psio
 		}
 		return result;
 	}
-	
+
 	void HttpNetworkTransaction::CallDoLoop(int result)
 	{
 		int res = DoLoop(result);
-		if ((res != Network::Err::IO_PENDING) && (m_handler != NULL))
+		if ((res != Network::Err::IO_PENDING) && (m_handler != NULL)) {
+			cancelHeaderTimer();
 			m_handler(res);
+		}
+	}
 
+	void  HttpNetworkTransaction::cancel()
+	{
+		if (m_connector) {
+			m_connector->cancel();
+		}
+		if (m_stream) {
+			m_stream->cancel();
+		}
+		cancelHeaderTimer();
+		cancelBodyTimer();
 	}
 }

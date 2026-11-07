@@ -300,15 +300,7 @@ namespace orion
 			}
 			m_effective_address = effective_address_result.address;
 			int code = resp->GetResponseCode();
-			Error err = Error::OK;
-			if (code == 404)
-				err = Error::RESOURCE_NOT_FOUND;
-			else if (code == 403)
-				err = Error::NO_ACCESS;
-			else if (code == 401)
-				err = Error::NO_AUTH;
-			else if (code < 200 || code >= 300)
-				err = Error::DATA_INVALID;
+			Error err = translateHttpStatus(code);
 			onIOComplete(err);
 			});
 		m_request->OnError([&](int err) {

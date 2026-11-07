@@ -81,6 +81,14 @@ namespace psio
 		void CallDoLoop(int result);
 		static size_t LocateEndOfHeadersHelper(const char* buf, size_t buf_len, size_t i, bool accept_empty_header_list);
 
+		/* Cancels the current operation and closes the stream
+		*/
+		void cancel();
+
+		using BodyProgressHandler = std::function<void(size_t)>;
+
+		void setBodyProgressHandler(BodyProgressHandler handler) { m_body_progress_handler = handler; }
+
 	protected:
 		enum class State {
 			HTTPSTREAM_NONE,
@@ -139,6 +147,8 @@ namespace psio
 		size_t m_sent_bytes;
 		size_t m_received_bytes;
 		size_t m_response_bytes_read;
+
+		BodyProgressHandler m_body_progress_handler = nullptr;
 
 		// position of status line
 		size_t m_headers_start;

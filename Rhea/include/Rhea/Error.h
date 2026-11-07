@@ -32,7 +32,8 @@ namespace rhea
 			DEPENDENCY_FAILED,
 			CANCELED,
 			UNAVAILABLE,
-			RESOURCE_ERROR
+			RESOURCE_ERROR,
+			TIMEOUT
 		};
 
 		struct Context

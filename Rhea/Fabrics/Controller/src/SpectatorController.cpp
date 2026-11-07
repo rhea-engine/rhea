@@ -25,6 +25,12 @@ namespace rhea
 		m_side_step = getValue("side_step", 0.5f);
 	}
 
+	void SpectatorController::onDeactivate()
+	{
+		setCamera(nullptr);
+		BasicController::onDeactivate();		
+	}
+
 	bool SpectatorController::onInput(Event* ev, Unit* unit)
 	{
 		// safety check

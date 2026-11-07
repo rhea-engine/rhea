@@ -58,7 +58,15 @@ namespace rhea
 		auto it = m_backend_creators.find(backend_id);
 		if (it == m_backend_creators.end()) return nullptr;		
 
-		m_phy_service = it->second(m_app);         // m_app from Service base
+		auto phy_service = it->second(m_app);         // m_app from Service base
+		if (!phy_service) return nullptr;
+
+		if (m_phy_service) {
+			m_phy_service->shutdown();
+			m_phy_service.reset();
+		}
+
+		m_phy_service = std::move(phy_service);         // m_app from Service base
 		m_phy_service->setup(m_app);
 
 		// forward all already registered component creators
@@ -76,20 +84,20 @@ namespace rhea
 		// register in worldservice to be called during world prepare
 		WorldService* world_service = doCast<WorldService>(m_app->getService("world"));
 		if (world_service) {
-			world_service->addWorldPrepareHandler([this](rhea::WorldService::WorldPrepareContext* context) -> rhea::Error {
+			world_service->addWorldActivateHandler([this](rhea::WorldService::WorldPrepareContext* context) -> rhea::Error {
 				
 				// initialize physics
 
 				std::string backend = "none";
-				if (!context || (!context->world) && (!context->standaloneScene)) {
+				if (!context || (!context->world) && (!context->standalone_scene)) {
 					LOG(LOG_ERROR) << "WorldService has no world and no scene. Physics will be disabled.";
 					return rhea::Error(rhea::Error::Code::UNAVAILABLE, "WorldService has no world and no scene. Physics will be disabled.");
 				}
 				std::string phy = "none";
 				if (context->world)
 					phy = context->world->getValueString("physics", "none");
-				else if (context->standaloneScene)
-					phy = context->standaloneScene->getValueString("physics", "none");
+				else if (context->standalone_scene)
+					phy = context->standalone_scene->getValueString("physics", "none");
 				if (phy == std::string("world") || phy == std::string("bullet")) {
 					backend = "world";
 				}

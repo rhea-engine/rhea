@@ -30,6 +30,10 @@ namespace rhea::physics
 			rhea::PhysicsService(name, type_name)
 		{
 		}
+		void shutdown() override
+		{
+			// nothing to do
+		}
 
 		// process physics with delta seconds (usually 1/60)
 		void onPhysicsStep(float delta) override;

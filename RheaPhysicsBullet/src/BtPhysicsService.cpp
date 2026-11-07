@@ -37,6 +37,32 @@ namespace rhea::physics::bullet
 	{
 	}
 
+	BulletPhysicsService::~BulletPhysicsService()
+	{
+		shutdown();
+	}
+
+	void BulletPhysicsService::shutdown()
+	{
+		auto* tree = m_app->getUnitTree();
+		tree->unregisterEventHandler("scene_activate", this);
+		tree->unregisterEventHandler("scene_deactivate", this);
+
+		while (!m_scene_states.empty()) {
+			auto* scene = m_scene_states.begin()->first;
+			deactivateScene(scene);
+		}
+
+		if (m_world) {
+			delete m_world;
+			m_world = nullptr;
+		}
+		if (m_debug_drawer) {
+			delete m_debug_drawer;
+			m_debug_drawer = nullptr;
+		}
+	}
+
 	struct GhostContactResult : public btCollisionWorld::ContactResultCallback
 	{
 		bool hasContact = false;
@@ -385,6 +411,7 @@ namespace rhea::physics::bullet
 			activateScene(doCast<rhea::Scene>(ev->getTarget()));
 			return false;
 			});
+		
 		m_app->getUnitTree()->registerEventHandler("scene_deactivate", this, [&](rhea::Event* ev, rhea::Unit* tree)->bool {
 			deactivateScene(doCast<rhea::Scene>(ev->getTarget()));
 			return false;

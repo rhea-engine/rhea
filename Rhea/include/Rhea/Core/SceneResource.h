@@ -106,10 +106,14 @@ namespace rhea
 		// dependencies required for synchronous instantiation.
 		void prepare(PrepareHandler handler) override;
 
-		Unit* spawnPrepared(
-			Unit* parent,
-			const std::string& name,
-			ErrorReport* error = nullptr);
+		// spawn a prepared instance, or return an error if not prepared
+		// the instance is not ready and will not be ready until ready() is called
+		Unit* spawnPrepared(const std::string& name, ErrorReport* error = nullptr);
+
+		// spawn a prepared instance, or return an error if not prepared
+		// the instance is not ready and will not be ready until ready() is called but is attached
+		// to the parent and will be destroyed if the parent is destroyed
+		Unit* spawnPrepared(Unit* parent, const std::string& name, ErrorReport* error = nullptr);
 
 		// Build a complete detached tree without calling ready().
 		void buildInstance(const InstanceRequest& request, InstanceHandler handler) override;

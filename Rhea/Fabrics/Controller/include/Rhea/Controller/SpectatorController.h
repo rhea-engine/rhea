@@ -29,6 +29,8 @@ namespace rhea
 
 		void ready() override;
 
+		void onDeactivate() override;
+
 		void setCamera(Camera* camera);
 		Camera* getCamera() const { return m_view; }
 

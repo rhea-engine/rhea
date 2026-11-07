@@ -29,7 +29,8 @@ namespace rhea
     public:
         PhysicsService(std::string name, std::string type_name)
             : Service(std::move(name), std::move(type_name)) {
-        }       
+        }
+        virtual void shutdown() = 0;
 
         virtual void activateScene(Scene* scene) = 0;
 		virtual void deactivateScene(Scene* scene) = 0;

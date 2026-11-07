@@ -13,7 +13,11 @@
 #include <Psio/Net/Network.h>
 #include <Psio/IPC/IO.h>
 #include <Psio/Fs/Fs.h>
-#include "Net/NullNetwork.h"
+#if defined(_WIN32)
+#include "../Win32/Net/Win32Network.h"
+#else
+#include "../Unix/Net/UnixNetwork.h"
+#endif
 #include "Window/SDLClipboard.h"
 
 #include <SDL3/SDL.h>
@@ -52,7 +56,11 @@ namespace psio
 
     std::unique_ptr<Network> SDLBackend::CreateNetwork(Engine* engine)
     {
-        return std::make_unique<NullNetwork>(engine);
+#if defined(_WIN32)
+        return std::make_unique<NetworkWin32>(engine);
+#else
+        return std::make_unique<NetworkUnix>(engine);
+#endif
     }
 
     std::unique_ptr<IO> SDLBackend::CreateIO(Engine* engine)

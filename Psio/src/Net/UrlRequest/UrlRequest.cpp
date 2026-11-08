@@ -84,9 +84,10 @@ namespace psio
 				DLOG(LOG_DEBUG) << "URLREQ #" << m_id << " OnTransaction: Received no Header";
 
 			// check if redirect requested
-			if (response_code == 301 || response_code == 302 ||
+			if (m_follow_redirects && 
+				(response_code == 301 || response_code == 302 ||
 				response_code == 307 || response_code == 308 ||
-				response_code == 303)
+				response_code == 303))
 			{
 				std::string new_loc = (*headers)["Location"];
 				

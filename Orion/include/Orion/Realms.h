@@ -14,6 +14,7 @@
 #include <functional>
 #include <ctime>
 #include <string>
+#include <cstdint>
 
 #include <Orion/Realm.h>
 #include <Orion/Event.h>
@@ -67,7 +68,10 @@ namespace orion
 		Error getRealmCached(std::string name, Realm& realm);
 
 		// get realm asynchronously from server
-		Error getRealm(std::string name, ResolveHandler handler);
+		Error getRealm(std::string name, uint64_t& generation, ResolveHandler handler);
+
+		// cancel a pending resolve request
+		void cancelResolve(std::string name, uint64_t generation);
 
 		// add realm to realm list
 		void addRealm(const Realm& realm);
@@ -78,19 +82,26 @@ namespace orion
 		// get realm by physical path
 		Realm* getRealmByPath(const std::string& physical_directory);
 
+		// load resolver config from the file path, which contains a list of base urls to query for realm resolution
+		bool loadResolverConfig(const std::string& path);
+
 	protected:
 		Orion* m_orion;
 
-		void LoadIrisServers();
-		RealmConfigDiagnostic LoadFileRealms(const std::string& path, std::unordered_map<std::string, Realm>& target);
+		struct ResolveHandlerDesc {
+			ResolveHandler handler;
+			uint64_t generation;
+		};
+		
+		RealmConfigDiagnostic loadFileRealms(const std::string& path, std::unordered_map<std::string, Realm>& target);
 
 		struct resolving {
 			RealmRequest* request;
-			std::vector<ResolveHandler> handlers;
+			std::vector<ResolveHandlerDesc> handlers;
 		};
 
 		std::unordered_map<std::string, resolving> m_requests;
-		std::deque<std::string> m_iris_services;
+		std::deque<std::string> m_resolve_paths;
 
 		// Permanent mappings read from configuration files.
 		std::unordered_map<std::string, Realm> m_config_realms;
@@ -102,6 +113,9 @@ namespace orion
 		std::unordered_map<std::string, Realm> m_project_realms;
 
 		std::vector<RealmConfigFile> m_config_files;
+
+		// request generation counter
+		uint64_t m_request_generation = 0;
 	};
 }
 

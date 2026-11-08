@@ -23,7 +23,7 @@ namespace orion
 	{
 	public:
 
-		RealmRequest(Orion* orion, std::deque<std::string>& iris);
+		RealmRequest(Orion* orion, std::deque<std::string>& resolve_paths);
 		~RealmRequest();
 
 		typedef std::function<void(Realm*, orion::Error error)> RealmHandler;
@@ -31,10 +31,10 @@ namespace orion
 		// Lookup a realm - call handler with realm or error
 		// the realm is not allocated and will be freed on destruction of the client
 		// (the iris client is used by the cache system?)
-		void Lookup(std::string realm_name, RealmHandler handler);
+		Error lookup(std::string realm_name, RealmHandler handler);
 
 		// Cancel the current request
-		void Cancel();
+		void cancel();
 
 	protected:
 
@@ -46,7 +46,7 @@ namespace orion
 
 		Orion* m_orion;
 
-		std::deque<std::string> m_iris;
+		std::deque<std::string> m_resolve_paths;
 	};
 }
 

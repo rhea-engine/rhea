@@ -165,10 +165,9 @@ namespace rhea
 		std::unordered_map<std::string, Component*> instances;
 		std::vector<PendingUnitConfig> pending_configs;
 		std::vector<PendingSceneInstance> pending_instances;
-		const ResourceContext context{ m_context_root, m_scene_root };
-		ResourceList resources(m_app, context);
+		ResourceList resources(m_app, m_context);
 		std::vector<PendingSceneInstance> ready_instances;
-		ResourceList ready_resources(m_app, context);
+		ResourceList ready_resources(m_app, m_context);
 
 		// check types
 		ErrorReport type_error;
@@ -286,7 +285,7 @@ namespace rhea
 		}
 
 		ErrorReport references_error;
-		auto collect_references = [this, &context, &request, &instances, &resources, &pending_instances, &ready_resources, &ready_instances, &references_error](
+		auto collect_references = [this, &request, &instances, &resources, &pending_instances, &ready_resources, &ready_instances, &references_error](
 			const std::string& owner_id, Component* owner)->bool {
 				for (const auto& reference : owner->getReferences()) {
 					const std::string id = reference.value.toString();
@@ -325,7 +324,7 @@ namespace rhea
 					}
 					else {
 						// Logical address for loading.
-						if (!context.normalizeResourceId(id, resolved_id)) {
+						if (!m_context.normalizeResourceId(id, resolved_id)) {
 							Error error(
 								Error::Code::INVALID_DATA,
 								resolved_id, // the current API returns the error text here.
@@ -384,7 +383,7 @@ namespace rhea
 		size_t owner_index = 0;
 		bool references_valid = !references_error.isError();
 		root->traverse([&](std::string& name, Component* component)->bool {
-			component->resolveReferences(m_context_root, m_scene_root);
+			component->resolveReferences(m_context.context_root, m_context.source_directory);
 
 			if (!references_valid)
 				return false;

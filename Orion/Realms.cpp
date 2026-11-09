@@ -113,6 +113,11 @@ namespace orion
 
 		while (!res->eof()) {
 			std::string s = res->getLine();
+			const auto last = s.find_last_not_of(" \t\r\n");
+			if (last == std::string::npos)
+				s.clear();
+			else
+				s.erase(last + 1);
 			line_number++;
 
 			// remove leading whitespace

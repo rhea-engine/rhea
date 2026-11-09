@@ -9,6 +9,7 @@ namespace rhea
     struct ResourceContext {
         std::string context_root;
         std::string source_directory;
+		std::string realm_alias;
 
 		// normalize rid to absolute path based on context_root and source_directory
 		bool normalizeResourceId(const std::string& rid, std::string& address) const {
@@ -22,7 +23,21 @@ namespace rhea
 				if (!result.success)
 					return fail(result.error.message);
 
-				address = result.address.toString();
+				const auto& target = result.address;
+				if (target.scheme() != orion::AddressScheme::Realm || realm_alias.empty() || target.authority() != realm_alias) {
+					address = target.toString();
+					return true;
+				}
+
+				const auto root = orion::ResourceAddress::parse(context_root);
+				if (!root.success || root.address.scheme() != orion::AddressScheme::Realm)
+					return fail("Realm alias requires a realm project root");
+
+				const auto bound = orion::ResourceAddress::parse("realm://" + root.address.authority() + target.path());
+				if (!bound.success)
+					return fail(bound.error.message);
+
+				address = bound.address.toString();
 				return true;
 				};
 

@@ -8,16 +8,47 @@
 #include <Psio/Net/UrlRequest/UrlResponse.h>
 #include <cassert>
 #include <Psio/Net/Http/HttpTransaction.h>
+#include <Psio/Log.h>
 
 // Chunk size is 64 kB
 #define CHUNK_SIZE 64 * 1024 
 
 namespace psio
 {
+	UrlResponse::UrlResponse(HttpTransaction* transaction, Url url, int response_code) :
+	m_transaction(transaction),
+		m_buffer(nullptr),
+		m_response_code(response_code),
+		m_size(0),
+		m_content_length(0),
+		m_effective_url(url)
+	{
+		m_state = StreamState::STREAM_OPEN;
+
+		HttpHeaders* headers = m_transaction->GetHeaders();
+		if (headers && headers->HasHeader("content-length")) {
+			try {
+				m_content_length = std::stoull((*headers)["content-length"]);
+			}
+			catch (const std::exception& e) {
+				LOG(LOG_ERROR) << "UrlResponse: Invalid content-length header: " << (*headers)["content-length"];
+				m_content_length = 0;
+			}
+		}
+		if (headers && headers->HasHeader("content-type")) {
+			m_content_type = (*headers)["content-type"];
+		}
+	}
+
 	UrlResponse::~UrlResponse()
 	{
 	}
 
+	HttpHeaders* UrlResponse::GetHeaders()
+	{
+		return m_transaction->GetHeaders();
+	}
+	
 	size_t UrlResponse::Push(char* chunk, size_t size)
 	{
 		if (m_buffer) {

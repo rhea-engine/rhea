@@ -246,7 +246,7 @@ namespace rhea
 		void beginSession(const ResourceContext& context, uint64_t next_session_generation);
 		void deactivateSession(uint64_t session_generation);
 		void releaseSession(uint64_t session_generation, Unit* session_root);
-		void loadWorld(const std::string& rid, OpenAttempt open_attempt, OpenHandler handler, bool allow_collection = true);
+		void loadWorld(const std::string& rid, const std::string& realm_alias, OpenAttempt open_attempt, OpenHandler handler, bool allow_collection = true);
 		void doLoadScene(const std::string& resource_id, World* world, OpenAttempt open_attempt, const ResourceContext& context, LoadSceneHandler handler);
 
 		// internal for open world and scene
@@ -265,6 +265,14 @@ namespace rhea
 		void doActivateSceneTransition(Scene* scene, const TransitionRequest& request, SceneTransitionContext& context, OpenAttempt open_attempt);
 
 		ManagedScene& ensureManagedScene(Scene* scene, uint64_t session_generation, std::string resourceId, SceneRole role, Scene* owner = nullptr);
+
+		struct PreparedWorld {
+			std::string load_rid;
+			std::string public_realm;   // e.g. "world1"; empty for unchanged addresses
+			std::string project_realm;  // e.g. "project-realm-8"
+		};
+		using PrepareWorldHandler = std::function<void(PreparedWorld, ErrorReport)>;
+		void prepareWorldAddress(const std::string& rid, uint64_t& lookup_generation, PrepareWorldHandler handler);
 
 		World* m_world = nullptr;
 

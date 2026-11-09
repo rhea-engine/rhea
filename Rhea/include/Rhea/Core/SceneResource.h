@@ -14,6 +14,7 @@
 #include <vector>
 #include <functional>
 #include <string>
+#include <Rhea/Resources/ResourceContext.h>
 
 namespace rhea
 {
@@ -51,11 +52,10 @@ namespace rhea
 			return m_definition;
 		}
 
-		void setDefinition(SceneDefinition definition, const std::string& scene_root, const std::string& context_root, const std::string& source_resource_id)
+		void setDefinition(SceneDefinition definition, const ResourceContext& context, const std::string& source_resource_id)
 		{
 			m_definition = std::move(definition);
-			m_scene_root = scene_root;
-			m_context_root = context_root;
+			m_context = context;
 			m_source_resource_id = source_resource_id;
 			// get base of the resource id for relative references
 			if (source_resource_id.empty()) {
@@ -74,14 +74,16 @@ namespace rhea
 
 		const std::string& getSourceResourceId() const { return m_source_resource_id; }
 
+		ResourceContext getResourceContext() const { return m_context; }
+
 		std::string getSceneRoot() const
 		{
-			return m_scene_root;
+			return m_context.source_directory;
 		}
 
 		std::string getContextRoot() const
 		{
-			return m_context_root;
+			return m_context.context_root;
 		}
 
 		std::string getBaseId() const
@@ -121,8 +123,7 @@ namespace rhea
 	private:
 		SceneDefinition m_definition;
 		std::string m_source_resource_id; // Resolved source file, independent of instance names.
-		std::string m_scene_root; // Directory of this scene file
-		std::string m_context_root; // Root inherited from the entry context
+		ResourceContext m_context; // Directory of this scene file
 		std::string m_base_id; // Base resource id for relative resource references
 
 		struct PendingSceneInstance {

@@ -15,19 +15,12 @@
 namespace psio
 {
 	class HttpTransaction;
+	class HttpHeaders;
 
 	class UrlResponse : public Stream
 	{
 	public:
-		UrlResponse(HttpTransaction* transaction, Url url, int response_code) :
-			m_transaction(transaction),
-			m_buffer(nullptr),
-			m_response_code(response_code),
-			m_size(0),
-			m_effective_url(url)
-		{
-			m_state = StreamState::STREAM_OPEN;
-		}
+		UrlResponse(HttpTransaction* transaction, Url url, int response_code);
 		~UrlResponse();
 
 		// send chunk to listeners
@@ -40,18 +33,23 @@ namespace psio
 		void SetMode(int mode) {}
 
 		int GetResponseCode() {	return m_response_code;	}
+		std::string getContentType() const { return m_content_type; }
 
 		size_t getLength() { return m_size; }
 
 		Url getEffectiveUrl() { return m_effective_url; }
 		void setEffectiveUrl(Url url) { m_effective_url = url; }
 
+		HttpHeaders* GetHeaders();
+
 	protected:
 		HttpTransaction* m_transaction;
 		IOBuffer* m_buffer;
 		int m_response_code;
 		size_t m_size;
-		Url m_effective_url;
+		size_t m_content_length;
+		std::string m_content_type;
+		Url m_effective_url;		
 
 		// read one more chunk
 		void doReadDataLoop();

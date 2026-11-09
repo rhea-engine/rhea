@@ -40,6 +40,7 @@ namespace psio
 
 		std::uint64_t id() const { return m_id; }
 		void setHeaderTimeout(std::chrono::milliseconds timeout) { m_header_timeout = timeout; }
+		void setFollowRedirects(bool follow) { m_follow_redirects = follow; }
 
 		// callbacks
 		typedef std::function<void(UrlResponse*)> ResponseHandler;
@@ -68,6 +69,7 @@ namespace psio
 		UrlResponse* m_response;
 
 		std::chrono::milliseconds m_header_timeout{ 5000 };
+		bool m_follow_redirects = true;
 
 		// timeout
 		Network::Clock::time_point m_header_deadline;

@@ -17,6 +17,7 @@
 #include <Rhea/Core/SceneResource.h>
 #include <memory>
 #include <Rhea/Core/Async.h>
+#include <Orion/Realms.h>
 
 namespace rhea
 {
@@ -41,16 +42,84 @@ namespace rhea
 			return;
 		}
 
+		const auto parsed = orion::ResourceAddress::parse(rid.compare(0, 2, "//") == 0 ? "realm:" + rid : rid);
+		if (!parsed.success) {
+			if (handler)
+				handler(Error(Error::Code::INVALID_DATA, parsed.error.message, rid));
+			return;
+		}
+
 		m_open_attempt = {
 			++m_open_generation,
 			++m_next_session_generation
 		};
-		loadWorld(rid, m_open_attempt, handler);
+
+		const auto& address = parsed.address;
+		const auto realm_name = address.authority();
+
+		auto complete = [this, rid, attempt = m_open_attempt, address, handler](orion::Realm realm, orion::Error error) {
+			if (attempt != m_open_attempt) {
+				finishAttempt(attempt, Error(Error::Code::CANCELED, "Request canceled", rid), handler);
+				return;
+			}
+			if (error != orion::Error::OK) {
+				finishAttempt(attempt, translateLoadError(error, rid), handler);
+				return;
+			}
+			if (realm.getType() != orion::Realm::RealmType::URL || realm.getResourceUrl().empty())
+			{
+				loadWorld(rid, {}, attempt, handler);
+				return;
+			}
+			const auto base = orion::ResourceAddress::parse(realm.getResourceUrl());
+			if (!base.success) {
+				finishAttempt(attempt, Error(Error::Code::INVALID_DATA, base.error.message, rid), handler);
+				return;
+			}
+			const auto project_realm = m_app->getFS()->getOrCreateProjectRealm(base.address);
+			if (project_realm.empty()) {
+				finishAttempt(attempt, Error(Error::Code::INVALID_DATA, "Remote realm base URL must identify a directory", rid), handler);
+				return;
+			}
+			std::string resource_id = "realm://" + project_realm + address.path();
+			loadWorld(resource_id, address.authority(), attempt, handler);
+			};
+
+		// Direct URLs and built-in local addresses keep their existing load path.
+		if (address.scheme() != orion::AddressScheme::Realm || realm_name == "local" || realm_name == "file") {
+			loadWorld(rid, {}, m_open_attempt, handler);
+			return;
+		}
+
+		auto* fs = m_app->getFS();
+		auto* realms = fs->getRealms();
+
+		// if not cached assume a new context
+		orion::Realm cached;
+		const auto cache_result = realms->getRealmCached(realm_name, cached);
+		if (cache_result == orion::Error::OK) {
+			complete(cached, {});
+			return;
+		}
+		uint64_t lookup_generation = 0;
+
+		const auto status = realms->getRealm(realm_name, lookup_generation, complete);
+		if (status == orion::Error::REALM_NOT_FOUND) {
+			finishAttempt(m_open_attempt, Error(Error::Code::NOT_FOUND, "Realm " + address.authority() + " not found", rid), handler);
+			return;
+		}
+		else if (status != orion::Error::IO_PENDING) {
+			finishAttempt(m_open_attempt, Error(Error::Code::INVALID_DATA, "Realm " + address.authority() + " could not be loaded", rid), handler);
+			return;
+		}
 	}
 
-	void WorldService::loadWorld(const std::string& rid, OpenAttempt open_attempt, OpenHandler handler, bool allow_collection)
+
+	void WorldService::loadWorld(const std::string& rid, const std::string& realm_alias, OpenAttempt open_attempt, OpenHandler handler, bool allow_collection)
 	{
-		m_app->loadResource(rid, "//meworla/world", [this, rid, open_attempt, handler, allow_collection](Component* component, ErrorReport report) {
+		ResourceContext context;
+		context.realm_alias = realm_alias;
+		m_app->loadResource(rid, context, "//meworla/world", [this, rid, realm_alias, open_attempt, handler, allow_collection](Component* component, ErrorReport report) {
 			if (open_attempt != m_open_attempt) {
 				report.addError(Error(Error::Code::CANCELED, "Request canceled"));
 				finishAttempt(open_attempt, std::move(report), handler);
@@ -67,10 +136,7 @@ namespace rhea
 					return;
 				}
 				m_open_attempt.resource_id = source_id;
-				const ResourceContext context{
-					scene_resource->getContextRoot(),
-					scene_resource->getSceneRoot(),
-				};
+				ResourceContext context = scene_resource->getResourceContext();
 				// instance the world
 				Unit* parent = doCast<Unit>(m_app->getUnitTree()->find(scene_resource->getBaseId()));
 				scene_resource->spawn(parent, [this, rid, open_attempt, report, handler, context](ErrorReport result, Unit* unit) mutable {
@@ -100,7 +166,7 @@ namespace rhea
 				if (!request_id.empty() && request_id.back() == '/')
 					request_id.pop_back();
 				request_id += "/world.scene";
-				loadWorld(request_id, open_attempt, handler, false);
+				loadWorld(request_id, realm_alias, open_attempt, handler, false);
 				return;
 			}
 			else {

@@ -50,6 +50,10 @@ namespace orion
 		m_stream.reset();
 		if (m_request)
 			delete m_request;
+
+		if (m_orion && m_realm_request_generation > 0) {
+			m_orion->getRealms()->cancelResolve(m_realm_name, m_realm_request_generation);
+		}
 	}
 
 	void orion::ResourceRequest::setAddress(ResourceAddress address)
@@ -208,8 +212,9 @@ namespace orion
 		}
 
 		// get data from realms manager via lookup
-		Error ret = m_orion->getRealms()->getRealm(m_realm_name, [&](Realm realm, orion::Error error) {
+		Error ret = m_orion->getRealms()->getRealm(m_realm_name, m_realm_request_generation, [this](Realm realm, orion::Error error) {
 			// got a result
+			m_realm_request_generation = 0;
 			if (error == orion::Error::OK) {
 				m_realm_resolved = true;
 				m_realm = realm;
@@ -217,10 +222,7 @@ namespace orion
 			}
 			onIOComplete(error);
 			});
-		if (ret == Error::OK)
-			return Error::OK;
-		else
-			return Error::IO_PENDING;
+		return ret;
 	}
 
 	Error ResourceRequest::doResolveRealmCompleted(Error result)

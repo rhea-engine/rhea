@@ -119,6 +119,7 @@ namespace orion
 		bool m_realm_resolved = false;
 		std::unique_ptr<ResourceStream> m_stream;
 		Error m_error = Error::OK;
+		uint64_t m_realm_request_generation = 0;
 
 		int m_request_type = 0;
 

@@ -15,8 +15,7 @@
 namespace orion
 {
 	Realms::Realms(Orion* orion) : m_orion(orion)
-	{
-		LoadIrisServers();
+	{		
 	}
 
 	RealmConfigResult Realms::loadConfigFiles(const std::vector<RealmConfigFile>& files)
@@ -28,7 +27,7 @@ namespace orion
 		std::unordered_map<std::string, Realm> next_realms;
 
 		for (const RealmConfigFile& file : files) {
-			RealmConfigDiagnostic diag = LoadFileRealms(file.path, next_realms);
+			RealmConfigDiagnostic diag = loadFileRealms(file.path, next_realms);
 
 			if (diag.error == RealmConfigError::None)
 				continue;
@@ -97,7 +96,7 @@ namespace orion
 		return Error::PATH_NOT_FOUND;
 	}
 
-	RealmConfigDiagnostic Realms::LoadFileRealms(const std::string& path, std::unordered_map<std::string, Realm>& target)
+	RealmConfigDiagnostic Realms::loadFileRealms(const std::string& path, std::unordered_map<std::string, Realm>& target)
 	{
 		RealmConfigDiagnostic diag{};
 		
@@ -114,6 +113,11 @@ namespace orion
 
 		while (!res->eof()) {
 			std::string s = res->getLine();
+			const auto last = s.find_last_not_of(" \t\r\n");
+			if (last == std::string::npos)
+				s.clear();
+			else
+				s.erase(last + 1);
 			line_number++;
 
 			// remove leading whitespace
@@ -152,55 +156,79 @@ namespace orion
 		return diag;
 	}
 
-	Error Realms::getRealm(std::string name, ResolveHandler handler)
+	Error Realms::getRealm(std::string name, uint64_t& generation, ResolveHandler handler)
 	{
 		// alredy a request for this realm name pending?
 		auto it = m_requests.find(name);
 		if (it != m_requests.end()) {
-			it->second.handlers.push_back(handler);
+			generation = ++m_request_generation;
+			it->second.handlers.push_back({handler, generation});
+			return Error::IO_PENDING;
 		}
-		else {
-			// no - create new request
-			RealmRequest* req = new RealmRequest(m_orion, m_iris_services);
-			m_requests[name].request = req;
-			m_requests[name].handlers.push_back(handler);
-			
-			// start the request
-			req->Lookup(name, [&, name](Realm *realm, orion::Error error) {
-				// store the realm
-				if (error == orion::Error::OK && realm != nullptr) {
-					auto [it, inserted] = m_resolved_realms.insert_or_assign(name, *realm);
 
-					delete realm;
-					realm = &it->second;
-				}
+		if (m_resolve_paths.empty()) {
+			return Error::REALM_NOT_FOUND;
+		}
 
-				// call all handlers
+		// create new request
+		RealmRequest* req = new RealmRequest(m_orion, m_resolve_paths);
+		
+		generation = ++m_request_generation;
+		m_requests[name].request = req;
+		m_requests[name].handlers.push_back({handler, generation});
+
+		// start the request
+		Error result = req->lookup(name, [&, name](Realm* realm, orion::Error error) {
+			// store the realm
+			if (error == orion::Error::OK && realm != nullptr) {
+				auto [it, inserted] = m_resolved_realms.insert_or_assign(name, *realm);
+
+				delete realm;
+				realm = &it->second;
+			}
+
+			Realm result;
+			if (error == Error::OK) {
+				if (realm)
+					result = *realm;
+				else
+					error = Error::DATA_INVALID;
+			}
+
+			// call all handlers
+			for (;;) {
 				auto it = m_requests.find(name);
-				if (it == m_requests.end())
-					return;
+				auto& handlers = it->second.handlers;
 
-				Realm result;
-				if (error == Error::OK) {
-					if (realm)
-						result = *realm;
-					else
-						error = Error::DATA_INVALID;
+				if (handlers.empty()) {
+					auto* request = it->second.request;
+					m_requests.erase(it);
+					delete request;
+					break;
 				}
 
-				auto handlers = std::move(it->second.handlers);
-				RealmRequest* req = it->second.request;
-				m_requests.erase(name);
-				for (auto& handler : handlers) {
-					if (handler)
-						handler(result, error);
-				}
-				delete req;
-				});			
-		}
+				auto handler = std::move(handlers.front().handler);
+				handlers.erase(handlers.begin());
 
-		// data is pending
-		return Error::IO_PENDING;
+				if (handler)
+					handler(result, error);
+			}
+			});
+
+		// data is probably pending or imemdiate error
+		return result;
+	}
+
+	void Realms::cancelResolve(std::string name, uint64_t generation)
+	{
+		auto it = m_requests.find(name);
+		if (it == m_requests.end())
+			return;
+		auto& handlers = it->second.handlers;
+		handlers.erase(std::remove_if(handlers.begin(), handlers.end(),
+			[generation](const ResolveHandlerDesc& desc) {
+				return desc.generation == generation;
+			}), handlers.end());	
 	}
 
 	void Realms::addRealm(const Realm& realm)
@@ -226,32 +254,30 @@ namespace orion
 		return nullptr;
 	}
 	
-	void Realms::LoadIrisServers()
+	bool Realms::loadResolverConfig(const std::string& path)
 	{
-		// get lookup info from iris.conf
-		std::string path = m_orion->getFs()->getInstallDataDir();
-		path += std::string("/Meworla/iris.conf");
-		if (psio::Fs::fileExists(path))
-		{
-			FileResourceStream* res = new FileResourceStream(path);
-			res->SetMode(psio::Fs::READ);
-			res->Open();
-			while (!res->eof()) {
-				std::string s = res->getLine();
+		if (!psio::Fs::fileExists(path))
+			return false;
 
-				// remove leading whitespace
-				s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
-					return !std::isspace(ch);
-					}));
+		FileResourceStream* res = new FileResourceStream(path);
+		res->SetMode(psio::Fs::READ);
+		res->Open();
+		while (!res->eof()) {
+			std::string s = res->getLine();
 
-				// skip empty and comment lines
-				if (s.length() == 0 || (s.at(0) == '#'))
-					continue;
+			// remove leading whitespace
+			s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
+				return !std::isspace(ch);
+				}));
 
-				// parse the line
-				m_iris_services.push_back(s);
-			}
+			// skip empty and comment lines
+			if (s.length() == 0 || (s.at(0) == '#'))
+				continue;
+
+			// parse the line
+			m_resolve_paths.push_back(s);
 		}
+		return true;
 	}
 
 	RealmConfigResult Realms::reloadConfigFiles()

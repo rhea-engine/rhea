@@ -8,6 +8,8 @@
 #include "RealmJson.h"
 
 #include <ctime> // for std::time
+#include <stdexcept>
+#include <Psio/Net/UrlRequest/Url.h>
 
 namespace orion
 {
@@ -30,7 +32,34 @@ namespace orion
         j.at("name").get_to(name);
         j.at("type").get_to(type);
         j.at("href").get_to(href);
-        j.at("ttl").get_to(ttl);
+       
+        if (j.at("ttl").is_number_integer()) {
+            j.at("ttl").get_to(ttl);
+            // test if the ttl is between 0 and 86400 and throw an error if it is not
+            if (ttl < 0 || ttl > 86400) {
+                throw std::invalid_argument("TTL must be between 0 and 86400 seconds");
+            }        
+        }
+        else {
+			throw std::invalid_argument("TTL must be an integer");
+        }
+
+		// test if the href is a valid url
+		psio::Url url(href);
+		if (!url.isValid() || 
+            url.hostname().empty() || 
+            url.scheme().empty() || 
+            url.scheme() != "https" ||
+            url.hasFragment() ||
+            url.hasQuery() || 
+            url.path().empty() || url.path().back() != '/') {
+			throw std::invalid_argument("Invalid URL: " + href);
+		}
+        
+        // check if the type is collection
+		if (type != "collection") {
+			throw std::invalid_argument("Invalid type: " + type + ". Only 'collection' is supported.");
+		}
 
         r = Realm(std::move(name), std::move(href), ttl);
         r.setContentType(std::move(type));

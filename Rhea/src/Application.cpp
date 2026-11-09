@@ -159,6 +159,19 @@ namespace rhea
 			printf("Invalid log level in config: %s\n", log_level.c_str());
 		}
 
+		std::string resolver_config = m_config->getValueString("realms.resolver", "");
+		if (!resolver_config.empty()) {
+			if (!m_fs->getRealms()->loadResolverConfig(resolver_config)) {
+				LOG(LOG_ERROR) << "Failed to load resolver config: " << resolver_config;
+			}
+		}
+		else {
+			std::string default_resolver = m_fs->getFs()->getExecutableDir() + "/realm-resolver.conf";
+			if (!m_fs->getRealms()->loadResolverConfig(default_resolver)) {
+				LOG(LOG_INFO) << "Disabling realm lookups: No default resolver config: " << default_resolver;
+			}
+		}
+
 		Service* world = (WorldService*)simpleparser::Type::create("WorldService", "//meworla/worldservice");
 		world->setup(this);
 		m_services["world"] = world;

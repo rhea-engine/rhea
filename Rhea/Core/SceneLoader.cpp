@@ -38,7 +38,7 @@ namespace rhea
 			if (scene_res) {
 				scene_res->setup(app);
 				const std::string source_resource_id = app->resourceUriToId(res_id);
-				scene_res->setDefinition(scene_def, context.source_directory, context.context_root, source_resource_id);
+				scene_res->setDefinition(scene_def, context, source_resource_id);
 				handler(rhea::Error(), scene_res);
 			}
 			delete buf;

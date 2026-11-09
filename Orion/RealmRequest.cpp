@@ -7,18 +7,20 @@
 
 #include <Orion/RealmRequest.h>
 #include <Orion/Orion.h>
+#include <Psio/Log.h>
 
 #include <nlohmann/json.hpp>
+#include <stdexcept>
 
 #include "RealmJson.h"
 
 namespace orion
 {
-	RealmRequest::RealmRequest(Orion* orion,std::deque<std::string>& iris) :
+	RealmRequest::RealmRequest(Orion* orion,std::deque<std::string>& resolve_paths) :
 		m_error(0),
 		m_orion(orion),
 		m_request(nullptr),
-		m_iris(iris)
+		m_resolve_paths(resolve_paths)
 	{
 
 	}
@@ -29,19 +31,23 @@ namespace orion
 			delete m_request;
 	}
 	
-	void RealmRequest::Lookup(std::string realm_name, RealmHandler handler)
+	Error RealmRequest::lookup(std::string realm_name, RealmHandler handler)
 	{
+		if (m_resolve_paths.empty()) {
+			return Error::REALM_NOT_FOUND;
+		}
+
 		m_request = new psio::UrlRequest(m_orion->getIO());		
 		// call UrlRequest
-		m_request->OnResponse([handler](psio::UrlResponse* res) {
-			// got a response
-		
+		m_request->OnResponse([handler, realm_name](psio::UrlResponse* res) {
+			// got a response	
+
 			// check for http error
 			int code = res->GetResponseCode();
-			if (code < 200 || code >= 300) {
+			if (code != 200) {
 				if (handler) {
 					if (code == 404) {
-						handler(nullptr, Error(Error::RESOURCE_NOT_FOUND));
+						handler(nullptr, Error(Error::REALM_NOT_FOUND));
 					} else if (code == 403) {
 						handler(nullptr, Error(Error::NO_ACCESS));
 					} else if (code == 401) {
@@ -52,21 +58,62 @@ namespace orion
 				}
 				return;
 			}
+			std::string content_type = res->getContentType();
+			const auto parameter_start = content_type.find(';');
+			if (parameter_start != std::string::npos)
+				content_type.erase(parameter_start);
+
+			const auto first = content_type.find_first_not_of(" \t");
+			if (first == std::string::npos) {
+				content_type.clear();
+			} else {
+				const auto last = content_type.find_last_not_of(" \t");
+				content_type = content_type.substr(first, last - first + 1);
+				for (char& c : content_type) {
+					if (c >= 'A' && c <= 'Z')
+						c = static_cast<char>(c + ('a' - 'A'));
+				}
+			}
+			if (content_type != "application/json") {
+				if (handler) {
+					handler(nullptr, Error::DATA_INVALID);
+				}
+				return;
+			}
+
 			// try reading the body in IOBuffer buf
 			psio::IOBuffer* buf = new psio::IOBuffer(64 * 1024);
-			res->onEnd([buf, handler](size_t bytes_read) {
+			res->onEnd([buf, handler, realm_name](size_t bytes_read) {
 				// success -  we got the result in body
 				// the result is json -> parse it
 				std::string response = std::string(buf->data(), bytes_read);
 				delete buf;
+				Realm* realm = nullptr;
 				try {
 					nlohmann::json j = nlohmann::json::parse(response);
-					Realm* realm = new Realm(j.get<Realm>());
-					handler(realm, Error::OK);
+					realm = new Realm(j.get<Realm>());					
 				}
 				catch (const nlohmann::json::exception& e) {
+					LOG(LOG_ERROR) << "RealmRequest: JSON parse error while parsing realm JSON: " << e.what();
 					handler(nullptr, Error::DATA_INVALID);
+					return;
 				}
+				catch (const std::invalid_argument& e) {
+					LOG(LOG_ERROR) << "RealmRequest: Invalid argument while parsing realm JSON: " << e.what();
+					handler(nullptr, Error::DATA_INVALID);
+					return;
+				}
+				catch (...) {
+					handler(nullptr, Error::DATA_INVALID);
+					return;
+				}
+				// check if realm is valid
+				if (!realm || realm->getName() != realm_name) {
+					delete realm;
+					handler(nullptr, Error::DATA_INVALID);
+					return;
+				}
+				handler(realm, Error::OK);
 				});
 			res->onError([buf, handler](int err) {
 				// failed with an error
@@ -77,17 +124,18 @@ namespace orion
 			});
 		m_request->OnError([handler](int err) {
 			handler(nullptr, translateTransportError(err));
-			});
-		if (m_iris.size() < 1) {
-			m_iris.push_back("http://localhost/iris/realms");
-		}
-		std::string iris_server = m_iris.front();
-		m_iris.pop_front();
+			});		
+		std::string resolve_path = m_resolve_paths.front();
+		m_resolve_paths.pop_front();
 
-		m_request->Get(iris_server + "/" + realm_name);
+		m_request->setFollowRedirects(false);
+		if (resolve_path.back() != '/')
+			resolve_path.push_back('/');
+		m_request->Get(resolve_path + realm_name + ".json");
+		return Error::IO_PENDING;
 	}
 	
-	void RealmRequest::Cancel()
+	void RealmRequest::cancel()
 	{
 		if (m_request) {
 			// remove the request

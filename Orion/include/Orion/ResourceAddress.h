@@ -17,10 +17,13 @@ namespace orion
 		InvalidSyntax,
 		UnsupportedScheme,
 		InvalidAuthority,
+		InvalidPort,
 		InvalidRealmName,
 		InvalidEncoding,
+		InvalidPath,
 		UnsupportedQuery,
-		UnsupportedFragment
+		UnsupportedFragment,
+
 	};
 
 	struct AddressError {

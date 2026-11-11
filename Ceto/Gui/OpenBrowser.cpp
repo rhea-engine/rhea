@@ -98,6 +98,34 @@ bool OpenBrowser::onEntryActivated(rhea::Event* ev, rhea::Unit* unit)
 	return false;
 }
 
+std::string OpenBrowser::getStatusError(orion::AddressResult addr_result) const
+{
+	if (addr_result.success)
+		return {};
+	switch (addr_result.error.code) {
+	case orion::AddressErrorCode::InvalidSyntax:
+		return "Invalid syntax";
+	case orion::AddressErrorCode::InvalidRealmName:
+		return "Invalid realm name";
+	case orion::AddressErrorCode::InvalidEncoding:
+		return "Invalid encoding";
+	case orion::AddressErrorCode::InvalidPath:
+		return "Invalid path";
+	case orion::AddressErrorCode::UnsupportedQuery:
+		return "Unsupported query";
+	case orion::AddressErrorCode::UnsupportedFragment:
+		return "Unsupported fragment";
+	case orion::AddressErrorCode::InvalidPort:
+		return "Invalid port";
+	case orion::AddressErrorCode::InvalidAuthority:
+		return "Invalid authority";
+	case orion::AddressErrorCode::UnsupportedScheme:
+		return "Unsupported scheme scheme";
+	default:
+		return "Unknown error";
+	}
+}
+
 bool OpenBrowser::onNavigateUp(rhea::Event* ev, rhea::Unit* unit)
 {
 	ev->stopPropagation();
@@ -119,8 +147,10 @@ bool OpenBrowser::onNavigateUp(rhea::Event* ev, rhea::Unit* unit)
 
 	auto address = orion::ResourceAddress::parse(uri);
 	if (!address.success) {
-		if (m_status_label)
-			m_status_label->setText("Invalid location: " + address.error.message);
+		if (m_status_label) {
+			LOG(LOG_ERROR) << "OpenBrowser: Invalid location: " << address.error.message;
+			m_status_label->setText(getStatusError(address));
+		}
 		return false;
 	}
 
@@ -146,7 +176,7 @@ bool OpenBrowser::onNavigateUp(rhea::Event* ev, rhea::Unit* unit)
 	auto parent = address.address.parent();
 	if (!parent.success) {
 		if (m_status_label)
-			m_status_label->setText("Cannot navigate up: " + parent.error.message);
+			m_status_label->setText("Cannot navigate up: " + getStatusError(parent));
 		return false;
 	}
 
@@ -235,6 +265,9 @@ void OpenBrowser::setPlaces(const std::vector<BrowserPlace>& places)
 void OpenBrowser::navigateTo(const std::string& location)
 {
 	const auto generation = ++m_navigation_generation;
+
+	if (m_status_label)
+		m_status_label->setText("Loading...");
 
 #if defined(_WIN32)
 	if (location == "file:///") {
@@ -327,9 +360,10 @@ void OpenBrowser::navigateTo(const std::string& location)
 		}
 		orion::AddressResult addr_result = orion::ResourceAddress::parse(uri);
 		if (!addr_result.success) {
-			DLOG(LOG_DEBUG) << "OpenBrowser: invalid location '" << uri << "'";
-			if (m_status_label)
-				m_status_label->setText("Invalid location: '" + uri + "'");
+			if (m_status_label) {
+				LOG(LOG_ERROR) << "OpenBrowser: Invalid location: " << addr_result.error.message;
+				m_status_label->setText(getStatusError(addr_result));
+			}
 			return;
 		}
 
@@ -384,8 +418,41 @@ void OpenBrowser::navigateTo(const std::string& location)
 				rhea::Error error = rhea::translateLoadError(err, uri);
 				LOG(LOG_ERROR) << "OpenBrowser: failed to load '" << uri << 
 					"' Error: " << error.getMessage() << " (" << static_cast<int>(err) << ")";
-				if (m_status_label) {					
-					m_status_label->setText("Failed to load " + uri + ": " + error.getMessage());
+				if (m_status_label) {
+					std::string err_text = "Failed to load " + uri + ": ";
+					switch (error.getCode()) {
+					case rhea::Error::Code::ACCESS_DENIED:
+						err_text += "Access denied";
+						break;
+					case rhea::Error::Code::NOT_FOUND:
+						err_text += "Not found";
+						break;
+					case rhea::Error::Code::INVALID_DATA:
+						err_text += "Invalid data";
+						break;
+					case rhea::Error::Code::INVALID_DEFINITION:
+						err_text += "Invalid definition";
+						break;
+					case rhea::Error::Code::AUTHENTICATION_FAILED:
+						err_text += "Authentication failed";
+						break;
+					case rhea::Error::Code::CANCELED:
+						err_text += "Canceled";
+						break;
+					case rhea::Error::Code::UNSUPPORTED_FORMAT:
+						err_text += "Unsupported format";
+						break;
+					case rhea::Error::Code::UNAVAILABLE:
+						err_text += "Unavailable";
+						break;
+					case rhea::Error::Code::CONNECTION_REFUSED:
+						err_text += "Connection refused";
+						break;
+					default:
+						err_text += error.getMessage();
+						break;
+					}
+					m_status_label->setText(err_text);
 				}
 			}
 			});

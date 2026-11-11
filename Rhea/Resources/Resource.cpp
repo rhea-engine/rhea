@@ -136,6 +136,10 @@ namespace rhea {
 			code = Code::RESOURCE_ERROR;
 			message = "An unknown resource request error occurred.";
 			break;
+		case orion::Error::CONNECTION_REFUSED:
+			code = Code::CONNECTION_REFUSED;
+			message = "Connection refused.";
+			break;
 		default:
 			code = Code::RESOURCE_ERROR;
 			message = "Resource loading did not complete successfully.";

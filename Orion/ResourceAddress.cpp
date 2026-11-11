@@ -289,10 +289,10 @@ namespace orion
             if (port_start != std::string_view::npos) {
                 const auto port = authority.substr(port_start);
                 unsigned int number = 0;
-                if (port.empty()) return failure(AddressErrorCode::InvalidAuthority, "Empty port", authority_start + port_start);
+                if (port.empty()) return failure(AddressErrorCode::InvalidPort, "Empty port", authority_start + port_start);
                 for (size_t i = 0; i < port.size(); ++i) {
                     if (!isDigit(port[i]) || number > 6553 || (number == 6553 && port[i] > '5'))
-                        return failure(AddressErrorCode::InvalidAuthority, "Invalid port", authority_start + port_start + i);
+                        return failure(AddressErrorCode::InvalidPort, "Invalid port", authority_start + port_start + i);
                     number = number * 10 + port[i] - '0';
                 }
             }
@@ -314,12 +314,12 @@ namespace orion
                 return failure(AddressErrorCode::InvalidSyntax, "A file host requires a share path", authority_end);
             if (address.m_authority.empty() && address.m_path.size() >= 3 && address.m_path[2] == ':' &&
                 (address.m_path.size() < 4 || address.m_path[3] != '/'))
-                return failure(AddressErrorCode::InvalidSyntax, "A drive requires an absolute path", authority_end);
+                return failure(AddressErrorCode::InvalidPath, "A drive requires an absolute path", authority_end);
         }
         size_t escape_position = 0;
         std::string normalized_path;
         if (!normalizePath(address.m_path, root_depth, normalized_path, escape_position))
-            return failure(AddressErrorCode::InvalidSyntax, "Parent path segment escapes root",
+            return failure(AddressErrorCode::InvalidPath, "Parent path segment escapes root",
                 authority_end + escape_position);
         address.m_path = std::move(normalized_path);
         result.success = true;

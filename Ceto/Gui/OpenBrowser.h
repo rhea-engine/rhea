@@ -58,6 +58,7 @@ private:
 	bool onRealmSearch(rhea::Event* ev, rhea::Unit* unit);
 	bool onEntrySelect(rhea::Event* ev, rhea::Unit* unit);
 	bool onEntryActivated(rhea::Event* ev, rhea::Unit* unit);
+	std::string getStatusError(orion::AddressResult addr_result) const;
 	bool onNavigateUp(rhea::Event* ev, rhea::Unit* unit);
 	bool onOpen(rhea::Event* ev, rhea::Unit* unit);
 

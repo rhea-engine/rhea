@@ -145,8 +145,17 @@ namespace psio
 			}
 			// register listener
 			m_net->Watch(m_socket, Network::IOFLAG::WRITE | Network::IOFLAG::EXCEPT, true, [&](int result) {
-				if (result & Network::IOFLAG::EXCEPT)
-					result = Network::Err::FAILED;
+				if (result & Network::IOFLAG::EXCEPT) {
+					int socket_error = 0;
+					socklen_t error_size = sizeof(socket_error);
+					if (::getsockopt(m_socket, SOL_SOCKET, SO_ERROR, reinterpret_cast<char*>(&socket_error), &error_size) == SOCKET_ERROR) {
+						socket_error = WSAGetLastError();
+					}
+					result = socket_error == 0
+						? Network::Err::OK
+						: m_net->SysErr(socket_error);
+					LOG(LOG_ERROR) << "Connection error: " << socket_error << ": " << result;
+				}
 				else
 					result = Network::Err::OK;
 				result = DoConnectLoop(result);

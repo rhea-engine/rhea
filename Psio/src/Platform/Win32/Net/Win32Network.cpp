@@ -35,6 +35,8 @@ int psio::NetworkWin32::SysErr(int err)
 		return Err::ABORTED;
 	case WSAECONNRESET:
 		return Err::CONN_RESET;
+	case WSAECONNREFUSED:
+		return Err::CONN_REFUSED;
 	default:
 		return Err::FAILED;
 	}

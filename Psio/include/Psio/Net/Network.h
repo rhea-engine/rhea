@@ -67,6 +67,7 @@ namespace psio
 			FAULT = -6,
 			CONN_RESET = -7,
 			TIMEOUT = -8,
+			CONN_REFUSED = -9,
 
 			// 3xx HTTP errors
 

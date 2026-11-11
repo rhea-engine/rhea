@@ -33,7 +33,8 @@ namespace rhea
 			CANCELED,
 			UNAVAILABLE,
 			RESOURCE_ERROR,
-			TIMEOUT
+			TIMEOUT,
+			CONNECTION_REFUSED
 		};
 
 		struct Context

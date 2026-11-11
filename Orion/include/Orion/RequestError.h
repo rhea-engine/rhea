@@ -23,6 +23,7 @@ namespace orion
 		TIMEOUT = -13,
 		RATE_LIMITED = -14,
 		UNEXPECTED_RESPONSE = -15,
+		CONNECTION_REFUSED = -16,
 		UNKNOWN_ERROR = -1000
 	};
 

@@ -16,6 +16,8 @@ namespace orion
 			return Error::CONFIG_ERR;
 		case psio::Network::Err::TIMEOUT:
 			return Error::TIMEOUT;
+		case psio::Network::Err::CONN_REFUSED:
+			return Error::CONNECTION_REFUSED;
 		case psio::Network::Err::FAILED:
 		case psio::Network::Err::NO_SOCKET:
 		case psio::Network::Err::NOT_CONNECTED:

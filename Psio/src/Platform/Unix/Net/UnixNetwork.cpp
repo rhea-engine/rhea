@@ -34,8 +34,9 @@ int psio::NetworkUnix::SysErr(int err)
 	case ENOTSOCK:
 		return Err::NO_SOCKET;
 	case ENOTCONN:
-	case ECONNREFUSED:
 		return Err::NOT_CONNECTED;
+	case ECONNREFUSED:
+		return Err::CONN_REFUSED;
 	case ECONNABORTED:
 		return Err::ABORTED;
 	case ECONNRESET:

@@ -35,6 +35,20 @@ install(TARGETS Ceto
     LIBRARY DESTINATION . COMPONENT CetoRuntime
 )
 
+set(CETO_PACKAGE_REALM_RESOLVER_CONFIG "" CACHE FILEPATH
+    "Realm resolver configuration included in the Ceto package")
+
+if(NOT EXISTS "${CETO_PACKAGE_REALM_RESOLVER_CONFIG}"
+   OR IS_DIRECTORY "${CETO_PACKAGE_REALM_RESOLVER_CONFIG}")
+    message(FATAL_ERROR
+        "Set CETO_PACKAGE_REALM_RESOLVER_CONFIG to a resolver configuration file.")
+endif()
+
+install(FILES "${CETO_PACKAGE_REALM_RESOLVER_CONFIG}"
+    DESTINATION .
+    RENAME realm-resolver.conf
+    COMPONENT CetoRuntime)
+
 # The root project already includes InstallRequiredSystemLibraries. Use its
 # redistributable runtime list explicitly in our isolated package component.
 if(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS)

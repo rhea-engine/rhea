@@ -33,6 +33,7 @@ namespace orion
 			Entry* entry = new Entry();
 			entry->name = m_directories[m_directory_index++];
 			entry->is_dir = true;
+			entry->address = m_directories[m_directory_index - 1];
 			if (m_directory_index == m_directories.size())
 				Close();
 			if (m_filter && !m_filter(*entry)) {
@@ -54,6 +55,18 @@ namespace orion
 				entry->name = attributes.name;
 				entry->length = attributes.size;
 				entry->is_dir = attributes.is_dir;
+				if (m_address.empty())
+					entry->address = attributes.name;
+				else if (m_address.back() == '/')
+					entry->address = m_address + attributes.name;
+				else
+					entry->address = m_address + "/" + attributes.name;
+				if (entry->is_dir &&
+					!entry->address.empty() &&
+					entry->address.back() != '/')
+				{
+					entry->address += '/';
+				}
 				if (!psio::Fs::nextEntry(m_handle.get())) {
 					Close();
 				}

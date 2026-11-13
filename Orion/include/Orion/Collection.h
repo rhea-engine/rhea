@@ -22,6 +22,7 @@ namespace orion
 		{
 			std::string name;
 			std::string mime;
+			std::string address;
 			size_t length = 0;
 			bool is_dir = false;
 
@@ -43,7 +44,6 @@ namespace orion
 
 	protected:
 		std::function<bool(const Entry&)> m_filter = nullptr;
-
 	};
 }
 #endif // ! ORION_COLLECTION_H

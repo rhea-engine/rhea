@@ -48,6 +48,7 @@ namespace orion
 
 		AddressResult parent() const;
 		AddressResult resolveRelative(std::string_view reference) const;
+		void appendPath(const std::string& segement);
 
 		bool operator==(const ResourceAddress& other) const;
 

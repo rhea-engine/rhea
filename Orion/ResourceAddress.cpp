@@ -398,4 +398,10 @@ namespace orion
         return m_scheme == other.m_scheme && m_authority == other.m_authority && m_path == other.m_path &&
             m_has_query == other.m_has_query && m_query == other.m_query;
     }
+
+	void ResourceAddress::appendPath(const std::string& segment) {
+		if (segment.empty()) return;
+		if (m_path.empty() || m_path.back() != '/') m_path += '/';
+		m_path += segment;
+	}
 }

@@ -25,6 +25,9 @@ namespace orion
 
 		// register a MIME type extension
 		static void RegisterExtenstion(std::string mime_type, std::string extension);
+
+		// get from Content-Type header
+		static bool GetFromContentType(std::string& content_type, std::string& result);
 	};
 }
 

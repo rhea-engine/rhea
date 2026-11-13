@@ -33,10 +33,16 @@ namespace orion
 	{
 	public:
 
+		enum class ResultKind {
+			Auto,
+			Resource,
+			Catalog
+		};
+
 		typedef std::function<void(ResourceRequest*, orion::Error)> RequestHandler;
 		ResourceRequest() = default;
-		ResourceRequest(const ResourceAddress& address,	Orion* orion, std::string mime_type = "");
-		ResourceRequest(std::string rid, Orion* orion, std::string mime_type = "");
+		ResourceRequest(const ResourceAddress& address,	Orion* orion, ResultKind kind = ResultKind::Auto, std::string mime_type = "");
+		ResourceRequest(std::string rid, Orion* orion, ResultKind kind = ResultKind::Auto, std::string mime_type = "");
 		~ResourceRequest();
 
 		// get realm name
@@ -105,7 +111,8 @@ namespace orion
 		Error doResolveRealm(Error result);
 		Error doResolveRealmCompleted(Error result);
 		Error doResolveResourceFailed(Error result);
-		Error doRequestUrl(const std::string& url);
+		Error doRequestUrl(const std::string& url, ResultKind kind = ResultKind::Resource);
+		void catalogReaderJson(psio::UrlResponse* resp, ResultKind kind);
 
 		std::optional<ResourceAddress> m_address;
 		std::optional<ResourceAddress> m_effective_address;
@@ -120,6 +127,7 @@ namespace orion
 		std::unique_ptr<ResourceStream> m_stream;
 		Error m_error = Error::OK;
 		uint64_t m_realm_request_generation = 0;
+		ResultKind m_result_kind = ResultKind::Auto;
 
 		int m_request_type = 0;
 

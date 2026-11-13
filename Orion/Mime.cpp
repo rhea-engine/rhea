@@ -57,4 +57,32 @@ namespace orion
 		_base_mime_ext[extension] = mime_type;
 	}
 
+	bool MIME::GetFromContentType(std::string& content_type, std::string& result)
+	{
+		// safety check
+		if (!content_type.size())
+			return false;
+
+		result = content_type;
+
+		const auto parameter_start = content_type.find(';');
+		if (parameter_start != std::string::npos)
+			result.erase(parameter_start);
+
+		const auto first = content_type.find_first_not_of(" \t");
+		if (first == std::string::npos) {
+			result.clear();
+			return false;
+		}
+		else {
+			const auto last = content_type.find_last_not_of(" \t");
+			result = result.substr(first, last - first + 1);
+			for (char& c : result) {
+				if (c >= 'A' && c <= 'Z')
+					c = static_cast<char>(c + ('a' - 'A'));
+			}
+		}
+		return true;
+	}
+
 }

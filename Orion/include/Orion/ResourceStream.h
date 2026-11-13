@@ -50,10 +50,14 @@ namespace orion
 		// Close the stream
 		virtual void Close() = 0;
 
+		void setLogicalAddress(std::string address) { this->m_address = address; }
+		std::string getLogicalAddress() { return m_address; }
+
 	protected:		
 		int m_mode;
 		std::string m_mime;
-		std::string m_name;
+		std::string m_name;  // actual resource name (filename or url)
+		std::string m_address; // logical directory address
 	};
 }
 

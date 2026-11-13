@@ -53,6 +53,7 @@ namespace orion
 		std::string m_path;
 		time_t m_lastmod;
 		bool m_accessible;
+		std::string m_logical_address;
 
 		void doEnd(size_t size);
 		void doError(int status);

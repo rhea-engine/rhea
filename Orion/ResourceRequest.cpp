@@ -14,24 +14,28 @@
 #include <Psio/Log.h>
 #include <Orion/UrlResponseStream.h>
 #include <Orion/Realms.h>
+#include <Orion/JsonCollection.h>
+#include <Orion/BufferStream.h>
 
 #include <iostream>
 #include <algorithm>
 
 namespace orion
 {
-	ResourceRequest::ResourceRequest(const ResourceAddress& address, Orion* orion, std::string mime_type) :
+	ResourceRequest::ResourceRequest(const ResourceAddress& address, Orion* orion, ResultKind kind, std::string mime_type) :
 		m_address(address),
 		m_orion(orion),
 		m_request(nullptr),
-		m_mime_type(mime_type)
+		m_mime_type(mime_type),
+		m_result_kind(kind)
 	{
 		setAddress(address);
 	}
 
-	ResourceRequest::ResourceRequest(std::string rid, Orion* orion, std::string type) :
+	ResourceRequest::ResourceRequest(std::string rid, Orion* orion, ResultKind kind, std::string type) :
 		m_orion(orion),
 		m_mime_type(type),
+		m_result_kind(kind),
 		m_realm_name(""),
 		m_path(""),
 		m_request(nullptr),
@@ -286,24 +290,104 @@ namespace orion
 		}
 	}
 
-	Error ResourceRequest::doRequestUrl(const std::string& url)
+	void ResourceRequest::catalogReaderJson(psio::UrlResponse* resp, ResultKind kind)
+	{
+		const auto& path = m_effective_address->path();
+		const bool is_directory_by_path = path.empty() || path.back() == '/';
+
+		std::string mime_type;
+		MIME::GetFromContentType(resp->getContentType(), mime_type);
+		if (mime_type.compare("application/json") != 0) {
+			// A json document is required.
+			if (!is_directory_by_path) {
+				// if it was a directory request, then we can fail
+				if (kind == ResultKind::Catalog) {
+					onIOComplete(Error::DATA_INVALID);
+					return;
+				}
+				// may be a resource - try to read it as a resource
+				m_stream = std::make_unique<UrlResponseStream>(resp);
+				onIOComplete(Error::OK);
+				return;
+			}
+			// try with index.json appended to the path
+			auto address = m_effective_address.value();
+			address.appendPath("index.json");
+			std::string index_url = address.toString();
+			Error sub_err = doRequestUrl(index_url, ResultKind::Catalog);
+			return;
+		}
+
+		auto buf = std::make_shared<psio::IOBuffer>();
+		resp->onEnd([this, kind, buf, resp](size_t buflen) {
+			std::unique_ptr< JsonCollection> collection;
+			Error err = JsonCollection::parse(buf->reader(), buflen, m_effective_address.value(), collection);
+			if (err != Error::OK) {
+				// if it was a directory request, then we fail
+				// not implemented means it was not a catalog - try to read it as a resource
+				if (kind == ResultKind::Catalog || err != Error::NOT_IMPLEMENTED) {
+					onIOComplete(err);
+					return;
+				}
+				// may be a resource - try to read it as a resource
+				m_stream = std::make_unique<BufferResourceStream>(buf);
+				onIOComplete(Error::OK);
+				return;
+			}
+			m_stream = std::move(collection);
+			onIOComplete(Error::OK);
+			});
+		resp->onError([this, buf](int error) {
+			onIOComplete(translateTransportError(error));
+			});
+
+		resp->ReadAsync(buf.get());
+		return;
+	}
+
+	Error ResourceRequest::doRequestUrl(const std::string& url, ResultKind kind)
 	{
 		m_request = new psio::UrlRequest(m_orion->getIO());
 
-		m_request->OnResponse([&](psio::UrlResponse* resp) {
-			m_stream = std::make_unique<UrlResponseStream>(resp);
-			// caller doesn't know about response codes
-			// if not 2xx call with error
-			auto effective_address_result = orion::ResourceAddress::parse(resp->getEffectiveUrl().toString());
+		m_request->OnResponse([this, kind](psio::UrlResponse* resp) {
+			const int code = resp->GetResponseCode();
+			Error err = translateHttpStatus(code);
+			
+			auto effective_address_result = ResourceAddress::parse(resp->getEffectiveUrl().toString());
 			if (!effective_address_result.success) {
 				LOG(LOG_ERROR) << "UrlResponse effective url is invalid: " << resp->getEffectiveUrl().toString();
 				onIOComplete(Error::DATA_INVALID);
 				return;
 			}
 			m_effective_address = effective_address_result.address;
-			int code = resp->GetResponseCode();
-			Error err = translateHttpStatus(code);
-			onIOComplete(err);
+
+			const auto& path = m_effective_address->path();
+			const bool is_directory_by_path = path.empty() || path.back() == '/';
+
+			if (err != Error::OK && (code != 403 || !is_directory_by_path)) {
+				onIOComplete(err);
+				return;
+			}
+
+			std::string mime_type;
+			MIME::GetFromContentType(resp->getContentType(), mime_type);
+
+			if (kind == ResultKind::Resource ||
+				(kind == ResultKind::Auto && !is_directory_by_path && mime_type.compare("application/json") != 0)) {
+				m_stream = std::make_unique<UrlResponseStream>(resp);
+				onIOComplete(Error::OK);
+				return;
+			}
+
+			// try to load as json catalog
+
+			if (code != 200 && code != 403) {
+				// A complete document is required.
+				onIOComplete(Error::DATA_INVALID);
+				return;
+			}
+
+			catalogReaderJson(resp, kind);			
 			});
 		m_request->OnError([&](int err) {
 			onIOComplete(translateTransportError(err));
@@ -335,7 +419,7 @@ namespace orion
 		if (scheme == AddressScheme::Http ||
 			scheme == AddressScheme::Https)
 		{
-			return doRequestUrl(m_address->toString());
+			return doRequestUrl(m_address->toString(), m_result_kind);
 		}
 
 		if (m_local) {
@@ -362,6 +446,7 @@ namespace orion
 			}
 
 			m_stream = FileResourceStream::getStream(native_path);
+			m_stream->setLogicalAddress(m_address->toString());
 			if (!m_stream) {
 				m_next_state = State::UNSET;
 				return Error::RESOURCE_NOT_FOUND;
@@ -393,6 +478,7 @@ namespace orion
 				}
 
 				m_stream = FileResourceStream::getStream(native_path);
+				m_stream->setLogicalAddress(m_address->toString());
 				if (!m_stream) {
 					m_next_state = State::UNSET;
 					return Error::RESOURCE_NOT_FOUND;

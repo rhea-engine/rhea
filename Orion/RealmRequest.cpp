@@ -8,6 +8,7 @@
 #include <Orion/RealmRequest.h>
 #include <Orion/Orion.h>
 #include <Psio/Log.h>
+#include <Orion/Mime.h>
 
 #include <nlohmann/json.hpp>
 #include <stdexcept>
@@ -58,22 +59,8 @@ namespace orion
 				}
 				return;
 			}
-			std::string content_type = res->getContentType();
-			const auto parameter_start = content_type.find(';');
-			if (parameter_start != std::string::npos)
-				content_type.erase(parameter_start);
-
-			const auto first = content_type.find_first_not_of(" \t");
-			if (first == std::string::npos) {
-				content_type.clear();
-			} else {
-				const auto last = content_type.find_last_not_of(" \t");
-				content_type = content_type.substr(first, last - first + 1);
-				for (char& c : content_type) {
-					if (c >= 'A' && c <= 'Z')
-						c = static_cast<char>(c + ('a' - 'A'));
-				}
-			}
+			std::string content_type;
+			MIME::GetFromContentType(res->getContentType(), content_type);
 			if (content_type != "application/json") {
 				if (handler) {
 					handler(nullptr, Error::DATA_INVALID);

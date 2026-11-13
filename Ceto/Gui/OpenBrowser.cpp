@@ -396,10 +396,10 @@ void OpenBrowser::navigateTo(const std::string& location)
 						//if (!shouldShowEntry(entry->name, entry->is_dir)) continue;
 
 						if (entry->is_dir) {
-							m_entries.push_back({ entry->name + "/", entry->name + "/", BrowserPlaceKind::Location });
+							m_entries.push_back({ "[DIR] " + entry->name, entry->address,BrowserPlaceKind::Location});
 						}
 						else {
-							m_entries.push_back({ entry->name, entry->name, BrowserPlaceKind::Location });
+							m_entries.push_back({ entry->name, entry->address, BrowserPlaceKind::Location });
 						}
 					}
 				}

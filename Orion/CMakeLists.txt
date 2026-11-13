@@ -16,7 +16,7 @@ endif()
 
 add_library(Orion STATIC Orion.cpp Realm.cpp Realms.cpp ResourceRequest.cpp ResourceCache.cpp FileStream.cpp 
 "Mime.cpp" "RealmRequest.cpp" "ResolveLocal.cpp" RequestError.cpp ResourceAddress.cpp
- "UrlResponseStream.cpp"  "FileCollection.cpp" "RealmJson.h" "RealmJson.cpp" "FileAddress.cpp")
+ "UrlResponseStream.cpp"  "FileCollection.cpp" "RealmJson.h" "RealmJson.cpp" "FileAddress.cpp" "include/Orion/JsonCollection.h" "JsonCollection.cpp")
 add_library(Meworla::Orion ALIAS Orion)
 target_link_libraries(Orion PRIVATE Meworla::Psio nlohmann_json::nlohmann_json)
 target_compile_features(Orion PUBLIC cxx_std_17)

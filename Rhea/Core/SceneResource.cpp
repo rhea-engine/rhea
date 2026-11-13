@@ -295,7 +295,7 @@ namespace rhea
 					const auto colon = id.find(':');
 					const auto separator = id.find_first_of("/?#");
 					const bool has_scheme =	colon != std::string::npos && (separator == std::string::npos || colon < separator);
-					const bool is_local = id.front() != '/' && !has_scheme;
+					const bool is_local = id.front() != '/' && id.front() != '.' && !has_scheme;
 
 					std::string resolved_id;
 					Unit* target = nullptr;

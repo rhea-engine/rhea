@@ -135,9 +135,22 @@ namespace rhea
 
 				const std::string id = property.get_id(*this);
 
-				// Preserve empty IDs, local object references and explicit realms.
-				if (id.empty() || id[0] != '/' || id.compare(0, 2, "//") == 0)
+				if (id.empty())
 					continue;
+
+				const auto colon = id.find(':');
+				const auto separator = id.find_first_of("/?#");
+				const bool has_scheme = colon != std::string::npos && (separator == std::string::npos || colon < separator);
+
+				const bool is_local = id.front() != '/' && id.front() != '.' && !has_scheme;
+
+				if (is_local)
+					continue;
+
+
+				// Preserve empty IDs, local object references and explicit realms.
+//				if (id.empty() || id[0] != '/' || id.compare(0, 2, "//") == 0)
+//					continue;
 
 				std::string rid;
 				if (context.normalizeResourceId(id, rid))

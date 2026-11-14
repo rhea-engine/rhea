@@ -169,16 +169,10 @@ namespace rhea
 				auto* definition = scene->addComponentUnique<SceneDefinitionComponent>("definition");
 				definition->source_resource_context = context;
 				definition->source_resource_id = resource_id;
-
                 // Use the GLB directory for relative references.
                 definition->source_resource_context.source_directory = dependency_base;                
 
-                scene->SetModel(std::move(model));
-                const std::string document_path = app->resourceUriToId(resource_id);
-                if (!scene->buildSceneDefinition(definition->scene_def, document_path)) {
-                    handler(Error(Error::Code::INVALID_DATA, "Failed to build glTF scene definition", resource_id), nullptr);
-                    return;
-                }
+                scene->SetModel(std::move(model));          
 
                 if (handler)
                     handler(Error(), scene.release());

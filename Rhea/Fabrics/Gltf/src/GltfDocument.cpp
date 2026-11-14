@@ -18,6 +18,7 @@
 #include <Rhea/Animation/Skeleton.h>
 #include <Math/Vector3.h>
 #include <Math/Vector4.h>
+#include <Rhea/Core/SceneDefinitionComponent.h>
 #undef max
 #include <algorithm>
 #include <unordered_set>
@@ -66,7 +67,7 @@ namespace rhea
 
 
 
-	bool GltfDocument::buildSceneDefinition(SceneResource::SceneDefinition& definition, const std::string& document_path)
+	bool GltfDocument::buildSceneDefinition(SceneResource::SceneDefinition& definition)
 	{
 		definition = {};
 		std::unordered_set<std::string> used_ids;
@@ -88,12 +89,7 @@ namespace rhea
 				static_cast<size_t>(node_index) >= m_model.nodes.size())
 				return false;
 
-			const auto& source = m_model.nodes[node_index];
-
-			if (!source.matrix.empty()) {
-				LOG(LOG_ERROR) << "glTF matrix transform not supported yet: " << node_index;
-				return false;
-			}
+			const auto& source = m_model.nodes[node_index];			
 
 			// Index ensures unique names even for unnamed/duplicate nodes.
 			std::string base_name = source.name.empty() ? "node_" + std::to_string(node_index) : source.name;
@@ -124,7 +120,7 @@ namespace rhea
 					return false;
 
 				// Store the mesh path in the node values for later use.
-				node.values["mesh"] = document_path + "/mesh_" + std::to_string(source.mesh);
+				node.values["mesh"] = mesh->getPath();
 			}
 			definition.nodes.push_back(std::move(node));
 
@@ -134,30 +130,58 @@ namespace rhea
 			transform.name = "transform";
 			transform.type_name = "//meworla/transform";
 
-			if (source.translation.size() == 3) {
+			if (!source.matrix.empty()) {
+				math::Vector3 translation;
+				math::Quaternion rotation;
+				math::Vector3 scale;
+
+				if (source.matrix.size() != 16 || !decomposeTRS(math::Matrix4(source.matrix.data()), translation, rotation, scale)) {
+					LOG(LOG_ERROR) << "Failed to decompose matrix for node " << node_id;
+					return false;
+				}
 				transform.values["position"] = std::vector<Variant>{
-					float(source.translation[0]),
-					float(source.translation[1]),
-					float(source.translation[2])
+					float(translation.x),
+					float(translation.y),
+					float(translation.z)
 				};
-			}
-
-			if (source.rotation.size() == 4) {
-				// glTF: x,y,z,w; Rhea Quaternion: w,x,y,z.
 				transform.values["rotation"] = std::vector<Variant>{
-					float(source.rotation[3]),
-					float(source.rotation[0]),
-					float(source.rotation[1]),
-					float(source.rotation[2])
+					float(rotation.w),
+					float(rotation.x),
+					float(rotation.y),
+					float(rotation.z)
+				};
+				transform.values["scale"] = std::vector<Variant>{
+					float(scale.x),
+					float(scale.y),
+					float(scale.z)
 				};
 			}
+			else {
+				if (source.translation.size() == 3) {
+					transform.values["position"] = std::vector<Variant>{
+						float(source.translation[0]),
+						float(source.translation[1]),
+						float(source.translation[2])
+					};
+				}
 
-			if (source.scale.size() == 3) {
-				transform.values["scale"] = std::vector<Variant>{
-					float(source.scale[0]),
-					float(source.scale[1]),
-					float(source.scale[2])
-				};
+				if (source.rotation.size() == 4) {
+					// glTF: x,y,z,w; Rhea Quaternion: w,x,y,z.
+					transform.values["rotation"] = std::vector<Variant>{
+						float(source.rotation[3]),
+						float(source.rotation[0]),
+						float(source.rotation[1]),
+						float(source.rotation[2])
+					};
+				}
+
+				if (source.scale.size() == 3) {
+					transform.values["scale"] = std::vector<Variant>{
+						float(source.scale[0]),
+						float(source.scale[1]),
+						float(source.scale[2])
+					};
+				}
 			}
 
 			definition.nodes.push_back(std::move(transform));
@@ -420,6 +444,55 @@ namespace rhea
 				m_instance->Instantiate(this);
 			}
 		}
+	}
+
+	void GltfDocument::ensureReady(InstanceHandler handler)
+	{
+		prepare([this, handler](ErrorReport error) {
+			if (error.isError()) {
+				handler(error, nullptr);
+				return;
+			}
+
+			if (!m_definition_created) {
+				m_definition_created = true;
+
+				auto* definition = getComponent<SceneDefinitionComponent>();
+				if (!definition) {
+					handler(Error(Error::Code::INVALID_DATA, "SceneDefinitionComponent not found", getPathName()), nullptr);
+					return;
+				}
+				if (!buildSceneDefinition(definition->scene_def)) {
+					handler(Error(Error::Code::INVALID_DATA, "Failed to build glTF scene definition", getPathName()), nullptr);
+					return;
+				}
+			}
+			handler(Error(), this);
+			});
+	}
+
+	void GltfDocument::prepare(PrepareHandler handler)
+	{
+		// check if we have at least one scene
+		if (!m_model.scenes.size())
+		{
+			if (handler)
+				handler(Error(Error::Code::INVALID_DATA, "No scenes in glTF model", getPathName()));
+			return;
+		}
+
+		if (!m_material_created) {
+			if (!createMaterials()) {
+				if (handler)
+					handler(Error(Error::Code::INVALID_DATA, "Failed to create materials", getPathName()));
+				return;
+			}
+			m_material_created = true;
+		}
+
+		m_prepared = true;
+		if (handler)
+			handler(Error());
 	}
 
 	void GltfDocument::initializeType(simpleparser::Type* type)

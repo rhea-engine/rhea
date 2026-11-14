@@ -49,7 +49,7 @@ namespace rhea
 
 		bool load(rhea::Mesh* mesh, int mesh_index = -1);
 
-		bool buildSceneDefinition(SceneResource::SceneDefinition& definition, const std::string& document_path);
+		bool buildSceneDefinition(SceneResource::SceneDefinition& definition);
 
 		Mesh* getOrCreateMesh(int mesh_index);
 
@@ -58,6 +58,9 @@ namespace rhea
 		void CreateAnimations(rhea::Mesh* mesh);
 
 		void ready() override;
+
+		void ensureReady(InstanceHandler handler) override;
+		void prepare(PrepareHandler handler) override;
 
 		static void initializeType(simpleparser::Type* type);
 		
@@ -88,6 +91,7 @@ namespace rhea
 
 		Shader* m_shader = nullptr;
 		bool m_material_created = false;
+		bool m_definition_created = false;
 
 		struct Vertex {
 			math::Vector3 position;

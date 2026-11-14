@@ -10,7 +10,7 @@
 
 #include <Rhea/Gltf/GltfFabric.h>
 #include <Rhea/Gltf/GlbLoader.h>
-#include <Rhea/Gltf/GltfScene.h>
+#include <Rhea/Gltf/GltfDocument.h>
 #include <Rhea/Gltf/GltfMesh.h>
 #include <Rhea/Gltf/GltfGeometry.h>
 
@@ -25,7 +25,7 @@ void rhea::GltfFabric::Register(Application* app)
 	orion::MIME::RegisterExtenstion("model/gltf-binary", "glb");
 	
 	// the resource scene file
-	simpleparser::Type::registerType<GltfScene>("//meworla/gltf");
+	simpleparser::Type::registerType<GltfDocument>("//meworla/gltf");
 
 	// importers
 	simpleparser::Type::registerType<GltfMesh>("//meworla/gltfmesh");

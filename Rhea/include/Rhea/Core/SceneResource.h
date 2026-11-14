@@ -120,11 +120,14 @@ namespace rhea
 		// Build a complete detached tree without calling ready().
 		void buildInstance(const InstanceRequest& request, InstanceHandler handler) override;
 
+		static void initializeType(simpleparser::Type* type);
+
 	private:
 		SceneDefinition m_definition;
 		std::string m_source_resource_id; // Resolved source file, independent of instance names.
 		ResourceContext m_context; // Directory of this scene file
 		std::string m_base_id; // Base resource id for relative resource references
+		bool m_definition_loaded = false;
 
 		struct PendingSceneInstance {
 			std::string resource_key;
@@ -156,6 +159,8 @@ namespace rhea
 
 		std::vector<PrepareHandler> m_prepare_handlers;
 		rhea::Unit* m_prepared_prototype = nullptr;
+
+		Ref<Resource> m_source_resource; // The resource that was used to load the scene definition, if any.
 	};
 }
 

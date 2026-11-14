@@ -10,7 +10,7 @@
 
 #include <Rhea/Unit.h>
 #include <Rhea/Core/Geometry.h>
-#include <Rhea/Gltf/GltfScene.h>
+#include <Rhea/Gltf/GltfDocument.h>
 
 namespace rhea
 {
@@ -29,7 +29,7 @@ namespace rhea
 		bool load(rhea::Mesh* mesh);
 
 	protected:
-		Ref<GltfScene> m_gltf_ref;
+		Ref<GltfDocument> m_gltf_ref;
 	};
 }
 #endif // !RHEA_GLTF_MESH_H

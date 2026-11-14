@@ -7,7 +7,7 @@
 
 #include <fstream>
 #include <Rhea/Gltf/GltfLoader.h>
-#include <Rhea/Gltf/GltfScene.h>
+#include <Rhea/Gltf/GltfDocument.h>
 #include <Rhea/Gltf/GltfGeometry.h>
 #include <Rhea/Application.h>
 #include <Orion/ResourceStream.h>
@@ -21,6 +21,7 @@
 #include <memory>
 #include <stdexcept>
 #include <unordered_map>
+#include <Rhea/Core/SceneDefinitionComponent.h>
 
 #define TINYGLTF_IMPLEMENTATION
 #include <tiny_gltf_loader/tiny_gltf.h>
@@ -30,7 +31,7 @@ namespace rhea
     bool GltfImageLoader(tinygltf::Image* image, int image_idx, std::string* error,
         std::string*, int, int, const unsigned char* bytes, int size, void* user_data)
     {
-        auto* scene = static_cast<GltfScene*>(user_data);
+        auto* scene = static_cast<GltfDocument*>(user_data);
         if (!bytes || size <= 0) {
             if (error)
                 *error = "Empty glTF image data";
@@ -94,7 +95,7 @@ namespace rhea
             Application* app = nullptr;
             ResourceContext context;
             Resource::LoadedHandler handler;
-            std::unique_ptr<GltfScene> scene;
+            std::unique_ptr<GltfDocument> scene;
             Bytes source;
             AssetMap assets;
             size_t remaining = 0;
@@ -165,7 +166,20 @@ namespace rhea
                     return;
                 }
                 scene->addComponentUnique<GltfGeometry>("geometry", "//meworla/gltfgeometry");
+				auto* definition = scene->addComponentUnique<SceneDefinitionComponent>("definition");
+				definition->source_resource_context = context;
+				definition->source_resource_id = resource_id;
+
+                // Use the GLB directory for relative references.
+                definition->source_resource_context.source_directory = dependency_base;                
+
                 scene->SetModel(std::move(model));
+                const std::string document_path = app->resourceUriToId(resource_id);
+                if (!scene->buildSceneDefinition(definition->scene_def, document_path)) {
+                    handler(Error(Error::Code::INVALID_DATA, "Failed to build glTF scene definition", resource_id), nullptr);
+                    return;
+                }
+
                 if (handler)
                     handler(Error(), scene.release());
             }
@@ -194,7 +208,7 @@ namespace rhea
         state->context = context;
         state->handler = std::move(handler);
         state->binary = is_binary;
-        state->scene = std::make_unique<GltfScene>(name, "//meworla/gltf");
+        state->scene = std::make_unique<GltfDocument>(name, "//meworla/gltf");
         state->scene->setup(app, {}, {});
         state->resource_id = res_id;
 

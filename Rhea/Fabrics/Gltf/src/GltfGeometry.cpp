@@ -1,5 +1,5 @@
 #include <Rhea/Gltf/GltfGeometry.h>
-#include <Rhea/Gltf/GltfScene.h>
+#include <Rhea/Gltf/GltfDocument.h>
 #include <Psio/Log.h>
 
 namespace rhea
@@ -18,9 +18,9 @@ namespace rhea
 
 	bool GltfGeometry::load(Mesh* mesh)
 	{
-		GltfScene* loader = doCast<GltfScene>(getParent());
+		GltfDocument* loader = doCast<GltfDocument>(getParent());
 		if (!loader) {
-			LOG(LOG_ERROR) << "GltfGeometry::load: parent is not a GltfScene";
+			LOG(LOG_ERROR) << "GltfGeometry::load: parent is not a GltfDocument";
 			return false;
 		}
 

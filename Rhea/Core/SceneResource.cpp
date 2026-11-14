@@ -17,6 +17,7 @@
 #include <Rhea/Resources/ResourceList.h>
 #include <Rhea/Resources/ResourceService.h>
 #include <Rhea/UnitTree.h>
+#include <Rhea/Core/SceneDefinitionComponent.h>
 
 namespace rhea
 {
@@ -149,6 +150,21 @@ namespace rhea
 
 	void SceneResource::buildInstance(const InstanceRequest& request, InstanceHandler handler)
 	{
+		if (!m_source_resource.empty() && !m_definition_loaded) {
+			m_definition_loaded = true;
+			Resource* source_resource = m_app->getUnitTree()->resolve(m_source_resource);
+			if (source_resource) {
+				auto* definition = source_resource->getComponent<SceneDefinitionComponent>();
+				if (definition) {
+					setDefinition(
+						definition->scene_def,
+						definition->source_resource_context,
+						definition->source_resource_id);
+				}
+			}
+		}
+
+
 		std::unordered_set<std::string> node_ids;
 		for (const auto& node : m_definition.nodes) {
 			if (!node_ids.insert(node.node_id).second) {
@@ -637,5 +653,10 @@ namespace rhea
 			return nullptr;
 		}
 		return instance;
+	}
+
+	void SceneResource::initializeType(simpleparser::Type* type)
+	{
+		registerResourceProperty(type, "source", &SceneResource::m_source_resource, "//meworla/resource", ResourceUsage::EnsureReady);
 	}
 }

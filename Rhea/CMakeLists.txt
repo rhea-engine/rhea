@@ -36,7 +36,7 @@ add_library(RheaBase "src/Unit.cpp" "src/UnitTree.cpp" "src/Realm.cpp" "src/Disp
 "include/Rhea/Components/ActiveComponent.h" "include/Rhea/Core/Trigger.h" "Core/Trigger.cpp" 
 "include/Rhea/Core/Area.h" "Core/AreaService.cpp" "Core/Area.cpp" "include/Rhea/Core/AreaService.h"
 "include/Rhea/Core/AreaComponent.h" "Core/AreaComponent.cpp" "Core/Controller.cpp" "include/Rhea/Core/SceneEntryPoint.h" "Core/SceneResource.cpp"
-"include/Rhea/Core/SceneInstance.h")
+"include/Rhea/Core/SceneInstance.h" "include/Rhea/Core/SceneDocument.h" "include/Rhea/Core/SceneDefinitionComponent.h")
 add_library(Rhea::Core ALIAS RheaBase)
 
 target_link_libraries(RheaBase PUBLIC Meworla::Math Meworla::Orion SimpleParser RheaResources Psio)

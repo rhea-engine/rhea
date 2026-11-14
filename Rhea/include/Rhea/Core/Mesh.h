@@ -11,6 +11,7 @@
 #include <vector>
 
 #include <Rhea/Unit.h>
+#include <Rhea/Resources/Resource.h>
 #include <Rhea/Resources/VertexBuffer.h>
 #include <Rhea/Resources/VertexAttribute.h>
 #include <cstdint>
@@ -138,7 +139,7 @@ namespace rhea
 		void setTextureRef(Ref<ImageResource> texture) { m_texture_ref = texture; }
 		void setShaderRef(Ref<Shader> shader) { m_shader_ref = shader; }
 
-		const Ref<Geometry>& geometryRef() const {
+		const Ref<Resource>& geometryRef() const {
 			return m_geometry_ref;
 		}
 
@@ -158,7 +159,7 @@ namespace rhea
 		Ref<Shader> m_shader_ref;
 		Ref<ImageResource> m_texture_ref;
 		Ref<Material> m_material_ref;
-		Ref<Geometry> m_geometry_ref;
+		Ref<Resource> m_geometry_ref;
 		std::vector<Ref<ImageResource>> m_diffuse_texture_refs; // override for diffuse texture references
 		std::vector<Ref<ImageResource>> m_normal_texture_refs; // override for normal texture references
 

@@ -12,6 +12,7 @@
 #include <Rhea/Gltf/GlbLoader.h>
 #include <Rhea/Gltf/GltfScene.h>
 #include <Rhea/Gltf/GltfMesh.h>
+#include <Rhea/Gltf/GltfGeometry.h>
 
 void rhea::GltfFabric::Register(Application* app)
 {
@@ -28,4 +29,5 @@ void rhea::GltfFabric::Register(Application* app)
 
 	// importers
 	simpleparser::Type::registerType<GltfMesh>("//meworla/gltfmesh");
+	simpleparser::Type::registerType<GltfGeometry>("//meworla/gltfgeometry");
 }

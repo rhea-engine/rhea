@@ -6,6 +6,7 @@
  */
 
 #include "Rhea/ObjFile/ObjLoader.h"
+#include <Rhea/ObjFile/ObjGeometry.h>
 #define TINYOBJLOADER_IMPLEMENTATION 
 #include <tiny_obj_loader/tiny_obj_loader.h>
 
@@ -66,12 +67,12 @@ namespace rhea
 	};
 
 	ObjLoader::ObjLoader(std::string path_name, std::string type_name) :
-		Geometry(path_name, type_name)
+		Resource(path_name, type_name)
 	{}
 
 	void ObjLoader::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{
-		Geometry::setup(app, attributes, values);
+		Resource::setup(app, attributes, values);
 		if (m_shader_ref.empty()) {
 			m_shader_ref.setId(getValueString("shadername", "//rhea/shaders/standard"));
 		}
@@ -119,6 +120,8 @@ namespace rhea
 				handler(Error(Error::Code::INVALID_DATA, "Could not parse obj file: " + reader.Error(), m_obj_ref.id()));
 			return;
 		}
+
+		addComponentUnique<ObjGeometry>("geometry", "//meworla/objgeometry");
 
 		m_parsed_data = std::make_unique<ParsedData>();
 		m_parsed_data->attributes = reader.GetAttrib();
@@ -216,7 +219,7 @@ namespace rhea
 
 	void ObjLoader::resolveReferences(const std::string& context_root, const std::string& source_root)
 	{
-		Geometry::resolveReferences(context_root, source_root);
+		Resource::resolveReferences(context_root, source_root);
 	}
 
 	bool ObjLoader::load(rhea::Mesh* mesh)

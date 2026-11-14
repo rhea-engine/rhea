@@ -23,20 +23,21 @@
 #include <Math/Vector2.h>
 #include <Math/Vector3.h>
 #include <Rhea/Animation/Skeleton.h>
+#include <Rhea/Resources/Resource.h>
 #include <Rhea/Resources/TextResource.h>
 
 namespace rhea
 {
 	class Material;
 
-	class GltfScene : public Geometry
+	class GltfScene : public Resource
 	{
-		MECLASS(GltfScene, Geometry)
+		MECLASS(GltfScene, Resource)
 	public:
 		GltfScene(std::string name, std::string type_name) :
 			m_instance(nullptr),
 			m_has_skeleton(false),
-			Geometry(name, type_name)
+			Resource(name, type_name)
 		{}
 
 		virtual ~GltfScene()

@@ -8,6 +8,7 @@
 #include <fstream>
 #include <Rhea/Gltf/GltfLoader.h>
 #include <Rhea/Gltf/GltfScene.h>
+#include <Rhea/Gltf/GltfGeometry.h>
 #include <Rhea/Application.h>
 #include <Orion/ResourceStream.h>
 #include <Psio/Fs/Fs.h>
@@ -163,6 +164,7 @@ namespace rhea
                         handler(err, nullptr);
                     return;
                 }
+                scene->addComponentUnique<GltfGeometry>("geometry", "//meworla/gltfgeometry");
                 scene->SetModel(std::move(model));
                 if (handler)
                     handler(Error(), scene.release());

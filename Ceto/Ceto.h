@@ -21,6 +21,7 @@ using std::string;
 
 class OpenBrowser;
 class AlertDialog;
+class AssetViewer;
 
 class Ceto : public rhea::Application
 {
@@ -37,6 +38,7 @@ public:
 	void openScene(std::string scene_name, bool mark_preferences = true);
 	bool checkLocalScene(std::string realm_name, std::string path);
 	void loadMainGUI();
+	
 	void setHomeScene(string scene);
 	bool onFrameEnd();
 	void onScene(rhea::Scene* scene) override;
@@ -61,7 +63,7 @@ protected:
 	bool handleAppShortcuts(const rhea::InputEvent& evt);
 	void openQuitDialog();
 	void openRealmDialog();
-	void openDetailsDialog(rhea::ErrorReport report);
+	void openDetailsDialog(rhea::ErrorReport report);	
 
 	// user preferences
 	UserPrefs m_userprefs;
@@ -75,6 +77,8 @@ protected:
 	OpenBrowser* m_realm_dialog = nullptr;
 	AlertDialog* m_alert_dialog = nullptr;
 	rhea::Dialog* m_details_dialog = nullptr;
+	
+	std::unique_ptr<AssetViewer> m_asset_viewer = nullptr;
 
 	float m_current_time;
 

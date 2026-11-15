@@ -1,0 +1,63 @@
+[scene]
+name="assetviewer"
+type="//meworla/scene"
+controllers="controllers"
+
+[lighting]
+type="//meworla/lighting"
+ambient=(0.4f, 0.4f, 0.4f, 1.0f)
+
+[sun]
+type="//meworla/directionallight"
+direction=(-0.5f, -1.0f, 0.4f)
+diffuse=(0.8f, 0.8f, 0.8f, 1.0f)
+
+[content]
+type="//meworla/item"
+position=(0.0f, 0.0f, 0.0f)
+
+[controllers]
+type="//core/types/unit"
+
+[controllers/viewer]
+type="//meworla/spectator"
+player_slot=1
+move_step=3.0f
+side_step=3.0f
+up_step=3.0f
+turn_step=1.5f
+
+# Camera offset relative to the target
+position=(0.0f, 0.0f, -10.0f)
+
+[viewer_target]
+type="//meworla/item"
+player_slot=1
+position=(0.0f, 0.5f, -2.0f)
+
+[viewer_target/free_movement]
+type="//meworla/free_movement"
+
+[camera]
+type="//meworla/camera"
+player_slot=1
+
+[ground]
+type="//meworla/item"
+position=(0.0f, 0.0f, 0.0f)
+mesh="ground_mesh"
+
+[ground_mesh]
+type="//meworla/planemesh"
+width=40.0f
+height=40.0f
+centered=true
+segmentsX=1
+segmentsY=1
+uvScale=(20.0f, 20.0f)
+shader="//rhea/shaders/standard"
+diffuse_tex=("grid_texture")
+
+[grid_texture]
+type="//meworla/texture"
+path="./images/grid.png"

@@ -18,7 +18,7 @@ namespace rhea {
 
 struct TriangleSoup {
 	std::vector<math::Vector3> positions;
-	std::vector<unsigned long> indices;
+	std::vector<uint32_t> indices;
 };
 
 bool ExtractTrianglesFromScene(rhea::Application* app, rhea::Item* item, TriangleSoup& out);

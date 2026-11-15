@@ -258,6 +258,10 @@ namespace rhea::client {
 		rhea::Item* item = doCast<rhea::Item>(unit);
 		if (!item) return true;
 
+		// Independently of RenderComponent and SkeletonPose, remove the item.
+		// Also removes any accidental duplicate entries.
+		m_animated_items.erase(std::remove(m_animated_items.begin(), m_animated_items.end(), item), m_animated_items.end());
+
 		auto* rc = item->getComponent<RenderComponent>();
 		if (!rc) return true;
 
@@ -284,12 +288,7 @@ namespace rhea::client {
 		}
 		if (rc->skeleton_pose != poseidon::InvalidSkeletonPoseHandle) {
 			m_service->getEngine()->getRenderWorld()->destroySkeletonPose(rc->skeleton_pose);
-			rc->skeleton_pose = poseidon::InvalidSkeletonPoseHandle;
-			// clear from animated items list
-			auto it = std::find(m_animated_items.begin(), m_animated_items.end(), item);
-			if (it != m_animated_items.end()) {
-				m_animated_items.erase(it);
-			}
+			rc->skeleton_pose = poseidon::InvalidSkeletonPoseHandle;			
 		}
 
 		rc->ctx = nullptr;
@@ -345,7 +344,9 @@ namespace rhea::client {
 		rhea::Skeleton* skeleton = mesh->getComponent<rhea::Skeleton>();
 		if (skeleton) {
 			rc->skeleton = skeleton;
-			m_animated_items.push_back(item); // Track animated items for pose updates
+			if (std::find(m_animated_items.begin(), m_animated_items.end(), item) == m_animated_items.end()) {
+				m_animated_items.push_back(item); // Track animated items for pose updates
+			}
 		}
 
 		// Create render entity if missing
@@ -502,12 +503,7 @@ namespace rhea::client {
 					core->getRenderWorld()->destroySkeletonPose(rc->skeleton_pose);
 					rc->skeleton_pose = poseidon::InvalidSkeletonPoseHandle;
 					renderable->skinned = false;
-					renderable->skeleton_pose = poseidon::InvalidSkeletonPoseHandle;
-					// clear from animated items list
-					auto it = std::find(m_animated_items.begin(), m_animated_items.end(), item);
-					if (it != m_animated_items.end()) {
-						m_animated_items.erase(it);
-					}
+					renderable->skeleton_pose = poseidon::InvalidSkeletonPoseHandle;					
 				}
 
 			}
@@ -518,12 +514,7 @@ namespace rhea::client {
 				// If the item no longer has an animation component, but we have a skeleton pose, we should clean it up
 				core->getRenderWorld()->destroySkeletonPose(rc->skeleton_pose);
 				rc->skeleton_pose = poseidon::InvalidSkeletonPoseHandle;
-				renderable->skeleton_pose = poseidon::InvalidSkeletonPoseHandle;
-				// clear from animated items list
-				auto it = std::find(m_animated_items.begin(), m_animated_items.end(), item);
-				if (it != m_animated_items.end()) {
-					m_animated_items.erase(it);
-				}
+				renderable->skeleton_pose = poseidon::InvalidSkeletonPoseHandle;				
 			}
 		}
 	}

@@ -5,7 +5,7 @@
  * See LICENSE file in the project root for full license information.
  */
 
-#include "Rhea/ObjFile/ObjLoader.h"
+#include "Rhea/ObjFile/ObjDocument.h"
 #include <Rhea/ObjFile/ObjGeometry.h>
 #define TINYOBJLOADER_IMPLEMENTATION 
 #include <tiny_obj_loader/tiny_obj_loader.h>
@@ -21,11 +21,13 @@
 #include <Rhea/Resources/VertexBufferStandard.h>
 #include <Rhea/Resources/ResourceList.h>
 #include <Rhea/Resources/ResourceService.h>
+#include <sstream>
+#include <algorithm>
 
 namespace rhea
 {
 	struct VertexKeyHasher {
-		size_t operator()(const ObjLoader::Vertex& v) const {
+		size_t operator()(const ObjDocument::Vertex& v) const {
 			size_t hash = 17;
 			hash = hash * 31 + std::hash<float>{}(v.position.x);
 			hash = hash * 31 + std::hash<float>{}(v.position.y);
@@ -60,45 +62,47 @@ namespace rhea
 		}
 	};
 
-	struct ObjLoader::ParsedData {
+	struct ObjDocument::ParsedData {
 		tinyobj::attrib_t attributes;
 		std::vector<tinyobj::shape_t> shapes;
 		std::vector<tinyobj::material_t> materials;
 	};
 
-	ObjLoader::ObjLoader(std::string path_name, std::string type_name) :
+	ObjDocument::ObjDocument(std::string path_name, std::string type_name) :
 		Resource(path_name, type_name)
 	{}
 
-	void ObjLoader::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
+	ObjDocument::~ObjDocument() = default;
+
+	void ObjDocument::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values)
 	{
 		Resource::setup(app, attributes, values);
 		if (m_shader_ref.empty()) {
 			m_shader_ref.setId(getValueString("shadername", "//rhea/shaders/standard"));
 		}
+
+		addComponentUnique<ObjGeometry>("geometry", "//meworla/objgeometry");
 	}
 
-	void ObjLoader::prepare(PrepareHandler handler)
+	void ObjDocument::prepare(PrepareHandler handler)
 	{
-		std::string objbuf;
-		std::string mtlbuf;
-
-		if (!m_mtl_ref.empty()) {
-			TextResource* mtl = m_app->getUnitTree()->resolve(m_mtl_ref);
-			if (mtl) {
-				mtlbuf = mtl->getAsString();
-			}
+		if (m_source_text_set) {
+			prepareMaterialLibraries(std::move(handler));
+			return;
 		}
+		// use the referenced obj and mtl files to load the data
 		if (!m_obj_ref.empty()) {
-			TextResource* obj = m_app->getUnitTree()->resolve(m_obj_ref);
-			if (obj) {
-				objbuf = obj->getAsString();
+			ObjDocument* instance = m_app->getUnitTree()->resolve(m_obj_ref);
+			if (instance) {
+				//instance->prepare(std::move(handler));
+				setSourceText(instance->sourceText());
+				setResourceContext(instance->resourceContext());
+				prepareMaterialLibraries(std::move(handler));
 			}
 			else {
-				DLOG(LOG_DEBUG) << "Obj not found in objloader. Path was: " << m_obj_ref.id();
+				LOG(LOG_ERROR) << "Could not resolve obj reference: " << m_obj_ref.id();
 				if (handler)
-					handler(Error(Error::Code::NOT_FOUND, "Obj not found", m_obj_ref.id()));
-				return;
+					handler(Error(Error::Code::NOT_FOUND, "Could not resolve obj reference", m_obj_ref.id()));
 			}
 		}
 		else {
@@ -107,50 +111,121 @@ namespace rhea
 				handler(Error(Error::Code::INVALID_DEFINITION, "Obj file not defined", m_path));
 			return;
 		}
+	}
 
+	std::vector<std::string> findMaterialLibraries(const std::string& obj_text)
+	{
+		std::vector<std::string> result;
+		std::istringstream input(obj_text);
+		std::string line;
+
+		while (std::getline(input, line)) {
+			std::istringstream fields(line);
+			std::string keyword;
+			fields >> keyword;
+
+			if (keyword != "mtllib")
+				continue;
+
+			std::string filename;
+			while (fields >> filename) {
+				if (filename.front() == '#')
+					break;
+
+				if (std::find(result.begin(), result.end(), filename) == result.end()) {
+					result.push_back(filename);
+				}
+			}
+		}
+
+		return result;
+	}
+
+	void ObjDocument::prepareMaterialLibraries(PrepareHandler handler)
+	{
+		if (!m_mtl_ref.empty()) {
+			m_mtl_resource = m_app->getUnitTree()->resolve(m_mtl_ref);
+			if (!m_mtl_resource) {
+				LOG(LOG_ERROR) << "Could not resolve mtl reference: " << m_mtl_ref.id();
+				if (handler)
+					handler(Error(Error::Code::NOT_FOUND, "Could not resolve mtl reference", m_mtl_ref.id()));
+				return;
+			}
+			m_mtl_source_text = m_mtl_resource->getAsString();
+			prepareOwnData(handler);
+		}
+		else {
+			// get mtllib from the OBJ text
+			std::vector<std::string> mtl_paths = findMaterialLibraries(m_source_text).empty() ? std::vector<std::string>() : findMaterialLibraries(m_source_text);
+			ResourceList mtl_resources(m_app, m_resource_context);
+			int mat_index = 0;
+			for (const auto& mtl_path : mtl_paths) {
+				// resolve the path relative to the obj file
+				auto resolved = m_resource_context.source_directory.empty() ? orion::ResourceAddress::parse(mtl_path) : orion::ResourceAddress::parse(m_resource_context.source_directory + mtl_path);
+				if (!resolved.success) {
+					LOG(LOG_ERROR) << "Could not resolve mtl file address: " << mtl_path;
+					if (handler)
+						handler(Error(Error::Code::INVALID_DATA, "Could not resolve mtl file address: " + mtl_path, m_obj_ref.id()));
+					return;
+				}
+				const std::string resolved_mtl_id = resolved.address.toString();
+				mtl_resources.push("mat_" + std::to_string(++mat_index), resolved_mtl_id, "//meworla/mtl");
+			}
+			auto* resource_service = m_app->getService<ResourceService>();
+
+			resource_service->loadAsync(mtl_resources, [this, mat_index, handler](ResourceList* loaded, ErrorReport error) {
+				if (error.isError()) {
+					if (handler)
+						handler(std::move(error));
+					return;
+				}
+
+				m_mtl_source_text.clear();
+
+				for (int index = 1; index <= mat_index; ++index) {
+					const std::string key =	"mat_" + std::to_string(index);
+
+					auto* mtl = doCast<TextResource>(loaded->get(key));
+					if (!mtl) {
+						if (handler) {
+							handler(Error(Error::Code::INVALID_DATA, "Loaded material library is not a TextResource", key));
+						}
+						return;
+					}
+
+					m_mtl_source_text += mtl->getAsString();
+					m_mtl_source_text += '\n';
+				}
+
+				prepareOwnData(handler);
+				});
+		}
+
+	}
+
+	void ObjDocument::prepareOwnData(PrepareHandler handler)
+	{
 		tinyobj::ObjReader reader;
 		tinyobj::ObjReaderConfig config;
 		bool change_handedness = true;
+		m_resolved_diffuse_id.clear();
+		m_resolved_normal_id.clear();
 
-		bool ret = reader.ParseFromString(objbuf, mtlbuf, config);
+		bool ret = reader.ParseFromString(m_source_text, m_mtl_source_text, config);
 
 		if (!ret) {
 			LOG(LOG_ERROR) << "Could not parse obj file: " << reader.Error();
 			if (handler)
 				handler(Error(Error::Code::INVALID_DATA, "Could not parse obj file: " + reader.Error(), m_obj_ref.id()));
 			return;
-		}
-
-		addComponentUnique<ObjGeometry>("geometry", "//meworla/objgeometry");
+		}		
 
 		m_parsed_data = std::make_unique<ParsedData>();
 		m_parsed_data->attributes = reader.GetAttrib();
 		m_parsed_data->shapes = reader.GetShapes();
 		m_parsed_data->materials = reader.GetMaterials();
 
-		std::string mtl_uri = m_mtl_ref.id();
-
-		if (mtl_uri.empty()) {
-			m_prepared = true;
-
-			if (handler)
-				handler(Error());
-
-			return;
-		}
-
-		if (mtl_uri.compare(0, 2, "//") == 0)
-			mtl_uri = "realm:" + mtl_uri;
-
-		auto mtl_address = orion::ResourceAddress::parse(mtl_uri);
-		if (!mtl_address.success) {
-			LOG(LOG_ERROR) << "Could not parse mtl file address: " << reader.Error();
-			if (handler)
-				handler(Error(Error::Code::INVALID_DATA, "Could not parse mtl file address: " + reader.Error(), m_mtl_ref.id()));
-			return;
-		}
-
-		auto texture_base = mtl_address.address.parent();
+		auto texture_base = orion::ResourceAddress::parse(m_resource_context.source_directory);
 		if (!texture_base.success) {
 			LOG(LOG_ERROR) << "Could not get parent address of mtl file: " << reader.Error();
 			if (handler)
@@ -217,13 +292,21 @@ namespace rhea
 			});
 	}
 
-	void ObjLoader::resolveReferences(const std::string& context_root, const std::string& source_root)
+	void ObjDocument::resolveReferences(const std::string& context_root, const std::string& source_root)
 	{
 		Resource::resolveReferences(context_root, source_root);
 	}
 
-	bool ObjLoader::load(rhea::Mesh* mesh)
+	bool ObjDocument::load(rhea::Mesh* mesh)
 	{
+		if (!m_source_text_set) {
+			auto* source = m_app->getUnitTree()->resolve(m_obj_ref);
+			if (!source || source == this)
+				return false;
+
+			return source->load(mesh);
+		}
+
 		std::vector<VertexAttribute> layout;
 
 		Shader* shader_res = m_app->getUnitTree()->resolve(m_shader_ref);
@@ -238,20 +321,21 @@ namespace rhea
 		bool ret = true;
 
 		if (!m_parsed_data) {
-			LOG(LOG_ERROR) << "ObjLoader::load: No parsed data available. Did you call prepare() first?";
+			LOG(LOG_ERROR) << "ObjDocument::load: No parsed data available. Did you call prepare() first?";
 			return false;
 		}
 
 		std::vector<Material*> unit_materials;
 
 		// create the materials
-		int ambient_id = shader_res->getInputSlotId("AMBIENT");
-		int diffuse_id = shader_res->getInputSlotId("DIFFUSE");
-		int specular_id = shader_res->getInputSlotId("SPECULAR");
-		int emmission_id = shader_res->getInputSlotId("EMISSIVE");
+		const int ambient_id = shader_res->getInputSlotId("AMBIENT");
+		const int diffuse_id = shader_res->getInputSlotId("DIFFUSE");
+		const int specular_id = shader_res->getInputSlotId("SPECULAR");
+		const int emissive_id = shader_res->getInputSlotId("EMISSIVE");
+		const int shininess_id = shader_res->getInputSlotId("SHININESS");
 
-		int basecolor_id = shader_res->getTextureSlotId("BASECOLOR");
-		int normal_id = shader_res->getTextureSlotId("NORMAL");
+		const int basecolor_id = shader_res->getTextureSlotId("BASECOLOR");
+		const int normal_id = shader_res->getTextureSlotId("NORMAL");
 
 		for (int slot = 0; slot < m_parsed_data->materials.size(); slot++) {
 			Material* mat = new Material(m_parsed_data->materials[slot].name);
@@ -263,7 +347,7 @@ namespace rhea
 			mat->setColor(ambient_id, math::Color(m_parsed_data->materials[slot].ambient[0], m_parsed_data->materials[slot].ambient[1], m_parsed_data->materials[slot].ambient[2], 1.0f));
 			mat->setColor(diffuse_id, math::Color(m_parsed_data->materials[slot].diffuse[0], m_parsed_data->materials[slot].diffuse[1], m_parsed_data->materials[slot].diffuse[2], 1.0f));
 			mat->setColor(specular_id, math::Color(m_parsed_data->materials[slot].specular[0], m_parsed_data->materials[slot].specular[1], m_parsed_data->materials[slot].specular[2], 1.0f));
-			mat->setColor(emmission_id, math::Color(m_parsed_data->materials[slot].emission[0], m_parsed_data->materials[slot].emission[1], m_parsed_data->materials[slot].emission[2], 1.0f));
+			mat->setColor(emissive_id, math::Color(m_parsed_data->materials[slot].emission[0], m_parsed_data->materials[slot].emission[1], m_parsed_data->materials[slot].emission[2], 1.0f));
 
 			int shining_id = shader_res->getInputSlotId("SHININESS");
 			// set shininess - map for Phong [0..1000.0] -> [0...128.0]
@@ -273,17 +357,21 @@ namespace rhea
 			// set texture
 			if (!m_parsed_data->materials[slot].diffuse_texname.empty()) {
 				std::string resolved_texture_id = m_resolved_diffuse_id.size() > slot ? m_resolved_diffuse_id[slot] : "";
-				ImageResource* diffuse_map = doCast<ImageResource>(m_app->getUnitTree()->find(resolved_texture_id));
+				auto* diffuse_map = m_app->getUnitTree()->resolve(Ref<ImageResource>(resolved_texture_id));
 				if (diffuse_map)
 					mat->setTexture(basecolor_id, diffuse_map);
+				else
+					LOG(LOG_ERROR) << "OBJ diffuse texture not found: " << resolved_texture_id;
 			}
 
 			// set normal map
 			if (normal_id != -1 && !m_parsed_data->materials[slot].normal_texname.empty()) {
 				std::string resolved_texture_id = m_resolved_normal_id.size() > slot ? m_resolved_normal_id[slot] : "";
-				ImageResource* normal_map = doCast<ImageResource>(m_app->getUnitTree()->find(resolved_texture_id));
+				auto* normal_map = m_app->getUnitTree()->resolve(Ref<ImageResource>(resolved_texture_id));
 				if (normal_map)
 					mat->setTexture(normal_id, normal_map);
+				else
+					LOG(LOG_ERROR) << "OBJ normal texture not found: " << resolved_texture_id;
 			}
 
 			// finalize
@@ -292,6 +380,30 @@ namespace rhea
 				mesh->setMaterial(mat);
 			}
 			unit_materials.push_back(mat);
+		}
+
+		const size_t fallback_slot = unit_materials.size();
+
+		Material* fallback = new Material("fallback_material");
+		// create a fallback material for meshes that have no material assigned
+		fallback->setShader(shader_res);
+		fallback->setValue("shader", shader_res->getPathName());
+
+		if (diffuse_id >= 0)
+			fallback->setColor(diffuse_id, math::Color(1, 1, 1, 1));
+		if (ambient_id >= 0)
+			fallback->setColor(ambient_id, math::Color(0, 0, 0, 1));
+		if (specular_id >= 0)
+			fallback->setColor(specular_id, math::Color(0, 0, 0, 1));
+		if (emissive_id >= 0)
+			fallback->setColor(emissive_id, math::Color(0, 0, 0, 1));
+		if (shininess_id >= 0)
+			fallback->setFloat(shininess_id, 1.0f);
+		addChild(fallback);
+
+		unit_materials.push_back(fallback);
+		if (mesh->getMaterial() == nullptr) {
+			mesh->setMaterial(fallback);
 		}
 
 		std::unordered_map<Vertex, unsigned long, VertexKeyHasher> unique_vertices;
@@ -310,7 +422,7 @@ namespace rhea
 		float* raw_vertex = new float[vertex_elements];
 
 		// prepare indices
-		std::vector<std::vector<uint32_t>> indices(m_parsed_data->materials.size());
+		std::vector<std::vector<uint32_t>> indices(unit_materials.size());		
 
 		for (const auto& shape : m_parsed_data->shapes) {
 			// shape name
@@ -321,10 +433,26 @@ namespace rhea
 
 			// reserve buffer for vertex in number of vertices (assume triangles)
 			buf_size += shape.mesh.num_face_vertices.size() * 3;
-			vertices->reserve(buf_size);
+			vertices->reserve(buf_size);	
 
 			// iterate over faces
 			for (size_t f = 0; f < shape.mesh.num_face_vertices.size(); f++) {
+
+				// prepare indices for each material
+				const int material_id = shape.mesh.material_ids[f];
+
+				size_t material_slot;
+				if (material_id == -1) {
+					material_slot = fallback_slot;
+				}
+				else if (material_id < 0 ||
+					static_cast<size_t>(material_id) >= fallback_slot) {
+					LOG(LOG_ERROR) << "Invalid material id " << material_id;
+					return false;
+				}
+				else {
+					material_slot = static_cast<size_t>(material_id);
+				}
 
 				// iterate over vertices composing face f
 				int num_vertices = shape.mesh.num_face_vertices[f];
@@ -409,11 +537,11 @@ namespace rhea
 							*/
 						}
 					}
-					if (shape.mesh.material_ids[f] >= indices.size()) {
-						LOG(LOG_ERROR) << "Material id " << shape.mesh.material_ids[f] << " is out of range for shape " << shape.name;
+					if (material_slot >= indices.size()) {
+						LOG(LOG_ERROR) << "Material id " << material_slot << " is out of range for shape " << shape.name;
 						return false;
 					}
-					indices[shape.mesh.material_ids[f]].push_back(unique_vertices[vertex]);
+					indices[material_slot].push_back(unique_vertices[vertex]);
 				}
 
 				index_offset += num_vertices;
@@ -422,7 +550,7 @@ namespace rhea
 			}
 
 			if (change_handedness) {
-				for (size_t m = 0; m < m_parsed_data->materials.size(); m++)
+				for (size_t m = 0; m < indices.size(); m++)
 					for (size_t i = 0; i < indices[m].size(); i += 3) {
 						std::swap(indices[m][i + 1], indices[m][i + 2]);
 					}
@@ -431,7 +559,7 @@ namespace rhea
 			if (shader_res->getValue("input", "") == "standard") {
 
 				// compute tangents
-				for (size_t i = 0; i < m_parsed_data->materials.size(); i++)
+				for (size_t i = 0; i < indices.size(); i++)
 				{
 					// iterate over faces
 					for (size_t face = 0; face < indices[i].size(); face += 3)
@@ -467,9 +595,14 @@ namespace rhea
 				}
 			}
 
+			size_t submesh_index = 0;
+
 			// store submeshes
-			for (size_t i = 0; i < m_parsed_data->materials.size(); i++)
-				mesh->setSubmesh(i, unit_materials[i], indices[i]);
+			for (size_t i = 0; i < indices.size(); ++i) {
+				if (indices[i].empty())
+					continue;
+				mesh->setSubmesh(submesh_index++, unit_materials[i], indices[i]);
+			}
 		}
 		// delete raw vertex
 		delete[] raw_vertex;
@@ -477,9 +610,68 @@ namespace rhea
 		return ret;
 	}
 
-	void ObjLoader::initializeType(simpleparser::Type* type)
+	bool ObjDocument::extractTriangles(std::vector<math::Vector3>& positions, std::vector<uint32_t>& indices) const 
 	{
-		registerResourceProperty(type, "path", &ObjLoader::m_obj_ref, "//meworla/wavefront-object", ResourceUsage::Load);
-		registerResourceProperty(type, "material", &ObjLoader::m_mtl_ref, "//meworla/wavefront-material", ResourceUsage::Load);
+		positions.clear();
+		indices.clear();
+
+		// Explicit in a .scene defined wrapper document.
+		if (!m_source_text_set) {
+			auto* source = m_app->getUnitTree()->resolve(m_obj_ref);
+			if (!source || source == this)
+				return false;
+
+			return source->extractTriangles(positions, indices);
+		}
+
+		// The document must already be prepared.
+		if (!m_parsed_data)
+			return false;
+
+		const auto& attrib = m_parsed_data->attributes;
+
+		positions.reserve(attrib.vertices.size() / 3);
+		for (size_t i = 0; i + 2 < attrib.vertices.size(); i += 3) {
+			positions.emplace_back(
+				attrib.vertices[i],
+				attrib.vertices[i + 1],
+				-attrib.vertices[i + 2]); // same handedness as the mesh
+		}
+
+		for (const auto& shape : m_parsed_data->shapes) {
+			size_t offset = 0;
+
+			for (auto count : shape.mesh.num_face_vertices) {
+				for (size_t k = 1; k + 1 < count; ++k) {
+					const int a = shape.mesh.indices[offset].vertex_index;
+					const int b = shape.mesh.indices[offset + k].vertex_index;
+					const int c = shape.mesh.indices[offset + k + 1].vertex_index;
+
+					if (a < 0 || b < 0 || c < 0 ||
+						static_cast<size_t>(a) >= positions.size() ||
+						static_cast<size_t>(b) >= positions.size() ||
+						static_cast<size_t>(c) >= positions.size()) {
+						positions.clear();
+						indices.clear();
+						return false;
+					}
+
+					// Reverse winding due to Z-mirroring.
+					indices.push_back(static_cast<uint32_t>(a));
+					indices.push_back(static_cast<uint32_t>(c));
+					indices.push_back(static_cast<uint32_t>(b));
+				}
+
+				offset += count;
+			}
+		}
+
+		return !positions.empty() && !indices.empty();
+	}
+
+	void ObjDocument::initializeType(simpleparser::Type* type)
+	{
+		registerResourceProperty(type, "path", &ObjDocument::m_obj_ref, "//meworla/wavefront-object", ResourceUsage::Load);
+		registerResourceProperty(type, "material", &ObjDocument::m_mtl_ref, "//meworla/wavefront-material", ResourceUsage::Load);
 	}
 }

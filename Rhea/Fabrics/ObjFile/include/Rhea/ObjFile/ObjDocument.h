@@ -5,25 +5,26 @@
  * See LICENSE file in the project root for full license information.
  */
 
-#ifndef RHEA_OBJLOADER_H
-#define RHEA_OBJLOADER_H
+#ifndef RHEA_OBJDOCUMENT_H
+#define RHEA_OBJDOCUMENT_H
 
 #include <string>
-#include "Rhea/Core/Geometry.h"
 #include "Rhea/Core/Mesh.h"
 #include <Math/Vector3.h>
 #include <Math/Vector2.h>
 #include <Rhea/Resources/TextResource.h>
+#include <Rhea/Resources/ResourceContext.h>
 
 namespace rhea
 {
 	class Application;
 
-	class ObjLoader : public Resource
+	class ObjDocument : public Resource
 	{
-		MECLASS(ObjLoader, Resource)
+		RECLASS(ObjDocument, Resource, "//meworla/objdocument")
 	public:	
-		ObjLoader(std::string path_name, std::string type_name);
+		ObjDocument(std::string path_name, std::string type_name);
+		~ObjDocument() override;
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);
 		bool load(rhea::Mesh* mesh);
 
@@ -31,7 +32,27 @@ namespace rhea
 		static void initializeType(simpleparser::Type* type);
 		void prepare(PrepareHandler handler) override;
 
-		const Ref<TextResource>& objectRef() const {
+		void prepareOwnData(PrepareHandler handler);
+
+		void setSourceText(const std::string& text) {
+			m_source_text = text;
+			m_source_text_set = true;
+		}
+
+		const std::string& sourceText() const
+		{
+			return m_source_text;
+		}
+
+		void setResourceContext(const ResourceContext& context) {
+			m_resource_context = context;
+		}
+
+		const ResourceContext& resourceContext() const {
+			return m_resource_context;
+		}
+
+		const Ref<ObjDocument>& objectRef() const {
 			return m_obj_ref;
 		}
 	
@@ -46,10 +67,20 @@ namespace rhea
 				return position.equals(other.position)/* && normal.equals(other.normal)*/ && uv.equals(other.uv)/* && color.equals(other.color) */;
 			}
 		};
+
+		bool extractTriangles(std::vector<math::Vector3>& positions, std::vector<uint32_t>& indices) const;
+
 	protected:
-		Ref<TextResource> m_obj_ref;
+		Ref<ObjDocument> m_obj_ref;
 		Ref<TextResource> m_mtl_ref;
 		Ref<Shader> m_shader_ref;
+		std::string m_source_text;
+		bool m_source_text_set = false;
+		ResourceContext m_resource_context;
+		TextResource* m_mtl_resource = nullptr;
+		std::string m_mtl_source_text;
+
+		void prepareMaterialLibraries(PrepareHandler handler);
 
 	private:
 		struct ParsedData;
@@ -60,4 +91,4 @@ namespace rhea
 	};
 }
 
-#endif // !RHEA_OBJLOADER_H
+#endif // !RHEA_OBJDOCUMENT_H

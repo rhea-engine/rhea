@@ -315,10 +315,11 @@ namespace rhea
                 });
             }
         });
-        stream->onError([state, buffer](int stream_error) {
-            state->error = Error(Error::Code::RESOURCE_ERROR, "Could not read glTF resource", state->resource_id);
-            state->error.addContext("stream_error", std::to_string(stream_error));
-            state->parse();
+        stream->onError([state, handler, buffer](int stream_error) {
+            Error error = Error(Error::Code::RESOURCE_ERROR, "Could not read glTF resource", state->resource_id);
+            error.addContext("stream_error", std::to_string(stream_error));
+            if (handler)
+                handler(error, nullptr);
         });
         stream->ReadAsync(buffer.get());
     }

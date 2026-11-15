@@ -25,6 +25,8 @@ namespace rhea
 	/** The main service that manages scene and their lifecycles
 	*/
 
+	class SceneResource;
+
 	class WorldService : public Service
 	{
 		MECLASS(WorldService, Service)
@@ -149,6 +151,14 @@ namespace rhea
 			uint64_t current_generation;
 		};
 
+		struct OpenResourceContext {
+			Resource* resource = nullptr;
+			std::string resource_id;
+			ResourceContext resource_context;
+		};
+		using AdaptResourceCompletion =	std::function<void(ErrorReport, SceneResource*)>;
+		using OpenResourceAdapter =	std::function<void(const OpenResourceContext&, AdaptResourceCompletion)>;
+
 		WorldService(std::string name, std::string type_name) :
 			Service(name, type_name)
 		{}
@@ -215,6 +225,9 @@ namespace rhea
 		// discard handlers
 		void addDiscardHandler(DiscardHandler handler) { m_discard_handlers.push_back(handler); }
 
+		// resource adapters
+		void setOpenResourceAdapter(OpenResourceAdapter adapter) { m_open_resource_adapter = adapter; }
+
 		// every frame
 		bool onFrame(float delta) override;
 		bool onFrameFinal(float delta) override;
@@ -265,6 +278,8 @@ namespace rhea
 		void doActivateSceneTransition(Scene* scene, const TransitionRequest& request, SceneTransitionContext& context, OpenAttempt open_attempt);
 
 		ManagedScene& ensureManagedScene(Scene* scene, uint64_t session_generation, std::string resourceId, SceneRole role, Scene* owner = nullptr);
+
+		void openSceneResource(SceneResource* scene_resource, const std::string& rid, OpenAttempt open_attempt, ErrorReport report, OpenHandler handler);
 
 		struct PreparedWorld {
 			std::string load_rid;
@@ -334,6 +349,7 @@ namespace rhea
 		std::vector<SceneActivateHandler> m_scene_activate_handlers;
 		std::vector<SceneTransitionActivateHandler> m_scene_transition_activate_handlers;
 		std::vector<DiscardHandler> m_discard_handlers;
+		OpenResourceAdapter m_open_resource_adapter;
 	};
 }
 #endif // !RHEA_WORLDSERVICE_H

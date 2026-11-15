@@ -114,12 +114,45 @@ namespace rhea
 		}
 	}
 
+	void WorldService::openSceneResource(SceneResource* scene_resource, const std::string& rid, OpenAttempt open_attempt, ErrorReport report, OpenHandler handler)
+	{
+		const auto& source_id = scene_resource->getSourceResourceId();
+
+		// already the active scene? then just finish the attempt
+		if (m_primary_scene && !source_id.empty() && source_id == m_active_root_resource_id) {
+			finishAttempt(open_attempt, std::move(report), handler);
+			return;
+		}
+		m_open_attempt.resource_id = source_id;
+		ResourceContext context = scene_resource->getResourceContext();
+		// instance the world
+		Unit* parent = doCast<Unit>(m_app->getUnitTree()->find(scene_resource->getBaseId()));
+		scene_resource->spawn(parent, [this, rid, open_attempt, report, handler, context](ErrorReport result, Unit* unit) mutable {
+			report.merge(std::move(result));
+			if (open_attempt != m_open_attempt) {
+				if (unit)
+					unit->destroy();
+				report.addError(Error(Error::Code::CANCELED, "Request canceled"));
+				finishAttempt(open_attempt, std::move(report), handler);
+				return; // stale result
+			}
+			if (report.isError()) {
+				finishAttempt(open_attempt, std::move(report), handler);
+				return;
+			}
+
+			World* world = doCast<World>(unit);
+			m_open_attempt.candidate_root = unit;
+			LOG(LOG_INFO) << "Loaded world: " << rid;
+			onWorldLoaded(m_open_attempt, rid, context, report, unit, handler);
+			});
+	}
 
 	void WorldService::loadWorld(const std::string& rid, const std::string& realm_alias, OpenAttempt open_attempt, OpenHandler handler, bool allow_collection)
 	{
 		ResourceContext context;
 		context.realm_alias = realm_alias;
-		m_app->loadResource(rid, context, "//meworla/world", [this, rid, realm_alias, open_attempt, handler, allow_collection](Component* component, ErrorReport report) {
+		m_app->loadResource(rid, context, "//meworla/world", [this, rid, realm_alias, open_attempt, context, handler, allow_collection](Component* component, ErrorReport report) {
 			if (open_attempt != m_open_attempt) {
 				report.addError(Error(Error::Code::CANCELED, "Request canceled"));
 				finishAttempt(open_attempt, std::move(report), handler);
@@ -128,36 +161,8 @@ namespace rhea
 
 			SceneResource* scene_resource = doCast<SceneResource>(component);
 			if (!report.isError() && scene_resource) {
-				const auto& source_id = scene_resource->getSourceResourceId();
-
-				// already the active scene? then just finish the attempt
-				if (m_primary_scene && !source_id.empty() && source_id == m_active_root_resource_id) {
-					finishAttempt(open_attempt, std::move(report), handler);
-					return;
-				}
-				m_open_attempt.resource_id = source_id;
-				ResourceContext context = scene_resource->getResourceContext();
-				// instance the world
-				Unit* parent = doCast<Unit>(m_app->getUnitTree()->find(scene_resource->getBaseId()));
-				scene_resource->spawn(parent, [this, rid, open_attempt, report, handler, context](ErrorReport result, Unit* unit) mutable {
-					report.merge(std::move(result));
-					if (open_attempt != m_open_attempt) {
-						if (unit)
-							unit->destroy();
-						report.addError(Error(Error::Code::CANCELED, "Request canceled"));
-						finishAttempt(open_attempt, std::move(report), handler);
-						return; // stale result
-					}
-					if (report.isError()) {
-						finishAttempt(open_attempt, std::move(report), handler);
-						return;
-					}
-
-					World* world = doCast<World>(unit);
-					m_open_attempt.candidate_root = unit;
-					LOG(LOG_INFO) << "Loaded world: " << rid;
-					onWorldLoaded(m_open_attempt, rid, context, report, unit, handler);
-					});
+				openSceneResource(scene_resource, rid, open_attempt, report, handler);
+				return;
 			}
 			else if (!report.isError() && doCast<Collection>(component) && allow_collection) {
 				// user tried to open directory
@@ -168,6 +173,28 @@ namespace rhea
 				request_id += "/world.scene";
 				loadWorld(request_id, realm_alias, open_attempt, handler, false);
 				return;
+			}
+			else if (!report.isError() && doCast<Resource>(component) && m_open_resource_adapter) {
+				OpenResourceContext adapter_context{ doCast<Resource>(component), rid, context };
+				m_open_resource_adapter(adapter_context, [this, rid, open_attempt, handler](ErrorReport report, SceneResource* scene_resource) {
+					if (open_attempt != m_open_attempt) {
+						if (scene_resource)
+							scene_resource->destroy();
+						report.addError(Error(Error::Code::CANCELED, "Request canceled"));
+						finishAttempt(open_attempt, std::move(report), handler);
+						return; // stale result
+					}
+					if (report.isError()) {
+						finishAttempt(open_attempt, std::move(report), handler);
+						return;
+					}
+					if (!scene_resource) {
+						report.addError(Error(Error::Code::INVALID_DATA, "Resource adapter did not provide a scene resource", rid));
+						finishAttempt(open_attempt, std::move(report), handler);
+						return;
+					}
+					openSceneResource(scene_resource, rid, open_attempt, report, handler);
+					});
 			}
 			else {
 				if (!report.isError() && !scene_resource) {

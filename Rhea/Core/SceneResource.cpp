@@ -603,10 +603,23 @@ namespace rhea
 		state->complete = std::move(complete);
 
 		for (const auto& item : pending) {
-			auto* resource = doCast<Resource>(resources[item.resource_key]);
+			auto* unit = resources[item.resource_key];
+			if (!unit) {
+				ErrorReport report;
+				report.addError(Error(Error::Code::NOT_FOUND, "Unit not found: " + item.resource_key, m_source_resource_id));
+				state->finishOne(std::move(report));
+				continue;
+			}
+
+			if (item.usage == Component::ResourceUsage::Load) {
+				state->finishOne(ErrorReport());
+				continue;
+			}
+
+			auto* resource = doCast<Resource>(unit);
 			if (!resource) {
 				ErrorReport report;
-				report.addError(Error(Error::Code::NOT_FOUND, "Resource not found: " + item.resource_key, m_source_resource_id));
+				report.addError(Error(Error::Code::INVALID_DATA, "Referenced unit does not support resource preparation: " + item.resource_key, m_source_resource_id));
 				state->finishOne(std::move(report));
 				continue;
 			}

@@ -50,7 +50,7 @@ namespace rhea
 
 	void AnimationComponent::initializeType(simpleparser::Type* type)
 	{
-		registerResourceProperty(type, "animatorRef", &AnimationComponent::m_animator_ref, "//meworla/animator", ResourceUsage::Prepare);
+		registerResourceProperty(type, "animatorRef", &AnimationComponent::m_animator_ref, "//meworla/animator", ResourceUsage::Load);
 	}
 
 	bool AnimationComponent::ensureSkeleton()

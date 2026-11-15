@@ -446,11 +446,11 @@ namespace orion
 			}
 
 			m_stream = FileResourceStream::getStream(native_path);
-			m_stream->setLogicalAddress(m_address->toString());
 			if (!m_stream) {
 				m_next_state = State::UNSET;
 				return Error::RESOURCE_NOT_FOUND;
 			}
+			m_stream->setLogicalAddress(m_address->toString());
 			m_effective_address = m_address;
 			m_next_state = State::RESOURCE_RESOLVE_COMPLETED;
 			return Error::OK;
@@ -478,11 +478,11 @@ namespace orion
 				}
 
 				m_stream = FileResourceStream::getStream(native_path);
-				m_stream->setLogicalAddress(m_address->toString());
 				if (!m_stream) {
 					m_next_state = State::UNSET;
 					return Error::RESOURCE_NOT_FOUND;
 				}
+				m_stream->setLogicalAddress(m_address->toString());
 				if (native_path.size() && native_path[0] != '/') {
 					// if the path is not rooted we need to add a leading slash for the effective address
 					native_path = "/" + native_path;

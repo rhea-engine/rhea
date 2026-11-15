@@ -148,6 +148,8 @@ namespace rhea
 
 		void completeMaterialization(ErrorReport error, Unit* instance);
 
+		void applyComponentAttachments(Unit* root, CompletionHandler completion);
+
 		enum class PrepareState {
 			Unprepared,
 			Preparing,

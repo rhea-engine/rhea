@@ -27,11 +27,11 @@
 
 namespace rhea
 {
-	bool GltfDocument::load(rhea::Mesh* mesh, int mesh_index)
+	bool GltfDocument::load(rhea::Mesh* mesh, int mesh_index, int skin_index)
 	{
 		// instanced?
 		if (m_instance)
-			return m_instance->load(mesh, mesh_index);
+			return m_instance->load(mesh, mesh_index, skin_index);
 
 		if (!m_app)
 			m_app = mesh->getApplication();
@@ -42,14 +42,18 @@ namespace rhea
 			return false;
 		}
 
-		if (!m_material_created) {
-			if (!createMaterials())
+		if (!m_static_materials.created) {
+			if (!createMaterials(false))
 				return false;
-			m_material_created = true;
+			m_static_materials.created = true;
 		}
-
+		if (!m_skinned_materials.created) {
+			if (!createMaterials(true))
+				return false;
+			m_skinned_materials.created = true;
+		}
 		if (mesh_index >= 0)
-			return importMesh(mesh_index, mesh);
+			return importMesh(mesh_index, skin_index, mesh);
 
 		// Existing geometry behavior: import all nodes.
 		
@@ -82,7 +86,6 @@ namespace rhea
 		definition.root.name = "gltf_scene";
 		definition.root.type_name = "//meworla/item"; // TODO: scene or item?
 
-		// First version supports TRS; matrix decomposition comes later.
 		std::function<bool(int, const std::string&)> append_node;
 		append_node = [&](int node_index, const std::string& parent_id) {
 			if (node_index < 0 ||
@@ -115,7 +118,7 @@ namespace rhea
 			node.name = name;
 			node.type_name = "//meworla/item";
 			if (source.mesh >= 0) {
-				Mesh* mesh = getOrCreateMesh(source.mesh);
+				Mesh* mesh = getOrCreateMesh(source.mesh, source.skin);
 				if (!mesh)
 					return false;
 
@@ -202,9 +205,9 @@ namespace rhea
 		return true;
 	}
 
-	Mesh* GltfDocument::getOrCreateMesh(int mesh_index)
+	Mesh* GltfDocument::getOrCreateMesh(int mesh_index, int skin_index)
 	{
-		const std::string name = "mesh_" + std::to_string(mesh_index);
+		const std::string name = "mesh_" + std::to_string(mesh_index) + "_skin_" + std::to_string(skin_index);
 
 		if (auto* existing = doCast<Mesh>(getChild(name)))
 			return existing;
@@ -217,7 +220,7 @@ namespace rhea
 			return nullptr;
 		}
 
-		if (!load(mesh, mesh_index)) {
+		if (!load(mesh, mesh_index, skin_index)) {
 			mesh->destroy();
 			return nullptr;
 		}
@@ -230,6 +233,7 @@ namespace rhea
 
 		tinygltf::Skin& skin = m_model.skins[idx];
 		bool handedness_transform = false;
+		m_nodeIndexToBoneIndex.clear();
 
 		// Extract the inverse bind matrices
 		math::Matrix4 handedness_conversion(
@@ -481,13 +485,21 @@ namespace rhea
 			return;
 		}
 
-		if (!m_material_created) {
-			if (!createMaterials()) {
+		if (!m_static_materials.created) {
+			if (!createMaterials(false)) {
 				if (handler)
 					handler(Error(Error::Code::INVALID_DATA, "Failed to create materials", getPathName()));
 				return;
 			}
-			m_material_created = true;
+			m_static_materials.created = true;
+		}
+		if (!m_skinned_materials.created) {
+			if (!createMaterials(true)) {
+				if (handler)
+					handler(Error(Error::Code::INVALID_DATA, "Failed to create skinned materials", getPathName()));
+				return;
+			}
+			m_skinned_materials.created = true;
 		}
 
 		m_prepared = true;
@@ -510,16 +522,23 @@ namespace rhea
 		}
 	}
 
-	bool GltfDocument::importMesh(int mesh_index, Mesh* destination)
+	bool GltfDocument::importMesh(int mesh_index, int skin_index, Mesh* destination)
 	{
 		if (mesh_index < 0 || static_cast<size_t>(mesh_index) >= m_model.meshes.size())
 			return false;
 
-		if (m_has_skeleton) {
+		const bool skinned = skin_index >= 0;
+		if (!createMaterials(skinned))
+			return false;
+
+		Shader* shader = getShader(skinned);
+		destination->getVertexBuffer()->setVertexSize(shader->getVertexSize());
+
+		if (skinned) {
 			// add the skeleton
 			Skeleton* skel = new Skeleton("skeleton", "//meworla/skeleton");
 			if (m_model.skins.size()) {
-				CreateSkeleton(0, skel);
+				CreateSkeleton(skin_index, skel);
 				if (!skel->isValid()) {
 					LOG(LOG_ERROR) << "Skelton is invalid - expect wrong visuals";
 				}
@@ -535,7 +554,7 @@ namespace rhea
 			CreateAnimations(destination);
 		}
 		// prepare vertex buffer
-		destination->getVertexBuffer()->setVertexSize(m_shader->getVertexSize());
+		destination->getVertexBuffer()->setVertexSize(shader->getVertexSize());
 
 		const tinygltf::Mesh& mesh = m_model.meshes[mesh_index];		
 		for (size_t i = 0; i < mesh.primitives.size(); i++) {
@@ -619,7 +638,7 @@ namespace rhea
 					vertex.uv.y = texcoords[j * 2 + 1];
 				}
 
-				if (!m_has_skeleton) {
+				if (!skinned) {
 					VertexBufferStandard::VertexStandard v;
 					v.position = vertex.position;
 					v.normal = vertex.normal;
@@ -706,7 +725,7 @@ namespace rhea
 					((VertexBufferSkeletal*)vertices)->push_back(v);
 				}
 			}
-			if (m_has_skeleton) {
+			if (skinned) {
 				VertexBufferSkeletal* v_data = (VertexBufferSkeletal*)vertices;
 				for (int k = 0; k < 10 /*vertices->size()*/; k++) {
 					VertexBufferSkeletal::VertexSkeletal* v = v_data->get(k);
@@ -720,20 +739,23 @@ namespace rhea
 #endif // GLTF_DEBUG
 				}
 			}
+			
+			const auto& material_set = skinned
+				? m_skinned_materials
+				: m_static_materials;
+
+			Material* mat = material_set.fallback;
 
 			// indices
 			if (primitive.indices >= 0) {
 				const tinygltf::Accessor& index_accessor = m_model.accessors[primitive.indices];
-
-				Material* mat = nullptr;
-				if (primitive.material >= 0 && m_materials.size() > primitive.material)
-					mat = m_materials[primitive.material];
-				if (!mat && m_materials.size() > 0)
+				
+				if (primitive.material >= 0 &&
+					static_cast<size_t>(primitive.material) < material_set.materials.size())
+					mat = material_set.materials[primitive.material];
+				if (!mat && material_set.materials.size() > 0)
 					// still no material - try index 0 for default material
-					mat = m_materials[0];
-				if (!mat)
-					// if no material found use default
-					mat = m_fallback_material;
+					mat = material_set.materials[0];				
 
 				auto indices = ExtractIndices(index_accessor);
 				// Umwandlung von std::vector<unsigned long> zu std::vector<uint32_t>
@@ -795,7 +817,7 @@ namespace rhea
 
 		// if we have a mesh add it as submesh
 		if (node.mesh >= 0) {
-			importMesh(node.mesh, destination);
+			importMesh(node.mesh, node.skin, destination);
 		}
 
 		// Handle child nodes.
@@ -804,64 +826,76 @@ namespace rhea
 		}
 	}
 
-	bool GltfDocument::createMaterials()
+	Shader* GltfDocument::getShader(bool skinned)
 	{
-		m_has_skeleton = !m_model.skins.empty();
+		if (!m_shader_ref.empty())
+			return m_app->getUnitTree()->resolve(m_shader_ref);
+
+		const std::string shader_id = skinned
+			? "//rhea/shaders/skeletal"
+			: "//rhea/shaders/standard";
+
+		return m_app->getUnitTree()->resolve(Ref<Shader>(shader_id));
+	}
+
+	bool GltfDocument::createMaterials(bool skinned)
+	{
+		auto& material_set = skinned
+			? m_skinned_materials
+			: m_static_materials;
+
+		if (material_set.created)
+			return true;
 
 		// get the default shader
-		m_shader = nullptr;
-		if (!m_has_skeleton) {
-			if (m_shader_ref.empty())
-				m_shader_ref.setId("//rhea/shaders/standard");
-			m_shader = m_app->getUnitTree()->resolve(m_shader_ref);
-
-		}
-		else {
-			if (m_shader_ref.empty())
-				m_shader_ref.setId("//rhea/shaders/skeletal");
-			m_shader = m_app->getUnitTree()->resolve(m_shader_ref);
-		}
-		if (!m_shader) {
+		Shader* shader = getShader(skinned);
+		if (!shader) {
 			LOG(LOG_ERROR) << "Could not find shader resource: " << m_shader_ref.id();
 			return false;
 		}
-		// create a fallback material for meshes that have no material assigned
-		m_fallback_material = new Material("fallback_material");
-		m_fallback_material->setShader(m_shader);
-		m_fallback_material->setValue("shader", m_shader->getPathName());
-		const int diffuse_id = m_shader->getInputSlotId("DIFFUSE");
-		const int ambient_id = m_shader->getInputSlotId("AMBIENT");
-		const int specular_id = m_shader->getInputSlotId("SPECULAR");
-		const int emissive_id = m_shader->getInputSlotId("EMISSIVE");
-		const int shininess_id = m_shader->getInputSlotId("SHININESS");
+		const int diffuse_id = shader->getInputSlotId("DIFFUSE");
+		const int ambient_id = shader->getInputSlotId("AMBIENT");
+		const int specular_id = shader->getInputSlotId("SPECULAR");
+		const int emissive_id = shader->getInputSlotId("EMISSIVE");
+		const int shininess_id = shader->getInputSlotId("SHININESS");
 
-		if (diffuse_id >= 0)
-			m_fallback_material->setColor(diffuse_id, math::Color(1, 1, 1, 1));
+		std::string suffix = skinned ? "_skinned" : "_static";
 
-		if (ambient_id >= 0)
-			m_fallback_material->setColor(ambient_id, math::Color(0, 0, 0, 1));
+		if (!material_set.fallback) {
+			Material* fallback = new Material("fallback_material_" + suffix);
+			// create a fallback material for meshes that have no material assigned
+			fallback->setShader(shader);
+			fallback->setValue("shader", shader->getPathName());
 
-		if (specular_id >= 0)
-			m_fallback_material->setColor(specular_id, math::Color(0, 0, 0, 1));
+			if (diffuse_id >= 0)
+				fallback->setColor(diffuse_id, math::Color(1, 1, 1, 1));
 
-		if (emissive_id >= 0)
-			m_fallback_material->setColor(emissive_id, math::Color(0, 0, 0, 1));
+			if (ambient_id >= 0)
+				fallback->setColor(ambient_id, math::Color(0, 0, 0, 1));
 
-		if (shininess_id >= 0)
-			m_fallback_material->setFloat(shininess_id, 1.0f);
-		addChild(m_fallback_material);
+			if (specular_id >= 0)
+				fallback->setColor(specular_id, math::Color(0, 0, 0, 1));
+
+			if (emissive_id >= 0)
+				fallback->setColor(emissive_id, math::Color(0, 0, 0, 1));
+
+			if (shininess_id >= 0)
+				fallback->setFloat(shininess_id, 1.0f);
+			addChild(fallback);
+			material_set.fallback = fallback;
+		}
 
 		// prepare materials
 
-		int basecolor_id = m_shader->getTextureSlotId("BASECOLOR");
-		int normal_id = m_shader->getTextureSlotId("NORMAL");
+		int basecolor_id = shader->getTextureSlotId("BASECOLOR");
+		int normal_id = shader->getTextureSlotId("NORMAL");
 
 		// create the materials from gltf file
 		for (const auto& material : m_model.materials) {
-			Material* mat = new Material(material.name);
+			Material* mat = new Material(material.name + suffix);
 			// set shader
-			mat->setShader(m_shader);
-			mat->setValue("shader", m_shader->getPathName());
+			mat->setShader(shader);
+			mat->setValue("shader", shader->getPathName());
 
 			// set material values
 
@@ -904,9 +938,15 @@ namespace rhea
 				}
 			}
 
-			addChild(mat);
-			m_materials.push_back(mat);
+			int subsuffix = 1;
+			while(m_children.find(mat->getPathName()) != m_children.end()) {
+				mat->setName(material.name + suffix + "_" + std::to_string(subsuffix));
+				++subsuffix;
+			}
+			addChild(mat);			
+			material_set.materials.push_back(mat);
 		}
+		material_set.created = true;
 		return true;
 	}
 }

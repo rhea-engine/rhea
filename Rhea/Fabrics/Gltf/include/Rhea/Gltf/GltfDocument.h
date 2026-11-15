@@ -39,19 +39,18 @@ namespace rhea
 		MECLASS(GltfDocument, Resource)
 	public:
 		GltfDocument(std::string name, std::string type_name) :
-			m_instance(nullptr),
-			m_has_skeleton(false),
+			m_instance(nullptr),			
 			Resource(name, type_name)
 		{}
 
 		virtual ~GltfDocument()
 		{}
 
-		bool load(rhea::Mesh* mesh, int mesh_index = -1);
+		bool load(rhea::Mesh* mesh, int mesh_index = -1, int skin_index = -1);
 
 		bool buildSceneDefinition(SceneResource::SceneDefinition& definition);
 
-		Mesh* getOrCreateMesh(int mesh_index);
+		Mesh* getOrCreateMesh(int mesh_index, int skin_index);
 
 		void CreateSkeleton(int idx, Skeleton* skeleton);
 
@@ -75,7 +74,7 @@ namespace rhea
 		// get image by index
 		ImageResource* getImage(int idx) { auto it = m_images.find(idx); if (it != m_images.end()) { return it->second; } }
 
-		bool importMesh(int mesh_index, Mesh* destination);
+		bool importMesh(int mesh_index, int skin_index, Mesh* destination);
 
 	protected:
 		// path to resource we will instance (if any)
@@ -87,10 +86,18 @@ namespace rhea
 
 		std::vector<unsigned long> ExtractIndices(const tinygltf::Accessor& accessor);
 		void HandleNode(tinygltf::Node& node, Mesh* mesh);
-		bool createMaterials();
+		Shader* getShader(bool skinned);
+		bool createMaterials(bool skinned);
 
-		Shader* m_shader = nullptr;
-		bool m_material_created = false;
+		struct MaterialSet {
+			bool created = false;
+			std::vector<Material*> materials;
+			Material* fallback = nullptr;
+		};
+
+		MaterialSet m_static_materials;
+		MaterialSet m_skinned_materials;
+		
 		bool m_definition_created = false;
 
 		struct Vertex {
@@ -106,13 +113,7 @@ namespace rhea
 		};
 
 		// Images
-		std::map<int, ImageResource*> m_images;
-
-		// Materials
-		std::vector<Material*> m_materials;
-		Material* m_fallback_material = nullptr;
-
-		bool m_has_skeleton;
+		std::map<int, ImageResource*> m_images;		
 
 		// Map GLTF node indices to bone indices
 		std::unordered_map<int, int> m_nodeIndexToBoneIndex;

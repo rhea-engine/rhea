@@ -67,6 +67,7 @@
 #include <Rhea/Components/MeshComponent.h>
 #include <Rhea/Components/PhysicsDataComponent.h>
 #include <Rhea/Core/SceneInstance.h>
+#include <Rhea/Components/ComponentAttachement.h>
 
 #undef min
 
@@ -112,6 +113,7 @@ namespace rhea
 		SceneEntryPoint::_register_SceneEntryPoint();
 		SceneDocument::_register_SceneDocument();
 		SceneDefinitionComponent::_register_SceneDefinitionComponent();
+		ComponentAttachment::_register_ComponentAttachment();
 
 		// register services
 		simpleparser::Type::registerType<Service>("//meworla/service");

@@ -152,6 +152,28 @@ namespace rhea
 				return;
 			}
 			m_mtl_source_text = m_mtl_resource->getAsString();
+			// Die aufgelöste logische Adresse verwenden.
+			std::string mtl_id = m_mtl_resource->getPath();
+			if (mtl_id.compare(0, 2, "//") == 0)
+				mtl_id = "realm:" + mtl_id;
+
+			auto address = orion::ResourceAddress::parse(mtl_id);
+			if (!address.success) {
+				if (handler)handler(Error(Error::Code::INVALID_DATA, "Invalid MTL address: " + mtl_id, mtl_id));
+				return;
+			}
+
+			auto parent = address.address.parent();
+			if (!parent.success) {
+				if (handler)
+					handler(Error(Error::Code::INVALID_DATA, "Could not determine MTL directory: " + mtl_id, mtl_id));
+				return;
+			}
+
+			m_material_context.source_directory = parent.address.toString();
+
+			m_mtl_source_text = m_mtl_resource->getAsString();
+			prepareOwnData(handler);
 			prepareOwnData(handler);
 		}
 		else {
@@ -169,6 +191,16 @@ namespace rhea
 					return;
 				}
 				const std::string resolved_mtl_id = resolved.address.toString();
+				// use the first one to set the material context for textures
+				if (m_material_context.source_directory.empty()) {
+					auto parent_address = resolved.address.parent();
+					if (!parent_address.success) {
+						handler(Error(Error::Code::INVALID_DATA, "Could not resolve mtl file address: " + mtl_path, m_obj_ref.id()));
+						return;
+					}
+
+					m_material_context.source_directory = parent_address.address.toString();
+				}
 				mtl_resources.push("mat_" + std::to_string(++mat_index), resolved_mtl_id, "//meworla/mtl");
 			}
 			auto* resource_service = m_app->getService<ResourceService>();
@@ -225,18 +257,26 @@ namespace rhea
 		m_parsed_data->shapes = reader.GetShapes();
 		m_parsed_data->materials = reader.GetMaterials();
 
-		auto texture_base = orion::ResourceAddress::parse(m_resource_context.source_directory);
+		// for empty texture list ignore the textures - this is not an error
+		const bool has_textures = std::any_of(m_parsed_data->materials.begin(), m_parsed_data->materials.end(), [](const auto& material) {
+			return !material.diffuse_texname.empty() || !material.normal_texname.empty();
+			});
+		if (!has_textures) {
+			m_prepared = true;
+			if (handler)
+				handler(Error());
+			return;
+		}
+
+		// root path for textures is the path of the mtl file
+		auto texture_base = orion::ResourceAddress::parse(m_material_context.source_directory);
 		if (!texture_base.success) {
 			LOG(LOG_ERROR) << "Could not get parent address of mtl file: " << reader.Error();
 			if (handler)
 				handler(Error(Error::Code::INVALID_DATA, "Could not get parent address of mtl file: " + reader.Error(), m_mtl_ref.id()));
 			return;
 		}
-		ResourceContext texture_context;
-		// root path for textures is the path of the mtl file
-		texture_context.source_directory = texture_base.address.toString();
-
-		ResourceList textures(m_app, texture_context);
+		ResourceList textures(m_app, m_material_context);
 
 		int i = 0;
 		for (const auto& mat : m_parsed_data->materials) {

@@ -79,6 +79,7 @@ namespace rhea
 		ResourceContext m_resource_context;
 		TextResource* m_mtl_resource = nullptr;
 		std::string m_mtl_source_text;
+		ResourceContext m_material_context;
 
 		void prepareMaterialLibraries(PrepareHandler handler);
 

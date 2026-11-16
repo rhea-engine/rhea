@@ -22,6 +22,7 @@ using std::string;
 class OpenBrowser;
 class AlertDialog;
 class AssetViewer;
+class CetoUI;
 
 class Ceto : public rhea::Application
 {
@@ -43,8 +44,7 @@ public:
 	
 	bool onFrameEnd();
 	void onScene(rhea::Scene* scene) override;
-	void openRealmDialog();
-	void hideOpenBrowserDialog();
+	void openBrowser();
 
 protected:
 	rhea::Camera* m_view;
@@ -53,15 +53,12 @@ protected:
 
 	// event functions
 	bool onQuit(rhea::Event* ev, rhea::Unit* unit);
-	bool onQuitCancel(rhea::Event* ev, rhea::Unit* unit);
 	bool onInput(rhea::EventInput* e, rhea::Unit* unit);
 	void showAlert(std::string text);
-	bool onAlertClose(rhea::Event* ev, rhea::Unit* unit);
+
 	
 	// shortcut helpers
 	bool handleAppShortcuts(const rhea::InputEvent& evt);
-	void openQuitDialog();
-	void openDetailsDialog(rhea::ErrorReport report);	
 
 	// user preferences
 	UserPrefs m_userprefs;
@@ -72,10 +69,9 @@ protected:
 	rhea::Scene* m_current_scene = nullptr;
 	// cache of gui controller
 	rhea::GUIController* m_gui_controller;
-	OpenBrowser* m_realm_dialog = nullptr;
-	AlertDialog* m_alert_dialog = nullptr;
-	rhea::Dialog* m_details_dialog = nullptr;
-	rhea::Dialog* m_quit_dialog = nullptr;
+
+
+	CetoUI* m_ceto_ui = nullptr;
 	
 	std::unique_ptr<AssetViewer> m_asset_viewer = nullptr;
 

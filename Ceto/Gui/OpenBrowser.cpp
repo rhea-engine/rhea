@@ -485,6 +485,13 @@ void OpenBrowser::showRealms()
 	}
 }
 
+void OpenBrowser::setStatus(const std::string& status)
+{
+	if (m_status_label) {
+		m_status_label->setText(status);
+	}
+}
+
 void  OpenBrowser::refresh()
 {
 	navigateTo(m_current_location);

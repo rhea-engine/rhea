@@ -26,7 +26,7 @@ namespace rhea
 			std::vector<ResourceReference> refs = Item::getReferences();
             refs.push_back({
                 "source",
-                "//meworla/scene",
+                "//meworla/sceneresource",
                 getValue("source"),
                 ResourceUsage::Instantiate
                 });

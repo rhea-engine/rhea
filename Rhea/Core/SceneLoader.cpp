@@ -11,12 +11,9 @@
 #include "Rhea/Core/SceneLoader.h"
 #include "Rhea/Application.h"
 #include "SimpleParser/IniFileParser.h"
-#include "Orion/ResourceStream.h"
-#include "Rhea/Core/Scene.h"
-#include <Rhea/Resources/ResourceList.h>
-#include <Rhea/Resources/ResourceService.h>
 #include <Psio/Log.h>
 #include <Rhea/Core/SceneResource.h>
+
 
 namespace rhea
 {	
@@ -35,12 +32,10 @@ namespace rhea
 				return;
 			}
 			SceneResource* scene_res = new SceneResource(name);
-			if (scene_res) {
-				scene_res->setup(app);
-				const std::string source_resource_id = app->resourceUriToId(res_id);
-				scene_res->setDefinition(scene_def, context, source_resource_id);
-				handler(rhea::Error(), scene_res);
-			}
+			scene_res->setup(app);
+			const std::string source_resource_id = app->resourceUriToId(res_id);
+			scene_res->setDefinition(scene_def, context, source_resource_id);
+			handler(rhea::Error(), scene_res);
 			delete buf;
 			});
 		rs->onError([buf, handler, res_id](int err) {

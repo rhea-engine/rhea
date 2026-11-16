@@ -7,7 +7,7 @@
 
 #include <Rhea/Gltf/GltfMesh.h>
 #include <Psio/Log.h>
-#include <Rhea/Gltf/GltfScene.h>
+#include <Rhea/Gltf/GltfDocument.h>
 #include <Rhea/Application.h>
 #include <Rhea/UnitTree.h>
 #include <Rhea/Core/Item.h>
@@ -22,7 +22,7 @@ namespace rhea
 	bool GltfMesh::load(rhea::Mesh* mesh)
 	{
 		if (!m_gltf_ref.empty()) {
-			GltfScene* scene = m_app->getUnitTree()->resolve(m_gltf_ref);
+			GltfDocument* scene = m_app->getUnitTree()->resolve(m_gltf_ref);
 			if (scene) {
 				return scene->load(mesh);
 			}

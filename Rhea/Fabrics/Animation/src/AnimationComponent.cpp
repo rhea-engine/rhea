@@ -10,8 +10,6 @@ namespace rhea
 
 	void AnimationComponent::ready()
 	{
-		if (m_values.find("animatorRef") != m_values.end())
-			m_animator_ref = Ref<Animator>(m_values["animatorRef"].toString(), m_attributes["basepath"]);
 		if (m_parent && !m_parent->getComponent<AnimationComponent>()) {
 			m_parent->addComponent(this);
 		}
@@ -48,6 +46,11 @@ namespace rhea
 				// perhaps not initialized yet, so we can try to resolve the skeleton from the mesh later in ensureSkeleton()
 			}
 		}		
+	}
+
+	void AnimationComponent::initializeType(simpleparser::Type* type)
+	{
+		registerResourceProperty(type, "animatorRef", &AnimationComponent::m_animator_ref, "//meworla/animator", ResourceUsage::Load);
 	}
 
 	bool AnimationComponent::ensureSkeleton()

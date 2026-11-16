@@ -325,7 +325,13 @@ namespace math
 		r.z = v.x * m[0][2] + v.y * m[1][2] + v.z * m[2][2] + v.w * m[3][2];
 		r.w = v.x * m[0][3] + v.y * m[1][3] + v.z * m[2][3] + v.w * m[3][3];
 		return r;
-	}	
+	}
+
+	bool decomposeTRS(
+		const math::Matrix4& matrix,
+		math::Vector3& translation,
+		math::Quaternion& rotation,
+		math::Vector3& scale);
 }
 
 #endif // !MATH_MATRIX4_H

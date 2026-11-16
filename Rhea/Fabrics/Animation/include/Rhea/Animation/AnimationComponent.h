@@ -61,6 +61,8 @@ namespace rhea
 		void playAnimation(Animation* animation);
 		Animation* getCurrentAnimation() const;
 
+        static void initializeType(simpleparser::Type* type);
+
     private:
         // Unresolved reference
         Ref<Animator> m_animator_ref;

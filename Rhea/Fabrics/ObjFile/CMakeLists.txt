@@ -1,7 +1,7 @@
 add_library (RheaObj
     "src/ObjLoader.cpp"
     "src/ObjFabric.cpp"
-)
+ "include/Rhea/ObjFile/ObjGeometry.h" "src/ObjGeometry.cpp")
 add_library(rhea::ObjFile ALIAS RheaObj)
 
 # Scoped includes are under include/Rhea/GUI/**

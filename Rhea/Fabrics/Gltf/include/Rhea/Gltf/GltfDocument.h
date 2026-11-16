@@ -5,11 +5,12 @@
  * See LICENSE file in the project root for full license information.
  */
 
-#ifndef RHEA_GLTF_SCENE_H
-#define RHEA_GLTF_SCENE_H
+#ifndef RHEA_GLTF_DOCUMENT_H
+#define RHEA_GLTF_DOCUMENT_H
 
 #include <Rhea/Unit.h>
 #include <Rhea/Core/Geometry.h>
+#include <Rhea/Core/SceneResource.h>
 
 #define TINYGLTF_NO_STB_IMAGE_WRITE
 #define TINYGLTF_NO_INCLUDE_JSON
@@ -23,32 +24,42 @@
 #include <Math/Vector2.h>
 #include <Math/Vector3.h>
 #include <Rhea/Animation/Skeleton.h>
+#include <Rhea/Resources/Resource.h>
 #include <Rhea/Resources/TextResource.h>
 
 namespace rhea
 {
 	class Material;
+	class Shader;
+	class Mesh;
+	class ImageResource;
 
-	class GltfScene : public Geometry
+	class GltfDocument : public Resource
 	{
-		MECLASS(GltfScene, Geometry)
+		MECLASS(GltfDocument, Resource)
 	public:
-		GltfScene(std::string name, std::string type_name) :
-			m_instance(nullptr),
-			m_has_skeleton(false),
-			Geometry(name, type_name)
+		GltfDocument(std::string name, std::string type_name) :
+			m_instance(nullptr),			
+			Resource(name, type_name)
 		{}
 
-		virtual ~GltfScene()
+		virtual ~GltfDocument()
 		{}
 
-		bool load(rhea::Mesh* mesh);
+		bool load(rhea::Mesh* mesh, int mesh_index = -1, int skin_index = -1);
+
+		bool buildSceneDefinition(SceneResource::SceneDefinition& definition);
+
+		Mesh* getOrCreateMesh(int mesh_index, int skin_index);
 
 		void CreateSkeleton(int idx, Skeleton* skeleton);
 
 		void CreateAnimations(rhea::Mesh* mesh);
 
 		void ready() override;
+
+		void ensureReady(InstanceHandler handler) override;
+		void prepare(PrepareHandler handler) override;
 
 		static void initializeType(simpleparser::Type* type);
 		
@@ -63,16 +74,31 @@ namespace rhea
 		// get image by index
 		ImageResource* getImage(int idx) { auto it = m_images.find(idx); if (it != m_images.end()) { return it->second; } }
 
+		bool importMesh(int mesh_index, int skin_index, Mesh* destination);
+
 	protected:
 		// path to resource we will instance (if any)
 		std::string m_instance_path;
 		// if this is an instance this stores the link to the original
-		GltfScene* m_instance;
+		GltfDocument* m_instance;
 
 		tinygltf::Model m_model;
 
 		std::vector<unsigned long> ExtractIndices(const tinygltf::Accessor& accessor);
 		void HandleNode(tinygltf::Node& node, Mesh* mesh);
+		Shader* getShader(bool skinned);
+		bool createMaterials(bool skinned);
+
+		struct MaterialSet {
+			bool created = false;
+			std::vector<Material*> materials;
+			Material* fallback = nullptr;
+		};
+
+		MaterialSet m_static_materials;
+		MaterialSet m_skinned_materials;
+		
+		bool m_definition_created = false;
 
 		struct Vertex {
 			math::Vector3 position;
@@ -87,13 +113,7 @@ namespace rhea
 		};
 
 		// Images
-		std::map<int, ImageResource*> m_images;
-
-		// Materials
-		std::vector<Material*> m_materials;
-		Material* m_fallback_material = nullptr;
-
-		bool m_has_skeleton;
+		std::map<int, ImageResource*> m_images;		
 
 		// Map GLTF node indices to bone indices
 		std::unordered_map<int, int> m_nodeIndexToBoneIndex;
@@ -103,4 +123,4 @@ namespace rhea
 	};
 }
 
-#endif // !RHEA_GLTF_SCENE_H
+#endif // !RHEA_GLTF_DOCUMENT_H

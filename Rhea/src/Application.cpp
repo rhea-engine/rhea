@@ -37,6 +37,8 @@
 #include "Rhea/Input/IInputService.h"
 #include "Rhea/Dispatcher.h"
 #include "Rhea/Resources/ResourceService.h"
+#include <Rhea/Core/SceneDefinitionComponent.h>
+#include <Rhea/Core/SceneDocument.h>
 
 #include "Rhea/Platform/PlatformService.h"
 #include "Rhea/Physics/PhysicsManagerService.h"
@@ -65,6 +67,7 @@
 #include <Rhea/Components/MeshComponent.h>
 #include <Rhea/Components/PhysicsDataComponent.h>
 #include <Rhea/Core/SceneInstance.h>
+#include <Rhea/Components/ComponentAttachement.h>
 
 #undef min
 
@@ -108,6 +111,9 @@ namespace rhea
 		// register world framework components
 		AreaComponent::_register_AreaComponent();
 		SceneEntryPoint::_register_SceneEntryPoint();
+		SceneDocument::_register_SceneDocument();
+		SceneDefinitionComponent::_register_SceneDefinitionComponent();
+		ComponentAttachment::_register_ComponentAttachment();
 
 		// register services
 		simpleparser::Type::registerType<Service>("//meworla/service");

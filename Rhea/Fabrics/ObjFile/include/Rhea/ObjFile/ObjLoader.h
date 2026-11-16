@@ -19,9 +19,9 @@ namespace rhea
 {
 	class Application;
 
-	class ObjLoader : public Geometry
+	class ObjLoader : public Resource
 	{
-		MECLASS(ObjLoader, Geometry)
+		MECLASS(ObjLoader, Resource)
 	public:	
 		ObjLoader(std::string path_name, std::string type_name);
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values);

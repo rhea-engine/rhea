@@ -156,13 +156,20 @@ namespace rhea
 
 		// load using geometry (normally used for import from file)
 		if (!m_geometry_ref.empty()) {
-			Geometry* geometry = m_app->getUnitTree()->resolve(m_geometry_ref);
-			if (geometry) {
-				geometry->load(this);
-				m_state = 2;
+			Resource* geometry_resource = m_app->getUnitTree()->resolve(m_geometry_ref);
+			if (geometry_resource) {
+				auto* geometry = geometry_resource->getComponent<Geometry>();
+				if (geometry) {
+					geometry->load(this);
+					m_state = 2;
+				}
+				else {
+					LOG(LOG_ERROR) << "Mesh: Resource " << m_geometry_ref.id() << " is not a Geometry for mesh " << m_path;
+				}
 			}
-			else
+			else {
 				LOG(LOG_ERROR) << "Mesh: Could not find geometry " << m_geometry_ref.id() << " for mesh " << m_path;
+			}
 		}
 
 		// if material is set explicitly we use it

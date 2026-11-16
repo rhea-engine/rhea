@@ -17,6 +17,8 @@
 #include <Rhea/Resources/ResourceList.h>
 #include <Rhea/Resources/ResourceService.h>
 #include <Rhea/UnitTree.h>
+#include <Rhea/Core/SceneDefinitionComponent.h>
+#include <Rhea/Components/ComponentAttachement.h>
 
 namespace rhea
 {
@@ -147,8 +149,103 @@ namespace rhea
 		}
 	}
 
+	void SceneResource::applyComponentAttachments(Unit* root, CompletionHandler completion)
+	{
+		auto fail = [&](const std::string& message) {
+			ErrorReport report;
+			report.addError(Error(
+				Error::Code::INVALID_DEFINITION,
+				message,
+				m_source_resource_id));
+			completion(std::move(report));
+			};
+
+		std::vector<Component*> created_components;
+
+		for (auto& component : m_children) {
+			auto* attachment = doCast<ComponentAttachment>(component.second);
+			if (!attachment)
+				continue;
+
+			std::string target_path = attachment->getValueString("target");
+			const std::string component_type = attachment->getValueString("component_type", "");
+			const std::string component_name = attachment->getValueString("component_name", "");
+			if (target_path.empty() ||
+				component_type.empty() ||
+				component_name.empty()) {
+				fail("Incomplete component attachment: " + attachment->getPathName());
+				return;
+			}
+
+			auto* target = doCast<Unit>(root->find(target_path));
+			if (!target) {
+				fail("Attachment target not found: " + target_path);
+				return;
+			}
+
+			if (target->getChild(component_name)) {
+				fail("Attachment name already exists: " + component_name);
+				return;
+			}
+
+			// create the component
+			auto* component = doCast<Component>(simpleparser::Type::create(component_name, component_type));
+
+			if (!component) {
+				fail("Could not create attachment component: " + component_type);
+				return;
+			}
+
+			component->setOrigin(Component::ComponentOrigin::Configured);
+
+			if (!target->addChild(component)) {
+				component->destroy();
+				fail("Could not attach component: " + component_name);
+				return;
+			}
+
+			auto values = attachment->getValues();
+			values.erase("type");
+			values.erase("target");
+			values.erase("component_type");
+			values.erase("component_name");
+
+			// Preserve the declaration's reference base, not the target's.
+			component->setup(m_app, attachment->getAttributes(), std::move(values));
+
+			component->resolveReferences(m_context.context_root, m_context.source_directory);
+
+			created_components.push_back(component);
+		}
+
+		// TODO: At the moment we don't have a way to resolve references in the context of the new components, so we skip this step for now.
+		// Load and prepare references belonging to the new components.
+		/*prepareAttachmentReferences(
+			root, created_components, std::move(completion));
+
+		}
+		*/
+
+		completion(Error());
+	}
+
 	void SceneResource::buildInstance(const InstanceRequest& request, InstanceHandler handler)
 	{
+		if (!m_source_resource.empty() && !m_definition_loaded) {
+			m_definition_loaded = true;
+			Resource* source_resource = m_app->getUnitTree()->resolve(m_source_resource);
+			if (source_resource) {
+				auto* definition = source_resource->getComponent<SceneDefinitionComponent>();
+				if (definition) {
+					setDefinition(
+						definition->scene_def,
+						definition->source_resource_context,
+						definition->source_resource_id);
+				}
+			}
+		}
+
+
 		std::unordered_set<std::string> node_ids;
 		for (const auto& node : m_definition.nodes) {
 			if (!node_ids.insert(node.node_id).second) {
@@ -295,7 +392,7 @@ namespace rhea
 					const auto colon = id.find(':');
 					const auto separator = id.find_first_of("/?#");
 					const bool has_scheme =	colon != std::string::npos && (separator == std::string::npos || colon < separator);
-					const bool is_local = id.front() != '/' && !has_scheme;
+					const bool is_local = id.front() != '/' && id.front() != '.' && !has_scheme;
 
 					std::string resolved_id;
 					Unit* target = nullptr;
@@ -423,7 +520,7 @@ namespace rhea
 					}
 
 					instantiatePendingScenes(*loaded, std::move(pending),
-						[root, report, handler](ErrorReport result) mutable {
+						[this, root, report, handler](ErrorReport result) mutable {
 							report.merge(std::move(result));
 							if (report.isError()) {
 								root->destroy();
@@ -431,8 +528,18 @@ namespace rhea
 									handler(std::move(report), nullptr);
 								return;
 							}
-							if (handler)
-								handler(std::move(report), root);
+
+							applyComponentAttachments(root, [this, root, report, handler](ErrorReport error) mutable {
+								if (report.isError()) {
+									root->destroy();
+									if (handler)
+										handler(std::move(report), nullptr);
+									return;
+								}
+
+								if (handler)
+									handler(std::move(report), root);
+								});
 						});
 				});
 		};
@@ -496,10 +603,23 @@ namespace rhea
 		state->complete = std::move(complete);
 
 		for (const auto& item : pending) {
-			auto* resource = doCast<Resource>(resources[item.resource_key]);
+			auto* unit = resources[item.resource_key];
+			if (!unit) {
+				ErrorReport report;
+				report.addError(Error(Error::Code::NOT_FOUND, "Unit not found: " + item.resource_key, m_source_resource_id));
+				state->finishOne(std::move(report));
+				continue;
+			}
+
+			if (item.usage == Component::ResourceUsage::Load) {
+				state->finishOne(ErrorReport());
+				continue;
+			}
+
+			auto* resource = doCast<Resource>(unit);
 			if (!resource) {
 				ErrorReport report;
-				report.addError(Error(Error::Code::NOT_FOUND, "Resource not found: " + item.resource_key, m_source_resource_id));
+				report.addError(Error(Error::Code::INVALID_DATA, "Referenced unit does not support resource preparation: " + item.resource_key, m_source_resource_id));
 				state->finishOne(std::move(report));
 				continue;
 			}
@@ -637,5 +757,10 @@ namespace rhea
 			return nullptr;
 		}
 		return instance;
+	}
+
+	void SceneResource::initializeType(simpleparser::Type* type)
+	{
+		registerResourceProperty(type, "source", &SceneResource::m_source_resource, "//meworla/resource", ResourceUsage::EnsureReady);
 	}
 }

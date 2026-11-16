@@ -47,6 +47,7 @@
 
 #include "Gui/OpenBrowser.h"
 #include "Gui/AlertDialog.h"
+#include "AssetViewer.h"
 
 bool Ceto::onQuit(rhea::Event* ev, rhea::Unit* unit)
 {
@@ -89,7 +90,7 @@ bool Ceto::onInput(rhea::EventInput* e, rhea::Unit* unit)
 
 bool Ceto::handleAppShortcuts(const rhea::InputEvent& evt)
 {
-	if (evt.isKeyPressed(rhea::Key::Escape)) {
+	if (evt.isKeyPressed(rhea::Key::Escape)) {		
 		openQuitDialog();
 		return false;
 	}
@@ -98,7 +99,7 @@ bool Ceto::handleAppShortcuts(const rhea::InputEvent& evt)
 		openRealmDialog();
 		return false;
 	}
-
+	
 	return false;
 }
 
@@ -281,6 +282,22 @@ void Ceto::setup()
 	worlds->addSceneTransitionPrepareHandler([this, worlds](rhea::WorldService::SceneTransitionContext* context, rhea::WorldService::PrepareCompletion completion) -> void
 		{
 			completion(rhea::Error());
+		});
+	worlds->addSceneTransitionActivateHandler([this](rhea::WorldService::SceneTransitionContext* context) {
+			if (!context->target_scene)
+				return;
+			m_current_scene = context->target_scene;
+
+			return;
+			context->target_scene->traverse([](std::string& name, rhea::Component* component) -> bool {
+				LOG(LOG_DEBUG) << "Scene component: " << component->getParent()->getPath() << "/" << name << " (" << component->getType()->getName() << ")";
+				return true;
+				});
+		});
+	worlds->setOpenResourceAdapter([this](const rhea::WorldService::OpenResourceContext& context, rhea::WorldService::AdaptResourceCompletion completion) {
+		if (m_asset_viewer == nullptr)
+			m_asset_viewer = std::make_unique<AssetViewer>();
+		m_asset_viewer->createAssetViewerScene(this, context, completion);
 		});
 }
 
@@ -583,9 +600,7 @@ void Ceto::onScene(rhea::Scene* scene)
 {
 	LOG(LOG_DEBUG) << "Ceto::onScene: scene '" << scene->getPathName() << "' is ready";
 	std::unique_ptr<rhea::Event> ev_r = std::make_unique<rhea::Event>("ready", scene);
-	scene->sendEvent(std::string("ready"), ev_r.get());
-
-	m_current_scene = scene;
+	scene->sendEvent(std::string("ready"), ev_r.get());	
 }
 
 void Ceto::hideOpenBrowserDialog()

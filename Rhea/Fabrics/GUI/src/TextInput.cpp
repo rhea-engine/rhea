@@ -17,6 +17,9 @@
 #include <Rhea/GUI/Events/SubmitEvent.h>
 #include <Rhea/Platform/PlatformService.h>
 #include <Psio/Window/Clipboard.h>
+#include <algorithm>
+#include <cctype>
+#include <cmath>
 
 namespace rhea
 {
@@ -48,8 +51,14 @@ namespace rhea
 			val["text"] = m_placeholder;
 		}
 		m_length = m_pos;
+		m_selection_anchor = m_pos;
 		if (m_values.find("font") != m_values.end())
 			val["font"] = getValue("font");
+
+		// A non-widget decoration does not intercept mouse input or affect layout.
+		m_selection_background = static_cast<Item2D*>(m_app->getUnitTree()->createUnit(getPathName() + "_selection", "//meworla/Item2D", attr, {}));
+		m_selection_background->setBackgroundColor(65, 110, 170);
+		addChild(m_selection_background);
 
 		m_label_item = (Label*)m_app->getUnitTree()->createUnit(getPathName() + "_label", "//meworla/gui/label", attr, val);
 		addChild(m_label_item);
@@ -73,13 +82,17 @@ namespace rhea
 		m_text = text;		
 		m_pos = m_text.size();
 		m_length = m_pos;
+		m_selection_anchor = m_pos;
 		updateText(false);
+		updateCursor();
 	}
 
 	void TextInput::onFrame(float delta)
 	{
+		m_double_click_timer += delta;
 		if (!m_has_focus)
 			return;
+		updateSelection();
 
 		m_cursor_timer += delta;
 		if (m_cursor_timer >= 0.7f) {
@@ -102,15 +115,10 @@ namespace rhea
 	void TextInput::onSetPosition()
 	{
 		m_label_item->setPosition(m_position + m_content_position);		
-		float offset_x = m_textwidget->W() - m_textwidget->getTextWidth(m_pos);
-		offset_x = (offset_x < 0.0f) ? offset_x : 0.0f;
-		if (offset_x != m_offset_x) {
-			m_textwidget->setOffset(offset_x);
-			m_offset_x = offset_x;
-			// mark for redraw
-			m_textwidget->markTextDirty();
-		}
+		updateScrollOffset();
+		m_cursor_position = m_textwidget->getCursorPosition(m_pos);
 		m_cursor_item->setPosition(m_cursor_position);
+		updateSelection();
 	}
 
 	void TextInput::updateCursor(bool onlyCursor)
@@ -118,23 +126,17 @@ namespace rhea
 		if (!m_textwidget)
 			return;
 
-		if (onlyCursor) {
-			float offset_x = m_textwidget->W() - m_textwidget->getTextWidth(m_pos);
-			offset_x = (offset_x < 0.0f) ? offset_x : 0.0f;
-			if (offset_x != m_offset_x) {
-				m_textwidget->setOffset(offset_x);
-				m_offset_x = offset_x;
-				// force redraw
-				m_textwidget->computeMesh();
-			}
-		}
+		updateScrollOffset();
 		
 		m_cursor_position = m_textwidget->getCursorPosition(m_pos);
 
 		// reset timer
 		m_cursor_timer = 0.0f;
 		m_cursor_shown = true;
-		m_cursor_item->makeVisible();
+		if (m_has_focus)
+			m_cursor_item->makeVisible();
+		m_cursor_item->setPosition(m_cursor_position);
+		updateSelection();
 
 		Event gui_update("gui_update", this);
 		bubbleEvent("gui_redraw", &gui_update);
@@ -154,6 +156,9 @@ namespace rhea
 	bool TextInput::onFocusLost(Event* ev, Unit* unit)
 	{
 		m_has_focus = false;
+		m_selecting = false;
+		m_double_click_timer = 1.0f;
+		updateSelection();
 		if (!m_text.size() && m_placeholder.size()) {
 			m_label_item->setText(m_placeholder);
 		}
@@ -178,192 +183,319 @@ namespace rhea
 		return false;
 	}
 
+	std::string TextInput::getSelectedText() const
+	{
+		const size_t first = (std::min)(m_selection_anchor, m_pos);
+		return m_text.substr(first, (std::max)(m_selection_anchor, m_pos) - first);
+	}
+
+	void TextInput::selectAll()
+	{
+		m_selection_anchor = 0;
+		m_pos = m_text.size();
+		updateCursor(true);
+	}
+
+	void TextInput::moveCursor(size_t position, bool extend_selection)
+	{
+		m_pos = (std::min)(position, m_text.size());
+		if (!extend_selection)
+			m_selection_anchor = m_pos;
+		updateCursor(true);
+	}
+
+	void TextInput::replaceSelection(const std::string& text)
+	{
+		const size_t first = (std::min)(m_selection_anchor, m_pos);
+		const size_t last = (std::max)(m_selection_anchor, m_pos);
+		if (first == last && text.empty())
+			return;
+		m_text.replace(first, last - first, text);
+		m_pos = first + text.size();
+		m_selection_anchor = m_pos;
+		m_length = m_text.size();
+		updateText(true);
+		updateCursor(true);
+	}
+
 	bool TextInput::onKeyPressed(Event* ev, Unit* unit)
 	{
 		if (!m_has_focus)
 			return false;
 
-		InputEvent e = static_cast<EventInput*>(ev)->getEvent();
-		if (e.modifiers.ctrl && e.key == Key::V) {
-			// paste from clipboard
-			std::string clip_text;
-			if (m_app->getService<PlatformService>()->getEngine()->getClipboard()->getText(clip_text)) {
-				if (!clip_text.empty()) {
-					std::string new_text = m_text.substr(0, m_pos);
-					new_text += clip_text;
-					if (m_pos < m_length)
-						new_text += m_text.substr(m_pos);
-					m_text = new_text;
-					m_pos += clip_text.size();
-					m_length += clip_text.size();
-					updateText(true);
-					updateCursor();
-				}
+		const InputEvent e = static_cast<EventInput*>(ev)->getEvent();
+		m_double_click_timer = 1.0f;
+		if (e.modifiers.ctrl && !e.modifiers.alt) {
+			if (e.key == Key::A) {
+				selectAll();
+				ev->stopPropagation();
+				return false;
 			}
-			ev->stopPropagation();
-			return false;
+			if (e.key == Key::C || e.key == Key::X || e.key == Key::V) {
+				auto* platform = m_app ? m_app->getService<PlatformService>() : nullptr;
+				auto* clipboard = platform && platform->getEngine() ? platform->getEngine()->getClipboard() : nullptr;
+				if (clipboard) {
+					if (e.key == Key::V) {
+						std::string clip_text;
+						if (clipboard->getText(clip_text) && !clip_text.empty()) {
+							// TextInput is currently single-line.
+							clip_text.erase(std::remove_if(clip_text.begin(), clip_text.end(), [](unsigned char c) { return c < 0x20 || c == 0x7f; }), clip_text.end());
+							if (!clip_text.empty())
+								replaceSelection(clip_text);
+						}
+					}
+					else if (hasSelection() && clipboard->setText(getSelectedText()) && e.key == Key::X)
+						replaceSelection("");
+				}
+				ev->stopPropagation();
+				return false;
+			}
 		}
 		switch (e.key) {
 		case Key::Left:
-			if (m_pos > 0) {
-				m_pos--;
-				updateCursor(true);
-			}
-			ev->stopPropagation();
+		{
+			const size_t position = !e.modifiers.shift && hasSelection()
+				? (std::min)(m_selection_anchor, m_pos)
+				: (m_pos > 0 ? m_pos - 1 : 0);
+			moveCursor(position, e.modifiers.shift);
 			break;
+		}
 		case Key::Right:
-			if (m_pos < m_length) {
-				m_pos++;
-				updateCursor(true);
-			}
-			ev->stopPropagation();
+		{
+			const size_t position = !e.modifiers.shift && hasSelection()
+				? (std::max)(m_selection_anchor, m_pos)
+				: (std::min)(m_pos + 1, m_length);
+			moveCursor(position, e.modifiers.shift);
+			break;
+		}
+		case Key::Home:
+			moveCursor(0, e.modifiers.shift);
+			break;
+		case Key::End:
+			moveCursor(m_length, e.modifiers.shift);
 			break;
 		case Key::Tab:
-			// consume only if multiline, otherwise let it propagate for focus change
-			if (multiline)
-				ev->stopPropagation();
+			if (!multiline)
+				return false;
 			break;
 		case Key::Escape:
 		{
-			// revert to text at focus
 			m_text = m_text_at_focus;
 			m_pos = m_text.size();
 			m_length = m_pos;
+			m_selection_anchor = m_pos;
 			updateText(true);
 			updateCursor(true);
-			Event cancel_ev = Event("cancel", this);
+			Event cancel_ev("cancel", this);
 			sendEvent("cancel", &cancel_ev);
-			ev->stopPropagation();
 			break;
 		}
 		case Key::Enter:
 		{
 			if (!multiline) {
 				Event on_submit_ev("submit", this);
-				if (m_values.find("onSubmit") != m_values.end()) {
+				if (m_values.find("onSubmit") != m_values.end())
 					sendBoundEvent(m_values["onSubmit"].toString(), &on_submit_ev);
-				}
-
-				// send submit event
 				Event submit_ev("submit", this);
 				bubbleEvent("submit", &submit_ev);
 			}
-			ev->stopPropagation();
 			break;
 		}
 		case Key::Backspace:
-			if (m_pos > 0) {
-				m_text = m_text.substr(0, m_pos - 1) + m_text.substr(m_pos);
-				m_pos--;
-				m_length--;
-				updateText(true);
-				updateCursor();
-			}
-			ev->stopPropagation();
+			if (!hasSelection() && m_pos > 0)
+				m_selection_anchor = m_pos - 1;
+			replaceSelection("");
 			break;
 		case Key::DeleteKey:
-			if (m_pos < m_length) {
-				m_text = m_text.substr(0, m_pos) + m_text.substr(m_pos + 1);
-				m_length--;
-				updateText(true);
-				updateCursor();
-			}
-			ev->stopPropagation();
+			if (!hasSelection() && m_pos < m_length)
+				m_selection_anchor = m_pos + 1;
+			replaceSelection("");
 			break;
 		default:
-			ev->stopPropagation();
 			break;
 		}
-
+		ev->stopPropagation();
 		return false;
 	}
 
 	bool TextInput::onTextInput(Event* ev, Unit* unit)
 	{
-		InputEvent e = static_cast<EventInput*>(ev)->getEvent();
+		if (!m_has_focus)
+			return false;
+		const InputEvent e = static_cast<EventInput*>(ev)->getEvent();
+		ev->stopPropagation();
+		if (e.modifiers.ctrl || e.modifiers.alt)
+			return false;
 		std::string text = e.text;
-
-		if (e.modifiers.ctrl || e.modifiers.alt) {
-			ev->stopPropagation();
-			return false;
-		}
-
-		if (text.empty()) {
-			ev->stopPropagation();
-			return false;
-		}
-
-		unsigned char ch = static_cast<unsigned char>(text[0]);
-		if (ch < 0x20 && ch != '\r' && ch != '\n' && ch != '\t' && ch != '\b') {
-			ev->stopPropagation();
-			return false;
-		}
-
-		switch (static_cast<unsigned char>(text[0])) {
-		case '\b':
-			// ignore backspace, handled in onKeyPressed
-			ev->stopPropagation();
-			break;
-		case '\r':
-			if (multiline) {
-				m_text += '\n';
-				m_pos++;
-				m_length++;
-				updateText(true);
-				updateCursor();
-			}
-			ev->stopPropagation();
-			break;
-		case '\t':
-			if (multiline) {
-				m_text += '\t';
-				m_pos++;
-				m_length++;
-				updateText(true);
-				updateCursor();
-			}
-			ev->stopPropagation();
-			break;
-		case '\n':
-			// ignore, handled in onKeyPressed
-		default:
-			std::string new_text = m_text.substr(0, m_pos);
-			new_text += text;
-			if (m_pos<m_length)
-				new_text += m_text.substr(m_pos);
-			m_text = new_text;
-			m_pos += text.size();
-			m_length += text.size();
-			updateText(true);
-			updateCursor();
-			ev->stopPropagation();
-
-		}
+		text.erase(std::remove_if(text.begin(), text.end(), [](unsigned char c) { return c < 0x20 || c == 0x7f; }), text.end());
+		if (!text.empty())
+			replaceSelection(text);
 		return false;
 	}
 
 	bool TextInput::onMousePressed(Event* ev, Unit* unit)
 	{
-		// consume the mouse event
-		ev->stopPropagation();
-
-		EventInput* ei = static_cast<EventInput*>(ev);		
-		int mx = ei->getEvent().x;
-		int my = ei->getEvent().y;
-
-		// get text position from label item
-		if (!m_textwidget)
+		const InputEvent e = static_cast<EventInput*>(ev)->getEvent();
+		if (e.mouseButton != MouseButton::Left || !m_textwidget)
 			return false;
-		m_pos = m_textwidget->getTextPosition(Vector2((float)mx, (float)my));
-
-		updateCursor(true);
-
+		m_selecting = true;
+		moveCursor(m_textwidget->getTextPosition(Vector2((float)e.x, (float)e.y)), e.modifiers.shift);
+		ev->stopPropagation();
 		return false;
+	}
+
+	bool TextInput::onMouseReleased(Event* ev, Unit* unit)
+	{
+		if (static_cast<EventInput*>(ev)->getEvent().mouseButton != MouseButton::Left)
+			return false;
+		if (m_selecting)
+			onDragMove(ev, unit);
+		m_selecting = false;
+		ev->stopPropagation();
+		return false;
+	}
+
+	bool TextInput::onDragStart(Event* ev, Unit* unit)
+	{
+		return onDragMove(ev, unit);
+	}
+
+	bool TextInput::onDragMove(Event* ev, Unit* unit)
+	{
+		if (!m_selecting || !m_has_focus || !m_textwidget)
+			return false;
+		const InputEvent e = static_cast<EventInput*>(ev)->getEvent();
+		moveCursor(m_textwidget->getTextPosition(Vector2((float)e.x, (float)e.y)), true);
+		if (e.type == InputEventType::MouseMoved)
+			m_double_click_timer = 1.0f;
+		ev->stopPropagation();
+		return false;
+	}
+
+	bool TextInput::onDragEnd(Event* ev, Unit* unit)
+	{
+		if (!m_selecting)
+			return false;
+		onDragMove(ev, unit);
+		m_selecting = false;
+		return false;
+	}
+
+	void TextInput::selectWord(size_t position)
+	{
+		if (m_text.empty())
+			return;
+		position = (std::min)(position, m_text.size() - 1);
+		// Keep file names (including dots, hyphens and underscores) together.
+		auto category = [](unsigned char c) {
+			if (std::isspace(c))
+				return 0;
+			if (c == '/' || c == '\\' || c == ':' || c == '?' || c == '#' || c == '&' || c == '=')
+				return 1;
+			return 2;
+		};
+		const int selected_category = category(m_text[position]);
+		size_t first = position;
+		size_t last = position + 1;
+		while (first > 0 && category(m_text[first - 1]) == selected_category)
+			--first;
+		while (last < m_text.size() && category(m_text[last]) == selected_category)
+			++last;
+		m_selection_anchor = first;
+		m_pos = last;
+		updateCursor(true);
+	}
+
+	bool TextInput::onMouseDoubleClicked(Event* ev, Unit* unit)
+	{
+		const InputEvent e = static_cast<EventInput*>(ev)->getEvent();
+		if (e.mouseButton != MouseButton::Left || !m_textwidget)
+			return false;
+		const bool repeated = m_double_click_timer < 0.7f
+			&& std::abs(e.x - m_double_click_position.x) <= 4.0f
+			&& std::abs(e.y - m_double_click_position.y) <= 4.0f;
+		if (repeated)
+			selectAll();
+		else
+			selectWord(m_textwidget->getTextPosition(Vector2((float)e.x, (float)e.y)));
+		m_double_click_timer = repeated ? 1.0f : 0.0f;
+		m_double_click_position = Vector2((float)e.x, (float)e.y);
+		m_selecting = false;
+		ev->stopPropagation();
+		return false;
+	}
+
+	void TextInput::updateScrollOffset()
+	{
+		if (!m_textwidget || !m_textwidget->getFont())
+			return;
+		const float width = (std::max)(0.0f, m_textwidget->W());
+		const float cursor_x = m_textwidget->getTextWidth(m_pos);
+		float offset_x = m_offset_x;
+		if (cursor_x + offset_x < 0.0f)
+			offset_x = -cursor_x;
+		else if (cursor_x + offset_x > width)
+			offset_x = width - cursor_x;
+		const float max_scroll = (std::max)(0.0f, m_textwidget->getTextWidth(m_length) - width);
+		offset_x = (std::max)(-max_scroll, (std::min)(offset_x, 0.0f));
+		if (offset_x != m_offset_x) {
+			m_offset_x = offset_x;
+			m_textwidget->setOffset(offset_x);
+			m_textwidget->markTextDirty();
+		}
+	}
+
+	void TextInput::updateSelection()
+	{
+		if (!m_selection_background || !m_textwidget)
+			return;
+		auto* visual = m_selection_background->getComponent<VisualComponent>();
+		if (!visual)
+			return;
+		if (!m_has_focus || !hasSelection() || !m_textwidget->getFont()) {
+			if (visual->isVisible())
+				m_selection_background->hide();
+			return;
+		}
+		const Vector2 first = m_textwidget->getCursorPosition((std::min)(m_selection_anchor, m_pos));
+		const Vector2 last = m_textwidget->getCursorPosition((std::max)(m_selection_anchor, m_pos));
+		const float left = (std::max)(first.x, m_textwidget->X());
+		const float right = (std::min)(last.x, m_textwidget->X() + m_textwidget->W());
+		const float top = m_textwidget->Y();
+		const float height = (std::min)(m_textwidget->getFont()->getLineHeight(), m_textwidget->H());
+		if (right <= left || height <= 0.0f) {
+			if (visual->isVisible())
+				m_selection_background->hide();
+			return;
+		}
+		if (!visual->isVisible())
+			m_selection_background->show();
+		if (m_selection_background->X() != left || m_selection_background->Y() != top
+			|| m_selection_background->W() != right - left || m_selection_background->H() != height) {
+			m_selection_background->move(left, top);
+			m_selection_background->resize(right - left, height);
+			m_selection_background->invalidateRender();
+		}
+		auto* text_visual = m_textwidget->getComponent<VisualComponent>();
+		if (visual && text_visual) {
+			if (visual->hasClipping() != text_visual->hasClipping())
+				visual->enableClipping(text_visual->hasClipping());
+			if (text_visual->hasClipping()) {
+				const ClipRect old_clip = visual->getClipping();
+				const ClipRect clip = text_visual->getClipping();
+				if (old_clip.x != clip.x || old_clip.y != clip.y || old_clip.w != clip.w || old_clip.h != clip.h)
+					visual->setClipping(clip);
+			}
+		}
 	}
 
 	void TextInput::ready()
 	{
 		Widget::ready();
+		if (m_selection_background) {
+			m_selection_background->getComponent<VisualComponent>()->setRenderPhase(RenderPhase::Overlay);
+			m_selection_background->hide();
+		}
 
 		if (m_label_item) {
 			m_label_item->ready();
@@ -378,14 +510,7 @@ namespace rhea
 		m_label_item->setText(m_text);
 		m_values["text"] = m_text;		
 
-		float offset_x = m_textwidget->W() - m_textwidget->getTextWidth(m_pos);
-		offset_x = (offset_x < 0.0f) ? offset_x : 0.0f;
-		if (offset_x != m_offset_x) {
-			m_textwidget->setOffset(offset_x);
-			m_offset_x = offset_x;
-			// mark for redraw
-			m_textwidget->markTextDirty();
-		}
+		updateScrollOffset();
 		
 		if (isEvent)
 		{

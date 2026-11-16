@@ -51,9 +51,13 @@ namespace rhea
 		bool isMouseReleased(MouseButton btn) const { return m_evt.isMouseReleased(btn); }
 		bool isTextEntered() const { return m_evt.isTextEntered(); }
 
+		bool isTextSuppressionRequested() const { return m_suppress_key_text; }
+		void consumeTextForKeyPress(bool suppress) { m_suppress_key_text = suppress; }
+
 	protected:
 		InputEvent m_evt;
 		std::vector<std::string> m_actions;
+		bool m_suppress_key_text = false;
 	};
 }
 

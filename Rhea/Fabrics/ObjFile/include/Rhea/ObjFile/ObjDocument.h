@@ -64,7 +64,7 @@ namespace rhea
 			math::Vector3 tangent;
 
 			bool operator==(const Vertex& other) const {
-				return position.equals(other.position)/* && normal.equals(other.normal)*/ && uv.equals(other.uv)/* && color.equals(other.color) */;
+				return position.equals(other.position) && normal.equals(other.normal) && uv.equals(other.uv)/* && color.equals(other.color) */;
 			}
 		};
 

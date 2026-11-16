@@ -462,7 +462,7 @@ namespace rhea
 		float* raw_vertex = new float[vertex_elements];
 
 		// prepare indices
-		std::vector<std::vector<uint32_t>> indices(unit_materials.size());		
+		std::vector<std::vector<uint32_t>> indices(unit_materials.size());
 
 		for (const auto& shape : m_parsed_data->shapes) {
 			// shape name
@@ -473,7 +473,7 @@ namespace rhea
 
 			// reserve buffer for vertex in number of vertices (assume triangles)
 			buf_size += shape.mesh.num_face_vertices.size() * 3;
-			vertices->reserve(buf_size);	
+			vertices->reserve(buf_size);
 
 			// iterate over faces
 			for (size_t f = 0; f < shape.mesh.num_face_vertices.size(); f++) {
@@ -492,6 +492,38 @@ namespace rhea
 				}
 				else {
 					material_slot = static_cast<size_t>(material_id);
+				}
+
+				// prepare face vertices
+
+				const auto p0 = math::Vector3(
+					m_parsed_data->attributes.vertices[3 * shape.mesh.indices[index_offset + 0].vertex_index + 0],
+					m_parsed_data->attributes.vertices[3 * shape.mesh.indices[index_offset + 0].vertex_index + 1],
+					m_parsed_data->attributes.vertices[3 * shape.mesh.indices[index_offset + 0].vertex_index + 2]
+				);
+				const auto p1 = math::Vector3(
+					m_parsed_data->attributes.vertices[3 * shape.mesh.indices[index_offset + 1].vertex_index + 0],
+					m_parsed_data->attributes.vertices[3 * shape.mesh.indices[index_offset + 1].vertex_index + 1],
+					m_parsed_data->attributes.vertices[3 * shape.mesh.indices[index_offset + 1].vertex_index + 2]
+				);
+				const  auto p2 = math::Vector3(
+					m_parsed_data->attributes.vertices[3 * shape.mesh.indices[index_offset + 2].vertex_index + 0],
+					m_parsed_data->attributes.vertices[3 * shape.mesh.indices[index_offset + 2].vertex_index + 1],
+					m_parsed_data->attributes.vertices[3 * shape.mesh.indices[index_offset + 2].vertex_index + 2]
+				);
+				const auto edge1 = p1 - p0;
+				const auto edge2 = p2 - p0;
+				// cross product to get the face normal
+				auto face_normal = edge1.crossProduct(edge2);
+				if (change_handedness)
+					face_normal.z *= -1.0f;
+				const float length_squared = face_normal.squaredLength();
+				if (length_squared > 1e-12f) {
+					face_normal.normalize();
+				}
+				else {
+					// degenerated triangle without defined face normal
+					face_normal = { 0.0f, 1.0f, 0.0f };
 				}
 
 				// iterate over vertices composing face f
@@ -514,13 +546,22 @@ namespace rhea
 					}
 
 					// vertex normal
-					vertex.normal.x = m_parsed_data->attributes.normals[3 * idx.normal_index + 0];
-					vertex.normal.y = m_parsed_data->attributes.normals[3 * idx.normal_index + 1];
-					vertex.normal.z = m_parsed_data->attributes.normals[3 * idx.normal_index + 2];
+					if (idx.normal_index >= 0 && static_cast<size_t>(3 * idx.normal_index + 2) < m_parsed_data->attributes.normals.size()) {
+						vertex.normal.x = m_parsed_data->attributes.normals[3 * idx.normal_index + 0];
+						vertex.normal.y = m_parsed_data->attributes.normals[3 * idx.normal_index + 1];
+						vertex.normal.z = -m_parsed_data->attributes.normals[3 * idx.normal_index + 2];
+					}
+					else {
+						vertex.normal = face_normal;
+					}
 
 					// vertex texture coordinates
-					vertex.uv.x = m_parsed_data->attributes.texcoords[2 * idx.texcoord_index + 0];
-					vertex.uv.y = m_parsed_data->attributes.texcoords[2 * idx.texcoord_index + 1];
+					if (idx.texcoord_index >= 0 && static_cast<size_t>(2 * idx.texcoord_index + 1) < m_parsed_data->attributes.texcoords.size()) {
+						vertex.uv.x = m_parsed_data->attributes.texcoords[2 * idx.texcoord_index + 0];
+						vertex.uv.y = m_parsed_data->attributes.texcoords[2 * idx.texcoord_index + 1];
+					}
+					else
+						vertex.uv = { 0.0f, 0.0f };
 
 					// flip v coordinate
 					if (change_handedness)
@@ -588,62 +629,63 @@ namespace rhea
 				// per-face material
 				int face_id = shape.mesh.material_ids[f];
 			}
+		}
 
-			if (change_handedness) {
-				for (size_t m = 0; m < indices.size(); m++)
-					for (size_t i = 0; i < indices[m].size(); i += 3) {
-						std::swap(indices[m][i + 1], indices[m][i + 2]);
-					}
-			}
+		if (change_handedness) {
+			for (size_t m = 0; m < indices.size(); m++)
+				for (size_t i = 0; i < indices[m].size(); i += 3) {
+					std::swap(indices[m][i + 1], indices[m][i + 2]);
+				}
+		}
 
-			if (shader_res->getValue("input", "") == "standard") {
+		if (shader_res->getValue("input", "") == "standard") {
 
-				// compute tangents
-				for (size_t i = 0; i < indices.size(); i++)
+			// compute tangents
+			for (size_t i = 0; i < indices.size(); i++)
+			{
+				// iterate over faces
+				for (size_t face = 0; face < indices[i].size(); face += 3)
 				{
-					// iterate over faces
-					for (size_t face = 0; face < indices[i].size(); face += 3)
-					{
-						size_t idx1 = indices[i][face];
-						size_t idx2 = indices[i][face + 1];
-						size_t idx3 = indices[i][face + 2];
+					size_t idx1 = indices[i][face];
+					size_t idx2 = indices[i][face + 1];
+					size_t idx3 = indices[i][face + 2];
 
-						VertexBufferStandard::VertexStandard* v1 = (*(VertexBufferStandard*)vertices)[idx1];
-						VertexBufferStandard::VertexStandard* v2 = (*(VertexBufferStandard*)vertices)[idx2];
-						VertexBufferStandard::VertexStandard* v3 = (*(VertexBufferStandard*)vertices)[idx3];
+					VertexBufferStandard::VertexStandard* v1 = (*(VertexBufferStandard*)vertices)[idx1];
+					VertexBufferStandard::VertexStandard* v2 = (*(VertexBufferStandard*)vertices)[idx2];
+					VertexBufferStandard::VertexStandard* v3 = (*(VertexBufferStandard*)vertices)[idx3];
 
-						math::Vector3 edge1 = v2->position - v1->position;
-						math::Vector3 edge2 = v3->position - v1->position;
-						math::Vector2 deltaUV1 = v2->texcoord - v1->texcoord;
-						math::Vector2 deltaUV2 = v3->texcoord - v1->texcoord;
+					math::Vector3 edge1 = v2->position - v1->position;
+					math::Vector3 edge2 = v3->position - v1->position;
+					math::Vector2 deltaUV1 = v2->texcoord - v1->texcoord;
+					math::Vector2 deltaUV2 = v3->texcoord - v1->texcoord;
 
-						float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
+					float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
 
-						math::Vector3 tangent;
+					math::Vector3 tangent;
 
-						tangent = (edge1 * deltaUV2.y - edge2 * deltaUV1.y) * f;
+					tangent = (edge1 * deltaUV2.y - edge2 * deltaUV1.y) * f;
 
-						v1->tangent += tangent;
-						v2->tangent += tangent;
-						v3->tangent += tangent;
-					}
-				}
-
-				for (unsigned int idx = 0; idx < vertices->size(); idx++) {
-					VertexBufferStandard::VertexStandard* v = (*(VertexBufferStandard*)vertices)[idx];
-					v->tangent.normalize();
+					v1->tangent += tangent;
+					v2->tangent += tangent;
+					v3->tangent += tangent;
 				}
 			}
 
-			size_t submesh_index = 0;
-
-			// store submeshes
-			for (size_t i = 0; i < indices.size(); ++i) {
-				if (indices[i].empty())
-					continue;
-				mesh->setSubmesh(submesh_index++, unit_materials[i], indices[i]);
+			for (unsigned int idx = 0; idx < vertices->size(); idx++) {
+				VertexBufferStandard::VertexStandard* v = (*(VertexBufferStandard*)vertices)[idx];
+				v->tangent.normalize();
 			}
 		}
+
+		size_t submesh_index = 0;
+
+		// store submeshes
+		for (size_t i = 0; i < indices.size(); ++i) {
+			if (indices[i].empty())
+				continue;
+			mesh->setSubmesh(submesh_index++, unit_materials[i], indices[i]);
+		}
+
 		// delete raw vertex
 		delete[] raw_vertex;
 

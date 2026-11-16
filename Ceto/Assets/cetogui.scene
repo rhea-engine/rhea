@@ -52,15 +52,6 @@ h=1
 x=0
 y=0
 
-[gui/widget1/laber]
-type="//meworla/gui/label"
-text="Zis is a label"
-x=10
-y=10
-w=360
-h=80
-templating=false
-
 [gui/quit]
 type="//meworla/gui/dialog"
 w=420

@@ -392,6 +392,8 @@ namespace rhea
 		uint64_t fps_count = 0;
 		float elapsed_fs = 0.0f;
 
+		bool suppress_key_text = false;
+
 		while (!ret) {
 
 			// timings
@@ -438,6 +440,12 @@ namespace rhea
 					}
 					// get actions from input map
 					std::vector<std::string> actions = m_input_map->getActions(evt);
+
+					if (evt.type == InputEventType::Text && suppress_key_text)
+						continue;
+					else if (evt.type == InputEventType::KeyPressed || evt.type == InputEventType::KeyReleased)
+						suppress_key_text = false;
+
 					// send the input events
 					// TODO: make the event list configurable
 					EventInput e("input", evt, actions);
@@ -451,6 +459,10 @@ namespace rhea
 
 					if (!e.isPropagationStopped())
 						ret = onInput(&e, nullptr);
+
+					if (e.isTextSuppressionRequested()) {
+						suppress_key_text = true;
+					}
 				}
 			}
 

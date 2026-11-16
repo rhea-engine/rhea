@@ -82,8 +82,11 @@ bool Ceto::onInput(rhea::EventInput* e, rhea::Unit* unit)
 {
 	rhea::InputEvent evt = e->getEvent();
 
-	if (handleAppShortcuts(evt))
+	if (handleAppShortcuts(evt)) {
+		e->stopPropagation();
+		e->consumeTextForKeyPress(true);
 		return false;
+	}
 
 	return false;
 }
@@ -92,12 +95,12 @@ bool Ceto::handleAppShortcuts(const rhea::InputEvent& evt)
 {
 	if (evt.isKeyPressed(rhea::Key::Escape)) {		
 		openQuitDialog();
-		return false;
+		return true;
 	}
 
 	if (evt.isKeyPressed(rhea::Key::O)) {
 		openRealmDialog();
-		return false;
+		return true;
 	}
 	
 	return false;

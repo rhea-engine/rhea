@@ -1,5 +1,5 @@
 #include <Rhea/ObjFile/ObjGeometry.h>
-#include <Rhea/ObjFile/ObjLoader.h>
+#include <Rhea/ObjFile/ObjDocument.h>
 #include <Psio/Log.h>
 
 namespace rhea
@@ -20,9 +20,9 @@ namespace rhea
 
 	bool ObjGeometry::load(Mesh* mesh)
 	{
-		ObjLoader* loader = doCast<ObjLoader>(getParent());
+		ObjDocument* loader = doCast<ObjDocument>(getParent());
 		if (!loader) {
-			LOG(LOG_ERROR) << "ObjGeometry::load: parent is not an ObjLoader";
+			LOG(LOG_ERROR) << "ObjGeometry::load: parent is not an ObjDocument";
 			return false;
 		}
 

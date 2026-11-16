@@ -756,6 +756,20 @@ namespace rhea
 				error->addError(Error(Error::Code::INVALID_DATA, "Failed to add child unit.", m_source_resource_id));
 			return nullptr;
 		}
+
+		const std::string old_base = instance->getAttribute("basepath");
+		const std::string new_base = instance->getPath();
+
+		instance->traverse([&old_base, &new_base](std::string& name, Component* component) -> bool
+			{
+				if (component->getAttribute("basepath") == old_base)
+					component->setAttribute("basepath", new_base);
+
+				return true;
+			});
+
+		instance->setAttribute("basepath", new_base);
+
 		return instance;
 	}
 

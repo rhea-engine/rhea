@@ -35,3 +35,9 @@ target_link_libraries(GUI PUBLIC Rhea::Core Rhea::Text)
 
 # register for auto registry generation
 rhea_register_fabric("${CMAKE_CURRENT_SOURCE_DIR}/fabric.json")
+
+if(RHEA_BUILD_TESTS AND TARGET GTest::gtest_main)
+    add_executable(rhea_text_input_test tests/TextInput.test.cpp)
+    target_link_libraries(rhea_text_input_test PRIVATE Rhea::GUI GTest::gtest_main)
+    add_test(NAME rhea_text_input_test COMMAND rhea_text_input_test)
+endif()

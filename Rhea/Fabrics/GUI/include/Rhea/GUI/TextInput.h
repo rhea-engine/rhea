@@ -46,6 +46,9 @@ namespace rhea
 
 		// get the current text
 		std::string getText() { return m_text; }
+		bool hasSelection() const { return m_selection_anchor != m_pos; }
+		std::string getSelectedText() const;
+		void selectAll();
 
 		// frame handler
 		void onFrame(float delta);
@@ -65,6 +68,11 @@ namespace rhea
 		bool onKeyPressed(Event* ev, Unit* unit) override;
 		bool onTextInput(Event* ev, Unit* unit) override;
 		bool onMousePressed(Event* ev, Unit* unit) override;		
+		bool onMouseReleased(Event* ev, Unit* unit) override;
+		bool onMouseDoubleClicked(Event* ev, Unit* unit) override;
+		bool onDragStart(Event* ev, Unit* unit) override;
+		bool onDragMove(Event* ev, Unit* unit) override;
+		bool onDragEnd(Event* ev, Unit* unit) override;
 
 		// events
 
@@ -79,10 +87,20 @@ namespace rhea
 	protected:
 
 		void updateText(bool isEvent);
+		void moveCursor(size_t position, bool extend_selection);
+		void replaceSelection(const std::string& text);
+		void updateSelection();
+		void updateScrollOffset();
+		void selectWord(size_t position);
 
 		Label* m_label_item;
 		Label* m_cursor_item;
 		TextWidget* m_textwidget;
+		Item2D* m_selection_background = nullptr;
+		size_t m_selection_anchor = 0;
+		bool m_selecting = false;
+		float m_double_click_timer = 1.0f;
+		Vector2 m_double_click_position;
 		
 		// the currently entered and displayed text
 		std::string m_text;

@@ -6,12 +6,17 @@
 #include <Rhea/UnitTree.h>
 #include <Psio/Log.h>
 #include "../BrowserController.h"
+#include "../Gui/ViewerPanel.h"
+#include "../ViewerSession.h"
 
 void CetoUI::setup(rhea::Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, simpleparser::Variant> values)
 {
 	rhea::Item::setup(app, attributes, values);
 	if (m_browser_ref.id().empty()) {
 		m_browser_ref.setId("//ceto/openbrowser.scene");
+	}
+	if (m_viewerpanel_ref.id().empty()) {
+		m_viewerpanel_ref.setId("//ceto/viewerpanel.scene");
 	}
 }
 
@@ -62,7 +67,7 @@ void CetoUI::ready()
 	}
 }
 
-void CetoUI::initializeBrowser(BrowserController* controller)
+void CetoUI::initializeBrowser(BrowserController* controller, ViewerSession* viewer_session)
 {
 	auto* browser_resource = m_app->getUnitTree()->resolve(m_browser_ref);
 
@@ -88,18 +93,34 @@ void CetoUI::initializeBrowser(BrowserController* controller)
 	m_browser_controller->setLoadingHandler(std::bind(&CetoUI::setLoading, this, std::placeholders::_1));
 	m_browser_controller->addOpenedHandler(std::bind(&CetoUI::onContentOpened, this, std::placeholders::_1, std::placeholders::_2));
 	m_browser_controller->setErrorHandler(std::bind(&CetoUI::showError, this, std::placeholders::_1));
+
+	auto* viewer_resource = m_app->getUnitTree()->resolve(m_viewerpanel_ref);
+	if (!viewer_resource || !m_gui_controller)
+		return;
+
+	viewer_session->addChangedHandler([this, viewer_resource, viewer_session](ViewerSession::Mode mode) {
+		if (!m_viewer_panel && mode == ViewerSession::Mode::AssetPreview) {
+			rhea::ErrorReport error;
+			auto* viewer_instance = viewer_resource->spawnPrepared(m_gui_controller, "viewerpanel", &error);
+			m_viewer_panel = doCast<ViewerPanel>(viewer_instance);
+			if (error.isError() || !m_viewer_panel) {
+				LOG(LOG_ERROR) << "Failed to spawn ViewerPanel: " << (error.errors.size() ? error.errors[0].getMessage() : "Unknown error");
+				return;
+			}
+			m_viewer_panel->bindViewerSession(viewer_session);
+			m_viewer_panel->ready();
+		}
+		if (m_viewer_panel)
+			m_viewer_panel->onChange();
+		});
 }
 
 std::vector<rhea::Unit::ResourceReference> CetoUI::getReferences()
 {
     auto refs = Item::getReferences();
-    refs.push_back({
-        "browser",
-        "//meworla/sceneresource",
-        m_browser_ref.id(),
-        ResourceUsage::Prepare
-        });
-    return refs;
+    refs.push_back({ "browser", "//meworla/sceneresource", m_browser_ref.id(), ResourceUsage::Prepare});
+	refs.push_back({ "viewerpanel", "//meworla/sceneresource", m_viewerpanel_ref.id(), ResourceUsage::Prepare });
+	return refs;
 }
 
 void CetoUI::onContentOpened(const std::string& address, bool mark)

@@ -2,6 +2,16 @@
 #include <Rhea/Core/SceneDefinitionComponent.h>
 #include <Rhea/Core/Geometry.h>
 #include <Rhea/Core/WorldService.h>
+#include <Rhea/Application.h>
+#include <Rhea/UnitTree.h>
+#include <Rhea/Core/Item.h>
+#include <Rhea/Core/Mesh.h>
+#include <Rhea/Components/MeshComponent.h>
+#include <Rhea/Animation/AnimationComponent.h>
+#include <Rhea/Animation/Animation.h>
+#include <Rhea/Animation/Skeleton.h>
+#include <Rhea/Animation/Animator.h>
+#include <Rhea/Animation/AnimationState.h>
 #include <memory>
 #include "AssetViewer.h"
 
@@ -102,4 +112,110 @@ void AssetViewer::createAssetViewerScene(rhea::Application* app, const rhea::Wor
         // Transfer ownership to the adapter caller.
         completion(ErrorReport(), viewer.release());
         });
+}
+
+rhea::ErrorReport AssetViewer::prepareAnimations(rhea::Application* app, rhea::Scene* scene)
+{
+    if (scene->getValueString("ceto_view_mode", "") != "asset")
+        return rhea::ErrorReport();
+
+    const auto root_path = scene->getValueString("ceto_content_root", "");
+    rhea::Unit* content_root = doCast<rhea::Unit>(scene->find(root_path));
+	if (!content_root) {
+		return rhea::ErrorReport(rhea::Error(rhea::Error::Code::INVALID_DATA, "Asset viewer content root not found: " + root_path, scene->getPathName()));
+	}
+
+	// Prepare all animations in the content root.
+
+    // gather all mesh items with skeleton and animations
+    struct AnimationTarget
+    {
+        rhea::Item* item;
+        rhea::Mesh* mesh;
+        std::vector<rhea::Animation*> clips;
+    };
+
+    std::vector<AnimationTarget> targets;
+
+    content_root->traverse([app, &targets](std::string&, rhea::Component* component) {
+        auto* item = doCast<rhea::Item>(component);
+        if (!item)
+            return true;
+
+        // Preserve animation behaviour already supplied by the scene.
+        if (item->getComponent<rhea::AnimationComponent>())
+            return true;
+
+        auto* mesh_component = item->getComponent<rhea::MeshComponent>();
+        if (!mesh_component)
+            return true;
+
+        auto* mesh = mesh_component->getMesh();
+        if (!mesh)
+            mesh = app->getUnitTree()->resolve(mesh_component->meshRef());
+
+        if (!mesh || !mesh->getComponent<rhea::Skeleton>())
+            return true;
+
+        AnimationTarget target{ item, mesh,{} };
+
+        mesh->children([&target](std::string&, rhea::Component* child) {
+            if (auto* clip = doCast<rhea::Animation>(child))
+                target.clips.push_back(clip);
+
+            return true;
+            },
+            true);
+
+        if (!target.clips.empty())
+            targets.push_back(std::move(target));
+
+        return true;
+        });
+
+    for (const auto& target : targets) {
+        // Keep the animator local to this item instance.
+        auto* animator = new rhea::Animator("preview_animator", "//meworla/animator");
+
+        if (!target.item->addChild(animator)) {
+            animator->destroy();
+            return rhea::Error(rhea::Error::Code::INVALID_DEFINITION, "Could not attach preview animator", target.item->getPath());
+        }
+
+        animator->setup(app, {}, {
+            { "mesh", target.mesh->getPath() },
+            { "initialState", target.clips.front()->getPathName() }
+            });
+
+        for (auto* clip : target.clips) {
+            auto* state = new rhea::AnimationState(clip->getPathName(), "//meworla/animationstate");
+
+            if (!animator->addChild(state)) {
+                state->destroy();
+                return rhea::Error(rhea::Error::Code::INVALID_DEFINITION, "Could not attach animation state", animator->getPath());
+            }
+
+            state->setup(app, {}, {});
+            state->setAnimation(clip);
+        }
+
+        auto* animation = new rhea::AnimationComponent("preview_animation", "//meworla/animationcomponent");
+
+        if (!target.item->addChild(animation)) {
+            animation->destroy();
+            return rhea::Error(rhea::Error::Code::INVALID_DEFINITION, "Could not attach animation component", target.item->getPath());
+        }
+
+        animation->setup(app, {}, {
+            { "initialState", target.clips.front()->getPathName() }
+            });
+
+        animation->setAnimatorRef(rhea::Ref<rhea::Animator>(animator->getPath()));
+
+        // Initialize only the newly created objects.
+        animator->ready();
+        animation->ready();
+    }
+
+    return rhea::ErrorReport();
 }

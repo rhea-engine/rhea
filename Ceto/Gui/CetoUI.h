@@ -17,8 +17,10 @@
 #include <Rhea/GUI/Dialog.h>
 #include "BrowserPlace.h"
 #include <functional>
+#include "ViewerPanel.h"
 
 class BrowserController;
+class ViewerSession;
 
 class CetoUI : public rhea::Item
 {
@@ -31,7 +33,7 @@ public:
 	{}
 	void setup(rhea::Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, simpleparser::Variant> values) override;
 	void ready() override;
-	void initializeBrowser(BrowserController* controller);
+	void initializeBrowser(BrowserController* controller, ViewerSession* viewer_session);
 
 	std::vector<rhea::Unit::ResourceReference> getReferences();
 
@@ -58,8 +60,10 @@ private:
 	bool onAlertClose(rhea::Event* ev, rhea::Unit* unit);
 
 	rhea::Ref<rhea::SceneResource> m_browser_ref;
+	rhea::Ref<rhea::SceneResource> m_viewerpanel_ref;
 	rhea::GUIController* m_gui_controller = nullptr;
 	OpenBrowser* m_open_browser = nullptr;
+	ViewerPanel* m_viewer_panel = nullptr;
 
 	OpenBrowser* m_realm_dialog = nullptr;
 	AlertDialog* m_alert_dialog = nullptr;

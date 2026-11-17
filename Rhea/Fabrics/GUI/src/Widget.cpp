@@ -307,6 +307,37 @@ namespace rhea
 		}
 	}
 
+	void Widget::resolvePosition(const Vector2& available_size)
+	{
+		auto resolve_edge = [this](const PositionEdge& edge, float extent) {
+			switch (edge.unit) {
+			case CssValueId::kPercentage:
+				return extent * edge.value / 100.0f;
+			case CssValueId::kDimensionEm:
+				return m_font_size * edge.value;
+			default:
+				return edge.value;
+			}
+			};
+
+		const auto& edges = m_position_edges;
+		m_base_position = Vector2(0.0f, 0.0f);
+
+		if (edges.left.specified) {
+			m_base_position.x = resolve_edge(edges.left, available_size.x);
+		}
+		else if (edges.right.specified) {
+			m_base_position.x = available_size.x - m_size.x	- resolve_edge(edges.right, available_size.x);
+		}
+
+		if (edges.top.specified) {
+			m_base_position.y = resolve_edge(edges.top, available_size.y);
+		}
+		else if (edges.bottom.specified) {
+			m_base_position.y = available_size.y - m_size.y	- resolve_edge(edges.bottom, available_size.y);
+		}
+	}
+
 	// compute widget size
 	// apply all modifiers	
 	// get content size and add it (if size not forced)
@@ -317,6 +348,7 @@ namespace rhea
 		Vector2 old_outer = m_outer_size;
 		Vector2 old_content_pos = m_content_position;
 		Vector2 old_content_size = m_content_size;
+		const Vector2 available_size = size_constraints;
 
 		m_size = Vector2(-1.0f, -1.0f);
 		m_base_position = Vector2(0.0f, 0.0f);
@@ -384,6 +416,8 @@ namespace rhea
 				computeClipping();
 			}
 		}
+
+		resolvePosition(available_size);
 
 		return m_outer_size;
 	}
@@ -525,12 +559,12 @@ namespace rhea
 
 	void Widget::ApplyStyles()
 	{
-		Vector2 base_position;
 		Vector2 base_size;
 		CssValueId position_types[4] = { CssValueId::kString, CssValueId::kString, CssValueId::kString, CssValueId::kString };
 		float prev_font_size = m_font_size;
 		TextureSizingMode prev_sizing_mode_w = m_sizing_mode_w;
 		TextureSizingMode prev_sizing_mode_h = m_sizing_mode_h;
+		PositionEdges position_edges{};
 
 		bool layout_changed = false;
 		bool render_changed = false;
@@ -574,12 +608,36 @@ namespace rhea
 					render_changed = true;
 				break;
 			case StylePropertyId::kLeft:
-				base_position.x = values[0].value;
-				position_types[0] = values[0].id;
+				position_edges.left.value = values[0].value;
+				position_edges.left.unit = values[0].id;
+				position_edges.left.specified = values[0].id != CssValueId::kIdentifier || values[0].value != "auto";
+				if (position_edges.left != m_position_edges.left) {
+					layout_changed = true;
+				}
 				break;
 			case StylePropertyId::kTop:
-				base_position.y = values[0].value;
-				position_types[1] = values[0].id;
+				position_edges.top.value = values[0].value;
+				position_edges.top.unit = values[0].id;
+				position_edges.top.specified = values[0].id != CssValueId::kIdentifier || values[0].value != "auto";
+				if (position_edges.top != m_position_edges.top) {
+					layout_changed = true;
+				}
+				break;
+			case StylePropertyId::kRight:
+				position_edges.right.value = values[0].value;
+				position_edges.right.unit = values[0].id;
+				position_edges.right.specified = values[0].id != CssValueId::kIdentifier || values[0].value != "auto";
+				if (position_edges.right != m_position_edges.right) {
+					layout_changed = true;
+				}
+				break;
+			case StylePropertyId::kBottom:
+				position_edges.bottom.value = values[0].value;
+				position_edges.bottom.unit = values[0].id;
+				position_edges.bottom.specified = values[0].id != CssValueId::kIdentifier || values[0].value != "auto";
+				if (position_edges.bottom != m_position_edges.bottom) {
+					layout_changed = true;
+				}
 				break;
 			case StylePropertyId::kWidth:
 				base_size.x = values[0].value;
@@ -720,7 +778,9 @@ namespace rhea
 
 		ApplyTextureSizing();
 
-		recreateModifiers(base_position, base_size, position_types);
+		m_position_edges = position_edges;
+
+		recreateModifiers(base_size, position_types);
 
 		if (layout_changed)
 			invalidateLayout();
@@ -745,13 +805,9 @@ namespace rhea
 		}
 	}
 
-	void Widget::recreateModifiers(const Vector2& base_position, const Vector2& base_size, const CssValueId position_types[4])
+	void Widget::recreateModifiers(const Vector2& base_size, const CssValueId position_types[4])
 	{
 		std::vector<std::unique_ptr<Modifier>> new_modifiers;
-
-		if (base_position.x || base_position.y) {
-			new_modifiers.push_back(std::make_unique<OffsetModifier>(base_position));
-		}
 
 		// get my font size
 		if (m_font_size <= 0.0f) {

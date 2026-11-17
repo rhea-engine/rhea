@@ -20,6 +20,8 @@ namespace rhea
         const CssProperty backgroundSize{ StylePropertyId::kBackgroundSize, "background-size", false, false };
         const CssProperty left{ StylePropertyId::kLeft, "left",false, false };
         const CssProperty top{ StylePropertyId::kTop, "top", false, false };
+        const CssProperty right{ StylePropertyId::kRight, "right", false, false };
+        const CssProperty bottom{ StylePropertyId::kBottom, "bottom", false, false };
         const CssProperty width{ StylePropertyId::kWidth, "width", false, false };
         const CssProperty height{ StylePropertyId::kHeight, "height", false, false };
         const CssProperty font{ StylePropertyId::kFont, "font", true, false };
@@ -42,6 +44,8 @@ namespace rhea
         &backgroundSize,
         &left,
         &top,
+		&right,
+		&bottom,
         &width,
         &height,
         &font,
@@ -64,8 +68,10 @@ namespace rhea
         {CssValueId::kIdentifier, "none"},  // kBackgroundImage default.
         {CssValueId::kIdentifier, "transparent"},  // kBackgroundColor default.
         {CssValueId::kIdentifier, "auto"}, // kBackgroundSize default
-        {CssValueId::kNumeric, "0"},     // kLeft default.
-        {CssValueId::kNumeric, "0"},     // kTop default.
+        {CssValueId::kIdentifier, "auto"},     // kLeft default.
+        {CssValueId::kIdentifier, "auto"},     // kTop default.
+        {CssValueId::kIdentifier, "auto" },     // kRight default.
+        {CssValueId::kIdentifier, "auto" },     // kBottom default.
         {CssValueId::kIdentifier, "auto"},  // kWidth default.
         {CssValueId::kIdentifier,"auto"},   // kHeight default.
         {CssValueId::kString, ""}, // font default

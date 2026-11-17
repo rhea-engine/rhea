@@ -517,7 +517,7 @@ namespace rhea
 		/**
 		 * @brief Recalculates the modifiers of the widget.
 		 */
-		void recreateModifiers(const Vector2& base_position, const Vector2& base_size, const CssValueId position_types[4]);
+		void recreateModifiers(const Vector2& base_size, const CssValueId position_types[4]);
 
 		// Whether this is a top window
 		bool m_top_window;
@@ -537,6 +537,32 @@ namespace rhea
 
 		// Outer size of element including margin
 		Vector2 m_outer_size;
+
+		struct PositionEdge
+		{
+			bool specified = false;
+			float value = 0.0f;
+			CssValueId unit = CssValueId::kNumeric;
+			bool operator ==(const PositionEdge& other) const {
+				return specified == other.specified && value == other.value && unit == other.unit;
+			}
+			bool operator !=(const PositionEdge& other) const {
+				return !(*this == other);
+			}
+
+		};
+
+		struct PositionEdges
+		{
+			PositionEdge left;
+			PositionEdge top;
+			PositionEdge right;
+			PositionEdge bottom;
+		};
+
+		PositionEdges m_position_edges;
+
+		void resolvePosition(const Vector2& available_size);
 
 		// clipping
 		bool m_clip = false;

@@ -23,6 +23,8 @@ namespace rhea
 		kBackgroundSize,
 		kLeft,
 		kTop,
+		kRight,
+		kBottom,
 		kWidth,
 		kHeight,
 		kFont,

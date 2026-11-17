@@ -23,6 +23,7 @@ class OpenBrowser;
 class AlertDialog;
 class AssetViewer;
 class CetoUI;
+class BrowserController;
 
 class Ceto : public rhea::Application
 {
@@ -37,6 +38,7 @@ public:
 		m_exiting(false),
 		m_current_time(0.0f)
 	{}
+	~Ceto();
 	void setup();
 	void openScene(std::string scene_name, bool mark_preferences = true);
 	bool checkLocalScene(std::string realm_name, std::string path);
@@ -45,6 +47,8 @@ public:
 	bool onFrameEnd();
 	void onScene(rhea::Scene* scene) override;
 	void openBrowser();
+
+	void setOrigin(std::string origin);
 
 protected:
 	rhea::Camera* m_view;
@@ -78,6 +82,8 @@ protected:
 	float m_current_time;
 
 	bool m_in_scene = false;
+	std::unique_ptr<BrowserController> m_browser_controller;
+	void onOpened(const std::string&, bool);
 };
 
 #endif // !CETO_H

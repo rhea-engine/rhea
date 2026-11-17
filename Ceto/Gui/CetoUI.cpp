@@ -5,6 +5,7 @@
 #include <Rhea/Application.h>
 #include <Rhea/UnitTree.h>
 #include <Psio/Log.h>
+#include "../BrowserController.h"
 
 void CetoUI::setup(rhea::Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, simpleparser::Variant> values)
 {
@@ -61,7 +62,7 @@ void CetoUI::ready()
 	}
 }
 
-void CetoUI::initializeBrowser()
+void CetoUI::initializeBrowser(BrowserController* controller)
 {
 	auto* browser_resource = m_app->getUnitTree()->resolve(m_browser_ref);
 
@@ -82,6 +83,11 @@ void CetoUI::initializeBrowser()
 			m_open_handler(address);
 		});
 	m_open_browser->ready();
+
+	m_browser_controller = controller;
+	m_browser_controller->setLoadingHandler(std::bind(&CetoUI::setLoading, this, std::placeholders::_1));
+	m_browser_controller->addOpenedHandler(std::bind(&CetoUI::onContentOpened, this, std::placeholders::_1, std::placeholders::_2));
+	m_browser_controller->setErrorHandler(std::bind(&CetoUI::showError, this, std::placeholders::_1));
 }
 
 std::vector<rhea::Unit::ResourceReference> CetoUI::getReferences()
@@ -96,9 +102,16 @@ std::vector<rhea::Unit::ResourceReference> CetoUI::getReferences()
     return refs;
 }
 
-void CetoUI::onContentOpened(const std::string& address)
+void CetoUI::onContentOpened(const std::string& address, bool mark)
 {
 	m_gui_controller->closeDialog(m_open_browser);
+	
+	// hide GUI background
+	rhea::GUIController* w = doCast<rhea::GUIController>(m_parent->find("gui"));
+	if (w) {
+		w->setStyle(rhea::StylePropertyId::kBackgroundImage, "none");
+		w->UpdateStyle();
+	}
 }
 
 void CetoUI::setBrowserData(const BrowserData& data)

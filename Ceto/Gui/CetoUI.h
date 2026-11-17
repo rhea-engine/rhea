@@ -18,6 +18,8 @@
 #include "BrowserPlace.h"
 #include <functional>
 
+class BrowserController;
+
 class CetoUI : public rhea::Item
 {
 	RECLASS(CetoUI, rhea::Item, "//ceto/uicontroller")
@@ -29,7 +31,7 @@ public:
 	{}
 	void setup(rhea::Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, simpleparser::Variant> values) override;
 	void ready() override;
-	void initializeBrowser();
+	void initializeBrowser(BrowserController* controller);
 
 	std::vector<rhea::Unit::ResourceReference> getReferences();
 
@@ -45,7 +47,7 @@ public:
 	void navigateOpenDialogTo(const std::string& location);
 
 	void setOpenHandler(OpenHandler handler) { m_open_handler = handler; }
-	void onContentOpened(const std::string& address);
+	void onContentOpened(const std::string& address, bool mark = true);
 
 	void setLoading(bool loading);
 
@@ -67,4 +69,6 @@ private:
 	bool m_is_loading = false;
 
 	OpenHandler m_open_handler;
+
+	BrowserController* m_browser_controller = nullptr;
 };

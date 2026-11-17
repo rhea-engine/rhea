@@ -49,6 +49,11 @@
 #include "Gui/AlertDialog.h"
 #include "Gui/CetoUI.h"
 #include "AssetViewer.h"
+#include "BrowserController.h"
+
+Ceto::~Ceto()
+{
+}
 
 bool Ceto::onQuit(rhea::Event* ev, rhea::Unit* unit)
 {
@@ -86,6 +91,24 @@ bool Ceto::handleAppShortcuts(const rhea::InputEvent& evt)
 	}
 	
 	return false;
+}
+
+void Ceto::onOpened(const std::string& address, bool mark_preferences)
+{
+	setOrigin(address);
+
+	if (mark_preferences) {
+		m_userprefs.lastUsed(address);
+
+		std::string s = m_userprefs.toJSON();
+		std::unique_ptr<orion::FileResourceStream> stream = std::make_unique<orion::FileResourceStream>(m_userpref_path);
+		stream->SetMode(psio::Fs::WRITE);
+		stream->Open();
+		stream->Write(s.c_str(), s.size());
+		stream->Close();
+
+		m_ceto_ui->setRecentLocations(m_userprefs.lastUsed());
+	}
 }
 
 void Ceto::setup()
@@ -196,53 +219,7 @@ void Ceto::setup()
 
 void Ceto::openScene(std::string scene_name, bool mark_preferences)
 {
-	auto* worlds = doCast<rhea::WorldService>(getService("world"));
-
-	m_ceto_ui->setLoading(true);
-
-	worlds->openWorld(scene_name, [this, scene_name, mark_preferences, worlds](rhea::ErrorReport error) {
-		
-		m_ceto_ui->setLoading(false);
-
-		if (error.isError()) {
-			LOG(LOG_ERROR) << "Ceto: Could not open scene: " << scene_name;
-
-			if (error.isCanceled())
-				return;
-
-			m_ceto_ui->showError(error);
-			return;
-		}
-
-		m_ceto_ui->onContentOpened(scene_name);
-
-		// set origin info
-		rhea::Unit* engine = doCast<rhea::Unit>(m_unit_tree->getChild("engine"));
-		if (engine)
-			engine->setValue("origin", scene_name);
-
-		if (mark_preferences) {
-			m_userprefs.lastUsed(scene_name);
-
-			std::string s = m_userprefs.toJSON();
-			std::unique_ptr<orion::FileResourceStream> stream = std::make_unique<orion::FileResourceStream>(m_userpref_path);
-			stream->SetMode(psio::Fs::WRITE);
-			stream->Open();
-			stream->Write(s.c_str(), s.size());
-			stream->Close();
-		}
-
-		m_ceto_ui->setRecentLocations(m_userprefs.lastUsed());
-
-		// hide GUI background
-		rhea::GUIController* w = doCast<rhea::GUIController>(m_unit_tree->find("//ceto/cetogui/gui"));
-		if (w) {
-			w->setStyle(rhea::StylePropertyId::kBackgroundImage, "none");
-			w->UpdateStyle();
-		}
-
-		m_in_scene = true;
-		});
+	m_browser_controller->openScene(scene_name, mark_preferences);
 }
 
 void Ceto::loadMainGUI(CompletionHandler handler)
@@ -262,15 +239,22 @@ void Ceto::loadMainGUI(CompletionHandler handler)
 					gui->show();
 					m_gui = gui;
 					m_gui_controller = doCast<rhea::GUIController>(gui->find("gui"));
+
+					if (!m_browser_controller) {
+						m_browser_controller = std::make_unique<BrowserController>(this);
+						m_browser_controller->addOpenedHandler(std::bind(&Ceto::onOpened, this, std::placeholders::_1, std::placeholders::_2));
+					}
+
 					m_ceto_ui = doCast<CetoUI>(gui->find("ceto_ui"));
-					m_ceto_ui->initializeBrowser();
+					m_ceto_ui->initializeBrowser(m_browser_controller.get());
+
 					log("gui ready");
 
 					// setup system dialogs
 					m_ceto_ui->registerEventHandler("quit_application", this, std::bind(&Ceto::onQuit, this, std::placeholders::_1, std::placeholders::_2));
 
 					m_ceto_ui->setOpenHandler([this](const std::string& address) {
-						openScene(address);
+						m_browser_controller->openScene(address);
 						});
 
 					// open browser setup
@@ -384,6 +368,13 @@ void Ceto::openBrowser()
 	m_ceto_ui->showOpenDialog();
 }
 
+void Ceto::setOrigin(std::string origin)
+{
+	rhea::Unit* engine = doCast<rhea::Unit>(m_unit_tree->getChild("engine"));
+	if (engine)
+		engine->setValue("origin", origin);
+}
+
 int main(int argc, char* argv[])
 {
 	Ceto* app = new Ceto();
@@ -419,7 +410,7 @@ int main(int argc, char* argv[])
 		}
 		if (!set_scene.empty()) {
 			// open the scene specified in config file or command line argument
-			app->openScene(set_scene);
+			app->openScene(set_scene, false);
 		}
 		else {
 			// open the open browser

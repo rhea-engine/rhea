@@ -50,10 +50,14 @@ void CetoUI::ready()
 	else {
 		m_details_dialog->registerEventHandler("submitted", this, [this](rhea::Event* ev, rhea::Unit* unit) {
 			m_gui_controller->closeDialog(m_details_dialog);
+			if (m_viewer_session && !m_viewer_session->hasActiveContent())
+				showOpenDialog();
 			return false;
 			});
 		m_details_dialog->registerEventHandler("canceled", this, [this](rhea::Event* ev, rhea::Unit* unit) {
 			m_gui_controller->closeDialog(m_details_dialog);
+			if (m_viewer_session && !m_viewer_session->hasActiveContent())
+				showOpenDialog();
 			return false;
 			});
 	}
@@ -61,9 +65,6 @@ void CetoUI::ready()
 	m_alert_dialog = doCast<AlertDialog>(m_gui_controller->find("alert"));
 	if (!m_alert_dialog) {
 		LOG(LOG_ERROR) << "no alert dialog found";
-	}
-	else {
-		scene->registerEventHandler("close_alert", this, std::bind(&CetoUI::onAlertClose, this, std::placeholders::_1, std::placeholders::_2));
 	}
 }
 
@@ -87,6 +88,17 @@ void CetoUI::initializeBrowser(BrowserController* controller, ViewerSession* vie
 		if (m_open_handler)
 			m_open_handler(address);
 		});
+
+	m_viewer_session = viewer_session;
+	m_open_browser->setCloseHandler([this]() {
+		m_gui_controller->closeDialog(m_open_browser);
+		if (m_viewer_session && !m_viewer_session->hasActiveContent()) {
+			rhea::Event event("quit_application", this);
+			sendEvent("quit_application", &event);
+			return;
+		}
+		});
+
 	m_open_browser->ready();
 
 	m_browser_controller = controller;
@@ -148,13 +160,27 @@ void CetoUI::setRecentLocations(const std::vector<std::string>& locations)
 
 void CetoUI::showOpenDialog()
 {
-	if (m_gui_controller && m_open_browser) {
-		m_gui_controller->openDialog(m_open_browser);
+	if (!m_gui_controller || !m_open_browser || m_open_browser->isVisible())
+		return;
+
+	rhea::Button* close_btn = doCast<rhea::Button>(m_open_browser->find("content/statusrow/close"));
+	if (m_viewer_session && m_viewer_session->hasActiveContent()) {
+		if (close_btn)
+			close_btn->setText("Close");
 	}
+	else {
+		if (close_btn)
+			close_btn->setText("Quit");
+	}
+
+	m_gui_controller->openDialog(m_open_browser);
 }
 
 void CetoUI::showQuitDialog()
 {
+	if (m_open_browser && m_open_browser->isVisible())
+		return;
+
 	if (m_gui_controller && m_quit_dialog) {
 		m_gui_controller->openDialog(m_quit_dialog);
 	}
@@ -198,6 +224,11 @@ void CetoUI::showError(rhea::ErrorReport report)
 	if (m_alert_dialog->configure(std::move(content), [this, report](std::string action_id) {
 		if (action_id == "details")
 			showDetailsDialog(report);
+		else if (action_id == "ok") {
+			if (m_viewer_session && !m_viewer_session->hasActiveContent()) {
+				showOpenDialog();
+			}
+		}
 		}))
 	{
 		m_gui_controller->openDialog(m_alert_dialog);
@@ -257,28 +288,4 @@ void CetoUI::setLoading(bool loading)
 		setStatusText("Loading...");
 	else
 		setStatusText("");
-}
-
-void CetoUI::showAlert(std::string text)
-{
-	if (!m_gui_controller || !m_alert_dialog)
-		return;
-
-	rhea::Label* label = doCast<rhea::Label>(m_alert_dialog->findByName("info"));
-	if (!label)
-		return;
-
-	// set the text
-	label->setText(text);
-
-	// show dialog
-	m_gui_controller->openDialog(m_alert_dialog);
-}
-
-bool CetoUI::onAlertClose(rhea::Event* ev, rhea::Unit* unit)
-{
-	if (m_gui_controller && m_alert_dialog)
-		m_gui_controller->closeDialog(m_alert_dialog);
-
-	return false;
 }

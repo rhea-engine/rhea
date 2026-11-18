@@ -35,6 +35,7 @@ void OpenBrowser::ready()
 	m_realms_list->registerEventHandler("item_activated", this, std::bind(&OpenBrowser::onRealmSelect, this, std::placeholders::_1, std::placeholders::_2));
 	registerEventHandler("navigate_up", this, std::bind(&OpenBrowser::onNavigateUp, this, std::placeholders::_1, std::placeholders::_2));
 	registerEventHandler("open", this, std::bind(&OpenBrowser::onOpen, this, std::placeholders::_1, std::placeholders::_2));
+	registerEventHandler("close", this, std::bind(&OpenBrowser::onClose, this, std::placeholders::_1, std::placeholders::_2));
 }
 
 bool OpenBrowser::onEntrySelect(rhea::Event* ev, rhea::Unit* unit)
@@ -206,6 +207,14 @@ bool OpenBrowser::onOpen(rhea::Event* ev, rhea::Unit* unit)
 	return false;
 }
 
+bool OpenBrowser::onClose(rhea::Event* ev, rhea::Unit* unit)
+{
+	ev->stopPropagation();
+	if (m_close_handler)
+		m_close_handler();
+	return false;
+}
+
 bool OpenBrowser::onRealmSearch(rhea::Event* ev, rhea::Unit* unit)
 {
 	ev->stopPropagation();
@@ -249,6 +258,11 @@ std::string OpenBrowser::getRealmName(const std::string& address)
 void OpenBrowser::setOpenHandler(OpenHandler handler)
 {
 	m_open_handler = handler;
+}
+
+void OpenBrowser::setCloseHandler(CloseHandler handler)
+{
+	m_close_handler = handler;
 }
 
 void OpenBrowser::setRecentWorlds(const std::vector<std::string>& worlds)

@@ -46,6 +46,8 @@ public:
 
 	void activateScene(rhea::Scene* scene);
 
+    bool hasActiveContent() const { return m_mode != Mode::Empty; }
+
 private:
     Mode m_mode = Mode::Empty;
 

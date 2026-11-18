@@ -57,10 +57,17 @@ item_padding=2
 
 [content/statusrow]
 type="//meworla/gui/row"
+cssclass="browser-status-row"
 
 [content/statusrow/status_label]
 type="//meworla/gui/label"
 cssclass="status-label"
+
+[content/statusrow/close]
+type="//meworla/gui/button"
+text="Close"
+onClicked="close"
+cssclass="btn"
 
 [content/statusrow/open]
 type="//meworla/gui/button"

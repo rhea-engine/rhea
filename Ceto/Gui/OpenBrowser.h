@@ -24,8 +24,10 @@ public:
 	void ready() override;
 
 	using OpenHandler = std::function<void(const std::string&)>;
+	using CloseHandler = std::function<void()>;
 
 	void setOpenHandler(OpenHandler handler);
+	void setCloseHandler(CloseHandler handler);
 	std::string getRealmName(const std::string& address);
 
 	void setRecentWorlds(const std::vector<std::string>& worlds);
@@ -55,6 +57,7 @@ private:
 	std::string getStatusError(orion::AddressResult addr_result) const;
 	bool onNavigateUp(rhea::Event* ev, rhea::Unit* unit);
 	bool onOpen(rhea::Event* ev, rhea::Unit* unit);
+	bool onClose(rhea::Event* ev, rhea::Unit* unit);
 
 	rhea::ListWidget* m_realms_list = nullptr;
 	rhea::ListWidget* m_list = nullptr;
@@ -64,6 +67,7 @@ private:
 	orion::Orion* m_orion = nullptr;
 
 	OpenHandler m_open_handler;
+	CloseHandler m_close_handler;
 	std::string m_current_realm;
 	std::string m_current_location;
 	std::string m_selected_address;

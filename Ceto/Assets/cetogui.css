@@ -111,7 +111,7 @@ ListItem {
 .status-label {
     font-size: 12px;
     height: 20px;
-    width: 580px;
+    width: 440px;
 }
 
 #lastused {
@@ -136,6 +136,10 @@ ListItem {
 .btn {
     width: 120px;
     height: 30px;
+}
+
+.browser-status-row {
+    gap: 12px;
 }
 
 #widget1 {

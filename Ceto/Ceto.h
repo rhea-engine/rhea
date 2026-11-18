@@ -82,7 +82,6 @@ protected:
 
 	float m_current_time;
 
-	bool m_in_scene = false;
 	std::unique_ptr<BrowserController> m_browser_controller;
 	void onOpened(const std::string&, bool);
 };

@@ -91,7 +91,17 @@ bool Ceto::handleAppShortcuts(const rhea::InputEvent& evt)
 		m_ceto_ui->showOpenDialog();
 		return true;
 	}
-	
+
+	if (evt.isKeyPressed(rhea::Key::F)) {
+		m_viewer_session->fitContent();
+		return true;
+	}
+
+	if (evt.isKeyPressed(rhea::Key::R)) {
+		m_viewer_session->resetCamera();
+		return true;
+	}
+
 	return false;
 }
 

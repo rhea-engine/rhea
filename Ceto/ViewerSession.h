@@ -5,7 +5,10 @@
 #include <Rhea/Core/Scene.h>
 #include <Rhea/Core/World.h>
 #include <Rhea/Core/Camera.h>
+#include <Rhea/Core/Controller.h>
 #include <Rhea/Animation/AnimationComponent.h>
+#include <Math/AABB.h>
+#include <Rhea/Core/Position.h>
 
 class ViewerSession
 {
@@ -48,15 +51,20 @@ public:
 
     bool hasActiveContent() const { return m_mode != Mode::Empty; }
 
+    bool fitContent();
+	bool resetCamera();
+
 private:
     Mode m_mode = Mode::Empty;
 
     rhea::World* m_world = nullptr;
+    math::AABB m_scene_bounds;
     rhea::Scene* m_standalone_scene = nullptr;
 
     // Actual content, excluding preview grid, lights and camera.
     rhea::Unit* m_content_root = nullptr;
 	rhea::Unit* m_preview_root = nullptr;
+	rhea::Controller* m_preview_controller = nullptr;
 
     rhea::Scene* m_current_scene = nullptr;
 
@@ -65,4 +73,7 @@ private:
 	std::vector<rhea::AnimationComponent*> m_animation_targets;
 	rhea::AnimationComponent* m_selected_animation_target = nullptr;
 	std::vector<ChangedHandler> m_changed_handlers;
+
+	rhea::Position m_initial_camera_position;
+	bool m_initial_camera_position_set = false;
 };

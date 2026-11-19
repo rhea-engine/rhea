@@ -47,6 +47,8 @@ namespace rhea
 
 		math::Vector3 getFollowOffset() const { return m_follow_offset; }
 
+		bool setCameraWorldPose(const Position& pose) override;
+
 	protected:
 		Camera* m_view;
 
@@ -55,6 +57,8 @@ namespace rhea
 		math::Vector3 m_follow_offset;
 
 		void updateCamera(float delta);
+
+		math::Vector3 getCameraLocalOffset() const;
 
 		// should the camera follow the rotation of the target?
 		bool m_follow_rotation = true;

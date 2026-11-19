@@ -8,8 +8,7 @@
 #include <Rhea/Geometry/MeshBuilder.h>
 #include <Math/Vector3.h>
 #include <Math/Vector2.h>
-#include <Math/Vector4.h>
-#include <Math/Matrix4.h>
+#include <Math/AABB.h>
 
 namespace rhea
 {
@@ -65,13 +64,16 @@ namespace rhea
     void MeshBuilder::buildInto(Mesh& mesh)
     {
         VertexBufferStandard vb;
+        math::AABB local_bounds;
 
-        for (const auto& v : m_vertices) {
-            vb.push_back(v);
+        for (const auto& vertex : m_vertices) {
+            vb.push_back(vertex);
+            local_bounds.expand(vertex.position);
         }
 
         mesh.setVertexBuffer(vb);
         mesh.setSubmesh(0, mesh.getDefaultMaterial(), m_indices);
+        mesh.setLocalBounds(local_bounds);
     }
 
     MeshBuilder& MeshBuilder::addStandardVertex(const math::Vector3& position, const math::Vector3& normal, const math::Vector2& uv)

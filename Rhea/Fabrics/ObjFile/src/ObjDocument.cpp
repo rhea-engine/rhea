@@ -21,6 +21,7 @@
 #include <Rhea/Resources/VertexBufferStandard.h>
 #include <Rhea/Resources/ResourceList.h>
 #include <Rhea/Resources/ResourceService.h>
+#include <Math/AABB.h>
 #include <sstream>
 #include <algorithm>
 
@@ -464,6 +465,8 @@ namespace rhea
 		// prepare indices
 		std::vector<std::vector<uint32_t>> indices(unit_materials.size());
 
+		math::AABB local_bounds;
+
 		for (const auto& shape : m_parsed_data->shapes) {
 			// shape name
 			DLOG(LOG_DEBUG) << "Shape loaded: " << shape.name;
@@ -544,6 +547,8 @@ namespace rhea
 					if (change_handedness) {
 						vertex.position.z *= -1.0f;
 					}
+
+					local_bounds.expand(vertex.position);
 
 					// vertex normal
 					if (idx.normal_index >= 0 && static_cast<size_t>(3 * idx.normal_index + 2) < m_parsed_data->attributes.normals.size()) {
@@ -685,6 +690,7 @@ namespace rhea
 				continue;
 			mesh->setSubmesh(submesh_index++, unit_materials[i], indices[i]);
 		}
+		mesh->setLocalBounds(local_bounds);
 
 		// delete raw vertex
 		delete[] raw_vertex;

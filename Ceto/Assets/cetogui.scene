@@ -9,13 +9,12 @@ texture="//rhea/fonts/Inter20_0.png"
 font_size=20
 font_info="//rhea/fonts/Inter20.fnt"
 
-[guisassets]
-type="//meworla/resources"
-browser="//ceto/openbrowser.scene"
-
 [arrowup]
 type="//meworla/texture"
 path="//ceto/images/arrow-up.png"
+
+[ceto_ui]
+type="//ceto/uicontroller"
 
 [gui]
 type="//meworla/gui"
@@ -51,15 +50,6 @@ w=1
 h=1
 x=0
 y=0
-
-[gui/widget1/laber]
-type="//meworla/gui/label"
-text="Zis is a label"
-x=10
-y=10
-w=360
-h=80
-templating=false
 
 [gui/quit]
 type="//meworla/gui/dialog"

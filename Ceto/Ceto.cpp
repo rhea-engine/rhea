@@ -47,7 +47,13 @@
 
 #include "Gui/OpenBrowser.h"
 #include "Gui/AlertDialog.h"
+#include "Gui/CetoUI.h"
 #include "AssetViewer.h"
+#include "BrowserController.h"
+
+Ceto::~Ceto()
+{
+}
 
 bool Ceto::onQuit(rhea::Event* ev, rhea::Unit* unit)
 {
@@ -57,25 +63,6 @@ bool Ceto::onQuit(rhea::Event* ev, rhea::Unit* unit)
 	m_exiting = true;
 
 	return true;
-}
-
-bool Ceto::onQuitCancel(rhea::Event* ev, rhea::Unit* unit)
-{
-	ev->stopPropagation();
-
-	// user cancelled quit
-	m_gui_controller->closeDialog((rhea::Dialog*)unit);
-	// show realms dialog again
-	if (!inScene) {
-		// if we are not in a scene, show the realms dialog again
-		// if we are in a scene, we just stay there and ignore the quit request
-		rhea::Widget* w = doCast<rhea::Widget>(m_gui_controller->find("realms"));
-		if (w) {
-		//	m_gui_controller->openDialog((rhea::Dialog*)w);
-		}
-		return true;
-	}
-	return false;
 }
 
 bool Ceto::onInput(rhea::EventInput* e, rhea::Unit* unit)
@@ -94,109 +81,34 @@ bool Ceto::onInput(rhea::EventInput* e, rhea::Unit* unit)
 bool Ceto::handleAppShortcuts(const rhea::InputEvent& evt)
 {
 	if (evt.isKeyPressed(rhea::Key::Escape)) {		
-		openQuitDialog();
+		m_ceto_ui->showQuitDialog();
 		return true;
 	}
 
 	if (evt.isKeyPressed(rhea::Key::O)) {
-		openRealmDialog();
+		m_ceto_ui->showOpenDialog();
 		return true;
 	}
 	
 	return false;
 }
 
-void Ceto::openQuitDialog()
+void Ceto::onOpened(const std::string& address, bool mark_preferences)
 {
-	if (!m_gui_controller)
-		return;
+	setOrigin(address);
 
-	rhea::Widget* w = doCast<rhea::Widget>(m_gui_controller->find("quit"));
-	if (w) {
-		m_gui_controller->openDialog((rhea::Dialog*)w);
+	if (mark_preferences) {
+		m_userprefs.lastUsed(address);
+
+		std::string s = m_userprefs.toJSON();
+		std::unique_ptr<orion::FileResourceStream> stream = std::make_unique<orion::FileResourceStream>(m_userpref_path);
+		stream->SetMode(psio::Fs::WRITE);
+		stream->Open();
+		stream->Write(s.c_str(), s.size());
+		stream->Close();
+
+		m_ceto_ui->setRecentLocations(m_userprefs.lastUsed());
 	}
-}
-
-void Ceto::openRealmDialog()
-{
-	if (!m_gui_controller)
-		return;
-
-	if (!m_realm_dialog)
-		return;
-
-	m_gui_controller->openDialog(m_realm_dialog);
-}
-
-void Ceto::openDetailsDialog(rhea::ErrorReport report)
-{
-	if (!m_gui_controller || !m_details_dialog)
-		return;
-
-	std::string title = "Could not open world";
-	rhea::Label* title_label = doCast<rhea::Label>(m_details_dialog->findByName("title"));
-	if (title_label) {
-		title_label->setText(title);
-	}
-
-	rhea::Label* message_label = doCast<rhea::Label>(m_details_dialog->findByName("message"));
-	if (message_label) {
-		message_label->setText("The world could not be opened due to the following errors:");
-	}
-
-	std::string message;
-	for (auto& err : report.errors) {
-		message += "\n\n" + err.getMessage() + "\n" + err.getResourceId();
-	}
-
-	rhea::Label* label = doCast<rhea::Label>(m_details_dialog->findByName("details_text"));
-	if (label) {
-		label->setText(message);
-	}
-
-	m_gui_controller->openDialog(m_details_dialog);
-}
-
-bool Ceto::onRealmSelect(rhea::Event* ev, rhea::Unit* unit)
-{
-	ev->stopPropagation();
-
-	rhea::Unit* target = ev->getTarget();
-	DLOG(LOG_DEBUG) << "target selected was '" << (std::string)target->getValue("value") << "'";
-
-	openScene((std::string)target->getValue("value"));
-	return false;
-}
-
-bool Ceto::onRealmSearch(rhea::Event* ev, rhea::Unit* unit)
-{
-	ev->stopPropagation();
-	rhea::TextInput* target = doCast<rhea::TextInput>(ev->getTarget());
-	if (!target) {
-		DLOG(LOG_DEBUG) << "onRealmSearch: target is not a TextInput";
-		return false;
-	}
-	DLOG(LOG_DEBUG) << "search text was '" << (std::string)target->getText() << "'";
-	openScene((std::string)target->getText());
-	// search for realms
-	/*
-	rhea::Widget* w = doCast<rhea::Widget>(m_unit_tree->find("//ceto/cetogui/gui/realms"));
-	if (w) {
-		rhea::List* list = doCast<rhea::List>(w->find("realm_list"));
-		if (list) {
-			list->clearItems();
-			// add search result items
-			for (int i = 0; i < 5; i++) {
-				std::string realm_name = "Realm " + std::to_string(i + 1);
-				rhea::Unit* item = m_unit_tree->createUnit("realm_item_" + std::to_string(i), "//core/types/unit");
-				item->setValue("text", realm_name);
-				item->setValue("value", realm_name);
-				list->addItem(item);
-			}
-		}
-	}
-	*/
-	return false;
 }
 
 void Ceto::setup()
@@ -206,6 +118,7 @@ void Ceto::setup()
 
 	OpenBrowser::_register_OpenBrowser();
 	AlertDialog::_register_AlertDialog();
+	CetoUI::_register_CetoUI();
 
 	// register contoller service
 	if (!getService("controller")) {
@@ -306,135 +219,18 @@ void Ceto::setup()
 
 void Ceto::openScene(std::string scene_name, bool mark_preferences)
 {
-	auto* worlds = doCast<rhea::WorldService>(getService("world"));
-
-	worlds->openWorld(scene_name, [this, scene_name, mark_preferences, worlds](rhea::ErrorReport error) {
-
-		if (error.isError()) {
-			LOG(LOG_ERROR) << "Ceto: Could not open scene: " << scene_name;
-
-			if (!m_alert_dialog || error.isCanceled())
-				return;
-
-			AlertDialog::Content content;
-			content.title = "Could not open world";
-			if (error.errors.size() == 1) {
-				rhea::Error err = error.errors[0];
-				content.message = err.getMessage() + "\n" + err.getResourceId();
-				content.actions = {
-					{ "ok", "OK", true }
-				};
-			} else {
-				content.message = std::to_string(error.errors.size()) + " problems occurred while loading this world.";
-				content.actions = {
-					{ "details", "Details...", false },
-					{ "ok", "OK", true }
-				};
-			}
-			content.default_action = "ok";
-			content.cancel_action = "ok";
-
-			if (m_alert_dialog->configure(std::move(content), [this, error](std::string action_id) {
-					if (action_id == "details")
-						openDetailsDialog(error);
-				}))
-			{
-				m_gui_controller->openDialog(m_alert_dialog);
-			}
-			return;
-
-
-			std::string message = "Could not open world.";
-
-			for (auto& err : error.errors) {
-				message += "\n\nError: " + err.getMessage() + "\n" + err.getResourceId();
-			}
-			showAlert(message);
-			return;
-		}
-
-		if (m_realm_dialog) {
-			m_gui_controller->closeDialog(m_realm_dialog);
-		}
-		m_home_scene = scene_name;
-
-		// set origin info
-		rhea::Unit* engine = doCast<rhea::Unit>(m_unit_tree->getChild("engine"));
-		if (engine)
-			engine->setValue("origin", m_home_scene);
-
-		if (mark_preferences) {
-			m_userprefs.lastUsed(m_home_scene);
-
-			std::string s = m_userprefs.toJSON();
-			std::unique_ptr<orion::FileResourceStream> stream = std::make_unique<orion::FileResourceStream>(m_userpref_path);
-			stream->SetMode(psio::Fs::WRITE);
-			stream->Open();
-			stream->Write(s.c_str(), s.size());
-			stream->Close();
-		}
-
-		if (m_realm_dialog)
-			m_realm_dialog->setRecentWorlds(m_userprefs.lastUsed());
-
-		// hide GUI background
-		rhea::GUIController* w = doCast<rhea::GUIController>(m_unit_tree->find("//ceto/cetogui/gui"));
-		if (w) {
-			w->setStyle(rhea::StylePropertyId::kBackgroundImage, "none");
-			w->UpdateStyle();
-		}
-
-		inScene = true;
-		});
+	m_browser_controller->openScene(scene_name, mark_preferences);
 }
 
-void Ceto::showAlert(std::string text)
-{
-	if (!m_gui_controller)
-		return;
-
-	if (!m_alert_dialog) {
-		rhea::Widget* w = doCast<rhea::Widget>(m_unit_tree->findByName("alert"));
-		if (w) {
-			m_alert_dialog = doCast<AlertDialog>(w);
-		}
-
-		if (!m_alert_dialog)
-			return;
-
-		m_gui->registerEventHandler("close_alert", this, std::bind(&Ceto::onAlertClose, this, std::placeholders::_1, std::placeholders::_2));
-	}
-
-	rhea::Label* label = doCast<rhea::Label>(m_alert_dialog->findByName("info"));
-	if (!label)
-		return;
-
-	// set the text
-	label->setText(text);
-
-	// show dialog
-	m_gui_controller->openDialog(m_alert_dialog);
-}
-
-bool Ceto::onAlertClose(rhea::Event* ev, rhea::Unit* unit)
-{
-	if (!m_alert_dialog)
-		return false;
-
-	m_gui_controller->closeDialog(m_alert_dialog);
-
-	return false;
-}
-
-void Ceto::loadMainGUI()
+void Ceto::loadMainGUI(CompletionHandler handler)
 {
 	// load the apps gui			
 	std::string app_gui = "//ceto/cetogui.scene";
-	loadResource(app_gui, "//meworla/scene", [&](rhea::Component* res, rhea::ErrorReport r_err) {
+	loadResource(app_gui, "//meworla/scene", [handler, this](rhea::Component* res, rhea::ErrorReport r_err) {
 		rhea::SceneResource* scene_res = doCast<rhea::SceneResource>(res);
 		if (scene_res && !r_err.isError()) {
 			rhea::Unit* parent = doCast<rhea::Unit>(m_unit_tree->find(scene_res->getBaseId()));
-			scene_res->spawn(parent, [&](rhea::ErrorReport r_err, rhea::Unit* res) {
+			scene_res->spawn(parent, [handler, this](rhea::ErrorReport r_err, rhea::Unit* res) {
 				rhea::Scene* gui = doCast<rhea::Scene>(res);
 				if (gui && !r_err.isError()) {
 
@@ -443,125 +239,86 @@ void Ceto::loadMainGUI()
 					gui->show();
 					m_gui = gui;
 					m_gui_controller = doCast<rhea::GUIController>(gui->find("gui"));
+
+					if (!m_browser_controller) {
+						m_browser_controller = std::make_unique<BrowserController>(this);
+						m_browser_controller->addOpenedHandler(std::bind(&Ceto::onOpened, this, std::placeholders::_1, std::placeholders::_2));
+					}
+
+					m_ceto_ui = doCast<CetoUI>(gui->find("ceto_ui"));
+					m_ceto_ui->initializeBrowser(m_browser_controller.get());
+
 					log("gui ready");
 
-					// find label for debug text
-					m_debug_text = doCast<rhea::Label>(m_unit_tree->find("//ceto/cetogui/gui/widget1/laber"));
-					if (!m_debug_text) {
-						log("no debug text label found");
-					}
-
 					// setup system dialogs
+					m_ceto_ui->registerEventHandler("quit_application", this, std::bind(&Ceto::onQuit, this, std::placeholders::_1, std::placeholders::_2));
 
-					// quit dialog
-					rhea::Dialog* quit_dlg = doCast<rhea::Dialog>(m_unit_tree->find("//ceto/cetogui/gui/quit"));
-					if (quit_dlg) {
-						quit_dlg->registerEventHandler("submitted", this, std::bind(&Ceto::onQuit, this, std::placeholders::_1, std::placeholders::_2));
-						quit_dlg->registerEventHandler("canceled", this, std::bind(&Ceto::onQuitCancel, this, std::placeholders::_1, std::placeholders::_2));
-					}
-					gui->registerEventHandler("quit", this, std::bind(&Ceto::onQuit, this, std::placeholders::_1, std::placeholders::_2));
-
-					// realm selection dialog (open browser)
-
-					auto* open_browser_res = doCast<rhea::SceneResource>(m_unit_tree->find("//ceto/openbrowser.scene"));
-					if (open_browser_res && m_gui_controller) {
-						open_browser_res->spawn(m_gui_controller, "openbrowser", [this](rhea::ErrorReport error, rhea::Unit* instance) {
-							m_realm_dialog = doCast<OpenBrowser>(instance);
-							if (error.isError() || !m_realm_dialog) {
-								log("Could not create open browser");
-								return;
-							}
-							m_realm_dialog->setOpenHandler([this](const std::string& address) {
-								if (address.substr(0, 7) == "//file/") {
-									// transofrm legacy address to file:
-									openScene("file:///" + address.substr(7));
-								}
-								else {
-									openScene(address);
-								}
-								});
-							m_realm_dialog->setRecentWorlds(m_userprefs.lastUsed());
-							std::vector<OpenBrowser::BrowserPlace> places;
-							places = {
-								{ "Most Recent", "//recent/", OpenBrowser::BrowserPlaceKind::Internal },
-								{ "User",        "//user/",   OpenBrowser::BrowserPlaceKind::Location },
-							};
-							if (m_fs->hasLocalDir()) {
-								places.push_back({ "Local", "//local/", OpenBrowser::BrowserPlaceKind::Location });
-							}
-							places.push_back({ "Computer", "file:///", OpenBrowser::BrowserPlaceKind::Location });
-							std::string samples_path = m_fs->getFs()->getInstallDataDir();
-							if (samples_path.length()) {
-								samples_path += "/samples";
-								if (psio::Fs::fileExists(samples_path)) {
-									m_fs->addLocalRealm("samples", samples_path);
-									places.push_back({ "Samples", "//samples/", OpenBrowser::BrowserPlaceKind::Location });
-								}
-							}
-							std::unordered_map<std::string, bool> realms;
-							realms["ceto"] = true;
-							realms["recent"] = true;
-							realms["user"] = true;
-							realms["local"] = true;
-							realms["file"] = true;
-							realms["samples"] = true;
-							for (auto it = m_userprefs.lastUsed().begin(); it != m_userprefs.lastUsed().end(); it++) {
-								std::string realm_name = m_realm_dialog->getRealmName(*it);
-								if (realm_name.empty())
-									continue;
-								if (realms.find(realm_name) == realms.end()) {
-									realms[realm_name] = true;
-									places.push_back({ realm_name, "//" + realm_name + "/", OpenBrowser::BrowserPlaceKind::Location});
-								}
-							}
-							m_realm_dialog->setPlaces(places);
-							m_realm_dialog->navigateTo("//recent/");
-
-							// open the open browser
-							m_gui_controller->openDialog(m_realm_dialog);
-							});
-					}
-
-					m_alert_dialog = doCast<AlertDialog>(m_unit_tree->find("//ceto/cetogui/gui/alert"));
-					if (!m_alert_dialog) {
-						log("no alert dialog found");
-					}
-
-					m_details_dialog = doCast<rhea::Dialog>(m_unit_tree->find("//ceto/cetogui/gui/details"));
-					if (!m_details_dialog) {
-						log("no details dialog found");
-					}
-					else {
-						m_details_dialog->registerEventHandler("submitted", this, [this](rhea::Event* ev, rhea::Unit* unit) {
-							m_gui_controller->closeDialog(m_details_dialog);
-							return false;
+					m_ceto_ui->setOpenHandler([this](const std::string& address) {
+						m_browser_controller->openScene(address);
 						});
-						m_details_dialog->registerEventHandler("canceled", this, [this](rhea::Event* ev, rhea::Unit* unit) {
-							m_gui_controller->closeDialog(m_details_dialog);
-							return false;
-							});
+
+					// open browser setup
+
+
+					BrowserData browser_data;
+
+					browser_data.recent_locations = m_userprefs.lastUsed();
+
+					browser_data.places = {
+						{ "Most Recent", "//recent/", BrowserPlaceKind::Internal },
+						{ "User",        "//user/",   BrowserPlaceKind::Location },
+					};
+					if (m_fs->hasLocalDir()) {
+						browser_data.places.push_back({ "Local", "//local/", BrowserPlaceKind::Location });
 					}
+					browser_data.places.push_back({ "Computer", "file:///", BrowserPlaceKind::Location });
+					std::string samples_path = m_fs->getFs()->getInstallDataDir();
+					if (samples_path.length()) {
+						samples_path += "/samples";
+						if (psio::Fs::fileExists(samples_path)) {
+							m_fs->addLocalRealm("samples", samples_path);
+							browser_data.places.push_back({ "Samples", "//samples/", BrowserPlaceKind::Location });
+						}
+					}
+					std::unordered_map<std::string, bool> realms;
+					realms["ceto"] = true;
+					realms["recent"] = true;
+					realms["user"] = true;
+					realms["local"] = true;
+					realms["file"] = true;
+					realms["samples"] = true;
+					auto get_realm_name = [this](const std::string& address) -> std::string {
+						if (address.compare(0, 2, "//") != 0)
+							return {};
+						const auto realm_end = address.find('/', 2);
+						return address.substr(2, realm_end == std::string::npos ? std::string::npos : realm_end - 2);
+						};
+					for (auto it = m_userprefs.lastUsed().begin(); it != m_userprefs.lastUsed().end(); it++) {
+						std::string realm_name = get_realm_name(*it);
+						if (realm_name.empty())
+							continue;
+						if (realms.find(realm_name) == realms.end()) {
+							realms[realm_name] = true;
+							browser_data.places.push_back({ realm_name, "//" + realm_name + "/", BrowserPlaceKind::Location });
+						}
+					}
+
+					m_ceto_ui->setBrowserData(browser_data);
+					m_ceto_ui->navigateOpenDialogTo("//recent/");
+
+					handler(rhea::Error());
 				}
 				else {
 					log("instantiating of gui failed");
-					for (auto& err : r_err.errors) {
-						log("Error: " + err.getMessage() + " - " + err.getResourceId());
-					}
+					handler(r_err);
 				}
 				});
 		}
 		else {
 			log("loading of gui failed");
-			for (auto& err : r_err.errors) {
-				log("Error: " + err.getMessage() + " - " + err.getResourceId());
-			}
+			handler(r_err);
 		}
 		});
-}
-
-void Ceto::setHomeScene(std::string scene)
-{
-	m_home_scene = scene;
 }
 
 bool Ceto::checkLocalScene(std::string realm_name, std::string path)
@@ -606,11 +363,16 @@ void Ceto::onScene(rhea::Scene* scene)
 	scene->sendEvent(std::string("ready"), ev_r.get());	
 }
 
-void Ceto::hideOpenBrowserDialog()
+void Ceto::openBrowser()
 {
-	if (m_realm_dialog) {
-		m_gui_controller->closeDialog(m_realm_dialog);
-	}
+	m_ceto_ui->showOpenDialog();
+}
+
+void Ceto::setOrigin(std::string origin)
+{
+	rhea::Unit* engine = doCast<rhea::Unit>(m_unit_tree->getChild("engine"));
+	if (engine)
+		engine->setValue("origin", origin);
 }
 
 int main(int argc, char* argv[])
@@ -624,10 +386,9 @@ int main(int argc, char* argv[])
 
 	rhea::ConfigFile* config = app->getConfig();
 	if (config) {
-		// scene set in config file has highest priority
+		// scene set in config file or argument has highest priority
 		std::string scene = config->getValueString("scene", "");
 		if (scene != "") {
-			app->setHomeScene(scene);
 			set_scene = scene;
 		}
 	}
@@ -635,29 +396,27 @@ int main(int argc, char* argv[])
 	app->setup();
 
 	if (set_scene.empty()) {
-
 		// try world scene in root
 		if (app->checkLocalScene("", "world.scene"))
-			app->setHomeScene("world.scene");
-		else {
+			set_scene = "world.scene";
+	}
 
-			// try ceto world scene
-			if (app->checkLocalScene("ceto", "/world.scene"))
-				app->setHomeScene("//ceto/world.scene");
-			else {
-
-				// no template found - show error
-				printf("Could not open scene file. No world.scene file found");
-				exit(-1);
+	app->loadMainGUI([set_scene, app](rhea::ErrorReport report){
+		if (report.isError()) {
+			for (auto& err : report.errors) {
+				LOG(LOG_ERROR) << "Error loading main GUI: " << err.getMessage() << " (" << err.getResourceId() << ")";
 			}
+			exit(-1);
 		}
-	}
-	app->loadMainGUI();
-		
-	if (!set_scene.empty()) {
-		app->hideOpenBrowserDialog();
-		app->openScene(set_scene);
-	}
+		if (!set_scene.empty()) {
+			// open the scene specified in config file or command line argument
+			app->openScene(set_scene, false);
+		}
+		else {
+			// open the open browser
+			app->openBrowser();
+		}
+	});
 
 	app->loop();	
 

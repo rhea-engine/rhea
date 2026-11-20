@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include <string>
 #include <cstdint>
+#include "BrowserPlace.h"
 
 class OpenBrowser : public rhea::Dialog
 {
@@ -22,15 +23,6 @@ public:
 	void setup(rhea::Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, simpleparser::Variant> values) override;
 	void ready() override;
 
-	enum class BrowserPlaceKind { Internal, Location };
-
-	struct BrowserPlace
-	{
-		std::string name;
-		std::string address;
-		BrowserPlaceKind kind;
-	};
-
 	using OpenHandler = std::function<void(const std::string&)>;
 
 	void setOpenHandler(OpenHandler handler);
@@ -42,6 +34,8 @@ public:
 	void navigateTo(const std::string& location);
 	void showRecent();
 	void showRealms();
+
+	void setStatus(const std::string& status);
 
 	void refresh();
 	void update();

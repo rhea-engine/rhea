@@ -22,10 +22,14 @@ using std::string;
 class OpenBrowser;
 class AlertDialog;
 class AssetViewer;
+class CetoUI;
+class BrowserController;
 
 class Ceto : public rhea::Application
 {
 public:
+	using CompletionHandler = std::function<void(rhea::ErrorReport)>;
+
 	Ceto() :
 		m_gui(nullptr),
 		m_gui_controller(nullptr),
@@ -34,36 +38,31 @@ public:
 		m_exiting(false),
 		m_current_time(0.0f)
 	{}
+	~Ceto();
 	void setup();
 	void openScene(std::string scene_name, bool mark_preferences = true);
 	bool checkLocalScene(std::string realm_name, std::string path);
-	void loadMainGUI();
+	void loadMainGUI(CompletionHandler handler);
 	
-	void setHomeScene(string scene);
 	bool onFrameEnd();
 	void onScene(rhea::Scene* scene) override;
-	void hideOpenBrowserDialog();
+	void openBrowser();
+
+	void setOrigin(std::string origin);
 
 protected:
-	string m_home_scene;
 	rhea::Camera* m_view;
 	rhea::Label* m_debug_text;
 	bool m_exiting;
 
 	// event functions
 	bool onQuit(rhea::Event* ev, rhea::Unit* unit);
-	bool onQuitCancel(rhea::Event* ev, rhea::Unit* unit);
 	bool onInput(rhea::EventInput* e, rhea::Unit* unit);
-	bool onRealmSelect(rhea::Event* ev, rhea::Unit* unit);
-	bool onRealmSearch(rhea::Event* ev, rhea::Unit* unit);
 	void showAlert(std::string text);
-	bool onAlertClose(rhea::Event* ev, rhea::Unit* unit);
+
 	
 	// shortcut helpers
 	bool handleAppShortcuts(const rhea::InputEvent& evt);
-	void openQuitDialog();
-	void openRealmDialog();
-	void openDetailsDialog(rhea::ErrorReport report);	
 
 	// user preferences
 	UserPrefs m_userprefs;
@@ -74,15 +73,17 @@ protected:
 	rhea::Scene* m_current_scene = nullptr;
 	// cache of gui controller
 	rhea::GUIController* m_gui_controller;
-	OpenBrowser* m_realm_dialog = nullptr;
-	AlertDialog* m_alert_dialog = nullptr;
-	rhea::Dialog* m_details_dialog = nullptr;
+
+
+	CetoUI* m_ceto_ui = nullptr;
 	
 	std::unique_ptr<AssetViewer> m_asset_viewer = nullptr;
 
 	float m_current_time;
 
-	bool inScene = false;
+	bool m_in_scene = false;
+	std::unique_ptr<BrowserController> m_browser_controller;
+	void onOpened(const std::string&, bool);
 };
 
 #endif // !CETO_H

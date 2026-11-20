@@ -1,6 +1,9 @@
 #pragma once
 
 #include <Rhea/GUI/Widget.h>
+#include <Rhea/GUI/Button.h>
+#include <unordered_map>
+#include <string>
 
 class ViewerSession;
 
@@ -23,4 +26,10 @@ public:
 private:
 	rhea::Widget* m_playlist = nullptr;
 	ViewerSession* m_session = nullptr;
+	struct play_state {
+		std::string state_name;
+		bool is_playing = false;
+		rhea::Button* play_button = nullptr;
+	};
+	std::unordered_map<rhea::Component*, play_state> m_current_animation_targets;
 };

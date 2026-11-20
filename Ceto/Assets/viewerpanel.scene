@@ -7,20 +7,20 @@ cssclass="viewer-panel"
 type="//meworla/gui/row"
 cssclass="viewer-panel-content"
 
-[content/target]
+[content/animations]
 type="//meworla/gui/column"
 cssclass="viewer-panel-section"
 
-[content/target/label]
+[content/animations/label]
 type="//meworla/gui/label"
 text="Animations"
 cssclass="viewer-panel-title"
 
-[content/target/playlist]
+[content/animations/playlist]
 type="//meworla/gui/scrollview"
 cssclass="viewer-panel-scroll"
 
-[content/target/playlist/entries]
+[content/animations/playlist/entries]
 type="//meworla/gui/column"
 fillwidth=true
 cssclass="viewer-panel-entries"

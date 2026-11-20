@@ -11,7 +11,7 @@ void ViewerPanel::ready()
 	// search the playlist parent
 	Widget::ready();
 
-	m_playlist = doCast<rhea::Widget>(find("content/target/playlist/entries"));
+	m_playlist = doCast<rhea::Widget>(find("content/animations/playlist/entries"));
 }
 
 void ViewerPanel::onChange()
@@ -27,6 +27,11 @@ void ViewerPanel::onChange()
         return;
     }
 
+	if (m_session->getAnimationTargets().empty()) {
+		hide();
+		m_playlist->invalidateLayout();
+		return;
+	}
     show();
 
     auto* tree = m_app->getUnitTree();
@@ -74,6 +79,9 @@ void ViewerPanel::onChange()
 
         size_t clip_index = 0;
         for (const auto& state_name : state_names) {
+			std::string display_name = state_name;
+            if (state_name.empty())
+				display_name = "Animation " + std::to_string(clip_index+1);
             auto* row = tree->createUnit(
                 "clip_" + std::to_string(clip_index++),
                 "//meworla/gui/row",
@@ -86,7 +94,7 @@ void ViewerPanel::onChange()
                 "name",
                 "//meworla/gui/label",
                 {},
-                { { "text", state_name }, { "cssclass", "viewer-animation-name" } });
+                { { "text", display_name }, { "cssclass", "viewer-animation-name" } });
 
             row->addChild(label);
 
@@ -98,11 +106,44 @@ void ViewerPanel::onChange()
 
             row->addChild(play_button);
 
+			if (clip_index == 1 && m_current_animation_targets.find(target) == m_current_animation_targets.end()) {
+				// if this is the first clip and no animation is currently playing, set it to play
+				m_current_animation_targets[target] = { state_name, true, play_button };
+				play_button->setText("Pause");
+			}
+
+
             play_button->registerEventHandler(
                 "clicked", this,
-                [target, state_name](rhea::Event* ev, rhea::Unit*) {
+                [this, target, state_name, play_button](rhea::Event* ev, rhea::Unit*) {
                     ev->stopPropagation();
-                    target->play(state_name);
+                    if (m_current_animation_targets.find(target) != m_current_animation_targets.end()) {
+						if (m_current_animation_targets[target].state_name != state_name) {
+							// stop the previous animation
+							target->pause();
+							m_current_animation_targets[target].play_button->setText("Play");
+							m_current_animation_targets[target] = { state_name, true, play_button };
+							target->play(state_name);
+                            play_button->setText("Pause");
+						}
+                        else {
+                            if (m_current_animation_targets[target].is_playing) {
+                                target->pause();
+                                m_current_animation_targets[target].is_playing = false;
+                                play_button->setText("Play");
+                            }
+                            else {
+                                m_current_animation_targets[target].is_playing = true;
+                                target->play(state_name);
+                                play_button->setText("Pause");
+                            }
+                        }
+					}
+					else {
+                        m_current_animation_targets[target] = {state_name, true, play_button};
+                        target->play(state_name);
+						play_button->setText("Pause");
+                    }
                     return false;
                 });
         }

@@ -27,16 +27,16 @@ namespace poseidon
 
 	Viewport::~Viewport() = default;
 	
-	RenderContext* Viewport::getRenderContext(std::string& name)
+	RenderContext* Viewport::getRenderContext(const std::string& name)
 	{
 		for (auto& rc : m_render_contexts) {
-			if (rc->isName(const_cast<std::string&>(name)))
+			if (rc->isName(name))
 				return rc.get();
 		}
 		return nullptr;
 	}
 
-	RenderContext* Viewport::createRenderContext(std::string& name)
+	RenderContext* Viewport::createRenderContext(const std::string& name)
 	{
 		m_render_contexts.push_back(std::make_unique<RenderContext>(name));
 		m_render_contexts.back()->setSize((float)m_width, (float)m_height);

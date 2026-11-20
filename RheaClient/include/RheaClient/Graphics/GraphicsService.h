@@ -55,6 +55,9 @@ namespace rhea::client {
 		// add item to render context
 		void addItem(std::string render_context, rhea::Item* item);
 
+		// get the View for a specific camera
+		bool getViewSize(const std::string& wind_id, const std::string& vp_id, const std::string& layer_id, int& width, int& height) override;
+
 		// get the engine
 		poseidon::Core* getEngine() { return m_core.get(); }
 

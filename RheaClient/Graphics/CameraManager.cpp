@@ -193,6 +193,10 @@ namespace rhea::client {
 		if (viewport_height <= 0.0f) viewport_height = 600.0f;
 
 		cam->setAspectRatio(viewport_width / viewport_height);
+
+		if (sourceCamera)
+			cam->setFov(sourceCamera->getVerticalFovDegrees());
+
 		cam->setOrthographicSize(viewport_height);
 
 		// add these once Rhea camera exposes them cleanly

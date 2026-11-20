@@ -11,6 +11,7 @@
 #include "Rhea/Core/Item.h"
 
 #include "Rhea/Core/Position.h"
+#include <Math/Math.h>
 
 namespace rhea
 {
@@ -25,6 +26,12 @@ namespace rhea
 		{}
 
 		void setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, Variant> values) override;
+
+		float getVerticalFovDegrees() const { return m_vertical_fov_degrees; }
+		float getVerticalFOV() const { return m_vertical_fov_degrees * math::degToRad *0.5f; }
+
+	private:
+		float m_vertical_fov_degrees = 45.0f;
 	};
 }
 

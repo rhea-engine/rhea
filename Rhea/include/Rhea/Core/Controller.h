@@ -46,6 +46,8 @@ namespace rhea
 		// type initialization
 		static void initializeType(simpleparser::Type* type);
 
+		virtual bool setCameraWorldPose(const Position& pose) { return false; }
+
 	protected:
 		Item* m_target;
 		Ref<SceneResource> m_default_character;

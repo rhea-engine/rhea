@@ -33,8 +33,8 @@ namespace poseidon
 		~Viewport();
 
 		// render contexts
-		RenderContext* getRenderContext(std::string& name);
-		RenderContext* createRenderContext(std::string& name);
+		RenderContext* getRenderContext(const std::string& name);
+		RenderContext* createRenderContext(const std::string& name);
 		std::vector<std::unique_ptr<RenderContext>>& getRenderContextList() { return m_render_contexts; }
 		const std::vector<std::unique_ptr<RenderContext>>& getRenderContextList() const { return m_render_contexts; }
 
@@ -42,8 +42,8 @@ namespace poseidon
 		Window* getWindow() const { return m_window; }
 
 		// name handling
-		void setName(std::string& name) { m_name = name; }
-		std::string getName() { return m_name; }
+		void setName(const std::string& name) { m_name = name; }
+		const std::string& getName() const { return m_name; }
 		bool isName(const std::string& name) const { return m_name == name; }
 
 		// resize the viewport

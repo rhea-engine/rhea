@@ -17,7 +17,7 @@
 #include <Rhea/Animation/Animation.h>
 #include <Rhea/Animation/Skeleton.h>
 #include <Math/Vector3.h>
-#include <Math/Vector4.h>
+#include <Math/AABB.h>
 #include <Rhea/Core/SceneDefinitionComponent.h>
 #undef max
 #include <algorithm>
@@ -365,7 +365,7 @@ namespace rhea
 					//animChannel.targetNode = m_nodeIndexToBoneIndex[target_node];
 					target_bone = m_nodeIndexToBoneIndex[target_node];
 				}
-				if (target_bone < -1)
+				if (target_bone < 0)
 					continue;
 				if (anim_channels.find(target_bone) == anim_channels.end()) {
 					// Ensure a channel exists for this bone
@@ -556,6 +556,8 @@ namespace rhea
 		// prepare vertex buffer
 		destination->getVertexBuffer()->setVertexSize(shader->getVertexSize());
 
+		math::AABB aabb;
+
 		const tinygltf::Mesh& mesh = m_model.meshes[mesh_index];		
 		for (size_t i = 0; i < mesh.primitives.size(); i++) {
 			const tinygltf::Primitive& primitive = mesh.primitives[i];
@@ -626,6 +628,8 @@ namespace rhea
 				vertex.position.x = positions[j * 3 + 0];
 				vertex.position.y = positions[j * 3 + 1];
 				vertex.position.z = positions[j * 3 + 2];
+				
+				aabb.expand(vertex.position);
 
 				if (normals) {
 					vertex.normal.x = normals[j * 3 + 0];
@@ -723,7 +727,7 @@ namespace rhea
 					else
 						LOG(LOG_ERROR) << "jointAccessor or weightAccessor is invalid in gltf file";
 					((VertexBufferSkeletal*)vertices)->push_back(v);
-				}
+				}	
 			}
 			if (skinned) {
 				VertexBufferSkeletal* v_data = (VertexBufferSkeletal*)vertices;
@@ -763,6 +767,7 @@ namespace rhea
 				destination->addSubmesh(mat, indices_uint32);
 			}
 		}
+		destination->setLocalBounds(aabb);
 		return true;
 	}
 

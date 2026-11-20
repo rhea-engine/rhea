@@ -9,9 +9,13 @@
 #define RHEA_IGRAPHICSSERVICE_H
 
 #include <Rhea/Service.h>
+#include <string>
 
 namespace rhea
 {
+    class Camera;
+    class View;
+
     /**
      * Abstract interface for graphics services.     
      */
@@ -28,7 +32,9 @@ namespace rhea
         
         // request fullscreen
         virtual void ToggleFullscreen() = 0;
-        
+
+		virtual bool getViewSize(const std::string& wind_id, const std::string& vp_id, const std::string& layer_id, int& width, int& height) = 0;
+
         // Event registration (needed by GUIController)
         // Inherited from Service: registerEventHandler()
     };

@@ -378,7 +378,7 @@ namespace rhea::client {
 					}
 				}
 			}
-		}		
+		}
 
 		// register input handler
 		m_app->getUnitTree()->registerEventHandler("scene_input", this, std::bind(&GraphicsService::onInput, this, std::placeholders::_1, std::placeholders::_2));
@@ -444,6 +444,38 @@ namespace rhea::client {
 			unsigned char white_pixel[4] = { 255, 255, 255, 255 }; // RGBA white
 			m_white_fallback_texture->load(0, 1, 1, white_pixel);
 		}
+	}
+
+	bool GraphicsService::getViewSize(const std::string& wind_id, const std::string& vp_id, const std::string& layer_id, int& width, int& height)
+	{
+		if (!m_core) {
+			LOG(LOG_ERROR) << "GraphicsService::getViewSize: core is null";
+			return false;
+		}
+		auto* window_registry = m_app->getService<WindowRegistryService>();
+		if (!window_registry) {
+			LOG(LOG_ERROR) << "GraphicsService::getViewSize: window registry service not found";
+			return false;
+		}
+		auto* window = window_registry->getRenderWindowByName(wind_id);
+		if (!window) {
+			LOG(LOG_ERROR) << "GraphicsService::getViewSize: window '" << wind_id << "' not found";
+			return false;
+		}
+		auto* vp = window->getViewport(vp_id);
+		if (!vp) {
+			LOG(LOG_ERROR) << "GraphicsService::getViewSize: viewport '" << vp_id << "' not found in window '" << wind_id << "'";
+			return false;
+		}
+		auto* context = vp->getRenderContext(layer_id);
+		if (!context) {
+			LOG(LOG_ERROR) << "GraphicsService::getViewSize: render context '" << layer_id << "' not found in viewport '" << vp_id << "' of window '" << wind_id << "'";
+			return false;
+		}
+		auto* size = context->getSize();
+		width = size->w;
+		height = size->h;
+		return true;
 	}
 
 	bool GraphicsService::onFrameFinal(float delta)

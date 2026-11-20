@@ -47,6 +47,11 @@ namespace rhea
 		void disconnect(bool reset_input = true) override;
 		void switchTarget(Item* new_target, bool reset_input) override;
 
+		void setMoveStep(float step) { m_move_step = step; }
+		void setTurnStep(float step) { m_turn_step = step; }
+		void setSideStep(float step) { m_side_step = step; }
+		void setUpStep(float step) { m_up_step = step; }
+
 		void logMe();
 
 		// get the current orientation

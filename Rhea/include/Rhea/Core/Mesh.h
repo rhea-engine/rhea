@@ -16,6 +16,7 @@
 #include <Rhea/Resources/VertexAttribute.h>
 #include <cstdint>
 #include <unordered_map>
+#include <Math/AABB.h>
 
 namespace rhea
 {
@@ -134,6 +135,10 @@ namespace rhea
 
 		void setVertexBuffer(VertexBuffer& vertex) { m_vertex = std::move(vertex); }
 
+		// bounding box
+		void setLocalBounds(const math::AABB& bounds) { m_local_bounds = bounds; }
+		const math::AABB& getLocalBounds() const { return m_local_bounds; }
+
 		static void initializeType(simpleparser::Type* type);
 
 		void setTextureRef(Ref<ImageResource> texture) { m_texture_ref = texture; }
@@ -152,6 +157,7 @@ namespace rhea
 		std::vector<SubMesh> m_submeshes;
 		bool m_isDynamic;
 		VertexBuffer m_vertex;
+		math::AABB m_local_bounds;
 
 		int m_state;
 

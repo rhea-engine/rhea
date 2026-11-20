@@ -97,6 +97,17 @@ namespace rhea
 				});
 	}
 
+	math::Vector3 SpectatorController::getCameraLocalOffset() const
+	{
+		math::Vector3 arm(m_follow_offset.x, 0.0f, m_follow_offset.z);
+		if (arm.length() > 0.0f) {
+			arm.normalize();
+			arm *= m_zoom_distance;
+		}
+
+		return math::Vector3(arm.x + m_camera_slide, m_follow_offset.y, arm.z);
+	}
+
 	void SpectatorController::updateCamera(float delta)
 	{
 		if (!m_target || !m_view)
@@ -112,15 +123,7 @@ namespace rhea
 		math::Vector3 camera_pivot;
 
 		// camera zoom
-		math::Vector3 arm(m_follow_offset.x, 0.0f, m_follow_offset.z);
-
-		if (arm.length() > 0.0f)
-		{
-			arm.normalize();
-			arm *= m_zoom_distance;
-		}
-
-		math::Vector3 local_offset(arm.x + m_camera_slide, m_follow_offset.y, arm.z);
+		const math::Vector3 local_offset = getCameraLocalOffset();
 
 		if (m_follow_rotation) {		
 			// Both the follow position and the collision pivot are expressed in
@@ -162,6 +165,23 @@ namespace rhea
 			camera_world_pose.lookAt(camera_pivot, math::Vector3::UNIT_Z);
 		}
 		m_view->setWorldPosition(camera_world_pose);
+	}
+
+	bool SpectatorController::setCameraWorldPose(const Position& pose)
+	{
+		if (!m_target || !m_view || !m_follow_rotation)
+			return false;
+
+		const auto rotation = pose.getRotation();
+		const auto target_position = pose.getTranslation() - rotation * getCameraLocalOffset();
+
+		Position target_pose = m_target->getTransform()->getWorldPosition();
+		target_pose.setOrientation(rotation);
+		target_pose.setPosition(target_position);
+
+		m_target->setWorldPosition(target_pose);
+		updateCamera(0.0f);
+		return true;
 	}
 
 	void SpectatorController::onFrame(float delta)

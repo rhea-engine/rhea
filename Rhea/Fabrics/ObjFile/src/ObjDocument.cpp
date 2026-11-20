@@ -152,7 +152,6 @@ namespace rhea
 					handler(Error(Error::Code::NOT_FOUND, "Could not resolve mtl reference", m_mtl_ref.id()));
 				return;
 			}
-			m_mtl_source_text = m_mtl_resource->getAsString();
 			// Die aufgelöste logische Adresse verwenden.
 			std::string mtl_id = m_mtl_resource->getPath();
 			if (mtl_id.compare(0, 2, "//") == 0)
@@ -174,8 +173,7 @@ namespace rhea
 			m_material_context.source_directory = parent.address.toString();
 
 			m_mtl_source_text = m_mtl_resource->getAsString();
-			prepareOwnData(handler);
-			prepareOwnData(handler);
+			prepareOwnData(std::move(handler));
 		}
 		else {
 			// get mtllib from the OBJ text

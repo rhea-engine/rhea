@@ -42,7 +42,6 @@ public:
 	void showOpenDialog();
 	void showQuitDialog();
 	void showError(rhea::ErrorReport report);
-	void showAlert(std::string text);
 	void showDetailsDialog(rhea::ErrorReport report);
 	void setStatusText(const std::string& text);
 
@@ -57,18 +56,19 @@ private:
 
 	bool onQuit(rhea::Event* ev, rhea::Unit* unit);
 	bool onQuitCancel(rhea::Event* ev, rhea::Unit* unit);
-	bool onAlertClose(rhea::Event* ev, rhea::Unit* unit);
 
 	rhea::Ref<rhea::SceneResource> m_browser_ref;
 	rhea::Ref<rhea::SceneResource> m_viewerpanel_ref;
 	rhea::GUIController* m_gui_controller = nullptr;
 	OpenBrowser* m_open_browser = nullptr;
 	ViewerPanel* m_viewer_panel = nullptr;
+	ViewerSession* m_viewer_session = nullptr;
 
 	OpenBrowser* m_realm_dialog = nullptr;
 	AlertDialog* m_alert_dialog = nullptr;
 	rhea::Dialog* m_details_dialog = nullptr;
 	rhea::Dialog* m_quit_dialog = nullptr;
+	rhea::Widget* m_actionbar = nullptr;
 
 	bool m_is_loading = false;
 

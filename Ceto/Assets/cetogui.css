@@ -111,7 +111,7 @@ ListItem {
 .status-label {
     font-size: 12px;
     height: 20px;
-    width: 580px;
+    width: 440px;
 }
 
 #lastused {
@@ -136,6 +136,10 @@ ListItem {
 .btn {
     width: 120px;
     height: 30px;
+}
+
+.browser-status-row {
+    gap: 12px;
 }
 
 #widget1 {
@@ -262,4 +266,40 @@ ListItem {
 .viewer-animation-play {
     width: 64px;
     height: 32px;
+}
+
+.ceto-actionbar {
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    height: 40px;
+    background-color: rgb(45 62 82);
+    color: rgb(238 242 246 1.0);
+    font-size: 16px;
+}
+
+.ceto-actionbar-name {
+    font-size: 20px;
+    padding-left: 8px;
+    color: rgb(169 190 83);
+}
+
+.ceto-actionbar-current {
+    width: 400px;
+    background-color: rgb(20 32 47);
+}
+
+.ceto-actionbar-content {
+    width: 100%;
+    height: 100%;
+    gap: 12px;
+    align-items: center;
+    justify-content: start;
+}
+
+.ceto-actionbar-open {
+    width: 32px;
+    height: 32px;
+    background-image: url('//ceto/images/folder_closed_large.png');
+    background-color: rgb(20 32 47);
 }

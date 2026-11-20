@@ -5,6 +5,7 @@ controllers="controllers"
 ceto_view_mode="asset"
 ceto_content_root="content/model"
 ceto_preview_camera="preview/camera"
+ceto_preview_controller="controllers/viewer"
 
 [lighting]
 type="//meworla/lighting"

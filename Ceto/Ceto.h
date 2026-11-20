@@ -64,6 +64,12 @@ protected:
 	
 	// shortcut helpers
 	bool handleAppShortcuts(const rhea::InputEvent& evt);
+	bool beginOrbitDrag(rhea::Event* event, rhea::Unit*);
+	bool updateOrbitDrag(rhea::Event* event, rhea::Unit*);
+
+	bool m_orbit_dragging = false;
+	int m_orbit_mouse_x = 0;
+	int m_orbit_mouse_y = 0;
 
 	// user preferences
 	UserPrefs m_userprefs;
@@ -82,7 +88,6 @@ protected:
 
 	float m_current_time;
 
-	bool m_in_scene = false;
 	std::unique_ptr<BrowserController> m_browser_controller;
 	void onOpened(const std::string&, bool);
 };

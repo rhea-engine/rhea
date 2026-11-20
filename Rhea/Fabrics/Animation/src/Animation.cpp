@@ -58,6 +58,9 @@ namespace rhea
 		if (channel.keyframe_positions.size() == 1)
 			return channel.keyframe_positions[0].translation;
 
+		if (!channel.keyframe_positions.size())
+			return math::Vector3(0.0f, 0.0f, 0.0f);
+
 		// find the surrounding keyframes
 		int index = -1;
 		if (channel.keyframe_positions[0].time < currentTime)
@@ -107,6 +110,9 @@ namespace rhea
 		// check if only one position
 		if (channel.keyframe_scales.size() == 1)
 			return channel.keyframe_scales[0].scale;
+
+		if (!channel.keyframe_scales.size())
+			return math::Vector3();
 
 		// find the surrounding keyframes
 		int index = -1;

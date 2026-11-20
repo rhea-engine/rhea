@@ -24,6 +24,7 @@ class AlertDialog;
 class AssetViewer;
 class CetoUI;
 class BrowserController;
+class ViewerSession;
 
 class Ceto : public rhea::Application
 {
@@ -70,14 +71,14 @@ protected:
 
 	// cache of ceto gui scene
 	rhea::Scene* m_gui;
-	rhea::Scene* m_current_scene = nullptr;
 	// cache of gui controller
 	rhea::GUIController* m_gui_controller;
 
 
 	CetoUI* m_ceto_ui = nullptr;
 	
-	std::unique_ptr<AssetViewer> m_asset_viewer = nullptr;
+	std::unique_ptr<AssetViewer> m_asset_viewer;
+	std::unique_ptr<ViewerSession> m_viewer_session;
 
 	float m_current_time;
 

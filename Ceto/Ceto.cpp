@@ -50,6 +50,8 @@
 #include "Gui/CetoUI.h"
 #include "AssetViewer.h"
 #include "BrowserController.h"
+#include "ViewerSession.h"
+#include "Gui/ViewerPanel.h"
 
 Ceto::~Ceto()
 {
@@ -119,6 +121,7 @@ void Ceto::setup()
 	OpenBrowser::_register_OpenBrowser();
 	AlertDialog::_register_AlertDialog();
 	CetoUI::_register_CetoUI();
+	ViewerPanel::_register_ViewerPanel();
 
 	// register contoller service
 	if (!getService("controller")) {
@@ -185,30 +188,40 @@ void Ceto::setup()
 
 	auto* worlds = doCast<rhea::WorldService>(getService("world"));
 
-	worlds->addWorldActivateHandler([this, worlds](rhea::WorldService::WorldPrepareContext* context) -> rhea::Error
+	worlds->addWorldActivateHandler([this, worlds](rhea::WorldService::WorldPrepareContext* context)
 		{
+			m_viewer_session->setWorld(context->world, context->standalone_scene);
+
 			if (context->world)
 				m_focused_controller = context->world->findByType<rhea::Controller>();
 			else if (context->standalone_scene)
 				m_focused_controller = context->standalone_scene->findByType<rhea::Controller>();
 			else
 				m_focused_controller = nullptr;
-			return rhea::Error();
-		});
-	worlds->addSceneTransitionPrepareHandler([this, worlds](rhea::WorldService::SceneTransitionContext* context, rhea::WorldService::PrepareCompletion completion) -> void
-		{
-			completion(rhea::Error());
 		});
 	worlds->addSceneTransitionActivateHandler([this](rhea::WorldService::SceneTransitionContext* context) {
 			if (!context->target_scene)
 				return;
-			m_current_scene = context->target_scene;
+			m_viewer_session->activateScene(context->target_scene);
 
 			return;
 			context->target_scene->traverse([](std::string& name, rhea::Component* component) -> bool {
 				LOG(LOG_DEBUG) << "Scene component: " << component->getParent()->getPath() << "/" << name << " (" << component->getType()->getName() << ")";
 				return true;
 				});
+		});
+	worlds->addScenePrepareHandler([this](rhea::WorldService::ScenePrepareContext* context, rhea::WorldService::PrepareCompletion completion) {
+		auto* scene = context->scene;
+
+		if (!scene || scene->getValueString("ceto_view_mode", "") != "asset") {
+			completion(rhea::ErrorReport());
+			return;
+		}
+
+		if (!m_asset_viewer)
+			m_asset_viewer = std::make_unique<AssetViewer>();
+
+		completion(m_asset_viewer->prepareAnimations(this, scene));
 		});
 	worlds->setOpenResourceAdapter([this](const rhea::WorldService::OpenResourceContext& context, rhea::WorldService::AdaptResourceCompletion completion) {
 		if (m_asset_viewer == nullptr)
@@ -245,8 +258,12 @@ void Ceto::loadMainGUI(CompletionHandler handler)
 						m_browser_controller->addOpenedHandler(std::bind(&Ceto::onOpened, this, std::placeholders::_1, std::placeholders::_2));
 					}
 
+					if (!m_viewer_session) {
+						m_viewer_session = std::make_unique<ViewerSession>();
+					}
+
 					m_ceto_ui = doCast<CetoUI>(gui->find("ceto_ui"));
-					m_ceto_ui->initializeBrowser(m_browser_controller.get());
+					m_ceto_ui->initializeBrowser(m_browser_controller.get(), m_viewer_session.get());
 
 					log("gui ready");
 

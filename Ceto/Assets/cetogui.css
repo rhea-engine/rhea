@@ -193,3 +193,73 @@ ListItem {
     width: 100%;
     height: 400px;
 }
+
+.viewer-panel {
+    right: 12px;
+    top: 126px;
+    width: 360px;
+    height: 300px;
+    padding: 16px;
+    background-color: rgb(32 42 54 1.0);
+    color: rgb(238 242 246 1.0);
+    font-size: 16px;
+}
+
+.viewer-panel-content {
+    width: 100%;
+    align-items: start;
+    justify-content: start;
+}
+
+.viewer-panel-section {
+    width: 100%;
+    gap: 12px;
+    align-items: start;
+    justify-content: start;
+}
+
+.viewer-panel-title {
+    font-size: 20px;
+    height: 28px;
+}
+
+.viewer-panel-scroll {
+    width: 100%;
+    height: 220px;
+}
+
+.viewer-panel-entries {
+    width: 100%;
+    gap: 16px;
+    align-items: start;
+    justify-content: start;
+}
+
+.viewer-animation-group {
+    width: 100%;
+    gap: 8px;
+    align-items: start;
+    justify-content: start;
+}
+
+.viewer-animation-target {
+    height: 24px;
+    color: rgb(170 184 200 1.0);
+}
+
+.viewer-animation-row {
+    width: 100%;
+    gap: 12px;
+    align-items: center;
+    justify-content: start;
+}
+
+.viewer-animation-name {
+    width: 210px;
+    height: 32px;
+}
+
+.viewer-animation-play {
+    width: 64px;
+    height: 32px;
+}

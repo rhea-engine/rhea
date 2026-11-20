@@ -27,13 +27,8 @@ type="//meworla/gui/label"
 text="Welcome to Ceto"
 x=10
 y=10
-w=330
+w=380
 h=80
-
-[gui/widget1]
-type="//meworla/gui/widget"
-x=10
-y=420
 
 [gui/red]
 type="//meworla/gui/widget"

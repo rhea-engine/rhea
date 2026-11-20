@@ -2,6 +2,9 @@
 name="assetviewer"
 type="//meworla/scene"
 controllers="controllers"
+ceto_view_mode="asset"
+ceto_content_root="content/model"
+ceto_preview_camera="preview/camera"
 
 [lighting]
 type="//meworla/lighting"
@@ -28,17 +31,20 @@ up_step=3.0f
 turn_step=1.5f
 
 # Camera offset relative to the target
-position=(0.0f, 0.0f, -10.0f)
+position=(0.0f, 0.0f, -1.0f)
 
 [viewer_target]
 type="//meworla/item"
 player_slot=1
-position=(0.0f, 0.5f, -2.0f)
+position=(0.0f, 0.75f, -10.0f)
 
 [viewer_target/free_movement]
 type="//meworla/free_movement"
 
-[camera]
+[preview]
+type="//meworla/item"
+
+[preview/camera]
 type="//meworla/camera"
 player_slot=1
 

@@ -426,7 +426,7 @@ namespace rhea
 					result->addComponent(target_child);
 				}
 				return true;
-			});
+			}, true);
 		}
 
 		return result;

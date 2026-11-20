@@ -60,7 +60,7 @@ namespace simpleparser
 		m_type = Type::get(Type::BaseType::STRING);
 	}
 	
-	Variant::Variant(std::vector<Variant>& arr)
+	Variant::Variant(const std::vector<Variant>& arr)
 	{
 		m_data._array = new std::vector<Variant>(arr);
 		m_type = Type::m_base_types[Type::BaseType::ARRAY];

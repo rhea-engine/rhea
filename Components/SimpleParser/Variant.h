@@ -27,7 +27,7 @@ namespace simpleparser
 		Variant(double f);
 		Variant(void* ptr);
 		Variant(const std::string& s);
-		Variant(std::vector<Variant>& arr);
+		Variant(const std::vector<Variant>& arr);
 		Variant(const Variant& variant);
 		Variant(const char* s);
 		Variant(Variant* obj);

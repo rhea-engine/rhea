@@ -189,17 +189,17 @@ namespace rhea
 			}
 
 			// create the component
-			auto* component = doCast<Component>(simpleparser::Type::create(component_name, component_type));
+			auto* new_component = doCast<Component>(simpleparser::Type::create(component_name, component_type));
 
-			if (!component) {
+			if (!new_component) {
 				fail("Could not create attachment component: " + component_type);
 				return;
 			}
 
-			component->setOrigin(Component::ComponentOrigin::Configured);
+			new_component->setOrigin(Component::ComponentOrigin::Configured);
 
-			if (!target->addChild(component)) {
-				component->destroy();
+			if (!target->addChild(new_component)) {
+				new_component->destroy();
 				fail("Could not attach component: " + component_name);
 				return;
 			}
@@ -211,11 +211,11 @@ namespace rhea
 			values.erase("component_name");
 
 			// Preserve the declaration's reference base, not the target's.
-			component->setup(m_app, attachment->getAttributes(), std::move(values));
+			new_component->setup(m_app, attachment->getAttributes(), std::move(values));
 
-			component->resolveReferences(m_context.context_root, m_context.source_directory);
+			new_component->resolveReferences(m_context.context_root, m_context.source_directory);
 
-			created_components.push_back(component);
+			created_components.push_back(new_component);
 		}
 
 		// TODO: At the moment we don't have a way to resolve references in the context of the new components, so we skip this step for now.

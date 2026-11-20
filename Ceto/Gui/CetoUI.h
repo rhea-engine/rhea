@@ -68,6 +68,7 @@ private:
 	AlertDialog* m_alert_dialog = nullptr;
 	rhea::Dialog* m_details_dialog = nullptr;
 	rhea::Dialog* m_quit_dialog = nullptr;
+	rhea::Widget* m_actionbar = nullptr;
 
 	bool m_is_loading = false;
 

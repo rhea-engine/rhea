@@ -54,6 +54,8 @@ public:
     bool fitContent();
 	bool resetCamera();
 
+    bool orbitCamera(float dx, float dy);
+
 private:
     Mode m_mode = Mode::Empty;
 

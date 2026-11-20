@@ -9,6 +9,8 @@
 #include <Poseidon/Core.h>
 #include <Poseidon/FrameRenderer.h>
 #include <Poseidon/Viewport.h>
+#include <algorithm>
+#include <cmath>
 
 void ViewerSession::setWorld(rhea::World* world, rhea::Scene* standalone_scene)
 {
@@ -162,6 +164,41 @@ bool ViewerSession::fitContent()
 	}
 
     return m_preview_controller->setCameraWorldPose(desired_pose);
+}
+
+bool ViewerSession::orbitCamera(float dx, float dy)
+{
+    if (m_mode != Mode::AssetPreview || !m_preview_controller ||
+        !m_selected_camera || m_scene_bounds.isEmpty()) {
+        return false;
+    }
+
+    const auto center = m_scene_bounds.center();
+    auto pose = m_selected_camera->getTransform()->getWorldPosition();
+    const auto offset = pose.getTranslation() - center;
+    const float distance = offset.length();
+
+    if (distance <= 0.0f)
+        return false;
+
+    constexpr float radians_per_pixel = 0.005f;
+    constexpr float max_elevation = 85.0f * math::degToRad;
+
+    const float azimuth =
+        std::atan2(offset.x, offset.z) - dx * radians_per_pixel;
+    const float elevation = std::clamp(
+        std::asin(std::clamp(offset.y / distance, -1.0f, 1.0f))
+        + dy * radians_per_pixel,
+        -max_elevation, max_elevation);
+
+    const float horizontal_distance = distance * std::cos(elevation);
+    pose.setPosition(center + math::Vector3(
+        horizontal_distance * std::sin(azimuth),
+        distance * std::sin(elevation),
+        horizontal_distance * std::cos(azimuth)));
+    pose.lookAt(center, math::Vector3::UNIT_Z);
+
+    return m_preview_controller->setCameraWorldPose(pose);
 }
 
 bool ViewerSession::resetCamera()

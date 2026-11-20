@@ -64,6 +64,12 @@ protected:
 	
 	// shortcut helpers
 	bool handleAppShortcuts(const rhea::InputEvent& evt);
+	bool beginOrbitDrag(rhea::Event* event, rhea::Unit*);
+	bool updateOrbitDrag(rhea::Event* event, rhea::Unit*);
+
+	bool m_orbit_dragging = false;
+	int m_orbit_mouse_x = 0;
+	int m_orbit_mouse_y = 0;
 
 	// user preferences
 	UserPrefs m_userprefs;

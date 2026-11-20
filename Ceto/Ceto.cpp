@@ -80,6 +80,46 @@ bool Ceto::onInput(rhea::EventInput* e, rhea::Unit* unit)
 	return false;
 }
 
+bool Ceto::beginOrbitDrag(rhea::Event* event, rhea::Unit*)
+{
+	auto* input = static_cast<rhea::EventInput*>(event);
+	const auto& mouse = input->getEvent();
+	if (!mouse.isMousePressed(rhea::MouseButton::Left) ||
+		input->getTarget() || !m_viewer_session ||
+		m_viewer_session->getMode() != ViewerSession::Mode::AssetPreview)
+		return false;
+
+	m_orbit_dragging = true;
+	m_orbit_mouse_x = mouse.x;
+	m_orbit_mouse_y = mouse.y;
+	input->stopPropagation();
+	return true;
+}
+
+bool Ceto::updateOrbitDrag(rhea::Event* event, rhea::Unit*)
+{
+	if (!m_orbit_dragging)
+		return false;
+
+	auto* input = static_cast<rhea::EventInput*>(event);
+	const auto& mouse = input->getEvent();
+	if (mouse.isMouseReleased(rhea::MouseButton::Left)) {
+		m_orbit_dragging = false;
+		return false;
+	}
+	if (!mouse.isMouseMoved())
+		return false;
+
+	const int dx = mouse.x - m_orbit_mouse_x;
+	const int dy = mouse.y - m_orbit_mouse_y;
+	m_orbit_mouse_x = mouse.x;
+	m_orbit_mouse_y = mouse.y;
+
+	if ((dx || dy) && m_viewer_session->orbitCamera(static_cast<float>(dx), static_cast<float>(dy)))
+		input->stopPropagation();
+	return false;
+}
+
 bool Ceto::handleAppShortcuts(const rhea::InputEvent& evt)
 {
 	if (evt.isKeyPressed(rhea::Key::Escape)) {		
@@ -142,6 +182,11 @@ void Ceto::setup()
 	}
 
 	rhea::Application::setup();
+
+	m_unit_tree->registerEventHandler("unhandled_input", this,
+		std::bind(&Ceto::beginOrbitDrag, this, std::placeholders::_1, std::placeholders::_2));
+	m_unit_tree->registerEventHandler("input", this,
+		std::bind(&Ceto::updateOrbitDrag, this, std::placeholders::_1, std::placeholders::_2));
 
 	// check for config file
 
@@ -212,6 +257,7 @@ void Ceto::setup()
 	worlds->addSceneTransitionActivateHandler([this](rhea::WorldService::SceneTransitionContext* context) {
 			if (!context->target_scene)
 				return;
+			m_orbit_dragging = false;
 			m_viewer_session->activateScene(context->target_scene);
 
 			return;

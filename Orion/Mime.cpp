@@ -32,7 +32,7 @@ namespace orion
 	};
 
 
-	bool MIME::GetFromExtension(std::string& url, std::string& result)
+	bool MIME::GetFromExtension(const std::string& url, std::string& result)
 	{
 		// safety check
 		if (!url.size() || url[0] == '.')
@@ -52,12 +52,12 @@ namespace orion
 		return false;
 	}
 	
-	void MIME::RegisterExtenstion(std::string mime_type, std::string extension)
+	void MIME::RegisterExtenstion(const std::string& mime_type, const std::string& extension)
 	{
 		_base_mime_ext[extension] = mime_type;
 	}
 
-	bool MIME::GetFromContentType(std::string& content_type, std::string& result)
+	bool MIME::GetFromContentType(const std::string& content_type, std::string& result)
 	{
 		// safety check
 		if (!content_type.size())

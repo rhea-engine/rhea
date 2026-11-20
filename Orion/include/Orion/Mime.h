@@ -21,13 +21,13 @@ namespace orion
 		*  Returns false if no mime type was found for this extension
 		*  Returns true if mime type was found - result is set to the type
 		*/
-		static bool GetFromExtension(std::string& url, std::string& result);
+		static bool GetFromExtension(const std::string& url, std::string& result);
 
 		// register a MIME type extension
-		static void RegisterExtenstion(std::string mime_type, std::string extension);
+		static void RegisterExtenstion(const std::string& mime_type, const std::string& extension);
 
 		// get from Content-Type header
-		static bool GetFromContentType(std::string& content_type, std::string& result);
+		static bool GetFromContentType(const std::string& content_type, std::string& result);
 	};
 }
 

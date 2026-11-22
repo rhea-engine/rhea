@@ -55,6 +55,8 @@ void ViewerSession::activateScene(rhea::Scene* scene)
     m_current_scene = scene;
 	m_cameras.clear();
 	m_preview_controller = nullptr;
+    m_selected_camera = nullptr;
+    m_initial_camera_position_set = false;
 
     if (scene->getValueString("ceto_view_mode", "") == "asset") {
         m_mode = ViewerSession::Mode::AssetPreview;

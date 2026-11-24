@@ -44,6 +44,7 @@ layout(std140) uniform cbMaterial
 
 uniform sampler2D BaseColorTexture;
 uniform sampler2D NormalMap;
+uniform sampler2D EmissiveTexture;
 
 in vec3 v_normal;
 in vec2 v_tex;
@@ -172,6 +173,7 @@ void main()
     vec3 finalNormal = normalize(v_normal);
 
     vec4 diffuseSample = texture(BaseColorTexture, v_tex);
+    vec3 emissive = mat_emissive.rgb * texture(EmissiveTexture, v_tex).rgb;
 
     if (has_normal_map > 0.0)
     {
@@ -183,9 +185,8 @@ void main()
 
     LightingResult lit = ComputeLighting(v_positionWS, finalNormal);
 
-    vec3 finalColor =
-        (mat_emissive.rgb
-        + mat_ambient.rgb * ambient.rgb
+    vec3 finalColor = emissive
+        + (mat_ambient.rgb * ambient.rgb
         + mat_diffuse.rgb * lit.Diffuse.rgb
         + mat_specular.rgb * lit.Specular.rgb)
         * diffuseSample.rgb;

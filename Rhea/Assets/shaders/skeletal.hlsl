@@ -57,8 +57,9 @@ cbuffer cbBones : register(b4)
     float4x4 boneMatrices[100]; // Assume a maximum of 100 bones
 }
 
-Texture2D BaseColorTexture;
-Texture2D NormalMap;
+Texture2D BaseColorTexture : register(t0);
+Texture2D NormalMap : register(t1);
+Texture2D EmissiveTexture : register(t2);
 SamplerState ObjSamplerState;
 
 struct VS_OUTPUT
@@ -278,7 +279,9 @@ float4 PShader(VS_OUTPUT input) : SV_TARGET
     
     LightingResult lit = ComputeLighting(input.positionWS, finalNormal);   
     
-    float3 finalColor = (mat_emissive.rgb + mat_ambient.rgb * ambient.rgb + mat_diffuse.rgb * lit.Diffuse.rgb + mat_specular.rgb * lit.Specular.rgb) * diffuseSample.rgb;
+    float3 emissive = mat_emissive.rgb * EmissiveTexture.Sample(ObjSamplerState, input.tex).rgb;
+    
+    float3 finalColor = emissive + (mat_ambient.rgb * ambient.rgb + mat_diffuse.rgb * lit.Diffuse.rgb + mat_specular.rgb * lit.Specular.rgb) * diffuseSample.rgb;
     
     return float4(finalColor, diffuseSample.a);
 }

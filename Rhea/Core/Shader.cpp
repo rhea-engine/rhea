@@ -106,6 +106,7 @@ namespace rhea
 		if (texture_type == "standard") {
 			m_texture_slot_descs.push_back({ "BASECOLOR", "BaseColorTexture", 0 });
 			m_texture_slot_descs.push_back({ "NORMALMAP", "NormalMap", 1 });
+			m_texture_slot_descs.push_back({ "EMISSIVE", "EmissiveTexture", 2 });
 		}
 		else if (texture_type == "terrain") {
 			m_texture_slot_descs.push_back({ "BLENDMAP", "Texture0", 0 });

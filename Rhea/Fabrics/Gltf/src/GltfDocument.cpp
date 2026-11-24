@@ -892,8 +892,9 @@ namespace rhea
 
 		// prepare materials
 
-		int basecolor_id = shader->getTextureSlotId("BASECOLOR");
-		int normal_id = shader->getTextureSlotId("NORMAL");
+		const int basecolor_id = shader->getTextureSlotId("BASECOLOR");
+		const int normal_id = shader->getTextureSlotId("NORMAL");
+		const int emissive_texture_id = shader->getTextureSlotId("EMISSIVE");
 
 		// create the materials from gltf file
 		for (const auto& material : m_model.materials) {
@@ -934,12 +935,21 @@ namespace rhea
 				}
 			}
 			// fill normal maps (if any)
-			int normal_index = material.normalTexture.index;
+			const int normal_index = material.normalTexture.index;
 			if (normal_index > -1) {
 				const int image_index = m_model.textures[normal_index].source;
 				auto tex = m_images.find(image_index);
 				if (tex != m_images.end()) {
 					mat->setTexture(normal_id, tex->second);
+				}
+			}
+
+			const int emissive_texture_index = material.emissiveTexture.index;
+			if (emissive_texture_id >= 0 && emissive_texture_index >= 0) {
+				const int image_index = m_model.textures[emissive_texture_index].source;
+				const auto image = m_images.find(image_index);
+				if (image != m_images.end()) {
+					mat->setTexture(emissive_texture_id, image->second);
 				}
 			}
 

@@ -52,8 +52,9 @@ cbuffer cbMaterial : register(b3)
     float material_padding;
 }
 
-Texture2D BaseColorTexture;
-Texture2D NormalMap;
+Texture2D BaseColorTexture : register(t0);
+Texture2D NormalMap : register(t1);
+Texture2D EmissiveTexture : register(t2);
 SamplerState ObjSamplerState;
 
 struct VS_OUTPUT
@@ -233,9 +234,10 @@ float4 PShader(VS_OUTPUT input) : SV_TARGET
     }
     
     LightingResult lit = ComputeLighting(input.positionWS, finalNormal);   
-    
+
+    float3 emissive = mat_emissive.rgb * EmissiveTexture.Sample(ObjSamplerState, input.tex).rgb;
     float3 finalColor = (
-        mat_emissive.rgb +
+        emissive +
         mat_ambient.rgb * ambient.rgb * diffuseSample.rgb +
         mat_diffuse.rgb * lit.Diffuse.rgb * diffuseSample.rgb +
         mat_specular.rgb * lit.Specular.rgb);

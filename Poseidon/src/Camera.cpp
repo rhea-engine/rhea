@@ -57,18 +57,24 @@ namespace poseidon
 
 		if (!m_orthographic)
 		{
-			float h = (1.0f / tanf(fov_ * math::degToRad * 0.5f)) * m_zoom;
-			float w = h / aspectRatio_;
-			float q = farClip_ / (farClip_ - nearClip_);
-			float r = -q * nearClip_;
+			float tan_half_yfov = tanf(fov_ * math::degToRad * 0.5f);
+			if (m_fixed_aspect_ratio > aspectRatio_)
+				tan_half_yfov *= m_fixed_aspect_ratio / aspectRatio_;
+
+			const float h = m_zoom / tan_half_yfov;
+			const float w = h / aspectRatio_;
+			const float q = farClip_ / (farClip_ - nearClip_);
+			const float r = -q * nearClip_;
+
+			const float z_sign = m_forward_axis ? 1.0f : -1.0f;
 
 			m_projection[0][0] = w;
-			m_projection[0][2] = m_projection_offset.x * 2.0f;
+			m_projection[0][2] = z_sign * m_projection_offset.x * 2.0f;
 			m_projection[1][1] = h;
-			m_projection[1][2] = m_projection_offset.y * 2.0f;
-			m_projection[2][2] = q;
+			m_projection[1][2] = z_sign * m_projection_offset.y * 2.0f;
+			m_projection[2][2] = z_sign * q;
 			m_projection[2][3] = r;
-			m_projection[3][2] = 1.0f;
+			m_projection[3][2] = z_sign;
 		//	projNearClip_ = nearClip_;
 		//	projFarClip_ = farClip_;
 		}

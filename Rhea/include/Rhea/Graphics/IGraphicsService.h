@@ -33,6 +33,7 @@ namespace rhea
         // request fullscreen
         virtual void ToggleFullscreen() = 0;
 
+        virtual bool setCamera(const std::string& wind_id, const std::string& vp_id, const std::string& layer_id, Camera* camera) = 0;
 		virtual bool getViewSize(const std::string& wind_id, const std::string& vp_id, const std::string& layer_id, int& width, int& height) = 0;
 
         // Event registration (needed by GUIController)

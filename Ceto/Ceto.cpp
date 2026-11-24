@@ -122,6 +122,7 @@ bool Ceto::updateOrbitDrag(rhea::Event* event, rhea::Unit*)
 
 bool Ceto::handleAppShortcuts(const rhea::InputEvent& evt)
 {
+	static int cam_index = 0;
 	if (evt.isKeyPressed(rhea::Key::Escape)) {		
 		m_ceto_ui->showQuitDialog();
 		return true;
@@ -139,6 +140,14 @@ bool Ceto::handleAppShortcuts(const rhea::InputEvent& evt)
 
 	if (evt.isKeyPressed(rhea::Key::R)) {
 		m_viewer_session->resetCamera();
+		return true;
+	}
+
+	if (evt.isKeyPressed(rhea::Key::C)) {
+		if (m_viewer_session && m_viewer_session->getCameras().size() > 0) {
+			cam_index = (cam_index + 1) % m_viewer_session->getCameras().size();
+			m_viewer_session->selectCamera(cam_index);
+		}
 		return true;
 	}
 

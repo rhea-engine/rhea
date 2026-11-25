@@ -8,6 +8,8 @@
 #ifndef POSEIDON_MATERIAL_H
 #define POSEIDON_MATERIAL_H
 
+#include <optional>
+
 #include "Hippios/Renderer.h"
 #include "Hippios/ShaderProgram.h"
 #include "Hippios/GraphicsBuffer.h"
@@ -38,7 +40,7 @@ namespace poseidon
 		void setTopology(int topology) { m_topology = topology; }	
 
 		// set the current material as active material
-		void activate(int mat_buf_register, int mat_buf_register_vs = 0);
+		bool activate(int mat_buf_register, int mat_buf_register_vs = 0, hippios::WindingOrder front_face = hippios::WindingOrder::CLOCKWISE);
 
 		// handle textures		
 		
@@ -73,7 +75,9 @@ namespace poseidon
 		void* getMaterialBuffer() { return &per_mat_buf; }
 		void setMaterialVSBuffer(const void* buf);
 
-		void setPipelineState(hippios::PipelineStateObject* pipeline_state) { m_pipeline_state = pipeline_state; }
+		void setDoubleSidedLighting(bool value) { per_mat_buf.double_sided = value ? 1.0f : 0.0f; }
+
+		void setCullMode(std::optional<Shader::CullMode> cull_mode) { m_cull_mode_override = cull_mode; }
 
 	protected:
 		Core* m_grahpics_core;
@@ -92,7 +96,7 @@ namespace poseidon
 			float shininess;
 			float has_normal_map;
 			int num_textures;
-			float padding[1];
+			float double_sided;
 		} per_mat_buf;
 		hippios::GraphicsBuffer* m_material_buffer;
 		// VS Buffer
@@ -101,7 +105,7 @@ namespace poseidon
 		std::vector<Shader::MatBufferLayoutElement>* m_layout_vs;
 		hippios::GraphicsBuffer* m_material_buffer_vs;
 		bool m_mat_buf_vs_dirty;
-		hippios::PipelineStateObject* m_pipeline_state = nullptr;
+		std::optional<Shader::CullMode> m_cull_mode_override;
 	};
 }
 

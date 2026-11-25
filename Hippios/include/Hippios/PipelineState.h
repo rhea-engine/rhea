@@ -30,9 +30,14 @@ namespace hippios
 		BACK = 1, 
 		NONE = 2 
 	};
+	enum class WindingOrder {
+		CLOCKWISE = 0,
+		COUNTER_CLOCKWISE = 1
+	};
 	struct RasterizerStateDesc { 
 		FillMode fill_mode = FillMode::SOLID;
 		CullMode cull_mode = CullMode::BACK;
+		WindingOrder front_face = WindingOrder::CLOCKWISE;
 	};
 	enum class BlendOp {
 		BLEND_ADD,

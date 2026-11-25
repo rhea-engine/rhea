@@ -56,6 +56,8 @@ namespace poseidon
 
 		math::Ray getPickingRay(float scr_x, float scr_y, int viewport_width, int viewport_height);
 
+		bool usesReversedWinding() const { return !m_orthographic && !m_forward_axis; }
+
 	private:
 		void updateProjection() const;
 		void updateView() const;

@@ -102,10 +102,10 @@ namespace poseidon
 
 	void Shader::finalize()
 	{
-		m_default_pso = getOrCreatePipelineState(m_cull_mode);
+		m_default_pso = getOrCreatePipelineState(m_cull_mode, hippios::WindingOrder::CLOCKWISE);
 	}
 
-	std::unique_ptr<hippios::PipelineStateObject> Shader::createPipelineState(CullMode cull_mode)
+	std::unique_ptr<hippios::PipelineStateObject> Shader::createPipelineState(CullMode cull_mode, hippios::WindingOrder front_face)
 	{
 		//  no compiled shader program, skipping PSO creation
 		if (!m_shader) {
@@ -152,6 +152,9 @@ namespace poseidon
 		if (m_alpha_blending) {
 			pso_desc.blendState.renderTarget[0].blend_enable = true;
 		}
+
+		// front face winding order
+		pso_desc.rasterizerState.front_face = front_face;
 
 		// cull mode in raster state
 		if (cull_mode == CullMode::NONE)
@@ -235,11 +238,11 @@ namespace poseidon
 		m_grahpics_core->get_renderer()->setSampler(0, m_sampler_state, hippios::ShaderStage::Fragment);
 	}
 
-	hippios::PipelineStateObject* Shader::getOrCreatePipelineState(Shader::CullMode cull_mode)
+	hippios::PipelineStateObject* Shader::getOrCreatePipelineState(Shader::CullMode cull_mode, hippios::WindingOrder front_face)
 	{
-		auto& pipeline_state = m_pipeline_states.at(static_cast<std::size_t>(cull_mode));
+		auto& pipeline_state = m_pipeline_states.at(static_cast<std::size_t>(cull_mode)).at(static_cast<std::size_t>(front_face));
 		if (!pipeline_state)
-			pipeline_state = createPipelineState(cull_mode);
+			pipeline_state = createPipelineState(cull_mode, front_face);
 
 		return pipeline_state.get();
 	}

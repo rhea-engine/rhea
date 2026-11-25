@@ -250,23 +250,18 @@ namespace rhea::client {
 		poseidon::Shader* shader = EnsurePoseidonShader(core, material_res, shader_res);
 		if (!shader) return false;
 
-		hippios::PipelineStateObject* pipeline_state = nullptr;
-		if (material_res->hasDoubleSidedOverride()) {
-			const auto cull_mode = material_res->isDoubleSided()
-				? poseidon::Shader::CullMode::NONE
-				: poseidon::Shader::CullMode::BACK;
-			pipeline_state = shader->getOrCreatePipelineState(cull_mode);
-			if (!pipeline_state) {
-				LOG(LOG_ERROR) << "FillPoseidonMaterial: failed to create the requested pipeline state";
-				return false;
-			}
-		}
-
 		// Only setShader if actually changed (because setShader reallocates buffers)
 		if (out_mat->getShader() != shader) {
 			out_mat->setShader(shader);
 		}
-		out_mat->setPipelineState(pipeline_state);
+
+		const bool has_cull_override = material_res->hasDoubleSidedOverride();
+		const bool double_sided = has_cull_override && material_res->isDoubleSided();
+		std::optional<poseidon::Shader::CullMode> cull_mode;
+		if (has_cull_override)
+			cull_mode = double_sided ? poseidon::Shader::CullMode::NONE : poseidon::Shader::CullMode::BACK;
+		out_mat->setCullMode(cull_mode);
+		out_mat->setDoubleSidedLighting(double_sided);
 		
 		// now add the material properties
 		std::string light_type = shader_res->getValueString("light_type", "none");

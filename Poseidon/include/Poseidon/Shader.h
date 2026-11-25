@@ -112,6 +112,7 @@ namespace poseidon
 
 		// cull mode
 		void setCullMode(CullMode mode) { m_cull_mode = mode; }
+		CullMode getCullMode() const { return m_cull_mode; }
 
 		// sampler reference
 		void setSamplerState(hippios::SamplerState* sampler_state) { m_sampler_state = sampler_state; }
@@ -161,10 +162,10 @@ namespace poseidon
 
 		std::string getName() { return m_name; }
 
-		hippios::PipelineStateObject* getOrCreatePipelineState(Shader::CullMode cull_mode);
+		hippios::PipelineStateObject* getOrCreatePipelineState(Shader::CullMode cull_mode, hippios::WindingOrder front_face = hippios::WindingOrder::CLOCKWISE);
 
 	protected:
-		std::unique_ptr<hippios::PipelineStateObject> createPipelineState(Shader::CullMode cull_mode);
+		std::unique_ptr<hippios::PipelineStateObject> createPipelineState(Shader::CullMode cull_mode, hippios::WindingOrder front_face);
 
 		Core* m_grahpics_core;
 		std::string m_name;
@@ -177,7 +178,7 @@ namespace poseidon
 
 		bool m_alpha_blending;
 		hippios::PipelineStateObject* m_default_pso;
-		std::array<std::unique_ptr<hippios::PipelineStateObject>, 3> m_pipeline_states{};
+		std::array<std::array<std::unique_ptr<hippios::PipelineStateObject>, 2>, 3> m_pipeline_states{};
 		std::string m_depth_stencil_state;
 		TopologyType m_topology_type;
 		CullMode m_cull_mode = CullMode::BACK;

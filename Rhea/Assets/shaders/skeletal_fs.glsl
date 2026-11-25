@@ -39,7 +39,7 @@ layout(std140) uniform cbMaterial
     float mat_shininess;
     float has_normal_map;
     int num_textures;
-    float material_padding;
+    float double_sided;
 };
 
 uniform sampler2D BaseColorTexture;
@@ -183,6 +183,8 @@ void main()
         finalNormal = normalize(normalMapSampleTangentSpace);
     }
 
+    if (double_sided > 0.0 && !gl_FrontFacing)
+        finalNormal = -finalNormal;
     LightingResult lit = ComputeLighting(v_positionWS, finalNormal);
 
     vec3 finalColor = emissive

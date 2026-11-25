@@ -17,7 +17,8 @@ namespace hippios
 		m_caps(caps),
 		m_shader_program(static_cast<GLShaderProgram*>(desc.shaderProgram)),
 		m_cull_mode(desc.rasterizerState.cull_mode),
-		m_fill_mode(desc.rasterizerState.fill_mode)
+		m_fill_mode(desc.rasterizerState.fill_mode),
+		m_front_face(desc.rasterizerState.front_face)
 	{
 		m_topology = toGLTopology(desc.primitiveTopology);
 
@@ -150,6 +151,7 @@ namespace hippios
 		else
 			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		
+		glFrontFace(m_front_face == WindingOrder::COUNTER_CLOCKWISE ? GL_CCW : GL_CW);
 		switch (m_cull_mode) {
 		case CullMode::FRONT:
 			glEnable(GL_CULL_FACE);

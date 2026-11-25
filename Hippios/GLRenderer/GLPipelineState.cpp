@@ -165,7 +165,6 @@ namespace hippios
 			glDisable(GL_CULL_FACE);
 			break;
 		}
-		glDisable(GL_CULL_FACE);
 		
 		// Stencil/Depth
 		m_stencil_state->setState(0);

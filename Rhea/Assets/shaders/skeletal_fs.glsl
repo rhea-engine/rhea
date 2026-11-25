@@ -27,7 +27,10 @@ layout(std140) uniform cbLight
     Light lights[8];
     vec4 ambient;
     float lightCount;
-    vec3 _cbLightPad0;
+    // std140 places a vec3 at the next 16-byte boundary.
+    float _cbLightPad0;
+    float _cbLightPad1;
+    float _cbLightPad2;
 };
 
 layout(std140) uniform cbMaterial

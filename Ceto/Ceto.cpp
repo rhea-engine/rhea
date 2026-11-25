@@ -143,6 +143,11 @@ bool Ceto::handleAppShortcuts(const rhea::InputEvent& evt)
 		return true;
 	}
 
+	if (evt.isKeyPressed(rhea::Key::G)) {
+		m_viewer_session->toggleGrid();
+		return true;
+	}
+
 	if (evt.isKeyPressed(rhea::Key::C)) {
 		if (m_viewer_session && m_viewer_session->getCameras().size() > 0) {
 			cam_index = (cam_index + 1) % m_viewer_session->getCameras().size();

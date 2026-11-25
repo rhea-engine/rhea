@@ -72,6 +72,8 @@ void ViewerSession::activateScene(rhea::Scene* scene)
 
         const auto root_path = scene->getValueString("ceto_content_root", "");
 
+		m_grid_root = doCast<rhea::Unit>(scene->find("ground"));
+
         m_content_root = doCast<rhea::Unit>(scene->find(root_path));
 
         // camera?
@@ -235,4 +237,18 @@ bool ViewerSession::resetCamera()
 		return false;
     m_preview_controller->setCameraWorldPose(m_initial_camera_position);
     return true; 
+}
+
+void ViewerSession::toggleGrid()
+{
+	m_show_grid = !m_show_grid;
+	if (m_grid_root) {
+		if (m_show_grid) {
+			m_grid_root->getComponent<rhea::VisualComponent>()->setVisible(true);
+		}
+		else {
+			m_grid_root->getComponent<rhea::VisualComponent>()->setVisible(false);
+		}
+	}
+    
 }

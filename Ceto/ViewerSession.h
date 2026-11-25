@@ -54,6 +54,8 @@ public:
     bool fitContent();
 	bool resetCamera();
 
+	void toggleGrid();
+
     bool orbitCamera(float dx, float dy);
 
 private:
@@ -66,6 +68,7 @@ private:
     // Actual content, excluding preview grid, lights and camera.
     rhea::Unit* m_content_root = nullptr;
 	rhea::Unit* m_preview_root = nullptr;
+	rhea::Unit* m_grid_root = nullptr;
 	rhea::Controller* m_preview_controller = nullptr;
 
     rhea::Scene* m_current_scene = nullptr;
@@ -78,4 +81,6 @@ private:
 
 	rhea::Position m_initial_camera_position;
 	bool m_initial_camera_position_set = false;
+
+    bool m_show_grid = true;
 };

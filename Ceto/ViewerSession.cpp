@@ -176,8 +176,11 @@ bool ViewerSession::fitContent()
 	const float minimum_fit_distance = 0.02f; // Avoids camera being too close to the content.
     const float distance = std::max(minimum_fit_distance, 1.1f * radius / std::sin(half_fov));
 
-    const auto rotation = m_selected_camera->getTransform()->getWorldPosition().getRotation();
-    const auto forward = rotation * math::Vector3::UNIT_Z;
+    const auto rotation = m_initial_camera_position_set
+        ? m_selected_camera->getTransform()->getWorldPosition().getRotation()
+        : math::Quaternion::IDENTITY;
+
+    const auto forward = rotation * (-math::Vector3::UNIT_Z);
 
     rhea::Position desired_pose;
     desired_pose.setOrientation(rotation);
@@ -221,7 +224,7 @@ bool ViewerSession::orbitCamera(float dx, float dy)
         horizontal_distance * std::sin(azimuth),
         distance * std::sin(elevation),
         horizontal_distance * std::cos(azimuth)));
-    pose.lookAt(center, math::Vector3::UNIT_Z);
+    pose.lookAt(center, -math::Vector3::UNIT_Z);
 
     return m_preview_controller->setCameraWorldPose(pose);
 }

@@ -68,7 +68,7 @@ namespace rhea
 			}
 		};
 
-		bool extractTriangles(std::vector<math::Vector3>& positions, std::vector<uint32_t>& indices) const;
+		bool extractTriangles(std::vector<math::Vector3>& positions, std::vector<uint32_t>& indices, bool change_handedness = true) const;
 
 	protected:
 		Ref<ObjDocument> m_obj_ref;

@@ -53,14 +53,7 @@ bool ExtractTrianglesFromScene(rhea::Application* app, rhea::Item* item, Triangl
         return false;
     }
 
-	// 4) Resolve OBJ resource from ObjDocument
-    const auto& obj_ref = obj_document->objectRef();
-    auto* obj = app->getUnitTree()->resolve(obj_ref);
-
-    if (!obj) {
-        LOG(LOG_ERROR) << "ObjTriangleLoader: OBJ resource not found: " << obj_ref.id();
-        return false;
-    }
-
-    return obj_document->extractTriangles(out.positions, out.indices);
+	// 4) Resolve triangles from ObjDocument
+    const bool change_handedness = meshUnit->getValue("obj_change_handedness", true).toBool();
+    return obj_document->extractTriangles(out.positions, out.indices, change_handedness);
 }

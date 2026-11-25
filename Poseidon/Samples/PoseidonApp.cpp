@@ -61,7 +61,7 @@ Shader* PoseidonApp::createSampleShader(const std::string& name, bool textured) 
         {"COLOR", 0, 1, Format::R32G32B32A32_FLOAT, 0, offsetof(SampleVertex, color)},
         {"TEXCOORD", 0, 2, Format::R32G32_FLOAT, 0, offsetof(SampleVertex, uv)},
     }, sizeof(SampleVertex));
-    shader->setCullMode(false);
+    shader->setCullMode(Shader::CullMode::NONE);
     shader->setSamplerState(m_core->getSamplerState("linear"));
     shader->finalize();
     return shader;

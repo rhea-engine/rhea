@@ -40,7 +40,7 @@ namespace poseidon
 	void Material::activate(int mat_buf_register, int mat_buf_register_vs)
 	{		
 		// activate the shader (the pso)
-		m_shader->activate();
+		m_shader->activate(m_pipeline_state);
 
 		// set the material buffer
 		if (m_material_buffer && mat_buf_register > 0) {
@@ -64,6 +64,7 @@ namespace poseidon
 		}
 
 		m_shader = shader;
+		m_pipeline_state = nullptr;
 		
 		// setup the material buffer
 		m_layout = m_shader->getMatBufLayout();

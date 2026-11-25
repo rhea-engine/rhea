@@ -73,6 +73,8 @@ namespace poseidon
 		void* getMaterialBuffer() { return &per_mat_buf; }
 		void setMaterialVSBuffer(const void* buf);
 
+		void setPipelineState(hippios::PipelineStateObject* pipeline_state) { m_pipeline_state = pipeline_state; }
+
 	protected:
 		Core* m_grahpics_core;
 		Shader* m_shader;
@@ -99,6 +101,7 @@ namespace poseidon
 		std::vector<Shader::MatBufferLayoutElement>* m_layout_vs;
 		hippios::GraphicsBuffer* m_material_buffer_vs;
 		bool m_mat_buf_vs_dirty;
+		hippios::PipelineStateObject* m_pipeline_state = nullptr;
 	};
 }
 

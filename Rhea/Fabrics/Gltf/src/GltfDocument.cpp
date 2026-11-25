@@ -920,6 +920,8 @@ namespace rhea
 
 			// set material values
 
+			mat->setDoubleSided(material.doubleSided);
+
 			// traditional shader - fill as good as possible
 			// pbr to traditional ambient - not implemented
 			//mat->setColor(ambient_id, math::Vector3(material.ambient[0], material.ambient[1], material.ambient[2]));

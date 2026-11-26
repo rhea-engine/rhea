@@ -89,6 +89,7 @@ void AssetViewer::createAssetViewerScene(rhea::Application* app, const rhea::Wor
                 "asset_mesh", "", "asset_mesh",
                 "//meworla/mesh");
             mesh.values["geometry"] = asset_id;
+            mesh.values["obj_change_handedness"] = false;
 
             auto& model = append_node(
                 "content/model", "content", "model",

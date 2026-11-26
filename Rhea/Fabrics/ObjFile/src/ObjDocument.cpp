@@ -356,7 +356,7 @@ namespace rhea
 		layout = shader_res->getVertexLayout();
 		VertexBuffer* vertices = mesh->getVertexBuffer();
 
-		bool change_handedness = true;
+		bool change_handedness = mesh->getValue("obj_change_handedness", true).toBool();
 		bool ret = true;
 
 		if (!m_parsed_data) {
@@ -552,7 +552,9 @@ namespace rhea
 					if (idx.normal_index >= 0 && static_cast<size_t>(3 * idx.normal_index + 2) < m_parsed_data->attributes.normals.size()) {
 						vertex.normal.x = m_parsed_data->attributes.normals[3 * idx.normal_index + 0];
 						vertex.normal.y = m_parsed_data->attributes.normals[3 * idx.normal_index + 1];
-						vertex.normal.z = -m_parsed_data->attributes.normals[3 * idx.normal_index + 2];
+						vertex.normal.z = change_handedness ?
+							-m_parsed_data->attributes.normals[3 * idx.normal_index + 2] : 
+							m_parsed_data->attributes.normals[3 * idx.normal_index + 2];
 					}
 					else {
 						vertex.normal = face_normal;
@@ -567,8 +569,7 @@ namespace rhea
 						vertex.uv = { 0.0f, 0.0f };
 
 					// flip v coordinate
-					if (change_handedness)
-						vertex.uv.y = 1.0f - vertex.uv.y;
+					vertex.uv.y = 1.0f - vertex.uv.y;
 
 					// vertex color
 					vertex.color.x = m_parsed_data->attributes.colors[3 * idx.vertex_index + 0]; // red
@@ -696,7 +697,7 @@ namespace rhea
 		return ret;
 	}
 
-	bool ObjDocument::extractTriangles(std::vector<math::Vector3>& positions, std::vector<uint32_t>& indices) const 
+	bool ObjDocument::extractTriangles(std::vector<math::Vector3>& positions, std::vector<uint32_t>& indices, bool change_handedness) const
 	{
 		positions.clear();
 		indices.clear();
@@ -707,7 +708,7 @@ namespace rhea
 			if (!source || source == this)
 				return false;
 
-			return source->extractTriangles(positions, indices);
+			return source->extractTriangles(positions, indices, change_handedness);
 		}
 
 		// The document must already be prepared.
@@ -721,7 +722,7 @@ namespace rhea
 			positions.emplace_back(
 				attrib.vertices[i],
 				attrib.vertices[i + 1],
-				-attrib.vertices[i + 2]); // same handedness as the mesh
+				change_handedness ? -attrib.vertices[i + 2] : attrib.vertices[i + 2]); // same handedness as the mesh
 		}
 
 		for (const auto& shape : m_parsed_data->shapes) {
@@ -744,8 +745,8 @@ namespace rhea
 
 					// Reverse winding due to Z-mirroring.
 					indices.push_back(static_cast<uint32_t>(a));
-					indices.push_back(static_cast<uint32_t>(c));
-					indices.push_back(static_cast<uint32_t>(b));
+					indices.push_back(static_cast<uint32_t>(change_handedness ? c : b));
+					indices.push_back(static_cast<uint32_t>(change_handedness ? b : c));
 				}
 
 				offset += count;

@@ -18,6 +18,14 @@
 
 namespace rhea
 {
+	static math::Quaternion getCameraAxisRotation(Camera* camera)
+	{
+		if (camera->getForwardAxis() == Camera::CameraForwardAxis::NegativeZ)
+			return math::Quaternion(0.0f, 0.0f, 1.0f, 0.0f); // 180° about local Y
+
+		return math::Quaternion::IDENTITY;
+	}
+
 	void SpectatorController::setup(Application* app, std::unordered_map<std::string, std::string> attributes, std::unordered_map<std::string, simpleparser::Variant> values)
 	{
 		BasicController::setup(app, attributes, values);
@@ -156,7 +164,7 @@ namespace rhea
 
 		if (m_follow_rotation) {
 			// Change position vector based on target's orientation & scale			
-			camera_world_pose.setOrientation(target_rot);
+			camera_world_pose.setOrientation(target_rot * getCameraAxisRotation(m_view));
 			camera_world_pose.setPosition(camera_world);
 		}
 		else {
@@ -172,11 +180,11 @@ namespace rhea
 		if (!m_target || !m_view || !m_follow_rotation)
 			return false;
 
-		const auto rotation = pose.getRotation();
-		const auto target_position = pose.getTranslation() - rotation * getCameraLocalOffset();
+		const auto target_rotation = pose.getRotation() * getCameraAxisRotation(m_view);
+		const auto target_position = pose.getTranslation() - target_rotation * getCameraLocalOffset();
 
 		Position target_pose = m_target->getTransform()->getWorldPosition();
-		target_pose.setOrientation(rotation);
+		target_pose.setOrientation(target_rotation);
 		target_pose.setPosition(target_position);
 
 		m_target->setWorldPosition(target_pose);

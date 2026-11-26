@@ -48,6 +48,7 @@ type="//meworla/item"
 [preview/camera]
 type="//meworla/camera"
 player_slot=1
+forward_axis="-z"
 
 [ground]
 type="//meworla/item"

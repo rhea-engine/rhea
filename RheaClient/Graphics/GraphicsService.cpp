@@ -446,27 +446,36 @@ namespace rhea::client {
 		}
 	}
 
-	bool GraphicsService::getViewSize(const std::string& wind_id, const std::string& vp_id, const std::string& layer_id, int& width, int& height)
+	poseidon::Viewport* GraphicsService::getViewport(const std::string& wind_id, const std::string& vp_id)
 	{
 		if (!m_core) {
 			LOG(LOG_ERROR) << "GraphicsService::getViewSize: core is null";
-			return false;
+			return nullptr;
 		}
 		auto* window_registry = m_app->getService<WindowRegistryService>();
 		if (!window_registry) {
 			LOG(LOG_ERROR) << "GraphicsService::getViewSize: window registry service not found";
-			return false;
+			return nullptr;
 		}
 		auto* window = window_registry->getRenderWindowByName(wind_id);
 		if (!window) {
 			LOG(LOG_ERROR) << "GraphicsService::getViewSize: window '" << wind_id << "' not found";
-			return false;
+			return nullptr;
 		}
 		auto* vp = window->getViewport(vp_id);
 		if (!vp) {
 			LOG(LOG_ERROR) << "GraphicsService::getViewSize: viewport '" << vp_id << "' not found in window '" << wind_id << "'";
-			return false;
+			return nullptr;
 		}
+		return vp;
+	}
+
+	bool GraphicsService::getViewSize(const std::string& wind_id, const std::string& vp_id, const std::string& layer_id, int& width, int& height)
+	{
+		auto* vp = getViewport(wind_id, vp_id);
+		if (!vp)
+			return false;
+
 		auto* context = vp->getRenderContext(layer_id);
 		if (!context) {
 			LOG(LOG_ERROR) << "GraphicsService::getViewSize: render context '" << layer_id << "' not found in viewport '" << vp_id << "' of window '" << wind_id << "'";
@@ -475,6 +484,38 @@ namespace rhea::client {
 		auto* size = context->getSize();
 		width = size->w;
 		height = size->h;
+		return true;
+	}
+
+	bool GraphicsService::setCamera(const std::string& wind_id, const std::string& vp_id, const std::string& layer_id, rhea::Camera* camera)
+	{
+		auto* vp = getViewport(wind_id, vp_id);
+		if (!vp || !camera)
+			return false;
+		auto* context = vp->getRenderContext(layer_id);
+		if (!context) {
+			LOG(LOG_ERROR) << "GraphicsService::setCamera: render context '" << layer_id << "' not found in viewport '" << vp_id << "' of window '" << wind_id << "'";
+			return false;
+		}
+
+		auto* render = camera->getComponent<RenderComponent>();
+		if (!render || !render->hasCamera())
+			return false;
+
+		auto* camera_manager = static_cast<GraphicsCameraManager*>(getManager<rhea::Camera>());
+		if (!camera_manager)
+			return false;
+		const auto* size = context->getSize();
+		camera_manager->syncCameraProjection(
+			getEngine(),
+			render->camera,
+			camera,
+			static_cast<float>(size->w),
+			static_cast<float>(size->h));
+
+		if (context->getCameraHandle() != render->camera)
+			context->setCameraHandle(render->camera);
+
 		return true;
 	}
 

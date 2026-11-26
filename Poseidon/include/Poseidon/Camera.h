@@ -43,13 +43,20 @@ namespace poseidon
 		void setNearClip(float value);
 		void setFarClip(float value);
 		void setFov(float value);
+		float getFov() const { return fov_; }
 		void setOrthographic(bool enabled);
 		void setOrthographicSize(float size);
 		void setAspectRatio(float ratio) { aspectRatio_ = ratio; }
+		void setFixedAspectRatio(float ratio) { m_fixed_aspect_ratio = ratio; }
+		float getFixedAspectRatio() const { return m_fixed_aspect_ratio; }
+		// set the forward axis for the camera. true = +z forward, false = -z forward
+		void setForwardAxis(bool forward_axis) { m_forward_axis = forward_axis; }
 
 		bool render(Viewport*, Camera*) { return true; }
 
 		math::Ray getPickingRay(float scr_x, float scr_y, int viewport_width, int viewport_height);
+
+		bool usesReversedWinding() const { return !m_orthographic && !m_forward_axis; }
 
 	private:
 		void updateProjection() const;
@@ -63,6 +70,7 @@ namespace poseidon
 
 
 		float rot = 0.01f; // TODO: needed?
+		bool m_forward_axis = true; // true: +z forward, false: -z forward
 
 		mutable math::Matrix4 m_projection;
 		mutable math::Matrix4 m_projection_rs;
@@ -89,6 +97,9 @@ namespace poseidon
 		float m_ortho_size;
 		/// Aspect ratio.
 		float aspectRatio_;
+
+		// fixed aspect ratio
+		float m_fixed_aspect_ratio = 0.0f;
 
 		math::Vector3 m_projection_offset;
 	};

@@ -49,7 +49,7 @@ cbuffer cbMaterial : register(b3)
     float mat_shininess;
     float has_normal_map;
     int num_textures;
-    float material_padding;
+    float double_sided;
 }
 
 Texture2D BaseColorTexture : register(t0);
@@ -214,7 +214,7 @@ LightingResult ComputeLighting(float4 P, float3 N)
     return result;
 }
 
-float4 PShader(VS_OUTPUT input) : SV_TARGET
+float4 PShader(VS_OUTPUT input, bool is_front_face : SV_IsFrontFace) : SV_TARGET
 {
     float3 finalNormal = input.normal;
     
@@ -233,6 +233,8 @@ float4 PShader(VS_OUTPUT input) : SV_TARGET
         finalNormal = normalize(normalMapSampleTangentSpace);
     }
     
+    if (double_sided > 0.0f && !is_front_face)
+        finalNormal = -finalNormal;
     LightingResult lit = ComputeLighting(input.positionWS, finalNormal);   
 
     float3 emissive = mat_emissive.rgb * EmissiveTexture.Sample(ObjSamplerState, input.tex).rgb;

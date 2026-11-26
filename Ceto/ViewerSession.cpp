@@ -6,11 +6,9 @@
 #include <Rhea/Components/MeshComponent.h>
 #include <Rhea/Core/Mesh.h>
 #include <Rhea/Graphics/IGraphicsService.h>
-#include <Poseidon/Core.h>
-#include <Poseidon/FrameRenderer.h>
-#include <Poseidon/Viewport.h>
 #include <algorithm>
 #include <cmath>
+#include <Psio/Log.h>
 
 void ViewerSession::setWorld(rhea::World* world, rhea::Scene* standalone_scene)
 {
@@ -40,14 +38,25 @@ rhea::AnimationComponent* ViewerSession::getSelectedAnimationTarget() const
     return m_selected_animation_target;
 }
 
-bool ViewerSession::selectCamera(rhea::Camera* camera)
+bool ViewerSession::selectCamera(int cam_index)
 {
-    return false;
+    if (cam_index < 0 || cam_index >= static_cast<int>(m_cameras.size()))
+        return false;
+
+    auto* camera = m_cameras[cam_index].camera;
+    auto* app = camera ? camera->getApplication() : nullptr;
+    auto* graphics = app ? app->getService<rhea::IGraphicsService>() : nullptr;
+    if (!graphics || !graphics->setCamera("main", "default", "default", camera))
+        return false;
+
+    m_selected_camera = camera;
+    return true;
 }
 
 bool ViewerSession::selectAnimationTarget(rhea::AnimationComponent* target)
 {
-    return false;
+    m_selected_animation_target = target;
+    return true;
 }
 
 void ViewerSession::activateScene(rhea::Scene* scene)
@@ -55,6 +64,8 @@ void ViewerSession::activateScene(rhea::Scene* scene)
     m_current_scene = scene;
 	m_cameras.clear();
 	m_preview_controller = nullptr;
+    m_selected_camera = nullptr;
+    m_initial_camera_position_set = false;
 
     if (scene->getValueString("ceto_view_mode", "") == "asset") {
         m_mode = ViewerSession::Mode::AssetPreview;
@@ -72,7 +83,6 @@ void ViewerSession::activateScene(rhea::Scene* scene)
             if (cam_info.camera) {
                 cam_info.name = cam_info.camera->getPathName();
                 cam_info.is_preview_camera = true;
-                m_selected_camera = cam_info.camera;
                 m_cameras.push_back(cam_info);
             }
         }
@@ -104,10 +114,25 @@ void ViewerSession::activateScene(rhea::Scene* scene)
 				}
 			}
 		}
+        if (doCast<rhea::Camera>(component)) {
+			CameraInfo cam_info;
+			cam_info.camera = doCast<rhea::Camera>(component);
+			cam_info.name = component->getPathName();
+			cam_info.is_preview_camera = false;
+			m_cameras.push_back(cam_info);
+        }
 		return true;
 		});
 
     if (m_mode == Mode::AssetPreview) {
+        if (m_cameras.size()) {
+            auto* camera = m_cameras[0].camera;
+            auto* app = camera ? camera->getApplication() : nullptr;
+            auto* graphics = app ? app->getService<rhea::IGraphicsService>() : nullptr;
+            if (graphics->setCamera("main", "default", "default", camera)) {
+                m_selected_camera = camera;
+            }
+        }
         fitContent();
 		float step_size = m_scene_bounds.size().length() * 0.5f;
         if (step_size < 3.0f)

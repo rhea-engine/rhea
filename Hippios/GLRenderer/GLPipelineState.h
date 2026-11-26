@@ -45,6 +45,7 @@ namespace hippios
 		std::unique_ptr<GLStencilState> m_stencil_state;
 		std::unique_ptr<GLBlendState> m_blend_state;
 		GLShaderProgram* m_shader_program = nullptr;
+		WindingOrder m_front_face;
 
 		std::vector<InputLayoutElement> m_elements;
 		std::vector<InputBindingDesc> m_bindings;

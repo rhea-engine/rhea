@@ -75,6 +75,8 @@ namespace rhea
 		result->m_shader_ref = m_shader_ref;
 		result->m_texture_refs = m_texture_refs;
 		result->m_shader = m_shader;
+		result->m_double_sided = m_double_sided;
+		result->m_has_double_sided_override = m_has_double_sided_override;
 
 		result->m_textures = m_textures;
 
@@ -99,6 +101,8 @@ namespace rhea
 		auto* target_material = doCast<Material>(target);
 
 		target_material->m_texture_refs = source_material->m_texture_refs;
+		target_material->m_double_sided = source_material->m_double_sided;
+		target_material->m_has_double_sided_override = source_material->m_has_double_sided_override;
 	}
 
 	void Material::ready()

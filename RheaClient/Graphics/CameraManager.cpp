@@ -192,20 +192,27 @@ namespace rhea::client {
 		if (viewport_width <= 0.0f)  viewport_width = 800.0f;
 		if (viewport_height <= 0.0f) viewport_height = 600.0f;
 
-		cam->setAspectRatio(viewport_width / viewport_height);
+		float aspect_ratio = viewport_width / viewport_height;	
 
-		if (sourceCamera)
+		if (sourceCamera) {
 			cam->setFov(sourceCamera->getVerticalFovDegrees());
+			if (sourceCamera->getForwardAxis() == rhea::Camera::CameraForwardAxis::NegativeZ)
+				cam->setForwardAxis(false);
+			else
+				cam->setForwardAxis(true);
 
+			const auto derived = sourceCamera->getComponent<Transform>()->getWorldPosition();
+			cam->setNearClip(sourceCamera->getNearClip());
+			if (sourceCamera->hasFarClip())
+				cam->setFarClip(sourceCamera->getFarClip());
+			cam->setFixedAspectRatio(sourceCamera->hasAspectRatio() ? sourceCamera->getAspectRatio() : 0.0f);
+
+			// add these once Rhea camera exposes them cleanly
+			// cam->setOrthographic(sourceCamera->isOrthographic());
+			// cam->setOrthographicSize(sourceCamera->getOrthographicSize());
+		}
+
+		cam->setAspectRatio(aspect_ratio);
 		cam->setOrthographicSize(viewport_height);
-
-		// add these once Rhea camera exposes them cleanly
-		// if (sourceCamera) {
-		// cam->setOrthographic(sourceCamera->isOrthographic());
-		// cam->setOrthographicSize(sourceCamera->getOrthographicSize());
-		// cam->setNearClip(sourceCamera->getNearClip());
-		// cam->setFarClip(sourceCamera->getFarClip());
-		// cam->setFov(sourceCamera->getFov());
-		// }
 	}
 }

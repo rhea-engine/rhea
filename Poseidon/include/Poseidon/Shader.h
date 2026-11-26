@@ -9,6 +9,8 @@
 #define POSEIDON_SHADER_H
 
 #include <string>
+#include <array>
+#include <memory>
 
 #include "Hippios/Renderer.h"
 #include <Hippios/ShaderProgram.h>
@@ -54,6 +56,29 @@ namespace poseidon
 	class Shader
 	{
 	public:
+		enum class MatBufferLayoutElementType
+		{
+			NONE = 0,
+			FLOAT = 1,
+			VECTOR2 = 2,
+			VECTOR3 = 3,
+			VECTOR4 = 4,
+			INT = 5,
+		};
+
+		enum class TopologyType
+		{
+			TRIANGLE_LIST = 0,
+			LINE_LIST = 1,
+			POINT_LIST = 2,
+		};
+
+		enum class CullMode {
+			FRONT = 0,
+			BACK = 1,
+			NONE = 2
+		};
+
 		Shader(Core* core, std::string name="");
 		~Shader();
 
@@ -86,7 +111,8 @@ namespace poseidon
 		void setDepthWrite(bool enabled) { m_depth_write = enabled; m_has_depth_write_override = true; }
 
 		// cull mode
-		void setCullMode(bool enabled) { m_cull_mode = enabled; }
+		void setCullMode(CullMode mode) { m_cull_mode = mode; }
+		CullMode getCullMode() const { return m_cull_mode; }
 
 		// sampler reference
 		void setSamplerState(hippios::SamplerState* sampler_state) { m_sampler_state = sampler_state; }
@@ -95,24 +121,7 @@ namespace poseidon
 		void finalize();
 
 		// set the current shader as active shader
-		void activate();
-
-		enum class MatBufferLayoutElementType
-		{
-			NONE = 0,
-			FLOAT = 1,
-			VECTOR2 = 2,
-			VECTOR3 = 3,
-			VECTOR4 = 4,
-			INT = 5,
-		};
-
-		enum class TopologyType
-		{
-			TRIANGLE_LIST = 0,
-			LINE_LIST = 1,
-			POINT_LIST = 2,
-		};
+		void activate(hippios::PipelineStateObject* pipeline_state = nullptr);
 
 		struct MatBufferLayoutElement
 		{
@@ -142,7 +151,7 @@ namespace poseidon
 		void addMatBufLayoutElementVS(MatBufferLayoutElementType type, std::string name, size_t offset, size_t size) {
 			m_matbuf_layout_vs.push_back(MatBufferLayoutElement(type, name, offset, size));
 			m_matbuf_size_vs = offset + size;
-			m_matbuf_layout_map_vs[name] = (int)m_matbuf_layout.size() - 1;
+			m_matbuf_layout_map_vs[name] = (int)m_matbuf_layout_vs.size() - 1;
 		}
 		void setMatBufLayoutVS(std::vector<MatBufferLayoutElement>& layout);
 		size_t getMatBufSizeVS() const { return m_matbuf_size_vs; }
@@ -153,7 +162,11 @@ namespace poseidon
 
 		std::string getName() { return m_name; }
 
+		hippios::PipelineStateObject* getOrCreatePipelineState(Shader::CullMode cull_mode, hippios::WindingOrder front_face = hippios::WindingOrder::CLOCKWISE);
+
 	protected:
+		std::unique_ptr<hippios::PipelineStateObject> createPipelineState(Shader::CullMode cull_mode, hippios::WindingOrder front_face);
+
 		Core* m_grahpics_core;
 		std::string m_name;
 
@@ -164,10 +177,11 @@ namespace poseidon
 		hippios::ShaderProgram* m_shader;		
 
 		bool m_alpha_blending;
-		std::unique_ptr<hippios::PipelineStateObject> m_pso;
+		hippios::PipelineStateObject* m_default_pso;
+		std::array<std::array<std::unique_ptr<hippios::PipelineStateObject>, 2>, 3> m_pipeline_states{};
 		std::string m_depth_stencil_state;
 		TopologyType m_topology_type;
-		bool m_cull_mode;
+		CullMode m_cull_mode = CullMode::BACK;
 		hippios::SamplerState* m_sampler_state;
 		bool m_depth_test = true;
 		bool m_has_depth_test_override = false;

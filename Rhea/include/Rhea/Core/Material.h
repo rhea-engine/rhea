@@ -132,6 +132,10 @@ namespace rhea
 		// get an int value by id
 		int getIntVS(size_t propertyID) { if (propertyID >= 0 && propertyID < m_ints_vs.size()) return m_ints_vs[propertyID]; else return 0; }
 
+		void setDoubleSided(bool double_sided) { m_double_sided = double_sided; m_has_double_sided_override = true; }
+		bool isDoubleSided() const { return m_double_sided; }
+		bool hasDoubleSidedOverride() const { return m_has_double_sided_override; }
+
 	protected:		
 		Shader* m_shader;
 		std::vector<ImageResource*> m_textures;
@@ -143,6 +147,8 @@ namespace rhea
 		std::vector<math::Vector2> m_float2s_vs;
 		std::vector<float> m_floats_vs;
 		std::vector<int> m_ints_vs;
+		bool m_double_sided = false;
+		bool m_has_double_sided_override = false;
 
 		Ref<Shader> m_shader_ref;
 		std::map<std::string, Ref<ImageResource>> m_texture_refs;

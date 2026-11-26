@@ -122,6 +122,7 @@ bool Ceto::updateOrbitDrag(rhea::Event* event, rhea::Unit*)
 
 bool Ceto::handleAppShortcuts(const rhea::InputEvent& evt)
 {
+	static int cam_index = 0;
 	if (evt.isKeyPressed(rhea::Key::Escape)) {		
 		m_ceto_ui->showQuitDialog();
 		return true;
@@ -139,6 +140,14 @@ bool Ceto::handleAppShortcuts(const rhea::InputEvent& evt)
 
 	if (evt.isKeyPressed(rhea::Key::R)) {
 		m_viewer_session->resetCamera();
+		return true;
+	}
+
+	if (evt.isKeyPressed(rhea::Key::C)) {
+		if (m_viewer_session && m_viewer_session->getCameras().size() > 0) {
+			cam_index = (cam_index + 1) % m_viewer_session->getCameras().size();
+			m_viewer_session->selectCamera(cam_index);
+		}
 		return true;
 	}
 
@@ -254,18 +263,6 @@ void Ceto::setup()
 			else
 				m_focused_controller = nullptr;
 		});
-	worlds->addSceneTransitionActivateHandler([this](rhea::WorldService::SceneTransitionContext* context) {
-			if (!context->target_scene)
-				return;
-			m_orbit_dragging = false;
-			m_viewer_session->activateScene(context->target_scene);
-
-			return;
-			context->target_scene->traverse([](std::string& name, rhea::Component* component) -> bool {
-				LOG(LOG_DEBUG) << "Scene component: " << component->getParent()->getPath() << "/" << name << " (" << component->getType()->getName() << ")";
-				return true;
-				});
-		});
 	worlds->addScenePrepareHandler([this](rhea::WorldService::ScenePrepareContext* context, rhea::WorldService::PrepareCompletion completion) {
 		auto* scene = context->scene;
 
@@ -283,6 +280,15 @@ void Ceto::setup()
 		if (m_asset_viewer == nullptr)
 			m_asset_viewer = std::make_unique<AssetViewer>();
 		m_asset_viewer->createAssetViewerScene(this, context, completion);
+		});
+	if (!m_viewer_session) {
+		m_viewer_session = std::make_unique<ViewerSession>();
+	}
+	worlds->registerEventHandler("primary_scene_changed", this, [this](rhea::Event* e, rhea::Component* c)->bool {
+		m_orbit_dragging = false;
+		auto* change_event = static_cast<rhea::WorldService::PrimarySceneChangedEvent*>(e);
+		m_viewer_session->activateScene(change_event->current_scene);
+		return false;
 		});
 }
 
@@ -312,10 +318,6 @@ void Ceto::loadMainGUI(CompletionHandler handler)
 					if (!m_browser_controller) {
 						m_browser_controller = std::make_unique<BrowserController>(this);
 						m_browser_controller->addOpenedHandler(std::bind(&Ceto::onOpened, this, std::placeholders::_1, std::placeholders::_2));
-					}
-
-					if (!m_viewer_session) {
-						m_viewer_session = std::make_unique<ViewerSession>();
 					}
 
 					m_ceto_ui = doCast<CetoUI>(gui->find("ceto_ui"));

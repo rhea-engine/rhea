@@ -107,6 +107,8 @@ namespace hippios
 		m_cull_mode = desc.rasterizerState.cull_mode;
 
 		D3D11_RASTERIZER_DESC cmdesc = {};
+		cmdesc.CullMode = D3D11_CULL_BACK;
+		cmdesc.FrontCounterClockwise = desc.rasterizerState.front_face == WindingOrder::COUNTER_CLOCKWISE;
 		bool set_raster = false;
 		if (m_cull_mode == CullMode::NONE) {
 			cmdesc.CullMode = D3D11_CULL_NONE;
@@ -124,10 +126,11 @@ namespace hippios
 			set_raster = true;
 		}
 
-		// always enable scissor test for now, as it's needed for UI rendering and doesn't have a significant performance impact when not used
-		cmdesc.ScissorEnable = TRUE;
+		// Keep the default depth clipping and scissor settings when only winding changes.
+		cmdesc.DepthClipEnable = !set_raster;
+		cmdesc.ScissorEnable = set_raster;
 
-		if (set_raster) {
+		if (set_raster || cmdesc.FrontCounterClockwise) {
 			m_renderer->get_device()->CreateRasterizerState(&cmdesc, &m_raster_state);
 		}
 		else {

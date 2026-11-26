@@ -21,6 +21,11 @@ namespace rhea
 	{
 		RECLASS(Camera, Item, "//meworla/camera")
 	public:
+		enum class CameraForwardAxis {
+			PositiveZ,
+			NegativeZ
+
+		}; 
 		Camera(std::string name, std::string type_name) :			
 			Item(name, type_name)
 		{}
@@ -29,9 +34,23 @@ namespace rhea
 
 		float getVerticalFovDegrees() const { return m_vertical_fov_degrees; }
 		float getVerticalFOV() const { return m_vertical_fov_degrees * math::degToRad *0.5f; }
+		CameraForwardAxis getForwardAxis() { return m_forward_axis; }
+
+		float getNearClip() const { return m_near_clip; }
+		float getFarClip() const { return m_far_clip; }
+		bool hasFarClip() const { return m_has_far_clip; }
+
+		float getAspectRatio() const { return m_aspect_ratio; }
+		bool hasAspectRatio() const { return m_has_aspect_ratio; }
 
 	private:
 		float m_vertical_fov_degrees = 45.0f;
+		enum class CameraForwardAxis m_forward_axis = CameraForwardAxis::PositiveZ;
+		float m_near_clip = 0.1f;
+		float m_far_clip = 1000.0f;
+		bool m_has_far_clip = false;
+		float m_aspect_ratio = 0.0f;
+		bool m_has_aspect_ratio = false;
 	};
 }
 

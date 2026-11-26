@@ -18,6 +18,7 @@
 #include <Rhea/Animation/Skeleton.h>
 #include <Math/Vector3.h>
 #include <Math/AABB.h>
+#include <Math/Math.h>
 #include <Rhea/Core/SceneDefinitionComponent.h>
 #undef max
 #include <algorithm>
@@ -92,8 +93,8 @@ namespace rhea
 				static_cast<size_t>(node_index) >= m_model.nodes.size())
 				return false;
 
-			const auto& source = m_model.nodes[node_index];			
-
+			const auto& source = m_model.nodes[node_index];
+			
 			// Index ensures unique names even for unnamed/duplicate nodes.
 			std::string base_name = source.name.empty() ? "node_" + std::to_string(node_index) : source.name;
 			// replace invalid characters in base_name with '_'
@@ -117,6 +118,20 @@ namespace rhea
 			node.parent_id = parent_id;
 			node.name = name;
 			node.type_name = "//meworla/item";
+			if (source.camera >= 0 &&
+				static_cast<std::size_t>(source.camera) < m_model.cameras.size()) {
+				const auto& camera = m_model.cameras[source.camera];
+				node.type_name = "//meworla/camera";
+				if (camera.type == "perspective") {
+					node.values["vertical_fov_degrees"] = static_cast<float>(camera.perspective.yfov / math::degToRad);
+					node.values["forward_axis"] = "-z";
+					node.values["near_clip"] = static_cast<float>(camera.perspective.znear);
+					if (camera.perspective.zfar > camera.perspective.znear)
+						node.values["far_clip"] = static_cast<float>(camera.perspective.zfar);
+					if (camera.perspective.aspectRatio > 0.0f)
+						node.values["aspect_ratio"] = static_cast<float>(camera.perspective.aspectRatio);
+				}
+			}
 			if (source.mesh >= 0) {
 				Mesh* mesh = getOrCreateMesh(source.mesh, source.skin);
 				if (!mesh)
@@ -904,6 +919,8 @@ namespace rhea
 			mat->setValue("shader", shader->getPathName());
 
 			// set material values
+
+			mat->setDoubleSided(material.doubleSided);
 
 			// traditional shader - fill as good as possible
 			// pbr to traditional ambient - not implemented

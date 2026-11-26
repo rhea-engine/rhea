@@ -37,10 +37,16 @@ namespace poseidon
 			free(m_mat_buffer_vs);
 	}
 
-	void Material::activate(int mat_buf_register, int mat_buf_register_vs)
-	{		
-		// activate the shader (the pso)
-		m_shader->activate();
+	bool Material::activate(int mat_buf_register, int mat_buf_register_vs, hippios::WindingOrder front_face)
+	{
+		if (!m_shader)
+			return false;
+
+		const auto cull_mode = m_cull_mode_override.value_or(m_shader->getCullMode());
+		auto* pso = m_shader->getOrCreatePipelineState(cull_mode, front_face);
+		if (!pso)
+			return false;
+		m_shader->activate(pso);
 
 		// set the material buffer
 		if (m_material_buffer && mat_buf_register > 0) {
@@ -54,6 +60,7 @@ namespace poseidon
 				m_material_buffer_vs->update(m_mat_buffer_vs);
 			m_grahpics_core->get_renderer()->bindGPUBuffer(m_material_buffer_vs, mat_buf_register_vs, hippios::ShaderStage::Vertex);
 		}
+		return true;
 	}
 
 	void Material::setShader(Shader* shader)
@@ -61,6 +68,11 @@ namespace poseidon
 		if (m_mat_buffer) {
 			free(m_mat_buffer);
 			m_mat_buffer = nullptr;
+		}
+
+		if (m_mat_buffer_vs) {
+			free(m_mat_buffer_vs);
+			m_mat_buffer_vs = nullptr;
 		}
 
 		m_shader = shader;
@@ -98,9 +110,6 @@ namespace poseidon
 			// Add the padding to the original size
 			m_mat_buffer_size_vs += padding;
 
-			if (m_mat_buffer_vs) {
-				free(m_mat_buffer_vs);  // Free if already allocated
-			}
 			m_mat_buffer_vs = static_cast<char*>(malloc(m_mat_buffer_size_vs));
 			if (m_mat_buffer_vs) memset(m_mat_buffer_vs, 0, m_mat_buffer_size_vs);
 			

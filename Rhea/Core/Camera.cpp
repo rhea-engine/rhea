@@ -13,6 +13,27 @@ namespace rhea
 	{
 		Item::setup(app, attributes, values);
 
+		const auto fov = m_values.find("vertical_fov_degrees");
+		if (fov != m_values.end())
+			m_vertical_fov_degrees = static_cast<float>(fov->second);
+
+		const auto forward_axis = m_values.find("forward_axis");
+		if (forward_axis != m_values.end() && m_values["forward_axis"].toString()=="-z")
+			m_forward_axis = CameraForwardAxis::NegativeZ;
+
+		if (m_values.find("near_clip") != m_values.end())
+			m_near_clip = static_cast<float>(m_values["near_clip"]);
+
+		if (m_values.find("far_clip") != m_values.end()) {
+			m_far_clip = static_cast<float>(m_values["far_clip"]);
+			m_has_far_clip = true;
+		}
+
+		if (m_values.find("aspect_ratio") != m_values.end()) {
+			m_aspect_ratio = static_cast<float>(m_values["aspect_ratio"]);
+			m_has_aspect_ratio = true;
+		}
+
 		if (m_values.find("rotation") != m_values.end())
 		{
 			// already handled in Item

@@ -145,6 +145,11 @@ namespace poseidon
 
 		if (!camera)
 			return true; // not an error, just nothing to render for this context
+		const auto front_face = camera->usesReversedWinding()
+			? hippios::WindingOrder::COUNTER_CLOCKWISE
+			: hippios::WindingOrder::CLOCKWISE;
+
+		m_current_material = nullptr;
 
 		// fill per frame buffer
 		per_frame_buf = {};
@@ -318,13 +323,10 @@ namespace poseidon
 					DLOG(LOG_DEBUG) << "FrameRenderer::render: submesh " << i << " has no material - SKIPPING";
 					continue;
 				}				
-				if (mat != m_current_material && mat) {
+				if (mat != m_current_material) {
+					if (!mat->activate(3, 5, front_face))
+						continue;
 					m_current_material = mat;
-					mat->activate(3, 5);
-				}
-				if (!m_current_material) {
-					printf("FrameRenderer::render: No shader found\n");
-					return false;
 				}
 
 				// set texture(s)

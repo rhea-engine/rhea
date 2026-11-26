@@ -16,10 +16,9 @@ namespace poseidon
 		m_name(name),
 		m_shader(nullptr),		
 		m_alpha_blending(false),
-		m_pso(nullptr),
+		m_default_pso(nullptr),
 		m_depth_stencil_state("default"),
 		m_topology_type(TopologyType::TRIANGLE_LIST),
-		m_cull_mode(true),
 		m_matbuf_size(0),
 		m_matbuf_size_vs(0),
 		m_material_buffer(nullptr),
@@ -103,99 +102,104 @@ namespace poseidon
 
 	void Shader::finalize()
 	{
-		if (!m_pso) {
-			//  no compiled shader program, skipping PSO creation
-			if (!m_shader) {
-				LOG(LOG_ERROR) << "Shader::finalize: no compiled shader program, skipping PSO creation";
-				return;
-			}
+		m_default_pso = getOrCreatePipelineState(m_cull_mode, hippios::WindingOrder::CLOCKWISE);
+	}
 
-			hippios::PipelineStateObjectDesc pso_desc;
+	std::unique_ptr<hippios::PipelineStateObject> Shader::createPipelineState(CullMode cull_mode, hippios::WindingOrder front_face)
+	{
+		//  no compiled shader program, skipping PSO creation
+		if (!m_shader) {
+			LOG(LOG_ERROR) << "Shader::finalize: no compiled shader program, skipping PSO creation";
+			return nullptr;
+		}
 
-			// stencil state
-			// start from default preset
-			hippios::DepthStencilStateDesc dsDesc;
-			if (!m_grahpics_core->get_renderer()->getStencilStateDesc("default", dsDesc)) {
-				dsDesc = hippios::DepthStencilStateDesc{};
-			}
+		hippios::PipelineStateObjectDesc pso_desc;
 
-			// apply named preset if present
-			if (!m_depth_stencil_state.empty()) {
-				hippios::DepthStencilStateDesc presetDesc;
-				if (m_grahpics_core->get_renderer()->getStencilStateDesc(m_depth_stencil_state, presetDesc)) {
-					dsDesc = presetDesc;
-				}
-			}
-			pso_desc.depthStencilState = dsDesc;
+		// stencil state
+		// start from default preset
+		hippios::DepthStencilStateDesc dsDesc;
+		if (!m_grahpics_core->get_renderer()->getStencilStateDesc("default", dsDesc)) {
+			dsDesc = hippios::DepthStencilStateDesc{};
+		}
 
-			if (m_has_depth_test_override) {
-				// override depth test enable and write mask based on shader settings, but keep other stencil state settings from the preset
-				pso_desc.depthStencilState.depth_enable = m_depth_test;
-			}
-			if (m_has_depth_write_override) {
-				pso_desc.depthStencilState.depth_write_mask =
-					m_depth_write ? hippios::DepthWriteMask::DEPTH_WRITE_ALL
-					: hippios::DepthWriteMask::DEPTH_WRITE_ZERO;
-			}
-
-			// defaults
-			pso_desc.blendState.renderTarget[0].src_blend = hippios::BlendFactor::BLEND_SRC_ALPHA;//hippios::BlendFactor::BLEND_ONE;
-			pso_desc.blendState.renderTarget[0].dest_blend = hippios::BlendFactor::BLEND_INV_SRC_ALPHA;
-			pso_desc.blendState.renderTarget[0].blend_op = hippios::BlendOp::BLEND_ADD;
-			pso_desc.blendState.renderTarget[0].src_blend_alpha = hippios::BlendFactor::BLEND_ONE;
-			pso_desc.blendState.renderTarget[0].dest_blend_alpha = hippios::BlendFactor::BLEND_ZERO;
-			pso_desc.blendState.renderTarget[0].blend_op_alpha = hippios::BlendOp::BLEND_ADD;
-			pso_desc.blendState.renderTarget[0].render_target_write_mask = 0x0f;
-			if (m_alpha_blending) {
-				pso_desc.blendState.renderTarget[0].blend_enable = true;
-			}
-
-			// cull mode in raster state
-			if (!m_cull_mode)
-				pso_desc.rasterizerState.cull_mode = hippios::CullMode::NONE;
-
-			// topology
-			switch (m_topology_type) {
-			case TopologyType::TRIANGLE_LIST:
-				pso_desc.primitiveTopology = hippios::PrimitiveTopology::TriangleList;
-				break;
-			case TopologyType::LINE_LIST:
-				pso_desc.primitiveTopology = hippios::PrimitiveTopology::LineList;
-				break;
-			case TopologyType::POINT_LIST:
-				pso_desc.primitiveTopology = hippios::PrimitiveTopology::PointList;
-				break;
-			}
-
-			// shader programs
-			pso_desc.shaderProgram = getShaderProgram();			
-
-			std::vector<hippios::InputLayoutElement> native_elements;
-			native_elements.reserve(m_input_layout.size());
-
-			for (const auto& e : m_input_layout) {
-				hippios::InputLayoutElement native{};
-				native.semantic_name = e.semantic.c_str();
-				native.semantic_index = e.semanticIndex;
-				native.location = e.location;
-				native.format = e.format;
-				native.input_slot = e.inputSlot;
-				native.aligned_byte_offset = e.alignedByteOffset;
-				native_elements.push_back(native);
-			}
-
-			pso_desc.inputLayout.elements = native_elements.data();
-			pso_desc.inputLayout.num_elements = (int)native_elements.size();
-			pso_desc.inputLayout.bindings = m_input_bindings.data();
-			pso_desc.inputLayout.num_bindings = (int)m_input_bindings.size();
-
-			// create the state
-			m_pso = m_renderer->createPipelineState(pso_desc);
-
-			if (!m_pso) {
-				LOG(LOG_ERROR) << "Shader::finalize: failed to create pipeline state object";
+		// apply named preset if present
+		if (!m_depth_stencil_state.empty()) {
+			hippios::DepthStencilStateDesc presetDesc;
+			if (m_grahpics_core->get_renderer()->getStencilStateDesc(m_depth_stencil_state, presetDesc)) {
+				dsDesc = presetDesc;
 			}
 		}
+		pso_desc.depthStencilState = dsDesc;
+
+		if (m_has_depth_test_override) {
+			// override depth test enable and write mask based on shader settings, but keep other stencil state settings from the preset
+			pso_desc.depthStencilState.depth_enable = m_depth_test;
+		}
+		if (m_has_depth_write_override) {
+			pso_desc.depthStencilState.depth_write_mask =
+				m_depth_write ? hippios::DepthWriteMask::DEPTH_WRITE_ALL
+				: hippios::DepthWriteMask::DEPTH_WRITE_ZERO;
+		}
+
+		// defaults
+		pso_desc.blendState.renderTarget[0].src_blend = hippios::BlendFactor::BLEND_SRC_ALPHA;//hippios::BlendFactor::BLEND_ONE;
+		pso_desc.blendState.renderTarget[0].dest_blend = hippios::BlendFactor::BLEND_INV_SRC_ALPHA;
+		pso_desc.blendState.renderTarget[0].blend_op = hippios::BlendOp::BLEND_ADD;
+		pso_desc.blendState.renderTarget[0].src_blend_alpha = hippios::BlendFactor::BLEND_ONE;
+		pso_desc.blendState.renderTarget[0].dest_blend_alpha = hippios::BlendFactor::BLEND_ZERO;
+		pso_desc.blendState.renderTarget[0].blend_op_alpha = hippios::BlendOp::BLEND_ADD;
+		pso_desc.blendState.renderTarget[0].render_target_write_mask = 0x0f;
+		if (m_alpha_blending) {
+			pso_desc.blendState.renderTarget[0].blend_enable = true;
+		}
+
+		// front face winding order
+		pso_desc.rasterizerState.front_face = front_face;
+
+		// cull mode in raster state
+		if (cull_mode == CullMode::NONE)
+			pso_desc.rasterizerState.cull_mode = hippios::CullMode::NONE;
+		else if (cull_mode == CullMode::FRONT)
+			pso_desc.rasterizerState.cull_mode = hippios::CullMode::FRONT;
+		else
+			pso_desc.rasterizerState.cull_mode = hippios::CullMode::BACK;
+
+		// topology
+		switch (m_topology_type) {
+		case TopologyType::TRIANGLE_LIST:
+			pso_desc.primitiveTopology = hippios::PrimitiveTopology::TriangleList;
+			break;
+		case TopologyType::LINE_LIST:
+			pso_desc.primitiveTopology = hippios::PrimitiveTopology::LineList;
+			break;
+		case TopologyType::POINT_LIST:
+			pso_desc.primitiveTopology = hippios::PrimitiveTopology::PointList;
+			break;
+		}
+
+		// shader programs
+		pso_desc.shaderProgram = getShaderProgram();
+
+		std::vector<hippios::InputLayoutElement> native_elements;
+		native_elements.reserve(m_input_layout.size());
+
+		for (const auto& e : m_input_layout) {
+			hippios::InputLayoutElement native{};
+			native.semantic_name = e.semantic.c_str();
+			native.semantic_index = e.semanticIndex;
+			native.location = e.location;
+			native.format = e.format;
+			native.input_slot = e.inputSlot;
+			native.aligned_byte_offset = e.alignedByteOffset;
+			native_elements.push_back(native);
+		}
+
+		pso_desc.inputLayout.elements = native_elements.data();
+		pso_desc.inputLayout.num_elements = (int)native_elements.size();
+		pso_desc.inputLayout.bindings = m_input_bindings.data();
+		pso_desc.inputLayout.num_bindings = (int)m_input_bindings.size();
+
+		return m_grahpics_core->get_renderer()->createPipelineState(pso_desc);
 	}
 
 	void Shader::setMatBufLayout(std::vector<MatBufferLayoutElement>& layout)
@@ -220,17 +224,26 @@ namespace poseidon
 		}
 	}
 	
-	void Shader::activate()
+	void Shader::activate(hippios::PipelineStateObject* pipeline_state)
 	{
-		if (!m_pso) {
+		auto* pso = pipeline_state ? pipeline_state : m_default_pso;
+		if (!pso) {
 			if (!m_activate_error_logged) {
 				LOG(LOG_ERROR) << "Shader::activate: no valid pipeline state, skipping activation";
 				m_activate_error_logged = true;
 			}
 			return;
 		}
-		m_grahpics_core->get_renderer()->setPipelineState(m_pso.get());
+		m_grahpics_core->get_renderer()->setPipelineState(pso);
 		m_grahpics_core->get_renderer()->setSampler(0, m_sampler_state, hippios::ShaderStage::Fragment);
 	}
 
+	hippios::PipelineStateObject* Shader::getOrCreatePipelineState(Shader::CullMode cull_mode, hippios::WindingOrder front_face)
+	{
+		auto& pipeline_state = m_pipeline_states.at(static_cast<std::size_t>(cull_mode)).at(static_cast<std::size_t>(front_face));
+		if (!pipeline_state)
+			pipeline_state = createPipelineState(cull_mode, front_face);
+
+		return pipeline_state.get();
+	}
 }

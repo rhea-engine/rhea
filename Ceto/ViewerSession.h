@@ -41,7 +41,7 @@ public:
     rhea::Camera* getSelectedCamera() const;
     rhea::AnimationComponent* getSelectedAnimationTarget() const;
 
-    bool selectCamera(rhea::Camera* camera);
+    bool selectCamera(int cam_index);
     bool selectAnimationTarget(rhea::AnimationComponent* target);
 
     using ChangedHandler = std::function<void(Mode)>;
